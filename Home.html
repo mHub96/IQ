@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>الخفراء اليوم · Duty Roster 🇮🇶</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <link rel="stylesheet" href="./nav-component.css" />
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            direction: rtl;
+            text-align: right;
+            min-height: 100vh;
+            padding: 0;
+            transition: background 0.6s ease, color 0.4s ease;
+            overflow-x: hidden;
+            background: #d1d9e6;
+            color: #1a2332;
+        }
+        body.dark {
+            background: #0b0e12;
+            color: #e8edf5;
+        }
+
+        .glass-card {
+            border-radius: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        body:not(.dark) .glass-card {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+        }
+        body.dark .glass-card {
+            background: rgba(16, 22, 34, 0.84);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(212, 175, 55, 0.12);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Hospital Header */
+        .hospital-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 0.55rem;
+            padding: 1.25rem 0 1.1rem;
+            margin: 0.3rem 0 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .hospital-header::before {
+            content: '';
+            position: absolute;
+            right: 15%;
+            bottom: 0;
+            left: 15%;
+            height: 1px;
+            background: rgba(16, 185, 129, 0.32);
+        }
+        .hospital-mark {
+            width: 5rem;
+            height: 5rem;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            font-size: 2rem;
+            color: #ffffff;
+            background: #0f766e;
+            box-shadow: 0 0 0 8px rgba(15, 118, 110, 0.1), 0 12px 26px rgba(15, 118, 110, 0.24);
+            transition: background 0.6s ease, box-shadow 0.6s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+        body.dark .hospital-mark {
+            background: #d4af37;
+            color: #0b0e12;
+            box-shadow: 0 0 0 8px rgba(212, 175, 55, 0.15), 0 12px 26px rgba(212, 175, 55, 0.25);
+        }
+
+        .hospital-title {
+            font-family: 'Playfair Display', 'IBM Plex Sans Arabic', serif;
+            font-size: 2.8rem;
+            font-weight: 900;
+            line-height: 1.15;
+            color: #172554;
+        }
+        body.dark .hospital-title {
+            color: #f8fafc;
+        }
+        .hospital-subtitle {
+            color: #64748b;
+            font-family: 'JetBrains Mono', 'IBM Plex Sans Arabic', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        body.dark .hospital-subtitle {
+            color: #a8b3c9;
+        }
+
+        /* Top Action Buttons Bar */
+        .top-action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.8rem;
+            flex-wrap: wrap;
+        }
+        .top-action-btn {
+            border-radius: 1.2rem;
+            padding: 0.5rem 1.2rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid;
+            background: #4f46e5;
+            border-color: #4338ca;
+            color: white;
+        }
+        .top-action-btn.leader {
+            background: #d97706;
+            border-color: #b45309;
+            color: white;
+        }
+        body.dark .top-action-btn.leader {
+            background: rgba(217, 119, 6, 0.15);
+            border-color: rgba(217, 119, 6, 0.2);
+            color: #fcd34d;
+        }
+        .top-action-btn.report {
+            background: #2563eb;
+            border-color: #1d4ed8;
+            color: white;
+        }
+        body.dark .top-action-btn.report {
+            background: rgba(37, 99, 235, 0.15);
+            border-color: rgba(37, 99, 235, 0.2);
+            color: #93c5fd;
+        }
+        .top-action-btn.reset {
+            background: #dc2626;
+            border-color: #b91c1c;
+            color: white;
+        }
+        body.dark .top-action-btn.reset {
+            background: rgba(220, 38, 38, 0.15);
+            border-color: rgba(220, 38, 38, 0.2);
+            color: #fca5a5;
+        }
+
+        .counter-badge {
+            font-size: 0.7rem;
+            padding: 0.35rem 1rem;
+            border-radius: 100px;
+            font-weight: 700;
+            display: inline-block;
+            border: 1px solid;
+            background: #dbeafe;
+            color: #1e40af;
+            border-color: #bfdbfe;
+        }
+        body.dark .counter-badge {
+            background: rgba(212, 175, 55, 0.12);
+            color: #d4af37;
+            border-color: rgba(212, 175, 55, 0.15);
+        }
+
+        /* Roster Grid */
+        .roster-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            padding: 0.2rem 0;
+        }
+        .roster-card-wrapper {
+            max-width: 480px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .roster-card {
+            border-radius: 1.5rem;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(200, 210, 220, 0.3);
+            box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.05), -8px -8px 18px rgba(255, 255, 255, 0.8);
+            min-height: 168px;
+            width: 100%;
+        }
+        body.dark .roster-card {
+            background: rgba(12, 18, 30, 0.92);
+            border-color: rgba(212, 175, 55, 0.08);
+            box-shadow: 12px 12px 28px rgba(0, 0, 0, 0.7), -10px -10px 24px rgba(255, 255, 255, 0.02);
+        }
+
+        .roster-card .card-body {
+            padding: 1rem 1.25rem;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 0.2rem;
+            position: relative;
+        }
+
+        .roster-card .resident-name {
+            font-weight: 800;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            line-height: 1.3;
+            color: #1a2332;
+        }
+        body.dark .roster-card .resident-name {
+            color: #f0f3f8;
+        }
+
+        .roster-card .resident-phone {
+            font-size: 0.85rem;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            direction: ltr;
+            opacity: 0.55;
+            letter-spacing: 0.05em;
+        }
+
+        .specialty-bubbles {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            column-gap: 0.55rem;
+            row-gap: 0.55rem;
+            justify-content: center;
+            margin-top: 0.2rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .specialty-flip {
+            display: inline-grid;
+            border: none;
+            padding: 0;
+            background: transparent;
+            cursor: pointer;
+            perspective: 700px;
+            position: relative;
+            touch-action: manipulation;
+            transition: transform 0.2s ease, width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .specialty-bubble {
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 0.2rem 0.75rem;
+            border-radius: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid;
+            line-height: 1.4;
+            height: 1.8rem;
+            white-space: nowrap;
+            background: #dbeafe;
+            color: #1e40af;
+            border-color: #bfdbfe;
+            backface-visibility: hidden;
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        body.dark .specialty-bubble {
+            background: rgba(212, 175, 55, 0.06);
+            border-color: rgba(212, 175, 55, 0.2);
+            color: #d4af37;
+        }
+
+        .specialty-back {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            transform: rotateY(180deg);
+            font-family: 'JetBrains Mono', monospace;
+            direction: ltr;
+            color: #10b981;
+            border-radius: inherit;
+            padding: 0.2rem 0.75rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid #10b981;
+            backface-visibility: hidden;
+        }
+
+        .specialty-flip.flipped .specialty-front { transform: rotateY(-180deg); }
+        .specialty-flip.flipped .specialty-back { transform: rotateY(0); }
+
+        .specialty-timer-label {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            font-size: 0.65rem;
+            direction: rtl;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.6rem;
+            width: 100%;
+            justify-content: center;
+            margin-top: 0.6rem;
+        }
+
+        .action-btn-sm {
+            padding: 0.45rem 1rem;
+            border-radius: 0.8rem;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.72rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            flex: 1;
+            max-width: 130px;
+            justify-content: center;
+            border: 1px solid transparent;
+        }
+        body:not(.dark) .action-btn-sm {
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.05);
+            border-color: rgba(0, 0, 0, 0.08);
+        }
+        body.dark .action-btn-sm {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.04);
+        }
+        .action-btn-sm.call { color: #2563eb; }
+        body.dark .action-btn-sm.call { color: #60a5fa; }
+        .action-btn-sm.wa { color: #059669; }
+        body.dark .action-btn-sm.wa { color: #34d399; }
+        .action-btn-sm:hover { transform: translateY(-2px); }
+
+        .card-status {
+            position: absolute;
+            top: 0.8rem;
+            left: 0.8rem;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Trending Panel */
+        .trending-panel {
+            background: rgba(251, 191, 36, 0.08);
+            border: 1.5px solid rgba(251, 191, 36, 0.3);
+            border-radius: 1.4rem;
+            padding: 0.9rem 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 480px;
+            margin: 0 auto 0.8rem;
+        }
+        .trending-panel:hover {
+            background: rgba(251, 191, 36, 0.15);
+            transform: scale(1.01);
+        }
+        .trending-badge-btn {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #1e293b;
+            font-weight: 800;
+            font-size: 0.72rem;
+            padding: 0.2rem 0.65rem;
+            border-radius: 999px;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Modals & Dialogs */
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(14px);
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            padding: 1.5rem;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-card {
+            max-width: 540px;
+            width: 100%;
+            border-radius: 2rem;
+            padding: 1.8rem;
+            background: #ffffff;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+        }
+        body.dark .modal-card {
+            background: #141c2a;
+            border: 1px solid rgba(212, 175, 55, 0.15);
+        }
+
+        /* Fireworks Canvas */
+        #fireworks-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        #fireworks-container canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.4rem;
+            margin-bottom: 0.8rem;
+            border-bottom: 1px solid rgba(128,128,128,0.1);
+            padding-bottom: 0.4rem;
+        }
+        .filter-tab {
+            padding: 0.25rem 0.8rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 1px solid rgba(128,128,128,0.2);
+            background: transparent;
+            cursor: pointer;
+            color: #64748b;
+        }
+        .filter-tab.active {
+            background: #d4af37;
+            color: #0b0e12;
+            border-color: #d4af37;
+        }
+
+        .footer-credit {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-top: 2rem;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body class="light" id="app-body">
+
+    <!-- Universal Navigation Component -->
+    <div id="universal-nav"></div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" style="position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:100000;display:flex;flex-direction:column;gap:8px;pointer-events:none;width:90%;max-width:440px;"></div>
+
+    <div class="max-w-2xl mx-auto px-4 py-4 relative z-10">
+        <!-- Top Actions Bar -->
+        <div class="top-action-bar">
+            <span id="count-tag" class="counter-badge">
+                <i class="fas fa-users mr-1"></i> جاري التحميل...
+            </span>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="showTrendingModal()" class="top-action-btn leader">
+                    <i class="fas fa-trophy"></i> المتصدرين
+                </button>
+                <button type="button" onclick="generateAndCopyReport()" id="report-btn" class="top-action-btn report">
+                    <i class="fas fa-file-alt"></i> تقرير الخفر
+                </button>
+                <button type="button" id="admin-reset-btn" onclick="showResetModal()" class="top-action-btn reset" style="display:none;">
+                    <i class="fas fa-sync-alt"></i> تصفير
+                </button>
+            </div>
+        </div>
+
+        <!-- Hospital Header -->
+        <header class="hospital-header">
+            <div class="hospital-mark" id="hospital-symbol" aria-hidden="true">
+                <i class="fas fa-hospital"></i>
+            </div>
+            <div>
+                <div class="text-xs font-mono text-slate-400 font-bold uppercase tracking-wider" id="hosp-location-display">Basra · Iraq</div>
+                <h1 id="hospital-name-display" class="hospital-title">المستشفى التعليمي</h1>
+                <p class="hospital-subtitle" id="hosp-subtitle-display">On-Call Residents · Duty Roster</p>
+            </div>
+            <div class="w-full max-w-[29rem] mt-2 text-center">
+                <span id="current-time-display" class="text-xs font-bold opacity-60"></span>
+            </div>
+        </header>
+
+        <!-- Trending Highlight Panel -->
+        <div id="trending-container"></div>
+
+        <!-- On-Call Roster Grid -->
+        <div id="roster-container" class="roster-grid"></div>
+
+        <footer class="footer-credit">
+            All rights reserved for Dr. Mohammed Riyadh · Hospital Main Hub
+        </footer>
+    </div>
+
+    <!-- LEADERBOARD MODAL -->
+    <div id="trending-modal" class="modal-overlay" onclick="if(event.target===this) closeTrendingModal()">
+        <div class="modal-card glass-card">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-xl font-black flex items-center gap-2 text-slate-800 dark:text-white">
+                    <i class="fas fa-trophy text-amber-500"></i> لوحة المتصدرين
+                </h3>
+                <button type="button" onclick="closeTrendingModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="today" onclick="switchLeaderboardFilter('today')">اليوم</button>
+                <button class="filter-tab" data-filter="month" onclick="switchLeaderboardFilter('month')">هذا الشهر</button>
+                <button class="filter-tab" data-filter="all" onclick="switchLeaderboardFilter('all')">الكل</button>
+            </div>
+            <div id="trending-content" class="space-y-2 mt-2 max-h-96 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- RESET STATISTICS MODAL (Admin Only) -->
+    <div id="reset-modal" class="modal-overlay" onclick="if(event.target===this) closeResetModal()">
+        <div class="modal-card glass-card" style="max-width:400px;">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-lg font-black flex items-center gap-2 text-red-500">
+                    <i class="fas fa-sync-alt"></i> إعادة ضبط التفاعلات
+                </h3>
+                <button type="button" onclick="closeResetModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">اختر النطاق الزمني لتصفير عدد المشاهدات والتفاعلات:</p>
+            <div class="space-y-2 mb-4">
+                <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 cursor-pointer text-sm">
+                    <input type="radio" name="reset-range" value="today" checked class="accent-red-500" /> تصفير اليوم فقط
+                </label>
+                <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 cursor-pointer text-sm">
+                    <input type="radio" name="reset-range" value="month" class="accent-red-500" /> تصفير الشهر الحالي
+                </label>
+                <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 cursor-pointer text-sm">
+                    <input type="radio" name="reset-range" value="all" class="accent-red-500" /> تصفير الكل (All Time)
+                </label>
+            </div>
+            <button type="button" onclick="executeReset()" class="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-lg shadow-red-600/30">
+                تأكيد التصفير
+            </button>
+        </div>
+    </div>
+
+    <!-- Fireworks Overlay Container -->
+    <div id="fireworks-container"></div>
+
+    <!-- Core Scripts -->
+    <script src="./hub-core.js"></script>
+    <script src="./nav-component.js"></script>
+    <script>
+        // ============================================================
+        // ROSTER CONTROLLER (Iraqi Teaching Hospital Mechanics)
+        // ============================================================
+        const TOTAL_MINUTES = 24 * 60;
+        let currentHospital = null;
+        let updateInterval = null;
+        let countdownInterval = null;
+        let currentLeaderboardFilter = 'today';
+        let clickCooldown = {};
+
+        function showToast(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+            toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('show'));
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, duration);
+        }
+
+        async function initRoster() {
+            initUniversalNav('roster');
+
+            try {
+                await Hub.loadDatabase();
+                currentHospital = Hub.getActiveHospital();
+                if (!currentHospital) {
+                    showToast('لم يتم العثور على بيانات المستشفى', 'error');
+                    return;
+                }
+
+                applyHospitalHeader();
+                renderRoster();
+                renderTrending();
+
+                // Admin Reset Button Visibility
+                const resetBtn = document.getElementById('admin-reset-btn');
+                if (resetBtn) {
+                    resetBtn.style.display = Hub.auth.isAdmin() ? 'inline-flex' : 'none';
+                }
+
+                // Intervals
+                if (updateInterval) clearInterval(updateInterval);
+                if (countdownInterval) clearInterval(countdownInterval);
+                updateInterval = setInterval(() => { renderRoster(); renderTrending(); }, 30000);
+                countdownInterval = setInterval(() => { updateCountdowns(); }, 1000);
+
+            } catch (err) {
+                console.error("Init roster error:", err);
+                showToast("تعذر تحميل جدول الخفراء", "error");
+            }
+        }
+
+        function applyHospitalHeader() {
+            if (!currentHospital) return;
+            document.title = `${currentHospital.name_ar || currentHospital.hospitalName} · الخفراء اليوم`;
+            document.getElementById('hospital-name-display').textContent = currentHospital.name_ar || currentHospital.hospitalName;
+            document.getElementById('hosp-location-display').textContent = currentHospital.location || 'Basra · Iraq';
+            
+            const mark = document.getElementById('hospital-symbol');
+            if (mark) {
+                mark.innerHTML = `<i class="fas ${currentHospital.icon || 'fa-hospital'}"></i>`;
+                if (currentHospital.color) mark.style.backgroundColor = currentHospital.color;
+            }
+        }
+
+        function getCurrentResidentForSpecialty(specCode) {
+            if (!currentHospital) return null;
+            const targetDate = Hub.getMedicalDate();
+            const currentMin = Hub.getCurrentMedicalMinutes();
+            const todayEntries = (currentHospital.schedule || []).filter(s => s.date === targetDate && s.specCode === specCode);
+            if (todayEntries.length === 0) return null;
+
+            for (const entry of todayEntries) {
+                let timeData = { start: 0, end: TOTAL_MINUTES };
+                if (entry.dutyTime) {
+                    const parsed = parseDutyTime(entry.dutyTime);
+                    if (parsed) timeData = parsed;
+                } else if (todayEntries.length > 1) {
+                    const slotIdx = entry.dutySlot || 0;
+                    const slotDuration = TOTAL_MINUTES / todayEntries.length;
+                    timeData = { start: slotIdx * slotDuration, end: (slotIdx + 1) * slotDuration };
+                }
+
+                let start = timeData.start;
+                let end = timeData.end;
+                if (end <= start) {
+                    if (currentMin >= start || currentMin < end) return entry;
+                } else {
+                    if (currentMin >= start && currentMin < end) return entry;
+                }
+            }
+            return null;
+        }
+
+        function parseDutyTime(str) {
+            if (!str) return null;
+            const parts = str.split('-');
+            if (parts.length !== 2) return null;
+            return { start: parseTimeString(parts[0].trim()), end: parseTimeString(parts[1].trim()) };
+        }
+
+        function parseTimeString(tStr) {
+            const m = tStr.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+            if (!m) return 0;
+            let hrs = parseInt(m[1]);
+            const mins = parseInt(m[2]);
+            const ampm = m[3] ? m[3].toUpperCase() : '';
+            if (ampm === 'PM' && hrs < 12) hrs += 12;
+            if (ampm === 'AM' && hrs === 12) hrs = 0;
+            if (hrs < 8) hrs += 24;
+            return (hrs - 8) * 60 + mins;
+        }
+
+        function getAllCurrentResidents() {
+            if (!currentHospital) return [];
+            const resultMap = {};
+            const today = Hub.getMedicalDate();
+            const allSpecs = new Set();
+
+            (currentHospital.schedule || []).forEach(s => { if (s.date === today) allSpecs.add(s.specCode); });
+            (currentHospital.specialties || []).forEach(spec => {
+                if (spec.enabled !== false) {
+                    const has = (currentHospital.schedule || []).some(s => s.specCode === spec.id && s.date === today);
+                    if (has) allSpecs.add(spec.id);
+                }
+            });
+
+            for (const specCode of allSpecs) {
+                const resident = getCurrentResidentForSpecialty(specCode);
+                if (resident) {
+                    const key = resident.name;
+                    const currentMin = Hub.getCurrentMedicalMinutes();
+                    let remainingMinutes = TOTAL_MINUTES - currentMin;
+
+                    if (!resultMap[key]) {
+                        const phone = currentHospital.names.find(n => n.name === resident.name)?.phone || "رقم غير متوفر";
+                        const visitEntries = (currentHospital.schedule || []).filter(s => s.date === today && s.name === resident.name);
+                        const totalVisits = visitEntries.reduce((sum, e) => sum + (e.VisitCount || 0), 0);
+
+                        resultMap[key] = {
+                            name: resident.name,
+                            phone: phone,
+                            specs: [],
+                            remainingMinutes: remainingMinutes,
+                            criticalSpecCode: specCode,
+                            visitCount: totalVisits
+                        };
+                    }
+
+                    const specObj = (currentHospital.specialties || []).find(s => s.id === specCode);
+                    const specName = specObj?.name_ar || specCode;
+                    const specIcon = specObj?.icon || '🏥';
+
+                    resultMap[key].specs.push({
+                        code: specCode,
+                        name: specName,
+                        icon: specIcon,
+                        endMin: TOTAL_MINUTES,
+                        remainingMinutes: remainingMinutes
+                    });
+                }
+            }
+
+            return Object.values(resultMap);
+        }
+
+        function renderRoster() {
+            const container = document.getElementById('roster-container');
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('current-time-display').textContent = `⏰ الوقت الحالي: ${timeStr} · التاريخ الطبي: ${Hub.getMedicalDate()}`;
+
+            const currentResidents = getAllCurrentResidents();
+            const totalResidents = (currentHospital?.names || []).length;
+            const activeCount = (currentHospital?.names || []).filter(n => n.spec !== "RESERVE" && n.active !== false).length;
+
+            document.getElementById('count-tag').innerHTML = `
+                <i class="fas fa-users mr-1"></i> ${totalResidents} مسجل · ${activeCount} نشط · ${currentResidents.length} في الخدمة الآن
+            `;
+
+            if (currentResidents.length === 0) {
+                container.innerHTML = `
+                    <div class="glass-card p-8 text-center" style="max-width:480px;margin:0 auto;">
+                        <div style="font-size:2.5rem;margin-bottom:8px;">🕐</div>
+                        <div class="font-bold text-slate-500 dark:text-slate-400">لا يوجد مقيمين في الخدمة حالياً اليوم</div>
+                        <div class="text-xs text-slate-400 mt-2">يمكنك تسجيل الخفر بالضغط على زر "تسجيل خفر" في القائمة العلوية</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const today = Hub.getMedicalDate();
+            container.innerHTML = currentResidents.map(resident => {
+                const isPhoneValid = resident.phone && resident.phone !== "رقم غير متوفر" && resident.phone.length > 5;
+                const phoneClean = isPhoneValid ? resident.phone.replace(/[^0-9]/g, '') : '';
+                const hours = Math.floor(resident.remainingMinutes / 60);
+                const minutes = Math.floor(resident.remainingMinutes % 60);
+
+                const specialtyBubbles = resident.specs.map(spec => `
+                    <button type="button" class="specialty-flip" data-end-min="${spec.endMin}" onclick="toggleSpecialtyTimer(this)">
+                        <span class="specialty-bubble specialty-front">${spec.icon} ${spec.name}</span>
+                        <span class="specialty-bubble specialty-back">
+                            <span class="specialty-timer-label">المتبقي</span>
+                            <span class="countdown-timer font-mono font-bold" data-end-min="${spec.endMin}">
+                                ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}
+                            </span>
+                        </span>
+                    </button>
+                `).join('');
+
+                return `
+                    <div class="roster-card-wrapper">
+                        <div class="roster-card" data-end-min="${TOTAL_MINUTES}">
+                            <div class="card-body">
+                                <span class="card-status"><i class="fas fa-eye"></i> ${resident.visitCount}</span>
+                                <div class="specialty-bubbles">${specialtyBubbles}</div>
+                                <div class="resident-name">${resident.name}</div>
+                                <div class="resident-phone">${resident.phone}</div>
+                                
+                                <div class="card-actions">
+                                    <a href="${isPhoneValid ? 'whatsapp://send?phone=' + phoneClean : '#'}" 
+                                       class="action-btn-sm wa ${!isPhoneValid ? 'opacity-40 pointer-events-none' : ''}"
+                                       onclick="${isPhoneValid ? `trackResidentContact('${resident.name}');` : ''}">
+                                        <i class="fab fa-whatsapp"></i> واتساب
+                                    </a>
+                                    <a href="${isPhoneValid ? 'tel:' + phoneClean : '#'}" 
+                                       class="action-btn-sm call ${!isPhoneValid ? 'opacity-40 pointer-events-none' : ''}"
+                                       onclick="${isPhoneValid ? `trackResidentContact('${resident.name}');` : ''}">
+                                        <i class="fas fa-phone"></i> اتصال
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleSpecialtyTimer(btn) {
+            btn.classList.toggle('flipped');
+            setTimeout(() => {
+                btn.classList.remove('flipped');
+            }, 3000);
+        }
+
+        function updateCountdowns() {
+            const currentMin = Hub.getCurrentMedicalMinutes();
+            const remaining = Math.max(0, TOTAL_MINUTES - currentMin);
+            const hours = Math.floor(remaining / 60);
+            const minutes = Math.floor(remaining % 60);
+            const formatted = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+
+            document.querySelectorAll('.countdown-timer').forEach(el => {
+                el.textContent = formatted;
+            });
+        }
+
+        async function trackResidentContact(name) {
+            if (!currentHospital) return;
+            const resCount = await Hub.incrementVisitCount(currentHospital.id, name);
+            showToast(`✅ تم تسجيل تفاعل مع ${name}`, 'success', 2000);
+            renderRoster();
+            renderTrending();
+        }
+
+        // Trending & Leaderboard
+        function getTrendingResidentForToday() {
+            if (!currentHospital) return null;
+            const today = Hub.getMedicalDate();
+            const todayEntries = (currentHospital.schedule || []).filter(s => s.date === today && s.VisitCount > 0);
+            if (todayEntries.length === 0) return null;
+
+            todayEntries.sort((a, b) => (b.VisitCount || 0) - (a.VisitCount || 0));
+            return todayEntries[0];
+        }
+
+        function renderTrending() {
+            const container = document.getElementById('trending-container');
+            const trending = getTrendingResidentForToday();
+            if (trending) {
+                const specObj = (currentHospital?.specialties || []).find(s => s.id === trending.specCode);
+                container.innerHTML = `
+                    <div class="trending-panel" onclick="showTrendingModal()">
+                        <div class="flex items-center gap-2">
+                            <span class="trending-badge-btn"><i class="fas fa-crown"></i> متصدر اليوم</span>
+                            <span class="font-bold text-slate-700 dark:text-slate-200 text-sm">${trending.name}</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400 font-bold">
+                            <span>${specObj?.icon || '🏥'} ${specObj?.name_ar || trending.specCode}</span>
+                            <span>• <i class="fas fa-eye"></i> ${trending.VisitCount}</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = '';
+            }
+        }
+
+        function showTrendingModal() {
+            document.getElementById('trending-modal').classList.add('active');
+            switchLeaderboardFilter('today');
+        }
+
+        function closeTrendingModal() {
+            document.getElementById('trending-modal').classList.remove('active');
+        }
+
+        function switchLeaderboardFilter(filter) {
+            currentLeaderboardFilter = filter;
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.toggle('active', t.dataset.filter === filter));
+            
+            const content = document.getElementById('trending-content');
+            if (!currentHospital) return;
+
+            const today = Hub.getMedicalDate();
+            const now = new Date();
+            const monthStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+            let entries = (currentHospital.schedule || []).filter(s => s.VisitCount && s.VisitCount > 0);
+            if (filter === 'today') {
+                entries = entries.filter(s => s.date === today);
+            } else if (filter === 'month') {
+                entries = entries.filter(s => {
+                    const p = s.date.split('/');
+                    return p.length === 3 && `${p[1]}/${p[2]}` === monthStr;
+                });
+            }
+
+            const agg = {};
+            entries.forEach(e => {
+                if (!agg[e.name]) agg[e.name] = { name: e.name, specCode: e.specCode, totalVisits: 0 };
+                agg[e.name].totalVisits += (e.VisitCount || 0);
+            });
+
+            const sorted = Object.values(agg).sort((a, b) => b.totalVisits - a.totalVisits);
+
+            if (sorted.length === 0) {
+                content.innerHTML = '<div class="text-center py-6 text-slate-400 text-sm">لا توجد تفاعلات مسجلة في هذا النطاق بعد.</div>';
+                return;
+            }
+
+            content.innerHTML = sorted.map((item, idx) => {
+                const specObj = (currentHospital?.specialties || []).find(s => s.id === item.specCode);
+                return `
+                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center gap-3">
+                            <span class="font-mono font-black text-sm w-6 text-slate-400">#${idx + 1}</span>
+                            <div>
+                                <div class="font-bold text-sm text-slate-800 dark:text-slate-200">${item.name}</div>
+                                <div class="text-xs text-slate-500">${specObj?.icon || '🏥'} ${specObj?.name_ar || item.specCode}</div>
+                            </div>
+                        </div>
+                        <span class="font-mono font-black text-amber-500 text-sm"><i class="fas fa-eye text-xs"></i> ${item.totalVisits}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Reset Modal
+        function showResetModal() {
+            if (!Hub.auth.isAdmin()) {
+                showToast('يتطلب صلاحيات المدير', 'error');
+                return;
+            }
+            document.getElementById('reset-modal').classList.add('active');
+        }
+
+        function closeResetModal() {
+            document.getElementById('reset-modal').classList.remove('active');
+        }
+
+        async function executeReset() {
+            const range = document.querySelector('input[name="reset-range"]:checked')?.value || 'today';
+            try {
+                await Hub.resetStatistics(currentHospital.id, range);
+                closeResetModal();
+                showToast('تمت إعادة ضبط التفاعلات بنجاح', 'success');
+                renderRoster();
+                renderTrending();
+            } catch (err) {
+                showToast(err.message || 'فشل التصفير', 'error');
+            }
+        }
+
+        // Report Generator
+        function generateAndCopyReport() {
+            const currentResidents = getAllCurrentResidents();
+            if (currentResidents.length === 0) {
+                showToast('لا يوجد مقيمين في الخدمة حالياً للتقرير', 'info');
+                return;
+            }
+
+            const hospName = currentHospital.name_ar || currentHospital.hospitalName;
+            const hospLoc = currentHospital.location || 'Basra · Iraq';
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+            let report = `🏥 *جدول المقيمين الخفراء في الخدمة*\n`;
+            report += `📍 *${hospName}* (${hospLoc})\n`;
+            report += `📅 *التاريخ:* ${Hub.getMedicalDate()}\n`;
+            report += `⏰ *الوقت:* ${timeStr}\n`;
+            report += `┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n`;
+
+            currentResidents.forEach(res => {
+                const specs = res.specs.map(s => `${s.icon} ${s.name}`).join(' + ');
+                report += `🩺 *${specs}*\n`;
+                report += `👨‍⚕️ *${res.name}*\n`;
+                report += `☎️ _${res.phone}_\n\n`;
+            });
+
+            report += `┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n`;
+            report += `تم التوليد عبر: بوابة المستشفيات التعليمية 🇮🇶\n`;
+            report += `🔗 https://mhub96.github.io/IQ/Home.html\n`;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(report).then(() => {
+                    showToast('✅ تم نسخ التقرير بنجاح إلى الحافظة!', 'success');
+                }).catch(() => fallbackCopy(report));
+            } else {
+                fallbackCopy(report);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showToast('✅ تم نسخ التقرير بنجاح!', 'success');
+        }
+
+        window.addEventListener('DOMContentLoaded', initRoster);
+    </script>
+</body>
+</html>
+

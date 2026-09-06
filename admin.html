@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>إدارة المستشفى والمقيمين · Hospital Main Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="./nav-component.css" />
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            direction: rtl;
+            text-align: right;
+            min-height: 100vh;
+            background: #f2f6fc;
+            color: #1a2332;
+            transition: background 0.4s ease, color 0.4s ease;
+            overflow-x: hidden;
+        }
+
+        body.dark {
+            background: #0b0e12;
+            color: #e8edf5;
+        }
+
+        body.dark::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.08;
+            background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.25'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-size: 120px 120px;
+        }
+
+        .glass-card {
+            border-radius: 1.5rem;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+        body:not(.dark) .glass-card {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+        }
+        body.dark .glass-card {
+            background: rgba(16, 22, 34, 0.84);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(212, 175, 55, 0.12);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+
+        .btn-gradient {
+            border: none;
+            font-weight: 700;
+            padding: 0.75rem 1.6rem;
+            border-radius: 1.1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            color: white;
+            box-shadow: 0 6px 20px rgba(15, 118, 110, 0.25);
+            font-size: 0.85rem;
+        }
+        body.dark .btn-gradient {
+            background: linear-gradient(135deg, #d4af37, #b8942e);
+            color: #0b0e12;
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.2);
+        }
+        .btn-gradient:hover { transform: translateY(-2px); }
+
+        .btn-ghost {
+            border-radius: 1.1rem;
+            padding: 0.6rem 1.2rem;
+            font-weight: 700;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 1px solid #cbd5e1;
+            background: transparent;
+            color: #475569;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        body.dark .btn-ghost {
+            border-color: rgba(212, 175, 55, 0.15);
+            color: #e2e8f0;
+        }
+        .btn-ghost:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        body.dark .btn-ghost:hover {
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .input-field {
+            border-radius: 1rem;
+            padding: 0.75rem 1.2rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            width: 100%;
+            border: 1.5px solid #cbd5e1;
+            background: rgba(255, 255, 255, 0.9);
+            color: #1a2332;
+            outline: none;
+            font-size: 0.9rem;
+        }
+        body.dark .input-field {
+            background: rgba(10, 14, 24, 0.9);
+            border-color: #2a3346;
+            color: #f0f3f8;
+        }
+        .input-field:focus {
+            border-color: #0f766e;
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+        }
+        body.dark .input-field:focus {
+            border-color: #d4af37;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+        }
+
+        /* Specialty Accordion & Header */
+        .spec-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 1.2rem;
+            border-radius: 1.2rem;
+            margin: 0.35rem 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid #e2e8f0;
+            background: rgba(255, 255, 255, 0.7);
+            font-weight: 800;
+            font-size: 0.9rem;
+        }
+        body.dark .spec-header {
+            background: rgba(20, 28, 44, 0.6);
+            border-color: rgba(212, 175, 55, 0.08);
+            color: #f0f3f8;
+        }
+        .spec-header:hover { transform: translateX(-4px); }
+
+        .spec-content {
+            display: none;
+            padding: 0.3rem 0;
+            animation: slideDown 0.2s ease;
+        }
+        .spec-content.active { display: block; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+        .resident-card {
+            border-radius: 1.1rem;
+            padding: 0.75rem 1.2rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+            border: 1px solid #e2e8f0;
+            background: rgba(255, 255, 255, 0.75);
+        }
+        body.dark .resident-card {
+            background: rgba(14, 20, 32, 0.7);
+            border-color: rgba(212, 175, 55, 0.06);
+        }
+        .resident-card:hover {
+            border-color: #0f766e;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        }
+        body.dark .resident-card:hover {
+            border-color: #d4af37;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+
+        .counter-badge {
+            font-size: 0.68rem;
+            padding: 0.25rem 0.85rem;
+            border-radius: 100px;
+            font-weight: 700;
+            display: inline-block;
+            border: 1px solid #bfdbfe;
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        body.dark .counter-badge {
+            background: rgba(212, 175, 55, 0.12);
+            color: #d4af37;
+            border-color: rgba(212, 175, 55, 0.15);
+        }
+
+        /* Specialty Manager Items */
+        .specialty-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.8rem;
+            border-radius: 0.9rem;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            background: rgba(255, 255, 255, 0.5);
+            margin-bottom: 0.4rem;
+            transition: all 0.2s ease;
+        }
+        body.dark .specialty-item {
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(212, 175, 55, 0.08);
+        }
+        .specialty-item.disabled-spec { opacity: 0.55; }
+        .specialty-item.disabled-spec .spec-name { text-decoration: line-through; }
+
+        /* Compact iOS Style Switch */
+        .toggle-switch-compact {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            flex-shrink: 0;
+        }
+        .toggle-switch-compact input { opacity: 0; width: 0; height: 0; position: absolute; }
+        .toggle-slider-compact {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+            border-radius: 20px;
+            background: #ef4444;
+            transition: all 0.25s ease;
+        }
+        .toggle-slider-compact::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: white;
+            transition: all 0.25s ease;
+        }
+        .toggle-switch-compact input:checked + .toggle-slider-compact { background: #22c55e; }
+        .toggle-switch-compact input:checked + .toggle-slider-compact::before { transform: translateX(16px); }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(14px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            padding: 1.5rem;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-card {
+            max-width: 540px;
+            width: 100%;
+            border-radius: 2rem;
+            padding: 2rem;
+            background: #ffffff;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        body.dark .modal-card {
+            background: #141c2a;
+            border: 1px solid rgba(212, 175, 55, 0.15);
+        }
+
+        #toast-container {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+            width: 90%;
+            max-width: 440px;
+        }
+        .toast {
+            padding: 12px 20px;
+            border-radius: 1rem;
+            color: white;
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            pointer-events: auto;
+        }
+        .toast.success { background: #10b981; }
+        .toast.error { background: #ef4444; }
+        .toast.info { background: #3b82f6; }
+    </style>
+</head>
+<body class="light" id="app-body">
+
+    <!-- Universal Navigation Component -->
+    <div id="universal-nav"></div>
+
+    <div id="toast-container"></div>
+
+    <main class="max-w-4xl mx-auto px-4 py-6 relative z-10">
+        <!-- Header & Hospital Info -->
+        <div class="glass-card p-6 mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <span class="text-xs font-mono font-bold text-teal-600 dark:text-amber-400 uppercase tracking-widest">
+                        Hospital Administration & Residents
+                    </span>
+                    <h1 class="text-2xl font-black mt-1" id="admin-hosp-title">المستشفى التعليمي</h1>
+                    <div class="text-xs text-slate-500 mt-0.5" id="admin-hosp-subtitle">Basra · Iraq</div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" onclick="openHospitalSettingsModal()" class="btn-ghost text-xs">
+                        <i class="fas fa-sliders"></i> إعدادات المستشفى
+                    </button>
+                    <button type="button" onclick="openSpecialtiesModal()" class="btn-ghost text-xs">
+                        <i class="fas fa-tags"></i> إدارة التخصصات
+                    </button>
+                    <button type="button" onclick="openImportModal()" class="btn-ghost text-xs">
+                        <i class="fas fa-file-import"></i> نسخ احتياطي / استيراد
+                    </button>
+                    <button type="button" id="main-save-btn" onclick="saveToGitHub()" class="btn-gradient text-xs">
+                        <i class="fas fa-cloud-upload-alt"></i> حفظ في السيرفر
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+                <span class="counter-badge" id="badge-total-res"><i class="fas fa-users ml-1"></i> 0 مقيم مسجل</span>
+                <span class="counter-badge" id="badge-active-res" style="background:#d1fae5;color:#065f46;border-color:#a7f3d0;"><i class="fas fa-check-circle ml-1"></i> 0 نشط</span>
+                <span class="counter-badge" id="badge-reserve-res" style="background:#fef3c7;color:#92400e;border-color:#fde68a;"><i class="fas fa-clock ml-1"></i> 0 احتياط</span>
+                <span class="counter-badge" id="badge-specs-count"><i class="fas fa-stethoscope ml-1"></i> 0 تخصص طبي</span>
+            </div>
+        </div>
+
+        <!-- Add Resident Action Button -->
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2">
+                <i class="fas fa-user-doctor text-teal-600 dark:text-amber-400"></i> قائمة المقيمين حسب الاختصاص
+            </h2>
+            <button type="button" onclick="toggleAddResidentPanel()" class="btn-gradient text-xs">
+                <i class="fas fa-user-plus"></i> إضافة مقيم جديد
+            </button>
+        </div>
+
+        <!-- Add Resident Panel (Collapsible) -->
+        <div id="add-resident-panel" class="glass-card p-5 mb-6 hidden">
+            <h3 class="text-md font-bold mb-3 flex items-center gap-2">
+                <i class="fas fa-plus-circle text-teal-600 dark:text-amber-400"></i> بيانات المقيم الجديد
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">اسم المقيم</label>
+                    <input type="text" id="new-res-name" class="input-field" placeholder="مثال: احمد علي" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">رقم الهاتف (اختياري)</label>
+                    <input type="text" id="new-res-phone" class="input-field text-left font-mono" placeholder="07XXXXXXXXX" dir="ltr" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">التخصص الأساسي</label>
+                    <select id="new-res-spec" class="input-field"></select>
+                </div>
+            </div>
+            <div class="flex items-center justify-between">
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer">
+                    <input type="checkbox" id="new-res-active" checked class="w-4 h-4 accent-teal-600" />
+                    المقيم نشط في جدول الخفارات (غير احتياط)
+                </label>
+                <div class="flex gap-2">
+                    <button type="button" onclick="submitAddResident()" class="btn-gradient text-xs">
+                        <i class="fas fa-check"></i> إضافة المقيم
+                    </button>
+                    <button type="button" onclick="toggleAddResidentPanel(false)" class="btn-ghost text-xs">
+                        إلغاء
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Specialties & Residents Accordion List -->
+        <div id="residents-accordion-list" class="space-y-2">
+            <!-- Rendered dynamically -->
+        </div>
+    </main>
+
+    <!-- EDIT RESIDENT MODAL -->
+    <div id="edit-resident-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 class="text-xl font-black mb-3 flex items-center gap-2">
+                <i class="fas fa-user-edit text-teal-600 dark:text-amber-400"></i> تعديل بيانات المقيم
+            </h3>
+            <input type="hidden" id="edit-res-idx" />
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">اسم المقيم</label>
+                    <input type="text" id="edit-res-name" class="input-field" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">رقم الهاتف</label>
+                    <input type="text" id="edit-res-phone" class="input-field font-mono text-left" dir="ltr" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">التخصص</label>
+                    <select id="edit-res-spec" class="input-field"></select>
+                </div>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer">
+                    <input type="checkbox" id="edit-res-active" class="w-4 h-4 accent-teal-600" />
+                    المقيم نشط في الخدمة
+                </label>
+                <div class="flex gap-3 pt-3">
+                    <button type="button" onclick="saveResidentEdit()" class="flex-1 btn-gradient">
+                        <i class="fas fa-check"></i> حفظ التعديل
+                    </button>
+                    <button type="button" onclick="closeEditModal()" class="btn-ghost">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SPECIALTIES MANAGEMENT MODAL -->
+    <div id="specialties-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 600px;">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-xl font-black flex items-center gap-2">
+                    <i class="fas fa-tags text-teal-600 dark:text-amber-400"></i> إدارة التخصصات الطبية
+                </h3>
+                <button type="button" onclick="closeSpecialtiesModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">
+                قم بتفعيل أو إخفاء التخصصات، تعديل ألوانها وأيقوناتها، وتحديد مصادر الأسماء المشتركة.
+            </p>
+
+            <div id="specialties-items-container" class="space-y-1 max-h-80 overflow-y-auto mb-4 p-1">
+                <!-- Rendered dynamically -->
+            </div>
+
+            <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-between">
+                <button type="button" onclick="openAddSpecialtyModal()" class="btn-gradient text-xs">
+                    <i class="fas fa-plus"></i> إضافة تخصص جديد
+                </button>
+                <button type="button" onclick="closeSpecialtiesModal()" class="btn-ghost text-xs">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD/EDIT SPECIALTY MODAL -->
+    <div id="single-specialty-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 class="text-lg font-black mb-3" id="single-spec-modal-title">إضافة تخصص جديد</h3>
+            <input type="hidden" id="spec-edit-id" />
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">الاسم بالعربية</label>
+                    <input type="text" id="spec-name-ar" class="input-field" placeholder="مثال: الجراحة العامة" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">المعرف (رمز التخصص)</label>
+                    <input type="text" id="spec-id" class="input-field font-mono" placeholder="GS" maxlength="10" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">الأيقونة (Emoji)</label>
+                    <input type="text" id="spec-icon" class="input-field" placeholder="🏥" maxlength="2" />
+                </div>
+                <div class="flex gap-2 items-center">
+                    <label class="text-xs font-bold text-slate-500">لون التخصص:</label>
+                    <input type="color" id="spec-color" value="#0f766e" class="h-10 w-16 p-1 rounded-lg border border-slate-300 cursor-pointer" />
+                </div>
+                <div class="flex gap-3 pt-3">
+                    <button type="button" onclick="saveSingleSpecialty()" class="flex-1 btn-gradient">حفظ</button>
+                    <button type="button" onclick="closeSingleSpecialtyModal()" class="btn-ghost">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HOSPITAL SETTINGS MODAL -->
+    <div id="hospital-settings-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-xl font-black flex items-center gap-2">
+                    <i class="fas fa-sliders text-teal-600 dark:text-amber-400"></i> إعدادات المستشفى الحالي
+                </h3>
+                <button type="button" onclick="closeHospitalSettingsModal()" class="text-slate-400 hover:text-slate-600 text-xl"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">اسم المستشفى بالعربية</label>
+                    <input type="text" id="hosp-setting-name-ar" class="input-field" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">اسم المستشفى بالإنجليزية</label>
+                    <input type="text" id="hosp-setting-name-en" class="input-field" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">الموقع / المدينة</label>
+                    <input type="text" id="hosp-setting-location" class="input-field" />
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">كلمة مرور المستخدم</label>
+                        <input type="text" id="hosp-setting-user-pwd" class="input-field text-center font-mono" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">كلمة مرور المدير</label>
+                        <input type="text" id="hosp-setting-admin-pwd" class="input-field text-center font-mono" />
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-3">
+                    <button type="button" onclick="saveHospitalSettings()" class="flex-1 btn-gradient">حفظ الإعدادات</button>
+                    <button type="button" onclick="closeHospitalSettingsModal()" class="btn-ghost">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BACKUP & IMPORT MODAL -->
+    <div id="import-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 class="text-xl font-black mb-2 flex items-center gap-2">
+                <i class="fas fa-file-import text-teal-600 dark:text-amber-400"></i> النسخ الاحتياطي والاستيراد
+            </h3>
+            <p class="text-xs text-slate-500 mb-4">يمكنك تنزيل نسخة احتياطية كاملة أو استيراد ملف JSON.</p>
+            
+            <div class="flex gap-2 mb-4">
+                <button type="button" onclick="exportBackupFile()" class="btn-ghost flex-1 text-xs">
+                    <i class="fas fa-download"></i> تنزيل نسخة احتياطية JSON
+                </button>
+            </div>
+
+            <label class="block text-xs font-bold text-slate-500 mb-1">أو الصق محتوى ملف JSON هنا للاستيراد:</label>
+            <textarea id="import-json-area" class="input-field font-mono text-xs" rows="8" placeholder='{"names": [], "specialties": []}' dir="ltr"></textarea>
+            
+            <div class="flex gap-3 mt-4">
+                <button type="button" onclick="executeImport('merge')" class="flex-1 btn-gradient text-xs">
+                    <i class="fas fa-code-merge"></i> دمج المقيمين
+                </button>
+                <button type="button" onclick="executeImport('replace')" class="btn-ghost text-xs text-red-500 border-red-200">
+                    <i class="fas fa-arrows-rotate"></i> استبدال كامل
+                </button>
+                <button type="button" onclick="closeImportModal()" class="btn-ghost text-xs">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="./hub-core.js"></script>
+    <script src="./nav-component.js"></script>
+    <script>
+        // ============================================================
+        // ADMIN CONTROLLER
+        // ============================================================
+        let currentHospital = null;
+
+        function showToast(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+            toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('show'));
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, duration);
+        }
+
+        async function initAdmin() {
+            initUniversalNav('admin');
+
+            try {
+                await Hub.loadDatabase();
+                currentHospital = Hub.getActiveHospital();
+                if (!currentHospital) {
+                    showToast('المستشفى غير موجود', 'error');
+                    return;
+                }
+
+                document.getElementById('admin-hosp-title').textContent = currentHospital.name_ar || currentHospital.hospitalName;
+                document.getElementById('admin-hosp-subtitle').textContent = currentHospital.location || 'Basra · Iraq';
+                document.title = `إدارة المستشفى · ${currentHospital.name_ar || currentHospital.hospitalName}`;
+
+                populateSpecialtyDropdowns();
+                renderResidentsAccordion();
+                updateStatsBadges();
+
+            } catch (err) {
+                console.error("Admin init error:", err);
+                showToast("خطأ في تحميل بيانات الإدارة", "error");
+            }
+        }
+
+        function populateSpecialtyDropdowns() {
+            const specs = (currentHospital?.specialties || []).filter(s => s.enabled !== false);
+            const html = specs.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar}</option>`).join('');
+            
+            const newSpecSelect = document.getElementById('new-res-spec');
+            const editSpecSelect = document.getElementById('edit-res-spec');
+            if (newSpecSelect) newSpecSelect.innerHTML = html;
+            if (editSpecSelect) editSpecSelect.innerHTML = html;
+        }
+
+        function updateStatsBadges() {
+            if (!currentHospital) return;
+            const names = currentHospital.names || [];
+            const active = names.filter(n => n.spec !== "RESERVE" && n.active !== false).length;
+            const reserve = names.length - active;
+            const specs = (currentHospital.specialties || []).length;
+
+            document.getElementById('badge-total-res').innerHTML = `<i class="fas fa-users ml-1"></i> ${names.length} مقيم مسجل`;
+            document.getElementById('badge-active-res').innerHTML = `<i class="fas fa-check-circle ml-1"></i> ${active} نشط`;
+            document.getElementById('badge-reserve-res').innerHTML = `<i class="fas fa-clock ml-1"></i> ${reserve} احتياط`;
+            document.getElementById('badge-specs-count').innerHTML = `<i class="fas fa-stethoscope ml-1"></i> ${specs} تخصص طبي`;
+        }
+
+        function renderResidentsAccordion() {
+            const container = document.getElementById('residents-accordion-list');
+            if (!currentHospital) return;
+
+            const specs = currentHospital.specialties || [];
+            const names = currentHospital.names || [];
+
+            container.innerHTML = specs.map(spec => {
+                const specResidents = names.filter(n => n.spec === spec.id || n.tag === spec.id);
+                const isEnabled = spec.enabled !== false;
+
+                return `
+                    <div class="mb-2">
+                        <div class="spec-header" onclick="toggleAccordion('spec-box-${spec.id}')">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xl">${spec.icon || '🏥'}</span>
+                                <span>${spec.name_ar}</span>
+                                <span class="text-xs text-slate-400 font-mono">(${spec.id})</span>
+                                ${!isEnabled ? '<span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600 font-bold">مخفي</span>' : ''}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                                    ${specResidents.length} مقيم
+                                </span>
+                                <i class="fas fa-chevron-down text-xs text-slate-400"></i>
+                            </div>
+                        </div>
+
+                        <div id="spec-box-${spec.id}" class="spec-content">
+                            ${specResidents.length === 0 ? `
+                                <div class="text-center py-4 text-xs text-slate-400">لا يوجد مقيمين مسجلين في هذا التخصص حالياً</div>
+                            ` : specResidents.map(r => {
+                                const realIdx = names.indexOf(r);
+                                const isActive = r.active !== false && r.spec !== 'RESERVE';
+
+                                return `
+                                    <div class="resident-card">
+                                        <div class="flex items-center gap-3">
+                                            <span class="w-2.5 h-2.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-amber-500'}"></span>
+                                            <div>
+                                                <div class="font-bold text-sm text-slate-800 dark:text-slate-200">${r.name}</div>
+                                                <div class="text-xs font-mono text-slate-400" dir="ltr">${r.phone || 'بدون هاتف'}</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-bold px-2 py-0.5 rounded-full ${isActive ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'}">
+                                                ${isActive ? 'نشط' : 'احتياط'}
+                                            </span>
+                                            <button type="button" onclick="openEditResident(${realIdx})" class="p-1.5 px-2 text-xs rounded-lg text-blue-600 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button type="button" onclick="deleteResident(${realIdx}, '${r.name}')" class="p-1.5 px-2 text-xs rounded-lg text-red-600 bg-red-50 dark:bg-red-900/30 hover:bg-red-100">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleAccordion(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('active');
+        }
+
+        function toggleAddResidentPanel(forceOpen) {
+            const p = document.getElementById('add-resident-panel');
+            const isOpen = forceOpen !== undefined ? forceOpen : p.classList.contains('hidden');
+            p.classList.toggle('hidden', !isOpen);
+            if (isOpen) document.getElementById('new-res-name').focus();
+        }
+
+        async function submitAddResident() {
+            const name = document.getElementById('new-res-name').value.trim();
+            const phone = document.getElementById('new-res-phone').value.trim();
+            const spec = document.getElementById('new-res-spec').value;
+            const active = document.getElementById('new-res-active').checked;
+
+            if (!name) {
+                showToast('الرجاء إدخال اسم المقيم', 'error');
+                return;
+            }
+
+            const formattedName = name.startsWith('د.') || name.startsWith('د ') ? name : `د. ${name}`;
+
+            currentHospital.names.push({
+                name: formattedName,
+                spec: active ? spec : 'RESERVE',
+                tag: spec,
+                phone: phone || 'رقم غير متوفر',
+                active: active
+            });
+
+            document.getElementById('new-res-name').value = '';
+            document.getElementById('new-res-phone').value = '';
+            toggleAddResidentPanel(false);
+
+            renderResidentsAccordion();
+            updateStatsBadges();
+            showToast(`تمت إضافة ${formattedName} بنجاح`, 'success');
+            await Hub.saveDatabase(`Add resident: ${formattedName}`);
+        }
+
+        function openEditResident(idx) {
+            const r = currentHospital.names[idx];
+            if (!r) return;
+
+            document.getElementById('edit-res-idx').value = idx;
+            document.getElementById('edit-res-name').value = r.name;
+            document.getElementById('edit-res-phone').value = r.phone === 'رقم غير متوفر' ? '' : r.phone;
+            document.getElementById('edit-res-spec').value = r.tag || r.spec;
+            document.getElementById('edit-res-active').checked = r.active !== false && r.spec !== 'RESERVE';
+
+            document.getElementById('edit-resident-modal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-resident-modal').classList.remove('active');
+        }
+
+        async function saveResidentEdit() {
+            const idx = parseInt(document.getElementById('edit-res-idx').value);
+            const name = document.getElementById('edit-res-name').value.trim();
+            const phone = document.getElementById('edit-res-phone').value.trim();
+            const spec = document.getElementById('edit-res-spec').value;
+            const active = document.getElementById('edit-res-active').checked;
+
+            if (!name || isNaN(idx) || !currentHospital.names[idx]) {
+                showToast('بيانات غير صحيحة', 'error');
+                return;
+            }
+
+            const oldName = currentHospital.names[idx].name;
+            currentHospital.names[idx] = {
+                name: name,
+                spec: active ? spec : 'RESERVE',
+                tag: spec,
+                phone: phone || 'رقم غير متوفر',
+                active: active
+            };
+
+            // Also update schedule logs if name was changed
+            if (oldName !== name) {
+                (currentHospital.schedule || []).forEach(s => {
+                    if (s.name === oldName) s.name = name;
+                });
+            }
+
+            closeEditModal();
+            renderResidentsAccordion();
+            updateStatsBadges();
+            showToast('تم حفظ تعديل المقيم', 'success');
+            await Hub.saveDatabase(`Edit resident: ${name}`);
+        }
+
+        async function deleteResident(idx, name) {
+            if (!confirm(`هل أنت متأكد من حذف المقيم "${name}"؟`)) return;
+
+            currentHospital.names.splice(idx, 1);
+            renderResidentsAccordion();
+            updateStatsBadges();
+            showToast(`تم حذف ${name}`, 'info');
+            await Hub.saveDatabase(`Delete resident: ${name}`);
+        }
+
+        // ============================================================
+        // SPECIALTIES MANAGEMENT
+        // ============================================================
+        function openSpecialtiesModal() {
+            renderSpecialtiesList();
+            document.getElementById('specialties-modal').classList.add('active');
+        }
+
+        function closeSpecialtiesModal() {
+            document.getElementById('specialties-modal').classList.remove('active');
+        }
+
+        function renderSpecialtiesList() {
+            const container = document.getElementById('specialties-items-container');
+            const specs = currentHospital?.specialties || [];
+
+            container.innerHTML = specs.map(s => {
+                const isEnabled = s.enabled !== false;
+                return `
+                    <div class="specialty-item ${!isEnabled ? 'disabled-spec' : ''}">
+                        <span class="text-xl w-7 text-center">${s.icon || '🏥'}</span>
+                        <span class="font-mono text-xs font-bold text-slate-400 w-10">${s.id}</span>
+                        <span class="spec-name font-bold text-sm flex-1">${s.name_ar}</span>
+                        <span class="w-4 h-4 rounded-full border" style="background:${s.color || '#0f766e'};"></span>
+
+                        <label class="toggle-switch-compact ml-2" title="إظهار / إخفاء">
+                            <input type="checkbox" ${isEnabled ? 'checked' : ''} onchange="toggleSpecEnabled('${s.id}', this.checked)" />
+                            <span class="toggle-slider-compact"></span>
+                        </label>
+
+                        <button type="button" onclick="openEditSpecialty('${s.id}')" class="p-1 px-2 text-xs rounded text-blue-600 hover:bg-blue-50">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" onclick="deleteSpecialty('${s.id}', '${s.name_ar}')" class="p-1 px-2 text-xs rounded text-red-600 hover:bg-red-50">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function toggleSpecEnabled(specId, checked) {
+            const s = (currentHospital?.specialties || []).find(x => x.id === specId);
+            if (s) {
+                s.enabled = checked;
+                renderSpecialtiesList();
+                renderResidentsAccordion();
+                populateSpecialtyDropdowns();
+                showToast(checked ? 'تم تفعيل التخصص' : 'تم إخفاء التخصص', 'info');
+                await Hub.saveDatabase(`Toggle specialty ${specId}: ${checked}`);
+            }
+        }
+
+        function openAddSpecialtyModal() {
+            document.getElementById('single-spec-modal-title').textContent = 'إضافة تخصص جديد';
+            document.getElementById('spec-edit-id').value = '';
+            document.getElementById('spec-name-ar').value = '';
+            document.getElementById('spec-id').value = '';
+            document.getElementById('spec-id').disabled = false;
+            document.getElementById('spec-icon').value = '🏥';
+            document.getElementById('spec-color').value = '#0f766e';
+            document.getElementById('single-specialty-modal').classList.add('active');
+        }
+
+        function openEditSpecialty(id) {
+            const s = (currentHospital?.specialties || []).find(x => x.id === id);
+            if (!s) return;
+
+            document.getElementById('single-spec-modal-title').textContent = 'تعديل التخصص';
+            document.getElementById('spec-edit-id').value = id;
+            document.getElementById('spec-name-ar').value = s.name_ar;
+            document.getElementById('spec-id').value = s.id;
+            document.getElementById('spec-id').disabled = true;
+            document.getElementById('spec-icon').value = s.icon || '🏥';
+            document.getElementById('spec-color').value = s.color || '#0f766e';
+            document.getElementById('single-specialty-modal').classList.add('active');
+        }
+
+        function closeSingleSpecialtyModal() {
+            document.getElementById('single-specialty-modal').classList.remove('active');
+        }
+
+        async function saveSingleSpecialty() {
+            const editId = document.getElementById('spec-edit-id').value;
+            const name = document.getElementById('spec-name-ar').value.trim();
+            const id = document.getElementById('spec-id').value.trim().toUpperCase();
+            const icon = document.getElementById('spec-icon').value.trim() || '🏥';
+            const color = document.getElementById('spec-color').value;
+
+            if (!name || !id) {
+                showToast('الرجاء إدخال الاسم والمعرف', 'error');
+                return;
+            }
+
+            if (!editId) {
+                if ((currentHospital.specialties || []).some(s => s.id === id)) {
+                    showToast('رمز التخصص مستخدم بالفعل', 'error');
+                    return;
+                }
+                currentHospital.specialties.push({
+                    id, name_ar: name, name_en: name, icon, color, acceptPool: [], enabled: true
+                });
+            } else {
+                const s = currentHospital.specialties.find(x => x.id === editId);
+                if (s) {
+                    s.name_ar = name;
+                    s.icon = icon;
+                    s.color = color;
+                }
+            }
+
+            closeSingleSpecialtyModal();
+            renderSpecialtiesList();
+            renderResidentsAccordion();
+            populateSpecialtyDropdowns();
+            showToast('تم حفظ التخصص بنجاح', 'success');
+            await Hub.saveDatabase(`Save specialty: ${id}`);
+        }
+
+        async function deleteSpecialty(id, name) {
+            const inUse = (currentHospital.names || []).some(r => r.spec === id || r.tag === id);
+            if (inUse) {
+                showToast('لا يمكن حذف تخصص مسجل به مقيمين', 'error');
+                return;
+            }
+            if (!confirm(`هل أنت متأكد من حذف التخصص "${name}"؟`)) return;
+
+            currentHospital.specialties = currentHospital.specialties.filter(s => s.id !== id);
+            renderSpecialtiesList();
+            renderResidentsAccordion();
+            populateSpecialtyDropdowns();
+            showToast(`تم حذف ${name}`, 'info');
+            await Hub.saveDatabase(`Delete specialty: ${id}`);
+        }
+
+        // ============================================================
+        // HOSPITAL SETTINGS MODAL
+        // ============================================================
+        function openHospitalSettingsModal() {
+            document.getElementById('hosp-setting-name-ar').value = currentHospital.name_ar || currentHospital.hospitalName;
+            document.getElementById('hosp-setting-name-en').value = currentHospital.hospitalName;
+            document.getElementById('hosp-setting-location').value = currentHospital.location || 'Basra · Iraq';
+            document.getElementById('hosp-setting-user-pwd').value = currentHospital.passwords?.user || '1234';
+            document.getElementById('hosp-setting-admin-pwd').value = currentHospital.passwords?.admin || 'MrjBth1996*';
+            document.getElementById('hospital-settings-modal').classList.add('active');
+        }
+
+        function closeHospitalSettingsModal() {
+            document.getElementById('hospital-settings-modal').classList.remove('active');
+        }
+
+        async function saveHospitalSettings() {
+            const nameAr = document.getElementById('hosp-setting-name-ar').value.trim();
+            const nameEn = document.getElementById('hosp-setting-name-en').value.trim();
+            const loc = document.getElementById('hosp-setting-location').value.trim();
+            const uPwd = document.getElementById('hosp-setting-user-pwd').value.trim();
+            const aPwd = document.getElementById('hosp-setting-admin-pwd').value.trim();
+
+            if (!nameAr || !nameEn || !uPwd || !aPwd) {
+                showToast('الرجاء تعبئة جميع الحقول', 'error');
+                return;
+            }
+
+            currentHospital.name_ar = nameAr;
+            currentHospital.hospitalName = nameEn;
+            currentHospital.location = loc;
+            currentHospital.passwords = { user: uPwd, admin: aPwd };
+
+            closeHospitalSettingsModal();
+            document.getElementById('admin-hosp-title').textContent = nameAr;
+            document.getElementById('admin-hosp-subtitle').textContent = loc;
+            showToast('تم تحديث إعدادات المستشفى', 'success');
+            await Hub.saveDatabase(`Update hospital settings: ${nameAr}`);
+        }
+
+        // ============================================================
+        // BACKUP & IMPORT
+        // ============================================================
+        function openImportModal() {
+            document.getElementById('import-json-area').value = '';
+            document.getElementById('import-modal').classList.add('active');
+        }
+
+        function closeImportModal() {
+            document.getElementById('import-modal').classList.remove('active');
+        }
+
+        function exportBackupFile() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(Hub.getDatabase(), null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `hospital-hub-backup-${Date.now()}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            showToast('تم تنزيل النسخة الاحتياطية', 'success');
+        }
+
+        async function executeImport(mode = 'merge') {
+            const text = document.getElementById('import-json-area').value.trim();
+            if (!text) {
+                showToast('الرجاء لصق بيانات JSON', 'error');
+                return;
+            }
+
+            try {
+                const parsed = JSON.parse(text);
+                const importedNames = parsed.names || (Array.isArray(parsed) ? parsed : []);
+
+                if (mode === 'replace') {
+                    if (!confirm('تحذير: سيتم استبدال جميع المقيمين الحاليين بالبيانات الجديدة. هل أنت متأكد؟')) return;
+                    currentHospital.names = importedNames;
+                } else {
+                    // Merge
+                    let added = 0;
+                    importedNames.forEach(n => {
+                        if (!currentHospital.names.some(existing => existing.name === n.name)) {
+                            currentHospital.names.push(n);
+                            added++;
+                        }
+                    });
+                    showToast(`تم دمج ${added} مقيم جديد`, 'success');
+                }
+
+                closeImportModal();
+                renderResidentsAccordion();
+                updateStatsBadges();
+                await Hub.saveDatabase(`Import data (${mode})`);
+
+            } catch (err) {
+                showToast('صيغة JSON غير صالحة', 'error');
+            }
+        }
+
+        async function saveToGitHub() {
+            const btn = document.getElementById('main-save-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري الحفظ...';
+
+            try {
+                await Hub.saveDatabase('Manual Admin Save from Web Interface');
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> تم الحفظ';
+                showToast('تم حفظ جميع البيانات على GitHub بنجاح!', 'success');
+            } catch (e) {
+                btn.innerHTML = '<i class="fas fa-exclamation-circle"></i> فشل الحفظ';
+                showToast('فشل حفظ البيانات على GitHub', 'error');
+            } finally {
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> حفظ في السيرفر';
+                }, 2000);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', initAdmin);
+    </script>
+</body>
+</html>
+

@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>تسجيل الخفراء · Hospital Main Hub</title>
+    <title>تبديل وتسجيل الخفارات · Duty Exchange · Hospital Main Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="./nav-component.css" />
     <style>
@@ -78,7 +78,7 @@
             box-shadow: 0 12px 36px rgba(0,0,0,0.06);
             transition: all 0.3s ease;
             width: 100%;
-            max-width: 460px;
+            max-width: 500px;
         }
         body.dark .app-card {
             background: #141a24;
@@ -92,13 +92,15 @@
         }
 
         .form-group {
-            margin-bottom: 18px;
+            margin-bottom: 16px;
         }
         .form-group label {
-            display: block;
+            display: flex;
+            align-items: center;
+            gap: 6px;
             font-weight: 700;
-            font-size: 0.85rem;
-            color: #64748b;
+            font-size: 0.82rem;
+            color: #475569;
             margin-bottom: 8px;
         }
         body.dark .form-group label {
@@ -107,11 +109,11 @@
 
         .form-select {
             width: 100%;
-            padding: 14px 18px;
+            padding: 13px 16px;
             border-radius: 14px;
             border: 2px solid #e2e8f0;
             background: #f8fafc;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             outline: none;
             transition: border 0.3s, box-shadow 0.3s;
@@ -147,13 +149,13 @@
             right: 0;
             width: 100%;
             height: 100%;
-            padding: 14px 18px;
+            padding: 13px 16px;
             z-index: 5;
             pointer-events: none;
             display: flex;
             align-items: center;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-family: inherit;
             direction: rtl;
             overflow: hidden;
@@ -165,11 +167,11 @@
 
         .input-text {
             width: 100%;
-            padding: 14px 18px;
+            padding: 13px 16px;
             border-radius: 14px;
             border: 2px solid #e2e8f0;
             background: #f8fafc;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             outline: none;
             transition: border 0.3s, box-shadow 0.3s;
@@ -239,6 +241,7 @@
             font-weight: 600;
             transition: 0.15s;
             border-bottom: 1px solid #f1f5f9;
+            font-size: 0.9rem;
         }
         body.dark .dropdown-menu div {
             color: #e8edf5;
@@ -256,20 +259,17 @@
         .info-box {
             background: #f8fafc;
             border-radius: 14px;
-            padding: 14px 18px;
+            padding: 12px 16px;
             border: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             margin-top: 6px;
         }
         body.dark .info-box {
             background: #0f151e;
             border-color: #2a3346;
         }
-        .info-box .label { color: #94a3b8; font-weight: 600; }
-        .info-box .value { font-weight: 800; }
+        .info-box .label { color: #94a3b8; font-weight: 600; display: block; margin-bottom: 4px; }
+        .info-box .value { font-weight: 800; font-size: 0.92rem; }
 
         .btn-update {
             width: 100%;
@@ -282,9 +282,13 @@
             font-size: 1rem;
             cursor: pointer;
             transition: all 0.2s ease;
-            margin-top: 12px;
+            margin-top: 14px;
             font-family: inherit;
             box-shadow: 0 8px 24px rgba(15,118,110,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         body.dark .btn-update {
             background: linear-gradient(135deg, #d4af37, #b8942e);
@@ -316,36 +320,81 @@
     <main class="main-wrapper">
         <div class="app-card" id="app-card">
             <!-- Header -->
-            <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div>
                     <h1 class="text-xl font-black flex items-center gap-2">
-                        <i class="fas fa-pen-to-square text-teal-600 dark:text-amber-400"></i> تسجيل الخفراء
+                        <i class="fas fa-exchange-alt text-teal-600 dark:text-amber-400"></i>
+                        <span>تبديل الخفارات</span>
                     </h1>
-                    <div class="text-xs font-bold text-slate-400 mt-0.5" id="signup-hosp-name">
-                        جاري التحميل...
+                    <div class="text-xs font-bold text-slate-400 mt-0.5">
+                        Duty Exchange System
                     </div>
                 </div>
-                <span class="text-xs font-mono font-bold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300" id="today-date-badge">
-                    --/--/----
-                </span>
+                <div class="text-left">
+                    <span class="text-xs font-mono font-bold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300" id="selected-date-badge">
+                        --/--/----
+                    </span>
+                </div>
             </div>
 
-            <!-- Specialty Select -->
+            <!-- STEP 1: Hospital Select -->
             <div class="form-group">
-                <label for="spec-select">اختر التخصص الطبي</label>
+                <label for="hosp-select">
+                    <i class="fas fa-hospital text-teal-600 dark:text-amber-400"></i>
+                    <span>1. اختر المستشفى:</span>
+                </label>
+                <select id="hosp-select" class="form-select" onchange="onHospitalChange()"></select>
+            </div>
+
+            <!-- STEP 2: Specialty Select -->
+            <div class="form-group" id="spec-group">
+                <label for="spec-select">
+                    <i class="fas fa-stethoscope text-teal-600 dark:text-amber-400"></i>
+                    <span>2. اختر التخصص الطبي:</span>
+                </label>
                 <select id="spec-select" class="form-select" onchange="onSpecialtyChange()">
-                    <option value="">-- اختر التخصص --</option>
+                    <option value="">-- اختر التخصص أولاً --</option>
                 </select>
             </div>
 
-            <!-- Name Section -->
+            <!-- STEP 3: Date of Exchange Select -->
+            <div class="form-group" id="date-group" style="display:none;">
+                <label for="exchange-date-input">
+                    <i class="fas fa-calendar-day text-teal-600 dark:text-amber-400"></i>
+                    <span>3. تاريخ تبديل الخفارة (اليوم المحدد):</span>
+                </label>
+                <input type="date" id="exchange-date-input" class="form-select font-mono text-left" dir="ltr" onchange="onDateChange()" />
+                <div class="text-[11px] text-slate-400 mt-1">افتراضياً: تاريخ فتح الرابط (تاريخ اليوم الطبي)</div>
+            </div>
+
+            <!-- STEP 4: Current Duty Status & Multi-Resident Target Picker -->
+            <div id="duty-status-group" style="display:none;">
+                <div class="info-box mb-3" id="current-duty-box">
+                    <span class="label">الخفير المسجل حالياً في هذا اليوم:</span>
+                    <span class="value text-teal-600 dark:text-amber-400" id="current-holder">—</span>
+                </div>
+
+                <!-- Multiple Residents Picker (Appears IF more than 1 resident on this day and specialty) -->
+                <div class="form-group p-3 rounded-xl border-2 border-amber-300 dark:border-amber-700/60 bg-amber-50/50 dark:bg-amber-950/30" id="target-resident-wrap" style="display:none;">
+                    <label for="target-resident-select" class="text-amber-800 dark:text-amber-300 font-bold">
+                        <i class="fas fa-users-viewfinder text-amber-500"></i>
+                        <span>يوجد أكثر من خفير مسجل · اختر الطبيب المراد التبديل معه:</span>
+                    </label>
+                    <select id="target-resident-select" class="form-select border-amber-300 dark:border-amber-700" onchange="onTargetResidentChange()"></select>
+                </div>
+            </div>
+
+            <!-- STEP 5: New Resident Input (The one taking over the duty) -->
             <div id="name-section" style="display:none;">
                 <div class="form-group">
-                    <label for="name-input">اسم المقيم الخفير</label>
+                    <label for="name-input">
+                        <i class="fas fa-user-plus text-teal-600 dark:text-amber-400"></i>
+                        <span id="name-input-label">اسم المقيم البديل (الخفير الجديد):</span>
+                    </label>
                     <div class="input-wrap">
                         <div class="ghost-text" id="ghost-text"></div>
                         <input type="text" id="name-input" class="input-text"
-                               placeholder="ابتدأ بكتابة اسم المقيم..."
+                               placeholder="ابتدأ بكتابة اسم الطبيب البديل..."
                                oninput="handleNameInput()"
                                onkeydown="handleNameKeys(event)"
                                onfocus="closeMenu()"
@@ -356,13 +405,9 @@
                     </div>
                 </div>
 
-                <div class="info-box">
-                    <span class="label">المقيم المسجل حالياً اليوم:</span>
-                    <span class="value text-teal-600 dark:text-amber-400 font-bold" id="current-holder">—</span>
-                </div>
-
-                <button id="update-btn" class="btn-update" onclick="updateDuty()" disabled>
-                    <i class="fas fa-save ml-2"></i> تثبيت الخفر
+                <button id="update-btn" class="btn-update" onclick="submitDutyExchange()" disabled>
+                    <i class="fas fa-check-circle"></i>
+                    <span id="update-btn-text">تأكيد وتثبيت تبديل الخفارة</span>
                 </button>
             </div>
 
@@ -378,11 +423,12 @@
     <script src="./hub-core.js"></script>
     <script src="./nav-component.js"></script>
     <script>
-        // ============================================================
-        // SIGNUP CONTROLLER (Iraqi Teaching Hospital Mechanics)
-        // ============================================================
+        // State
+        let allHospitals = [];
         let currentHospital = null;
         let currentResidents = [];
+        let matchingDuties = [];
+        let selectedOldResidentName = null;
 
         function showToast(message, type = 'info', duration = 3000) {
             const container = document.getElementById('toast-container');
@@ -398,31 +444,89 @@
             }, duration);
         }
 
-        async function initSignup() {
+        // Date Helpers
+        function getTodayIsoDate() {
+            const now = new Date();
+            if (now.getHours() < 8) {
+                now.setDate(now.getDate() - 1);
+            }
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        function isoToMedicalDate(isoStr) {
+            if (!isoStr) return Hub.getMedicalDate();
+            const parts = isoStr.split('-');
+            if (parts.length !== 3) return isoStr;
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
+        function medicalToIsoDate(medStr) {
+            if (!medStr) return getTodayIsoDate();
+            const parts = medStr.split('/');
+            if (parts.length !== 3) return medStr;
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+
+        async function initDutyExchange() {
             initUniversalNav('signup');
 
             try {
                 await Hub.loadDatabase();
-                currentHospital = Hub.getActiveHospital();
-                if (!currentHospital) {
-                    showToast('المستشفى غير محدد', 'error');
-                    return;
+                allHospitals = Hub.getHospitals();
+
+                // Hospital from URL or active hospital
+                const urlParams = new URLSearchParams(window.location.search);
+                const queryHosp = urlParams.get('hospital');
+                let targetHid = Hub.getActiveHospitalId();
+                if (queryHosp && allHospitals.some(h => h.id === queryHosp)) {
+                    targetHid = queryHosp;
                 }
 
-                document.getElementById('signup-hosp-name').textContent = currentHospital.name_ar || currentHospital.hospitalName;
-                document.getElementById('today-date-badge').textContent = Hub.getMedicalDate();
-                document.title = `تسجيل الخفراء · ${currentHospital.name_ar || currentHospital.hospitalName}`;
+                populateHospitalSelect(targetHid);
+                currentHospital = Hub.getHospital(targetHid);
+
+                // Initialize Date input with today's medical date
+                const dateInput = document.getElementById('exchange-date-input');
+                const todayIso = getTodayIsoDate();
+                dateInput.value = todayIso;
+                document.getElementById('selected-date-badge').textContent = isoToMedicalDate(todayIso);
 
                 populateSpecialties();
+
             } catch (err) {
                 console.error(err);
                 showToast('خطأ في تحميل البيانات', 'error');
             }
         }
 
+        function populateHospitalSelect(selectedId) {
+            const select = document.getElementById('hosp-select');
+            select.innerHTML = allHospitals.map(h => 
+                `<option value="${h.id}" ${h.id === selectedId ? 'selected' : ''}>${h.icon ? '🏥 ' : ''}${h.name_ar || h.hospitalName}</option>`
+            ).join('');
+        }
+
+        function onHospitalChange() {
+            const hospId = document.getElementById('hosp-select').value;
+            currentHospital = Hub.getHospital(hospId);
+            if (!currentHospital) return;
+
+            // Reset downstream sections
+            document.getElementById('date-group').style.display = 'none';
+            document.getElementById('duty-status-group').style.display = 'none';
+            document.getElementById('name-section').style.display = 'none';
+            document.getElementById('status-msg').textContent = '';
+            document.getElementById('app-card').classList.remove('card-success');
+
+            populateSpecialties();
+        }
+
         function populateSpecialties() {
             const select = document.getElementById('spec-select');
-            select.innerHTML = '<option value="">-- اختر التخصص --</option>';
+            select.innerHTML = '<option value="">-- اختر التخصص الطبي --</option>';
 
             const specs = (currentHospital?.specialties || []).filter(s => s.enabled !== false);
             specs.forEach(spec => {
@@ -435,56 +539,117 @@
 
         function onSpecialtyChange() {
             const specId = document.getElementById('spec-select').value;
-            const section = document.getElementById('name-section');
-            const input = document.getElementById('name-input');
-            const ghost = document.getElementById('ghost-text');
-            const holder = document.getElementById('current-holder');
-            const btn = document.getElementById('update-btn');
-            const msg = document.getElementById('status-msg');
+            const dateGroup = document.getElementById('date-group');
             const card = document.getElementById('app-card');
-
             card.classList.remove('card-success');
 
             if (!specId) {
-                section.style.display = 'none';
+                dateGroup.style.display = 'none';
+                document.getElementById('duty-status-group').style.display = 'none';
+                document.getElementById('name-section').style.display = 'none';
                 return;
             }
 
-            section.style.display = 'block';
-            input.value = '';
+            // Step 3: Show Date Selector (Default is the date of opening the link)
+            dateGroup.style.display = 'block';
+            inspectDutyAndRender();
+        }
+
+        function onDateChange() {
+            const isoDate = document.getElementById('exchange-date-input').value;
+            document.getElementById('selected-date-badge').textContent = isoToMedicalDate(isoDate);
+            inspectDutyAndRender();
+        }
+
+        function inspectDutyAndRender() {
+            const specId = document.getElementById('spec-select').value;
+            const isoDate = document.getElementById('exchange-date-input').value;
+            const medDate = isoToMedicalDate(isoDate);
+
+            const dutyGroup = document.getElementById('duty-status-group');
+            const targetWrap = document.getElementById('target-resident-wrap');
+            const targetSelect = document.getElementById('target-resident-select');
+            const holder = document.getElementById('current-holder');
+            const nameSection = document.getElementById('name-section');
+            const nameInput = document.getElementById('name-input');
+            const ghost = document.getElementById('ghost-text');
+            const btn = document.getElementById('update-btn');
+            const msg = document.getElementById('status-msg');
+
+            msg.textContent = '';
+            nameInput.value = '';
             ghost.innerHTML = '';
             btn.disabled = true;
-            msg.textContent = '';
             closeMenu();
 
+            if (!specId || !isoDate) {
+                dutyGroup.style.display = 'none';
+                nameSection.style.display = 'none';
+                return;
+            }
+
+            dutyGroup.style.display = 'block';
+            nameSection.style.display = 'block';
+
+            // Find matching duties on this date and specialty
+            matchingDuties = (currentHospital?.schedule || []).filter(s => s.specCode === specId && s.date === medDate);
+
+            // Populate resident suggestions for this specialty
             const specObj = (currentHospital?.specialties || []).find(s => s.id === specId);
             const acceptPool = specObj?.acceptPool || [];
-
-            // Filter residents based on pool or specialty
             if (acceptPool.length > 0) {
                 currentResidents = (currentHospital?.names || []).filter(n => acceptPool.includes(n.spec) || acceptPool.includes(n.tag));
             } else {
                 currentResidents = (currentHospital?.names || []).filter(n => n.spec === specId || n.tag === specId);
             }
-
-            // If empty, fallback to all residents
             if (currentResidents.length === 0) {
                 currentResidents = currentHospital?.names || [];
             }
 
-            const today = Hub.getMedicalDate();
-            const entry = (currentHospital?.schedule || []).find(s => s.specCode === specId && s.date === today);
-            if (entry) {
-                holder.textContent = entry.name || '—';
-                holder.style.color = '#0f766e';
-            } else {
-                holder.textContent = 'لا يوجد خفير مسجل اليوم';
+            if (matchingDuties.length === 0) {
+                // No resident on duty yet
+                holder.textContent = 'لا يوجد خفير مسجل في هذا اليوم لهذا التخصص';
                 holder.style.color = '#94a3b8';
+                targetWrap.style.display = 'none';
+                selectedOldResidentName = null;
+                document.getElementById('name-input-label').textContent = 'اسم المقيم الخفير الجديد:';
+                document.getElementById('update-btn-text').textContent = 'تثبيت الخفارة';
+
+            } else if (matchingDuties.length === 1) {
+                // Exactly one resident on duty
+                const resident = matchingDuties[0];
+                holder.innerHTML = `<span class="font-bold">${resident.name}</span> <span class="text-xs opacity-75 font-mono">(${resident.timestamp || 'خفارة مسجلة'})</span>`;
+                holder.style.color = '#0f766e';
+                targetWrap.style.display = 'none';
+                selectedOldResidentName = resident.name;
+                document.getElementById('name-input-label').textContent = `اسم المقيم البديل (ليحل محل ${resident.name}):`;
+                document.getElementById('update-btn-text').textContent = `تأكيد التبديل مع ${resident.name}`;
+
+            } else {
+                // More than one resident on duty: User selects which one to switch with!
+                holder.innerHTML = `<span class="font-bold">${matchingDuties.length} أطباء خفراء مسجلين في هذا اليوم</span>`;
+                holder.style.color = '#b45309';
+                targetWrap.style.display = 'block';
+
+                targetSelect.innerHTML = matchingDuties.map((d, i) => 
+                    `<option value="${d.name}">د. ${d.name.replace(/^د\.?\s*/, '')} (${d.timestamp || 'خفارة'})</option>`
+                ).join('');
+
+                selectedOldResidentName = targetSelect.value;
+                document.getElementById('name-input-label').textContent = `اسم المقيم البديل (ليحل محل ${selectedOldResidentName}):`;
+                document.getElementById('update-btn-text').textContent = `تأكيد التبديل مع ${selectedOldResidentName}`;
             }
 
-            input.focus();
+            nameInput.focus();
         }
 
+        function onTargetResidentChange() {
+            selectedOldResidentName = document.getElementById('target-resident-select').value;
+            document.getElementById('name-input-label').textContent = `اسم المقيم البديل (ليحل محل ${selectedOldResidentName}):`;
+            document.getElementById('update-btn-text').textContent = `تأكيد التبديل مع ${selectedOldResidentName}`;
+        }
+
+        // Name Autocomplete Handlers
         function handleNameInput() {
             const input = document.getElementById('name-input');
             const ghost = document.getElementById('ghost-text');
@@ -531,7 +696,7 @@
 
             if (all.length > 0 && document.activeElement === input) {
                 menu.innerHTML = all.slice(0, 15).map(n =>
-                    `<div onclick="selectName('${n.name.replace(/'/g, "\\'")}')">${n.name}</div>`
+                    `<div onclick="selectName('${n.name.replace(/'/g, "\'")}')">${n.name}</div>`
                 ).join('');
                 menu.style.display = 'block';
             } else {
@@ -592,7 +757,7 @@
                 menu.innerHTML = '<div style="color:#94a3b8;font-size:0.8rem;text-align:center;padding:12px;">لا يوجد مقيمين</div>';
             } else {
                 menu.innerHTML = currentResidents.slice(0, 20).map(n =>
-                    `<div onclick="selectName('${n.name.replace(/'/g, "\\'")}')">${n.name}</div>`
+                    `<div onclick="selectName('${n.name.replace(/'/g, "\'")}')">${n.name}</div>`
                 ).join('');
             }
             menu.style.display = 'block';
@@ -611,45 +776,50 @@
             if (menu) menu.style.display = 'none';
         }
 
-        async function updateDuty() {
+        // Submit Duty Exchange
+        async function submitDutyExchange() {
+            const hospId = document.getElementById('hosp-select').value;
             const specId = document.getElementById('spec-select').value;
+            const isoDate = document.getElementById('exchange-date-input').value;
+            const medDate = isoToMedicalDate(isoDate);
             const name = document.getElementById('name-input').value.trim();
             const btn = document.getElementById('update-btn');
             const msg = document.getElementById('status-msg');
             const card = document.getElementById('app-card');
 
-            if (!specId || !name) {
-                showToast('الرجاء اختيار التخصص والاسم', 'error');
+            if (!hospId || !specId || !isoDate || !name) {
+                showToast('الرجاء إكمال كافة الحقول المطلوبة', 'error');
                 return;
             }
 
+            const formattedName = (name.startsWith('د.') || name.startsWith('د ')) ? name : `د. ${name}`;
+
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-pulse ml-2"></i> جاري التثبيت...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> جاري حفظ التبديل في السيرفر...';
 
             try {
-                await Hub.updateDuty(currentHospital.id, specId, name);
+                await Hub.exchangeDuty(hospId, specId, formattedName, medDate, selectedOldResidentName);
+
                 card.classList.add('card-success');
-                msg.innerHTML = `<span style="color:#10b981;font-weight:700;">✅ تم تحديث الخفر بنجاح إلى: ${name}</span>`;
-                showToast(`تم تثبيت الخفر: ${name}`, 'success');
+                msg.innerHTML = `<span style="color:#10b981;font-weight:700;">✅ تم تثبيت تبديل الخفارة بنجاح بتاريخ ${medDate} إلى: ${formattedName}</span>`;
+                showToast(`تم تبديل الخفارة بنجاح: ${formattedName}`, 'success');
 
                 setTimeout(() => {
-                    document.getElementById('current-holder').textContent = name;
-                    document.getElementById('current-holder').style.color = '#10b981';
+                    inspectDutyAndRender();
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-save ml-2"></i> تثبيت الخفر';
+                    btn.innerHTML = '<i class="fas fa-check-circle"></i> <span>تأكيد وتثبيت تبديل الخفارة</span>';
                 }, 1200);
 
             } catch (err) {
                 console.error(err);
-                msg.innerHTML = `<span style="color:#ef4444;font-weight:700;">❌ فشل تحديث الخفر</span>`;
-                showToast('فشل حفظ الخفر على السيرفر', 'error');
+                msg.innerHTML = `<span style="color:#ef4444;font-weight:700;">❌ فشل تبديل الخفارة: ${err.message || ''}</span>`;
+                showToast(err.message || 'فشل حفظ الخفر على السيرفر', 'error');
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-save ml-2"></i> تثبيت الخفر';
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> <span>تأكيد وتثبيت تبديل الخفارة</span>';
             }
         }
 
-        window.addEventListener('DOMContentLoaded', initSignup);
+        window.addEventListener('DOMContentLoaded', initDutyExchange);
     </script>
 </body>
 </html>
-

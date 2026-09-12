@@ -378,7 +378,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">اسم المقيم</label>
-                    <input type="text" id="new-res-name" class="input-field" placeholder="مثال: احمد علي" />
+                    <input type="text" id="new-res-name" class="input-field" placeholder="مثال: د. احمد علي" />
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">رقم الهاتف (اختياري)</label>
@@ -389,6 +389,34 @@
                     <select id="new-res-spec" class="input-field"></select>
                 </div>
             </div>
+
+            <!-- Hospital Assignment & Multi-Hospital Switch -->
+            <div class="p-3 mb-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40 space-y-2">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                            <i class="fas fa-shuffle text-teal-600 dark:text-amber-400"></i>
+                            <span>تغطية أكثر من مستشفى</span>
+                        </div>
+                        <div class="text-[11px] text-slate-400 mt-0.5">تعيين المقيم للدوام في عدة مستشفيات مشتركة</div>
+                    </div>
+                    <label class="toggle-switch-compact">
+                        <input type="checkbox" id="new-res-multi-toggle" onchange="toggleAddResidentMulti(this.checked)" />
+                        <span class="toggle-slider-compact"></span>
+                    </label>
+                </div>
+
+                <div id="new-res-hosp-single-wrap">
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1">المستشفى التابع له:</label>
+                    <select id="new-res-hospital-single" class="input-field text-xs"></select>
+                </div>
+
+                <div id="new-res-hosp-multi-wrap" class="hidden pt-1 border-t border-slate-200 dark:border-slate-800">
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1.5">حدد المستشفيات التي يداوم فيها المقيم:</label>
+                    <div id="new-res-hospital-checkboxes" class="grid grid-cols-1 sm:grid-cols-3 gap-2"></div>
+                </div>
+            </div>
+
             <div class="flex items-center justify-between">
                 <label class="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer">
                     <input type="checkbox" id="new-res-active" checked class="w-4 h-4 accent-teal-600" />
@@ -418,6 +446,7 @@
                 <i class="fas fa-user-edit text-teal-600 dark:text-amber-400"></i> تعديل بيانات المقيم
             </h3>
             <input type="hidden" id="edit-res-idx" />
+            <input type="hidden" id="edit-res-id" />
             <div class="space-y-3">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">اسم المقيم</label>
@@ -431,6 +460,34 @@
                     <label class="block text-xs font-bold text-slate-500 mb-1">التخصص</label>
                     <select id="edit-res-spec" class="input-field"></select>
                 </div>
+
+                <!-- Hospital Assignment & Multi-Hospital Switch -->
+                <div class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                <i class="fas fa-shuffle text-teal-600 dark:text-amber-400"></i>
+                                <span>تغطية أكثر من مستشفى</span>
+                            </div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">تعيين المقيم للدوام في عدة مستشفيات مشتركة</div>
+                        </div>
+                        <label class="toggle-switch-compact">
+                            <input type="checkbox" id="edit-res-multi-toggle" onchange="toggleEditResidentMulti(this.checked)" />
+                            <span class="toggle-slider-compact"></span>
+                        </label>
+                    </div>
+
+                    <div id="edit-res-hosp-single-wrap">
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1">المستشفى التابع له:</label>
+                        <select id="edit-res-hospital-single" class="input-field text-xs"></select>
+                    </div>
+
+                    <div id="edit-res-hosp-multi-wrap" class="hidden pt-1 border-t border-slate-200 dark:border-slate-800">
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1.5">حدد المستشفيات التي يداوم فيها المقيم:</label>
+                        <div id="edit-res-hospital-checkboxes" class="space-y-1.5"></div>
+                    </div>
+                </div>
+
                 <label class="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer">
                     <input type="checkbox" id="edit-res-active" class="w-4 h-4 accent-teal-600" />
                     المقيم نشط في الخدمة
@@ -645,6 +702,7 @@
                 }
 
                 populateSpecialtyDropdowns();
+                populateHospitalDropdowns();
                 renderResidentsAccordion();
                 updateStatsBadges();
 
@@ -753,46 +811,134 @@
             if (isOpen) document.getElementById('new-res-name').focus();
         }
 
+        function populateHospitalDropdowns() {
+            const hospitals = Hub.getHospitals();
+            const activeHid = Hub.getActiveHospitalId();
+
+            // Single dropdowns
+            const addSingle = document.getElementById('new-res-hospital-single');
+            const editSingle = document.getElementById('edit-res-hospital-single');
+            const optHtml = hospitals.map(h => `<option value="${h.id}">${h.name_ar || h.hospitalName}</option>`).join('');
+            if (addSingle) {
+                addSingle.innerHTML = optHtml;
+                addSingle.value = activeHid;
+            }
+            if (editSingle) {
+                editSingle.innerHTML = optHtml;
+            }
+
+            // Checkboxes
+            const addCheckboxes = document.getElementById('new-res-hospital-checkboxes');
+            const editCheckboxes = document.getElementById('edit-res-hospital-checkboxes');
+            
+            if (addCheckboxes) {
+                addCheckboxes.innerHTML = hospitals.map(h => `
+                    <label class="flex items-center gap-2 p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs font-bold cursor-pointer">
+                        <input type="checkbox" name="new-res-hosp-cb" value="${h.id}" ${h.id === activeHid ? 'checked' : ''} class="w-3.5 h-3.5 accent-teal-600 rounded" />
+                        <span>${h.name_ar || h.hospitalName}</span>
+                    </label>
+                `).join('');
+            }
+
+            if (editCheckboxes) {
+                editCheckboxes.innerHTML = hospitals.map(h => `
+                    <label class="flex items-center gap-2 p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs font-bold cursor-pointer">
+                        <input type="checkbox" name="edit-res-hosp-cb" value="${h.id}" class="w-3.5 h-3.5 accent-teal-600 rounded" />
+                        <span>${h.name_ar || h.hospitalName}</span>
+                    </label>
+                `).join('');
+            }
+        }
+
+        function toggleAddResidentMulti(isMulti) {
+            document.getElementById('new-res-hosp-single-wrap').classList.toggle('hidden', isMulti);
+            document.getElementById('new-res-hosp-multi-wrap').classList.toggle('hidden', !isMulti);
+        }
+
+        function toggleEditResidentMulti(isMulti) {
+            document.getElementById('edit-res-hosp-single-wrap').classList.toggle('hidden', isMulti);
+            document.getElementById('edit-res-hosp-multi-wrap').classList.toggle('hidden', !isMulti);
+        }
+
         async function submitAddResident() {
             const name = document.getElementById('new-res-name').value.trim();
             const phone = document.getElementById('new-res-phone').value.trim();
             const spec = document.getElementById('new-res-spec').value;
             const active = document.getElementById('new-res-active').checked;
+            const isMulti = document.getElementById('new-res-multi-toggle').checked;
 
             if (!name) {
                 showToast('الرجاء إدخال اسم المقيم', 'error');
                 return;
             }
 
+            let assignedHospitals = [];
+            if (isMulti) {
+                document.querySelectorAll('input[name="new-res-hosp-cb"]:checked').forEach(cb => {
+                    assignedHospitals.push(cb.value);
+                });
+                if (assignedHospitals.length === 0) {
+                    showToast('الرجاء اختيار مستشفى واحد على الأقل', 'error');
+                    return;
+                }
+            } else {
+                const singleHid = document.getElementById('new-res-hospital-single').value || Hub.getActiveHospitalId();
+                assignedHospitals = [singleHid];
+            }
+
             const formattedName = name.startsWith('د.') || name.startsWith('د ') ? name : `د. ${name}`;
 
-            currentHospital.names.push({
-                name: formattedName,
-                spec: active ? spec : 'RESERVE',
-                tag: spec,
-                phone: phone || 'رقم غير متوفر',
-                active: active
-            });
+            try {
+                await Hub.addResident({
+                    name: formattedName,
+                    phone: phone,
+                    spec: spec,
+                    tag: spec,
+                    active: active,
+                    hospitals: assignedHospitals
+                });
 
-            document.getElementById('new-res-name').value = '';
-            document.getElementById('new-res-phone').value = '';
-            toggleAddResidentPanel(false);
+                document.getElementById('new-res-name').value = '';
+                document.getElementById('new-res-phone').value = '';
+                toggleAddResidentPanel(false);
 
-            renderResidentsAccordion();
-            updateStatsBadges();
-            showToast(`تمت إضافة ${formattedName} بنجاح`, 'success');
-            await Hub.saveDatabase(`Add resident: ${formattedName}`);
+                currentHospital = Hub.getActiveHospital();
+                renderResidentsAccordion();
+                updateStatsBadges();
+                showToast(`تمت إضافة ${formattedName} بنجاح`, 'success');
+            } catch (err) {
+                console.error('Error adding resident:', err);
+                showToast(err.message || 'خطأ أثناء إضافة المقيم', 'error');
+            }
         }
 
         function openEditResident(idx) {
             const r = currentHospital.names[idx];
             if (!r) return;
 
+            const sharedRes = Hub.getResident(r.id || r.name);
+            const hospitals = sharedRes?.hospitals || r.hospitals || [Hub.getActiveHospitalId()];
+            const isMulti = hospitals.length > 1;
+
             document.getElementById('edit-res-idx').value = idx;
+            document.getElementById('edit-res-id').value = sharedRes?.id || r.id || '';
             document.getElementById('edit-res-name').value = r.name;
             document.getElementById('edit-res-phone').value = r.phone === 'رقم غير متوفر' ? '' : r.phone;
             document.getElementById('edit-res-spec').value = r.tag || r.spec;
             document.getElementById('edit-res-active').checked = r.active !== false && r.spec !== 'RESERVE';
+
+            const multiToggle = document.getElementById('edit-res-multi-toggle');
+            if (multiToggle) {
+                multiToggle.checked = isMulti;
+                toggleEditResidentMulti(isMulti);
+            }
+            const singleSelect = document.getElementById('edit-res-hospital-single');
+            if (singleSelect) {
+                singleSelect.value = hospitals[0] || Hub.getActiveHospitalId();
+            }
+            document.querySelectorAll('input[name="edit-res-hosp-cb"]').forEach(cb => {
+                cb.checked = hospitals.includes(cb.value);
+            });
 
             document.getElementById('edit-resident-modal').classList.add('active');
         }
@@ -803,47 +949,79 @@
 
         async function saveResidentEdit() {
             const idx = parseInt(document.getElementById('edit-res-idx').value);
+            const resId = document.getElementById('edit-res-id').value;
             const name = document.getElementById('edit-res-name').value.trim();
             const phone = document.getElementById('edit-res-phone').value.trim();
             const spec = document.getElementById('edit-res-spec').value;
             const active = document.getElementById('edit-res-active').checked;
+            const isMulti = document.getElementById('edit-res-multi-toggle').checked;
 
             if (!name || isNaN(idx) || !currentHospital.names[idx]) {
                 showToast('بيانات غير صحيحة', 'error');
                 return;
             }
 
-            const oldName = currentHospital.names[idx].name;
-            currentHospital.names[idx] = {
-                name: name,
-                spec: active ? spec : 'RESERVE',
-                tag: spec,
-                phone: phone || 'رقم غير متوفر',
-                active: active
-            };
-
-            // Also update schedule logs if name was changed
-            if (oldName !== name) {
-                (currentHospital.schedule || []).forEach(s => {
-                    if (s.name === oldName) s.name = name;
+            let assignedHospitals = [];
+            if (isMulti) {
+                document.querySelectorAll('input[name="edit-res-hosp-cb"]:checked').forEach(cb => {
+                    assignedHospitals.push(cb.value);
                 });
+                if (assignedHospitals.length === 0) {
+                    showToast('الرجاء اختيار مستشفى واحد على الأقل', 'error');
+                    return;
+                }
+            } else {
+                const singleHid = document.getElementById('edit-res-hospital-single').value || Hub.getActiveHospitalId();
+                assignedHospitals = [singleHid];
             }
 
-            closeEditModal();
-            renderResidentsAccordion();
-            updateStatsBadges();
-            showToast('تم حفظ تعديل المقيم', 'success');
-            await Hub.saveDatabase(`Edit resident: ${name}`);
+            const oldName = currentHospital.names[idx].name;
+
+            try {
+                const targetIdOrName = resId || oldName;
+                await Hub.updateResident(targetIdOrName, {
+                    name: name,
+                    phone: phone,
+                    spec: spec,
+                    tag: spec,
+                    active: active,
+                    hospitals: assignedHospitals
+                });
+
+                // Also update schedule logs if name was changed
+                if (oldName !== name) {
+                    (currentHospital.schedule || []).forEach(s => {
+                        if (s.name === oldName) s.name = name;
+                    });
+                }
+
+                closeEditModal();
+                currentHospital = Hub.getActiveHospital();
+                renderResidentsAccordion();
+                updateStatsBadges();
+                showToast('تم حفظ تعديل المقيم بنجاح', 'success');
+            } catch (err) {
+                console.error('Error updating resident:', err);
+                showToast(err.message || 'خطأ أثناء تعديل المقيم', 'error');
+            }
         }
 
         async function deleteResident(idx, name) {
             if (!confirm(`هل أنت متأكد من حذف المقيم "${name}"؟`)) return;
 
-            currentHospital.names.splice(idx, 1);
-            renderResidentsAccordion();
-            updateStatsBadges();
-            showToast(`تم حذف ${name}`, 'info');
-            await Hub.saveDatabase(`Delete resident: ${name}`);
+            try {
+                const r = currentHospital.names[idx];
+                const resId = r ? (r.id || name) : name;
+                await Hub.deleteResident(resId);
+
+                currentHospital = Hub.getActiveHospital();
+                renderResidentsAccordion();
+                updateStatsBadges();
+                showToast(`تم حذف ${name}`, 'info');
+            } catch (err) {
+                console.error('Error deleting resident:', err);
+                showToast(err.message || 'خطأ أثناء حذف المقيم', 'error');
+            }
         }
 
         // ============================================================

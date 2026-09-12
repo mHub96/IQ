@@ -243,19 +243,22 @@
         // Priority: 1. URL parameter (?hospital=...) 2. LocalStorage 3. Default ('iraqi')
         const urlParams = new URLSearchParams(window.location.search);
         const fromUrl = urlParams.get('hospital') || urlParams.get('hosp');
-        if (fromUrl && db && db.hospitals && db.hospitals[fromUrl]) {
+        if (fromUrl) {
             localStorage.setItem(ACTIVE_HOSP_KEY, fromUrl);
             return fromUrl;
         }
 
         const fromStorage = localStorage.getItem(ACTIVE_HOSP_KEY);
-        if (fromStorage && db && db.hospitals && db.hospitals[fromStorage]) {
-            return fromStorage;
+        if (fromStorage) {
+            if (!db || !db.hospitals || db.hospitals[fromStorage]) {
+                return fromStorage;
+            }
         }
 
         if (db && db.hospitals) {
             const ids = Object.keys(db.hospitals);
             if (ids.length > 0) {
+                localStorage.setItem(ACTIVE_HOSP_KEY, ids[0]);
                 return ids[0];
             }
         }
@@ -268,17 +271,18 @@
     }
 
     function setActiveHospitalId(id) {
+        if (!id) return false;
+        localStorage.setItem(ACTIVE_HOSP_KEY, id);
         if (db && db.hospitals && db.hospitals[id]) {
-            localStorage.setItem(ACTIVE_HOSP_KEY, id);
             window.dispatchEvent(new CustomEvent('hub:hospital-switched', { detail: { hospitalId: id, hospital: db.hospitals[id] } }));
             return true;
         }
-        return false;
+        return true;
     }
 
     async function addHospital(hospitalData) {
-        if (!auth.isAdmin()) {
-            throw new Error('غير مصرح لك بإضافة مستشفى. يتطلب صلاحيات المدير.');
+        if (!auth.isOwner()) {
+            throw new Error('غير مصرح لك بإضافة مستشفى. يتطلب صلاحيات المالك (Owner) حصراً.');
         }
 
         let id = (hospitalData.id || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '-');
@@ -726,12 +730,20 @@
                 this.logout();
                 return false;
             }
-            return true;
+            return ['user', 'admin', 'owner'].includes(role);
         },
 
         getRole() {
-            if (!this.checkSession()) return null;
-            return localStorage.getItem(SESSION_ROLE_KEY) || null;
+            if (!this.checkSession()) return 'guest';
+            return localStorage.getItem(SESSION_ROLE_KEY) || 'guest';
+        },
+
+        isLoggedIn() {
+            return this.checkSession() && ['user', 'admin', 'owner'].includes(this.getRole());
+        },
+
+        isUser() {
+            return ['user', 'admin', 'owner'].includes(this.getRole());
         },
 
         isOwner() {
@@ -752,7 +764,7 @@
             localStorage.removeItem(SESSION_TOKEN_KEY);
             localStorage.removeItem(SESSION_TIMESTAMP_KEY);
             localStorage.removeItem(SESSION_REMEMBER_KEY);
-            window.dispatchEvent(new CustomEvent('hub:auth-changed', { detail: { role: null } }));
+            window.dispatchEvent(new CustomEvent('hub:auth-changed', { detail: { role: 'guest' } }));
         },
 
         upgradeRole(password) {

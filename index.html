@@ -964,28 +964,32 @@
             // Global Statistics Calculation
             const today = Hub.getMedicalDate();
             let totalResidents = 0;
-            let totalOnCallNow = 0;
-            let totalSpecs = 0;
 
             hospitals.forEach(h => {
                 totalResidents += (h.names || []).length;
-                totalSpecs += (h.specialties || []).filter(s => s.enabled !== false).length;
-                const duty = (h.duties && h.duties[today]) ? h.duties[today] : {};
-                totalOnCallNow += Object.keys(duty).length;
             });
 
-            document.getElementById('stat-hospitals-count').textContent = hospitals.length;
-            document.getElementById('stat-residents-count').textContent = totalResidents;
-            document.getElementById('stat-specialties-count').textContent = totalSpecs;
+            const totalOnCallNow = Hub.getTotalActiveOnCallCount ? Hub.getTotalActiveOnCallCount(today) : 0;
+            const globalSpecsCount = (currentDb.globalSpecialties && currentDb.globalSpecialties.length) ? currentDb.globalSpecialties.length : 29;
+
+            const statHospEl = document.getElementById('stat-hospitals-count');
+            const statOnCallEl = document.getElementById('stat-oncall-count');
+            const statResEl = document.getElementById('stat-residents-count');
+            const statSpecEl = document.getElementById('stat-specialties-count');
+
+            if (statHospEl) statHospEl.textContent = hospitals.length;
+            if (statOnCallEl) statOnCallEl.textContent = totalOnCallNow;
+            if (statResEl) statResEl.textContent = totalResidents;
+            if (statSpecEl) statSpecEl.textContent = globalSpecsCount;
 
             const grid = document.getElementById('hospitals-list-grid');
             if (!grid) return;
 
             grid.innerHTML = hospitals.map(h => {
                 const totalRes = (h.names || []).length;
-                const activeRes = (h.names || []).filter(n => n.active !== false).length;
+                const activeRes = (h.names || []).filter(n => n.active !== false && n.spec !== 'RESERVE').length;
                 const specCount = (h.specialties || []).filter(s => s.enabled !== false).length;
-                const onCallToday = (h.schedule || []).filter(s => s.date === today).length || (h.duties && h.duties[today] ? Object.keys(h.duties[today]).length : 0);
+                const onCallToday = Hub.getActiveOnCallResidentsCount ? Hub.getActiveOnCallResidentsCount(h, today) : ((h.schedule || []).filter(s => s.date === today && s.name && s.name.trim()).length);
                 const color = h.color || '#0f766e';
                 const icon = h.icon || 'fa-hospital';
                 const location = h.location || 'العراق';
@@ -1006,7 +1010,7 @@
 
                             <div class="hosp-metrics">
                                 <span class="metric-pill highlight">
-                                    <i class="fas fa-user-check"></i> ${onCallToday} في الخدمة اليوم
+                                    <i class="fas fa-user-check"></i> ${onCallToday} في الخدمة الآن
                                 </span>
                                 <span class="metric-pill">
                                     <i class="fas fa-users"></i> ${activeRes} مقيم نشط

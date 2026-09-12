@@ -389,27 +389,50 @@
     // ============================================================
     // DUTY & SCHEDULE MANAGEMENT
     // ============================================================
-    async function updateDuty(hospitalId, specCode, residentName) {
+    async function exchangeDuty(hospitalId, specCode, newResidentName, targetDate = null, oldResidentName = null) {
         const hospital = getHospital(hospitalId);
         if (!hospital) throw new Error('المستشفى غير موجود');
 
-        const today = getMedicalDate();
+        const date = targetDate || getMedicalDate();
         const ts = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
-        // Remove existing duty for this specialty today
-        hospital.schedule = (hospital.schedule || []).filter(s => !(s.specCode === specCode && s.date === today));
+        if (!Array.isArray(hospital.schedule)) {
+            hospital.schedule = [];
+        }
 
-        // Add new assignment
-        hospital.schedule.push({
-            date: today,
-            specCode: specCode,
-            name: residentName,
-            timestamp: ts,
-            VisitCount: 0
-        });
+        if (oldResidentName) {
+            // Target specific resident slot to replace
+            const idx = hospital.schedule.findIndex(s => s.specCode === specCode && s.date === date && s.name === oldResidentName);
+            if (idx !== -1) {
+                hospital.schedule[idx].name = newResidentName;
+                hospital.schedule[idx].timestamp = ts;
+            } else {
+                hospital.schedule.push({
+                    date: date,
+                    specCode: specCode,
+                    name: newResidentName,
+                    timestamp: ts,
+                    VisitCount: 0
+                });
+            }
+        } else {
+            // Replace existing duty for this specialty on this date
+            hospital.schedule = hospital.schedule.filter(s => !(s.specCode === specCode && s.date === date));
+            hospital.schedule.push({
+                date: date,
+                specCode: specCode,
+                name: newResidentName,
+                timestamp: ts,
+                VisitCount: 0
+            });
+        }
 
-        await saveDatabase(`Duty Update (${hospital.hospitalName}): ${specCode} → ${residentName}`);
+        await saveDatabase(`Duty Exchange (${hospital.hospitalName}): ${specCode} on ${date} → ${newResidentName}`);
         return true;
+    }
+
+    async function updateDuty(hospitalId, specCode, residentName, targetDate = null, oldResidentName = null) {
+        return exchangeDuty(hospitalId, specCode, residentName, targetDate, oldResidentName);
     }
 
     async function incrementVisitCount(hospitalId, residentName) {
@@ -780,6 +803,7 @@
         updateResident,
         deleteResident,
         updateDuty,
+        exchangeDuty,
         incrementVisitCount,
         resetStatistics,
         auth,

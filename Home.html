@@ -1025,6 +1025,94 @@
         .toast-error { background: rgba(239, 68, 68, 0.94); color: white; }
         .toast-info { background: rgba(59, 130, 246, 0.94); color: white; }
 
+        /* Mobile Screen Layouts */
+        @media (max-width: 768px) {
+            .main-content-wrap {
+                padding-left: 10px !important;
+                padding-right: 10px !important;
+                padding-bottom: calc(2rem + env(safe-area-inset-bottom, 16px)) !important;
+            }
+            .hospital-header {
+                padding: 0.85rem 0 0.7rem;
+                margin: 0 0 0.5rem;
+                gap: 0.4rem;
+            }
+            .hospital-mark {
+                width: 4.2rem;
+                height: 4.2rem;
+                font-size: 1.7rem;
+            }
+            .hospital-title {
+                font-size: clamp(1.4rem, 5.2vw, 1.85rem) !important;
+                line-height: 1.3;
+                margin: 0.15rem 0 0.25rem;
+            }
+            .hospital-eyebrow {
+                font-size: 0.72rem;
+            }
+            .hospital-subtitle {
+                font-size: 0.72rem;
+            }
+            .top-bar {
+                gap: 0.35rem;
+                margin-bottom: 0.6rem;
+            }
+            .top-action-btn {
+                padding: 0.42rem 0.8rem;
+                font-size: 0.62rem;
+                min-height: 38px;
+            }
+            .theme-toggle-btn {
+                width: 38px;
+                height: 38px;
+            }
+            .trending-card {
+                padding: 1rem;
+                border-radius: 1.25rem;
+                margin-bottom: 0.85rem;
+            }
+            .trending-name {
+                font-size: 1.25rem !important;
+            }
+            .trending-badge {
+                font-size: 0.65rem;
+                padding: 0.25rem 0.6rem;
+            }
+            .roster-card-wrapper {
+                max-width: 100% !important;
+                margin: 0 0 0.65rem;
+            }
+            .roster-card {
+                border-radius: 1.25rem;
+                min-height: 145px;
+            }
+            .roster-card .card-body {
+                padding: 0.75rem 0.9rem;
+            }
+            .roster-card .resident-name {
+                font-size: 1.32rem !important;
+            }
+            .roster-card .specialty-bubble {
+                font-size: 0.72rem;
+                padding: 0.22rem 0.6rem;
+            }
+            .roster-card .action-btn-sm {
+                width: 44px;
+                height: 44px;
+                font-size: 1rem;
+                border-radius: 12px;
+            }
+            .card-actions {
+                gap: 0.6rem;
+                margin-top: 0.4rem;
+            }
+            .modal-card {
+                max-width: calc(100vw - 24px) !important;
+                padding: 1.25rem 1rem !important;
+                border-radius: 1.4rem !important;
+            }
+        }
+
         .footer-credit {
             font-size: 0.7rem;
             opacity: 0.5;

@@ -360,6 +360,9 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" id="admin-owner-passwords-btn" onclick="openAllPasswordsModalNav()" class="btn-ghost text-xs" style="display:none; color:#d97706; border-color:rgba(217,119,6,0.4); background:rgba(217,119,6,0.08);">
+                        <i class="fas fa-key text-amber-500"></i> تعديل كلمات المرور
+                    </button>
                     <button type="button" onclick="openHospitalSettingsModal()" class="btn-ghost text-xs">
                         <i class="fas fa-sliders"></i> إعدادات المستشفى
                     </button>
@@ -723,6 +726,12 @@
                         roleInd.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300 border border-teal-300 dark:border-teal-700';
                         roleInd.innerHTML = '<i class="fas fa-shield-halved ml-1 text-teal-600"></i> وضع المدير';
                     }
+                }
+
+                // Show Owner Edit Passwords button only if isOwner
+                const ownerPwdBtn = document.getElementById('admin-owner-passwords-btn');
+                if (ownerPwdBtn) {
+                    ownerPwdBtn.style.display = Hub.auth.isOwner() ? 'inline-flex' : 'none';
                 }
 
                 populateSpecialtyDropdowns();

@@ -506,12 +506,21 @@
         .toast.info { background: #3b82f6; }
 
         /* Mobile Screen Layouts */
+        /* Hide Counters Dashboard on Phone/Mobile (User Request) */
+        @media (max-width: 850px), 
+               (max-device-width: 950px) and (pointer: coarse), 
+               (pointer: coarse) and (hover: none) and (max-width: 1024px) {
+            .stats-grid {
+                display: none !important;
+            }
+        }
+
         @media (max-width: 768px) {
             .hub-container {
                 padding: 0 14px 2rem;
             }
 
-            /* Hide Counters Dashboard on Mobile (User Request) */
+            /* Hide Counters Dashboard on Mobile */
             .stats-grid {
                 display: none !important;
             }
@@ -833,7 +842,29 @@
             }, duration);
         }
 
+        function isPhoneDevice() {
+            const ua = navigator.userAgent || navigator.vendor || window.opera || '';
+            const phoneRegex = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i;
+            const isSmallScreen = window.innerWidth <= 850;
+            const isTouchPhone = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches && (window.screen.width <= 950 || window.innerWidth <= 950));
+            return phoneRegex.test(ua) || isSmallScreen || isTouchPhone;
+        }
+
+        function enforcePhoneCountersVisibility() {
+            const stats = document.querySelector('.stats-grid');
+            if (!stats) return;
+            if (isPhoneDevice()) {
+                stats.style.setProperty('display', 'none', 'important');
+                stats.setAttribute('aria-hidden', 'true');
+            } else {
+                stats.style.removeProperty('display');
+                stats.removeAttribute('aria-hidden');
+            }
+        }
+
         async function initHub() {
+            enforcePhoneCountersVisibility();
+
             // Initialize Universal Navigation with active page 'hub'
             initUniversalNav('hub');
 
@@ -913,10 +944,11 @@
             const now = new Date();
             const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             const dateStr = Hub.getMedicalDate();
-            el.innerHTML = `⏰ الوقت الطبي الحالي: ${timeStr} · التاريخ الطبي: ${dateStr}`;
+            el.innerHTML = `⏰ ${timeStr} · ${dateStr}`;
         }
 
         function renderHubDashboard() {
+            enforcePhoneCountersVisibility();
             if (!currentDb || !currentDb.hospitals) return;
 
             const hospitals = Object.values(currentDb.hospitals);
@@ -1080,6 +1112,8 @@
         }
 
         window.addEventListener('DOMContentLoaded', initHub);
+        window.addEventListener('resize', enforcePhoneCountersVisibility);
+        window.addEventListener('orientationchange', enforcePhoneCountersVisibility);
         window.addEventListener('hub:data-changed', (e) => {
             currentDb = e.detail.db;
             renderHubDashboard();

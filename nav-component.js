@@ -81,7 +81,7 @@
                         <i class="fas fa-address-book"></i> <span>دليل المقيمين</span>
                     </a>
                     <a href="./signup.html${queryParam}" class="hub-nav-link ${activePageId === 'signup' ? 'active' : ''}">
-                        <i class="fas fa-pen-to-square"></i> <span>تسجيل الخفراء</span>
+                        <i class="fas fa-exchange-alt"></i> <span>تبديل الخفارات</span>
                     </a>
                     ${isAdmin ? `
                     <a href="./admin.html${queryParam}" class="hub-nav-link ${activePageId === 'admin' ? 'active' : ''}">

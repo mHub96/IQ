@@ -476,6 +476,11 @@
         }
 
         async function initDutyExchange() {
+            if (!Hub.auth.isLoggedIn()) {
+                window.location.href = './index.html';
+                return;
+            }
+
             initUniversalNav('signup');
 
             try {

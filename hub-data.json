@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-09-12T12:50:52.555Z",
+  "lastUpdated": "2026-09-12T12:51:07.073Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -20076,6 +20076,15 @@
           "enabled": true
         },
         {
+          "id": "US",
+          "name_ar": "جراحة المسالك البولية",
+          "name_en": "Urosurgery",
+          "icon": "🫘",
+          "color": "#e66551",
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
           "id": "GS",
           "name_ar": "الجراحة العامة",
           "name_en": "General Surgery",
@@ -20090,15 +20099,6 @@
           "name_en": "Orthopaedics",
           "icon": "🦴",
           "color": "#ff0000",
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
-          "id": "US",
-          "name_ar": "جراحة المسالك البولية",
-          "name_en": "Urosurgery",
-          "icon": "🫘",
-          "color": "#e66551",
           "acceptPool": [],
           "enabled": true
         },

@@ -560,50 +560,55 @@
             box-shadow: 12px 12px 28px rgba(0, 0, 0, 0.7), -10px -10px 24px rgba(255, 255, 255, 0.02), 0 5px 0 rgba(0, 0, 0, 0.5), 0 0 50px rgba(212, 175, 55, 0.01), inset 0 1px 0 rgba(255, 255, 255, 0.02);
         }
         .roster-card .card-body {
-            padding: 0.85rem 1.25rem 0.95rem;
+            padding: 1.25rem 1.25rem 1.15rem;
             width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            gap: 0.1rem;
+            gap: 0.15rem;
             position: relative;
         }
         .roster-card .resident-name {
             font-weight: 800;
-            font-size: 1.5rem;
+            font-size: clamp(1.4rem, 4.2vw, 1.65rem);
             display: flex;
             align-items: center;
             justify-content: center;
+            text-align: center;
+            width: 100%;
             gap: 0.3rem;
+            margin: 0.15rem auto 0.05rem;
             padding: 0.05rem 0;
             line-height: 1.3;
         }
         body.light .roster-card .resident-name { color: #0f172a !important; font-weight: 800; }
-        body.dark .roster-card .resident-name { color: #f8fafc !important; font-weight: 800; }
+        body.dark .roster-card .resident-name { color: #ffffff !important; font-weight: 800; }
         .roster-card .resident-phone {
-            font-size: 0.85rem;
+            font-size: 0.88rem;
             font-weight: 600;
             font-family: 'JetBrains Mono', monospace;
             direction: ltr;
             unicode-bidi: isolate;
-            margin-bottom: 0.05rem;
+            text-align: center;
+            margin: 0 auto 0.75rem auto;
             letter-spacing: 0.05em;
         }
-        body.light .roster-card .resident-phone { color: #334155 !important; opacity: 0.85; }
-        body.dark .roster-card .resident-phone { color: #94a3b8 !important; opacity: 0.75; }
+        body.light .roster-card .resident-phone { color: #475569 !important; opacity: 0.9; }
+        body.dark .roster-card .resident-phone { color: #94a3b8 !important; opacity: 0.85; }
 
         /* Specialty Bubbles & Smooth Flip Flip Clock */
         .roster-card .specialty-bubbles {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            column-gap: 0.55rem;
-            row-gap: 0.55rem;
+            column-gap: 0.6rem;
+            row-gap: 0.6rem;
             justify-content: center;
-            margin-top: 0.3rem;
-            margin-bottom: 0.1rem;
+            margin: 0 auto 0.45rem auto;
+            width: 100%;
+            max-width: 88%;
         }
         .roster-card .specialty-flip {
             display: inline-grid;
@@ -622,19 +627,20 @@
             min-width: auto;
         }
         .roster-card .specialty-bubble {
-            font-size: 0.85rem;
+            font-size: 0.88rem;
             font-weight: 700;
-            padding: 0.15rem 0.6rem;
-            border-radius: 100px;
-            display: flex;
+            padding: 0.32rem 0.95rem;
+            border-radius: 9999px;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
+            gap: 0.35rem;
             border: 2px solid;
             background: rgba(212, 175, 55, 0.06);
             border-color: rgba(212, 175, 55, 0.12);
             color: #d4af37;
-            line-height: 1.4;
-            height: 1.7rem;
+            line-height: 1.35;
+            min-height: 32px;
             white-space: nowrap;
             overflow: hidden;
             grid-area: 1 / 1;
@@ -690,90 +696,103 @@
 
         /* Golden Specialty Bubbles for Multi-Specialty Residents */
         .roster-card .specialty-bubble.specialty-gold,
-        body.light .roster-card .specialty-bubble.specialty-gold {
-            background: linear-gradient(135deg, rgba(254, 243, 199, 0.95), rgba(253, 230, 138, 0.9)) !important;
-            color: #b45309 !important;
-            border-color: #f59e0b !important;
-            box-shadow: 0 2px 10px rgba(245, 158, 11, 0.25);
-            font-weight: 800;
+        .roster-card .specialty-flip.multiple .specialty-bubble,
+        body.light .roster-card .specialty-bubble.specialty-gold,
+        body.light .roster-card .specialty-flip.multiple .specialty-bubble,
+        body.dark .roster-card .specialty-bubble.specialty-gold,
+        body.dark .roster-card .specialty-flip.multiple .specialty-bubble {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+            color: #0f172a !important;
+            border: 1px solid #d97706 !important;
+            box-shadow: 0 3px 12px rgba(245, 158, 11, 0.38) !important;
+            font-weight: 800 !important;
         }
-        body.dark .roster-card .specialty-bubble.specialty-gold {
-            background: linear-gradient(135deg, rgba(212, 175, 55, 0.22), rgba(245, 158, 11, 0.32)) !important;
-            color: #fbbf24 !important;
-            border-color: #f59e0b !important;
-            box-shadow: 0 0 12px rgba(245, 158, 11, 0.35);
-            font-weight: 800;
+        .roster-card .specialty-bubble.specialty-gold .specialty-timer-label,
+        .roster-card .specialty-flip.multiple .specialty-timer-label {
+            color: #1e293b !important;
+            font-weight: 700;
+        }
+        .roster-card .specialty-bubble.specialty-gold .countdown-timer,
+        .roster-card .specialty-flip.multiple .countdown-timer {
+            color: #000000 !important;
+            font-weight: 900;
         }
 
         /* Action Buttons */
-        .roster-card .action-btn-sm {
-            padding: 0.4rem 1rem;
-            border-radius: 0.8rem;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 0.65rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer;
-            flex: 1;
-            max-width: 130px;
-            justify-content: center;
-            border: 1px solid transparent;
-            line-height: 1.2;
-        }
-        body.light .roster-card .action-btn-sm {
-            background: #f8fafc;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            border: 1px solid #cbd5e1;
-        }
-        body.dark .roster-card .action-btn-sm {
-            background: rgba(0, 0, 0, 0.35);
-            box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.5), -3px -3px 8px rgba(255, 255, 255, 0.02), 0 1px 0 rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.02);
-        }
-        body.light .roster-card .action-btn-sm.call {
-            color: #1d4ed8 !important;
-            background: #eff6ff;
-            border-color: #bfdbfe;
-        }
-        body.dark .roster-card .action-btn-sm.call { color: #60a5fa !important; }
-        body.light .roster-card .action-btn-sm.wa {
-            color: #047857 !important;
-            background: #ecfdf5;
-            border-color: #a7f3d0;
-        }
-        body.dark .roster-card .action-btn-sm.wa { color: #34d399 !important; }
-        .roster-card .action-btn-sm.opacity-40 {
-            opacity: 0.25;
-            cursor: default;
-            pointer-events: none;
-        }
         .card-actions {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
             width: 100%;
-            margin-top: 0.5rem;
+            margin: 0.2rem auto 0 auto;
+        }
+        .roster-card .action-btn-sm {
+            padding: 0.45rem 1.25rem;
+            border-radius: 9999px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.78rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            flex: 0 0 auto;
+            min-width: 105px;
+            border: 1px solid transparent;
+            line-height: 1.2;
+        }
+        body.light .roster-card .action-btn-sm {
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+            border: 1px solid #cbd5e1;
+        }
+        body.dark .roster-card .action-btn-sm {
+            background: rgba(15, 23, 42, 0.75);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        body.light .roster-card .action-btn-sm.call {
+            color: #0284c7 !important;
+            background: #f0f9ff;
+            border-color: #bae6fd;
+        }
+        body.dark .roster-card .action-btn-sm.call {
+            color: #38bdf8 !important;
+            border-color: rgba(56, 189, 248, 0.25);
+        }
+        body.light .roster-card .action-btn-sm.wa {
+            color: #16a34a !important;
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+        body.dark .roster-card .action-btn-sm.wa {
+            color: #4ade80 !important;
+            border-color: rgba(74, 222, 128, 0.25);
+        }
+        .roster-card .action-btn-sm.opacity-40 {
+            opacity: 0.25;
+            cursor: default;
+            pointer-events: none;
         }
 
         /* Status Badges */
         .roster-card .card-status {
             position: absolute;
             top: 1.1rem;
-            left: -0.15rem;
+            left: 0;
             display: inline-flex;
             align-items: center;
-            gap: 0.3rem;
-            padding: 0.28rem 0.55rem 0.28rem 0.7rem;
+            gap: 0.35rem;
+            padding: 0.28rem 0.65rem 0.28rem 0.65rem;
             border: 1px solid rgba(16, 185, 129, 0.24);
             border-left: none;
             border-radius: 0 100px 100px 0;
             background: rgba(16, 185, 129, 0.1);
             color: #10b981;
-            font-size: 0.62rem;
+            font-size: 0.68rem;
             font-weight: 800;
             line-height: 1;
             box-shadow: 5px 5px 14px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.08);
@@ -2028,9 +2047,9 @@
                     const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 
                     return `
-                        <button type="button" class="specialty-flip" data-end-min="${spec.endMin}" onclick="toggleSpecialtyTimer(this)">
-                            <span class="specialty-bubble specialty-front ${isMultiSpec ? 'specialty-gold' : ''}">${spec.icon} ${spec.name}</span>
-                            <span class="specialty-bubble specialty-back">
+                        <button type="button" class="specialty-flip ${isMultiSpec ? 'multiple' : ''}" data-end-min="${spec.endMin}" onclick="toggleSpecialtyTimer(this)" aria-label="Show remaining time for ${spec.name}">
+                            <span class="specialty-bubble specialty-front ${isMultiSpec ? 'specialty-gold' : ''}">${spec.name} ${spec.icon || ''}</span>
+                            <span class="specialty-bubble specialty-back ${isMultiSpec ? 'specialty-gold' : ''}">
                                 <span class="specialty-timer-label">المتبقي</span>
                                 <span class="countdown-timer font-mono font-bold" data-end-min="${spec.endMin}">${timeStr}</span>
                             </span>

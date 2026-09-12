@@ -251,6 +251,12 @@
             gap: 0.6rem;
             margin-top: auto;
         }
+        .hosp-actions-grid.user-layout {
+            grid-template-columns: 1fr 1fr;
+        }
+        .hosp-actions-grid.user-layout .action-link.primary {
+            grid-column: 1 / -1;
+        }
 
         .action-link {
             padding: 0.7rem 0.9rem;
@@ -603,14 +609,18 @@
                         <input type="color" id="new-hosp-color" value="#0f766e" class="hub-input h-11 p-1 cursor-pointer" />
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-2">
+                <div class="grid grid-cols-3 gap-2" id="add-hosp-passwords-wrap">
                     <div>
                         <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">كلمة مرور المستخدم</label>
                         <input type="text" id="new-hosp-user-pwd" class="hub-input text-center font-mono" value="1234" required />
                     </div>
                     <div>
                         <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">كلمة مرور المدير</label>
-                        <input type="text" id="new-hosp-admin-pwd" class="hub-input text-center font-mono" value="MrjBth1996*" required />
+                        <input type="text" id="new-hosp-admin-pwd" class="hub-input text-center font-mono" value="Admin1996*" required />
+                    </div>
+                    <div id="new-hosp-owner-pwd-col">
+                        <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">كلمة مرور المالك</label>
+                        <input type="text" id="new-hosp-owner-pwd" class="hub-input text-center font-mono" value="MrjBth1996*" required />
                     </div>
                 </div>
                 <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700">
@@ -692,7 +702,13 @@
             if (res.success) {
                 err.textContent = '';
                 document.getElementById('lock-screen').classList.add('hidden');
-                showToast(res.role === 'admin' ? 'مرحباً بك! تم تسجيل الدخول بصلاحيات المدير' : 'تم تسجيل الدخول بنجاح', 'success');
+                let welcomeMsg = 'تم تسجيل الدخول بنجاح 👤';
+                if (res.role === 'owner') {
+                    welcomeMsg = 'مرحباً بك! تم تسجيل الدخول بصلاحيات المالك الكاملة 👑';
+                } else if (res.role === 'admin') {
+                    welcomeMsg = 'مرحباً بك! تم تسجيل الدخول بصلاحيات مدير النظام 🛡️';
+                }
+                showToast(welcomeMsg, 'success');
                 renderHubDashboard();
             } else {
                 err.textContent = '❌ كلمة المرور غير صحيحة';
@@ -778,7 +794,7 @@
                         </div>
 
                         <div>
-                            <div class="hosp-actions-grid">
+                            <div class="hosp-actions-grid ${!isAdmin ? 'user-layout' : ''}">
                                 <a href="./Home.html?hospital=${h.id}" class="action-link primary">
                                     <i class="fas fa-users-viewfinder"></i> <span>الخفراء اليوم</span>
                                 </a>
@@ -788,9 +804,10 @@
                                 <a href="./scheduler.html?hospital=${h.id}" class="action-link secondary">
                                     <i class="fas fa-calendar-alt"></i> <span>مجدول الشهر</span>
                                 </a>
+                                ${isAdmin ? `
                                 <a href="./admin.html?hospital=${h.id}" class="action-link secondary">
                                     <i class="fas fa-cog"></i> <span>الإدارة</span>
-                                </a>
+                                </a>` : ''}
                             </div>
 
                             ${isAdmin ? `
@@ -833,6 +850,7 @@
                 color: document.getElementById('new-hosp-color').value,
                 userPassword: document.getElementById('new-hosp-user-pwd').value.trim(),
                 adminPassword: document.getElementById('new-hosp-admin-pwd').value.trim(),
+                ownerPassword: document.getElementById('new-hosp-owner-pwd') ? document.getElementById('new-hosp-owner-pwd').value.trim() : 'MrjBth1996*',
                 cloneTemplate: document.getElementById('new-hosp-clone-specs').checked
             };
 

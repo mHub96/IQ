@@ -400,7 +400,7 @@
             <!-- STEP 4: Current Duty Status & Multi-Resident Target Picker -->
             <div id="duty-status-group" style="display:none;">
                 <div class="info-box mb-3" id="current-duty-box">
-                    <span class="label">الخفير المسجل حالياً في هذا اليوم:</span>
+                    <span class="label">الخفر المسجل حالياً في هذا اليوم:</span>
                     <span class="value text-teal-600 dark:text-amber-400" id="current-holder">—</span>
                 </div>
 
@@ -408,7 +408,7 @@
                 <div class="form-group p-3 rounded-xl border-2 border-amber-300 dark:border-amber-700/60 bg-amber-50/50 dark:bg-amber-950/30" id="target-resident-wrap" style="display:none;">
                     <label for="target-resident-select" class="text-amber-800 dark:text-amber-300 font-bold">
                         <i class="fas fa-users-viewfinder text-amber-500"></i>
-                        <span>يوجد أكثر من خفير مسجل · اختر الطبيب المراد التبديل معه:</span>
+                        <span>يوجد أكثر من خفر مسجل · اختر الطبيب المراد التبديل معه:</span>
                     </label>
                     <select id="target-resident-select" class="form-select border-amber-300 dark:border-amber-700" onchange="onTargetResidentChange()"></select>
                 </div>
@@ -419,7 +419,7 @@
                 <div class="form-group">
                     <label for="name-input">
                         <i class="fas fa-user-plus text-teal-600 dark:text-amber-400"></i>
-                        <span id="name-input-label">اسم المقيم البديل (الخفير الجديد):</span>
+                        <span id="name-input-label">اسم المقيم البديل (الخفر الجديد):</span>
                     </label>
                     <div class="input-wrap">
                         <div class="ghost-text" id="ghost-text"></div>
@@ -643,11 +643,11 @@
 
             if (matchingDuties.length === 0) {
                 // No resident on duty yet
-                holder.textContent = 'لا يوجد خفير مسجل في هذا اليوم لهذا التخصص';
+                holder.textContent = 'لا يوجد خفر مسجل في هذا اليوم لهذا التخصص';
                 holder.style.color = '#94a3b8';
                 targetWrap.style.display = 'none';
                 selectedOldResidentName = null;
-                document.getElementById('name-input-label').textContent = 'اسم المقيم الخفير الجديد:';
+                document.getElementById('name-input-label').textContent = 'اسم المقيم الخفر الجديد:';
                 document.getElementById('update-btn-text').textContent = 'تثبيت الخفارة';
 
             } else if (matchingDuties.length === 1) {

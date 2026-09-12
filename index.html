@@ -20,7 +20,7 @@
             direction: rtl;
             text-align: right;
             min-height: 100vh;
-            background: #f0f4f8;
+            background: #d1d9e6;
             color: #1a2332;
             transition: background 0.4s ease, color 0.4s ease;
             overflow-x: hidden;
@@ -173,14 +173,24 @@
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
             overflow: hidden;
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+        }
+        body.dark .hospital-card {
+            background: rgba(16, 22, 34, 0.88);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(212, 175, 55, 0.16);
+            box-shadow: 0 10px 36px rgba(0, 0, 0, 0.6);
         }
         .hospital-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.14);
         }
         body.dark .hospital-card:hover {
-            box-shadow: 0 16px 45px rgba(0, 0, 0, 0.7);
-            border-color: rgba(212, 175, 55, 0.25);
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.75), 0 0 20px rgba(212, 175, 55, 0.12);
+            border-color: rgba(212, 175, 55, 0.35);
         }
 
         .hosp-header {
@@ -785,26 +795,31 @@
                 const totalRes = (h.names || []).length;
                 const activeRes = (h.names || []).filter(n => n.active !== false).length;
                 const specCount = (h.specialties || []).filter(s => s.enabled !== false).length;
+                const onCallToday = (h.schedule || []).filter(s => s.date === today).length || (h.duties && h.duties[today] ? Object.keys(h.duties[today]).length : 0);
+                const color = h.color || '#0f766e';
                 const icon = h.icon || 'fa-hospital';
-                const bgGradient = h.gradient || 'linear-gradient(135deg, #0f766e 0%, #0d9488 100%)';
                 const location = h.location || 'العراق';
 
                 return `
-                    <div class="hospital-card" id="card-${h.id}">
+                    <div class="glass-card hospital-card" id="card-${h.id}">
                         <div>
                             <div class="hosp-header">
-                                <div class="hosp-icon-circle" style="background: ${bgGradient};">
+                                <div class="hosp-icon-circle" style="background: ${color}; box-shadow: 0 6px 18px ${color}40;">
                                     <i class="fas ${icon}"></i>
                                 </div>
                                 <div class="hosp-info">
                                     <h3>${h.name_ar || h.hospitalName}</h3>
+                                    <div class="text-xs text-slate-400 font-mono">${h.hospitalName || ''}</div>
                                     <span class="hosp-loc"><i class="fas fa-location-dot ml-1"></i> ${location}</span>
                                 </div>
                             </div>
 
                             <div class="hosp-metrics">
                                 <span class="metric-pill highlight">
-                                    <i class="fas fa-users"></i> ${activeRes} مقيم نشط (${totalRes} كلي)
+                                    <i class="fas fa-user-check"></i> ${onCallToday} في الخدمة اليوم
+                                </span>
+                                <span class="metric-pill">
+                                    <i class="fas fa-users"></i> ${activeRes} مقيم نشط
                                 </span>
                                 <span class="metric-pill">
                                     <i class="fas fa-stethoscope"></i> ${specCount} تخصص

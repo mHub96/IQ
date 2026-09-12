@@ -68,7 +68,8 @@
                         <span class="brand-text">بوابة المستشفيات</span>
                     </a>
 
-                    <!-- Hospital Dropdown Switcher -->
+                    <!-- Hospital Dropdown Switcher (Hidden on main hub portal) -->
+                    ${activePageId !== 'hub' ? `
                     <div class="hospital-selector-wrap" id="hosp-selector-wrap">
                         <button type="button" class="hospital-selector-btn" onclick="toggleHospitalDropdown(event)">
                             <i class="fas ${hospIcon}"></i>
@@ -87,7 +88,7 @@
                                 </a>
                             `).join('')}
                         </div>
-                    </div>
+                    </div>` : ''}
                 </div>
 
                 <!-- Center: Universal Webpage Links (Admin button strictly hidden for normal users) -->
@@ -97,6 +98,9 @@
                     </a>
                     <a href="./Home.html${queryParam}" class="hub-nav-link ${activePageId === 'roster' ? 'active' : ''}">
                         <i class="fas fa-users-viewfinder"></i> <span>الخفراء اليوم</span>
+                    </a>
+                    <a href="./residents.html${queryParam}" class="hub-nav-link ${activePageId === 'residents' ? 'active' : ''}">
+                        <i class="fas fa-address-book"></i> <span>دليل المقيمين</span>
                     </a>
                     <a href="./signup.html${queryParam}" class="hub-nav-link ${activePageId === 'signup' ? 'active' : ''}">
                         <i class="fas fa-pen-to-square"></i> <span>تسجيل الخفراء</span>

@@ -130,9 +130,14 @@
                     <h3 style="font-size:1.15rem;font-weight:800;margin-bottom:6px;color:#1e293b;" class="dark:text-white">تسجيل الدخول والترقية</h3>
                     <p style="font-size:0.8rem;color:#64748b;margin-bottom:16px;">أدخل كلمة مرور المدير أو المالك لتفعيل الصلاحيات الإدارية</p>
                     
-                    <input type="password" id="hub-admin-pwd-input" placeholder="كلمة مرور المدير أو المالك..." 
-                           style="width:100%;padding:12px 16px;border-radius:12px;border:2px solid #e2e8f0;outline:none;font-size:0.95rem;text-align:center;direction:ltr;margin-bottom:8px;"
-                           onkeydown="if(event.key==='Enter') executeUpgradeToAdmin()" />
+                    <div class="hub-password-wrapper">
+                        <input type="password" id="hub-admin-pwd-input" class="hub-password-input" placeholder="كلمة مرور المدير أو المالك..." 
+                               autocomplete="current-password"
+                               onkeydown="if(event.key==='Enter') executeUpgradeToAdmin()" />
+                        <button type="button" class="hub-password-eye-btn" id="hub-upgrade-eye-btn" onclick="toggleUpgradePwdVisibility()" aria-label="عرض أو إخفاء كلمة المرور" title="إظهار / إخفاء كلمة المرور">
+                            <i class="fas fa-eye" id="hub-upgrade-eye-icon"></i>
+                        </button>
+                    </div>
                     <p id="hub-upgrade-error" style="color:#ef4444;font-size:0.75rem;min-height:20px;margin-bottom:8px;"></p>
 
                     <div style="display:flex;gap:8px;">
@@ -299,13 +304,36 @@
         const modal = document.getElementById('hub-upgrade-modal');
         const input = document.getElementById('hub-admin-pwd-input');
         const err = document.getElementById('hub-upgrade-error');
+        const eyeIcon = document.getElementById('hub-upgrade-eye-icon');
         if (modal) {
             modal.classList.add('active');
             if (err) err.textContent = '';
             if (input) {
+                input.type = 'password';
                 input.value = '';
+                input.classList.remove('shake-error');
                 setTimeout(() => input.focus(), 100);
             }
+            if (eyeIcon) {
+                eyeIcon.className = 'fas fa-eye';
+                eyeIcon.style.color = '';
+            }
+        }
+    };
+
+    window.toggleUpgradePwdVisibility = function() {
+        const input = document.getElementById('hub-admin-pwd-input');
+        const icon = document.getElementById('hub-upgrade-eye-icon');
+        if (!input || !icon) return;
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'fas fa-eye-slash';
+            icon.style.color = '#0f766e';
+        } else {
+            input.type = 'password';
+            icon.className = 'fas fa-eye';
+            icon.style.color = '';
         }
     };
 
@@ -331,8 +359,13 @@
                 window.location.reload();
             }
         } else {
-            if (err) err.textContent = res.error || 'كلمة المرور غير صحيحة';
-            if (input) input.focus();
+            if (err) err.textContent = res.error || 'كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى';
+            if (input) {
+                input.value = '';
+                input.classList.add('shake-error');
+                setTimeout(() => input.classList.remove('shake-error'), 500);
+                input.focus();
+            }
         }
     };
 

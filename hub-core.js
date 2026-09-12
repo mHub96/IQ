@@ -40,7 +40,8 @@
         version: "2.0",
         lastUpdated: new Date().toISOString(),
         globalPasswords: {
-            admin: "MrjBth1996*",
+            owner: "MrjBth1996*",
+            admin: "Admin1996*",
             user: "1234"
         },
         activeHospitalId: "iraqi",
@@ -302,8 +303,9 @@
             icon: hospitalData.icon || 'fa-hospital',
             color: hospitalData.color || '#0f766e',
             passwords: {
-                user: hospitalData.userPassword || '1234',
-                admin: hospitalData.adminPassword || 'MrjBth1996*'
+                owner: hospitalData.ownerPassword || 'MrjBth1996*',
+                admin: hospitalData.adminPassword || 'Admin1996*',
+                user: hospitalData.userPassword || '1234'
             },
             specialties: hospitalData.cloneTemplate !== false ? JSON.parse(JSON.stringify(templateSpecs)) : (hospitalData.specialties || []),
             names: hospitalData.names || [],
@@ -323,6 +325,14 @@
             throw new Error('المستشفى غير موجود.');
         }
 
+        // If passwords are provided in updates, only OWNER can change them!
+        if (updates.passwords) {
+            if (!auth.canEditPasswords()) {
+                // Ignore password modifications from non-owners
+                delete updates.passwords;
+            }
+        }
+
         db.hospitals[id] = {
             ...db.hospitals[id],
             ...updates,
@@ -331,6 +341,26 @@
 
         await saveDatabase(`Update Hospital: ${db.hospitals[id].hospitalName}`);
         return db.hospitals[id];
+    }
+
+    async function updateHospitalPasswords(id, newPasswords) {
+        if (!auth.canEditPasswords()) {
+            throw new Error('غير مصرح لك بتعديل كلمات المرور. هذه الصلاحية للمالك (Owner) فقط.');
+        }
+        if (!db.hospitals[id]) {
+            throw new Error('المستشفى غير موجود.');
+        }
+        db.hospitals[id].passwords = {
+            owner: newPasswords.owner || db.hospitals[id].passwords?.owner || 'MrjBth1996*',
+            admin: newPasswords.admin || db.hospitals[id].passwords?.admin || 'Admin1996*',
+            user: newPasswords.user || db.hospitals[id].passwords?.user || '1234'
+        };
+        // Keep global passwords synchronized with active/primary hospital
+        if (id === 'iraqi' || id === getActiveHospitalId()) {
+            db.globalPasswords = { ...db.hospitals[id].passwords };
+        }
+        await saveDatabase(`Update passwords for hospital: ${db.hospitals[id].hospitalName}`);
+        return db.hospitals[id].passwords;
     }
 
     async function deleteHospital(id) {
@@ -443,10 +473,14 @@
             }
 
             const currentHosp = getActiveHospital();
-            const adminPass = currentHosp?.passwords?.admin || db?.globalPasswords?.admin || "MrjBth1996*";
+            const ownerPass = currentHosp?.passwords?.owner || db?.globalPasswords?.owner || "MrjBth1996*";
+            const adminPass = currentHosp?.passwords?.admin || db?.globalPasswords?.admin || "Admin1996*";
             const userPass = currentHosp?.passwords?.user || db?.globalPasswords?.user || "1234";
 
-            if (pwd === adminPass) {
+            if (pwd === ownerPass) {
+                this.saveSession('owner', pwd);
+                return { success: true, role: 'owner' };
+            } else if (pwd === adminPass) {
                 this.saveSession('admin', pwd);
                 return { success: true, role: 'admin' };
             } else if (pwd === userPass) {
@@ -488,8 +522,17 @@
             return localStorage.getItem(SESSION_ROLE_KEY) || null;
         },
 
+        isOwner() {
+            return this.getRole() === 'owner';
+        },
+
         isAdmin() {
-            return this.getRole() === 'admin';
+            const role = this.getRole();
+            return role === 'owner' || role === 'admin';
+        },
+
+        canEditPasswords() {
+            return this.getRole() === 'owner';
         },
 
         logout() {
@@ -500,16 +543,24 @@
             window.dispatchEvent(new CustomEvent('hub:auth-changed', { detail: { role: null } }));
         },
 
-        upgradeToAdmin(password) {
+        upgradeRole(password) {
             const pwd = String(password || '').trim();
             const currentHosp = getActiveHospital();
-            const adminPass = currentHosp?.passwords?.admin || db?.globalPasswords?.admin || "MrjBth1996*";
+            const ownerPass = currentHosp?.passwords?.owner || db?.globalPasswords?.owner || "MrjBth1996*";
+            const adminPass = currentHosp?.passwords?.admin || db?.globalPasswords?.admin || "Admin1996*";
 
-            if (pwd === adminPass) {
+            if (pwd === ownerPass) {
+                this.saveSession('owner', pwd);
+                return { success: true, role: 'owner' };
+            } else if (pwd === adminPass) {
                 this.saveSession('admin', pwd);
-                return { success: true };
+                return { success: true, role: 'admin' };
             }
-            return { success: false, error: 'كلمة مرور المدير غير صحيحة' };
+            return { success: false, error: 'كلمة مرور غير صحيحة' };
+        },
+
+        upgradeToAdmin(password) {
+            return this.upgradeRole(password);
         }
     };
 
@@ -559,6 +610,7 @@
         setActiveHospitalId,
         addHospital,
         updateHospital,
+        updateHospitalPasswords,
         deleteHospital,
         updateDuty,
         incrementVisitCount,

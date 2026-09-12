@@ -61,34 +61,12 @@
 
         container.innerHTML = `
             <nav class="hub-nav-bar" id="hub-main-nav">
-                <!-- Left: Brand & Hospital Selector -->
+                <!-- Left: Brand -->
                 <div class="hub-nav-left">
                     <a href="./index.html" class="hub-nav-brand" title="العودة إلى البوابة الرئيسية">
                         <span class="brand-icon"><i class="fas fa-hospital-alt"></i></span>
                         <span class="brand-text">بوابة المستشفيات</span>
                     </a>
-
-                    <!-- Hospital Dropdown Switcher (Hidden on main hub portal) -->
-                    ${activePageId !== 'hub' ? `
-                    <div class="hospital-selector-wrap" id="hosp-selector-wrap">
-                        <button type="button" class="hospital-selector-btn" onclick="toggleHospitalDropdown(event)">
-                            <i class="fas ${hospIcon}"></i>
-                            <span>${hospName}</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </button>
-                        <div class="hospital-dropdown-menu" id="hosp-dropdown-menu">
-                            <div style="padding: 0.4rem 0.6rem; font-size: 0.7rem; font-weight: 700; color: #94a3b8; border-bottom: 1px solid rgba(128,128,128,0.1); margin-bottom: 4px;">
-                                اختر المستشفى:
-                            </div>
-                            ${hospitals.map(h => `
-                                <a href="javascript:void(0)" onclick="switchHospital('${h.id}')" class="hospital-dropdown-item ${h.id === activeHospitalId ? 'active' : ''}">
-                                    <span class="hosp-item-icon"><i class="fas ${h.icon || 'fa-hospital'}"></i></span>
-                                    <span>${h.name_ar || h.hospitalName}</span>
-                                    ${h.id === activeHospitalId ? '<i class="fas fa-check mr-auto text-xs"></i>' : ''}
-                                </a>
-                            `).join('')}
-                        </div>
-                    </div>` : ''}
                 </div>
 
                 <!-- Center: Universal Webpage Links (Admin button strictly hidden for normal users) -->
@@ -104,9 +82,6 @@
                     </a>
                     <a href="./signup.html${queryParam}" class="hub-nav-link ${activePageId === 'signup' ? 'active' : ''}">
                         <i class="fas fa-pen-to-square"></i> <span>تسجيل الخفراء</span>
-                    </a>
-                    <a href="./scheduler.html${queryParam}" class="hub-nav-link ${activePageId === 'scheduler' ? 'active' : ''}">
-                        <i class="fas fa-calendar-alt"></i> <span>مجدول الخفارات</span>
                     </a>
                     ${isAdmin ? `
                     <a href="./admin.html${queryParam}" class="hub-nav-link ${activePageId === 'admin' ? 'active' : ''}">
@@ -169,20 +144,7 @@
         `;
     }
 
-    // Toggle hospital dropdown menu
-    window.toggleHospitalDropdown = function(event) {
-        if (event) event.stopPropagation();
-        const wrap = document.getElementById('hosp-selector-wrap');
-        if (wrap) wrap.classList.toggle('open');
-    };
 
-    // Close dropdown on outside click
-    document.addEventListener('click', function(e) {
-        const wrap = document.getElementById('hosp-selector-wrap');
-        if (wrap && !wrap.contains(e.target)) {
-            wrap.classList.remove('open');
-        }
-    });
 
     // Switch hospital and reload or refresh view
     window.switchHospital = function(hospitalId) {

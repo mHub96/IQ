@@ -115,6 +115,18 @@
             animation: shimmer-golden 0.8s ease 2;
         }
 
+        /* Playful Wiggle Animation on Logo Press (Easter Egg) */
+        @keyframes logo-wiggle {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            20% { transform: rotate(-14deg) scale(1.08); }
+            40% { transform: rotate(12deg) scale(1.1); }
+            60% { transform: rotate(-8deg) scale(1.06); }
+            80% { transform: rotate(5deg) scale(1.03); }
+        }
+        .hospital-mark.wiggle {
+            animation: logo-wiggle 0.38s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+        }
+
         .hospital-title {
             font-family: 'Playfair Display', 'IBM Plex Sans Arabic', serif;
             font-size: 3.1rem;
@@ -990,8 +1002,8 @@
 
         <!-- Hospital Header -->
         <header class="hospital-header">
-            <!-- 5-Click Secret Unlock Easter Egg on Logo! -->
-            <div class="hospital-mark" id="hospital-symbol" title="شعار المستشفى التعليمي (اضغط 5 مرات)" aria-hidden="true">
+            <!-- Secret Unlock Easter Egg on Logo -->
+            <div class="hospital-mark" id="hospital-symbol" aria-hidden="true">
                 <i class="fas fa-hospital" id="hospital-symbol-icon"></i>
             </div>
             <div class="hospital-header-content">
@@ -1009,9 +1021,9 @@
         <div class="nav-row">
             <a href="./index.html" class="nav-btn"><i class="fas fa-hospital"></i><span>كافة المستشفيات</span></a>
             <span class="sep"></span>
-            <a href="https://khafarat-alsadr.netlify.app/" target="_blank" class="nav-btn locked" id="btn-rotation-heroes" title="يتطلب تفعيل الرمز السري"><i class="fas fa-user-md"></i><span>Rotation Heroes</span></a>
+            <a href="https://khafarat-alsadr.netlify.app/" target="_blank" class="nav-btn locked" id="btn-rotation-heroes"><i class="fas fa-user-md"></i><span>Rotation Heroes</span></a>
             <span class="sep"></span>
-            <a href="./scheduler.html" class="nav-btn locked" id="btn-duty-exchange" title="يتطلب تفعيل الرمز السري"><i class="fas fa-exchange-alt"></i><span>Duty Exchange</span></a>
+            <a href="./signup.html" class="nav-btn locked" id="btn-duty-exchange"><i class="fas fa-exchange-alt"></i><span>Duty Exchange</span></a>
         </div>
 
         <!-- Trending Resident Panel -->
@@ -1511,7 +1523,6 @@
             if (btnExchange) btnExchange.classList.remove('locked');
 
             showToast('🌟 تم تفعيل الميزات السرية: Rotation Heroes و Duty Exchange!', 'success', 4000);
-            triggerFireworks();
         }
 
         function setupEasterEgg() {
@@ -1519,6 +1530,11 @@
             if (!hospitalSymbol) return;
 
             hospitalSymbol.addEventListener('click', function(event) {
+                // Playful wiggle animation on each click
+                hospitalSymbol.classList.remove('wiggle');
+                void hospitalSymbol.offsetWidth;
+                hospitalSymbol.classList.add('wiggle');
+
                 if (symbolUnlocked) return;
                 if (clickResetTimer) { clearTimeout(clickResetTimer); clickResetTimer = null; }
                 if (activationConfirmationTimer) { clearTimeout(activationConfirmationTimer); activationConfirmationTimer = null; }
@@ -2294,7 +2310,7 @@
             if (nameEl) nameEl.textContent = hospName;
             if (locEl) locEl.textContent = hospLocation;
             if (iconEl) iconEl.className = `fas ${hospIcon}`;
-            if (btnExchange) btnExchange.href = `./scheduler.html?hospital=${encodeURIComponent(currentHospital.id)}`;
+            if (btnExchange) btnExchange.href = `./signup.html?hospital=${encodeURIComponent(currentHospital.id)}`;
 
             // Admin Reset Button visibility based on dual password role
             const adminResetBtn = document.getElementById('admin-reset-btn');

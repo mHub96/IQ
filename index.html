@@ -505,6 +505,118 @@
         .toast.error { background: #ef4444; }
         .toast.info { background: #3b82f6; }
 
+        /* Mobile Screen Layouts */
+        @media (max-width: 768px) {
+            .hub-container {
+                padding: 0 14px 2rem;
+            }
+
+            /* Hide Counters Dashboard on Mobile (User Request) */
+            .stats-grid {
+                display: none !important;
+            }
+
+            .hub-hero {
+                padding: 1.5rem 0.5rem 1rem;
+            }
+            .hub-symbol {
+                width: 3.8rem;
+                height: 3.8rem;
+                font-size: 1.6rem;
+                margin-bottom: 0.75rem;
+            }
+            .hub-title {
+                font-size: clamp(1.6rem, 6vw, 2.1rem);
+                margin-bottom: 0.25rem;
+            }
+            .hub-subtitle {
+                font-size: 0.8rem;
+                margin-bottom: 0.75rem;
+                line-height: 1.4;
+            }
+            #live-time-display {
+                font-size: 0.72rem;
+                padding: 0.35rem 0.85rem;
+                border-radius: 999px;
+                background: rgba(15, 118, 110, 0.08);
+                display: inline-block;
+            }
+            body.dark #live-time-display {
+                background: rgba(212, 175, 55, 0.1);
+            }
+
+            /* Owner Actions Mobile */
+            .add-hosp-btn-wrap {
+                margin: 1.25rem 0 1rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .btn-add-hospital, .btn-edit-passwords {
+                width: 100%;
+                justify-content: center;
+                padding: 0.75rem 1.25rem;
+                font-size: 0.85rem;
+                min-height: 46px;
+            }
+
+            /* Mobile Hospitals Grid & Cards */
+            .hospitals-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                width: 100%;
+            }
+            .hospital-card {
+                padding: 1.15rem 1rem;
+                border-radius: 1.25rem;
+            }
+            .hosp-header {
+                gap: 0.75rem;
+                margin-bottom: 0.85rem;
+            }
+            .hosp-icon-circle {
+                width: 44px;
+                height: 44px;
+                font-size: 1.25rem;
+                border-radius: 0.85rem;
+            }
+            .hosp-info h3 {
+                font-size: 1.12rem;
+            }
+            .hosp-metrics {
+                gap: 0.4rem;
+                margin-bottom: 1rem;
+            }
+            .metric-pill {
+                font-size: 0.68rem;
+                padding: 0.25rem 0.6rem;
+            }
+
+            /* Mobile Actions Grid */
+            .hosp-actions-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.5rem;
+            }
+            .hosp-actions-grid .action-link.primary {
+                grid-column: 1 / -1;
+                font-size: 0.85rem;
+                padding: 0.8rem 1rem;
+                min-height: 46px;
+            }
+            .action-link {
+                padding: 0.7rem 0.5rem;
+                font-size: 0.76rem;
+                min-height: 44px;
+                border-radius: 0.85rem;
+            }
+
+            /* Mobile Lock Screen */
+            .lock-box {
+                padding: 2rem 1.25rem;
+                border-radius: 1.5rem;
+                max-width: 100%;
+            }
+        }
+
         .footer-credit {
             text-align: center;
             font-size: 0.7rem;

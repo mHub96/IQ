@@ -132,11 +132,25 @@
             animation: logo-wiggle 0.38s cubic-bezier(0.36, 0.07, 0.19, 0.97);
         }
 
+        .hospital-header-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            min-width: 0;
+        }
+
         .hospital-title {
             font-family: 'Playfair Display', 'IBM Plex Sans Arabic', serif;
-            font-size: 3.1rem;
+            font-size: clamp(1.8rem, 4.2vw, 2.85rem);
             font-weight: 900;
-            line-height: 1.12;
+            line-height: 1.35;
+            margin: 0.25rem 0 0.35rem;
+            word-break: break-word;
         }
         body.light .hospital-title {
             color: #172554;
@@ -145,11 +159,12 @@
             color: #f8fafc;
         }
         .hospital-eyebrow {
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             font-weight: 700;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             color: #0f766e;
+            margin-bottom: 0.15rem;
         }
         body.dark .hospital-eyebrow {
             color: #d4af37;
@@ -157,10 +172,11 @@
         .hospital-subtitle {
             color: #64748b;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.78rem;
+            font-size: 0.8rem;
             font-weight: 700;
             letter-spacing: 0.06em;
             text-transform: uppercase;
+            margin-top: 0.2rem;
         }
         body.dark .hospital-subtitle {
             color: #a8b3c9;
@@ -670,6 +686,23 @@
             color: #d4af37 !important;
             border-color: rgba(212, 175, 55, 0.15);
             background: rgba(212, 175, 55, 0.04);
+        }
+
+        /* Golden Specialty Bubbles for Multi-Specialty Residents */
+        .roster-card .specialty-bubble.specialty-gold,
+        body.light .roster-card .specialty-bubble.specialty-gold {
+            background: linear-gradient(135deg, rgba(254, 243, 199, 0.95), rgba(253, 230, 138, 0.9)) !important;
+            color: #b45309 !important;
+            border-color: #f59e0b !important;
+            box-shadow: 0 2px 10px rgba(245, 158, 11, 0.25);
+            font-weight: 800;
+        }
+        body.dark .roster-card .specialty-bubble.specialty-gold {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.22), rgba(245, 158, 11, 0.32)) !important;
+            color: #fbbf24 !important;
+            border-color: #f59e0b !important;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.35);
+            font-weight: 800;
         }
 
         /* Action Buttons */
@@ -1896,6 +1929,8 @@
                 const isPhoneValid = resident.phone && resident.phone.replace(/[^0-9]/g, '').length >= 10;
                 const phoneClean = resident.phone.replace(/[^0-9]/g, '');
 
+                const isMultiSpec = Array.isArray(resident.specs) && resident.specs.length > 1;
+
                 const specialtyBubbles = resident.specs.map(spec => {
                     let rem = spec.endMin - currentMin;
                     if (rem < 0) rem = 0;
@@ -1906,7 +1941,7 @@
 
                     return `
                         <button type="button" class="specialty-flip" data-end-min="${spec.endMin}" onclick="toggleSpecialtyTimer(this)">
-                            <span class="specialty-bubble specialty-front">${spec.icon} ${spec.name}</span>
+                            <span class="specialty-bubble specialty-front ${isMultiSpec ? 'specialty-gold' : ''}">${spec.icon} ${spec.name}</span>
                             <span class="specialty-bubble specialty-back">
                                 <span class="specialty-timer-label">المتبقي</span>
                                 <span class="countdown-timer font-mono font-bold" data-end-min="${spec.endMin}">${timeStr}</span>
@@ -2378,8 +2413,21 @@
         // INITIALIZATION
         // ================================================================
         async function initHome() {
+            // If user is not authenticated, redirect to login portal
+            if (!Hub.auth.isLoggedIn()) {
+                window.location.href = './index.html';
+                return;
+            }
+
             initFireworksCanvas();
             setupEasterEgg();
+
+            // Load Unified Database
+            await Hub.loadDatabase();
+
+            // Persist active hospital so future visits and refreshes stay on it
+            const activeHospId = Hub.getActiveHospitalId();
+            Hub.setActiveHospitalId(activeHospId);
 
             // Initialize Universal Navigation Bar
             if (window.initUniversalNav) {
@@ -2389,8 +2437,6 @@
             // Sync theme from Hub
             applyTheme(Hub.getTheme());
 
-            // Load Unified Database
-            await Hub.loadDatabase();
             applyHospitalData();
             renderRoster();
             renderTrending();

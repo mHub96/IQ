@@ -335,6 +335,44 @@
         .toast.success { background: #10b981; }
         .toast.error { background: #ef4444; }
         .toast.info { background: #3b82f6; }
+
+        /* Mobile Screen Layouts */
+        @media (max-width: 768px) {
+            main {
+                padding-left: 10px !important;
+                padding-right: 10px !important;
+                padding-bottom: calc(2rem + env(safe-area-inset-bottom, 16px)) !important;
+            }
+            .glass-card {
+                padding: 1.15rem 1rem !important;
+                border-radius: 1.25rem !important;
+            }
+            .counter-badge {
+                font-size: 0.72rem;
+                padding: 0.25rem 0.55rem;
+            }
+            .btn-ghost, .btn-gradient {
+                font-size: 0.76rem !important;
+                min-height: 40px;
+                padding: 0.5rem 0.85rem;
+            }
+            .specialty-item {
+                padding: 0.65rem 0.8rem;
+            }
+            .drag-handle {
+                padding: 4px 8px;
+                font-size: 1.1rem;
+            }
+            .input-field {
+                font-size: 1rem !important; /* Prevent iOS zoom */
+                min-height: 46px;
+            }
+            .modal-card {
+                max-width: calc(100vw - 24px) !important;
+                padding: 1.25rem 1rem !important;
+                border-radius: 1.4rem !important;
+            }
+        }
     </style>
 </head>
 <body class="light" id="app-body">

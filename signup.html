@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>تبديل وتسجيل الخفارات · Duty Exchange · Hospital Main Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        };
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="./nav-component.css" />
@@ -99,31 +104,31 @@
             align-items: center;
             gap: 6px;
             font-weight: 700;
-            font-size: 0.82rem;
-            color: #475569;
+            font-size: 0.85rem;
+            color: #0f172a;
             margin-bottom: 8px;
         }
         body.dark .form-group label {
-            color: #94a3b8;
+            color: #e2e8f0;
         }
 
         .form-select {
             width: 100%;
             padding: 13px 16px;
             border-radius: 14px;
-            border: 2px solid #e2e8f0;
-            background: #f8fafc;
+            border: 1.5px solid #cbd5e1;
+            background: #ffffff;
             font-size: 0.95rem;
             font-weight: 600;
             outline: none;
             transition: border 0.3s, box-shadow 0.3s;
             font-family: inherit;
             appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23475569' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: left 16px center;
             cursor: pointer;
-            color: #1a2332;
+            color: #0f172a;
         }
         body.dark .form-select {
             background: #0f151e;
@@ -162,15 +167,15 @@
             white-space: nowrap;
         }
         .ghost-text .offset { color: transparent; }
-        .ghost-text .suggestion-bright { color: rgba(0, 0, 0, 0.35); }
-        body.dark .ghost-text .suggestion-bright { color: rgba(255, 255, 255, 0.4); }
+        .ghost-text .suggestion-bright { color: #64748b; font-weight: 500; }
+        body.dark .ghost-text .suggestion-bright { color: rgba(255, 255, 255, 0.45); }
 
         .input-text {
             width: 100%;
             padding: 13px 16px;
             border-radius: 14px;
-            border: 2px solid #e2e8f0;
-            background: #f8fafc;
+            border: 1.5px solid #cbd5e1;
+            background: #ffffff;
             font-size: 0.95rem;
             font-weight: 600;
             outline: none;
@@ -179,7 +184,7 @@
             position: relative;
             z-index: 10;
             direction: rtl;
-            color: #1a2332;
+            color: #0f172a;
         }
         body.dark .input-text {
             background: #0f151e;

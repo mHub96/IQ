@@ -490,10 +490,12 @@
             <h2 style="font-size:1.4rem;font-weight:900;margin-bottom:4px;">🔐 بوابة المستشفيات التعليمية</h2>
             <p style="font-size:0.85rem;color:#64748b;margin-bottom:18px;">أدخل كلمة المرور للدخول إلى النظام</p>
             
-            <input type="password" id="password-input" class="hub-input text-center text-xl font-mono tracking-widest" placeholder="•••••" maxlength="25" />
-            <button type="button" id="login-btn" onclick="handleHubLogin()" class="btn-add-hospital w-full justify-center mt-3">
-                <i class="fas fa-arrow-left ml-2"></i> تسجيل الدخول
-            </button>
+            <form id="lock-form" onsubmit="event.preventDefault(); handleHubLogin();" style="margin:0;padding:0;">
+                <input type="password" id="password-input" class="hub-input text-center text-xl font-mono tracking-widest" placeholder="•••••" maxlength="25" onkeydown="if(event.key==='Enter'){event.preventDefault();handleHubLogin();}" autofocus />
+                <button type="submit" id="login-btn" class="btn-add-hospital w-full justify-center mt-3">
+                    <i class="fas fa-arrow-left ml-2"></i> تسجيل الدخول
+                </button>
+            </form>
             <p id="lock-error" style="color:#ef4444;font-size:0.8rem;min-height:22px;margin-top:8px;"></p>
             
             <label style="display:inline-flex;align-items:center;gap:8px;font-size:0.8rem;color:#64748b;cursor:pointer;margin-top:10px;">
@@ -669,11 +671,21 @@
             initUniversalNav('hub');
 
             // Check session
+            const pwdInput = document.getElementById('password-input');
+            if (pwdInput) {
+                pwdInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleHubLogin();
+                    }
+                });
+            }
+
             if (Hub.auth.checkSession()) {
                 document.getElementById('lock-screen').classList.add('hidden');
             } else {
                 document.getElementById('lock-screen').classList.remove('hidden');
-                document.getElementById('password-input').focus();
+                if (pwdInput) pwdInput.focus();
             }
 
             try {

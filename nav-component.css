@@ -311,6 +311,18 @@ body.dark .role-badge.user {
     color: #60a5fa;
 }
 
+.role-badge.guest {
+    background: rgba(100, 116, 139, 0.08);
+    border-color: rgba(100, 116, 139, 0.25);
+    color: #475569;
+}
+
+body.dark .role-badge.guest {
+    background: rgba(148, 163, 184, 0.1);
+    border-color: rgba(148, 163, 184, 0.25);
+    color: #94a3b8;
+}
+
 .hub-nav-btn {
     width: 36px;
     height: 36px;

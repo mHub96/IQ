@@ -571,13 +571,21 @@ body.dark .hub-password-eye-btn:hover {
         flex-direction: column;
         padding: 0.8rem 1rem;
         border-bottom: 1px solid #e2e8f0;
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
-        gap: 0.4rem;
+        border-radius: 0 0 1.25rem 1.25rem;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
+        gap: 0.45rem;
+        animation: mobileMenuSlide 0.25s ease;
+    }
+
+    @keyframes mobileMenuSlide {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     body.dark .hub-nav-center {
         background: #101622;
-        border-color: rgba(212, 175, 55, 0.15);
+        border-color: rgba(212, 175, 55, 0.18);
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
     }
 
     .hub-nav-bar.menu-open .hub-nav-center {
@@ -587,7 +595,10 @@ body.dark .hub-password-eye-btn:hover {
     .hub-nav-link {
         width: 100%;
         justify-content: flex-start;
-        padding: 0.6rem 1rem;
+        padding: 0.75rem 1rem;
+        min-height: 46px;
+        font-size: 0.86rem;
+        border-radius: 12px;
     }
 
     .hub-mobile-toggle {
@@ -596,6 +607,42 @@ body.dark .hub-password-eye-btn:hover {
 
     .hub-nav-brand span.brand-text {
         display: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .hub-nav-bar {
+        padding: 0.45rem 0.75rem;
+    }
+    .role-badge {
+        padding: 0.35rem 0.65rem;
+        font-size: 0.7rem;
+    }
+    .role-badge span {
+        max-width: 85px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .hub-btn-logout {
+        padding: 0.35rem 0.55rem;
+    }
+    .hub-btn-logout span {
+        display: none;
+    }
+    .hub-nav-btn {
+        width: 34px;
+        height: 34px;
+        font-size: 0.9rem;
+    }
+    .hub-modal-card {
+        max-width: calc(100vw - 24px) !important;
+        padding: 1.25rem 1rem !important;
+        border-radius: 1.4rem !important;
+    }
+    #hub-passwords-modal .hub-modal-card {
+        max-width: calc(100vw - 24px) !important;
+        padding: 1.25rem 1rem !important;
     }
 }
 

@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-09-12T11:51:45.577Z",
+  "lastUpdated": "2026-09-12T11:55:24.288Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -18782,14 +18782,6 @@
           "dutySlot": 0
         },
         {
-          "date": "12/09/2026",
-          "specCode": "NS",
-          "name": "د. فاطمة خليل",
-          "VisitCount": 0,
-          "dutyTime": "08:00AM - 08:00PM",
-          "dutySlot": 0
-        },
-        {
           "date": "13/09/2026",
           "specCode": "NS",
           "name": "د. محمد رياض جعفر",
@@ -20046,9 +20038,9 @@
           "specCode": "NS",
           "name": "د. فاطمة خليل",
           "VisitCount": 0,
-          "dutyTime": "08:00PM - 08:00AM",
-          "dutySlot": 1,
-          "timestamp": "14:20"
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0,
+          "timestamp": "14:55"
         }
       ]
     },

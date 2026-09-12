@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-09-12T11:20:26.182Z",
+  "lastUpdated": "2026-09-12T11:20:47.260Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -20044,10 +20044,11 @@
         {
           "date": "12/09/2026",
           "specCode": "NS",
-          "name": "د. اسعد حسن فرحان",
+          "name": "د. فاطمة خليل",
           "VisitCount": 0,
           "dutyTime": "08:00PM - 08:00AM",
-          "dutySlot": 1
+          "dutySlot": 1,
+          "timestamp": "14:20"
         }
       ]
     },

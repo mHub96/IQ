@@ -586,10 +586,15 @@
                 <!-- Rendered dynamically -->
             </div>
 
-            <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-between">
-                <button type="button" onclick="openAddSpecialtyModal()" class="btn-gradient text-xs">
-                    <i class="fas fa-plus"></i> إضافة تخصص جديد
-                </button>
+            <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center gap-2 flex-wrap">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <button type="button" onclick="openAddSpecialtyModal()" class="btn-gradient text-xs">
+                        <i class="fas fa-plus"></i> إضافة تخصص
+                    </button>
+                    <button type="button" onclick="syncWithGlobalSpecialties()" class="btn-ghost text-xs text-teal-700 dark:text-amber-400 border-teal-200 dark:border-amber-800/40" title="مزامنة التخصصات مع الدليل العام الموحد">
+                        <i class="fas fa-rotate"></i> مزامنة مع الدليل الموحد
+                    </button>
+                </div>
                 <button type="button" onclick="closeSpecialtiesModal()" class="btn-ghost text-xs">إغلاق</button>
             </div>
         </div>
@@ -601,6 +606,12 @@
             <h3 class="text-lg font-black mb-3" id="single-spec-modal-title">إضافة تخصص جديد</h3>
             <input type="hidden" id="spec-edit-id" />
             <div class="space-y-3">
+                <div id="spec-catalog-picker-wrap">
+                    <label class="block text-xs font-bold text-slate-500 mb-1">اختر من الدليل العام الموحد للتخصصات:</label>
+                    <select id="spec-catalog-select" onchange="onCatalogSpecSelected(this.value)" class="input-field text-xs mb-1">
+                        <!-- Populated from Hub.getGlobalSpecialties() -->
+                    </select>
+                </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">الاسم بالعربية</label>
                     <input type="text" id="spec-name-ar" class="input-field" placeholder="مثال: الجراحة العامة" />
@@ -617,6 +628,10 @@
                     <label class="text-xs font-bold text-slate-500">لون التخصص:</label>
                     <input type="color" id="spec-color" value="#0f766e" class="h-10 w-16 p-1 rounded-lg border border-slate-300 cursor-pointer" />
                 </div>
+                <label id="spec-add-to-global-wrap" class="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer pt-1">
+                    <input type="checkbox" id="spec-add-to-global" checked class="w-4 h-4 accent-teal-600" />
+                    <span>حفظ التخصص في الدليل العام ليتاح لجميع المستشفيات</span>
+                </label>
                 <div class="flex gap-3 pt-3">
                     <button type="button" onclick="saveSingleSpecialty()" class="flex-1 btn-gradient">حفظ</button>
                     <button type="button" onclick="closeSingleSpecialtyModal()" class="btn-ghost">إلغاء</button>
@@ -784,8 +799,11 @@
         }
 
         function populateSpecialtyDropdowns() {
-            const specs = (currentHospital?.specialties || []).filter(s => s.enabled !== false);
-            const html = specs.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar}</option>`).join('');
+            let specs = (currentHospital?.specialties || []).filter(s => s.enabled !== false);
+            if (specs.length === 0 && Hub.getGlobalSpecialties) {
+                specs = Hub.getGlobalSpecialties();
+            }
+            const html = specs.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar} (${s.id})</option>`).join('');
             
             const newSpecSelect = document.getElementById('new-res-spec');
             const editSpecSelect = document.getElementById('edit-res-spec');
@@ -1229,6 +1247,57 @@
             }
         }
 
+        async function syncWithGlobalSpecialties() {
+            try {
+                if (!currentHospital) return;
+                await Hub.syncHospitalSpecialtiesWithGlobal(currentHospital.id);
+                currentHospital = Hub.getActiveHospital();
+                renderSpecialtiesList();
+                renderResidentsAccordion();
+                populateSpecialtyDropdowns();
+                updateStatsBadges();
+                showToast('تمت مزامنة تخصصات المستشفى مع الدليل الموحد بنجاح', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'خطأ أثناء المزامنة', 'error');
+            }
+        }
+
+        function populateCatalogSelect() {
+            const select = document.getElementById('spec-catalog-select');
+            if (!select) return;
+            const globals = Hub.getGlobalSpecialties ? Hub.getGlobalSpecialties() : [];
+            const existingIds = new Set((currentHospital?.specialties || []).map(s => s.id));
+            
+            let html = '<option value="">-- اختر من الدليل الموحد (29 تخصص) --</option>';
+            globals.forEach(g => {
+                const isAdded = existingIds.has(g.id);
+                html += `<option value="${g.id}">${g.icon || '🏥'} ${g.name_ar} [${g.id}] ${isAdded ? '(مضاف بالفعل)' : ''}</option>`;
+            });
+            html += '<option value="__custom__">➕ تخصص جديد غير موجود في الدليل...</option>';
+            select.innerHTML = html;
+        }
+
+        function onCatalogSpecSelected(val) {
+            if (!val || val === '__custom__') {
+                document.getElementById('spec-name-ar').value = '';
+                document.getElementById('spec-id').value = '';
+                document.getElementById('spec-id').disabled = false;
+                document.getElementById('spec-icon').value = '🏥';
+                document.getElementById('spec-color').value = '#0f766e';
+                return;
+            }
+            const globals = Hub.getGlobalSpecialties ? Hub.getGlobalSpecialties() : [];
+            const found = globals.find(g => g.id === val);
+            if (found) {
+                document.getElementById('spec-name-ar').value = found.name_ar;
+                document.getElementById('spec-id').value = found.id;
+                document.getElementById('spec-id').disabled = true;
+                document.getElementById('spec-icon').value = found.icon || '🏥';
+                document.getElementById('spec-color').value = found.color || '#0f766e';
+            }
+        }
+
         function openAddSpecialtyModal() {
             document.getElementById('single-spec-modal-title').textContent = 'إضافة تخصص جديد';
             document.getElementById('spec-edit-id').value = '';
@@ -1237,6 +1306,11 @@
             document.getElementById('spec-id').disabled = false;
             document.getElementById('spec-icon').value = '🏥';
             document.getElementById('spec-color').value = '#0f766e';
+            const catalogWrap = document.getElementById('spec-catalog-picker-wrap');
+            if (catalogWrap) catalogWrap.style.display = 'block';
+            const addToGlobalWrap = document.getElementById('spec-add-to-global-wrap');
+            if (addToGlobalWrap) addToGlobalWrap.style.display = 'flex';
+            populateCatalogSelect();
             document.getElementById('single-specialty-modal').classList.add('active');
         }
 
@@ -1251,6 +1325,10 @@
             document.getElementById('spec-id').disabled = true;
             document.getElementById('spec-icon').value = s.icon || '🏥';
             document.getElementById('spec-color').value = s.color || '#0f766e';
+            const catalogWrap = document.getElementById('spec-catalog-picker-wrap');
+            if (catalogWrap) catalogWrap.style.display = 'none';
+            const addToGlobalWrap = document.getElementById('spec-add-to-global-wrap');
+            if (addToGlobalWrap) addToGlobalWrap.style.display = 'none';
             document.getElementById('single-specialty-modal').classList.add('active');
         }
 
@@ -1264,6 +1342,7 @@
             const id = document.getElementById('spec-id').value.trim().toUpperCase();
             const icon = document.getElementById('spec-icon').value.trim() || '🏥';
             const color = document.getElementById('spec-color').value;
+            const addToGlobal = document.getElementById('spec-add-to-global')?.checked;
 
             if (!name || !id) {
                 showToast('الرجاء إدخال الاسم والمعرف', 'error');
@@ -1272,18 +1351,35 @@
 
             if (!editId) {
                 if ((currentHospital.specialties || []).some(s => s.id === id)) {
-                    showToast('رمز التخصص مستخدم بالفعل', 'error');
+                    showToast('رمز التخصص مستخدم بالفعل في هذا المستشفى', 'error');
                     return;
                 }
                 currentHospital.specialties.push({
                     id, name_ar: name, name_en: name, icon, color, acceptPool: [], enabled: true
                 });
+
+                if (addToGlobal && Hub.getGlobalSpecialties) {
+                    const globals = Hub.getGlobalSpecialties();
+                    if (!globals.some(g => g.id === id)) {
+                        globals.push({ id, name_ar: name, name_en: name, icon, color, enabled: true });
+                        await Hub.saveGlobalSpecialties(globals);
+                    }
+                }
             } else {
                 const s = currentHospital.specialties.find(x => x.id === editId);
                 if (s) {
                     s.name_ar = name;
                     s.icon = icon;
                     s.color = color;
+                }
+                if (Hub.getGlobalSpecialties) {
+                    const globals = Hub.getGlobalSpecialties();
+                    const g = globals.find(x => x.id === editId);
+                    if (g) {
+                        g.name_ar = name;
+                        g.icon = icon;
+                        g.color = color;
+                    }
                 }
             }
 

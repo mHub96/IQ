@@ -1,8 +1,9 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-09-12T07:28:52.212Z",
+  "lastUpdated": "2026-09-05T13:05:59.968814",
   "globalPasswords": {
-    "admin": "MrjBth1996*",
+    "owner": "MrjBth1996*",
+    "admin": "Admin1996*",
     "user": "1234"
   },
   "activeHospitalId": "iraqi",
@@ -15,8 +16,9 @@
       "icon": "fa-hospital",
       "color": "#0f766e",
       "passwords": {
-        "user": "1234",
-        "admin": "MrjBth1996*"
+        "owner": "MrjBth1996*",
+        "admin": "Admin1996*",
+        "user": "1234"
       },
       "specialties": [
         {
@@ -17038,7 +17040,7 @@
           "date": "12/09/2026",
           "specCode": "ON",
           "name": "د. علي اسعد يحيى",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -19235,8 +19237,9 @@
       "icon": "fa-hospital-user",
       "color": "#1e40af",
       "passwords": {
-        "user": "1234",
-        "admin": "MrjBth1996*"
+        "owner": "MrjBth1996*",
+        "admin": "Admin1996*",
+        "user": "1234"
       },
       "specialties": [
         {
@@ -29591,8 +29594,9 @@
       "icon": "fa-anchor",
       "color": "#b45309",
       "passwords": {
-        "user": "1234",
-        "admin": "MrjBth1996*"
+        "owner": "MrjBth1996*",
+        "admin": "Admin1996*",
+        "user": "1234"
       },
       "specialties": [
         {

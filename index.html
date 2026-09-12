@@ -753,11 +753,12 @@
 
             const hospitals = Object.values(currentDb.hospitals);
             const isAdmin = Hub.auth.isAdmin();
+            const isOwner = Hub.auth.isOwner();
 
-            // Toggle Add Hospital button based on role
+            // Toggle Add Hospital button based on role (Owner ONLY)
             const addBtnWrap = document.getElementById('add-hospital-container');
             if (addBtnWrap) {
-                addBtnWrap.style.display = isAdmin ? 'flex' : 'none';
+                addBtnWrap.style.display = isOwner ? 'flex' : 'none';
             }
 
             // Global Statistics Calculation
@@ -768,45 +769,41 @@
 
             hospitals.forEach(h => {
                 totalResidents += (h.names || []).length;
-                totalSpecs += (h.specialties || []).length;
-                const todayDuties = (h.schedule || []).filter(s => s.date === today);
-                totalOnCallNow += todayDuties.length;
+                totalSpecs += (h.specialties || []).filter(s => s.enabled !== false).length;
+                const duty = (h.duties && h.duties[today]) ? h.duties[today] : {};
+                totalOnCallNow += Object.keys(duty).length;
             });
 
             document.getElementById('stat-hospitals-count').textContent = hospitals.length;
-            document.getElementById('stat-oncall-count').textContent = totalOnCallNow;
             document.getElementById('stat-residents-count').textContent = totalResidents;
             document.getElementById('stat-specialties-count').textContent = totalSpecs;
 
-            // Render Hospitals Cards Grid
             const grid = document.getElementById('hospitals-list-grid');
+            if (!grid) return;
+
             grid.innerHTML = hospitals.map(h => {
-                const onCallToday = (h.schedule || []).filter(s => s.date === today).length;
                 const totalRes = (h.names || []).length;
-                const activeRes = (h.names || []).filter(n => n.spec !== "RESERVE" && n.active !== false).length;
+                const activeRes = (h.names || []).filter(n => n.active !== false).length;
                 const specCount = (h.specialties || []).filter(s => s.enabled !== false).length;
-                const color = h.color || '#0f766e';
                 const icon = h.icon || 'fa-hospital';
+                const bgGradient = h.gradient || 'linear-gradient(135deg, #0f766e 0%, #0d9488 100%)';
+                const location = h.location || 'العراق';
 
                 return `
-                    <div class="glass-card hospital-card">
+                    <div class="hospital-card" id="card-${h.id}">
                         <div>
                             <div class="hosp-header">
-                                <div class="hosp-icon-circle" style="background:${color};">
+                                <div class="hosp-icon-circle" style="background: ${bgGradient};">
                                     <i class="fas ${icon}"></i>
                                 </div>
                                 <div class="hosp-info">
                                     <h3>${h.name_ar || h.hospitalName}</h3>
-                                    <div class="text-xs text-slate-400 font-mono">${h.hospitalName}</div>
-                                    <div class="hosp-loc"><i class="fas fa-location-dot ml-1"></i> ${h.location || 'Iraq'}</div>
+                                    <span class="hosp-loc"><i class="fas fa-location-dot ml-1"></i> ${location}</span>
                                 </div>
                             </div>
 
                             <div class="hosp-metrics">
                                 <span class="metric-pill highlight">
-                                    <i class="fas fa-user-check"></i> ${onCallToday} في الخدمة اليوم
-                                </span>
-                                <span class="metric-pill">
                                     <i class="fas fa-users"></i> ${activeRes} مقيم نشط (${totalRes} كلي)
                                 </span>
                                 <span class="metric-pill">
@@ -817,16 +814,16 @@
 
                         <div>
                             <div class="hosp-actions-grid ${!isAdmin ? 'user-layout' : ''}">
-                                <a href="./Home.html?hospital=${h.id}" class="action-link primary">
+                                <a href="./Home.html?hospital=${h.id}" class="action-link primary" onclick="Hub.setActiveHospitalId('${h.id}')">
                                     <i class="fas fa-users-viewfinder"></i> <span>الخفراء اليوم</span>
                                 </a>
                                 <a href="./signup.html?hospital=${h.id}" class="action-link secondary">
                                     <i class="fas fa-pen-to-square"></i> <span>تسجيل خفر</span>
                                 </a>
+                                ${isAdmin ? `
                                 <a href="./scheduler.html?hospital=${h.id}" class="action-link secondary">
                                     <i class="fas fa-calendar-alt"></i> <span>مجدول الشهر</span>
                                 </a>
-                                ${isAdmin ? `
                                 <a href="./admin.html?hospital=${h.id}" class="action-link secondary">
                                     <i class="fas fa-cog"></i> <span>الإدارة</span>
                                 </a>` : ''}
@@ -848,6 +845,10 @@
 
         // Add Hospital Modal
         function openAddHospitalModal() {
+            if (!Hub.auth.isOwner()) {
+                showToast('إضافة مستشفى مخصصة للمالك (Owner) فقط', 'error');
+                return;
+            }
             document.getElementById('add-hospital-modal').classList.add('active');
             document.getElementById('new-hosp-name-ar').focus();
         }

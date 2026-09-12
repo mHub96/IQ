@@ -427,6 +427,33 @@
             });
         }
 
+        // Consolidate identical residents on the same day and specialty into a single 24-hour entry
+        const sameDayEntries = hospital.schedule.filter(s => s.specCode === specCode && s.date === date);
+        if (sameDayEntries.length > 1) {
+            const uniqueNames = [...new Set(sameDayEntries.map(s => String(s.name || '').trim()))];
+            if (uniqueNames.length < sameDayEntries.length) {
+                // Duplicate resident detected on same day - merge them
+                const keptEntries = [];
+                const seenNames = new Set();
+                for (const entry of sameDayEntries) {
+                    const normName = String(entry.name || '').trim();
+                    if (!seenNames.has(normName)) {
+                        seenNames.add(normName);
+                        keptEntries.push({ ...entry });
+                    } else {
+                        // Merge visit count into the primary entry
+                        const primary = keptEntries.find(k => String(k.name || '').trim() === normName);
+                        if (primary) {
+                            primary.VisitCount = (primary.VisitCount || 0) + (entry.VisitCount || 0);
+                        }
+                    }
+                }
+                hospital.schedule = hospital.schedule
+                    .filter(s => !(s.specCode === specCode && s.date === date))
+                    .concat(keptEntries);
+            }
+        }
+
         await saveDatabase(`Duty Exchange (${hospital.hospitalName}): ${specCode} on ${date} → ${newResidentName}`);
         return true;
     }

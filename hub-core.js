@@ -45,6 +45,7 @@
             user: "1234"
         },
         activeHospitalId: "iraqi",
+        residents: [],
         hospitals: {}
     };
 
@@ -364,8 +365,8 @@
     }
 
     async function deleteHospital(id) {
-        if (!auth.isAdmin()) {
-            throw new Error('غير مصرح لك بحذف المستشفى.');
+        if (!auth.isOwner()) {
+            throw new Error('غير مصرح لك بحذف المستشفى. هذه الصلاحية للمالك (Owner) فقط.');
         }
         if (!db.hospitals[id]) {
             throw new Error('المستشفى غير موجود.');
@@ -459,6 +460,167 @@
         });
 
         await saveDatabase(`Reset Stats (${hospital.hospitalName}): ${range}`);
+        return true;
+    }
+
+    // ============================================================
+    // SHARED RESIDENTS DIRECTORY & CROSS-HOSPITAL TAGGING
+    // ============================================================
+    function getResidents(hospitalId = null) {
+        if (!db) return [];
+        let list = db.residents;
+        if (!Array.isArray(list)) {
+            list = syncSharedResidentsFromHospitals();
+        }
+        if (!hospitalId || hospitalId === 'all') {
+            return list;
+        }
+        return list.filter(r => Array.isArray(r.hospitals) && r.hospitals.includes(hospitalId));
+    }
+
+    function getResident(idOrName) {
+        if (!db) return null;
+        const list = getResidents();
+        return list.find(r => r.id === idOrName || r.name === idOrName) || null;
+    }
+
+    function syncSharedResidentsFromHospitals() {
+        if (!db || !db.hospitals) return [];
+        const map = new Map();
+        Object.keys(db.hospitals).forEach(hid => {
+            const h = db.hospitals[hid];
+            (h.names || []).forEach(n => {
+                const name = (n.name || '').trim();
+                if (!name) return;
+                if (!map.has(name)) {
+                    map.set(name, {
+                        id: n.id || ('res-' + Math.random().toString(36).substr(2, 9)),
+                        name: name,
+                        phone: (n.phone && n.phone !== 'رقم غير متوفر') ? n.phone : '',
+                        spec: n.spec || 'GS',
+                        tag: n.tag || n.spec || 'GS',
+                        active: n.active !== false && n.spec !== 'RESERVE',
+                        hospitals: [hid]
+                    });
+                } else {
+                    const existing = map.get(name);
+                    if (!existing.hospitals.includes(hid)) {
+                        existing.hospitals.push(hid);
+                    }
+                    if (!existing.phone && n.phone && n.phone !== 'رقم غير متوفر') {
+                        existing.phone = n.phone;
+                    }
+                }
+            });
+        });
+        db.residents = Array.from(map.values());
+        return db.residents;
+    }
+
+    function syncHospitalsWithSharedResidents() {
+        if (!db || !db.hospitals || !Array.isArray(db.residents)) return;
+        Object.keys(db.hospitals).forEach(hid => {
+            const hosp = db.hospitals[hid];
+            const matchingResidents = db.residents.filter(r => Array.isArray(r.hospitals) && r.hospitals.includes(hid));
+            hosp.names = matchingResidents.map(r => ({
+                id: r.id,
+                name: r.name,
+                phone: r.phone || 'رقم غير متوفر',
+                spec: r.spec,
+                tag: r.tag,
+                active: r.active,
+                hospitals: r.hospitals
+            }));
+        });
+    }
+
+    async function addResident(residentData) {
+        if (!auth.isAdmin()) {
+            throw new Error('غير مصرح لك بإضافة مقيم. يتطلب صلاحيات المدير.');
+        }
+        if (!db) throw new Error('قاعدة البيانات غير محملة');
+        if (!Array.isArray(db.residents)) {
+            syncSharedResidentsFromHospitals();
+        }
+
+        const name = (residentData.name || '').trim();
+        if (!name) throw new Error('الرجاء إدخال اسم المقيم');
+
+        const formattedName = (name.startsWith('د.') || name.startsWith('د ')) ? name : `د. ${name}`;
+
+        let hospitals = Array.isArray(residentData.hospitals) ? residentData.hospitals : [];
+        if (hospitals.length === 0) {
+            hospitals = [residentData.hospitalId || getActiveHospitalId()];
+        }
+
+        const newRes = {
+            id: 'res-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4),
+            name: formattedName,
+            phone: (residentData.phone || '').trim(),
+            spec: residentData.spec || 'GS',
+            tag: residentData.tag || residentData.spec || 'GS',
+            active: residentData.active !== false,
+            hospitals: hospitals
+        };
+
+        db.residents.push(newRes);
+        syncHospitalsWithSharedResidents();
+
+        await saveDatabase(`Add Resident: ${formattedName}`);
+        return newRes;
+    }
+
+    async function updateResident(idOrName, updates) {
+        if (!auth.isAdmin()) {
+            throw new Error('غير مصرح لك بتعديل بيانات المقيم. يتطلب صلاحيات المدير.');
+        }
+        if (!db) throw new Error('قاعدة البيانات غير محملة');
+        if (!Array.isArray(db.residents)) {
+            syncSharedResidentsFromHospitals();
+        }
+
+        const idx = db.residents.findIndex(r => r.id === idOrName || r.name === idOrName);
+        if (idx === -1) throw new Error('المقيم غير موجود');
+
+        const current = db.residents[idx];
+        const updated = {
+            ...current,
+            ...updates
+        };
+
+        if (updates.name) {
+            const n = updates.name.trim();
+            updated.name = (n.startsWith('د.') || n.startsWith('د ')) ? n : `د. ${n}`;
+        }
+
+        if (updates.hospitals) {
+            updated.hospitals = Array.isArray(updates.hospitals) ? updates.hospitals : [updates.hospitals];
+        }
+
+        db.residents[idx] = updated;
+        syncHospitalsWithSharedResidents();
+
+        await saveDatabase(`Update Resident: ${updated.name}`);
+        return updated;
+    }
+
+    async function deleteResident(idOrName) {
+        if (!auth.isAdmin()) {
+            throw new Error('غير مصرح لك بحذف المقيم. يتطلب صلاحيات المدير.');
+        }
+        if (!db) throw new Error('قاعدة البيانات غير محملة');
+        if (!Array.isArray(db.residents)) {
+            syncSharedResidentsFromHospitals();
+        }
+
+        const idx = db.residents.findIndex(r => r.id === idOrName || r.name === idOrName);
+        if (idx === -1) throw new Error('المقيم غير موجود');
+
+        const name = db.residents[idx].name;
+        db.residents.splice(idx, 1);
+        syncHospitalsWithSharedResidents();
+
+        await saveDatabase(`Delete Resident: ${name}`);
         return true;
     }
 
@@ -612,6 +774,11 @@
         updateHospital,
         updateHospitalPasswords,
         deleteHospital,
+        getResidents,
+        getResident,
+        addResident,
+        updateResident,
+        deleteResident,
         updateDuty,
         incrementVisitCount,
         resetStatistics,

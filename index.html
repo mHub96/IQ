@@ -529,7 +529,12 @@
             <p style="font-size:0.85rem;color:#64748b;margin-bottom:18px;">أدخل كلمة المرور للدخول إلى النظام</p>
             
             <form id="lock-form" onsubmit="event.preventDefault(); handleHubLogin();" style="margin:0;padding:0;">
-                <input type="password" id="password-input" class="hub-input text-center text-xl font-mono tracking-widest" placeholder="•••••" maxlength="25" autofocus />
+                <div style="position:relative; width:100%;">
+                    <input type="password" id="password-input" class="hub-input text-center text-xl font-mono tracking-widest" placeholder="•••••" maxlength="25" autofocus style="padding-left:44px; padding-right:44px;" />
+                    <button type="button" onclick="togglePortalLockPwd()" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:#64748b; cursor:pointer; font-size:1.1rem; padding:6px; display:flex; align-items:center; justify-content:center; transition:color 0.2s;" aria-label="عرض أو إخفاء كلمة المرور" title="إظهار / إخفاء كلمة المرور">
+                        <i class="fas fa-eye" id="portal-lock-eye-icon"></i>
+                    </button>
+                </div>
                 <button type="submit" id="login-btn" class="btn-add-hospital w-full justify-center mt-3">
                     <i class="fas fa-arrow-left ml-2"></i> تسجيل الدخول
                 </button>
@@ -737,6 +742,21 @@
             } catch (e) {
                 console.error("Hub load error:", e);
                 showToast("تعذر تحميل البيانات من السيرفر", "error");
+            }
+        }
+
+        function togglePortalLockPwd() {
+            const input = document.getElementById('password-input');
+            const icon = document.getElementById('portal-lock-eye-icon');
+            if (!input || !icon) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+                icon.style.color = '#0f766e';
+            } else {
+                input.type = 'password';
+                icon.className = 'fas fa-eye';
+                icon.style.color = '';
             }
         }
 

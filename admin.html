@@ -325,9 +325,12 @@
         <div class="glass-card p-6 mb-6">
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                    <span class="text-xs font-mono font-bold text-teal-600 dark:text-amber-400 uppercase tracking-widest">
-                        Hospital Administration & Residents
-                    </span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-mono font-bold text-teal-600 dark:text-amber-400 uppercase tracking-widest">
+                            Hospital Administration & Residents
+                        </span>
+                        <span id="admin-role-indicator" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"></span>
+                    </div>
                     <h1 class="text-2xl font-black mt-1" id="admin-hosp-title">المستشفى التعليمي</h1>
                     <div class="text-xs text-slate-500 mt-0.5" id="admin-hosp-subtitle">Basra · Iraq</div>
                 </div>
@@ -522,15 +525,32 @@
                     <label class="block text-xs font-bold text-slate-500 mb-1">الموقع / المدينة</label>
                     <input type="text" id="hosp-setting-location" class="input-field" />
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1">كلمة مرور المستخدم</label>
-                        <input type="text" id="hosp-setting-user-pwd" class="input-field text-center font-mono" />
+                <!-- Passwords Section (Owner Only) -->
+                <div id="hosp-owner-passwords-container">
+                    <div class="p-3 mb-2 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
+                        <i class="fas fa-crown text-amber-500 text-base"></i>
+                        <span><strong>صلاحيات المالك:</strong> يمكنك تعديل كلمات المرور لجميع المستخدمين والمديرين ونفسك.</span>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1">كلمة مرور المدير</label>
-                        <input type="text" id="hosp-setting-admin-pwd" class="input-field text-center font-mono" />
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">كلمة مرور المستخدم</label>
+                            <input type="text" id="hosp-setting-user-pwd" class="input-field text-center font-mono" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">كلمة مرور المدير</label>
+                            <input type="text" id="hosp-setting-admin-pwd" class="input-field text-center font-mono" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">كلمة مرور المالك</label>
+                            <input type="text" id="hosp-setting-owner-pwd" class="input-field text-center font-mono" />
+                        </div>
                     </div>
+                </div>
+
+                <!-- Locked notice when logged in as Admin (not owner) -->
+                <div id="hosp-admin-passwords-locked" style="display:none;" class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                    <i class="fas fa-lock text-slate-400 text-base"></i>
+                    <span><strong>تعديل كلمات المرور مقفل:</strong> هذه الصلاحية حصرية للمالك (Owner) فقط. بصفتك مديراً، لا يمكنك عرض أو تعديل كلمات المرور.</span>
                 </div>
                 <div class="flex gap-3 pt-3">
                     <button type="button" onclick="saveHospitalSettings()" class="flex-1 btn-gradient">حفظ الإعدادات</button>
@@ -593,6 +613,12 @@
         }
 
         async function initAdmin() {
+            // Strict role guard: Only owner and admin can access this page
+            if (!Hub.auth.isAdmin()) {
+                window.location.replace('./index.html');
+                return;
+            }
+
             initUniversalNav('admin');
 
             try {
@@ -606,6 +632,17 @@
                 document.getElementById('admin-hosp-title').textContent = currentHospital.name_ar || currentHospital.hospitalName;
                 document.getElementById('admin-hosp-subtitle').textContent = currentHospital.location || 'Basra · Iraq';
                 document.title = `إدارة المستشفى · ${currentHospital.name_ar || currentHospital.hospitalName}`;
+
+                const roleInd = document.getElementById('admin-role-indicator');
+                if (roleInd) {
+                    if (Hub.auth.isOwner()) {
+                        roleInd.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-300 dark:border-amber-700';
+                        roleInd.innerHTML = '<i class="fas fa-crown ml-1 text-amber-500"></i> وضع المالك (صلاحيات كاملة)';
+                    } else {
+                        roleInd.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300 border border-teal-300 dark:border-teal-700';
+                        roleInd.innerHTML = '<i class="fas fa-shield-halved ml-1 text-teal-600"></i> وضع المدير';
+                    }
+                }
 
                 populateSpecialtyDropdowns();
                 renderResidentsAccordion();
@@ -951,8 +988,27 @@
             document.getElementById('hosp-setting-name-ar').value = currentHospital.name_ar || currentHospital.hospitalName;
             document.getElementById('hosp-setting-name-en').value = currentHospital.hospitalName;
             document.getElementById('hosp-setting-location').value = currentHospital.location || 'Basra · Iraq';
-            document.getElementById('hosp-setting-user-pwd').value = currentHospital.passwords?.user || '1234';
-            document.getElementById('hosp-setting-admin-pwd').value = currentHospital.passwords?.admin || 'MrjBth1996*';
+
+            const isOwner = Hub.auth.isOwner();
+            const passContainer = document.getElementById('hosp-owner-passwords-container');
+            const passLocked = document.getElementById('hosp-admin-passwords-locked');
+
+            if (isOwner) {
+                if (passContainer) passContainer.style.display = 'block';
+                if (passLocked) passLocked.style.display = 'none';
+
+                const uInput = document.getElementById('hosp-setting-user-pwd');
+                const aInput = document.getElementById('hosp-setting-admin-pwd');
+                const oInput = document.getElementById('hosp-setting-owner-pwd');
+
+                if (uInput) uInput.value = currentHospital.passwords?.user || '1234';
+                if (aInput) aInput.value = currentHospital.passwords?.admin || 'Admin1996*';
+                if (oInput) oInput.value = currentHospital.passwords?.owner || 'MrjBth1996*';
+            } else {
+                if (passContainer) passContainer.style.display = 'none';
+                if (passLocked) passLocked.style.display = 'flex';
+            }
+
             document.getElementById('hospital-settings-modal').classList.add('active');
         }
 
@@ -964,24 +1020,41 @@
             const nameAr = document.getElementById('hosp-setting-name-ar').value.trim();
             const nameEn = document.getElementById('hosp-setting-name-en').value.trim();
             const loc = document.getElementById('hosp-setting-location').value.trim();
-            const uPwd = document.getElementById('hosp-setting-user-pwd').value.trim();
-            const aPwd = document.getElementById('hosp-setting-admin-pwd').value.trim();
 
-            if (!nameAr || !nameEn || !uPwd || !aPwd) {
-                showToast('الرجاء تعبئة جميع الحقول', 'error');
+            if (!nameAr || !nameEn) {
+                showToast('الرجاء تعبئة اسم المستشفى', 'error');
                 return;
             }
 
             currentHospital.name_ar = nameAr;
             currentHospital.hospitalName = nameEn;
             currentHospital.location = loc;
-            currentHospital.passwords = { user: uPwd, admin: aPwd };
+
+            // Only update passwords if the logged-in role is OWNER!
+            if (Hub.auth.canEditPasswords()) {
+                const uPwd = document.getElementById('hosp-setting-user-pwd').value.trim();
+                const aPwd = document.getElementById('hosp-setting-admin-pwd').value.trim();
+                const oPwd = document.getElementById('hosp-setting-owner-pwd').value.trim();
+
+                if (!uPwd || !aPwd || !oPwd) {
+                    showToast('الرجاء إدخال جميع كلمات المرور', 'error');
+                    return;
+                }
+
+                await Hub.updateHospitalPasswords(currentHospital.id, {
+                    owner: oPwd,
+                    admin: aPwd,
+                    user: uPwd
+                });
+            } else {
+                // Admin mode: update general hospital info only
+                await Hub.saveDatabase(`Update hospital settings: ${nameAr}`);
+            }
 
             closeHospitalSettingsModal();
             document.getElementById('admin-hosp-title').textContent = nameAr;
             document.getElementById('admin-hosp-subtitle').textContent = loc;
-            showToast('تم تحديث إعدادات المستشفى', 'success');
-            await Hub.saveDatabase(`Update hospital settings: ${nameAr}`);
+            showToast('تم تحديث إعدادات المستشفى بنجاح', 'success');
         }
 
         // ============================================================

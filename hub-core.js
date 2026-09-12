@@ -368,6 +368,47 @@
         return db.hospitals[id].passwords;
     }
 
+    async function updateAllPasswords(newPasswords, hospitalScope = 'all') {
+        if (!auth.canEditPasswords()) {
+            throw new Error('غير مصرح لك بتعديل كلمات المرور. هذه الصلاحية حصرية للمالك (Owner) فقط.');
+        }
+
+        const owner = String(newPasswords?.owner || '').trim();
+        const admin = String(newPasswords?.admin || '').trim();
+        const user = String(newPasswords?.user || '').trim();
+
+        if (!owner || !admin || !user) {
+            throw new Error('الرجاء إدخال جميع كلمات المرور (المالك، المدير، المستخدم).');
+        }
+
+        const pwdObj = { owner, admin, user };
+
+        // Always update global passwords
+        db.globalPasswords = { ...pwdObj };
+
+        if (hospitalScope === 'all') {
+            // Update passwords across ALL hospitals in database
+            if (db.hospitals) {
+                Object.keys(db.hospitals).forEach(hId => {
+                    db.hospitals[hId].passwords = { ...pwdObj };
+                });
+            }
+            await saveDatabase('تحديث كلمات المرور لجميع المستشفيات والمنظومة العامة بواسطة المالك');
+        } else if (db.hospitals && db.hospitals[hospitalScope]) {
+            db.hospitals[hospitalScope].passwords = { ...pwdObj };
+            await saveDatabase(`تحديث كلمات المرور لمستشفى ${db.hospitals[hospitalScope].name_ar || db.hospitals[hospitalScope].hospitalName}`);
+        } else {
+            throw new Error('المستشفى المحدد غير موجود.');
+        }
+
+        // If the logged in owner's current password changed, keep session valid
+        if (auth.isOwner()) {
+            auth.saveSession('owner', owner);
+        }
+
+        return pwdObj;
+    }
+
     async function deleteHospital(id) {
         if (!auth.isOwner()) {
             throw new Error('غير مصرح لك بحذف المستشفى. هذه الصلاحية للمالك (Owner) فقط.');
@@ -688,10 +729,25 @@
                 return { success: false, error: 'الرجاء إدخال كلمة المرور' };
             }
 
+            // 1. Check global passwords first
+            if (db?.globalPasswords?.owner && pwd === db.globalPasswords.owner) {
+                this.saveSession('owner', pwd);
+                return { success: true, role: 'owner' };
+            }
+            if (db?.globalPasswords?.admin && pwd === db.globalPasswords.admin) {
+                this.saveSession('admin', pwd);
+                return { success: true, role: 'admin' };
+            }
+            if (db?.globalPasswords?.user && pwd === db.globalPasswords.user) {
+                this.saveSession('user', pwd);
+                return { success: true, role: 'user' };
+            }
+
+            // 2. Check active hospital passwords
             const currentHosp = getActiveHospital();
-            const ownerPass = currentHosp?.passwords?.owner || db?.globalPasswords?.owner || "MrjBth1996*";
-            const adminPass = currentHosp?.passwords?.admin || db?.globalPasswords?.admin || "Admin1996*";
-            const userPass = currentHosp?.passwords?.user || db?.globalPasswords?.user || "1234";
+            const ownerPass = currentHosp?.passwords?.owner || "MrjBth1996*";
+            const adminPass = currentHosp?.passwords?.admin || "Admin1996*";
+            const userPass = currentHosp?.passwords?.user || "1234";
 
             if (pwd === ownerPass) {
                 this.saveSession('owner', pwd);
@@ -702,9 +758,27 @@
             } else if (pwd === userPass) {
                 this.saveSession('user', pwd);
                 return { success: true, role: 'user' };
-            } else {
-                return { success: false, error: 'كلمة المرور غير صحيحة' };
             }
+
+            // 3. Check across all registered hospitals
+            if (db?.hospitals) {
+                for (const h of Object.values(db.hospitals)) {
+                    if (h.passwords?.owner && pwd === h.passwords.owner) {
+                        this.saveSession('owner', pwd);
+                        return { success: true, role: 'owner' };
+                    }
+                    if (h.passwords?.admin && pwd === h.passwords.admin) {
+                        this.saveSession('admin', pwd);
+                        return { success: true, role: 'admin' };
+                    }
+                    if (h.passwords?.user && pwd === h.passwords.user) {
+                        this.saveSession('user', pwd);
+                        return { success: true, role: 'user' };
+                    }
+                }
+            }
+
+            return { success: false, error: 'كلمة المرور غير صحيحة' };
         },
 
         saveSession(role, password, remember = true) {
@@ -840,6 +914,7 @@
         addHospital,
         updateHospital,
         updateHospitalPasswords,
+        updateAllPasswords,
         deleteHospital,
         getResidents,
         getResident,

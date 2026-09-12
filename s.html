@@ -1541,6 +1541,16 @@
         });
 
         window.onload = async function() {
+            // Guard: Scheduler is restricted to Admins and Owner only
+            if (window.Hub && window.Hub.auth) {
+                if (!window.Hub.auth.isAdmin()) {
+                    alert('عذراً، جدول الخفارات الشهري متاح لمدراء النظام والمالك فقط.');
+                    const hosp = window.Hub.getActiveHospitalId();
+                    window.location.href = `./Home.html?hospital=${encodeURIComponent(hosp)}`;
+                    return;
+                }
+            }
+
             var now = new Date();
             var nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
             var picker = document.getElementById('month-picker');

@@ -355,6 +355,29 @@ body.dark .hub-nav-btn:hover {
     color: #d4af37;
 }
 
+.hub-nav-btn.owner-key-btn {
+    border-color: rgba(217, 119, 6, 0.4);
+    background: rgba(217, 119, 6, 0.1);
+    color: #d97706;
+}
+.hub-nav-btn.owner-key-btn:hover {
+    border-color: #d97706;
+    background: #d97706;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
+}
+body.dark .hub-nav-btn.owner-key-btn {
+    border-color: rgba(212, 175, 55, 0.4);
+    background: rgba(212, 175, 55, 0.12);
+    color: #d4af37;
+}
+body.dark .hub-nav-btn.owner-key-btn:hover {
+    border-color: #d4af37;
+    background: linear-gradient(135deg, #d4af37, #b8942e);
+    color: #0b0e12;
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+}
+
 .hub-btn-logout {
     display: inline-flex;
     align-items: center;

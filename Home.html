@@ -3,14 +3,21 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <link rel="manifest" href="./manifest.webmanifest" />
     <title>الخفراء اليوم · Duty Roster 🇮🇶</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
     <link rel="stylesheet" href="./nav-component.css" />
+    <script src="./pwa.js"></script>
+
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
         body {
             font-family: 'IBM Plex Sans Arabic', sans-serif;
             direction: rtl;
@@ -19,6 +26,8 @@
             padding: 0;
             transition: background 0.6s ease, color 0.4s ease;
             overflow-x: hidden;
+        }
+        body.light {
             background: #d1d9e6;
             color: #1a2332;
         }
@@ -33,14 +42,14 @@
             position: relative;
             z-index: 1;
         }
-        body:not(.dark) .glass-card {
-            background: rgba(255, 255, 255, 0.88);
+        body.light .glass-card {
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(14px);
             border: 1px solid rgba(255, 255, 255, 0.6);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
         }
         body.dark .glass-card {
-            background: rgba(16, 22, 34, 0.84);
+            background: rgba(16, 22, 34, 0.82);
             backdrop-filter: blur(14px);
             border: 1px solid rgba(212, 175, 55, 0.12);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
@@ -54,7 +63,7 @@
             text-align: center;
             gap: 0.55rem;
             padding: 1.25rem 0 1.1rem;
-            margin: 0.3rem 0 1rem;
+            margin: 0.3rem 0 0.8rem;
             position: relative;
             overflow: hidden;
         }
@@ -77,7 +86,7 @@
             color: #ffffff;
             background: #0f766e;
             box-shadow: 0 0 0 8px rgba(15, 118, 110, 0.1), 0 12px 26px rgba(15, 118, 110, 0.24);
-            transition: background 0.6s ease, box-shadow 0.6s ease;
+            transition: background 0.6s ease, box-shadow 0.6s ease, transform 0.3s ease;
             cursor: pointer;
             user-select: none;
         }
@@ -87,20 +96,51 @@
             box-shadow: 0 0 0 8px rgba(212, 175, 55, 0.15), 0 12px 26px rgba(212, 175, 55, 0.25);
         }
 
+        /* Golden Shimmer Animation for Easter Egg */
+        @keyframes shimmer-golden {
+            0% {
+                box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4), 0 12px 26px rgba(15, 118, 110, 0.24);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 40px 20px rgba(251, 191, 36, 0.6), 0 12px 30px rgba(251, 191, 36, 0.3);
+                transform: scale(1.08);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4), 0 12px 26px rgba(15, 118, 110, 0.24);
+                transform: scale(1);
+            }
+        }
+        .hospital-mark.shimmer-golden {
+            animation: shimmer-golden 0.8s ease 2;
+        }
+
         .hospital-title {
             font-family: 'Playfair Display', 'IBM Plex Sans Arabic', serif;
-            font-size: 2.8rem;
+            font-size: 3.1rem;
             font-weight: 900;
-            line-height: 1.15;
+            line-height: 1.12;
+        }
+        body.light .hospital-title {
             color: #172554;
         }
         body.dark .hospital-title {
             color: #f8fafc;
         }
+        .hospital-eyebrow {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #0f766e;
+        }
+        body.dark .hospital-eyebrow {
+            color: #d4af37;
+        }
         .hospital-subtitle {
             color: #64748b;
-            font-family: 'JetBrains Mono', 'IBM Plex Sans Arabic', monospace;
-            font-size: 0.8rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
             font-weight: 700;
             letter-spacing: 0.06em;
             text-transform: uppercase;
@@ -109,19 +149,38 @@
             color: #a8b3c9;
         }
 
-        /* Top Action Buttons Bar */
-        .top-action-bar {
+        /* Top Action Bar */
+        .top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 0.5rem;
-            margin-bottom: 0.8rem;
+            margin-bottom: 0.5rem;
             flex-wrap: wrap;
         }
+        .theme-toggle-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 2px solid;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.4);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+        body.dark .theme-toggle-btn {
+            background: rgba(212, 175, 55, 0.08);
+            border-color: rgba(212, 175, 55, 0.2);
+            color: #fcd34d;
+        }
+
         .top-action-btn {
             border-radius: 1.2rem;
             padding: 0.5rem 1.2rem;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: 700;
             display: inline-flex;
             align-items: center;
@@ -132,6 +191,15 @@
             background: #4f46e5;
             border-color: #4338ca;
             color: white;
+        }
+        body.dark .top-action-btn {
+            background: rgba(79, 70, 229, 0.15);
+            border-color: rgba(79, 70, 229, 0.25);
+            color: #a5b4fc;
+        }
+        .top-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.2);
         }
         .top-action-btn.leader {
             background: #d97706;
@@ -164,13 +232,36 @@
             color: #fca5a5;
         }
 
+        .btn-ghost {
+            border-radius: 1.2rem;
+            padding: 0.5rem 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid;
+            font-size: 0.75rem;
+        }
+        body.light .btn-ghost {
+            background: rgba(255, 255, 255, 0.5);
+            border-color: rgba(0, 0, 0, 0.08);
+            color: #1a2332;
+        }
+        body.dark .btn-ghost {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(212, 175, 55, 0.12);
+            color: #f0f3f8;
+        }
+
         .counter-badge {
-            font-size: 0.7rem;
-            padding: 0.35rem 1rem;
+            font-size: 0.68rem;
+            padding: 0.3rem 0.9rem;
             border-radius: 100px;
             font-weight: 700;
             display: inline-block;
             border: 1px solid;
+            transition: all 0.3s ease;
+        }
+        body.light .counter-badge {
             background: #dbeafe;
             color: #1e40af;
             border-color: #bfdbfe;
@@ -181,11 +272,210 @@
             border-color: rgba(212, 175, 55, 0.15);
         }
 
-        /* Roster Grid */
+        /* Nav Row with Secret Unlock Buttons */
+        .nav-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem 0.6rem;
+            padding: 0.4rem 0.6rem;
+            margin: 0.4rem auto 1rem auto;
+            max-width: 700px;
+            border-radius: 2.5rem;
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.9rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            font-size: 0.7rem;
+            text-decoration: none;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid transparent;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(2px);
+            color: #1a2332;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+        body.dark .nav-btn {
+            background: rgba(255, 255, 255, 0.04);
+            color: #e8edf5;
+            border-color: rgba(255, 255, 255, 0.04);
+        }
+        .nav-btn.locked {
+            opacity: 0.35;
+            pointer-events: none;
+            filter: grayscale(0.6);
+            cursor: default;
+        }
+        .nav-btn:hover:not(.locked) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .nav-row .sep {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: rgba(128, 128, 128, 0.4);
+            display: inline-block;
+            margin: 0 2px;
+        }
+
+        /* Trending Resident Panel with Fluttering Crown Badge */
+        .trending-panel {
+            border-radius: 1.8rem;
+            padding: 1.1rem 1.5rem 0.9rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.35rem;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+            margin-bottom: 1.2rem;
+            cursor: pointer;
+            position: relative;
+            min-height: 80px;
+            border: 1px solid;
+        }
+        body.light .trending-panel {
+            background: rgba(18, 20, 38, 0.92);
+            border-color: rgba(212, 175, 55, 0.2);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+            color: #f0f3f8;
+        }
+        body.dark .trending-panel {
+            background: rgba(240, 242, 248, 0.92);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.04);
+            color: #1a2332;
+        }
+        .trending-panel:hover {
+            transform: translateY(-2px);
+            border-color: rgba(212, 175, 55, 0.3);
+        }
+        .trending-panel:active {
+            transform: scale(0.98);
+            transition-duration: 0.08s;
+        }
+        .trending-top {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            width: 100%;
+            padding: 0.1rem 0;
+        }
+        .trending-badge-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.2rem 1.2rem 0.2rem 0.9rem;
+            border-radius: 100px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: none;
+            animation: flutter 1.8s ease-in-out infinite;
+            transform-origin: center;
+            user-select: none;
+            line-height: 1.5;
+            white-space: nowrap;
+            letter-spacing: 0.02em;
+            position: relative;
+        }
+        .trending-badge-btn:hover {
+            transform: scale(1.04);
+        }
+        .trending-badge-btn:active {
+            transform: scale(0.94);
+            transition-duration: 0.08s;
+        }
+        .trending-badge-btn i {
+            font-size: 0.85rem;
+        }
+        .trending-badge-btn.flutter-stopped {
+            animation: none !important;
+        }
+        @keyframes flutter {
+            0%, 100% { transform: rotate(-1deg) scale(1); }
+            25% { transform: rotate(2deg) scale(1.03); }
+            50% { transform: rotate(-2deg) scale(0.97); }
+            75% { transform: rotate(1deg) scale(1.02); }
+        }
+        body.light .trending-badge-btn {
+            background: linear-gradient(180deg, #D4A017, #B8860B);
+            color: #FFF8E7;
+            box-shadow: 0 3px 0 #8B6508, 0 4px 12px rgba(0, 0, 0, 0.4);
+            border: 1px solid #F5D06B;
+            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+        }
+        body.dark .trending-badge-btn {
+            background: linear-gradient(180deg, #FDE047, #F59E0B);
+            color: #1a2332;
+            box-shadow: 0 3px 0 #B45309, 0 4px 16px rgba(251, 191, 36, 0.3);
+            border: 1px solid #FEF08A;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        .trending-stats {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.1rem 0.8rem;
+            border-radius: 100px;
+            white-space: nowrap;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        body.light .trending-stats {
+            color: #fcd34d;
+            background: rgba(251, 191, 36, 0.08);
+            border-color: rgba(251, 191, 36, 0.08);
+        }
+        body.dark .trending-stats {
+            color: #b45309;
+            background: rgba(251, 191, 36, 0.06);
+            border-color: rgba(251, 191, 36, 0.06);
+        }
+        .trending-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.05rem;
+            text-align: center;
+            padding: 0.15rem 0;
+            width: 100%;
+        }
+        .trending-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1.3;
+            letter-spacing: 0.01em;
+        }
+        body.light .trending-name { color: #f0f3f8; }
+        body.dark .trending-name { color: #1a2332; }
+        .trending-spec {
+            font-size: 0.8rem;
+            font-weight: 500;
+            opacity: 0.6;
+        }
+        body.light .trending-spec { color: #cbd5e1; }
+        body.dark .trending-spec { color: #475569; }
+
+        /* Roster Grid & 3D Tilt Cards */
         .roster-grid {
             display: flex;
             flex-direction: column;
-            gap: 0.85rem;
+            gap: 0.75rem;
             padding: 0.2rem 0;
         }
         .roster-card-wrapper {
@@ -201,34 +491,40 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             border: 1px solid;
+            gap: 0;
             position: relative;
             overflow: hidden;
-            background: rgba(255, 255, 255, 0.95);
-            border-color: rgba(200, 210, 220, 0.3);
-            box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.05), -8px -8px 18px rgba(255, 255, 255, 0.8);
+            cursor: default;
+            transform: translateY(0) scale(1) perspective(600px) rotateX(0) rotateY(0);
+            box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.06), -8px -8px 18px rgba(255, 255, 255, 0.8), 0 4px 0 rgba(0, 0, 0, 0.02), 0 8px 24px rgba(0, 0, 0, 0.02), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            will-change: transform;
             min-height: 168px;
             width: 100%;
+            background: transparent;
+            border-color: transparent;
+        }
+        body.light .roster-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(200, 210, 220, 0.3);
         }
         body.dark .roster-card {
             background: rgba(12, 18, 30, 0.92);
-            border-color: rgba(212, 175, 55, 0.08);
-            box-shadow: 12px 12px 28px rgba(0, 0, 0, 0.7), -10px -10px 24px rgba(255, 255, 255, 0.02);
+            border-color: rgba(212, 175, 55, 0.06);
+            box-shadow: 12px 12px 28px rgba(0, 0, 0, 0.7), -10px -10px 24px rgba(255, 255, 255, 0.02), 0 5px 0 rgba(0, 0, 0, 0.5), 0 0 50px rgba(212, 175, 55, 0.01), inset 0 1px 0 rgba(255, 255, 255, 0.02);
         }
-
         .roster-card .card-body {
-            padding: 1rem 1.25rem;
+            padding: 0.85rem 1.25rem 0.95rem;
             width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            gap: 0.2rem;
+            gap: 0.1rem;
             position: relative;
         }
-
         .roster-card .resident-name {
             font-weight: 800;
             font-size: 1.5rem;
@@ -236,34 +532,34 @@
             align-items: center;
             justify-content: center;
             gap: 0.3rem;
+            padding: 0.05rem 0;
             line-height: 1.3;
-            color: #1a2332;
         }
-        body.dark .roster-card .resident-name {
-            color: #f0f3f8;
-        }
-
+        body.light .roster-card .resident-name { color: #1a2332; }
+        body.dark .roster-card .resident-name { color: #f0f3f8; }
         .roster-card .resident-phone {
             font-size: 0.85rem;
             font-weight: 600;
             font-family: 'JetBrains Mono', monospace;
             direction: ltr;
-            opacity: 0.55;
+            unicode-bidi: isolate;
+            opacity: 0.5;
+            margin-bottom: 0.05rem;
             letter-spacing: 0.05em;
         }
 
-        .specialty-bubbles {
+        /* Specialty Bubbles & Smooth Flip Flip Clock */
+        .roster-card .specialty-bubbles {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             column-gap: 0.55rem;
             row-gap: 0.55rem;
             justify-content: center;
-            margin-top: 0.2rem;
-            margin-bottom: 0.2rem;
+            margin-top: 0.3rem;
+            margin-bottom: 0.1rem;
         }
-
-        .specialty-flip {
+        .roster-card .specialty-flip {
             display: inline-grid;
             border: none;
             padding: 0;
@@ -272,37 +568,40 @@
             perspective: 700px;
             position: relative;
             touch-action: manipulation;
-            transition: transform 0.2s ease, width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            overflow: visible;
+            flex: 0 0 auto;
+            isolation: isolate;
+            will-change: width, transform;
+            transition: transform 0.2s ease, filter 0.2s ease, width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+            min-width: auto;
         }
-
-        .specialty-bubble {
+        .roster-card .specialty-bubble {
             font-size: 0.85rem;
             font-weight: 700;
-            padding: 0.2rem 0.75rem;
+            padding: 0.15rem 0.6rem;
             border-radius: 100px;
             display: flex;
             align-items: center;
             justify-content: center;
             border: 2px solid;
-            line-height: 1.4;
-            height: 1.8rem;
-            white-space: nowrap;
-            background: #dbeafe;
-            color: #1e40af;
-            border-color: #bfdbfe;
-            backface-visibility: hidden;
-            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-        body.dark .specialty-bubble {
             background: rgba(212, 175, 55, 0.06);
-            border-color: rgba(212, 175, 55, 0.2);
+            border-color: rgba(212, 175, 55, 0.12);
             color: #d4af37;
+            line-height: 1.4;
+            height: 1.7rem;
+            white-space: nowrap;
+            overflow: hidden;
+            grid-area: 1 / 1;
+            backface-visibility: hidden;
+            transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+            width: auto;
+            min-width: max-content;
         }
-
-        .specialty-back {
+        .roster-card .specialty-back {
             position: absolute;
             inset: 0;
             display: flex;
+            flex-direction: row-reverse;
             align-items: center;
             justify-content: center;
             gap: 0.35rem;
@@ -310,117 +609,130 @@
             font-family: 'JetBrains Mono', monospace;
             direction: ltr;
             color: #10b981;
+            white-space: nowrap;
+            overflow: visible;
             border-radius: inherit;
-            padding: 0.2rem 0.75rem;
-            background: rgba(16, 185, 129, 0.1);
+            clip-path: inset(0 round 999px);
+            padding: 0.15rem 0.6rem;
+            background: rgba(16, 185, 129, 0.08);
             border: 2px solid #10b981;
             backface-visibility: hidden;
+            width: auto;
+            min-width: max-content;
         }
-
-        .specialty-flip.flipped .specialty-front { transform: rotateY(-180deg); }
-        .specialty-flip.flipped .specialty-back { transform: rotateY(0); }
-
-        .specialty-timer-label {
+        .roster-card .specialty-flip.flipped .specialty-front {
+            transform: rotateY(-180deg);
+        }
+        .roster-card .specialty-flip.flipped .specialty-back {
+            transform: rotateY(0);
+        }
+        .roster-card .specialty-timer-label {
             font-family: 'IBM Plex Sans Arabic', sans-serif;
-            font-size: 0.65rem;
+            font-size: 0.64rem;
             direction: rtl;
         }
-
-        .card-actions {
-            display: flex;
-            gap: 0.6rem;
-            width: 100%;
-            justify-content: center;
-            margin-top: 0.6rem;
+        body.light .roster-card .specialty-bubble {
+            background: #dbeafe;
+            color: #1e40af;
+            border-color: #bfdbfe;
+        }
+        body.dark .roster-card .specialty-bubble {
+            color: #d4af37 !important;
+            border-color: rgba(212, 175, 55, 0.15);
+            background: rgba(212, 175, 55, 0.04);
         }
 
-        .action-btn-sm {
-            padding: 0.45rem 1rem;
+        /* Action Buttons */
+        .roster-card .action-btn-sm {
+            padding: 0.4rem 1rem;
             border-radius: 0.8rem;
             text-decoration: none;
             font-weight: 700;
-            font-size: 0.72rem;
+            font-size: 0.65rem;
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: pointer;
             flex: 1;
             max-width: 130px;
             justify-content: center;
             border: 1px solid transparent;
+            line-height: 1.2;
         }
-        body:not(.dark) .action-btn-sm {
-            background: rgba(255, 255, 255, 0.85);
-            box-shadow: 2px 2px 6px rgba(0,0,0,0.05);
-            border-color: rgba(0, 0, 0, 0.08);
+        body.light .roster-card .action-btn-sm {
+            background: rgba(255, 255, 255, 0.7);
+            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.04), -3px -3px 8px rgba(255, 255, 255, 0.7), 0 1px 0 rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
-        body.dark .action-btn-sm {
-            background: rgba(0, 0, 0, 0.4);
-            border-color: rgba(255, 255, 255, 0.04);
+        body.dark .roster-card .action-btn-sm {
+            background: rgba(0, 0, 0, 0.35);
+            box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.5), -3px -3px 8px rgba(255, 255, 255, 0.02), 0 1px 0 rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.02);
         }
-        .action-btn-sm.call { color: #2563eb; }
-        body.dark .action-btn-sm.call { color: #60a5fa; }
-        .action-btn-sm.wa { color: #059669; }
-        body.dark .action-btn-sm.wa { color: #34d399; }
-        .action-btn-sm:hover { transform: translateY(-2px); }
+        .roster-card .action-btn-sm.call { color: #2563eb; }
+        body.dark .roster-card .action-btn-sm.call { color: #60a5fa; }
+        .roster-card .action-btn-sm.wa { color: #059669; }
+        body.dark .roster-card .action-btn-sm.wa { color: #34d399; }
+        .roster-card .action-btn-sm.opacity-40 {
+            opacity: 0.25;
+            cursor: default;
+            pointer-events: none;
+        }
+        .card-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
 
-        .card-status {
+        /* Status Badges */
+        .roster-card .card-status {
             position: absolute;
-            top: 0.8rem;
-            left: 0.8rem;
-            font-size: 0.65rem;
-            font-weight: 700;
-            color: #94a3b8;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        /* Trending Panel */
-        .trending-panel {
-            background: rgba(251, 191, 36, 0.08);
-            border: 1.5px solid rgba(251, 191, 36, 0.3);
-            border-radius: 1.4rem;
-            padding: 0.9rem 1.2rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            max-width: 480px;
-            margin: 0 auto 0.8rem;
-        }
-        .trending-panel:hover {
-            background: rgba(251, 191, 36, 0.15);
-            transform: scale(1.01);
-        }
-        .trending-badge-btn {
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
-            color: #1e293b;
-            font-weight: 800;
-            font-size: 0.72rem;
-            padding: 0.2rem 0.65rem;
-            border-radius: 999px;
-            border: none;
+            top: 1.1rem;
+            left: -0.15rem;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 0.3rem;
+            padding: 0.28rem 0.55rem 0.28rem 0.7rem;
+            border: 1px solid rgba(16, 185, 129, 0.24);
+            border-left: none;
+            border-radius: 0 100px 100px 0;
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            font-size: 0.62rem;
+            font-weight: 800;
+            line-height: 1;
+            box-shadow: 5px 5px 14px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            z-index: 2;
+        }
+        .roster-card-wrapper.trending .roster-card .card-status {
+            border-color: rgba(251, 191, 36, 0.28);
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+        }
+        /* Crimson Alert when remaining time < 60 min */
+        .roster-card-wrapper.crimson .roster-card .card-status {
+            border-color: rgba(220, 38, 38, 0.25);
+            background: rgba(220, 38, 38, 0.1);
+            color: #dc2626;
         }
 
-        /* Modals & Dialogs */
+        /* Modal Overlays & Leaderboard 3D Podium Chart */
         .modal-overlay {
-            background: rgba(0, 0, 0, 0.65);
-            backdrop-filter: blur(14px);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(16px);
             position: fixed;
             inset: 0;
-            z-index: 99999;
+            z-index: 999;
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.3s ease;
+            transition: all 0.4s ease;
             padding: 1.5rem;
         }
         .modal-overlay.active {
@@ -428,24 +740,165 @@
             pointer-events: auto;
         }
         .modal-card {
-            max-width: 540px;
+            max-width: 600px;
             width: 100%;
             border-radius: 2rem;
-            padding: 1.8rem;
+            padding: 1.5rem;
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             background: #ffffff;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            max-height: 90vh;
+            overflow-y: auto;
         }
         body.dark .modal-card {
             background: #141c2a;
-            border: 1px solid rgba(212, 175, 55, 0.15);
+            border: 1px solid rgba(212, 175, 55, 0.08);
+        }
+        .modal-overlay.active .modal-card {
+            transform: scale(1) translateY(0);
+        }
+        .filter-tabs {
+            display: flex;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.3rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.04);
+        }
+        .filter-tab {
+            padding: 0.15rem 0.8rem;
+            border-radius: 100px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(212, 175, 55, 0.06);
+            color: #475569;
+            background: transparent;
+        }
+        .filter-tab.active {
+            background: rgba(212, 175, 55, 0.08);
+            border-color: rgba(212, 175, 55, 0.15);
+            color: #d4af37;
         }
 
-        /* Fireworks Canvas */
+        /* 3D Step Podium Chart for Top 3 Performers */
+        .step-chart-wrapper {
+            border-radius: 1.2rem;
+            padding: 0.5rem 0.5rem 0.6rem;
+            margin: 0.2rem 0;
+            border: 1px solid rgba(212, 175, 55, 0.06);
+            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+        }
+        body.dark .step-chart-wrapper {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(212, 175, 55, 0.08);
+        }
+        .step-chart-title {
+            text-align: center;
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: #475569;
+            opacity: 0.45;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.04);
+            margin-bottom: 0.3rem;
+        }
+        body.dark .step-chart-title {
+            color: #a8b3c9;
+            opacity: 0.5;
+        }
+        .step-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 0.8rem;
+            padding: 0.1rem;
+            height: 130px;
+            width: 100%;
+            position: relative;
+        }
+        .step-bar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.1rem;
+            flex: 1;
+            max-width: 60px;
+            min-width: 35px;
+            height: 100%;
+            justify-content: flex-end;
+        }
+        .step-bar .bar-wrap {
+            width: 100%;
+            max-width: 60px;
+            height: 65px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .step-bar .bar {
+            width: 100%;
+            max-width: 50px;
+            border-radius: 4px 4px 0 0;
+            min-height: 3px;
+            transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            will-change: height;
+        }
+        .step-bar .bar.gold {
+            background: linear-gradient(180deg, #fbbf24, #f59e0b);
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
+        }
+        .step-bar .bar.silver {
+            background: linear-gradient(180deg, #94a3b8, #6b7280);
+            box-shadow: 0 0 10px rgba(148, 163, 184, 0.15);
+        }
+        .step-bar .bar.bronze {
+            background: linear-gradient(180deg, #cd7f32, #a0522d);
+            box-shadow: 0 0 10px rgba(205, 127, 50, 0.15);
+        }
+        .step-bar .bar-value {
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: #1a2332;
+            line-height: 1;
+        }
+        body.dark .step-bar .bar-value { color: #f0f3f8; }
+        .step-bar .bar-label {
+            font-size: 0.5rem;
+            font-weight: 700;
+            text-align: center;
+            color: #475569;
+            word-wrap: break-word;
+            max-width: 60px;
+            line-height: 1.2;
+            padding: 0 2px;
+            min-height: 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        body.dark .step-bar .bar-label { color: #a8b3c9; }
+        .step-medal-icon {
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+
+        /* Fireworks Canvas Overlay */
         #fireworks-container {
             position: fixed;
-            inset: 0;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
-            z-index: 9999;
+            z-index: 9998;
         }
         #fireworks-container canvas {
             display: block;
@@ -453,235 +906,796 @@
             height: 100%;
         }
 
-        .filter-tabs {
-            display: flex;
-            gap: 0.4rem;
-            margin-bottom: 0.8rem;
-            border-bottom: 1px solid rgba(128,128,128,0.1);
-            padding-bottom: 0.4rem;
-        }
-        .filter-tab {
-            padding: 0.25rem 0.8rem;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            border: 1px solid rgba(128,128,128,0.2);
-            background: transparent;
-            cursor: pointer;
-            color: #64748b;
-        }
-        .filter-tab.active {
-            background: #d4af37;
-            color: #0b0e12;
-            border-color: #d4af37;
+        .main-content-wrap {
+            position: relative;
+            z-index: 1;
         }
 
+        /* Toast Notifications */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+            width: 90%;
+            max-width: 420px;
+        }
+        .toast {
+            padding: 12px 20px;
+            border-radius: 1rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast-success { background: rgba(16, 185, 129, 0.94); color: white; }
+        .toast-error { background: rgba(239, 68, 68, 0.94); color: white; }
+        .toast-info { background: rgba(59, 130, 246, 0.94); color: white; }
+
         .footer-credit {
-            text-align: center;
             font-size: 0.7rem;
-            color: #94a3b8;
-            margin-top: 2rem;
             opacity: 0.5;
+            padding: 0.8rem 0;
+            text-align: center;
+            border-top: 1px solid rgba(128, 128, 128, 0.1);
+            margin-top: 1.5rem;
         }
     </style>
 </head>
 <body class="light" id="app-body">
 
-    <!-- Universal Navigation Component -->
-    <div id="universal-nav"></div>
+    <!-- Canvas Fireworks Overlay with Full Particle Physics Simulation -->
+    <div id="fireworks-container"></div>
 
-    <!-- Toast Notifications Container -->
-    <div id="toast-container" style="position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:100000;display:flex;flex-direction:column;gap:8px;pointer-events:none;width:90%;max-width:440px;"></div>
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
 
-    <div class="max-w-2xl mx-auto px-4 py-4 relative z-10">
-        <!-- Top Actions Bar -->
-        <div class="top-action-bar">
-            <span id="count-tag" class="counter-badge">
-                <i class="fas fa-users mr-1"></i> جاري التحميل...
-            </span>
+    <!-- MAIN APP WRAPPER -->
+    <div id="main-content" class="max-w-2xl mx-auto px-4 py-4 main-content-wrap">
+        
+        <!-- Top Action Bar -->
+        <div class="top-bar">
             <div class="flex items-center gap-2">
-                <button type="button" onclick="showTrendingModal()" class="top-action-btn leader">
-                    <i class="fas fa-trophy"></i> المتصدرين
+                <button onclick="toggleTheme()" class="theme-toggle-btn" aria-label="Toggle theme" title="تبديل الوضع">
+                    <span class="icon-wrap relative w-6 h-6 flex items-center justify-center">
+                        <i class="fas fa-moon absolute text-lg transition-all" id="theme-moon-icon"></i>
+                        <i class="fas fa-sun absolute text-lg transition-all hidden" id="theme-sun-icon"></i>
+                    </span>
                 </button>
-                <button type="button" onclick="generateAndCopyReport()" id="report-btn" class="top-action-btn report">
-                    <i class="fas fa-file-alt"></i> تقرير الخفر
-                </button>
-                <button type="button" id="admin-reset-btn" onclick="showResetModal()" class="top-action-btn reset" style="display:none;">
-                    <i class="fas fa-sync-alt"></i> تصفير
-                </button>
+            </div>
+            <div class="spacer flex-1"></div>
+            <div class="flex items-center gap-2">
+                <button onclick="showTrendingModal()" class="top-action-btn leader"><i class="fas fa-trophy"></i> المتصدرين</button>
+                <button onclick="generateAndCopyReport()" id="report-btn" class="top-action-btn report"><i class="fas fa-file-alt"></i> نسخ التقرير</button>
+                <button id="admin-reset-btn" onclick="showResetModal()" class="top-action-btn reset hidden"><i class="fas fa-sync-alt"></i> تصفير</button>
             </div>
         </div>
 
         <!-- Hospital Header -->
         <header class="hospital-header">
-            <div class="hospital-mark" id="hospital-symbol" aria-hidden="true">
-                <i class="fas fa-hospital"></i>
+            <!-- 5-Click Secret Unlock Easter Egg on Logo! -->
+            <div class="hospital-mark" id="hospital-symbol" title="شعار المستشفى التعليمي (اضغط 5 مرات)" aria-hidden="true">
+                <i class="fas fa-hospital" id="hospital-symbol-icon"></i>
             </div>
-            <div>
-                <div class="text-xs font-mono text-slate-400 font-bold uppercase tracking-wider" id="hosp-location-display">Basra · Iraq</div>
-                <h1 id="hospital-name-display" class="hospital-title">المستشفى التعليمي</h1>
-                <p class="hospital-subtitle" id="hosp-subtitle-display">On-Call Residents · Duty Roster</p>
+            <div class="hospital-header-content">
+                <div class="hospital-eyebrow" id="hospital-location">Basra · Iraq</div>
+                <h1 id="hospital-name" class="hospital-title">المستشفى التعليمي</h1>
+                <p class="hospital-subtitle">On-Call Residents · Duty Roster</p>
             </div>
-            <div class="w-full max-w-[29rem] mt-2 text-center">
-                <span id="current-time-display" class="text-xs font-bold opacity-60"></span>
+            <div class="hospital-meta flex justify-between items-center w-full max-w-[29rem] mt-2">
+                <span id="current-time-display" class="current-time-display text-sm opacity-50 font-mono"></span>
+                <p id="count-tag" class="counter-badge"><i class="fas fa-users mr-1"></i> جاري التحميل...</p>
             </div>
         </header>
 
-        <!-- Trending Highlight Panel -->
-        <div id="trending-container"></div>
+        <!-- Nav Row with All Hospitals, Rotation Heroes & Duty Exchange (Initially Locked) -->
+        <div class="nav-row">
+            <a href="./index.html" class="nav-btn"><i class="fas fa-hospital"></i><span>كافة المستشفيات</span></a>
+            <span class="sep"></span>
+            <a href="https://khafarat-alsadr.netlify.app/" target="_blank" class="nav-btn locked" id="btn-rotation-heroes" title="يتطلب تفعيل الرمز السري"><i class="fas fa-user-md"></i><span>Rotation Heroes</span></a>
+            <span class="sep"></span>
+            <a href="./scheduler.html" class="nav-btn locked" id="btn-duty-exchange" title="يتطلب تفعيل الرمز السري"><i class="fas fa-exchange-alt"></i><span>Duty Exchange</span></a>
+        </div>
 
-        <!-- On-Call Roster Grid -->
+        <!-- Trending Resident Panel -->
+        <div id="trending-container" class="mb-4"></div>
+
+        <!-- On-Call Roster Cards Grid -->
         <div id="roster-container" class="roster-grid"></div>
 
-        <footer class="footer-credit">
-            All rights reserved for Dr. Mohammed Riyadh · Hospital Main Hub
-        </footer>
+        <div class="footer-credit text-secondary">All rights reserved for Dr. Mohammed Riyadh · 2026</div>
     </div>
 
-    <!-- LEADERBOARD MODAL -->
+    <!-- Leaderboard Modal with 3D Step Podium Chart -->
     <div id="trending-modal" class="modal-overlay" onclick="if(event.target===this) closeTrendingModal()">
         <div class="modal-card glass-card">
             <div class="flex justify-between items-center mb-3">
-                <h3 class="text-xl font-black flex items-center gap-2 text-slate-800 dark:text-white">
-                    <i class="fas fa-trophy text-amber-500"></i> لوحة المتصدرين
-                </h3>
-                <button type="button" onclick="closeTrendingModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
-                    <i class="fas fa-times"></i>
-                </button>
+                <h3 class="text-xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2"><i class="fas fa-trophy text-amber-500"></i> لوحة المتصدرين</h3>
+                <button onclick="closeTrendingModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-2xl transition-colors"><i class="fas fa-times"></i></button>
             </div>
-            <div class="filter-tabs">
+            <div class="filter-tabs" id="leaderboard-tabs">
                 <button class="filter-tab active" data-filter="today" onclick="switchLeaderboardFilter('today')">اليوم</button>
                 <button class="filter-tab" data-filter="month" onclick="switchLeaderboardFilter('month')">هذا الشهر</button>
                 <button class="filter-tab" data-filter="all" onclick="switchLeaderboardFilter('all')">الكل</button>
             </div>
-            <div id="trending-content" class="space-y-2 mt-2 max-h-96 overflow-y-auto"></div>
+            <div id="trending-content" class="space-y-2 mt-2"></div>
         </div>
     </div>
 
-    <!-- RESET STATISTICS MODAL (Admin Only) -->
+    <!-- Admin Reset Modal -->
     <div id="reset-modal" class="modal-overlay" onclick="if(event.target===this) closeResetModal()">
-        <div class="modal-card glass-card" style="max-width:400px;">
+        <div class="modal-card glass-card" style="max-width:420px;">
             <div class="flex justify-between items-center mb-3">
-                <h3 class="text-lg font-black flex items-center gap-2 text-red-500">
-                    <i class="fas fa-sync-alt"></i> إعادة ضبط التفاعلات
-                </h3>
-                <button type="button" onclick="closeResetModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
-                    <i class="fas fa-times"></i>
-                </button>
+                <h3 class="text-lg font-bold text-red-600 flex items-center gap-2"><i class="fas fa-exclamation-triangle"></i> إعادة ضبط التفاعلات</h3>
+                <button onclick="closeResetModal()" class="text-slate-400 hover:text-slate-600 text-xl"><i class="fas fa-times"></i></button>
             </div>
-            <p class="text-xs text-slate-500 mb-4">اختر النطاق الزمني لتصفير عدد المشاهدات والتفاعلات:</p>
-            <div class="space-y-2 mb-4">
-                <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 cursor-pointer text-sm">
-                    <input type="radio" name="reset-range" value="today" checked class="accent-red-500" /> تصفير اليوم فقط
+            <p class="text-xs text-slate-500 mb-4">اختر نطاق تصفير عداد الزيارات والتفاعلات للمستشفى الحالي:</p>
+            <div class="space-y-2 mb-4 text-xs font-semibold">
+                <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 cursor-pointer">
+                    <input type="radio" name="reset-range" value="today" checked class="accent-red-500" />
+                    <span>تصفير تفاعلات اليوم فقط</span>
                 </label>
-                <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 cursor-pointer text-sm">
-                    <input type="radio" name="reset-range" value="month" class="accent-red-500" /> تصفير الشهر الحالي
+                <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 cursor-pointer">
+                    <input type="radio" name="reset-range" value="month" class="accent-red-500" />
+                    <span>تصفير تفاعلات هذا الشهر</span>
                 </label>
-                <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 cursor-pointer text-sm">
-                    <input type="radio" name="reset-range" value="all" class="accent-red-500" /> تصفير الكل (All Time)
+                <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 cursor-pointer">
+                    <input type="radio" name="reset-range" value="all" class="accent-red-500" />
+                    <span>تصفير كافة السجلات نهائياً</span>
                 </label>
             </div>
-            <button type="button" onclick="executeReset()" class="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-lg shadow-red-600/30">
-                تأكيد التصفير
-            </button>
+            <div class="flex gap-2">
+                <button onclick="executeReset()" class="flex-1 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md transition-all">تأكيد التصفير</button>
+                <button onclick="closeResetModal()" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs">إلغاء</button>
+            </div>
         </div>
     </div>
 
-    <!-- Fireworks Overlay Container -->
-    <div id="fireworks-container"></div>
-
-    <!-- Core Scripts -->
+    <!-- Scripts -->
     <script src="./hub-core.js"></script>
     <script src="./nav-component.js"></script>
     <script>
-        // ============================================================
-        // ROSTER CONTROLLER (Iraqi Teaching Hospital Mechanics)
-        // ============================================================
-        const TOTAL_MINUTES = 24 * 60;
+        // ================================================================
+        // APPLICATION STATE
+        // ================================================================
         let currentHospital = null;
         let updateInterval = null;
         let countdownInterval = null;
         let currentLeaderboardFilter = 'today';
-        let clickCooldown = {};
+        let confettiClickCounter = 0;
+        const clickCooldown = {};
+        const COOLDOWN_TIME = 3000;
 
-        function showToast(message, type = 'info', duration = 3000) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
-            toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> <span>${message}</span>`;
-            container.appendChild(toast);
-            requestAnimationFrame(() => toast.classList.add('show'));
+        const DAY_START = 8; // 08:00 AM
+        const TOTAL_MINUTES = 24 * 60;
+
+        // ================================================================
+        // FIREWORKS CANVAS WITH FULL PARTICLE PHYSICS
+        // ================================================================
+        let fwCanvas, fwCtx, fwWidth, fwHeight;
+        let fwRockets = [], fwParticles = [];
+        let fwAnimationId = null;
+        let fwRunning = false;
+
+        function fwRandomColor() {
+            const palettes = [
+                ["#ff3b3b", "#ff6b2b", "#ff9f1c", "#ffe66d"],
+                ["#38bdf8", "#4f7cff", "#818cf8", "#a78bfa"],
+                ["#ff4fd8", "#c77dff", "#f472b6", "#f9a8d4"],
+                ["#fbbf24", "#f59e0b", "#fcd34d", "#fef08a"],
+                ["#34d399", "#4dff88", "#6ee7b7", "#a7f3d0"],
+                ["#ffffff", "#e2e8f0", "#f1f5f9", "#cbd5e1"],
+                ["#ff6b6b", "#ffd93d", "#6bcb77", "#4d96ff", "#9b59b6"]
+            ];
+            const palette = palettes[Math.floor(Math.random() * palettes.length)];
+            return palette[Math.floor(Math.random() * palette.length)];
+        }
+
+        function fwRandomColorPalette() {
+            const palettes = [
+                ["#ff3b3b", "#ff6b2b", "#ff9f1c", "#ffe66d"],
+                ["#38bdf8", "#4f7cff", "#818cf8", "#a78bfa"],
+                ["#ff4fd8", "#c77dff", "#f472b6", "#f9a8d4"],
+                ["#fbbf24", "#f59e0b", "#fcd34d", "#fef08a"],
+                ["#34d399", "#4dff88", "#6ee7b7", "#a7f3d0"],
+                ["#ffffff", "#e2e8f0", "#f1f5f9", "#cbd5e1"],
+                ["#ff6b6b", "#ffd93d", "#6bcb77", "#4d96ff", "#9b59b6"]
+            ];
+            return palettes[Math.floor(Math.random() * palettes.length)];
+        }
+
+        function hexToRGBA(hex, alpha) {
+            if (!hex || hex[0] !== '#') return `rgba(255, 255, 255, ${alpha})`;
+            let r = 255, g = 255, b = 255;
+            if (hex.length === 7) {
+                r = parseInt(hex.slice(1, 3), 16);
+                g = parseInt(hex.slice(3, 5), 16);
+                b = parseInt(hex.slice(5, 7), 16);
+            }
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        // Particle with drag, gravity, drift, trail, flicker, and glow
+        class FwParticle {
+            constructor(x, y, vx, vy, color, flash = false, palette = null) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.color = color;
+                this.palette = palette || [color];
+                this.life = 1;
+                this.decay = flash ? 0.025 + Math.random() * 0.035 : 0.004 + Math.random() * 0.007;
+                this.gravity = flash ? 0.005 : 0.018 + Math.random() * 0.012;
+                this.size = flash ? 2.5 + Math.random() * 4 : 0.65 + Math.random() * 1.7;
+                this.flash = flash;
+                this.brightness = flash ? 1 : 0.65 + Math.random() * 0.35;
+                this.trailLength = flash ? 2 : 5 + Math.floor(Math.random() * 8);
+                this.trail = [];
+                this.flicker = 0.85 + Math.random() * 0.15;
+                this.spark = Math.random() < 0.18;
+                this.wind = (Math.random() - 0.5) * 0.003;
+                if (!flash && palette && palette.length > 1) {
+                    this.secondaryColor = palette[Math.floor(Math.random() * palette.length)];
+                } else {
+                    this.secondaryColor = color;
+                }
+                this.glowIntensity = 0.3 + Math.random() * 0.5;
+            }
+
+            update() {
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > this.trailLength) this.trail.shift();
+                const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                const drag = speed > 4 ? 0.985 : 0.978;
+                this.vx *= drag;
+                this.vy *= drag;
+                this.vy += this.gravity;
+                this.vx += this.wind;
+                this.x += this.vx;
+                this.y += this.vy;
+                this.flicker = 0.82 + Math.random() * 0.18;
+                let decay = this.decay;
+                if (this.spark) decay *= 1.35;
+                this.life -= decay;
+            }
+
+            draw(ctx) {
+                if (this.life <= 0) return;
+                const alpha = this.life * this.brightness * this.flicker;
+                for (let i = 0; i < this.trail.length; i++) {
+                    const p = this.trail[i];
+                    const progress = i / this.trail.length;
+                    const trailAlpha = progress * progress * this.life * this.brightness * 0.65;
+                    if (trailAlpha <= 0.01) continue;
+                    const radius = this.size * (0.15 + progress * 0.55);
+                    const trailColor = i % 2 === 0 ? this.color : this.secondaryColor;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+                    ctx.fillStyle = hexToRGBA(trailColor, trailAlpha);
+                    ctx.fill();
+                }
+                const particleAlpha = this.life * this.brightness * this.flicker;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = hexToRGBA(this.color, particleAlpha * 0.08);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * this.life, 0, Math.PI * 2);
+                ctx.shadowBlur = this.flash ? 30 : 7 + this.life * 8;
+                ctx.shadowColor = this.color;
+                ctx.fillStyle = hexToRGBA(this.secondaryColor, particleAlpha);
+                ctx.fill();
+                if (!this.flash && this.life > 0.45) {
+                    const coreAlpha = Math.min(1, this.life * 1.4) * this.brightness * 0.85;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size * 0.35, 0, Math.PI * 2);
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = `rgba(255,255,255,${coreAlpha})`;
+                    ctx.fill();
+                }
+                ctx.shadowBlur = 0;
+            }
+
+            isDead() {
+                return this.life <= 0 || this.y > fwHeight + 100 || this.x < -100 || this.x > fwWidth + 100;
+            }
+        }
+
+        // Rocket with multi-type burst physics
+        class FwRocket {
+            constructor(x) {
+                this.x = x || (0.02 + Math.random() * 0.96) * fwWidth;
+                this.y = fwHeight + 10 + Math.random() * 60;
+                this.targetY = (0.06 + Math.random() * 0.45) * fwHeight;
+                this.speed = 5 + Math.random() * 4;
+                this.color = fwRandomColor();
+                this.palette = fwRandomColorPalette();
+                this.trail = [];
+                this.exploded = false;
+                this.drift = (Math.random() - 0.5) * 0.4;
+                this.explosionType = Math.random();
+                this.curve = (Math.random() - 0.5) * 0.02;
+            }
+
+            update() {
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > 16) this.trail.shift();
+                this.x += this.drift + Math.sin(this.y * 0.01) * this.curve;
+                this.y -= this.speed;
+                this.speed *= 0.997;
+                if (this.y <= this.targetY) {
+                    this.explode();
+                    this.exploded = true;
+                }
+            }
+
+            explode() {
+                const count = 50 + Math.floor(Math.random() * 50);
+                const type = this.explosionType;
+
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    let speed;
+                    if (type < 0.1) {
+                        speed = 3 + Math.random() * 2;
+                    } else if (type < 0.25) {
+                        const r = Math.random();
+                        speed = r < 0.5 ? 4 + Math.random() * 3 : 1.5 + Math.random() * 2;
+                    } else if (type < 0.4) {
+                        const clusterAngle = Math.floor(Math.random() * 8) * (Math.PI / 4);
+                        const spread = 0.3 + Math.random() * 0.5;
+                        const a = clusterAngle + (Math.random() - 0.5) * spread;
+                        speed = 2.5 + Math.random() * 3.5;
+                        fwParticles.push(new FwParticle(
+                            this.x, this.y,
+                            Math.cos(a) * speed,
+                            Math.sin(a) * speed,
+                            this.palette[Math.floor(Math.random() * this.palette.length)],
+                            false,
+                            this.palette
+                        ));
+                        continue;
+                    } else {
+                        speed = Math.pow(Math.random(), 0.6) * (1.2 + Math.random() * 4.5);
+                    }
+
+                    const color = this.palette[Math.floor(Math.random() * this.palette.length)];
+                    fwParticles.push(new FwParticle(
+                        this.x, this.y,
+                        Math.cos(angle) * speed,
+                        Math.sin(angle) * speed,
+                        color,
+                        false,
+                        this.palette
+                    ));
+                }
+
+                // Flash particles: 6-12
+                for (let i = 0; i < 6 + Math.floor(Math.random() * 6); i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 0.5 + Math.random() * 2;
+                    fwParticles.push(new FwParticle(this.x, this.y, Math.cos(angle) * speed, Math.sin(angle) * speed, "#ffffff", true));
+                }
+
+                // Secondary twinkles: 12-20
+                for (let i = 0; i < 12 + Math.floor(Math.random() * 8); i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 1 + Math.random() * 2;
+                    const color = this.palette[Math.floor(Math.random() * this.palette.length)];
+                    fwParticles.push(new FwParticle(this.x, this.y, Math.cos(angle) * speed, Math.sin(angle) * speed, color, false, this.palette));
+                }
+            }
+
+            draw(ctx) {
+                for (let i = 0; i < this.trail.length; i++) {
+                    const p = this.trail[i];
+                    const alpha = i / this.trail.length;
+                    const radius = 1.5 * alpha * 0.8;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+                    const trailColor = i % 3 === 0 ? this.color : "#ffffff";
+                    ctx.fillStyle = hexToRGBA(trailColor, alpha * 0.5);
+                    ctx.fill();
+                }
+
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2.5, 0, Math.PI * 2);
+                ctx.shadowBlur = 18;
+                ctx.shadowColor = this.color;
+                ctx.fillStyle = "#ffffff";
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 8, 0, Math.PI * 2);
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = hexToRGBA(this.color, 0.15);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function initFireworksCanvas() {
+            const container = document.getElementById('fireworks-container');
+            if (!container) return;
+            const existing = container.querySelector('canvas');
+            if (existing) existing.remove();
+            const canvas = document.createElement('canvas');
+            canvas.id = 'fwCanvas';
+            container.appendChild(canvas);
+            fwCanvas = canvas;
+            fwCtx = canvas.getContext('2d');
+            resizeFireworksCanvas();
+            window.addEventListener('resize', resizeFireworksCanvas);
+        }
+
+        function resizeFireworksCanvas() {
+            if (!fwCanvas) return;
+            const dpr = window.devicePixelRatio || 1;
+            fwWidth = window.innerWidth;
+            fwHeight = window.innerHeight;
+            fwCanvas.width = fwWidth * dpr;
+            fwCanvas.height = fwHeight * dpr;
+            fwCanvas.style.width = fwWidth + 'px';
+            fwCanvas.style.height = fwHeight + 'px';
+            fwCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function fwLaunchRocket(x) {
+            if (!fwRunning) return;
+            fwRockets.push(new FwRocket(x));
+        }
+
+        function fwLaunchBurst(count) {
+            for (let i = 0; i < count; i++) {
+                const delay = i * (300 + Math.random() * 600);
+                setTimeout(() => {
+                    if (!fwRunning) return;
+                    const x = 0.02 + Math.random() * 0.96;
+                    fwLaunchRocket(x * fwWidth);
+                }, delay);
+            }
+        }
+
+        function fwAnimate() {
+            if (!fwRunning) return;
+            fwCtx.clearRect(0, 0, fwWidth, fwHeight);
+
+            for (let i = fwRockets.length - 1; i >= 0; i--) {
+                const r = fwRockets[i];
+                r.update();
+                r.draw(fwCtx);
+                if (r.exploded) fwRockets.splice(i, 1);
+            }
+
+            for (let i = fwParticles.length - 1; i >= 0; i--) {
+                const p = fwParticles[i];
+                p.update();
+                p.draw(fwCtx);
+                if (p.isDead()) fwParticles.splice(i, 1);
+            }
+
+            fwAnimationId = requestAnimationFrame(fwAnimate);
+        }
+
+        function startFireworks() {
+            if (fwRunning) return;
+            fwRunning = true;
+            fwRockets = [];
+            fwParticles = [];
+            if (fwCtx) fwCtx.clearRect(0, 0, fwWidth, fwHeight);
+            if (fwAnimationId) cancelAnimationFrame(fwAnimationId);
+            fwAnimate();
+        }
+
+        function stopFireworks() {
+            fwRunning = false;
+            if (fwAnimationId) {
+                cancelAnimationFrame(fwAnimationId);
+                fwAnimationId = null;
+            }
+            if (fwCtx) fwCtx.clearRect(0, 0, fwWidth, fwHeight);
+            fwRockets = [];
+            fwParticles = [];
+        }
+
+        function triggerFireworks() {
+            if (!fwCanvas) initFireworksCanvas();
+            startFireworks();
+            const count = 20 + Math.floor(Math.random() * 20);
+            fwLaunchBurst(count);
+            showToast('✨ ألعاب نارية احتفالية!', 'info', 2500);
+
+            const checkInterval = setInterval(() => {
+                if (fwRockets.length === 0 && fwParticles.length === 0) {
+                    clearInterval(checkInterval);
+                    stopFireworks();
+                }
+            }, 500);
+
             setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 400);
-            }, duration);
+                clearInterval(checkInterval);
+                stopFireworks();
+            }, 25000);
         }
 
-        async function initRoster() {
-            initUniversalNav('roster');
-
+        function fireConfettiFromPosition(clientX, clientY) {
             try {
-                await Hub.loadDatabase();
-                currentHospital = Hub.getActiveHospital();
-                if (!currentHospital) {
-                    showToast('لم يتم العثور على بيانات المستشفى', 'error');
-                    return;
+                if (typeof confetti !== 'function') return;
+                const x = clientX / window.innerWidth;
+                const y = clientY / window.innerHeight;
+                const clampedX = Math.min(Math.max(x, 0.05), 0.95);
+                const clampedY = Math.min(Math.max(y, 0.05), 0.95);
+
+                confetti({
+                    particleCount: 60,
+                    spread: 65,
+                    origin: { x: clampedX, y: clampedY },
+                    startVelocity: 30,
+                    ticks: 220,
+                    zIndex: 9999,
+                    colors: ['#fbbf24', '#f59e0b', '#dc2626', '#f97316', '#fcd34d', '#ffffff', '#a855f7']
+                });
+
+                setTimeout(() => {
+                    confetti({
+                        particleCount: 30,
+                        spread: 40,
+                        origin: { x: clampedX + 0.02, y: clampedY - 0.02 },
+                        startVelocity: 20,
+                        ticks: 150,
+                        zIndex: 9999,
+                        colors: ['#fbbf24', '#fcd34d', '#ffffff']
+                    });
+                }, 80);
+
+                confettiClickCounter++;
+                if (confettiClickCounter % 10 === 0) {
+                    triggerFireworks();
                 }
-
-                applyHospitalHeader();
-                renderRoster();
-                renderTrending();
-
-                // Admin Reset Button Visibility
-                const resetBtn = document.getElementById('admin-reset-btn');
-                if (resetBtn) {
-                    resetBtn.style.display = Hub.auth.isAdmin() ? 'inline-flex' : 'none';
-                }
-
-                // Intervals
-                if (updateInterval) clearInterval(updateInterval);
-                if (countdownInterval) clearInterval(countdownInterval);
-                updateInterval = setInterval(() => { renderRoster(); renderTrending(); }, 30000);
-                countdownInterval = setInterval(() => { updateCountdowns(); }, 1000);
-
-            } catch (err) {
-                console.error("Init roster error:", err);
-                showToast("تعذر تحميل جدول الخفراء", "error");
+            } catch (e) {
+                console.warn('Confetti error:', e);
             }
         }
 
-        function applyHospitalHeader() {
-            if (!currentHospital) return;
-            document.title = `${currentHospital.name_ar || currentHospital.hospitalName} · الخفراء اليوم`;
-            document.getElementById('hospital-name-display').textContent = currentHospital.name_ar || currentHospital.hospitalName;
-            document.getElementById('hosp-location-display').textContent = currentHospital.location || 'Basra · Iraq';
-            
-            const mark = document.getElementById('hospital-symbol');
-            if (mark) {
-                mark.innerHTML = `<i class="fas ${currentHospital.icon || 'fa-hospital'}"></i>`;
-                if (currentHospital.color) mark.style.backgroundColor = currentHospital.color;
+        // ================================================================
+        // 5-CLICK HOSPITAL LOGO EASTER EGG (SECRET UNLOCK)
+        // ================================================================
+        let symbolClickCount = 0;
+        let symbolUnlocked = false;
+        let clickResetTimer = null;
+        let activationConfirmationTimer = null;
+
+        function resetSecretClickCounter() {
+            symbolClickCount = 0;
+            if (clickResetTimer) { clearTimeout(clickResetTimer); clickResetTimer = null; }
+            if (activationConfirmationTimer) { clearTimeout(activationConfirmationTimer); activationConfirmationTimer = null; }
+        }
+
+        function activateSecretButtons() {
+            if (symbolUnlocked) return;
+            symbolUnlocked = true;
+            const hospitalSymbol = document.getElementById('hospital-symbol');
+            const btnRotation = document.getElementById('btn-rotation-heroes');
+            const btnExchange = document.getElementById('btn-duty-exchange');
+
+            if (hospitalSymbol) {
+                hospitalSymbol.classList.add('shimmer-golden');
+                hospitalSymbol.addEventListener('animationend', function onAnimationEnd() {
+                    hospitalSymbol.classList.remove('shimmer-golden');
+                    hospitalSymbol.style.background = 'linear-gradient(135deg, #fbbf24, #f59e0b)';
+                    hospitalSymbol.style.boxShadow = '0 0 0 8px rgba(251,191,36,0.2), 0 12px 26px rgba(251,191,36,0.3)';
+                    const icon = hospitalSymbol.querySelector('i');
+                    if (icon) icon.style.color = '#1a2332';
+                    hospitalSymbol.removeEventListener('animationend', onAnimationEnd);
+                });
             }
+            if (btnRotation) btnRotation.classList.remove('locked');
+            if (btnExchange) btnExchange.classList.remove('locked');
+
+            showToast('🌟 تم تفعيل الميزات السرية: Rotation Heroes و Duty Exchange!', 'success', 4000);
+            triggerFireworks();
+        }
+
+        function setupEasterEgg() {
+            const hospitalSymbol = document.getElementById('hospital-symbol');
+            if (!hospitalSymbol) return;
+
+            hospitalSymbol.addEventListener('click', function(event) {
+                if (symbolUnlocked) return;
+                if (clickResetTimer) { clearTimeout(clickResetTimer); clickResetTimer = null; }
+                if (activationConfirmationTimer) { clearTimeout(activationConfirmationTimer); activationConfirmationTimer = null; }
+                
+                symbolClickCount++;
+                if (symbolClickCount === 5) {
+                    activationConfirmationTimer = setTimeout(function() {
+                        activateSecretButtons();
+                        resetSecretClickCounter();
+                    }, 400);
+                } else if (symbolClickCount > 5) {
+                    resetSecretClickCounter();
+                } else {
+                    clickResetTimer = setTimeout(function() { resetSecretClickCounter(); }, 500);
+                }
+            });
+        }
+
+        // ================================================================
+        // 3D CARD TILT PHYSICS
+        // ================================================================
+        function handleCardTilt(e, card) {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const rotateX = (y - centerY) / 16;
+            const rotateY = (centerX - x) / 16;
+            card.style.transform = `perspective(600px) translateY(-4px) scale(1.01) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        }
+
+        function resetCardTilt(card) {
+            card.style.transform = '';
+        }
+
+        // ================================================================
+        // SPECIALTY BUBBLE NATURAL MEASUREMENT & SMOOTH FLIP
+        // ================================================================
+        function measureNaturalWidth(element) {
+            const clone = element.cloneNode(true);
+            clone.style.cssText = `
+                position: fixed !important;
+                left: -9999px !important;
+                top: -9999px !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                transform: none !important;
+                width: auto !important;
+                height: auto !important;
+                min-width: max-content !important;
+                max-width: none !important;
+                overflow: visible !important;
+                display: flex !important;
+                align-items: center !important;
+                gap: 0.35rem !important;
+                padding: 0.15rem 0.6rem !important;
+                border-radius: 100px !important;
+                border: 2px solid #10b981 !important;
+                background: rgba(16,185,129,0.08) !important;
+                white-space: nowrap !important;
+                pointer-events: none !important;
+                z-index: 99999 !important;
+            `;
+            document.body.appendChild(clone);
+            const width = clone.getBoundingClientRect().width;
+            document.body.removeChild(clone);
+            return width;
+        }
+
+        function setSpecialtyTimerState(button, flipped) {
+            const front = button.querySelector('.specialty-front');
+            const back = button.querySelector('.specialty-back');
+            if (!front || !back) return;
+
+            clearTimeout(Number(button.dataset.flipTimeout));
+
+            let targetWidth;
+            if (flipped) {
+                const backContent = back.cloneNode(true);
+                targetWidth = measureNaturalWidth(backContent);
+            } else {
+                const frontContent = front.cloneNode(true);
+                targetWidth = measureNaturalWidth(frontContent);
+            }
+
+            targetWidth = Math.max(targetWidth, 45);
+            const currentHeight = front.getBoundingClientRect().height || 30;
+
+            button.style.height = currentHeight + 'px';
+            button.style.width = targetWidth + 'px';
+            button.style.minWidth = targetWidth + 'px';
+
+            requestAnimationFrame(() => {
+                button.classList.toggle('flipped', flipped);
+                button.style.width = targetWidth + 'px';
+                button.style.minWidth = targetWidth + 'px';
+            });
+
+            if (flipped) {
+                button.dataset.flipTimeout = String(setTimeout(() => setSpecialtyTimerState(button, false), 2600));
+            } else {
+                delete button.dataset.flipTimeout;
+                setTimeout(() => {
+                    if (!button.classList.contains('flipped')) {
+                        button.style.width = '';
+                        button.style.minWidth = '';
+                        button.style.height = '';
+                    }
+                }, 460);
+            }
+        }
+
+        function toggleSpecialtyTimer(button) {
+            const wasFlipped = button.classList.contains('flipped');
+            document.querySelectorAll('.specialty-flip.flipped').forEach(el => {
+                if (el !== button) setSpecialtyTimerState(el, false);
+            });
+            setSpecialtyTimerState(button, !wasFlipped);
+        }
+
+        // ================================================================
+        // ROSTER RENDERING & MEDICAL DATA
+        // ================================================================
+        function timeStrToMinutes(str) {
+            const match = str.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+            if (!match) return null;
+            let hrs = parseInt(match[1]);
+            const mins = parseInt(match[2]);
+            const ampm = match[3].toUpperCase();
+            if (ampm === 'PM' && hrs !== 12) hrs += 12;
+            if (ampm === 'AM' && hrs === 12) hrs = 0;
+            let total = hrs * 60 + mins;
+            if (total < DAY_START * 60) total += 24 * 60;
+            return total - (DAY_START * 60);
+        }
+
+        function parseDutyTime(dutyTimeStr) {
+            if (!dutyTimeStr) return null;
+            const parts = dutyTimeStr.split(' - ');
+            if (parts.length !== 2) return null;
+            const start = timeStrToMinutes(parts[0].trim());
+            const end = timeStrToMinutes(parts[1].trim());
+            if (start === null || end === null) return null;
+            return { start, end };
+        }
+
+        function getCurrentMinutes() {
+            const now = new Date();
+            let total = now.getHours() * 60 + now.getMinutes();
+            if (total < DAY_START * 60) total += 24 * 60;
+            return total - (DAY_START * 60);
         }
 
         function getCurrentResidentForSpecialty(specCode) {
             if (!currentHospital) return null;
             const targetDate = Hub.getMedicalDate();
-            const currentMin = Hub.getCurrentMedicalMinutes();
+            const currentMin = getCurrentMinutes();
             const todayEntries = (currentHospital.schedule || []).filter(s => s.date === targetDate && s.specCode === specCode);
             if (todayEntries.length === 0) return null;
 
             for (const entry of todayEntries) {
-                let timeData = { start: 0, end: TOTAL_MINUTES };
-                if (entry.dutyTime) {
-                    const parsed = parseDutyTime(entry.dutyTime);
-                    if (parsed) timeData = parsed;
-                } else if (todayEntries.length > 1) {
-                    const slotIdx = entry.dutySlot || 0;
-                    const slotDuration = TOTAL_MINUTES / todayEntries.length;
-                    timeData = { start: slotIdx * slotDuration, end: (slotIdx + 1) * slotDuration };
+                let dutyTime = entry.dutyTime;
+                let timeData = null;
+                if (!dutyTime) {
+                    if (todayEntries.length === 1) {
+                        timeData = { start: 0, end: TOTAL_MINUTES };
+                    } else {
+                        const slotIdx = entry.dutySlot || 0;
+                        const numSlots = todayEntries.length;
+                        const slotDuration = TOTAL_MINUTES / numSlots;
+                        timeData = { start: slotIdx * slotDuration, end: (slotIdx + 1) * slotDuration };
+                    }
+                } else {
+                    timeData = parseDutyTime(dutyTime);
                 }
-
+                if (!timeData) continue;
                 let start = timeData.start;
                 let end = timeData.end;
                 if (end <= start) {
@@ -693,36 +1707,17 @@
             return null;
         }
 
-        function parseDutyTime(str) {
-            if (!str) return null;
-            const parts = str.split('-');
-            if (parts.length !== 2) return null;
-            return { start: parseTimeString(parts[0].trim()), end: parseTimeString(parts[1].trim()) };
-        }
-
-        function parseTimeString(tStr) {
-            const m = tStr.match(/(\d+):(\d+)\s*(AM|PM)?/i);
-            if (!m) return 0;
-            let hrs = parseInt(m[1]);
-            const mins = parseInt(m[2]);
-            const ampm = m[3] ? m[3].toUpperCase() : '';
-            if (ampm === 'PM' && hrs < 12) hrs += 12;
-            if (ampm === 'AM' && hrs === 12) hrs = 0;
-            if (hrs < 8) hrs += 24;
-            return (hrs - 8) * 60 + mins;
-        }
-
         function getAllCurrentResidents() {
             if (!currentHospital) return [];
             const resultMap = {};
-            const today = Hub.getMedicalDate();
             const allSpecs = new Set();
+            const today = Hub.getMedicalDate();
 
             (currentHospital.schedule || []).forEach(s => { if (s.date === today) allSpecs.add(s.specCode); });
             (currentHospital.specialties || []).forEach(spec => {
                 if (spec.enabled !== false) {
-                    const has = (currentHospital.schedule || []).some(s => s.specCode === spec.id && s.date === today);
-                    if (has) allSpecs.add(spec.id);
+                    const hasEntry = (currentHospital.schedule || []).some(s => s.specCode === spec.id && s.date === today);
+                    if (hasEntry) allSpecs.add(spec.id);
                 }
             });
 
@@ -730,18 +1725,42 @@
                 const resident = getCurrentResidentForSpecialty(specCode);
                 if (resident) {
                     const key = resident.name;
-                    const currentMin = Hub.getCurrentMedicalMinutes();
-                    let remainingMinutes = TOTAL_MINUTES - currentMin;
+                    let dutyTime = resident.dutyTime;
+                    let timeData = null;
+                    if (!dutyTime) {
+                        const entriesForDay = (currentHospital.schedule || []).filter(s => s.date === today && s.specCode === specCode);
+                        if (entriesForDay.length === 1) {
+                            timeData = { start: 0, end: TOTAL_MINUTES };
+                        } else {
+                            const slotIdx = resident.dutySlot || 0;
+                            const slotDuration = TOTAL_MINUTES / entriesForDay.length;
+                            timeData = { start: slotIdx * slotDuration, end: (slotIdx + 1) * slotDuration };
+                        }
+                    } else {
+                        timeData = parseDutyTime(dutyTime);
+                    }
+
+                    let startMin = 0, endMin = TOTAL_MINUTES;
+                    if (timeData) {
+                        startMin = timeData.start;
+                        endMin = timeData.end;
+                        if (endMin <= startMin) endMin = endMin + TOTAL_MINUTES;
+                    }
+                    const currentMin = getCurrentMinutes();
+                    let remainingMinutes = Math.max(0, endMin - currentMin);
+                    if (remainingMinutes > TOTAL_MINUTES) remainingMinutes = TOTAL_MINUTES;
 
                     if (!resultMap[key]) {
-                        const phone = currentHospital.names.find(n => n.name === resident.name)?.phone || "رقم غير متوفر";
+                        const phone = (currentHospital.names || []).find(n => n.name === resident.name)?.phone || "رقم غير متوفر";
                         const visitEntries = (currentHospital.schedule || []).filter(s => s.date === today && s.name === resident.name);
-                        const totalVisits = visitEntries.reduce((sum, e) => sum + (e.VisitCount || 0), 0);
-
+                        const totalVisits = visitEntries.reduce((sum, entry) => sum + (entry.VisitCount || 0), 0);
                         resultMap[key] = {
                             name: resident.name,
                             phone: phone,
                             specs: [],
+                            dutyTime: dutyTime,
+                            startMin: startMin,
+                            endMin: endMin,
                             remainingMinutes: remainingMinutes,
                             criticalSpecCode: specCode,
                             visitCount: totalVisits
@@ -750,15 +1769,23 @@
 
                     const specObj = (currentHospital.specialties || []).find(s => s.id === specCode);
                     const specName = specObj?.name_ar || specCode;
-                    const specIcon = specObj?.icon || '🏥';
+                    const specIcon = specObj?.icon || "🏥";
 
                     resultMap[key].specs.push({
                         code: specCode,
                         name: specName,
                         icon: specIcon,
-                        endMin: TOTAL_MINUTES,
+                        endMin: endMin,
                         remainingMinutes: remainingMinutes
                     });
+
+                    if (endMin < resultMap[key].endMin) {
+                        resultMap[key].dutyTime = dutyTime;
+                        resultMap[key].startMin = startMin;
+                        resultMap[key].endMin = endMin;
+                        resultMap[key].remainingMinutes = remainingMinutes;
+                        resultMap[key].criticalSpecCode = specCode;
+                    }
                 }
             }
 
@@ -767,67 +1794,83 @@
 
         function renderRoster() {
             const container = document.getElementById('roster-container');
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('current-time-display').textContent = `⏰ الوقت الحالي: ${timeStr} · التاريخ الطبي: ${Hub.getMedicalDate()}`;
+            const countTag = document.getElementById('count-tag');
+            if (!currentHospital) {
+                container.innerHTML = '<div class="text-center py-10 text-slate-400">جاري تحميل بيانات المستشفى...</div>';
+                return;
+            }
 
             const currentResidents = getAllCurrentResidents();
-            const totalResidents = (currentHospital?.names || []).length;
-            const activeCount = (currentHospital?.names || []).filter(n => n.spec !== "RESERVE" && n.active !== false).length;
+            const trending = getTrendingResidentForToday();
 
-            document.getElementById('count-tag').innerHTML = `
-                <i class="fas fa-users mr-1"></i> ${totalResidents} مسجل · ${activeCount} نشط · ${currentResidents.length} في الخدمة الآن
-            `;
+            if (countTag) {
+                countTag.innerHTML = `<i class="fas fa-users mr-1"></i> ${currentResidents.length} خفير في الخدمة الآن`;
+            }
 
             if (currentResidents.length === 0) {
                 container.innerHTML = `
-                    <div class="glass-card p-8 text-center" style="max-width:480px;margin:0 auto;">
-                        <div style="font-size:2.5rem;margin-bottom:8px;">🕐</div>
-                        <div class="font-bold text-slate-500 dark:text-slate-400">لا يوجد مقيمين في الخدمة حالياً اليوم</div>
-                        <div class="text-xs text-slate-400 mt-2">يمكنك تسجيل الخفر بالضغط على زر "تسجيل خفر" في القائمة العلوية</div>
+                    <div class="glass-card p-8 text-center text-slate-400">
+                        <i class="fas fa-user-clock text-4xl mb-3 text-slate-300 dark:text-slate-600"></i>
+                        <div class="font-bold text-base">لا يوجد أطباء مسجلين في الخدمة حالياً لهذا اليوم.</div>
+                        <div class="text-xs mt-1">تأكد من تسجيل خفارات اليوم عبر صفحة تسجيل الخفراء.</div>
                     </div>
                 `;
                 return;
             }
 
-            const today = Hub.getMedicalDate();
-            container.innerHTML = currentResidents.map(resident => {
-                const isPhoneValid = resident.phone && resident.phone !== "رقم غير متوفر" && resident.phone.length > 5;
-                const phoneClean = isPhoneValid ? resident.phone.replace(/[^0-9]/g, '') : '';
-                const hours = Math.floor(resident.remainingMinutes / 60);
-                const minutes = Math.floor(resident.remainingMinutes % 60);
+            const currentMin = getCurrentMinutes();
 
-                const specialtyBubbles = resident.specs.map(spec => `
-                    <button type="button" class="specialty-flip" data-end-min="${spec.endMin}" onclick="toggleSpecialtyTimer(this)">
-                        <span class="specialty-bubble specialty-front">${spec.icon} ${spec.name}</span>
-                        <span class="specialty-bubble specialty-back">
-                            <span class="specialty-timer-label">المتبقي</span>
-                            <span class="countdown-timer font-mono font-bold" data-end-min="${spec.endMin}">
-                                ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}
+            container.innerHTML = currentResidents.map(resident => {
+                const isTrending = trending && trending.name === resident.name;
+                const isCrimson = resident.remainingMinutes < 60 && resident.remainingMinutes > 0;
+                const isPhoneValid = resident.phone && resident.phone.replace(/[^0-9]/g, '').length >= 10;
+                const phoneClean = resident.phone.replace(/[^0-9]/g, '');
+
+                const specialtyBubbles = resident.specs.map(spec => {
+                    let rem = spec.endMin - currentMin;
+                    if (rem < 0) rem = 0;
+                    if (rem > TOTAL_MINUTES) rem = TOTAL_MINUTES;
+                    const hours = Math.floor(rem / 60);
+                    const minutes = Math.floor(rem % 60);
+                    const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+
+                    return `
+                        <button type="button" class="specialty-flip" data-end-min="${spec.endMin}" onclick="toggleSpecialtyTimer(this)">
+                            <span class="specialty-bubble specialty-front">${spec.icon} ${spec.name}</span>
+                            <span class="specialty-bubble specialty-back">
+                                <span class="specialty-timer-label">المتبقي</span>
+                                <span class="countdown-timer font-mono font-bold" data-end-min="${spec.endMin}">${timeStr}</span>
                             </span>
-                        </span>
-                    </button>
-                `).join('');
+                        </button>
+                    `;
+                }).join('');
+
+                let wrapperClasses = 'roster-card-wrapper';
+                if (isTrending) wrapperClasses += ' trending';
+                if (isCrimson) wrapperClasses += ' crimson';
 
                 return `
-                    <div class="roster-card-wrapper">
-                        <div class="roster-card" data-end-min="${TOTAL_MINUTES}">
+                    <div class="${wrapperClasses}">
+                        <div class="roster-card" data-end-min="${resident.endMin}"
+                             onmousemove="handleCardTilt(event, this)"
+                             onmouseleave="resetCardTilt(this)">
                             <div class="card-body">
-                                <span class="card-status"><i class="fas fa-eye"></i> ${resident.visitCount}</span>
+                                <span class="card-status ${isTrending ? 'status-trending' : ''}">
+                                    <i class="fas fa-eye"></i> ${resident.visitCount}
+                                </span>
                                 <div class="specialty-bubbles">${specialtyBubbles}</div>
                                 <div class="resident-name">${resident.name}</div>
                                 <div class="resident-phone">${resident.phone}</div>
-                                
                                 <div class="card-actions">
                                     <a href="${isPhoneValid ? 'whatsapp://send?phone=' + phoneClean : '#'}" 
                                        class="action-btn-sm wa ${!isPhoneValid ? 'opacity-40 pointer-events-none' : ''}"
                                        onclick="${isPhoneValid ? `trackResidentContact('${resident.name}');` : ''}">
-                                        <i class="fab fa-whatsapp"></i> واتساب
+                                        <i class="fab fa-whatsapp"></i> WhatsApp
                                     </a>
                                     <a href="${isPhoneValid ? 'tel:' + phoneClean : '#'}" 
                                        class="action-btn-sm call ${!isPhoneValid ? 'opacity-40 pointer-events-none' : ''}"
                                        onclick="${isPhoneValid ? `trackResidentContact('${resident.name}');` : ''}">
-                                        <i class="fas fa-phone"></i> اتصال
+                                        <i class="fas fa-phone"></i> Call
                                     </a>
                                 </div>
                             </div>
@@ -837,69 +1880,135 @@
             }).join('');
         }
 
-        function toggleSpecialtyTimer(btn) {
-            btn.classList.toggle('flipped');
-            setTimeout(() => {
-                btn.classList.remove('flipped');
-            }, 3000);
-        }
-
         function updateCountdowns() {
-            const currentMin = Hub.getCurrentMedicalMinutes();
-            const remaining = Math.max(0, TOTAL_MINUTES - currentMin);
-            const hours = Math.floor(remaining / 60);
-            const minutes = Math.floor(remaining % 60);
-            const formatted = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-
-            document.querySelectorAll('.countdown-timer').forEach(el => {
-                el.textContent = formatted;
+            const currentMin = getCurrentMinutes();
+            document.querySelectorAll('.countdown-timer').forEach(timerEl => {
+                const endMin = parseInt(timerEl.dataset.endMin || '0');
+                if (!endMin) return;
+                let remaining = endMin - currentMin;
+                if (remaining < 0) remaining = 0;
+                if (remaining > TOTAL_MINUTES) remaining = TOTAL_MINUTES;
+                const hours = Math.floor(remaining / 60);
+                const minutes = Math.floor(remaining % 60);
+                timerEl.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
             });
+
+            document.querySelectorAll('.roster-card-wrapper').forEach(wrapper => {
+                const card = wrapper.querySelector('.roster-card');
+                if (!card) return;
+                const endMin = parseInt(card.dataset.endMin || '0');
+                if (!endMin) return;
+                let remaining = endMin - currentMin;
+                if (remaining < 0) remaining = 0;
+                wrapper.classList.toggle('crimson', remaining < 60 && remaining > 0);
+            });
+
+            // Update header time
+            const now = new Date();
+            const timeEl = document.getElementById('current-time-display');
+            if (timeEl) {
+                const hrs = now.getHours();
+                const mins = now.getMinutes();
+                const ampm = hrs >= 12 ? 'PM' : 'AM';
+                const h12 = hrs % 12 || 12;
+                timeEl.textContent = `${String(h12).padStart(2, '0')}:${String(mins).padStart(2, '0')} ${ampm}`;
+            }
         }
 
-        async function trackResidentContact(name) {
-            if (!currentHospital) return;
-            const resCount = await Hub.incrementVisitCount(currentHospital.id, name);
-            showToast(`✅ تم تسجيل تفاعل مع ${name}`, 'success', 2000);
-            renderRoster();
-            renderTrending();
-        }
-
-        // Trending & Leaderboard
+        // ================================================================
+        // TRENDING PANEL & 3D PODIUM LEADERBOARD
+        // ================================================================
         function getTrendingResidentForToday() {
             if (!currentHospital) return null;
-            const today = Hub.getMedicalDate();
-            const todayEntries = (currentHospital.schedule || []).filter(s => s.date === today && s.VisitCount > 0);
+            const targetDate = Hub.getMedicalDate();
+            const todayEntries = (currentHospital.schedule || []).filter(s => s.date === targetDate);
             if (todayEntries.length === 0) return null;
 
-            todayEntries.sort((a, b) => (b.VisitCount || 0) - (a.VisitCount || 0));
-            return todayEntries[0];
+            const visitMap = {};
+            todayEntries.forEach(entry => {
+                const name = entry.name;
+                if (!visitMap[name]) visitMap[name] = 0;
+                visitMap[name] += (entry.VisitCount || 0);
+            });
+
+            let maxVisits = 0, trendingName = null;
+            for (const [name, visits] of Object.entries(visitMap)) {
+                if (visits > maxVisits) {
+                    maxVisits = visits;
+                    trendingName = name;
+                }
+            }
+
+            if (!trendingName || maxVisits === 0) return null;
+
+            const resident = (currentHospital.names || []).find(n => n.name === trendingName);
+            const specCode = todayEntries.find(e => e.name === trendingName)?.specCode || "NS";
+            const specObj = (currentHospital.specialties || []).find(s => s.id === specCode);
+
+            return {
+                name: trendingName,
+                phone: resident?.phone || "رقم غير متوفر",
+                specName: specObj?.name_ar || specCode,
+                icon: specObj?.icon || "🏥",
+                VisitCount: maxVisits
+            };
         }
 
         function renderTrending() {
             const container = document.getElementById('trending-container');
             const trending = getTrendingResidentForToday();
+
             if (trending) {
-                const specObj = (currentHospital?.specialties || []).find(s => s.id === trending.specCode);
                 container.innerHTML = `
-                    <div class="trending-panel" onclick="showTrendingModal()">
-                        <div class="flex items-center gap-2">
-                            <span class="trending-badge-btn"><i class="fas fa-crown"></i> متصدر اليوم</span>
-                            <span class="font-bold text-slate-700 dark:text-slate-200 text-sm">${trending.name}</span>
+                    <div class="trending-panel" id="trendingPanel">
+                        <div class="trending-top">
+                            <button class="trending-badge-btn" id="trendingBadgeBtn" title="اضغط لعرض لوحة المتصدرين">
+                                <i class="fas fa-crown"></i> !TRENDING
+                            </button>
+                            <span class="trending-stats">
+                                <i class="fas fa-eye"></i> ${trending.VisitCount || 0}
+                            </span>
                         </div>
-                        <div class="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400 font-bold">
-                            <span>${specObj?.icon || '🏥'} ${specObj?.name_ar || trending.specCode}</span>
-                            <span>• <i class="fas fa-eye"></i> ${trending.VisitCount}</span>
+                        <div class="trending-center">
+                            <div class="trending-name">${trending.name}</div>
+                            <div class="trending-spec">${trending.icon} ${trending.specName}</div>
                         </div>
                     </div>
                 `;
+
+                const badge = document.getElementById('trendingBadgeBtn');
+                const panel = document.getElementById('trendingPanel');
+
+                if (badge) {
+                    badge.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        this.classList.add('flutter-stopped');
+                        showTrendingModal();
+                        const rect = this.getBoundingClientRect();
+                        const cx = rect.left + rect.width / 2;
+                        const cy = rect.top + rect.height / 2;
+                        fireConfettiFromPosition(cx, cy);
+                    });
+                }
+
+                if (panel) {
+                    panel.addEventListener('click', function(e) {
+                        if (badge && (e.target === badge || badge.contains(e.target))) return;
+                        fireConfettiFromPosition(e.clientX, e.clientY);
+                    });
+                }
             } else {
-                container.innerHTML = '';
+                container.innerHTML = `
+                    <div class="glass-card p-3 text-center text-slate-400 text-xs">
+                        <i class="fas fa-chart-line mr-1"></i> لا يوجد متصدر اليوم حتى الآن. التفاعلات والزيارات ستظهر هنا تلقائياً.
+                    </div>
+                `;
             }
         }
 
         function showTrendingModal() {
             document.getElementById('trending-modal').classList.add('active');
-            switchLeaderboardFilter('today');
+            switchLeaderboardFilter(currentLeaderboardFilter);
         }
 
         function closeTrendingModal() {
@@ -908,59 +2017,132 @@
 
         function switchLeaderboardFilter(filter) {
             currentLeaderboardFilter = filter;
-            document.querySelectorAll('.filter-tab').forEach(t => t.classList.toggle('active', t.dataset.filter === filter));
-            
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.filter === filter);
+            });
+
             const content = document.getElementById('trending-content');
             if (!currentHospital) return;
 
-            const today = Hub.getMedicalDate();
             const now = new Date();
+            const todayStr = Hub.getMedicalDate();
             const monthStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
 
             let entries = (currentHospital.schedule || []).filter(s => s.VisitCount && s.VisitCount > 0);
             if (filter === 'today') {
-                entries = entries.filter(s => s.date === today);
+                entries = entries.filter(s => s.date === todayStr);
             } else if (filter === 'month') {
                 entries = entries.filter(s => {
-                    const p = s.date.split('/');
-                    return p.length === 3 && `${p[1]}/${p[2]}` === monthStr;
+                    const parts = s.date.split('/');
+                    return parts.length === 3 && `${parts[1]}/${parts[2]}` === monthStr;
                 });
             }
 
-            const agg = {};
-            entries.forEach(e => {
-                if (!agg[e.name]) agg[e.name] = { name: e.name, specCode: e.specCode, totalVisits: 0 };
-                agg[e.name].totalVisits += (e.VisitCount || 0);
+            const leaderboard = {};
+            entries.forEach(entry => {
+                if (!leaderboard[entry.name]) {
+                    leaderboard[entry.name] = { name: entry.name, specCode: entry.specCode, totalVisits: 0 };
+                }
+                leaderboard[entry.name].totalVisits += (entry.VisitCount || 0);
             });
 
-            const sorted = Object.values(agg).sort((a, b) => b.totalVisits - a.totalVisits);
+            const sorted = Object.values(leaderboard).sort((a, b) => b.totalVisits - a.totalVisits);
 
             if (sorted.length === 0) {
-                content.innerHTML = '<div class="text-center py-6 text-slate-400 text-sm">لا توجد تفاعلات مسجلة في هذا النطاق بعد.</div>';
+                content.innerHTML = `<div class="text-center py-6 text-slate-400 text-sm"><div class="text-3xl mb-1">🏆</div><div>لا توجد تفاعلات مسجلة في هذا النطاق بعد.</div></div>`;
                 return;
             }
 
-            content.innerHTML = sorted.map((item, idx) => {
-                const specObj = (currentHospital?.specialties || []).find(s => s.id === item.specCode);
-                return `
-                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700">
-                        <div class="flex items-center gap-3">
-                            <span class="font-mono font-black text-sm w-6 text-slate-400">#${idx + 1}</span>
-                            <div>
-                                <div class="font-bold text-sm text-slate-800 dark:text-slate-200">${item.name}</div>
-                                <div class="text-xs text-slate-500">${specObj?.icon || '🏥'} ${specObj?.name_ar || item.specCode}</div>
-                            </div>
-                        </div>
-                        <span class="font-mono font-black text-amber-500 text-sm"><i class="fas fa-eye text-xs"></i> ${item.totalVisits}</span>
-                    </div>
+            const topThree = sorted.slice(0, 3);
+            const others = sorted.slice(3);
+
+            let html = '';
+            if (topThree.length > 0) {
+                const maxVisits = topThree[0]?.totalVisits || 1;
+                const ordered = [topThree[1] || topThree[0], topThree[0], topThree[2] || topThree[0]];
+                const medals = ['silver', 'gold', 'bronze'];
+                const medalIcons = ['🥈', '🥇', '🥉'];
+
+                html += `
+                    <div class="step-chart-wrapper">
+                        <div class="step-chart-title">✦ TOP PERFORMERS ✦</div>
+                        <div class="step-chart">
                 `;
-            }).join('');
+                ordered.forEach((item, index) => {
+                    const maxHeight = 60;
+                    const ratio = item.totalVisits / maxVisits;
+                    const heightPx = Math.max(ratio * maxHeight, 6);
+                    const specObj = (currentHospital.specialties || []).find(s => s.id === item.specCode);
+                    const specName = specObj?.name_ar || item.specCode;
+                    const icon = specObj?.icon || "🏥";
+
+                    html += `
+                        <div class="step-bar">
+                            <div class="bar-value">${item.totalVisits}</div>
+                            <div class="bar-wrap">
+                                <div class="bar ${medals[index]}" style="height: ${heightPx}px;"></div>
+                            </div>
+                            <div class="bar-label">${icon} ${item.name}</div>
+                            <div class="step-medal-icon">${medalIcons[index]}</div>
+                        </div>
+                    `;
+                });
+                html += `</div></div>`;
+            }
+
+            if (others.length > 0) {
+                html += '<div class="space-y-1.5 mt-2">';
+                others.forEach((item, idx) => {
+                    const specObj = (currentHospital.specialties || []).find(s => s.id === item.specCode);
+                    html += `
+                        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700">
+                            <div class="flex items-center gap-3">
+                                <span class="font-mono font-bold text-xs w-6 text-slate-400">#${idx + 4}</span>
+                                <div>
+                                    <div class="font-bold text-xs text-slate-800 dark:text-slate-200">${item.name}</div>
+                                    <div class="text-[0.65rem] text-slate-500">${specObj?.icon || '🏥'} ${specObj?.name_ar || item.specCode}</div>
+                                </div>
+                            </div>
+                            <span class="font-mono font-black text-amber-500 text-xs"><i class="fas fa-eye text-[0.65rem]"></i> ${item.totalVisits}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            content.innerHTML = html;
         }
 
-        // Reset Modal
+        // ================================================================
+        // INTERACTION TRACKING
+        // ================================================================
+        async function trackResidentContact(residentName) {
+            const now = Date.now();
+            const key = `contact_${residentName}`;
+            if (clickCooldown[key] && (now - clickCooldown[key]) < COOLDOWN_TIME) {
+                showToast('⏳ تم تسجيل تفاعل مؤخراً، يرجى الانتظار قليلاً', 'info', 2000);
+                return;
+            }
+            clickCooldown[key] = now;
+
+            if (!currentHospital) return;
+            try {
+                await Hub.incrementVisitCount(currentHospital.id, residentName);
+                showToast(`✅ تم تسجيل تفاعل مع د. ${residentName}`, 'success', 2200);
+                renderRoster();
+                renderTrending();
+                fireConfettiFromPosition(window.innerWidth / 2, window.innerHeight * 0.7);
+            } catch (err) {
+                console.error("Tracking Error:", err);
+            }
+        }
+
+        // ================================================================
+        // ADMIN RESET MODAL
+        // ================================================================
         function showResetModal() {
             if (!Hub.auth.isAdmin()) {
-                showToast('يتطلب صلاحيات المدير', 'error');
+                showToast('يتطلب هذا الإجراء صلاحيات المدير', 'error');
                 return;
             }
             document.getElementById('reset-modal').classList.add('active');
@@ -983,7 +2165,9 @@
             }
         }
 
-        // Report Generator
+        // ================================================================
+        // REPORT GENERATOR (WHATSAPP READY WITH REPO LINK)
+        // ================================================================
         function generateAndCopyReport() {
             const currentResidents = getAllCurrentResidents();
             if (currentResidents.length === 0) {
@@ -1016,6 +2200,7 @@
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(report).then(() => {
                     showToast('✅ تم نسخ التقرير بنجاح إلى الحافظة!', 'success');
+                    fireConfettiFromPosition(window.innerWidth / 2, window.innerHeight * 0.4);
                 }).catch(() => fallbackCopy(report));
             } else {
                 fallbackCopy(report);
@@ -1032,10 +2217,151 @@
             document.execCommand('copy');
             document.body.removeChild(ta);
             showToast('✅ تم نسخ التقرير بنجاح!', 'success');
+            fireConfettiFromPosition(window.innerWidth / 2, window.innerHeight * 0.4);
         }
 
-        window.addEventListener('DOMContentLoaded', initRoster);
+        // ================================================================
+        // TOAST NOTIFICATIONS
+        // ================================================================
+        let toastTimeout = null;
+        function showToast(message, type = 'info', duration = 3000) {
+            if (toastTimeout) {
+                clearTimeout(toastTimeout);
+                document.getElementById('toast-container').querySelectorAll('.toast').forEach(t => t.remove());
+            }
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <i class="fas ${icons[type] || icons.info}"></i>
+                <span>${message}</span>
+                <button class="toast-close mr-auto cursor-pointer opacity-60 hover:opacity-100 bg-none border-none text-inherit" onclick="this.parentElement.remove()">&times;</button>
+            `;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('show'));
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+                toastTimeout = null;
+            }, duration);
+        }
+
+        // ================================================================
+        // THEME MANAGEMENT
+        // ================================================================
+        function applyTheme(theme) {
+            const body = document.getElementById('app-body');
+            const sunIcon = document.getElementById('theme-sun-icon');
+            const moonIcon = document.getElementById('theme-moon-icon');
+
+            if (theme === 'dark') {
+                body.classList.remove('light');
+                body.classList.add('dark');
+                if (sunIcon) sunIcon.classList.remove('hidden');
+                if (moonIcon) moonIcon.classList.add('hidden');
+            } else {
+                body.classList.remove('dark');
+                body.classList.add('light');
+                if (sunIcon) sunIcon.classList.add('hidden');
+                if (moonIcon) moonIcon.classList.remove('hidden');
+            }
+        }
+
+        function toggleTheme() {
+            const newTheme = Hub.toggleTheme();
+            applyTheme(newTheme);
+        }
+
+        // ================================================================
+        // MULTI-HOSPITAL DATA BINDING
+        // ================================================================
+        function applyHospitalData() {
+            currentHospital = Hub.getActiveHospital();
+            if (!currentHospital) return;
+
+            // Update DOM title, header, icon, location
+            const hospName = currentHospital.name_ar || currentHospital.hospitalName || 'المستشفى التعليمي';
+            const hospLocation = currentHospital.location || 'Basra · Iraq';
+            const hospIcon = currentHospital.icon || 'fa-hospital';
+
+            document.title = `${hospName} · الخفراء اليوم 🇮🇶`;
+            const nameEl = document.getElementById('hospital-name');
+            const locEl = document.getElementById('hospital-location');
+            const iconEl = document.getElementById('hospital-symbol-icon');
+            const btnExchange = document.getElementById('btn-duty-exchange');
+
+            if (nameEl) nameEl.textContent = hospName;
+            if (locEl) locEl.textContent = hospLocation;
+            if (iconEl) iconEl.className = `fas ${hospIcon}`;
+            if (btnExchange) btnExchange.href = `./scheduler.html?hospital=${encodeURIComponent(currentHospital.id)}`;
+
+            // Admin Reset Button visibility based on dual password role
+            const adminResetBtn = document.getElementById('admin-reset-btn');
+            if (adminResetBtn) {
+                if (Hub.auth.isAdmin()) adminResetBtn.classList.remove('hidden');
+                else adminResetBtn.classList.add('hidden');
+            }
+        }
+
+        // ================================================================
+        // INITIALIZATION
+        // ================================================================
+        async function initHome() {
+            initFireworksCanvas();
+            setupEasterEgg();
+
+            // Initialize Universal Navigation Bar
+            if (window.initUniversalNav) {
+                window.initUniversalNav('roster');
+            }
+
+            // Sync theme from Hub
+            applyTheme(Hub.getTheme());
+
+            // Load Unified Database
+            await Hub.loadDatabase();
+            applyHospitalData();
+            renderRoster();
+            renderTrending();
+            updateCountdowns();
+
+            // Setup reactive listeners
+            window.addEventListener('hub:hospital-switched', () => {
+                applyHospitalData();
+                renderRoster();
+                renderTrending();
+                updateCountdowns();
+            });
+
+            window.addEventListener('hub:data-changed', () => {
+                applyHospitalData();
+                renderRoster();
+                renderTrending();
+                updateCountdowns();
+            });
+
+            window.addEventListener('hub:theme-changed', (e) => {
+                applyTheme(e.detail.theme);
+            });
+
+            window.addEventListener('hub:auth-changed', () => {
+                applyHospitalData();
+            });
+
+            // Start live intervals
+            if (updateInterval) clearInterval(updateInterval);
+            if (countdownInterval) clearInterval(countdownInterval);
+            updateInterval = setInterval(() => {
+                renderRoster();
+                renderTrending();
+            }, 30000);
+            countdownInterval = setInterval(() => {
+                updateCountdowns();
+            }, 1000);
+        }
+
+        window.addEventListener('DOMContentLoaded', initHome);
     </script>
 </body>
 </html>
-

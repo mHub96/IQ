@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-09-12T11:51:43.271Z",
+  "lastUpdated": "2026-09-12T11:51:45.577Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -22,6 +22,15 @@
       },
       "specialties": [
         {
+          "id": "US",
+          "name_ar": "جراحة المسالك البولية",
+          "name_en": "Urosurgery",
+          "icon": "🫘",
+          "color": "#e66551",
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
           "id": "NS",
           "name_ar": "جراحة الجملة العصبية",
           "name_en": "Neurosurgery",
@@ -36,15 +45,6 @@
           "name_en": "Cardiothoracic Surgery",
           "icon": "🫀",
           "color": "#e05910",
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
-          "id": "US",
-          "name_ar": "جراحة المسالك البولية",
-          "name_en": "Urosurgery",
-          "icon": "🫘",
-          "color": "#e66551",
           "acceptPool": [],
           "enabled": true
         },

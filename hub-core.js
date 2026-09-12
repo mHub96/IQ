@@ -756,11 +756,19 @@
         return localStorage.getItem(THEME_KEY) || 'light';
     }
 
+    function applyThemeToDOM(theme) {
+        const isDark = theme === 'dark';
+        document.documentElement.classList.toggle('dark', isDark);
+        document.documentElement.classList.toggle('light', !isDark);
+        if (document.body) {
+            document.body.classList.toggle('dark', isDark);
+            document.body.classList.toggle('light', !isDark);
+        }
+    }
+
     function setTheme(theme) {
         localStorage.setItem(THEME_KEY, theme);
-        document.documentElement.classList.toggle('dark', theme === 'dark');
-        document.body.classList.toggle('dark', theme === 'dark');
-        document.body.classList.toggle('light', theme === 'light');
+        applyThemeToDOM(theme);
         window.dispatchEvent(new CustomEvent('hub:theme-changed', { detail: { theme } }));
     }
 
@@ -770,13 +778,10 @@
         return next;
     }
 
-    // Auto apply theme on script load
-    if (getTheme() === 'dark') {
-        document.documentElement.classList.add('dark');
-        if (document.body) {
-            document.body.classList.add('dark');
-            document.body.classList.remove('light');
-        }
+    // Auto apply theme on script load and ensure body is updated when ready
+    applyThemeToDOM(getTheme());
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => applyThemeToDOM(getTheme()));
     }
 
     // ============================================================

@@ -349,6 +349,29 @@
         .btn-add-hospital:hover {
             transform: translateY(-2px) scale(1.02);
         }
+        .btn-edit-passwords {
+            padding: 0.9rem 2rem;
+            border-radius: 999px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            border: 1px solid rgba(217, 119, 6, 0.4);
+            background: linear-gradient(135deg, #d97706, #b45309);
+            color: white;
+            box-shadow: 0 8px 25px rgba(217, 119, 6, 0.3);
+            transition: all 0.3s ease;
+        }
+        body.dark .btn-edit-passwords {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #0b0e12;
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.25);
+        }
+        .btn-edit-passwords:hover {
+            transform: translateY(-2px) scale(1.02);
+        }
 
         /* Lock Screen */
         #lock-screen {
@@ -558,10 +581,13 @@
             </div>
         </section>
 
-        <!-- Add Hospital Action Button (Admin Only) -->
-        <div class="add-hosp-btn-wrap" id="add-hospital-container" style="display:none;">
+        <!-- Owner Action Buttons (Owner Only) -->
+        <div class="add-hosp-btn-wrap" id="add-hospital-container" style="display:none; gap: 1rem; flex-wrap: wrap;">
             <button type="button" class="btn-add-hospital" onclick="openAddHospitalModal()">
                 <i class="fas fa-plus-circle"></i> إضافة مستشفى تعليمي جديد
+            </button>
+            <button type="button" class="btn-edit-passwords" onclick="openAllPasswordsModalNav()">
+                <i class="fas fa-key"></i> تعديل كلمات المرور
             </button>
         </div>
 

@@ -223,6 +223,25 @@
         }
         .specialty-item.disabled-spec { opacity: 0.55; }
         .specialty-item.disabled-spec .spec-name { text-decoration: line-through; }
+        .specialty-item.spec-dragging {
+            opacity: 0.35;
+            border: 2px dashed #0d9488 !important;
+            transform: scale(0.98);
+        }
+        .specialty-item.spec-drag-over {
+            border-color: #0d9488 !important;
+            background: rgba(13, 148, 136, 0.12) !important;
+            transform: scale(1.02);
+            box-shadow: 0 4px 14px rgba(13, 148, 136, 0.2);
+        }
+        .specialty-item .drag-handle {
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+        }
+        .specialty-item .drag-handle:active {
+            cursor: grabbing;
+        }
 
         /* Compact iOS Style Switch */
         .toggle-switch-compact {
@@ -1047,18 +1066,19 @@
 
             container.innerHTML = specs.map((s, idx) => {
                 const isEnabled = s.enabled !== false;
-                const isFirst = idx === 0;
-                const isLast = idx === specs.length - 1;
                 return `
-                    <div class="specialty-item ${!isEnabled ? 'disabled-spec' : ''}">
-                        <div class="flex flex-col gap-0.5 ml-1">
-                            <button type="button" onclick="moveSpecialty(${idx}, -1)" ${isFirst ? 'disabled class="opacity-20 cursor-not-allowed text-xs p-0.5"' : 'class="text-xs p-0.5 text-slate-500 hover:text-teal-600 dark:hover:text-amber-400"'} title="تقديم التخصص للأعلى">
-                                <i class="fas fa-chevron-up"></i>
-                            </button>
-                            <button type="button" onclick="moveSpecialty(${idx}, 1)" ${isLast ? 'disabled class="opacity-20 cursor-not-allowed text-xs p-0.5"' : 'class="text-xs p-0.5 text-slate-500 hover:text-teal-600 dark:hover:text-amber-400"'} title="تأخير التخصص للأسفل">
-                                <i class="fas fa-chevron-down"></i>
-                            </button>
-                        </div>
+                    <div class="specialty-item ${!isEnabled ? 'disabled-spec' : ''}"
+                         draggable="true"
+                         data-index="${idx}"
+                         ondragstart="handleSpecDragStart(event, ${idx})"
+                         ondragover="handleSpecDragOver(event, ${idx})"
+                         ondragenter="handleSpecDragEnter(event, ${idx})"
+                         ondragleave="handleSpecDragLeave(event, ${idx})"
+                         ondrop="handleSpecDrop(event, ${idx})"
+                         ondragend="handleSpecDragEnd(event)">
+                        <span class="drag-handle text-slate-400 hover:text-teal-600 dark:hover:text-amber-400 p-1 text-base ml-1 cursor-grab" title="اسحب لتغيير الترتيب">
+                            <i class="fas fa-grip-vertical"></i>
+                        </span>
                         <span class="text-xl w-7 text-center">${s.icon || '🏥'}</span>
                         <span class="font-mono text-xs font-bold text-slate-400 w-10">${s.id}</span>
                         <span class="spec-name font-bold text-sm flex-1">${s.name_ar}</span>
@@ -1078,6 +1098,60 @@
                     </div>
                 `;
             }).join('');
+        }
+
+        let draggedSpecIdx = null;
+
+        function handleSpecDragStart(e, idx) {
+            draggedSpecIdx = idx;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', idx);
+            setTimeout(() => {
+                if (e.target && e.target.classList) e.target.classList.add('spec-dragging');
+            }, 0);
+        }
+
+        function handleSpecDragOver(e, idx) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleSpecDragEnter(e, idx) {
+            e.preventDefault();
+            const item = e.currentTarget;
+            if (draggedSpecIdx !== null && draggedSpecIdx !== idx) {
+                item.classList.add('spec-drag-over');
+            }
+        }
+
+        function handleSpecDragLeave(e, idx) {
+            e.currentTarget.classList.remove('spec-drag-over');
+        }
+
+        async function handleSpecDrop(e, targetIdx) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('spec-drag-over');
+            if (draggedSpecIdx === null || draggedSpecIdx === targetIdx) return;
+
+            const specs = currentHospital?.specialties;
+            if (!specs) return;
+
+            const [moved] = specs.splice(draggedSpecIdx, 1);
+            specs.splice(targetIdx, 0, moved);
+            draggedSpecIdx = null;
+
+            renderSpecialtiesList();
+            renderResidentsAccordion();
+            populateSpecialtyDropdowns();
+            showToast(`تم تغيير ترتيب تخصص: ${moved.name_ar}`, 'info');
+            await Hub.saveDatabase(`Reorder specialty ${moved.name_ar} via drag & drop in ${currentHospital.hospitalName}`);
+        }
+
+        function handleSpecDragEnd(e) {
+            draggedSpecIdx = null;
+            document.querySelectorAll('.specialty-item').forEach(el => {
+                el.classList.remove('spec-dragging', 'spec-drag-over');
+            });
         }
 
         async function moveSpecialty(index, delta) {

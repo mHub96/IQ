@@ -35,6 +35,39 @@
     let isLoaded = false;
     let loadPromise = null;
 
+    // Canonical 29 Unified Specialties
+    const CANONICAL_SPECIALTIES = [
+        { id: "NS", name_ar: "جراحة الجملة العصبية", name_en: "Neurosurgery", icon: "🧠", color: "#0f766e", enabled: true },
+        { id: "CT", name_ar: "جراحة الصدر و الاوعية الدموية", name_en: "Cardiothoracic Surgery", icon: "🫀", color: "#0f766e", enabled: true },
+        { id: "GS", name_ar: "الجراحة العامة", name_en: "General Surgery", icon: "🔪", color: "#0f766e", enabled: true },
+        { id: "OR", name_ar: "الكسور", name_en: "Orthopaedics", icon: "🦴", color: "#0f766e", enabled: true },
+        { id: "US", name_ar: "جراحة المسالك البولية", name_en: "Urosurgery", icon: "🫘", color: "#0f766e", enabled: true },
+        { id: "ENT", name_ar: "الأذن و الأنف و الحنجرة", name_en: "ENT", icon: "👂", color: "#0f766e", enabled: true },
+        { id: "MF", name_ar: "جراحة الوجه و الفكين", name_en: "MaxilloFacial Surgery", icon: "🦷", color: "#0f766e", enabled: true },
+        { id: "O", name_ar: "العيون", name_en: "Ophthalmology", icon: "👁️", color: "#0f766e", enabled: true },
+        { id: "Pe", name_ar: "الاطفال", name_en: "Paediatrics", icon: "👶", color: "#0f766e", enabled: true },
+        { id: "M", name_ar: "الباطنية", name_en: "Internal Medicine", icon: "💊", color: "#0f766e", enabled: true },
+        { id: "G", name_ar: "النسائية و التوليد", name_en: "Gynecology", icon: "🤰", color: "#0f766e", enabled: true },
+        { id: "ICU", name_ar: "تخدير العناية المركزة", name_en: "ICU Anaesthesia", icon: "💉", color: "#0f766e", enabled: true },
+        { id: "OP", name_ar: "تخدير العمليات", name_en: "OT Anaesthesia", icon: "💉", color: "#0f766e", enabled: true },
+        { id: "GA", name_ar: "تخدير صالة الولادة", name_en: "GYN Anaesthesia", icon: "🤰", color: "#0f766e", enabled: true },
+        { id: "A", name_ar: "التخدير و العناية المركزة", name_en: "Anaesthesia & Intensive Care", icon: "💉", color: "#0f766e", enabled: true },
+        { id: "R", name_ar: "الأشعة و السونار", name_en: "Radiology", icon: "🩻", color: "#0f766e", enabled: true },
+        { id: "D", name_ar: "الوفيات", name_en: "Death Certificates", icon: "⚰️", color: "#0f766e", enabled: true },
+        { id: "AO", name_ar: "المعاون الاداري", name_en: "Administrative Officer", icon: "🧑", color: "#0f766e", enabled: true },
+        { id: "ON", name_ar: "طب الاورام", name_en: "Oncology", icon: "☢️", color: "#0f766e", enabled: true },
+        { id: "N", name_ar: "طب امراض الكلى", name_en: "Nephrology", icon: "🧫", color: "#0f766e", enabled: true },
+        { id: "NM", name_ar: "طب الجملة العصبية", name_en: "Neuromedicine", icon: "🧠", color: "#0f766e", enabled: true },
+        { id: "P", name_ar: "النفسية", name_en: "Psychiatry", icon: "🧠", color: "#0f766e", enabled: true },
+        { id: "Der", name_ar: "الجلدية", name_en: "Dermatology", icon: "🏥", color: "#0f766e", enabled: true },
+        { id: "EM", name_ar: "طب الطوارئ", name_en: "Emergency Medicine", icon: "🏥", color: "#0f766e", enabled: true },
+        { id: "FM", name_ar: "طب الأسرة", name_en: "Family Medicine", icon: "👨", color: "#0f766e", enabled: true },
+        { id: "GP", name_ar: "ممارسين", name_en: "General Practitioner", icon: "🏥", color: "#0f766e", enabled: true },
+        { id: "H", name_ar: "طب الامراض القلبية", name_en: "Cardiology", icon: "🫀", color: "#0f766e", enabled: true },
+        { id: "PS", name_ar: "الجراحة التجميلية", name_en: "Plastic Surgery", icon: "🪡", color: "#0f766e", enabled: true },
+        { id: "RM", name_ar: "طب الامراض التنفسية", name_en: "Respiratory Medicine", icon: "🫁", color: "#0f766e", enabled: true }
+    ];
+
     // Default Fallback Database Structure
     const defaultTemplate = {
         version: "2.0",
@@ -45,6 +78,7 @@
             user: "1234"
         },
         activeHospitalId: "iraqi",
+        globalSpecialties: JSON.parse(JSON.stringify(CANONICAL_SPECIALTIES)),
         residents: [],
         hospitals: {}
     };
@@ -294,8 +328,9 @@
             throw new Error(`معرف المستشفى "${id}" مستخدم بالفعل.`);
         }
 
-        // Get default specialties template from Iraqi Teaching Hospital or fallback
-        const templateSpecs = (db.hospitals['iraqi']?.specialties || []).map(s => ({
+        // Get default specialties template from Central Global Specialties Catalog
+        const globalCatalog = getGlobalSpecialties();
+        const templateSpecs = (globalCatalog.length > 0 ? globalCatalog : (db.hospitals['iraqi']?.specialties || CANONICAL_SPECIALTIES)).map(s => ({
             ...s,
             enabled: true
         }));
@@ -556,6 +591,93 @@
 
         await saveDatabase(`Reset Stats (${hospital.hospitalName}): ${range}`);
         return true;
+    }
+
+    // ============================================================
+    // CENTRAL UNIFIED SPECIALTIES CATALOG
+    // ============================================================
+    function getGlobalSpecialties() {
+        if (db && Array.isArray(db.globalSpecialties) && db.globalSpecialties.length > 0) {
+            return db.globalSpecialties;
+        }
+        const active = getActiveHospital();
+        if (active && Array.isArray(active.specialties) && active.specialties.length > 0) {
+            return active.specialties;
+        }
+        return JSON.parse(JSON.stringify(CANONICAL_SPECIALTIES));
+    }
+
+    async function saveGlobalSpecialties(specs) {
+        if (!auth.isAdmin()) {
+            throw new Error('غير مصرح لك بتعديل التخصصات العامة. يتطلب صلاحيات المدير.');
+        }
+        if (!db) throw new Error('قاعدة البيانات غير محملة');
+        if (!Array.isArray(specs)) throw new Error('بيانات التخصصات غير صالحة');
+        db.globalSpecialties = specs;
+        await saveDatabase('تحديث الدليل العام للتخصصات الموحدة');
+        return db.globalSpecialties;
+    }
+
+    async function syncHospitalSpecialtiesWithGlobal(hospitalId) {
+        if (!auth.isAdmin()) {
+            throw new Error('غير مصرح لك بمزامنة التخصصات.');
+        }
+        const hosp = getHospital(hospitalId);
+        if (!hosp) throw new Error('المستشفى غير موجود');
+        const globals = getGlobalSpecialties();
+        if (!globals || globals.length === 0) return false;
+
+        const currentMap = new Map((hosp.specialties || []).map(s => [s.id, s]));
+        hosp.specialties = globals.map(g => {
+            const cur = currentMap.get(g.id);
+            return {
+                ...g,
+                enabled: cur ? (cur.enabled !== false) : true,
+                color: cur?.color || g.color || '#0f766e'
+            };
+        });
+        await saveDatabase(`مزامنة تخصصات مستشفى ${hosp.name_ar || hosp.hospitalName} مع الدليل العام`);
+        return hosp.specialties;
+    }
+
+    // ============================================================
+    // ACTIVE ON-CALL RESIDENTS REAL-TIME METRICS
+    // ============================================================
+    function normalizeDateString(dateStr) {
+        if (!dateStr) return '';
+        const s = String(dateStr).trim();
+        if (s.includes('-')) {
+            const parts = s.split('-');
+            if (parts.length === 3) {
+                return `${parts[2].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[0]}`;
+            }
+        }
+        return s;
+    }
+
+    function getActiveOnCallResidentsCount(hospital, targetDate = null) {
+        if (!hospital || !Array.isArray(hospital.schedule)) return 0;
+        const normTarget = normalizeDateString(targetDate || getMedicalDate());
+        const uniqueOnCall = new Set();
+        hospital.schedule.forEach(entry => {
+            const entryDate = normalizeDateString(entry.date);
+            if (entryDate === normTarget) {
+                const name = String(entry.name || '').trim();
+                if (name && name !== 'بدون خفير' && name !== 'بدون خفر') {
+                    uniqueOnCall.add(name);
+                }
+            }
+        });
+        return uniqueOnCall.size;
+    }
+
+    function getTotalActiveOnCallCount(targetDate = null) {
+        if (!db || !db.hospitals) return 0;
+        let total = 0;
+        Object.values(db.hospitals).forEach(h => {
+            total += getActiveOnCallResidentsCount(h, targetDate);
+        });
+        return total;
     }
 
     // ============================================================
@@ -925,6 +1047,12 @@
         exchangeDuty,
         incrementVisitCount,
         resetStatistics,
+        CANONICAL_SPECIALTIES,
+        getGlobalSpecialties,
+        saveGlobalSpecialties,
+        syncHospitalSpecialtiesWithGlobal,
+        getActiveOnCallResidentsCount,
+        getTotalActiveOnCallCount,
         auth,
         getMedicalDate,
         getCurrentMedicalMinutes,

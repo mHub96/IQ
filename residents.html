@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>دليل المقيمين الموحد · Hospital Main Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        };
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="./nav-component.css" />
@@ -15,8 +20,8 @@
             direction: rtl;
             text-align: right;
             min-height: 100vh;
-            background: #f2f6fc;
-            color: #1a2332;
+            background: #f0f4f8;
+            color: #0f172a;
             transition: background 0.4s ease, color 0.4s ease;
             overflow-x: hidden;
         }
@@ -185,17 +190,25 @@
             border-radius: 1.25rem;
             padding: 1.1rem 1.25rem;
             transition: all 0.25s ease;
-            border: 1px solid #e2e8f0;
-            background: rgba(255, 255, 255, 0.85);
+            border: 1.5px solid #e2e8f0;
+            background: #ffffff;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
         }
         body.dark .doctor-card {
-            background: rgba(16, 22, 34, 0.78);
-            border-color: rgba(212, 175, 55, 0.1);
+            background: rgba(16, 22, 34, 0.85);
+            border-color: rgba(212, 175, 55, 0.12);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        .doctor-card .doctor-name {
+            color: #0f172a !important;
+        }
+        body.dark .doctor-card .doctor-name {
+            color: #f8fafc !important;
         }
         .doctor-card:hover {
             transform: translateY(-3px);
@@ -747,11 +760,11 @@
                             <!-- Header: Name & Status -->
                             <div class="flex items-start justify-between gap-2 mb-2">
                                 <div>
-                                    <h3 class="text-base font-black text-slate-800 dark:text-white flex items-center gap-1.5">
+                                    <h3 class="doctor-name text-base font-black text-slate-900 dark:text-white flex items-center gap-1.5">
                                         <span class="w-2 h-2 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-amber-500'}"></span>
                                         <span>${r.name}</span>
                                     </h3>
-                                    <div class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                    <div class="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 mt-0.5">
                                         <span>${specObj.icon || '🏥'}</span>
                                         <span class="font-bold">${specObj.name_ar}</span>
                                     </div>
@@ -772,13 +785,13 @@
                             <!-- Hospital Badges (Tagging) -->
                             <div class="flex flex-wrap items-center gap-1.5 my-2.5">
                                 ${doctorHospitals.map(h => `
-                                    <span class="hosp-tag-badge border" style="background: ${h.color ? h.color + '15' : 'rgba(15,118,110,0.1)'}; color: ${h.color || '#0f766e'}; border-color: ${h.color ? h.color + '33' : 'rgba(15,118,110,0.2)'};">
+                                    <span class="hosp-tag-badge border font-bold" style="background: ${h.color ? h.color + '15' : 'rgba(15,118,110,0.1)'}; color: ${h.color || '#0f766e'}; border-color: ${h.color ? h.color + '40' : 'rgba(15,118,110,0.3)'};">
                                         <i class="fas ${h.icon || 'fa-hospital'}"></i>
                                         <span>${h.name_ar || h.hospitalName}</span>
                                     </span>
                                 `).join('')}
                                 ${isMulti ? `
-                                    <span class="hosp-tag-badge bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-800 font-black">
+                                    <span class="hosp-tag-badge bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-800 font-black">
                                         <i class="fas fa-shuffle"></i>
                                         <span>تغطية متعددة</span>
                                     </span>
@@ -787,17 +800,17 @@
                         </div>
 
                         <!-- Footer: Phone & Actions -->
-                        <div class="pt-3 mt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
+                        <div class="pt-3 mt-2 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between gap-2">
                             ${hasPhone ? `
                                 <a href="tel:${rawPhone}" class="phone-badge" title="اضغط للاتصال السريع">
                                     <i class="fas fa-phone-alt text-xs"></i>
                                     <span>${r.phone}</span>
                                 </a>
                                 <div class="flex items-center gap-1">
-                                    <button type="button" onclick="copyPhoneNumber('${r.phone}')" class="p-2 rounded-xl text-slate-500 hover:text-teal-600 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs" title="نسخ الرقم">
+                                    <button type="button" onclick="copyPhoneNumber('${r.phone}')" class="p-2 rounded-xl text-slate-600 hover:text-teal-600 dark:text-slate-300 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs" title="نسخ الرقم">
                                         <i class="fas fa-copy"></i>
                                     </button>
-                                    <a href="https://wa.me/${rawPhone.replace('+', '')}" target="_blank" class="p-2 rounded-xl text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 text-xs" title="مراسلة واتساب">
+                                    <a href="https://wa.me/${rawPhone.replace('+', '')}" target="_blank" class="p-2 rounded-xl text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/50 text-xs" title="مراسلة واتساب">
                                         <i class="fab fa-whatsapp text-sm"></i>
                                     </a>
                                 </div>

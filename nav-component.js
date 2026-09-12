@@ -39,10 +39,11 @@
 
         // Role badge data
         const isOwner = window.Hub.auth.isOwner();
-        let badgeClass = 'user';
-        let badgeIcon = 'fa-user';
-        let badgeText = 'مستخدم عادي';
-        let badgeTitle = 'اضغط للترقية إلى صلاحيات الإدارة أو المالك';
+        const isLoggedIn = window.Hub.auth.isLoggedIn();
+        let badgeClass = 'guest';
+        let badgeIcon = 'fa-sign-in-alt';
+        let badgeText = 'تسجيل الدخول';
+        let badgeTitle = 'اضغط لتسجيل الدخول إلى النظام';
 
         if (isOwner) {
             badgeClass = 'owner';
@@ -54,6 +55,11 @@
             badgeIcon = 'fa-shield-halved';
             badgeText = '🛡️ مدير النظام';
             badgeTitle = 'صلاحيات المدير مفعلة (اضغط للترقية إلى المالك)';
+        } else if (isLoggedIn) {
+            badgeClass = 'user';
+            badgeIcon = 'fa-user';
+            badgeText = 'مستخدم عادي';
+            badgeTitle = 'حساب مستخدم عادي (اضغط للترقية إلى صلاحيات الإدارة أو المالك)';
         }
 
         // Base URL query parameter for current hospital
@@ -69,13 +75,10 @@
                     </a>
                 </div>
 
-                <!-- Center: Universal Webpage Links (Admin button strictly hidden for normal users) -->
+                <!-- Center: Universal Webpage Links (Ribbon cleaned: Admin and Today's Residents removed) -->
                 <div class="hub-nav-center">
                     <a href="./index.html" class="hub-nav-link ${activePageId === 'hub' ? 'active' : ''}">
                         <i class="fas fa-th-large"></i> <span>البوابة الرئيسية</span>
-                    </a>
-                    <a href="./Home.html${queryParam}" class="hub-nav-link ${activePageId === 'roster' ? 'active' : ''}">
-                        <i class="fas fa-users-viewfinder"></i> <span>الخفراء اليوم</span>
                     </a>
                     <a href="./residents.html${queryParam}" class="hub-nav-link ${activePageId === 'residents' ? 'active' : ''}">
                         <i class="fas fa-address-book"></i> <span>دليل المقيمين</span>
@@ -83,10 +86,6 @@
                     <a href="./signup.html${queryParam}" class="hub-nav-link ${activePageId === 'signup' ? 'active' : ''}">
                         <i class="fas fa-exchange-alt"></i> <span>تبديل الخفارات</span>
                     </a>
-                    ${isAdmin ? `
-                    <a href="./admin.html${queryParam}" class="hub-nav-link ${activePageId === 'admin' ? 'active' : ''}">
-                        <i class="fas fa-cog"></i> <span>الإدارة</span>
-                    </a>` : ''}
                 </div>
 
                 <!-- Right: Role, Theme, Logout & Mobile Toggle -->
@@ -181,7 +180,7 @@
     window.logoutNav = function() {
         if (!window.Hub) return;
         window.Hub.auth.logout();
-        window.location.reload();
+        window.location.href = './index.html';
     };
 
     // Admin link guard
@@ -195,7 +194,12 @@
     };
 
     window.handleRoleBadgeClick = function() {
-        if (window.Hub && !window.Hub.auth.isOwner()) {
+        if (!window.Hub) return;
+        if (!window.Hub.auth.isLoggedIn()) {
+            window.location.href = './index.html';
+            return;
+        }
+        if (!window.Hub.auth.isOwner()) {
             openUpgradeModal();
         }
     };

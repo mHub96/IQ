@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-13T12:16:21.606Z",
+  "lastUpdated": "2026-09-13T12:47:23.992Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -283,6 +283,8 @@
           "phone": "+9647804080071",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -294,6 +296,8 @@
           "phone": "+9647725582728",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -305,6 +309,8 @@
           "phone": "+9647739862206",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -316,6 +322,8 @@
           "phone": "+9647726496657",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -328,6 +336,8 @@
           "phone": "+9647705669930",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -340,6 +350,8 @@
           "phone": "+9647727913007",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -351,6 +363,8 @@
           "phone": "+9647758674695",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -362,6 +376,8 @@
           "phone": "+9647707059984",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -373,6 +389,8 @@
           "phone": "+9647806041352",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -385,6 +403,8 @@
           "phone": "+9647725582752",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -397,6 +417,8 @@
           "phone": "+9647811352828",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -409,6 +431,8 @@
           "phone": "+9647725512399",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -420,6 +444,8 @@
           "phone": "+9647733358134",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -432,6 +458,8 @@
           "phone": "+9647706872415",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -443,6 +471,8 @@
           "phone": "+9647739244859",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -455,6 +485,8 @@
           "phone": "+9647700502209",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -466,6 +498,8 @@
           "phone": "+9647811876100",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -477,6 +511,8 @@
           "phone": "+9647729975078",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -488,6 +524,8 @@
           "phone": "+9647725519270",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -499,6 +537,8 @@
           "phone": "+9647729199914",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -510,6 +550,8 @@
           "phone": "+9647717300360",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -521,6 +563,8 @@
           "phone": "+9647733959046",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -532,6 +576,8 @@
           "phone": "+9647727916014",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -544,6 +590,8 @@
           "phone": "+9647707571167",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -555,6 +603,8 @@
           "phone": "+9647722752658",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -567,6 +617,8 @@
           "phone": "+9647734634301",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -579,6 +631,8 @@
           "phone": "+9647826655511",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -591,6 +645,8 @@
           "phone": "+9647739468124",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -603,6 +659,8 @@
           "phone": "+9647732196899",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -615,6 +673,8 @@
           "phone": "+9647713551570",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -626,6 +686,8 @@
           "phone": "+9647703272926",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -637,6 +699,8 @@
           "phone": "+9647704997282",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -649,6 +713,8 @@
           "phone": "+9647725151957",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -661,6 +727,8 @@
           "phone": "+9647862498727",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -673,6 +741,8 @@
           "phone": "+9647722920453",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -685,6 +755,8 @@
           "phone": "+9647735237481",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -698,6 +770,8 @@
           "phone": "+9647734910577",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -710,6 +784,8 @@
           "phone": "+9647719794237",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -721,6 +797,8 @@
           "phone": "+9647816663142",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -732,6 +810,8 @@
           "phone": "+9647810548678",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -744,6 +824,8 @@
           "phone": "+9647723359625",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -755,6 +837,8 @@
           "phone": "+9647767785961",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -767,6 +851,8 @@
           "phone": "+9647819237146",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -778,6 +864,8 @@
           "phone": "+9647707055130",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -790,6 +878,8 @@
           "phone": "+9647730520002",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -801,6 +891,8 @@
           "phone": "+9647730213323",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -813,6 +905,8 @@
           "phone": "+9647812445850",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -824,6 +918,8 @@
           "phone": "+9647718995613",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -835,6 +931,8 @@
           "phone": "+9647735617850",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -846,6 +944,8 @@
           "phone": "+9647736762841",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -857,6 +957,8 @@
           "phone": "+9647704868335",
           "spec": "CT",
           "tag": "CT",
+          "dept": "CT",
+          "department": "CT",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -868,6 +970,8 @@
           "phone": "+9647808930151",
           "spec": "CT",
           "tag": "CT",
+          "dept": "CT",
+          "department": "CT",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -879,6 +983,8 @@
           "phone": "+9647722910490",
           "spec": "CT",
           "tag": "CT",
+          "dept": "CT",
+          "department": "CT",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -890,6 +996,8 @@
           "phone": "+9647711207221",
           "spec": "RESERVE",
           "tag": "CT",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -901,6 +1009,8 @@
           "phone": "+9647823939952",
           "spec": "CT",
           "tag": "CT",
+          "dept": "CT",
+          "department": "CT",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -912,6 +1022,8 @@
           "phone": "+9647770021007",
           "spec": "CT",
           "tag": "CT",
+          "dept": "CT",
+          "department": "CT",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -923,6 +1035,8 @@
           "phone": "+9647713176798",
           "spec": "Der",
           "tag": "Der",
+          "dept": "Der",
+          "department": "Der",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -934,6 +1048,8 @@
           "phone": "رقم غير متوفر",
           "spec": "Der",
           "tag": "Der",
+          "dept": "Der",
+          "department": "Der",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -945,6 +1061,8 @@
           "phone": "+9647823006698",
           "spec": "Der",
           "tag": "Der",
+          "dept": "Der",
+          "department": "Der",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -956,6 +1074,8 @@
           "phone": "رقم غير متوفر",
           "spec": "Der",
           "tag": "Der",
+          "dept": "Der",
+          "department": "Der",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -967,6 +1087,8 @@
           "phone": "+9647812822360",
           "spec": "Der",
           "tag": "Der",
+          "dept": "Der",
+          "department": "Der",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -978,6 +1100,8 @@
           "phone": "+9647733605305",
           "spec": "Der",
           "tag": "Der",
+          "dept": "Der",
+          "department": "Der",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -989,6 +1113,8 @@
           "phone": "+9647722017351",
           "spec": "Der",
           "tag": "Der",
+          "dept": "Der",
+          "department": "Der",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1000,6 +1126,8 @@
           "phone": "+9647712630805",
           "spec": "EM",
           "tag": "EM",
+          "dept": "EM",
+          "department": "EM",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1011,6 +1139,8 @@
           "phone": "+9647762744700",
           "spec": "ENT",
           "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1022,6 +1152,8 @@
           "phone": "+9647725809721",
           "spec": "ENT",
           "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1033,6 +1165,8 @@
           "phone": "+9647703100283",
           "spec": "ENT",
           "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1044,6 +1178,8 @@
           "phone": "+9647818897778",
           "spec": "ENT",
           "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1055,6 +1191,8 @@
           "phone": "+9647735280259",
           "spec": "ENT",
           "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1066,6 +1204,8 @@
           "phone": "+9647711939863",
           "spec": "FM",
           "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1077,6 +1217,8 @@
           "phone": "رقم غير متوفر",
           "spec": "FM",
           "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1088,6 +1230,8 @@
           "phone": "+9647868000623",
           "spec": "FM",
           "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1099,6 +1243,8 @@
           "phone": "رقم غير متوفر",
           "spec": "FM",
           "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1110,6 +1256,8 @@
           "phone": "+9647721170760",
           "spec": "FM",
           "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1121,6 +1269,8 @@
           "phone": "+9647719557060",
           "spec": "FM",
           "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1132,6 +1282,8 @@
           "phone": "+9647716717702",
           "spec": "GP",
           "tag": "GP",
+          "dept": "GP",
+          "department": "GP",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1143,6 +1295,8 @@
           "phone": "+9647740399801",
           "spec": "GP",
           "tag": "GP",
+          "dept": "GP",
+          "department": "GP",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1154,6 +1308,8 @@
           "phone": "+9647716757205",
           "spec": "GP",
           "tag": "GP",
+          "dept": "GP",
+          "department": "GP",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1165,6 +1321,8 @@
           "phone": "+9647811741751",
           "spec": "GP",
           "tag": "GP",
+          "dept": "GP",
+          "department": "GP",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1176,6 +1334,8 @@
           "phone": "+9647707173044",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1187,6 +1347,8 @@
           "phone": "+9647707167689",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -1199,6 +1361,8 @@
           "phone": "رقم غير متوفر",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -1210,6 +1374,8 @@
           "phone": "+9647722917732",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1221,6 +1387,8 @@
           "phone": "+9647721174861",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1232,6 +1400,8 @@
           "phone": "+9647715498645",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1243,6 +1413,8 @@
           "phone": "+9647803770672",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1254,6 +1426,8 @@
           "phone": "+9647807272388",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1265,6 +1439,8 @@
           "phone": "+9647812507841",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1276,6 +1452,8 @@
           "phone": "+9647801186266",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -1288,6 +1466,8 @@
           "phone": "+9647715913508",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1299,6 +1479,8 @@
           "phone": "+9647716761069",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -1311,6 +1493,8 @@
           "phone": "رقم غير متوفر",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -1322,6 +1506,8 @@
           "phone": "+9647809619854",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1333,6 +1519,8 @@
           "phone": "+9647708795989",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -1345,6 +1533,8 @@
           "phone": "+9647700546979",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1356,6 +1546,8 @@
           "phone": "+9647810202728",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1367,6 +1559,8 @@
           "phone": "+9647757449886",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1378,6 +1572,8 @@
           "phone": "+9647821082337",
           "spec": "H",
           "tag": "H",
+          "dept": "H",
+          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1389,6 +1585,8 @@
           "phone": "+9647719192001",
           "spec": "H",
           "tag": "H",
+          "dept": "H",
+          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1400,6 +1598,8 @@
           "phone": "+9647821850778",
           "spec": "H",
           "tag": "H",
+          "dept": "H",
+          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1411,6 +1611,8 @@
           "phone": "+9647725597713",
           "spec": "H",
           "tag": "H",
+          "dept": "H",
+          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1422,6 +1624,8 @@
           "phone": "+9647718324157",
           "spec": "H",
           "tag": "H",
+          "dept": "H",
+          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1433,6 +1637,8 @@
           "phone": "+9647705281976",
           "spec": "H",
           "tag": "H",
+          "dept": "H",
+          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1444,6 +1650,8 @@
           "phone": "+9647707837905",
           "spec": "H",
           "tag": "H",
+          "dept": "H",
+          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1455,6 +1663,8 @@
           "phone": "+9647827925226",
           "spec": "H",
           "tag": "H",
+          "dept": "H",
+          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -1467,6 +1677,8 @@
           "phone": "+9647732580106",
           "spec": "H",
           "tag": "H",
+          "dept": "H",
+          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1478,6 +1690,8 @@
           "phone": "+9647847135744",
           "spec": "NS",
           "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1489,6 +1703,8 @@
           "phone": "+9647810815395",
           "spec": "NS",
           "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1500,6 +1716,8 @@
           "phone": "+9647736024102",
           "spec": "RESERVE",
           "tag": "NS",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -1512,6 +1730,8 @@
           "phone": "+9647825210393",
           "spec": "RESERVE",
           "tag": "NS",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -1523,6 +1743,8 @@
           "phone": "+9647719007077",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -1534,6 +1756,8 @@
           "phone": "+9647725563679",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -1545,6 +1769,8 @@
           "phone": "+9647831887821",
           "spec": "NS",
           "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1556,6 +1782,8 @@
           "phone": "+9647812344891",
           "spec": "NS",
           "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1567,6 +1795,8 @@
           "phone": "+9647739407174",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -1578,6 +1808,8 @@
           "phone": "+9647705625359",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -1589,6 +1821,8 @@
           "phone": "+9647736005059",
           "spec": "ON",
           "tag": "ON",
+          "dept": "ON",
+          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1600,6 +1834,8 @@
           "phone": "+9647732797021",
           "spec": "ON",
           "tag": "ON",
+          "dept": "ON",
+          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1611,6 +1847,8 @@
           "phone": "+9647863700065",
           "spec": "ON",
           "tag": "ON",
+          "dept": "ON",
+          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1622,6 +1860,8 @@
           "phone": "+9647710888537",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -1633,6 +1873,8 @@
           "phone": "+9647821450742",
           "spec": "ON",
           "tag": "ON",
+          "dept": "ON",
+          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1644,6 +1886,8 @@
           "phone": "+9647718681403",
           "spec": "ON",
           "tag": "ON",
+          "dept": "ON",
+          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1655,6 +1899,8 @@
           "phone": "+9647801917641",
           "spec": "ON",
           "tag": "ON",
+          "dept": "ON",
+          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1666,6 +1912,8 @@
           "phone": "+9647731361550",
           "spec": "ON",
           "tag": "ON",
+          "dept": "ON",
+          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1677,6 +1925,8 @@
           "phone": "+9647712124987",
           "spec": "ON",
           "tag": "ON",
+          "dept": "ON",
+          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1688,6 +1938,8 @@
           "phone": "+9647811991975",
           "spec": "PS",
           "tag": "PS",
+          "dept": "PS",
+          "department": "PS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1699,6 +1951,8 @@
           "phone": "+9647812791617",
           "spec": "PS",
           "tag": "PS",
+          "dept": "PS",
+          "department": "PS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1710,6 +1964,8 @@
           "phone": "+9647806028076",
           "spec": "PS",
           "tag": "PS",
+          "dept": "PS",
+          "department": "PS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1721,6 +1977,8 @@
           "phone": "+9647704740752",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1732,6 +1990,8 @@
           "phone": "+9647732089197",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1743,6 +2003,8 @@
           "phone": "+9647717806018",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1754,6 +2016,8 @@
           "phone": "+9647800039430",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -1765,6 +2029,8 @@
           "phone": "+9647717560453",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1776,6 +2042,8 @@
           "phone": "+9647700237273",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1787,6 +2055,8 @@
           "phone": "+9647814155225",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -1798,6 +2068,8 @@
           "phone": "+9647728456542",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1809,6 +2081,8 @@
           "phone": "+9647829303398",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1820,6 +2094,8 @@
           "phone": "+9647729197541",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -1831,6 +2107,8 @@
           "phone": "+9647739245121",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -1842,6 +2120,8 @@
           "phone": "+9647708792317",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1853,6 +2133,8 @@
           "phone": "+9647823074884",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1864,6 +2146,8 @@
           "phone": "+9647818416263",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1875,6 +2159,8 @@
           "phone": "+9647737373951",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1886,6 +2172,8 @@
           "phone": "+9647702248864",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1897,6 +2185,8 @@
           "phone": "+9647722033535",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1908,6 +2198,8 @@
           "phone": "+9647725819814",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -1919,6 +2211,8 @@
           "phone": "+9647706746212",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1930,6 +2224,8 @@
           "phone": "+9647840828301",
           "spec": "RM",
           "tag": "RM",
+          "dept": "RM",
+          "department": "RM",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -1941,6 +2237,8 @@
           "phone": "+9647827207021",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -1952,6 +2250,8 @@
           "phone": "+9647715459469",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -1963,6 +2263,8 @@
           "phone": "+9647803101498",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -1975,6 +2277,8 @@
           "phone": "+9647716273485",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -1986,6 +2290,8 @@
           "phone": "+9647707481437",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -1997,6 +2303,8 @@
           "phone": "+9647738125706",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -2008,6 +2316,8 @@
           "phone": "+9647829900959",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -2019,6 +2329,8 @@
           "phone": "+9647841917643",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -2030,6 +2342,8 @@
           "phone": "+9647700342391",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -2041,6 +2355,8 @@
           "phone": "+9647819761239",
           "spec": "NS",
           "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2052,6 +2368,8 @@
           "phone": "+9647831004089",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -2063,6 +2381,8 @@
           "phone": "+9647805195075",
           "spec": "NS",
           "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -2075,6 +2395,8 @@
           "phone": "+9647707334546",
           "spec": "NS",
           "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -2087,6 +2409,8 @@
           "phone": "+9647733960708",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -2098,6 +2422,8 @@
           "phone": "+9647708753776",
           "spec": "US",
           "tag": "US",
+          "dept": "US",
+          "department": "US",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2109,6 +2435,8 @@
           "phone": "+9647830538071",
           "spec": "US",
           "tag": "US",
+          "dept": "US",
+          "department": "US",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2120,6 +2448,8 @@
           "phone": "+9647726196639",
           "spec": "US",
           "tag": "US",
+          "dept": "US",
+          "department": "US",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2131,6 +2461,8 @@
           "phone": "+9647708304252",
           "spec": "US",
           "tag": "US",
+          "dept": "US",
+          "department": "US",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2142,6 +2474,8 @@
           "phone": "+9647805658985",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -2153,6 +2487,8 @@
           "phone": "+9647808794104",
           "spec": "H",
           "tag": "H",
+          "dept": "H",
+          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2164,6 +2500,8 @@
           "phone": "+9647851990332",
           "spec": "H",
           "tag": "H",
+          "dept": "H",
+          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2175,6 +2513,8 @@
           "phone": "+9647716189935",
           "spec": "H",
           "tag": "H",
+          "dept": "H",
+          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2186,6 +2526,8 @@
           "phone": "+9647817215779",
           "spec": "CT",
           "tag": "CT",
+          "dept": "CT",
+          "department": "CT",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2197,6 +2539,8 @@
           "phone": "+9647806605522",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2208,6 +2552,8 @@
           "phone": "+9647726300975",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -2219,6 +2565,8 @@
           "phone": "+9647702958143",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -2230,6 +2578,8 @@
           "phone": "+9647710799367",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -2241,6 +2591,8 @@
           "phone": "+9647703347068",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
@@ -2252,6 +2604,8 @@
           "phone": "+9647704726124",
           "spec": "ENT",
           "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2263,6 +2617,8 @@
           "phone": "+9647804332274",
           "spec": "ENT",
           "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2274,6 +2630,8 @@
           "phone": "+9647704480837",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2285,6 +2643,8 @@
           "phone": "+9647704720169",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -2297,6 +2657,8 @@
           "phone": "+9647717956125",
           "spec": "CT",
           "tag": "CT",
+          "dept": "CT",
+          "department": "CT",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2308,6 +2670,8 @@
           "phone": "+9647708103504",
           "spec": "ON",
           "tag": "ON",
+          "dept": "ON",
+          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2319,6 +2683,8 @@
           "phone": "+9647841917643",
           "spec": "NS",
           "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2330,6 +2696,8 @@
           "phone": "+9647862450853",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -2342,6 +2710,8 @@
           "phone": "+9647705767570",
           "spec": "ENT",
           "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2353,6 +2723,8 @@
           "phone": "+9647716870514",
           "spec": "US",
           "tag": "US",
+          "dept": "US",
+          "department": "US",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2364,6 +2736,8 @@
           "phone": "+9647709681505",
           "spec": "ON",
           "tag": "ON",
+          "dept": "ON",
+          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2375,6 +2749,8 @@
           "phone": "+9647739864832",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2386,6 +2762,8 @@
           "phone": "+9647877788058",
           "spec": "US",
           "tag": "US",
+          "dept": "US",
+          "department": "US",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2397,10 +2775,25 @@
           "phone": "+9647849000964",
           "spec": "CT",
           "tag": "CT",
+          "dept": "CT",
+          "department": "CT",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
+          ]
+        },
+        {
+          "id": "res-mtzt6vrsg9vu",
+          "name": "د. مقيم اختبار التناوب",
+          "phone": "07700000000",
+          "spec": "NS",
+          "tag": "NS",
+          "dept": "GS",
+          "department": "GS",
+          "active": true,
+          "hospitals": [
+            "iraqi"
           ]
         }
       ],
@@ -20312,6 +20705,8 @@
           "phone": "+9647726496657",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20324,6 +20719,8 @@
           "phone": "+9647705669930",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20336,6 +20733,8 @@
           "phone": "+9647806041352",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20348,6 +20747,8 @@
           "phone": "+9647725582752",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20360,6 +20761,8 @@
           "phone": "+9647811352828",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20372,6 +20775,8 @@
           "phone": "+9647733358134",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20384,6 +20789,8 @@
           "phone": "+9647727916014",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20396,6 +20803,8 @@
           "phone": "+9647722752658",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20408,6 +20817,8 @@
           "phone": "+9647734634301",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20420,6 +20831,8 @@
           "phone": "+9647739468124",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20432,6 +20845,8 @@
           "phone": "+9647732196899",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20444,6 +20859,8 @@
           "phone": "+9647704997282",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20456,6 +20873,8 @@
           "phone": "+9647725151957",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20468,6 +20887,8 @@
           "phone": "+9647862498727",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20480,6 +20901,8 @@
           "phone": "+9647722920453",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20492,6 +20915,8 @@
           "phone": "+9647735237481",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20505,6 +20930,8 @@
           "phone": "+9647734910577",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20517,6 +20944,8 @@
           "phone": "+9647810548678",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20529,6 +20958,8 @@
           "phone": "+9647767785961",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20541,6 +20972,8 @@
           "phone": "+9647707055130",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20553,6 +20986,8 @@
           "phone": "+9647730213323",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20565,6 +21000,8 @@
           "phone": "+9647707167689",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20577,6 +21014,8 @@
           "phone": "+9647801186266",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20589,6 +21028,8 @@
           "phone": "+9647716761069",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20601,6 +21042,8 @@
           "phone": "+9647708795989",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20613,6 +21056,8 @@
           "phone": "+9647827925226",
           "spec": "H",
           "tag": "H",
+          "dept": "H",
+          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20625,6 +21070,8 @@
           "phone": "+9647803101498",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20637,6 +21084,8 @@
           "phone": "+9647704720169",
           "spec": "RESERVE",
           "tag": "RESERVE",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20649,6 +21098,8 @@
           "phone": "+9647862450853",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20661,6 +21112,8 @@
           "phone": "+9647849000964",
           "spec": "CT",
           "tag": "CT",
+          "dept": "CT",
+          "department": "CT",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -20673,6 +21126,8 @@
           "phone": "+9647800020294",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -20684,6 +21139,8 @@
           "phone": "+9647734613381",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -20695,6 +21152,8 @@
           "phone": "+9647726050437",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -20706,6 +21165,8 @@
           "phone": "+9647805920230",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
@@ -20717,6 +21178,8 @@
           "phone": "+9647710888920",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
@@ -20728,6 +21191,8 @@
           "phone": "+9647708013278",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
@@ -20739,6 +21204,8 @@
           "phone": "+9647729310775",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
@@ -20750,6 +21217,8 @@
           "phone": "+9647719507570",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
@@ -20761,6 +21230,8 @@
           "phone": "+9647714925135",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
@@ -20772,6 +21243,8 @@
           "phone": "+9647732777639",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
@@ -20783,6 +21256,8 @@
           "phone": "+9647733902238",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
@@ -20794,6 +21269,8 @@
           "phone": "+9647719541954",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
@@ -20805,6 +21282,8 @@
           "phone": "+9647735966686",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
@@ -20816,6 +21295,8 @@
           "phone": "+9647821182559",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
@@ -20827,6 +21308,8 @@
           "phone": "+9647721172641",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
@@ -20838,6 +21321,8 @@
           "phone": "+9647734605075",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
@@ -20849,6 +21334,8 @@
           "phone": "+9647729664414",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
@@ -20860,6 +21347,8 @@
           "phone": "+9647712651746",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -20871,6 +21360,8 @@
           "phone": "+9647706767877",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
@@ -20882,6 +21373,8 @@
           "phone": "+9647735019530",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
@@ -20893,6 +21386,8 @@
           "phone": "+9647817602353",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -20904,6 +21399,8 @@
           "phone": "+9647739850642",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -20915,6 +21412,8 @@
           "phone": "+9647707173044",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -20926,6 +21425,8 @@
           "phone": "+9647887801516",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -20937,6 +21438,8 @@
           "phone": "+9647750654222",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -20948,6 +21451,8 @@
           "phone": "+9647705872661",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -20959,6 +21464,8 @@
           "phone": "+9647716198423",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -20970,6 +21477,8 @@
           "phone": "+9647707098818",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -20981,6 +21490,8 @@
           "phone": "+9647846660880",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -20992,6 +21503,8 @@
           "phone": "+9647712416957",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -21003,6 +21516,8 @@
           "phone": "+9647710832982",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "basra"
@@ -21014,6 +21529,8 @@
           "phone": "+9647812995812",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "basra"
@@ -21025,6 +21542,8 @@
           "phone": "+9647705644180",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "basra"
@@ -21036,6 +21555,8 @@
           "phone": "+9647708183670",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "basra"
@@ -21047,6 +21568,8 @@
           "phone": "+9647712555706",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "basra"
@@ -21058,6 +21581,8 @@
           "phone": "+9647805303119",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "basra"
@@ -21069,6 +21594,8 @@
           "phone": "+9647828688862",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "basra"
@@ -21080,6 +21607,8 @@
           "phone": "+9647707015400",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "basra"
@@ -21091,6 +21620,8 @@
           "phone": "+9647703112034",
           "spec": "ENT",
           "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
             "basra"
@@ -21102,6 +21633,8 @@
           "phone": "+9647726636110",
           "spec": "ENT",
           "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
             "basra"
@@ -21113,6 +21646,8 @@
           "phone": "+9647718343275",
           "spec": "ENT",
           "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
             "basra"
@@ -21124,6 +21659,8 @@
           "phone": "+9647716716273",
           "spec": "ENT",
           "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
             "basra"
@@ -21135,6 +21672,8 @@
           "phone": "+9647827452033",
           "spec": "ENT",
           "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
             "basra"
@@ -21146,6 +21685,8 @@
           "phone": "+9647705957374",
           "spec": "ENT",
           "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
             "basra"
@@ -21157,6 +21698,8 @@
           "phone": "+9647827735028",
           "spec": "O",
           "tag": "O",
+          "dept": "O",
+          "department": "O",
           "active": true,
           "hospitals": [
             "basra"
@@ -21168,6 +21711,8 @@
           "phone": "+9647809888070",
           "spec": "O",
           "tag": "O",
+          "dept": "O",
+          "department": "O",
           "active": true,
           "hospitals": [
             "basra"
@@ -21179,6 +21724,8 @@
           "phone": "+9647822658868",
           "spec": "O",
           "tag": "O",
+          "dept": "O",
+          "department": "O",
           "active": true,
           "hospitals": [
             "basra"
@@ -21190,6 +21737,8 @@
           "phone": "+9647721090207",
           "spec": "O",
           "tag": "O",
+          "dept": "O",
+          "department": "O",
           "active": true,
           "hospitals": [
             "basra"
@@ -21201,6 +21750,8 @@
           "phone": "+9647726655597",
           "spec": "O",
           "tag": "O",
+          "dept": "O",
+          "department": "O",
           "active": true,
           "hospitals": [
             "basra"
@@ -21212,6 +21763,8 @@
           "phone": "+9647864417081",
           "spec": "O",
           "tag": "O",
+          "dept": "O",
+          "department": "O",
           "active": true,
           "hospitals": [
             "basra"
@@ -21223,6 +21776,8 @@
           "phone": "+9647807688452",
           "spec": "O",
           "tag": "O",
+          "dept": "O",
+          "department": "O",
           "active": true,
           "hospitals": [
             "basra"
@@ -21234,6 +21789,8 @@
           "phone": "+9647809349202",
           "spec": "US",
           "tag": "US",
+          "dept": "US",
+          "department": "US",
           "active": true,
           "hospitals": [
             "basra"
@@ -21245,6 +21802,8 @@
           "phone": "+9647723875346",
           "spec": "US",
           "tag": "US",
+          "dept": "US",
+          "department": "US",
           "active": true,
           "hospitals": [
             "basra"
@@ -21256,6 +21815,8 @@
           "phone": "+9647711149350",
           "spec": "US",
           "tag": "US",
+          "dept": "US",
+          "department": "US",
           "active": true,
           "hospitals": [
             "basra"
@@ -21267,6 +21828,8 @@
           "phone": "+9647703183503",
           "spec": "US",
           "tag": "US",
+          "dept": "US",
+          "department": "US",
           "active": true,
           "hospitals": [
             "basra"
@@ -21278,6 +21841,8 @@
           "phone": "+9647719506725",
           "spec": "US",
           "tag": "US",
+          "dept": "US",
+          "department": "US",
           "active": true,
           "hospitals": [
             "basra"
@@ -21289,6 +21854,8 @@
           "phone": "+9647713744438",
           "spec": "US",
           "tag": "US",
+          "dept": "US",
+          "department": "US",
           "active": true,
           "hospitals": [
             "basra"
@@ -21300,6 +21867,8 @@
           "phone": "+9647700060743",
           "spec": "G",
           "tag": "G",
+          "dept": "G",
+          "department": "G",
           "active": true,
           "hospitals": [
             "basra"
@@ -21311,6 +21880,8 @@
           "phone": "+9647816173443",
           "spec": "G",
           "tag": "G",
+          "dept": "G",
+          "department": "G",
           "active": true,
           "hospitals": [
             "basra"
@@ -21322,6 +21893,8 @@
           "phone": "+9647735625901",
           "spec": "G",
           "tag": "G",
+          "dept": "G",
+          "department": "G",
           "active": true,
           "hospitals": [
             "basra"
@@ -21333,6 +21906,8 @@
           "phone": "+9647703024761",
           "spec": "G",
           "tag": "G",
+          "dept": "G",
+          "department": "G",
           "active": true,
           "hospitals": [
             "basra"
@@ -21344,6 +21919,8 @@
           "phone": "+9647809757168",
           "spec": "G",
           "tag": "G",
+          "dept": "G",
+          "department": "G",
           "active": true,
           "hospitals": [
             "basra"
@@ -21355,6 +21932,8 @@
           "phone": "+9647703115964",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21366,6 +21945,8 @@
           "phone": "+9647836054430",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21377,6 +21958,8 @@
           "phone": "+9647838393988",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21388,6 +21971,8 @@
           "phone": "+9647824064046",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21399,6 +21984,8 @@
           "phone": "+9647705677765",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21410,6 +21997,8 @@
           "phone": "+9647725826002",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21421,6 +22010,8 @@
           "phone": "+9647746633669",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21432,6 +22023,8 @@
           "phone": "+9647705765003",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21443,6 +22036,8 @@
           "phone": "+9647705769256",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21454,6 +22049,8 @@
           "phone": "+9647717806093",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21465,6 +22062,8 @@
           "phone": "+9647704950105",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21476,6 +22075,8 @@
           "phone": "+9647805661181",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21487,6 +22088,8 @@
           "phone": "+9647716189349",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21498,6 +22101,8 @@
           "phone": "+9647800774202",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21509,6 +22114,8 @@
           "phone": "+9647708765123",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21520,6 +22127,8 @@
           "phone": "+9647809734007",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21531,6 +22140,8 @@
           "phone": "+9647704779044",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21542,6 +22153,8 @@
           "phone": "+9647754400079",
           "spec": "P",
           "tag": "P",
+          "dept": "P",
+          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
@@ -21553,6 +22166,8 @@
           "phone": "+9647806594000",
           "spec": "P",
           "tag": "P",
+          "dept": "P",
+          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
@@ -21564,6 +22179,8 @@
           "phone": "+9647765012468",
           "spec": "G",
           "tag": "G",
+          "dept": "G",
+          "department": "G",
           "active": true,
           "hospitals": [
             "basra"
@@ -21575,6 +22192,8 @@
           "phone": "+9647831790048",
           "spec": "P",
           "tag": "P",
+          "dept": "P",
+          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
@@ -21586,6 +22205,8 @@
           "phone": "+9647704975263",
           "spec": "P",
           "tag": "P",
+          "dept": "P",
+          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
@@ -21597,6 +22218,8 @@
           "phone": "+9647734093307",
           "spec": "P",
           "tag": "P",
+          "dept": "P",
+          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
@@ -21608,6 +22231,8 @@
           "phone": "+9647735727717",
           "spec": "P",
           "tag": "P",
+          "dept": "P",
+          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
@@ -21619,6 +22244,8 @@
           "phone": "+9647832160195",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21630,6 +22257,8 @@
           "phone": "+9647726614077",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21641,6 +22270,8 @@
           "phone": "+9647717806124",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21652,6 +22283,8 @@
           "phone": "+9647705540117",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21663,6 +22296,8 @@
           "phone": "+9647811529695",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21674,6 +22309,8 @@
           "phone": "+9647740391400",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21685,6 +22322,8 @@
           "phone": "+9647740751555",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21696,6 +22335,8 @@
           "phone": "رقم غير متوفر",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21707,6 +22348,8 @@
           "phone": "+9647717827801",
           "spec": "P",
           "tag": "P",
+          "dept": "P",
+          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
@@ -21718,6 +22361,8 @@
           "phone": "+9647715955629",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21729,6 +22374,8 @@
           "phone": "+9647704752912",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21740,6 +22387,8 @@
           "phone": "+9647707655408",
           "spec": "P",
           "tag": "P",
+          "dept": "P",
+          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
@@ -21751,6 +22400,8 @@
           "phone": "+9647826607363",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21762,6 +22413,8 @@
           "phone": "+9647807686024",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21773,6 +22426,8 @@
           "phone": "+9647703209507",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -21784,6 +22439,8 @@
           "phone": "+9647737857805",
           "spec": "Pe",
           "tag": "Pe",
+          "dept": "Pe",
+          "department": "Pe",
           "active": true,
           "hospitals": [
             "basra"
@@ -21795,6 +22452,8 @@
           "phone": "+9647833288508",
           "spec": "Pe",
           "tag": "Pe",
+          "dept": "Pe",
+          "department": "Pe",
           "active": true,
           "hospitals": [
             "basra"
@@ -21806,6 +22465,8 @@
           "phone": "+9647741140314",
           "spec": "Pe",
           "tag": "Pe",
+          "dept": "Pe",
+          "department": "Pe",
           "active": true,
           "hospitals": [
             "basra"
@@ -21817,6 +22478,8 @@
           "phone": "+9647826978996",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -21828,6 +22491,8 @@
           "phone": "+9647805990726",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -21839,6 +22504,8 @@
           "phone": "+9647805972803",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -21850,6 +22517,8 @@
           "phone": "+9647760650775",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -21861,6 +22530,8 @@
           "phone": "+9647722744519",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21872,6 +22543,8 @@
           "phone": "+9647733617346",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21883,6 +22556,8 @@
           "phone": "+9647805826562",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21894,6 +22569,8 @@
           "phone": "+9647725597713",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21905,6 +22582,8 @@
           "phone": "+9647808794104",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21916,6 +22595,8 @@
           "phone": "+9647719192001",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21927,6 +22608,8 @@
           "phone": "+9647705281976",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21938,6 +22621,8 @@
           "phone": "+9647821082337",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21949,6 +22634,8 @@
           "phone": "+9647718324157",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21960,6 +22647,8 @@
           "phone": "+9647702032302",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21971,6 +22660,8 @@
           "phone": "+9647712669019",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21982,6 +22673,8 @@
           "phone": "+9647805855372",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -21993,6 +22686,8 @@
           "phone": "+9647732320235",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -22004,6 +22699,8 @@
           "phone": "+9647730185360",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -22015,6 +22712,8 @@
           "phone": "+9647727530792",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -22026,6 +22725,8 @@
           "phone": "+9647718358915",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -22037,6 +22738,8 @@
           "phone": "+9647718273185",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -22048,6 +22751,8 @@
           "phone": "+9647840828301",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -22059,6 +22764,8 @@
           "phone": "+9647705667989",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -22070,6 +22777,8 @@
           "phone": "+9647716189935",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -22081,6 +22790,8 @@
           "phone": "+9647732188599",
           "spec": "NM",
           "tag": "NM",
+          "dept": "NM",
+          "department": "NM",
           "active": true,
           "hospitals": [
             "basra"
@@ -22092,6 +22803,8 @@
           "phone": "+9647717560394",
           "spec": "NM",
           "tag": "NM",
+          "dept": "NM",
+          "department": "NM",
           "active": true,
           "hospitals": [
             "basra"
@@ -22103,6 +22816,8 @@
           "phone": "+9647729309752",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -22114,6 +22829,8 @@
           "phone": "+9647717578678",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -22125,6 +22842,8 @@
           "phone": "+9647800037241",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -22136,6 +22855,8 @@
           "phone": "+9647718466877",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -22147,6 +22868,8 @@
           "phone": "+9647809743869",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -22158,6 +22881,8 @@
           "phone": "+9647711938871",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -22169,6 +22894,8 @@
           "phone": "+9647826994880",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -22180,6 +22907,8 @@
           "phone": "+9647719744688",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -22191,6 +22920,8 @@
           "phone": "+9647816667774",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -22202,6 +22933,8 @@
           "phone": "+9647701608985",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -22213,6 +22946,8 @@
           "phone": "+9647816424474",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -22224,6 +22959,8 @@
           "phone": "+9647813977691",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra",
@@ -22236,6 +22973,8 @@
           "phone": "+9647800303940",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -22247,6 +22986,8 @@
           "phone": "+9647725447477",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -22258,6 +22999,8 @@
           "phone": "+9647860606035",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra",
@@ -22270,6 +23013,8 @@
           "phone": "+9647706921715",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -22281,6 +23026,8 @@
           "phone": "+9647729975078",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "basra"
@@ -22292,6 +23039,8 @@
           "phone": "+9647811352828",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "basra"
@@ -22303,6 +23052,8 @@
           "phone": "+9647703272926",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "basra"
@@ -22314,6 +23065,8 @@
           "phone": "+9647711208148",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -22325,6 +23078,8 @@
           "phone": "+9647801082353",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -22336,6 +23091,8 @@
           "phone": "+9647709006645",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -22347,6 +23104,8 @@
           "phone": "+9647827728381",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -22358,6 +23117,8 @@
           "phone": "+9647863746288",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -22369,6 +23130,8 @@
           "phone": "+9647717806101",
           "spec": "N",
           "tag": "N",
+          "dept": "N",
+          "department": "N",
           "active": true,
           "hospitals": [
             "basra"
@@ -22380,6 +23143,8 @@
           "phone": "+9647705500241",
           "spec": "N",
           "tag": "N",
+          "dept": "N",
+          "department": "N",
           "active": true,
           "hospitals": [
             "basra"
@@ -22391,6 +23156,8 @@
           "phone": "+9647709048908",
           "spec": "N",
           "tag": "N",
+          "dept": "N",
+          "department": "N",
           "active": true,
           "hospitals": [
             "basra"
@@ -22402,6 +23169,8 @@
           "phone": "+9647731118479",
           "spec": "N",
           "tag": "N",
+          "dept": "N",
+          "department": "N",
           "active": true,
           "hospitals": [
             "basra"
@@ -22413,6 +23182,8 @@
           "phone": "+9647717804688",
           "spec": "N",
           "tag": "N",
+          "dept": "N",
+          "department": "N",
           "active": true,
           "hospitals": [
             "basra"
@@ -22424,6 +23195,8 @@
           "phone": "+9647729088109",
           "spec": "N",
           "tag": "N",
+          "dept": "N",
+          "department": "N",
           "active": true,
           "hospitals": [
             "basra"
@@ -22435,6 +23208,8 @@
           "phone": "+9647713253601",
           "spec": "N",
           "tag": "N",
+          "dept": "N",
+          "department": "N",
           "active": true,
           "hospitals": [
             "basra"
@@ -22446,6 +23221,8 @@
           "phone": "+9647733988464",
           "spec": "F",
           "tag": "F",
+          "dept": "F",
+          "department": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22457,6 +23234,8 @@
           "phone": "+9647739999363",
           "spec": "F",
           "tag": "F",
+          "dept": "F",
+          "department": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22468,6 +23247,8 @@
           "phone": "+9647725158934",
           "spec": "F",
           "tag": "F",
+          "dept": "F",
+          "department": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22479,6 +23260,8 @@
           "phone": "+9647816922397",
           "spec": "F",
           "tag": "F",
+          "dept": "F",
+          "department": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22490,6 +23273,8 @@
           "phone": "+9647723405240",
           "spec": "F",
           "tag": "F",
+          "dept": "F",
+          "department": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22501,6 +23286,8 @@
           "phone": "+9647714985674",
           "spec": "F",
           "tag": "F",
+          "dept": "F",
+          "department": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22512,6 +23299,8 @@
           "phone": "+9647707009908",
           "spec": "F",
           "tag": "F",
+          "dept": "F",
+          "department": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22523,6 +23312,8 @@
           "phone": "+9647731972744",
           "spec": "F",
           "tag": "F",
+          "dept": "F",
+          "department": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22534,6 +23325,8 @@
           "phone": "+9647709640919",
           "spec": "F",
           "tag": "F",
+          "dept": "F",
+          "department": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22545,6 +23338,8 @@
           "phone": "+9647722921447",
           "spec": "F",
           "tag": "F",
+          "dept": "F",
+          "department": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22556,6 +23351,8 @@
           "phone": "+9647717539972",
           "spec": "F",
           "tag": "F",
+          "dept": "F",
+          "department": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22567,6 +23364,8 @@
           "phone": "+9647716750774",
           "spec": "F",
           "tag": "F",
+          "dept": "F",
+          "department": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22578,6 +23377,8 @@
           "phone": "+9647819600025",
           "spec": "F",
           "tag": "F",
+          "dept": "F",
+          "department": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22589,6 +23390,8 @@
           "phone": "+9647814095288",
           "spec": "F",
           "tag": "F",
+          "dept": "F",
+          "department": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22600,6 +23403,8 @@
           "phone": "+9647707376328",
           "spec": "F",
           "tag": "F",
+          "dept": "F",
+          "department": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22611,6 +23416,8 @@
           "phone": "+9647721895042",
           "spec": "F",
           "tag": "F",
+          "dept": "F",
+          "department": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22622,6 +23429,8 @@
           "phone": "+9647746927069",
           "spec": "E",
           "tag": "E",
+          "dept": "E",
+          "department": "E",
           "active": true,
           "hospitals": [
             "basra"
@@ -22633,6 +23442,8 @@
           "phone": "+9647718713995",
           "spec": "E",
           "tag": "E",
+          "dept": "E",
+          "department": "E",
           "active": true,
           "hospitals": [
             "basra"
@@ -22644,6 +23455,8 @@
           "phone": "+9647712901906",
           "spec": "E",
           "tag": "E",
+          "dept": "E",
+          "department": "E",
           "active": true,
           "hospitals": [
             "basra"
@@ -22655,6 +23468,8 @@
           "phone": "+9647709401868",
           "spec": "E",
           "tag": "E",
+          "dept": "E",
+          "department": "E",
           "active": true,
           "hospitals": [
             "basra"
@@ -22666,6 +23481,8 @@
           "phone": "+9647703655514",
           "spec": "P",
           "tag": "P",
+          "dept": "P",
+          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
@@ -22677,6 +23494,8 @@
           "phone": "+9647858887899",
           "spec": "P",
           "tag": "P",
+          "dept": "P",
+          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
@@ -22688,6 +23507,8 @@
           "phone": "+9647832365659",
           "spec": "P",
           "tag": "P",
+          "dept": "P",
+          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
@@ -22699,6 +23520,8 @@
           "phone": "+9647721497466",
           "spec": "F",
           "tag": "F",
+          "dept": "F",
+          "department": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22710,6 +23533,8 @@
           "phone": "+9647703296793",
           "spec": "N",
           "tag": "N",
+          "dept": "N",
+          "department": "N",
           "active": true,
           "hospitals": [
             "basra"
@@ -22721,6 +23546,8 @@
           "phone": "+9647717806124",
           "spec": "M",
           "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
@@ -22732,6 +23559,8 @@
           "phone": "+9647806028076",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -22743,6 +23572,8 @@
           "phone": "+9647811991975",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -22754,6 +23585,8 @@
           "phone": "+9647706223309",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -22765,6 +23598,8 @@
           "phone": "+9647726868449",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -22776,6 +23611,8 @@
           "phone": "+9647733877369",
           "spec": "AO",
           "tag": "AO",
+          "dept": "AO",
+          "department": "AO",
           "active": true,
           "hospitals": [
             "basra"
@@ -22787,6 +23624,8 @@
           "phone": "+9647702841087",
           "spec": "AO",
           "tag": "AO",
+          "dept": "AO",
+          "department": "AO",
           "active": true,
           "hospitals": [
             "basra"
@@ -22798,6 +23637,8 @@
           "phone": "+9647703142928",
           "spec": "AO",
           "tag": "AO",
+          "dept": "AO",
+          "department": "AO",
           "active": true,
           "hospitals": [
             "basra"
@@ -22809,6 +23650,8 @@
           "phone": "+9647729560500",
           "spec": "AO",
           "tag": "AO",
+          "dept": "AO",
+          "department": "AO",
           "active": true,
           "hospitals": [
             "basra"
@@ -22820,6 +23663,8 @@
           "phone": "+9647735654940",
           "spec": "G",
           "tag": "G",
+          "dept": "G",
+          "department": "G",
           "active": true,
           "hospitals": [
             "basra"
@@ -22831,6 +23676,8 @@
           "phone": "+9647718688349",
           "spec": "G",
           "tag": "G",
+          "dept": "G",
+          "department": "G",
           "active": true,
           "hospitals": [
             "basra"
@@ -22842,6 +23689,8 @@
           "phone": "+9647705975254",
           "spec": "G",
           "tag": "G",
+          "dept": "G",
+          "department": "G",
           "active": true,
           "hospitals": [
             "basra"
@@ -22853,6 +23702,8 @@
           "phone": "+9647760688768",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -22864,6 +23715,8 @@
           "phone": "+9647809020899",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -22875,6 +23728,8 @@
           "phone": "+9647726300975",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -22886,6 +23741,8 @@
           "phone": "+9647714935538",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -22897,6 +23754,8 @@
           "phone": "+9647702958143",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -22908,6 +23767,8 @@
           "phone": "+9647703347068",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -22919,6 +23780,8 @@
           "phone": "+9647710799367",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
@@ -22930,6 +23793,8 @@
           "phone": "+9647802637051",
           "spec": "Pe",
           "tag": "Pe",
+          "dept": "Pe",
+          "department": "Pe",
           "active": true,
           "hospitals": [
             "basra"
@@ -22941,6 +23806,8 @@
           "phone": "+9647827925226",
           "spec": "NM",
           "tag": "NM",
+          "dept": "NM",
+          "department": "NM",
           "active": true,
           "hospitals": [
             "basra"
@@ -31647,6 +32514,8 @@
           "phone": "+9647739244859",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -31659,6 +32528,8 @@
           "phone": "+9647826655511",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -31671,6 +32542,8 @@
           "phone": "+9647735237481",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -31684,6 +32557,8 @@
           "phone": "+9647736024102",
           "spec": "RESERVE",
           "tag": "NS",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -31696,6 +32571,8 @@
           "phone": "+9647805195075",
           "spec": "NS",
           "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -31708,6 +32585,8 @@
           "phone": "+9647707334546",
           "spec": "NS",
           "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi",
@@ -31720,6 +32599,8 @@
           "phone": "+9647813977691",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra",
@@ -31732,6 +32613,8 @@
           "phone": "+9647860606035",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "basra",
@@ -31744,6 +32627,8 @@
           "phone": "+9647732298185",
           "spec": "ENT",
           "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31755,6 +32640,8 @@
           "phone": "+9647702832550",
           "spec": "ENT",
           "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31766,6 +32653,8 @@
           "phone": "+9647816742060",
           "spec": "NS",
           "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31777,6 +32666,8 @@
           "phone": "+9647718362763",
           "spec": "NS",
           "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31788,6 +32679,8 @@
           "phone": "+9647812638342",
           "spec": "RESERVE",
           "tag": "NS",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "mawani"
@@ -31799,6 +32692,8 @@
           "phone": "+9647773726610",
           "spec": "RESERVE",
           "tag": "NS",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "mawani"
@@ -31810,6 +32705,8 @@
           "phone": "+9647706225649",
           "spec": "NS",
           "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31821,6 +32718,8 @@
           "phone": "+9647833301233",
           "spec": "RESERVE",
           "tag": "NS",
+          "dept": "RESERVE",
+          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "mawani"
@@ -31832,6 +32731,8 @@
           "phone": "+9647719184448",
           "spec": "NS",
           "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31843,6 +32744,8 @@
           "phone": "+9647827088919",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31854,6 +32757,8 @@
           "phone": "+9647716858560",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31865,6 +32770,8 @@
           "phone": "+9647813856692",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31876,6 +32783,8 @@
           "phone": "+9647712689915",
           "spec": "US",
           "tag": "US",
+          "dept": "US",
+          "department": "US",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31887,6 +32796,8 @@
           "phone": "+9647729918341",
           "spec": "US",
           "tag": "US",
+          "dept": "US",
+          "department": "US",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31898,6 +32809,8 @@
           "phone": "+9647815628060",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31909,6 +32822,8 @@
           "phone": "+9647718090001",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31920,6 +32835,8 @@
           "phone": "+9647700052061",
           "spec": "IM",
           "tag": "IM",
+          "dept": "IM",
+          "department": "IM",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31931,6 +32848,8 @@
           "phone": "+9647729218515",
           "spec": "IM",
           "tag": "IM",
+          "dept": "IM",
+          "department": "IM",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31942,6 +32861,8 @@
           "phone": "+9647717806103",
           "spec": "IM",
           "tag": "IM",
+          "dept": "IM",
+          "department": "IM",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31953,6 +32874,8 @@
           "phone": "+9647729281183",
           "spec": "IM",
           "tag": "IM",
+          "dept": "IM",
+          "department": "IM",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31964,6 +32887,8 @@
           "phone": "+9647780477234",
           "spec": "IM",
           "tag": "IM",
+          "dept": "IM",
+          "department": "IM",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31975,6 +32900,8 @@
           "phone": "+9647811487982",
           "spec": "IM",
           "tag": "IM",
+          "dept": "IM",
+          "department": "IM",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31986,6 +32913,8 @@
           "phone": "+9647716127715",
           "spec": "IM",
           "tag": "IM",
+          "dept": "IM",
+          "department": "IM",
           "active": true,
           "hospitals": [
             "mawani"
@@ -31997,6 +32926,8 @@
           "phone": "+9647773837499",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32008,6 +32939,8 @@
           "phone": "+9647745460005",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32019,6 +32952,8 @@
           "phone": "+9647776228423",
           "spec": "A",
           "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32030,6 +32965,8 @@
           "phone": "+9647722138029",
           "spec": "US",
           "tag": "US",
+          "dept": "US",
+          "department": "US",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32041,6 +32978,8 @@
           "phone": "+9647815701931",
           "spec": "GS",
           "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32052,6 +32991,8 @@
           "phone": "+9647838781799",
           "spec": "IM",
           "tag": "IM",
+          "dept": "IM",
+          "department": "IM",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32063,6 +33004,8 @@
           "phone": "+9647705535066",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32074,6 +33017,8 @@
           "phone": "+9647727567076",
           "spec": "O",
           "tag": "O",
+          "dept": "O",
+          "department": "O",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32085,6 +33030,8 @@
           "phone": "+9647714982924",
           "spec": "O",
           "tag": "O",
+          "dept": "O",
+          "department": "O",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32096,6 +33043,8 @@
           "phone": "+9647738265348",
           "spec": "Pe",
           "tag": "Pe",
+          "dept": "Pe",
+          "department": "Pe",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32107,6 +33056,8 @@
           "phone": "+9647833256993",
           "spec": "E",
           "tag": "E",
+          "dept": "E",
+          "department": "E",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32118,6 +33069,8 @@
           "phone": "+9647806557223",
           "spec": "E",
           "tag": "E",
+          "dept": "E",
+          "department": "E",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32129,6 +33082,8 @@
           "phone": "+9647811177229",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32140,6 +33095,8 @@
           "phone": "+9647735411114",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32151,6 +33108,8 @@
           "phone": "+9647730220070",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32162,6 +33121,8 @@
           "phone": "+9647804116604",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32173,6 +33134,8 @@
           "phone": "+9647726453404",
           "spec": "MF",
           "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32184,6 +33147,8 @@
           "phone": "+9647703214791",
           "spec": "AO",
           "tag": "AO",
+          "dept": "AO",
+          "department": "AO",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32195,6 +33160,8 @@
           "phone": "+9647704303025",
           "spec": "AO",
           "tag": "AO",
+          "dept": "AO",
+          "department": "AO",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32206,6 +33173,8 @@
           "phone": "+9647722772419",
           "spec": "AO",
           "tag": "AO",
+          "dept": "AO",
+          "department": "AO",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32217,6 +33186,8 @@
           "phone": "+9647718705644",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32228,6 +33199,8 @@
           "phone": "+9647705600920",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32239,6 +33212,8 @@
           "phone": "+9647703100531",
           "spec": "AO",
           "tag": "AO",
+          "dept": "AO",
+          "department": "AO",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32250,6 +33225,8 @@
           "phone": "+9647827903387",
           "spec": "R",
           "tag": "R",
+          "dept": "R",
+          "department": "R",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32261,6 +33238,8 @@
           "phone": "+9647723359625",
           "spec": "OP",
           "tag": "OP",
+          "dept": "OP",
+          "department": "OP",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32272,6 +33251,8 @@
           "phone": "+9647739468124",
           "spec": "OP",
           "tag": "OP",
+          "dept": "OP",
+          "department": "OP",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32283,6 +33264,8 @@
           "phone": "+9647705669930",
           "spec": "OP",
           "tag": "OP",
+          "dept": "OP",
+          "department": "OP",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32294,6 +33277,8 @@
           "phone": "+9647735575678",
           "spec": "G",
           "tag": "G",
+          "dept": "G",
+          "department": "G",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32305,6 +33290,8 @@
           "phone": "+9647817932865",
           "spec": "G",
           "tag": "G",
+          "dept": "G",
+          "department": "G",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32316,6 +33303,8 @@
           "phone": "+9647830760046",
           "spec": "G",
           "tag": "G",
+          "dept": "G",
+          "department": "G",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32327,6 +33316,8 @@
           "phone": "+9647713639189",
           "spec": "G",
           "tag": "G",
+          "dept": "G",
+          "department": "G",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32338,6 +33329,8 @@
           "phone": "+9647719794535",
           "spec": "G",
           "tag": "G",
+          "dept": "G",
+          "department": "G",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32349,6 +33342,8 @@
           "phone": "+9647722315771",
           "spec": "G",
           "tag": "G",
+          "dept": "G",
+          "department": "G",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32360,6 +33355,8 @@
           "phone": "+9647714055930",
           "spec": "G",
           "tag": "G",
+          "dept": "G",
+          "department": "G",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32371,6 +33368,8 @@
           "phone": "+9647719744688",
           "spec": "OR",
           "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32382,6 +33381,8 @@
           "phone": "+9647732153718",
           "spec": "Pe",
           "tag": "Pe",
+          "dept": "Pe",
+          "department": "Pe",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32393,6 +33394,8 @@
           "phone": "+9647851990446",
           "spec": "Pe",
           "tag": "Pe",
+          "dept": "Pe",
+          "department": "Pe",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32404,6 +33407,8 @@
           "phone": "+9647730300297",
           "spec": "G",
           "tag": "G",
+          "dept": "G",
+          "department": "G",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32415,6 +33420,8 @@
           "phone": "+9647732165560",
           "spec": "G",
           "tag": "G",
+          "dept": "G",
+          "department": "G",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32426,6 +33433,8 @@
           "phone": "+9647705674831",
           "spec": "AO",
           "tag": "AO",
+          "dept": "AO",
+          "department": "AO",
           "active": true,
           "hospitals": [
             "mawani"
@@ -41421,6 +42430,19 @@
       "active": true,
       "hospitals": [
         "mawani"
+      ]
+    },
+    {
+      "id": "res-mtzt6vrsg9vu",
+      "name": "د. مقيم اختبار التناوب",
+      "phone": "07700000000",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
       ]
     }
   ]

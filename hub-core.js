@@ -1072,6 +1072,24 @@
                 active: r.active,
                 hospitals: r.hospitals
             }));
+
+            // Automatically ensure any department actively staffed by residents exists in hospital specialties
+            if (Array.isArray(hosp.specialties)) {
+                const globalSpecs = getGlobalSpecialties();
+                hosp.names.forEach(r => {
+                    const dutyDept = r.dept || r.department || r.spec || r.tag;
+                    if (dutyDept && !hosp.specialties.some(s => s.id === dutyDept)) {
+                        const g = globalSpecs.find(s => s.id === dutyDept);
+                        if (g) {
+                            hosp.specialties.push({
+                                ...g,
+                                enabled: true,
+                                color: g.color || '#0f766e'
+                            });
+                        }
+                    }
+                });
+            }
         });
     }
 

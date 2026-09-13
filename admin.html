@@ -443,7 +443,7 @@
             <h3 class="text-md font-bold mb-3 flex items-center gap-2">
                 <i class="fas fa-plus-circle text-teal-600 dark:text-amber-400"></i> بيانات المقيم الجديد
             </h3>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">اسم المقيم</label>
                     <input type="text" id="new-res-name" class="input-field" placeholder="مثال: د. احمد علي" />
@@ -453,8 +453,15 @@
                     <input type="text" id="new-res-phone" class="input-field text-left font-mono" placeholder="07XXXXXXXXX" dir="ltr" />
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">التخصص الأساسي</label>
-                    <select id="new-res-spec" class="input-field"></select>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">التخصص الأساسي (Specialty)</label>
+                    <select id="new-res-spec" class="input-field" onchange="onNewResSpecChanged(this.value)"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1 flex items-center justify-between">
+                        <span>القسم المكلف به (الخفارات)</span>
+                        <span class="text-[10px] text-teal-600 dark:text-amber-400 font-normal">تناوب Rotation</span>
+                    </label>
+                    <select id="new-res-dept" class="input-field" onchange="onNewResDeptChanged()"></select>
                 </div>
             </div>
 
@@ -501,6 +508,25 @@
             </div>
         </div>
 
+        <!-- Specialties Filter & Accordion Toolbar -->
+        <div class="glass-card p-3 mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+                <label class="toggle-switch-compact" title="تفعيل لإظهار التخصصات التي لا تحتوي على أي مقيم مسجل في هذا المستشفى">
+                    <input type="checkbox" id="show-empty-specs-toggle" onchange="toggleShowEmptySpecs(this.checked)" />
+                    <span class="toggle-slider-compact"></span>
+                </label>
+                <span class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 cursor-pointer" onclick="document.getElementById('show-empty-specs-toggle').click()">
+                    <i class="fas fa-filter text-teal-600 dark:text-amber-400"></i>
+                    <span>إظهار التخصصات الفارغة (0 مقيم)</span>
+                </span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span id="specs-filter-summary" class="text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
+                    جاري التحديث...
+                </span>
+            </div>
+        </div>
+
         <!-- Specialties & Residents Accordion List -->
         <div id="residents-accordion-list" class="space-y-2">
             <!-- Rendered dynamically -->
@@ -524,9 +550,18 @@
                     <label class="block text-xs font-bold text-slate-500 mb-1">رقم الهاتف</label>
                     <input type="text" id="edit-res-phone" class="input-field font-mono text-left" dir="ltr" />
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">التخصص</label>
-                    <select id="edit-res-spec" class="input-field"></select>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">التخصص الأساسي (Specialty)</label>
+                        <select id="edit-res-spec" class="input-field"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1 flex items-center justify-between">
+                            <span>القسم المكلف به (الخفارات)</span>
+                            <span class="text-[10px] text-teal-600 dark:text-amber-400 font-normal">تناوب Rotation</span>
+                        </label>
+                        <select id="edit-res-dept" class="input-field"></select>
+                    </div>
                 </div>
 
                 <!-- Hospital Assignment & Multi-Hospital Switch -->
@@ -581,9 +616,23 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <p class="text-xs text-slate-500 mb-3">
+            <p class="text-xs text-slate-500 mb-2">
                 يمكنك إظهار أو إخفاء التخصصات، وتعديل لون ظهورها في جدول الخفارات، وإعادة ترتيبها بالسحب والإفلات. التعديل الأساسي للتخصصات متاح حصراً في المستودع العام للمالك.
             </p>
+
+            <!-- Empty Specialties Controls Bar -->
+            <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 mb-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 text-xs">
+                <div class="flex items-center gap-2">
+                    <label class="toggle-switch-compact" title="تفعيل لإظهار التخصصات التي لا تحتوي على مقيمين مسجلين">
+                        <input type="checkbox" id="modal-show-empty-specs-toggle" onchange="toggleShowEmptySpecs(this.checked)" />
+                        <span class="toggle-slider-compact"></span>
+                    </label>
+                    <span class="font-bold text-slate-700 dark:text-slate-200 cursor-pointer" onclick="document.getElementById('modal-show-empty-specs-toggle').click()">إظهار التخصصات الفارغة (0 مقيم)</span>
+                </div>
+                <button type="button" onclick="confirmDeleteAllEmptySpecialties()" class="btn-ghost text-xs text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/30 font-bold" title="حذف جميع التخصصات التي ليس لها أي مقيم مسجل من هذا المستشفى">
+                    <i class="fas fa-trash-alt ml-1"></i> حذف التخصصات الفارغة (0 مقيم)
+                </button>
+            </div>
 
             <div id="specialties-items-container" class="space-y-1 max-h-80 overflow-y-auto mb-4 p-1">
                 <!-- Rendered dynamically -->
@@ -929,6 +978,13 @@
                     hospOwnerStoreBtn.style.display = isOwner ? 'inline-flex' : 'none';
                 }
 
+                // Empty specialties display state (default false = hidden by default)
+                window.showEmptySpecialties = false;
+                const toggleMain = document.getElementById('show-empty-specs-toggle');
+                if (toggleMain) toggleMain.checked = window.showEmptySpecialties;
+                const toggleModal = document.getElementById('modal-show-empty-specs-toggle');
+                if (toggleModal) toggleModal.checked = window.showEmptySpecialties;
+
                 populateSpecialtyDropdowns();
                 populateHospitalDropdowns();
                 renderResidentsAccordion();
@@ -940,6 +996,20 @@
             }
         }
 
+        function toggleShowEmptySpecs(checked) {
+            window.showEmptySpecialties = Boolean(checked);
+            const toggleMain = document.getElementById('show-empty-specs-toggle');
+            if (toggleMain) toggleMain.checked = window.showEmptySpecialties;
+            const toggleModal = document.getElementById('modal-show-empty-specs-toggle');
+            if (toggleModal) toggleModal.checked = window.showEmptySpecialties;
+            renderResidentsAccordion();
+            renderSpecialtiesList();
+        }
+
+        function toggleModalShowEmptySpecs(checked) {
+            toggleShowEmptySpecs(checked);
+        }
+
         function populateSpecialtyDropdowns() {
             let specs = (currentHospital?.specialties || []).filter(s => s.enabled !== false);
             if (specs.length === 0 && Hub.getGlobalSpecialties) {
@@ -948,9 +1018,26 @@
             const html = specs.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar} (${s.id})</option>`).join('');
             
             const newSpecSelect = document.getElementById('new-res-spec');
+            const newDeptSelect = document.getElementById('new-res-dept');
             const editSpecSelect = document.getElementById('edit-res-spec');
+            const editDeptSelect = document.getElementById('edit-res-dept');
+
             if (newSpecSelect) newSpecSelect.innerHTML = html;
+            if (newDeptSelect) newDeptSelect.innerHTML = html;
             if (editSpecSelect) editSpecSelect.innerHTML = html;
+            if (editDeptSelect) editDeptSelect.innerHTML = html;
+        }
+
+        function onNewResSpecChanged(specId) {
+            const deptSelect = document.getElementById('new-res-dept');
+            if (deptSelect && !deptSelect.dataset.userModified) {
+                deptSelect.value = specId;
+            }
+        }
+
+        function onNewResDeptChanged() {
+            const deptSelect = document.getElementById('new-res-dept');
+            if (deptSelect) deptSelect.dataset.userModified = 'true';
         }
 
         function updateStatsBadges() {
@@ -968,66 +1055,134 @@
 
         function renderResidentsAccordion() {
             const container = document.getElementById('residents-accordion-list');
-            if (!currentHospital) return;
+            if (!container || !currentHospital) return;
 
             const specs = currentHospital.specialties || [];
             const names = currentHospital.names || [];
+            const showEmpty = window.showEmptySpecialties === true;
 
-            container.innerHTML = specs.map(spec => {
-                const specResidents = names.filter(n => n.spec === spec.id || n.tag === spec.id);
+            let renderedCount = 0;
+            let hiddenEmptyCount = 0;
+
+            const itemsHtml = specs.map(spec => {
+                const primaryResidents = names.filter(n => n.spec === spec.id || n.tag === spec.id);
+                const rotatingResidents = names.filter(n => (n.dept === spec.id || n.department === spec.id) && n.spec !== spec.id && n.tag !== spec.id);
+                const totalCount = primaryResidents.length + rotatingResidents.length;
+
+                if (totalCount === 0) {
+                    hiddenEmptyCount++;
+                    if (!showEmpty) return '';
+                }
+                renderedCount++;
+
                 const isEnabled = spec.enabled !== false;
 
                 return `
                     <div class="mb-2">
                         <div class="spec-header" onclick="toggleAccordion('spec-box-${spec.id}')">
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 flex-wrap">
                                 <span class="text-xl">${spec.icon || '🏥'}</span>
-                                <span>${spec.name_ar}</span>
+                                <span class="font-bold">${spec.name_ar}</span>
                                 <span class="text-xs text-slate-400 font-mono">(${spec.id})</span>
-                                ${!isEnabled ? '<span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600 font-bold">مخفي</span>' : ''}
+                                ${!isEnabled ? '<span class="text-xs px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold">مخفي</span>' : ''}
+                                ${rotatingResidents.length > 0 ? `
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold" title="${rotatingResidents.length} أطباء متناوبون مكلفون بدوام هذا القسم">
+                                        <i class="fas fa-rotate ml-1"></i> ${rotatingResidents.length} متناوب
+                                    </span>
+                                ` : ''}
                             </div>
                             <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                                    ${specResidents.length} مقيم
+                                <span class="text-xs font-bold px-2.5 py-1 rounded-full ${totalCount > 0 ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' : 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900'}">
+                                    ${totalCount} مقيم
                                 </span>
                                 <i class="fas fa-chevron-down text-xs text-slate-400"></i>
                             </div>
                         </div>
 
                         <div id="spec-box-${spec.id}" class="spec-content">
-                            ${specResidents.length === 0 ? `
-                                <div class="text-center py-4 text-xs text-slate-400">لا يوجد مقيمين مسجلين في هذا التخصص حالياً</div>
-                            ` : specResidents.map(r => {
-                                const realIdx = names.indexOf(r);
-                                const isActive = r.active !== false && r.spec !== 'RESERVE';
+                            ${totalCount === 0 ? `
+                                <div class="text-center py-4 text-xs text-slate-400">لا يوجد مقيمين مسجلين في هذا التخصص حالياً (0 مقيم)</div>
+                            ` : `
+                                <!-- Primary Residents in this Specialty -->
+                                ${primaryResidents.map(r => renderResidentCardItem(r, false)).join('')}
 
-                                return `
-                                    <div class="resident-card">
-                                        <div class="flex items-center gap-3">
-                                            <span class="w-2.5 h-2.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-amber-500'}"></span>
-                                            <div>
-                                                <div class="font-bold text-sm text-slate-800 dark:text-slate-200">${r.name}</div>
-                                                <div class="text-xs font-mono text-slate-400" dir="ltr">${r.phone || 'بدون هاتف'}</div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-xs font-bold px-2 py-0.5 rounded-full ${isActive ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'}">
-                                                ${isActive ? 'نشط' : 'احتياط'}
-                                            </span>
-                                            <button type="button" onclick="openEditResident(${realIdx})" class="p-1.5 px-2 text-xs rounded-lg text-blue-600 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button type="button" onclick="deleteResident(${realIdx}, '${r.name}')" class="p-1.5 px-2 text-xs rounded-lg text-red-600 bg-red-50 dark:bg-red-900/30 hover:bg-red-100">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
+                                <!-- Guest Rotating Residents Assigned to this Department -->
+                                ${rotatingResidents.length > 0 ? `
+                                    <div class="pt-2 pb-1 px-2 text-[11px] font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5 border-t border-slate-200 dark:border-slate-800 mt-2">
+                                        <i class="fas fa-rotate"></i>
+                                        <span>أطباء متناوبون مكلفون بدوام وخفارات هذا القسم (${rotatingResidents.length}):</span>
                                     </div>
-                                `;
-                            }).join('')}
+                                    ${rotatingResidents.map(r => renderResidentCardItem(r, true)).join('')}
+                                ` : ''}
+                            `}
                         </div>
                     </div>
                 `;
             }).join('');
+
+            container.innerHTML = itemsHtml || `
+                <div class="p-8 text-center text-slate-400 glass-card">
+                    <i class="fas fa-filter text-3xl mb-2 text-slate-300 dark:text-slate-600"></i>
+                    <div class="font-bold text-sm">جميع التخصصات المتبقية فارغة (0 مقيم) وتم إخفاؤها تلقائياً.</div>
+                    <div class="text-xs mt-1">يمكنك تفعيل مفتاح <strong>"إظهار التخصصات الفارغة"</strong> بالأعلى لعرضها.</div>
+                </div>
+            `;
+
+            const summaryEl = document.getElementById('specs-filter-summary');
+            if (summaryEl) {
+                if (hiddenEmptyCount > 0 && !showEmpty) {
+                    summaryEl.innerHTML = `<i class="fas fa-eye-slash ml-1 text-slate-400"></i> عرض ${renderedCount} تخصصاً نشطاً (تم إخفاء ${hiddenEmptyCount} فارغاً)`;
+                } else {
+                    summaryEl.innerHTML = `<i class="fas fa-list-check ml-1 text-teal-600 dark:text-amber-400"></i> عرض جميع التخصصات (${specs.length} تخصص)`;
+                }
+            }
+        }
+
+        function renderResidentCardItem(r, isGuestRotating) {
+            const names = currentHospital.names || [];
+            const realIdx = names.indexOf(r);
+            const isActive = r.active !== false && r.spec !== 'RESERVE';
+            const rSpecId = r.spec || r.tag;
+            const rDeptId = r.dept || r.department || rSpecId;
+            const hasRotation = rDeptId !== rSpecId;
+
+            const allSpecs = currentHospital.specialties || Hub.getGlobalSpecialties() || [];
+            const originSpecObj = allSpecs.find(s => s.id === rSpecId) || { name_ar: rSpecId };
+            const deptSpecObj = allSpecs.find(s => s.id === rDeptId) || { name_ar: rDeptId };
+
+            return `
+                <div class="resident-card ${isGuestRotating ? 'border-amber-200 dark:border-amber-800/40 bg-amber-50/20 dark:bg-amber-950/10' : ''}">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                        <span class="w-2.5 h-2.5 rounded-full flex-shrink-0 ${isActive ? 'bg-emerald-500' : 'bg-amber-500'}"></span>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="font-bold text-sm text-slate-800 dark:text-slate-200">${r.name}</span>
+                                ${isGuestRotating ? `
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                                        <i class="fas fa-rotate ml-1"></i> متناوب (تخصصه الأصلي: ${originSpecObj.name_ar})
+                                    </span>
+                                ` : (hasRotation ? `
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-700">
+                                        <i class="fas fa-arrow-right-arrow-left ml-1"></i> تناوب في: ${deptSpecObj.name_ar} (خفاراته هناك)
+                                    </span>
+                                ` : '')}
+                            </div>
+                            <div class="text-xs font-mono text-slate-400" dir="ltr">${r.phone || 'بدون هاتف'}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <span class="text-xs font-bold px-2 py-0.5 rounded-full ${isActive ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'}">
+                            ${isActive ? 'نشط' : 'احتياط'}
+                        </span>
+                        <button type="button" onclick="openEditResident(${realIdx})" class="p-1.5 px-2 text-xs rounded-lg text-blue-600 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" onclick="deleteResident(${realIdx}, '${r.name}')" class="p-1.5 px-2 text-xs rounded-lg text-red-600 bg-red-50 dark:bg-red-900/30 hover:bg-red-100">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
         }
 
         function toggleAccordion(id) {
@@ -1095,6 +1250,7 @@
             const name = document.getElementById('new-res-name').value.trim();
             const phone = document.getElementById('new-res-phone').value.trim();
             const spec = document.getElementById('new-res-spec').value;
+            const dept = document.getElementById('new-res-dept').value || spec;
             const active = document.getElementById('new-res-active').checked;
             const isMulti = document.getElementById('new-res-multi-toggle').checked;
 
@@ -1125,12 +1281,16 @@
                     phone: phone,
                     spec: spec,
                     tag: spec,
+                    dept: dept,
+                    department: dept,
                     active: active,
                     hospitals: assignedHospitals
                 });
 
                 document.getElementById('new-res-name').value = '';
                 document.getElementById('new-res-phone').value = '';
+                const deptEl = document.getElementById('new-res-dept');
+                if (deptEl) delete deptEl.dataset.userModified;
                 toggleAddResidentPanel(false);
 
                 currentHospital = Hub.getActiveHospital();
@@ -1155,7 +1315,8 @@
             document.getElementById('edit-res-id').value = sharedRes?.id || r.id || '';
             document.getElementById('edit-res-name').value = r.name;
             document.getElementById('edit-res-phone').value = r.phone === 'رقم غير متوفر' ? '' : r.phone;
-            document.getElementById('edit-res-spec').value = r.tag || r.spec;
+            document.getElementById('edit-res-spec').value = r.spec || r.tag;
+            document.getElementById('edit-res-dept').value = r.dept || r.department || r.spec || r.tag;
             document.getElementById('edit-res-active').checked = r.active !== false && r.spec !== 'RESERVE';
 
             const multiToggle = document.getElementById('edit-res-multi-toggle');
@@ -1184,6 +1345,7 @@
             const name = document.getElementById('edit-res-name').value.trim();
             const phone = document.getElementById('edit-res-phone').value.trim();
             const spec = document.getElementById('edit-res-spec').value;
+            const dept = document.getElementById('edit-res-dept').value || spec;
             const active = document.getElementById('edit-res-active').checked;
             const isMulti = document.getElementById('edit-res-multi-toggle').checked;
 
@@ -1215,6 +1377,8 @@
                     phone: phone,
                     spec: spec,
                     tag: spec,
+                    dept: dept,
+                    department: dept,
                     active: active,
                     hospitals: assignedHospitals
                 });
@@ -1277,16 +1441,33 @@
         function renderSpecialtiesList() {
             const container = document.getElementById('specialties-items-container');
             const specs = currentHospital?.specialties || [];
+            const names = currentHospital.names || [];
             const isOwner = Hub.auth.isOwner();
+            const showEmpty = window.showEmptySpecialties === true;
 
             if (specs.length === 0) {
                 container.innerHTML = '<div class="p-4 text-center text-xs text-slate-400">لا توجد تخصصات مضافة لهذا المستشفى بعد.</div>';
                 return;
             }
 
-            container.innerHTML = specs.map((s, idx) => {
+            // Filter if showEmpty is false
+            let displaySpecs = specs;
+            if (!showEmpty) {
+                displaySpecs = specs.filter(s => {
+                    return names.some(n => n.spec === s.id || n.tag === s.id || n.dept === s.id || n.department === s.id);
+                });
+            }
+
+            if (displaySpecs.length === 0) {
+                container.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">جميع التخصصات المتبقية فارغة (0 مقيم) وتم إخفاؤها. يمكنك تفعيل "إظهار التخصصات الفارغة" بالأعلى لرؤيتها.</div>';
+                return;
+            }
+
+            container.innerHTML = displaySpecs.map((s) => {
+                const idx = specs.indexOf(s);
                 const isEnabled = s.enabled !== false;
                 const poolCount = Array.isArray(s.acceptPool) ? s.acceptPool.length : 0;
+                const resCount = names.filter(n => n.spec === s.id || n.tag === s.id || n.dept === s.id || n.department === s.id).length;
 
                 return `
                     <div class="specialty-item ${!isEnabled ? 'disabled-spec' : ''}"
@@ -1304,6 +1485,10 @@
                         <span class="text-xl w-7 text-center flex-shrink-0">${s.icon || '🏥'}</span>
                         <span class="font-mono text-xs font-bold text-slate-400 w-10">${s.id}</span>
                         <span class="spec-name font-bold text-sm flex-1 truncate">${s.name_ar}</span>
+
+                        <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${resCount > 0 ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300' : 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900'}">
+                            ${resCount} مقيم
+                        </span>
 
                         ${s.parentSpec ? `
                             <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800" title="فئة فرعية من التخصص الأب">
@@ -1341,6 +1526,41 @@
                     </div>
                 `;
             }).join('');
+        }
+
+        async function confirmDeleteAllEmptySpecialties() {
+            if (!currentHospital) return;
+            const names = currentHospital.names || [];
+            const specs = currentHospital.specialties || [];
+
+            const emptySpecs = specs.filter(s => {
+                return !names.some(n => n.spec === s.id || n.tag === s.id || n.dept === s.id || n.department === s.id);
+            });
+
+            if (emptySpecs.length === 0) {
+                showToast('لا توجد تخصصات فارغة لحذفها في هذا المستشفى', 'info');
+                return;
+            }
+
+            const namesList = emptySpecs.map(s => s.name_ar).join('، ');
+            const confirmMsg = `هل أنت متأكد من حذف جميع التخصصات الفارغة (عددها ${emptySpecs.length}) من مستشفى "${currentHospital.name_ar || currentHospital.hospitalName}"؟\n\n` +
+                               `التخصصات المراد إزالتها: ${namesList}\n\n` +
+                               `ملاحظة: ستبقى جميع هذه التخصصات محفوظة بأمان في المستودع العام ويمكنك إضافتها مرة أخرى في أي وقت.`;
+
+            if (!confirm(confirmMsg)) return;
+
+            try {
+                const res = await Hub.deleteEmptyHospitalSpecialties(currentHospital.id);
+                currentHospital = Hub.getActiveHospital();
+                renderSpecialtiesList();
+                renderResidentsAccordion();
+                populateSpecialtyDropdowns();
+                updateStatsBadges();
+                showToast(`تم حذف ${res.deletedCount} تخصص فارغ من المستشفى بنجاح`, 'success');
+            } catch (err) {
+                console.error('Error deleting empty specialties:', err);
+                showToast(err.message || 'خطأ أثناء حذف التخصصات الفارغة', 'error');
+            }
         }
 
         async function changeHospitalSpecColor(specId, newColor) {

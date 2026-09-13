@@ -1011,21 +1011,38 @@
         }
 
         function populateSpecialtyDropdowns() {
-            let specs = (currentHospital?.specialties || []).filter(s => s.enabled !== false);
-            if (specs.length === 0 && Hub.getGlobalSpecialties) {
-                specs = Hub.getGlobalSpecialties();
+            // Main Specialty Store: Central canonical specialties catalog
+            const globalSpecs = (typeof Hub !== 'undefined' && Hub.getGlobalSpecialties) ? Hub.getGlobalSpecialties() : [];
+            const globalHtml = globalSpecs.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar} (${s.id})</option>`).join('');
+
+            // For departments: current hospital active specialties first, plus other global specialties
+            const hospSpecs = (currentHospital?.specialties || []).filter(s => s.enabled !== false);
+            let deptHtml = '';
+            if (hospSpecs.length > 0) {
+                deptHtml += `<optgroup label="أقسام المستشفى (${currentHospital.name_ar || currentHospital.hospitalName})">` +
+                    hospSpecs.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar} (${s.id})</option>`).join('') +
+                    `</optgroup>`;
+                const hospSpecIds = new Set(hospSpecs.map(s => s.id));
+                const otherGlobal = globalSpecs.filter(s => !hospSpecIds.has(s.id));
+                if (otherGlobal.length > 0) {
+                    deptHtml += `<optgroup label="باقي التخصصات الطبية (المستودع العام)">` +
+                        otherGlobal.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar} (${s.id})</option>`).join('') +
+                        `</optgroup>`;
+                }
+            } else {
+                deptHtml = globalHtml;
             }
-            const html = specs.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar} (${s.id})</option>`).join('');
-            
+
             const newSpecSelect = document.getElementById('new-res-spec');
             const newDeptSelect = document.getElementById('new-res-dept');
             const editSpecSelect = document.getElementById('edit-res-spec');
             const editDeptSelect = document.getElementById('edit-res-dept');
 
-            if (newSpecSelect) newSpecSelect.innerHTML = html;
-            if (newDeptSelect) newDeptSelect.innerHTML = html;
-            if (editSpecSelect) editSpecSelect.innerHTML = html;
-            if (editDeptSelect) editDeptSelect.innerHTML = html;
+            // Specialty selection in Add and Edit panels is based on the Main Specialty Store!
+            if (newSpecSelect) newSpecSelect.innerHTML = globalHtml;
+            if (editSpecSelect) editSpecSelect.innerHTML = globalHtml;
+            if (newDeptSelect) newDeptSelect.innerHTML = deptHtml;
+            if (editDeptSelect) editDeptSelect.innerHTML = deptHtml;
         }
 
         function onNewResSpecChanged(specId) {
@@ -1146,9 +1163,9 @@
             const rDeptId = r.dept || r.department || rSpecId;
             const hasRotation = rDeptId !== rSpecId;
 
-            const allSpecs = currentHospital.specialties || Hub.getGlobalSpecialties() || [];
-            const originSpecObj = allSpecs.find(s => s.id === rSpecId) || { name_ar: rSpecId };
-            const deptSpecObj = allSpecs.find(s => s.id === rDeptId) || { name_ar: rDeptId };
+            const globalSpecs = (typeof Hub !== 'undefined' && Hub.getGlobalSpecialties) ? Hub.getGlobalSpecialties() : [];
+            const originSpecObj = globalSpecs.find(s => s.id === rSpecId) || (currentHospital.specialties || []).find(s => s.id === rSpecId) || { name_ar: rSpecId };
+            const deptSpecObj = globalSpecs.find(s => s.id === rDeptId) || (currentHospital.specialties || []).find(s => s.id === rDeptId) || { name_ar: rDeptId };
 
             return `
                 <div class="resident-card ${isGuestRotating ? 'border-amber-200 dark:border-amber-800/40 bg-amber-50/20 dark:bg-amber-950/10' : ''}">
@@ -1306,6 +1323,8 @@
         function openEditResident(idx) {
             const r = currentHospital.names[idx];
             if (!r) return;
+
+            populateSpecialtyDropdowns();
 
             const sharedRes = Hub.getResident(r.id || r.name);
             const hospitals = sharedRes?.hospitals || r.hospitals || [Hub.getActiveHospitalId()];

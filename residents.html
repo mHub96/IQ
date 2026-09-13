@@ -666,8 +666,10 @@
                     adminActionsWrap.classList.add('hidden');
                 }
 
-                // Extract all unique specialties across all hospitals
+                // Extract all specialties from Main Specialty Store (Central Catalog)
+                const globalSpecs = (typeof Hub !== 'undefined' && Hub.getGlobalSpecialties) ? Hub.getGlobalSpecialties() : [];
                 const specMap = new Map();
+                globalSpecs.forEach(s => specMap.set(s.id, s));
                 allHospitals.forEach(h => {
                     (h.specialties || []).forEach(s => {
                         if (!specMap.has(s.id)) {
@@ -970,6 +972,8 @@
                 return;
             }
 
+            populateModalDropdowns();
+
             document.getElementById('modal-title').innerHTML = '<i class="fas fa-user-plus text-teal-600 dark:text-amber-400"></i> <span>إضافة مقيم جديد</span>';
             document.getElementById('submit-btn-text').textContent = 'إضافة المقيم وحفظه';
             document.getElementById('form-res-id').value = '';
@@ -1009,6 +1013,8 @@
                 showToast('المقيم غير موجود', 'error');
                 return;
             }
+
+            populateModalDropdowns();
 
             document.getElementById('modal-title').innerHTML = '<i class="fas fa-user-pen text-teal-600 dark:text-amber-400"></i> <span>تعديل بيانات المقيم</span>';
             document.getElementById('submit-btn-text').textContent = 'حفظ التعديلات';

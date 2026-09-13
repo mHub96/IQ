@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-13T13:27:53.481Z",
+  "lastUpdated": "2026-09-13T13:32:57.603Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -297,6 +297,16 @@
           "color": "#3bb8f7",
           "acceptPool": [],
           "enabled": false
+        },
+        {
+          "id": "F",
+          "name_ar": "طب الأسرة",
+          "name_en": "Family Medicine",
+          "icon": "🏥",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true,
+          "color": "#0f766e"
         }
       ],
       "names": [
@@ -20314,6 +20324,16 @@
           "color": "#3bb8f7",
           "acceptPool": [],
           "enabled": false
+        },
+        {
+          "id": "F",
+          "name_ar": "طب الأسرة",
+          "name_en": "Family Medicine",
+          "icon": "🏥",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true,
+          "color": "#0f766e"
         }
       ],
       "names": [
@@ -41711,6 +41731,15 @@
       "color": "#3bb8f7",
       "acceptPool": [],
       "enabled": false
+    },
+    {
+      "id": "F",
+      "name_ar": "طب الأسرة",
+      "name_en": "Family Medicine",
+      "icon": "🏥",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
     }
   ]
 }

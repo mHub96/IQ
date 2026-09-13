@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-13T13:00:10.791Z",
+  "lastUpdated": "2026-09-13T13:00:21.428Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -72,9 +72,7 @@
           "name_en": "OT Anaesthesia",
           "icon": "💉",
           "color": "#b4cc00",
-          "acceptPool": [
-            "A"
-          ],
+          "acceptPool": [],
           "enabled": true,
           "parentSpec": null
         },
@@ -20143,9 +20141,7 @@
           "name_en": "OT Anaesthesia",
           "icon": "💉",
           "color": "#b4cc00",
-          "acceptPool": [
-            "A"
-          ],
+          "acceptPool": [],
           "enabled": true,
           "parentSpec": null
         },
@@ -31457,9 +31453,7 @@
           "name_en": "OT Anaesthesia",
           "icon": "💉",
           "color": "#b4cc00",
-          "acceptPool": [
-            "A"
-          ],
+          "acceptPool": [],
           "enabled": true,
           "parentSpec": null
         },
@@ -41481,9 +41475,7 @@
       "name_en": "OT Anaesthesia",
       "icon": "💉",
       "parentSpec": null,
-      "acceptPool": [
-        "A"
-      ],
+      "acceptPool": [],
       "enabled": true
     },
     {

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-13T01:52:00Z",
+  "lastUpdated": "2026-09-13T12:16:21.606Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -27,9 +27,8 @@
           "name_en": "Neurosurgery",
           "icon": "🧠",
           "color": "#fea101",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "CT",
@@ -37,9 +36,8 @@
           "name_en": "Cardiothoracic Surgery",
           "icon": "🫀",
           "color": "#e05910",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "GS",
@@ -47,9 +45,8 @@
           "name_en": "General Surgery",
           "icon": "🔪",
           "color": "#2ac200",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "US",
@@ -57,9 +54,8 @@
           "name_en": "Urosurgery",
           "icon": "🫘",
           "color": "#e66551",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "ENT",
@@ -67,9 +63,8 @@
           "name_en": "ENT",
           "icon": "👂",
           "color": "#fbff00",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "OP",
@@ -77,23 +72,19 @@
           "name_en": "OT Anaesthesia",
           "icon": "💉",
           "color": "#b4cc00",
-          "enabled": true,
-          "parentSpec": "A",
-          "acceptPool": [
-            "A"
-          ]
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "ICU",
           "name_ar": "تخدير العناية المركزة",
-          "name_en": "ICU Anaesthesia",
+          "name_en": "ICU Anaethesia",
           "icon": "💉",
           "color": "#c9e141",
-          "enabled": true,
-          "parentSpec": "A",
           "acceptPool": [
             "A"
-          ]
+          ],
+          "enabled": true
         },
         {
           "id": "ON",
@@ -101,9 +92,8 @@
           "name_en": "Oncology",
           "icon": "☢️",
           "color": "#84cc16",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "R",
@@ -111,47 +101,26 @@
           "name_en": "Radiology",
           "icon": "🩻",
           "color": "#6700e6",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "D",
           "name_ar": "الوفيات",
-          "name_en": "Death Certificates",
+          "name_en": "Death Certificatess",
           "icon": "⚰️",
           "color": "#bababa",
-          "enabled": true,
-          "parentSpec": null,
           "acceptPool": [
             "NS",
             "CT",
             "GS",
-            "OR",
             "US",
             "ENT",
-            "MF",
-            "O",
-            "Pe",
-            "M",
-            "G",
-            "ICU",
             "OP",
-            "GA",
-            "A",
-            "R",
-            "ON",
-            "N",
-            "NM",
-            "P",
-            "Der",
-            "EM",
-            "FM",
-            "GP",
-            "H",
-            "PS",
-            "RM"
-          ]
+            "ICU",
+            "G"
+          ],
+          "enabled": true
         },
         {
           "id": "G",
@@ -159,19 +128,17 @@
           "name_en": "Gynecology",
           "icon": "🤰",
           "color": "#e40de7",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "A",
           "name_ar": "التخدير و العناية المركزة",
-          "name_en": "Anaesthesia & Intensive Care",
+          "name_en": "Anaethesia",
           "icon": "💉",
           "color": "#ff8e24",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "GA",
@@ -179,11 +146,8 @@
           "name_en": "GYN Anaesthesia",
           "icon": "🤰",
           "color": "#fe62ad",
-          "enabled": false,
-          "parentSpec": "A",
-          "acceptPool": [
-            "A"
-          ]
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "O",
@@ -191,9 +155,8 @@
           "name_en": "Ophthalmology",
           "icon": "👁️",
           "color": "#38ffe8",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "M",
@@ -201,9 +164,8 @@
           "name_en": "Internal Medicine",
           "icon": "💊",
           "color": "#a1e972",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "P",
@@ -211,9 +173,8 @@
           "name_en": "Psychiatry",
           "icon": "🧠",
           "color": "#fef606",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "N",
@@ -221,9 +182,8 @@
           "name_en": "Nephrology",
           "icon": "🧫",
           "color": "#ff5ccb",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "Pe",
@@ -231,19 +191,8 @@
           "name_en": "Paediatrics",
           "icon": "👶",
           "color": "#3dff6e",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
-        },
-        {
-          "id": "NM",
-          "name_ar": "طب الجملة العصبية",
-          "name_en": "Neuromedicine",
-          "icon": "🧠",
-          "color": "#79e9f1",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "Der",
@@ -251,9 +200,8 @@
           "name_en": "Dermatology",
           "icon": "🏥",
           "color": "#e27ef6",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "MF",
@@ -261,9 +209,8 @@
           "name_en": "MaxilloFacial Surgery",
           "icon": "🦷",
           "color": "#d600af",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "EM",
@@ -271,19 +218,17 @@
           "name_en": "Emergency Medicine",
           "icon": "🏥",
           "color": "#8cb3ed",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "FM",
-          "name_ar": "طب الأسرة",
+          "name_ar": "طب الاسرة",
           "name_en": "Family Medicine",
-          "icon": "👨",
+          "icon": "🏥",
           "color": "#f4f67e",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "GP",
@@ -291,9 +236,8 @@
           "name_en": "General Practitioner",
           "icon": "🏥",
           "color": "#627ae4",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "OR",
@@ -301,9 +245,8 @@
           "name_en": "Orthopaedics",
           "icon": "🦴",
           "color": "#ff0000",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "H",
@@ -311,9 +254,8 @@
           "name_en": "Cardiology",
           "icon": "🫀",
           "color": "#c91d70",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "PS",
@@ -321,9 +263,8 @@
           "name_en": "Plastic Surgery",
           "icon": "🪡",
           "color": "#2563eb",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "RM",
@@ -331,47 +272,8 @@
           "name_en": "Respiratory Medicine",
           "icon": "🫁",
           "color": "#3bb8f7",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
-        },
-        {
-          "id": "AO",
-          "name_ar": "المعاون الاداري",
-          "name_en": "Administrative Officer",
-          "icon": "🧑",
-          "color": "#0f766e",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": [
-            "NS",
-            "CT",
-            "GS",
-            "OR",
-            "US",
-            "ENT",
-            "MF",
-            "O",
-            "Pe",
-            "M",
-            "G",
-            "ICU",
-            "OP",
-            "GA",
-            "A",
-            "R",
-            "ON",
-            "N",
-            "NM",
-            "P",
-            "Der",
-            "EM",
-            "FM",
-            "GP",
-            "H",
-            "PS",
-            "RM"
-          ]
+          "acceptPool": [],
+          "enabled": false
         }
       ],
       "names": [
@@ -18876,7 +18778,7 @@
           "date": "12/09/2026",
           "specCode": "NS",
           "name": "د. فاطمة خليل",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -20119,9 +20021,8 @@
           "name_en": "MaxilloFacial Surgery",
           "icon": "🦷",
           "color": "#d600af",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "GS",
@@ -20129,9 +20030,8 @@
           "name_en": "General Surgery",
           "icon": "🔪",
           "color": "#2ac200",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "OR",
@@ -20139,9 +20039,8 @@
           "name_en": "Orthopaedics",
           "icon": "🦴",
           "color": "#ff0000",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "US",
@@ -20149,9 +20048,8 @@
           "name_en": "Urosurgery",
           "icon": "🫘",
           "color": "#e66551",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "ENT",
@@ -20159,9 +20057,8 @@
           "name_en": "ENT",
           "icon": "👂",
           "color": "#fbff00",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "O",
@@ -20169,9 +20066,8 @@
           "name_en": "Ophthalmology",
           "icon": "👁️",
           "color": "#38ffe8",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "Pe",
@@ -20179,9 +20075,8 @@
           "name_en": "Paediatrics",
           "icon": "👶",
           "color": "#3dff6e",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "NM",
@@ -20189,9 +20084,8 @@
           "name_en": "Neuromedicine",
           "icon": "🧠",
           "color": "#79e9f1",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "N",
@@ -20199,9 +20093,8 @@
           "name_en": "Nephrology",
           "icon": "🧫",
           "color": "#ff5ccb",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "M",
@@ -20209,9 +20102,8 @@
           "name_en": "Internal Medicine",
           "icon": "💊",
           "color": "#a1e972",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "G",
@@ -20219,9 +20111,8 @@
           "name_en": "Gynecology",
           "icon": "🤰",
           "color": "#e40de7",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "P",
@@ -20229,21 +20120,19 @@
           "name_en": "Psychiatry",
           "icon": "🧠",
           "color": "#fef606",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "ICU",
           "name_ar": "تخدير العناية المركزة",
-          "name_en": "ICU Anaesthesia",
+          "name_en": "ICU Anaethesia",
           "icon": "💉",
           "color": "#c9e141",
-          "enabled": true,
-          "parentSpec": "A",
           "acceptPool": [
             "A"
-          ]
+          ],
+          "enabled": true
         },
         {
           "id": "OP",
@@ -20251,11 +20140,10 @@
           "name_en": "OT Anaesthesia",
           "icon": "💉",
           "color": "#b4cc00",
-          "enabled": true,
-          "parentSpec": "A",
           "acceptPool": [
             "A"
-          ]
+          ],
+          "enabled": true
         },
         {
           "id": "GA",
@@ -20263,11 +20151,10 @@
           "name_en": "GYN Anaesthesia",
           "icon": "🤰",
           "color": "#fe62ad",
-          "enabled": true,
-          "parentSpec": "A",
           "acceptPool": [
             "A"
-          ]
+          ],
+          "enabled": true
         },
         {
           "id": "R",
@@ -20275,47 +20162,39 @@
           "name_en": "Radiology",
           "icon": "🩻",
           "color": "#6700e6",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "D",
           "name_ar": "الوفيات",
-          "name_en": "Death Certificates",
+          "name_en": "Death Certificatess",
           "icon": "⚰️",
           "color": "#bababa",
-          "enabled": true,
-          "parentSpec": null,
           "acceptPool": [
-            "NS",
-            "CT",
+            "MF",
             "GS",
             "OR",
             "US",
             "ENT",
-            "MF",
             "O",
             "Pe",
+            "NM",
+            "N",
             "M",
             "G",
+            "P",
             "ICU",
             "OP",
             "GA",
-            "A",
-            "R",
             "ON",
-            "N",
-            "NM",
-            "P",
-            "Der",
-            "EM",
-            "FM",
-            "GP",
-            "H",
-            "PS",
-            "RM"
-          ]
+            "A",
+            "E",
+            "F",
+            "NS",
+            "CT"
+          ],
+          "enabled": true
         },
         {
           "id": "AO",
@@ -20323,37 +20202,8 @@
           "name_en": "Administrative Officer",
           "icon": "🧑",
           "color": "#2563eb",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": [
-            "NS",
-            "CT",
-            "GS",
-            "OR",
-            "US",
-            "ENT",
-            "MF",
-            "O",
-            "Pe",
-            "M",
-            "G",
-            "ICU",
-            "OP",
-            "GA",
-            "A",
-            "R",
-            "ON",
-            "N",
-            "NM",
-            "P",
-            "Der",
-            "EM",
-            "FM",
-            "GP",
-            "H",
-            "PS",
-            "RM"
-          ]
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "ON",
@@ -20361,19 +20211,17 @@
           "name_en": "Oncology",
           "icon": "☢️",
           "color": "#84cc16",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "A",
           "name_ar": "التخدير و العناية المركزة",
-          "name_en": "Anaesthesia & Intensive Care",
+          "name_en": "Anaethesia",
           "icon": "💉",
           "color": "#ff8e24",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "Der",
@@ -20381,29 +20229,26 @@
           "name_en": "Dermatology",
           "icon": "🏥",
           "color": "#e27ef6",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
-          "id": "EM",
+          "id": "E",
           "name_ar": "طب الطوارئ",
           "name_en": "Emergency Medicine",
           "icon": "🏥",
           "color": "#9a5ce6",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
-          "id": "FM",
+          "id": "F",
           "name_ar": "طب الأسرة",
           "name_en": "Family Medicine",
           "icon": "👨",
           "color": "#78edb8",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "GP",
@@ -20411,9 +20256,8 @@
           "name_en": "General Practitioner",
           "icon": "🏥",
           "color": "#627ae4",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "H",
@@ -20421,9 +20265,8 @@
           "name_en": "Cardiology",
           "icon": "🫀",
           "color": "#c91d70",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "PS",
@@ -20431,9 +20274,8 @@
           "name_en": "Plastic Surgery",
           "icon": "🪡",
           "color": "#2563eb",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "RM",
@@ -20441,9 +20283,8 @@
           "name_en": "Respiratory Medicine",
           "icon": "🫁",
           "color": "#3bb8f7",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "NS",
@@ -20451,9 +20292,8 @@
           "name_en": "Neurosurgery",
           "icon": "🧠",
           "color": "#fea101",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "CT",
@@ -20461,9 +20301,8 @@
           "name_en": "Cardiothoracic Surgery",
           "icon": "🫀",
           "color": "#e05910",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         }
       ],
       "names": [
@@ -22605,8 +22444,8 @@
           "id": "res-0352",
           "name": "د. زهراء ماجد",
           "phone": "+9647733988464",
-          "spec": "FM",
-          "tag": "FM",
+          "spec": "F",
+          "tag": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22616,8 +22455,8 @@
           "id": "res-0353",
           "name": "د. رؤى بشير",
           "phone": "+9647739999363",
-          "spec": "FM",
-          "tag": "FM",
+          "spec": "F",
+          "tag": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22627,8 +22466,8 @@
           "id": "res-0354",
           "name": "د. غفران قاسم هادي",
           "phone": "+9647725158934",
-          "spec": "FM",
-          "tag": "FM",
+          "spec": "F",
+          "tag": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22638,8 +22477,8 @@
           "id": "res-0355",
           "name": "د. أبرار مؤيد عبدالمنعم",
           "phone": "+9647816922397",
-          "spec": "FM",
-          "tag": "FM",
+          "spec": "F",
+          "tag": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22649,8 +22488,8 @@
           "id": "res-0356",
           "name": "د. امال ناصر ناجي",
           "phone": "+9647723405240",
-          "spec": "FM",
-          "tag": "FM",
+          "spec": "F",
+          "tag": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22660,8 +22499,8 @@
           "id": "res-0357",
           "name": "د. براء عباس",
           "phone": "+9647714985674",
-          "spec": "FM",
-          "tag": "FM",
+          "spec": "F",
+          "tag": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22671,8 +22510,8 @@
           "id": "res-0358",
           "name": "د. فاتن سلمان",
           "phone": "+9647707009908",
-          "spec": "FM",
-          "tag": "FM",
+          "spec": "F",
+          "tag": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22682,8 +22521,8 @@
           "id": "res-0359",
           "name": "د. زمن مصطفى",
           "phone": "+9647731972744",
-          "spec": "FM",
-          "tag": "FM",
+          "spec": "F",
+          "tag": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22693,8 +22532,8 @@
           "id": "res-0360",
           "name": "د. مريم حسن",
           "phone": "+9647709640919",
-          "spec": "FM",
-          "tag": "FM",
+          "spec": "F",
+          "tag": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22704,8 +22543,8 @@
           "id": "res-0361",
           "name": "د. نور عمار",
           "phone": "+9647722921447",
-          "spec": "FM",
-          "tag": "FM",
+          "spec": "F",
+          "tag": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22715,8 +22554,8 @@
           "id": "res-0362",
           "name": "د. نور رياض",
           "phone": "+9647717539972",
-          "spec": "FM",
-          "tag": "FM",
+          "spec": "F",
+          "tag": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22726,8 +22565,8 @@
           "id": "res-0363",
           "name": "د. ثناء احمد",
           "phone": "+9647716750774",
-          "spec": "FM",
-          "tag": "FM",
+          "spec": "F",
+          "tag": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22737,8 +22576,8 @@
           "id": "res-0364",
           "name": "د. طيبة حميد",
           "phone": "+9647819600025",
-          "spec": "FM",
-          "tag": "FM",
+          "spec": "F",
+          "tag": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22748,8 +22587,8 @@
           "id": "res-0365",
           "name": "د. صفا احمد",
           "phone": "+9647814095288",
-          "spec": "FM",
-          "tag": "FM",
+          "spec": "F",
+          "tag": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22759,8 +22598,8 @@
           "id": "res-0366",
           "name": "د. فرح رحيم",
           "phone": "+9647707376328",
-          "spec": "FM",
-          "tag": "FM",
+          "spec": "F",
+          "tag": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22770,8 +22609,8 @@
           "id": "res-0367",
           "name": "د. رفل اسامه",
           "phone": "+9647721895042",
-          "spec": "FM",
-          "tag": "FM",
+          "spec": "F",
+          "tag": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -22781,8 +22620,8 @@
           "id": "res-0368",
           "name": "د. عمر جليل عيسى",
           "phone": "+9647746927069",
-          "spec": "EM",
-          "tag": "EM",
+          "spec": "E",
+          "tag": "E",
           "active": true,
           "hospitals": [
             "basra"
@@ -22792,8 +22631,8 @@
           "id": "res-0369",
           "name": "د. زهراء محمد",
           "phone": "+9647718713995",
-          "spec": "EM",
-          "tag": "EM",
+          "spec": "E",
+          "tag": "E",
           "active": true,
           "hospitals": [
             "basra"
@@ -22803,8 +22642,8 @@
           "id": "res-0370",
           "name": "د. علي قاسم حسن",
           "phone": "+9647712901906",
-          "spec": "EM",
-          "tag": "EM",
+          "spec": "E",
+          "tag": "E",
           "active": true,
           "hospitals": [
             "basra"
@@ -22814,8 +22653,8 @@
           "id": "res-0371",
           "name": "د. ايات عبدالكريم",
           "phone": "+9647709401868",
-          "spec": "EM",
-          "tag": "EM",
+          "spec": "E",
+          "tag": "E",
           "active": true,
           "hospitals": [
             "basra"
@@ -22858,8 +22697,8 @@
           "id": "res-0375",
           "name": "د. شهد سعدون",
           "phone": "+9647721497466",
-          "spec": "FM",
-          "tag": "FM",
+          "spec": "F",
+          "tag": "F",
           "active": true,
           "hospitals": [
             "basra"
@@ -31513,9 +31352,8 @@
           "name_en": "Neurosurgery",
           "icon": "🧠",
           "color": "#fea101",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "GS",
@@ -31523,9 +31361,8 @@
           "name_en": "General Surgery",
           "icon": "🔪",
           "color": "#2ac200",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "OR",
@@ -31533,9 +31370,8 @@
           "name_en": "Orthopaedics",
           "icon": "🦴",
           "color": "#ff0000",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "US",
@@ -31543,19 +31379,17 @@
           "name_en": "Urosurgery",
           "icon": "🫘",
           "color": "#e66551",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "ENT",
           "name_ar": "الأذن و الأنف و الحنجرة",
           "name_en": "ENT",
-          "icon": "👂",
+          "icon": "👃",
           "color": "#fbff00",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "MF",
@@ -31563,9 +31397,8 @@
           "name_en": "MaxilloFacial Surgery",
           "icon": "🦷",
           "color": "#d600af",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "O",
@@ -31573,9 +31406,8 @@
           "name_en": "Ophthalmology",
           "icon": "👁️",
           "color": "#38ffe8",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "Pe",
@@ -31583,19 +31415,17 @@
           "name_en": "Paediatrics",
           "icon": "👶",
           "color": "#3dff6e",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
-          "id": "M",
+          "id": "IM",
           "name_ar": "الباطنية",
           "name_en": "Internal Medicine",
-          "icon": "💊",
+          "icon": "🩺",
           "color": "#2563eb",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "G",
@@ -31603,21 +31433,19 @@
           "name_en": "Gynecology",
           "icon": "🤰",
           "color": "#e40de7",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "ICU",
           "name_ar": "تخدير العناية المركزة",
-          "name_en": "ICU Anaesthesia",
+          "name_en": "ICU Anaethesia",
           "icon": "💉",
           "color": "#c9e141",
-          "enabled": true,
-          "parentSpec": "A",
           "acceptPool": [
             "A"
-          ]
+          ],
+          "enabled": true
         },
         {
           "id": "OP",
@@ -31625,11 +31453,10 @@
           "name_en": "OT Anaesthesia",
           "icon": "💉",
           "color": "#b4cc00",
-          "enabled": true,
-          "parentSpec": "A",
           "acceptPool": [
             "A"
-          ]
+          ],
+          "enabled": true
         },
         {
           "id": "R",
@@ -31637,21 +31464,17 @@
           "name_en": "Radiology",
           "icon": "🩻",
           "color": "#6700e6",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "D",
           "name_ar": "الوفيات",
-          "name_en": "Death Certificates",
+          "name_en": "Death Certificatess",
           "icon": "⚰️",
           "color": "#bababa",
-          "enabled": true,
-          "parentSpec": null,
           "acceptPool": [
             "NS",
-            "CT",
             "GS",
             "OR",
             "US",
@@ -31659,25 +31482,25 @@
             "MF",
             "O",
             "Pe",
-            "M",
+            "IM",
             "G",
             "ICU",
             "OP",
-            "GA",
-            "A",
-            "R",
             "ON",
             "N",
+            "GA",
+            "A",
             "NM",
             "P",
-            "Der",
-            "EM",
-            "FM",
+            "E",
+            "F",
             "GP",
             "H",
             "PS",
-            "RM"
-          ]
+            "RM",
+            "CT"
+          ],
+          "enabled": true
         },
         {
           "id": "AO",
@@ -31685,37 +31508,8 @@
           "name_en": "Administrative Officer",
           "icon": "🧑",
           "color": "#2563eb",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": [
-            "NS",
-            "CT",
-            "GS",
-            "OR",
-            "US",
-            "ENT",
-            "MF",
-            "O",
-            "Pe",
-            "M",
-            "G",
-            "ICU",
-            "OP",
-            "GA",
-            "A",
-            "R",
-            "ON",
-            "N",
-            "NM",
-            "P",
-            "Der",
-            "EM",
-            "FM",
-            "GP",
-            "H",
-            "PS",
-            "RM"
-          ]
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "ON",
@@ -31723,9 +31517,8 @@
           "name_en": "Oncology",
           "icon": "☢️",
           "color": "#84cc16",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "N",
@@ -31733,9 +31526,8 @@
           "name_en": "Nephrology",
           "icon": "🧫",
           "color": "#ff5ccb",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "GA",
@@ -31743,21 +31535,19 @@
           "name_en": "GYN Anaesthesia",
           "icon": "🤰",
           "color": "#fe62ad",
-          "enabled": false,
-          "parentSpec": "A",
           "acceptPool": [
             "A"
-          ]
+          ],
+          "enabled": false
         },
         {
           "id": "A",
           "name_ar": "التخدير و العناية المركزة",
-          "name_en": "Anaesthesia & Intensive Care",
+          "name_en": "Anaethesia",
           "icon": "💉",
           "color": "#ff8e24",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "NM",
@@ -31765,9 +31555,8 @@
           "name_en": "Neuromedicine",
           "icon": "🧠",
           "color": "#79e9f1",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "P",
@@ -31775,9 +31564,8 @@
           "name_en": "Psychiatry",
           "icon": "🧠",
           "color": "#fef606",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "Der",
@@ -31785,29 +31573,26 @@
           "name_en": "Dermatology",
           "icon": "🏥",
           "color": "#e27ef6",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
-          "id": "EM",
+          "id": "E",
           "name_ar": "طب الطوارئ",
           "name_en": "Emergency Medicine",
           "icon": "🏥",
           "color": "#9a5ce6",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
-          "id": "FM",
+          "id": "F",
           "name_ar": "طب الأسرة",
           "name_en": "Family Medicine",
           "icon": "👨",
           "color": "#78edb8",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "GP",
@@ -31815,9 +31600,8 @@
           "name_en": "General Practitioner",
           "icon": "🏥",
           "color": "#627ae4",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "H",
@@ -31825,9 +31609,8 @@
           "name_en": "Cardiology",
           "icon": "🫀",
           "color": "#c91d70",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "PS",
@@ -31835,9 +31618,8 @@
           "name_en": "Plastic Surgery",
           "icon": "🪡",
           "color": "#2563eb",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "RM",
@@ -31845,9 +31627,8 @@
           "name_en": "Respiratory Medicine",
           "icon": "🫁",
           "color": "#3bb8f7",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "CT",
@@ -31855,9 +31636,8 @@
           "name_en": "Cardiothoracic Surgery",
           "icon": "🫀",
           "color": "#e05910",
-          "enabled": false,
-          "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         }
       ],
       "names": [
@@ -32138,8 +31918,8 @@
           "id": "res-0414",
           "name": "د. احمد حسن رحيم",
           "phone": "+9647700052061",
-          "spec": "M",
-          "tag": "M",
+          "spec": "IM",
+          "tag": "IM",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32149,8 +31929,8 @@
           "id": "res-0415",
           "name": "د. نور علي خزعل",
           "phone": "+9647729218515",
-          "spec": "M",
-          "tag": "M",
+          "spec": "IM",
+          "tag": "IM",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32160,8 +31940,8 @@
           "id": "res-0416",
           "name": "د. هدير شريف",
           "phone": "+9647717806103",
-          "spec": "M",
-          "tag": "M",
+          "spec": "IM",
+          "tag": "IM",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32171,8 +31951,8 @@
           "id": "res-0417",
           "name": "د. علي عبد الزهرة طه",
           "phone": "+9647729281183",
-          "spec": "M",
-          "tag": "M",
+          "spec": "IM",
+          "tag": "IM",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32182,8 +31962,8 @@
           "id": "res-0418",
           "name": "د. كرار حيدر راجي",
           "phone": "+9647780477234",
-          "spec": "M",
-          "tag": "M",
+          "spec": "IM",
+          "tag": "IM",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32193,8 +31973,8 @@
           "id": "res-0419",
           "name": "د. شفق فارس",
           "phone": "+9647811487982",
-          "spec": "M",
-          "tag": "M",
+          "spec": "IM",
+          "tag": "IM",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32204,8 +31984,8 @@
           "id": "res-0420",
           "name": "د. حنان محمود حسن",
           "phone": "+9647716127715",
-          "spec": "M",
-          "tag": "M",
+          "spec": "IM",
+          "tag": "IM",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32270,8 +32050,8 @@
           "id": "res-0426",
           "name": "د. عبد الوهاب مصطفى",
           "phone": "+9647838781799",
-          "spec": "M",
-          "tag": "M",
+          "spec": "IM",
+          "tag": "IM",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32325,8 +32105,8 @@
           "id": "res-0431",
           "name": "د. سارة احمد",
           "phone": "+9647833256993",
-          "spec": "EM",
-          "tag": "EM",
+          "spec": "E",
+          "tag": "E",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32336,8 +32116,8 @@
           "id": "res-0432",
           "name": "د. حسين جاسم",
           "phone": "+9647806557223",
-          "spec": "EM",
-          "tag": "EM",
+          "spec": "E",
+          "tag": "E",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32695,7 +32475,7 @@
         },
         {
           "date": "18/04/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. نور الهدى توفيق",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33679,7 +33459,7 @@
         },
         {
           "date": "01/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. عبد الوهاب مصطفى",
           "VisitCount": 2,
           "dutyTime": "",
@@ -33687,7 +33467,7 @@
         },
         {
           "date": "02/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. كرار حيدر راجي",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33695,7 +33475,7 @@
         },
         {
           "date": "03/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. نور علي خزعل",
           "VisitCount": 2,
           "dutyTime": "",
@@ -33703,7 +33483,7 @@
         },
         {
           "date": "04/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. حنان محمود حسن",
           "VisitCount": 1,
           "dutyTime": "",
@@ -33711,7 +33491,7 @@
         },
         {
           "date": "05/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. عبد الوهاب مصطفى",
           "VisitCount": 1,
           "dutyTime": "",
@@ -33719,7 +33499,7 @@
         },
         {
           "date": "06/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. احمد حسن رحيم",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33727,7 +33507,7 @@
         },
         {
           "date": "07/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. حنان محمود حسن",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33735,7 +33515,7 @@
         },
         {
           "date": "08/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. عبد الوهاب مصطفى",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33743,7 +33523,7 @@
         },
         {
           "date": "09/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. نور علي خزعل",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33751,7 +33531,7 @@
         },
         {
           "date": "10/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. كرار حيدر راجي",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33759,7 +33539,7 @@
         },
         {
           "date": "11/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. هدير شريف",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33767,7 +33547,7 @@
         },
         {
           "date": "12/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. حنان محمود حسن",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33775,7 +33555,7 @@
         },
         {
           "date": "13/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. كرار حيدر راجي",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33783,7 +33563,7 @@
         },
         {
           "date": "14/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. هدير شريف",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33791,7 +33571,7 @@
         },
         {
           "date": "15/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. احمد حسن رحيم",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33799,7 +33579,7 @@
         },
         {
           "date": "16/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. حنان محمود حسن",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33807,7 +33587,7 @@
         },
         {
           "date": "17/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. هدير شريف",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33815,7 +33595,7 @@
         },
         {
           "date": "18/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. كرار حيدر راجي",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33823,7 +33603,7 @@
         },
         {
           "date": "19/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. هدير شريف",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33831,7 +33611,7 @@
         },
         {
           "date": "20/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. احمد حسن رحيم",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33839,7 +33619,7 @@
         },
         {
           "date": "21/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. عبد الوهاب مصطفى",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33847,7 +33627,7 @@
         },
         {
           "date": "22/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. حنان محمود حسن",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33855,7 +33635,7 @@
         },
         {
           "date": "23/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. نور علي خزعل",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33863,7 +33643,7 @@
         },
         {
           "date": "24/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. احمد حسن رحيم",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33871,7 +33651,7 @@
         },
         {
           "date": "25/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. عبد الوهاب مصطفى",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33879,7 +33659,7 @@
         },
         {
           "date": "26/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. كرار حيدر راجي",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33887,7 +33667,7 @@
         },
         {
           "date": "27/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. نور علي خزعل",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33895,7 +33675,7 @@
         },
         {
           "date": "28/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. هدير شريف",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33903,7 +33683,7 @@
         },
         {
           "date": "29/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. حنان محمود حسن",
           "VisitCount": 0,
           "dutyTime": "",
@@ -33911,7 +33691,7 @@
         },
         {
           "date": "30/09/2026",
-          "specCode": "M",
+          "specCode": "IM",
           "name": "د. نور علي خزعل",
           "VisitCount": 0,
           "dutyTime": "",
@@ -40448,8 +40228,8 @@
       "id": "res-0352",
       "name": "د. زهراء ماجد",
       "phone": "+9647733988464",
-      "spec": "FM",
-      "tag": "FM",
+      "spec": "F",
+      "tag": "F",
       "active": true,
       "hospitals": [
         "basra"
@@ -40459,8 +40239,8 @@
       "id": "res-0353",
       "name": "د. رؤى بشير",
       "phone": "+9647739999363",
-      "spec": "FM",
-      "tag": "FM",
+      "spec": "F",
+      "tag": "F",
       "active": true,
       "hospitals": [
         "basra"
@@ -40470,8 +40250,8 @@
       "id": "res-0354",
       "name": "د. غفران قاسم هادي",
       "phone": "+9647725158934",
-      "spec": "FM",
-      "tag": "FM",
+      "spec": "F",
+      "tag": "F",
       "active": true,
       "hospitals": [
         "basra"
@@ -40481,8 +40261,8 @@
       "id": "res-0355",
       "name": "د. أبرار مؤيد عبدالمنعم",
       "phone": "+9647816922397",
-      "spec": "FM",
-      "tag": "FM",
+      "spec": "F",
+      "tag": "F",
       "active": true,
       "hospitals": [
         "basra"
@@ -40492,8 +40272,8 @@
       "id": "res-0356",
       "name": "د. امال ناصر ناجي",
       "phone": "+9647723405240",
-      "spec": "FM",
-      "tag": "FM",
+      "spec": "F",
+      "tag": "F",
       "active": true,
       "hospitals": [
         "basra"
@@ -40503,8 +40283,8 @@
       "id": "res-0357",
       "name": "د. براء عباس",
       "phone": "+9647714985674",
-      "spec": "FM",
-      "tag": "FM",
+      "spec": "F",
+      "tag": "F",
       "active": true,
       "hospitals": [
         "basra"
@@ -40514,8 +40294,8 @@
       "id": "res-0358",
       "name": "د. فاتن سلمان",
       "phone": "+9647707009908",
-      "spec": "FM",
-      "tag": "FM",
+      "spec": "F",
+      "tag": "F",
       "active": true,
       "hospitals": [
         "basra"
@@ -40525,8 +40305,8 @@
       "id": "res-0359",
       "name": "د. زمن مصطفى",
       "phone": "+9647731972744",
-      "spec": "FM",
-      "tag": "FM",
+      "spec": "F",
+      "tag": "F",
       "active": true,
       "hospitals": [
         "basra"
@@ -40536,8 +40316,8 @@
       "id": "res-0360",
       "name": "د. مريم حسن",
       "phone": "+9647709640919",
-      "spec": "FM",
-      "tag": "FM",
+      "spec": "F",
+      "tag": "F",
       "active": true,
       "hospitals": [
         "basra"
@@ -40547,8 +40327,8 @@
       "id": "res-0361",
       "name": "د. نور عمار",
       "phone": "+9647722921447",
-      "spec": "FM",
-      "tag": "FM",
+      "spec": "F",
+      "tag": "F",
       "active": true,
       "hospitals": [
         "basra"
@@ -40558,8 +40338,8 @@
       "id": "res-0362",
       "name": "د. نور رياض",
       "phone": "+9647717539972",
-      "spec": "FM",
-      "tag": "FM",
+      "spec": "F",
+      "tag": "F",
       "active": true,
       "hospitals": [
         "basra"
@@ -40569,8 +40349,8 @@
       "id": "res-0363",
       "name": "د. ثناء احمد",
       "phone": "+9647716750774",
-      "spec": "FM",
-      "tag": "FM",
+      "spec": "F",
+      "tag": "F",
       "active": true,
       "hospitals": [
         "basra"
@@ -40580,8 +40360,8 @@
       "id": "res-0364",
       "name": "د. طيبة حميد",
       "phone": "+9647819600025",
-      "spec": "FM",
-      "tag": "FM",
+      "spec": "F",
+      "tag": "F",
       "active": true,
       "hospitals": [
         "basra"
@@ -40591,8 +40371,8 @@
       "id": "res-0365",
       "name": "د. صفا احمد",
       "phone": "+9647814095288",
-      "spec": "FM",
-      "tag": "FM",
+      "spec": "F",
+      "tag": "F",
       "active": true,
       "hospitals": [
         "basra"
@@ -40602,8 +40382,8 @@
       "id": "res-0366",
       "name": "د. فرح رحيم",
       "phone": "+9647707376328",
-      "spec": "FM",
-      "tag": "FM",
+      "spec": "F",
+      "tag": "F",
       "active": true,
       "hospitals": [
         "basra"
@@ -40613,8 +40393,8 @@
       "id": "res-0367",
       "name": "د. رفل اسامه",
       "phone": "+9647721895042",
-      "spec": "FM",
-      "tag": "FM",
+      "spec": "F",
+      "tag": "F",
       "active": true,
       "hospitals": [
         "basra"
@@ -40624,8 +40404,8 @@
       "id": "res-0368",
       "name": "د. عمر جليل عيسى",
       "phone": "+9647746927069",
-      "spec": "EM",
-      "tag": "EM",
+      "spec": "E",
+      "tag": "E",
       "active": true,
       "hospitals": [
         "basra"
@@ -40635,8 +40415,8 @@
       "id": "res-0369",
       "name": "د. زهراء محمد",
       "phone": "+9647718713995",
-      "spec": "EM",
-      "tag": "EM",
+      "spec": "E",
+      "tag": "E",
       "active": true,
       "hospitals": [
         "basra"
@@ -40646,8 +40426,8 @@
       "id": "res-0370",
       "name": "د. علي قاسم حسن",
       "phone": "+9647712901906",
-      "spec": "EM",
-      "tag": "EM",
+      "spec": "E",
+      "tag": "E",
       "active": true,
       "hospitals": [
         "basra"
@@ -40657,8 +40437,8 @@
       "id": "res-0371",
       "name": "د. ايات عبدالكريم",
       "phone": "+9647709401868",
-      "spec": "EM",
-      "tag": "EM",
+      "spec": "E",
+      "tag": "E",
       "active": true,
       "hospitals": [
         "basra"
@@ -40701,8 +40481,8 @@
       "id": "res-0375",
       "name": "د. شهد سعدون",
       "phone": "+9647721497466",
-      "spec": "FM",
-      "tag": "FM",
+      "spec": "F",
+      "tag": "F",
       "active": true,
       "hospitals": [
         "basra"
@@ -41130,8 +40910,8 @@
       "id": "res-0414",
       "name": "د. احمد حسن رحيم",
       "phone": "+9647700052061",
-      "spec": "M",
-      "tag": "M",
+      "spec": "IM",
+      "tag": "IM",
       "active": true,
       "hospitals": [
         "mawani"
@@ -41141,8 +40921,8 @@
       "id": "res-0415",
       "name": "د. نور علي خزعل",
       "phone": "+9647729218515",
-      "spec": "M",
-      "tag": "M",
+      "spec": "IM",
+      "tag": "IM",
       "active": true,
       "hospitals": [
         "mawani"
@@ -41152,8 +40932,8 @@
       "id": "res-0416",
       "name": "د. هدير شريف",
       "phone": "+9647717806103",
-      "spec": "M",
-      "tag": "M",
+      "spec": "IM",
+      "tag": "IM",
       "active": true,
       "hospitals": [
         "mawani"
@@ -41163,8 +40943,8 @@
       "id": "res-0417",
       "name": "د. علي عبد الزهرة طه",
       "phone": "+9647729281183",
-      "spec": "M",
-      "tag": "M",
+      "spec": "IM",
+      "tag": "IM",
       "active": true,
       "hospitals": [
         "mawani"
@@ -41174,8 +40954,8 @@
       "id": "res-0418",
       "name": "د. كرار حيدر راجي",
       "phone": "+9647780477234",
-      "spec": "M",
-      "tag": "M",
+      "spec": "IM",
+      "tag": "IM",
       "active": true,
       "hospitals": [
         "mawani"
@@ -41185,8 +40965,8 @@
       "id": "res-0419",
       "name": "د. شفق فارس",
       "phone": "+9647811487982",
-      "spec": "M",
-      "tag": "M",
+      "spec": "IM",
+      "tag": "IM",
       "active": true,
       "hospitals": [
         "mawani"
@@ -41196,8 +40976,8 @@
       "id": "res-0420",
       "name": "د. حنان محمود حسن",
       "phone": "+9647716127715",
-      "spec": "M",
-      "tag": "M",
+      "spec": "IM",
+      "tag": "IM",
       "active": true,
       "hospitals": [
         "mawani"
@@ -41262,8 +41042,8 @@
       "id": "res-0426",
       "name": "د. عبد الوهاب مصطفى",
       "phone": "+9647838781799",
-      "spec": "M",
-      "tag": "M",
+      "spec": "IM",
+      "tag": "IM",
       "active": true,
       "hospitals": [
         "mawani"
@@ -41317,8 +41097,8 @@
       "id": "res-0431",
       "name": "د. سارة احمد",
       "phone": "+9647833256993",
-      "spec": "EM",
-      "tag": "EM",
+      "spec": "E",
+      "tag": "E",
       "active": true,
       "hospitals": [
         "mawani"
@@ -41328,8 +41108,8 @@
       "id": "res-0432",
       "name": "د. حسين جاسم",
       "phone": "+9647806557223",
-      "spec": "EM",
-      "tag": "EM",
+      "spec": "E",
+      "tag": "E",
       "active": true,
       "hospitals": [
         "mawani"
@@ -41642,360 +41422,6 @@
       "hospitals": [
         "mawani"
       ]
-    }
-  ],
-  "globalSpecialties": [
-    {
-      "id": "NS",
-      "name_ar": "جراحة الجملة العصبية",
-      "name_en": "Neurosurgery",
-      "icon": "🧠",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "CT",
-      "name_ar": "جراحة الصدر و الاوعية الدموية",
-      "name_en": "Cardiothoracic Surgery",
-      "icon": "🫀",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "GS",
-      "name_ar": "الجراحة العامة",
-      "name_en": "General Surgery",
-      "icon": "🔪",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "OR",
-      "name_ar": "الكسور",
-      "name_en": "Orthopaedics",
-      "icon": "🦴",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "US",
-      "name_ar": "جراحة المسالك البولية",
-      "name_en": "Urosurgery",
-      "icon": "🫘",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "ENT",
-      "name_ar": "الأذن و الأنف و الحنجرة",
-      "name_en": "ENT",
-      "icon": "👂",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "MF",
-      "name_ar": "جراحة الوجه و الفكين",
-      "name_en": "MaxilloFacial Surgery",
-      "icon": "🦷",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "O",
-      "name_ar": "العيون",
-      "name_en": "Ophthalmology",
-      "icon": "👁️",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "Pe",
-      "name_ar": "الاطفال",
-      "name_en": "Paediatrics",
-      "icon": "👶",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "M",
-      "name_ar": "الباطنية",
-      "name_en": "Internal Medicine",
-      "icon": "💊",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "G",
-      "name_ar": "النسائية و التوليد",
-      "name_en": "Gynecology",
-      "icon": "🤰",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "ICU",
-      "name_ar": "تخدير العناية المركزة",
-      "name_en": "ICU Anaesthesia",
-      "icon": "💉",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": "A",
-      "acceptPool": [
-        "A"
-      ]
-    },
-    {
-      "id": "OP",
-      "name_ar": "تخدير العمليات",
-      "name_en": "OT Anaesthesia",
-      "icon": "💉",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": "A",
-      "acceptPool": [
-        "A"
-      ]
-    },
-    {
-      "id": "GA",
-      "name_ar": "تخدير صالة الولادة",
-      "name_en": "GYN Anaesthesia",
-      "icon": "🤰",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": "A",
-      "acceptPool": [
-        "A"
-      ]
-    },
-    {
-      "id": "A",
-      "name_ar": "التخدير و العناية المركزة",
-      "name_en": "Anaesthesia & Intensive Care",
-      "icon": "💉",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "R",
-      "name_ar": "الأشعة و السونار",
-      "name_en": "Radiology",
-      "icon": "🩻",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "D",
-      "name_ar": "الوفيات",
-      "name_en": "Death Certificates",
-      "icon": "⚰️",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": [
-        "NS",
-        "CT",
-        "GS",
-        "OR",
-        "US",
-        "ENT",
-        "MF",
-        "O",
-        "Pe",
-        "M",
-        "G",
-        "ICU",
-        "OP",
-        "GA",
-        "A",
-        "R",
-        "ON",
-        "N",
-        "NM",
-        "P",
-        "Der",
-        "EM",
-        "FM",
-        "GP",
-        "H",
-        "PS",
-        "RM"
-      ]
-    },
-    {
-      "id": "AO",
-      "name_ar": "المعاون الاداري",
-      "name_en": "Administrative Officer",
-      "icon": "🧑",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": [
-        "NS",
-        "CT",
-        "GS",
-        "OR",
-        "US",
-        "ENT",
-        "MF",
-        "O",
-        "Pe",
-        "M",
-        "G",
-        "ICU",
-        "OP",
-        "GA",
-        "A",
-        "R",
-        "ON",
-        "N",
-        "NM",
-        "P",
-        "Der",
-        "EM",
-        "FM",
-        "GP",
-        "H",
-        "PS",
-        "RM"
-      ]
-    },
-    {
-      "id": "ON",
-      "name_ar": "طب الاورام",
-      "name_en": "Oncology",
-      "icon": "☢️",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "N",
-      "name_ar": "طب امراض الكلى",
-      "name_en": "Nephrology",
-      "icon": "🧫",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "NM",
-      "name_ar": "طب الجملة العصبية",
-      "name_en": "Neuromedicine",
-      "icon": "🧠",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "P",
-      "name_ar": "النفسية",
-      "name_en": "Psychiatry",
-      "icon": "🧠",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "Der",
-      "name_ar": "الجلدية",
-      "name_en": "Dermatology",
-      "icon": "🏥",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "EM",
-      "name_ar": "طب الطوارئ",
-      "name_en": "Emergency Medicine",
-      "icon": "🏥",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "FM",
-      "name_ar": "طب الأسرة",
-      "name_en": "Family Medicine",
-      "icon": "👨",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "GP",
-      "name_ar": "ممارسين",
-      "name_en": "General Practitioner",
-      "icon": "🏥",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "H",
-      "name_ar": "طب الامراض القلبية",
-      "name_en": "Cardiology",
-      "icon": "🫀",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "PS",
-      "name_ar": "الجراحة التجميلية",
-      "name_en": "Plastic Surgery",
-      "icon": "🪡",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "RM",
-      "name_ar": "طب الامراض التنفسية",
-      "name_en": "Respiratory Medicine",
-      "icon": "🫁",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
     }
   ]
 }

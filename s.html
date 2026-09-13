@@ -1731,23 +1731,30 @@
             nameData = {};
             var residents = database.names || [];
             specialtyList.forEach(function(specialty) {
-                var specialtyObject = database.specialties?.find(function(specialtyItem) { return specialtyItem.id === specialty.id; });
-                var acceptPool = specialtyObject?.acceptPool || [];
-                
-                if (specialty.id === "OP" || specialty.id === "ICU" || specialty.id === "GA") {
-                    nameData[specialty.id] = residents.filter(function(resident) { return resident.spec === "A"; }).map(function(resident) { return resident.name; });
-                } else if (specialty.id === "D") {
-                    if (acceptPool.length > 0) {
-                        nameData[specialty.id] = residents.filter(function(resident) { return acceptPool.includes(resident.spec); }).map(function(resident) { return resident.name; });
-                    } else {
-                        nameData[specialty.id] = residents.map(function(resident) { return resident.name; });
-                    }
+                if (window.Hub && typeof window.Hub.getEligibleResidentsForSpecialty === 'function') {
+                    var eligible = window.Hub.getEligibleResidentsForSpecialty(database, specialty.id);
+                    nameData[specialty.id] = eligible.map(function(resident) { return resident.name; });
                 } else {
-                    if (acceptPool.length > 0) {
-                        nameData[specialty.id] = residents.filter(function(resident) { return acceptPool.includes(resident.spec); }).map(function(resident) { return resident.name; });
-                    } else {
-                        nameData[specialty.id] = residents.filter(function(resident) { return resident.spec === specialty.id; }).map(function(resident) { return resident.name; });
+                    var specialtyObject = database.specialties?.find(function(specialtyItem) { return specialtyItem.id === specialty.id; });
+                    var acceptPool = specialtyObject?.acceptPool || [];
+                    var parentSpec = specialtyObject?.parentSpec || null;
+                    var allSpecs = database.specialties || [];
+                    var childSpecIds = allSpecs.filter(function(s) { return s.parentSpec === specialty.id; }).map(function(s) { return s.id; });
+
+                    var eligible = residents.filter(function(resident) {
+                        if (resident.active === false || resident.spec === 'RESERVE') return false;
+                        var rSpec = resident.spec || resident.tag;
+                        var rTag = resident.tag || resident.spec;
+                        if (rSpec === specialty.id || rTag === specialty.id) return true;
+                        if (parentSpec && (rSpec === parentSpec || rTag === parentSpec)) return true;
+                        if (childSpecIds.indexOf(rSpec) !== -1 || childSpecIds.indexOf(rTag) !== -1) return true;
+                        if (acceptPool.length > 0 && (acceptPool.indexOf(rSpec) !== -1 || acceptPool.indexOf(rTag) !== -1)) return true;
+                        return false;
+                    });
+                    if (eligible.length === 0) {
+                        eligible = residents.filter(function(resident) { return resident.spec === specialty.id; });
                     }
+                    nameData[specialty.id] = eligible.map(function(resident) { return resident.name; });
                 }
             });
         }

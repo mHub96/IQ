@@ -1497,12 +1497,11 @@
 
                     var eligible = residents.filter(function(resident) {
                         if (resident.active === false || resident.spec === 'RESERVE') return false;
-                        var rSpec = resident.spec || resident.tag;
-                        var rTag = resident.tag || resident.spec;
-                        if (rSpec === specialty.id || rTag === specialty.id) return true;
-                        if (parentSpec && (rSpec === parentSpec || rTag === parentSpec)) return true;
-                        if (childSpecIds.indexOf(rSpec) !== -1 || childSpecIds.indexOf(rTag) !== -1) return true;
-                        if (acceptPool.length > 0 && (acceptPool.indexOf(rSpec) !== -1 || acceptPool.indexOf(rTag) !== -1)) return true;
+                        var rDuty = resident.dept || resident.department || resident.spec || resident.tag;
+                        if (rDuty === specialty.id) return true;
+                        if (parentSpec && (rDuty === parentSpec)) return true;
+                        if (childSpecIds.indexOf(rDuty) !== -1) return true;
+                        if (acceptPool.length > 0 && acceptPool.indexOf(rDuty) !== -1) return true;
                         return false;
                     });
                     if (eligible.length === 0) {

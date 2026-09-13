@@ -1,0 +1,2913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <title>HOSPITAL SCHEDULER 🇮🇶</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,600;14..32,700;14..32,800&family=IBM+Plex+Sans+Arabic:wght@400;600;700;800&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+    <style>
+        /* ----- RESET & BASE ----- */
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+        }
+
+        :root {
+            --background-color: #0b0e13;
+            --card-background-color: #141a24;
+            --card-hover-background-color: #1c2432;
+            --border-subtle: rgba(255, 255, 255, 0.05);
+            --border-focus: rgba(255, 255, 255, 0.12);
+            --text-primary-color: #eef2f6;
+            --text-secondary-color: #9aa8b9;
+            --text-muted-color: #5d6f83;
+            --navigation-height: 64px;
+            --card-radius: 1.8rem;
+            --input-radius: 0.9rem;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--background-color);
+            color: var(--text-secondary-color);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .navigation-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            height: var(--navigation-height);
+            padding: 0 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(18, 22, 30, 0.92);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-subtle);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .navigation-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .navigation-brand h1 {
+            font-weight: 800;
+            font-size: 1rem;
+            letter-spacing: -0.02em;
+            color: white;
+            background: linear-gradient(135deg, #f0f4ff 0%, #b7c9e2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            white-space: nowrap;
+        }
+
+        .navigation-brand span {
+            font-size: 1.1rem;
+        }
+
+        .navigation-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .view-selector {
+            display: flex;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 2rem;
+            padding: 0.1rem;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .view-button {
+            padding: 0.2rem 0.6rem;
+            border-radius: 1.5rem;
+            border: none;
+            background: transparent;
+            color: var(--text-muted-color);
+            font-size: 0.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s ease;
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .view-button:hover {
+            color: var(--text-secondary-color);
+        }
+
+        .view-button.active {
+            background: #d4af37;
+            color: #0b0e13;
+        }
+
+        .month-picker {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            color: #d4dce8;
+            padding: 0.25rem 0.7rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            font-size: 0.65rem;
+            transition: 0.2s ease;
+            cursor: pointer;
+            min-width: 110px;
+            font-family: inherit;
+        }
+
+        .month-picker:focus {
+            outline: none;
+            border-color: #d4af37;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+        }
+
+        .month-picker::-webkit-calendar-picker-indicator {
+            filter: invert(0.6);
+            cursor: pointer;
+        }
+
+        .synchronize-button {
+            background: #d4af37;
+            color: #0b0e13;
+            padding: 0.25rem 0.9rem;
+            border-radius: 2rem;
+            font-weight: 800;
+            font-size: 0.55rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            border: none;
+            transition: 0.15s ease;
+            box-shadow: 0 4px 16px rgba(212, 175, 55, 0.2);
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+
+        .synchronize-button:hover {
+            transform: scale(0.97);
+            opacity: 0.85;
+        }
+
+        .synchronize-button:active {
+            transform: scale(0.94);
+        }
+
+        .board-container {
+            position: fixed;
+            top: var(--navigation-height);
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            gap: 1.2rem;
+            padding: 1.2rem 1.5rem 1.5rem 1.5rem;
+            overflow-x: auto;
+            overflow-y: hidden;
+            align-items: flex-start;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+            background: var(--background-color);
+        }
+
+        .board-container.all-view {
+            overflow-x: auto;
+            overflow-y: hidden;
+            justify-content: flex-start;
+        }
+
+        .board-container.single-view {
+            overflow: hidden;
+            justify-content: center;
+            padding: 1.2rem 0.5rem 1.5rem 0.5rem;
+            touch-action: none;
+        }
+
+        .board-container::-webkit-scrollbar {
+            height: 4px;
+        }
+        .board-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .board-container::-webkit-scrollbar-thumb {
+            background: #2d3745;
+            border-radius: 20px;
+        }
+
+        .specialty-track {
+            flex: 0 0 auto;
+            width: 340px;
+            background: var(--card-background-color);
+            border-radius: var(--card-radius);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - var(--navigation-height) - 2.8rem);
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.8);
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.3s ease, opacity 0.3s ease;
+            overflow: hidden;
+            min-width: 280px;
+            max-width: 420px;
+        }
+
+        .board-container.all-view .specialty-track {
+            flex: 0 0 320px;
+            width: 320px;
+            min-width: 260px;
+            max-width: 380px;
+            height: calc(100vh - var(--navigation-height) - 2.8rem);
+        }
+
+        .board-container.single-view .specialty-track {
+            flex: 0 0 94%;
+            max-width: 540px;
+            min-width: 280px;
+            width: 94%;
+            height: calc(100vh - var(--navigation-height) - 2.8rem);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+        }
+
+        .specialty-track:hover {
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.9), 0 0 20px -8px var(--specialty-color);
+        }
+
+        .specialty-track.hidden-track {
+            display: none;
+        }
+
+        .specialty-track.slide-out-left {
+            transform: translateX(-120%) scale(0.9);
+            opacity: 0;
+        }
+        .specialty-track.slide-out-right {
+            transform: translateX(120%) scale(0.9);
+            opacity: 0;
+        }
+        .specialty-track.slide-in-left {
+            transform: translateX(0) scale(1);
+            opacity: 1;
+        }
+        .specialty-track.slide-in-right {
+            transform: translateX(0) scale(1);
+            opacity: 1;
+        }
+
+        .track-header {
+            padding: 1rem 1.2rem 0.8rem;
+            text-align: center;
+            flex-shrink: 0;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%);
+            border-bottom: 2px solid var(--specialty-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.8rem;
+            position: relative;
+        }
+
+        .track-header .specialty-icon {
+            font-size: 1.4rem;
+            line-height: 1;
+        }
+
+        .track-header h2 {
+            color: var(--specialty-color);
+            font-weight: 800;
+            font-size: 0.95rem;
+            letter-spacing: 0.05em;
+            margin: 0;
+            font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
+        }
+
+        .track-header .specialty-count {
+            font-size: 0.5rem;
+            font-weight: 700;
+            color: var(--text-muted-color);
+            background: rgba(255, 255, 255, 0.04);
+            padding: 0.1rem 0.6rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .track-navigation {
+            display: flex;
+            gap: 0.3rem;
+            position: absolute;
+            left: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .track-navigation button {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-muted-color);
+            border-radius: 50%;
+            width: 26px;
+            height: 26px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .track-navigation button:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-secondary-color);
+        }
+
+        .days-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.6rem 0.6rem 1rem;
+            scrollbar-width: thin;
+            scrollbar-color: #2d3745 transparent;
+        }
+
+        .days-list::-webkit-scrollbar {
+            width: 3px;
+        }
+        .days-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .days-list::-webkit-scrollbar-thumb {
+            background: #2d3745;
+            border-radius: 20px;
+        }
+
+        .day-box {
+            background: rgba(255, 255, 255, 0.015);
+            margin-bottom: 0.3rem;
+            border-radius: 1rem;
+            padding: 0.2rem 0.3rem 0.3rem;
+            border: 1px solid transparent;
+            transition: background 0.15s, border-color 0.15s;
+        }
+
+        .day-box:focus-within {
+            border-color: var(--specialty-color);
+            background: rgba(255, 255, 255, 0.03);
+            box-shadow: 0 0 0 1px var(--specialty-color);
+        }
+
+        .day-box.weekend {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 2px solid var(--specialty-color);
+            border-radius: 1rem 0.3rem 0.3rem 1rem;
+        }
+
+        .day-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.55rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary-color);
+            padding: 0.05rem 0.5rem 0.1rem 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .day-label .day-date {
+            font-weight: 700;
+            color: var(--text-primary-color);
+        }
+
+        .duty-slots {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .duty-slot {
+            display: flex;
+            align-items: stretch;
+            gap: 0.3rem;
+            position: relative;
+            min-height: 40px;
+        }
+
+        .duty-slot .time-display {
+            display: flex;
+            flex-direction: column;
+            gap: 0.05rem;
+            font-size: 0.55rem;
+            font-weight: 700;
+            color: var(--specialty-color, #60a5fa);
+            min-width: 52px;
+            font-family: 'JetBrains Mono', monospace;
+            opacity: 0.9;
+            flex-shrink: 0;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 0.2rem 0.25rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: 0.2s ease;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid transparent;
+            line-height: 1.3;
+        }
+
+        .duty-slot .time-display:hover {
+            background: rgba(255, 255, 255, 0.08);
+            opacity: 1;
+        }
+
+        .duty-slot .time-display.single-slot {
+            background: rgba(212, 175, 55, 0.12);
+            border-color: rgba(212, 175, 55, 0.2);
+            cursor: default;
+            opacity: 0.9;
+            color: #fbbf24;
+            min-height: 36px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .duty-slot .time-display.single-slot:hover {
+            background: rgba(212, 175, 55, 0.12);
+            opacity: 0.9;
+        }
+
+        .duty-slot .time-display .time-start,
+        .duty-slot .time-display .time-end {
+            display: block;
+            font-size: 0.55rem;
+            font-weight: 700;
+        }
+
+        .duty-slot .time-display .time-separator {
+            opacity: 0.2;
+            font-size: 0.4rem;
+        }
+
+        .duty-slot .time-display .single-slot-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            opacity: 1;
+            display: block;
+            color: #fbbf24;
+            letter-spacing: 0.05em;
+        }
+
+        .duty-slot .input-wrapper {
+            flex: 1;
+            position: relative;
+            direction: rtl;
+            text-align: right;
+            min-width: 0;
+        }
+
+        .duty-slot .cell-input,
+        .duty-slot .ghost-text {
+            width: 100%;
+            font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
+            font-size: 0.95rem;
+            padding: 0.35rem 0.7rem;
+            line-height: 1.5;
+            text-align: right;
+            box-sizing: border-box;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: 0;
+            border: none;
+            font-weight: 600;
+            border-radius: 0.7rem;
+            min-height: 36px;
+            height: auto;
+        }
+
+        .duty-slot .cell-input {
+            background: transparent;
+            outline: none;
+            color: #f0f4fc;
+            position: relative;
+            z-index: 10;
+            direction: rtl;
+            caret-color: var(--specialty-color, #60a5fa);
+            min-height: 36px;
+            font-size: 0.95rem;
+            letter-spacing: 0.02em;
+        }
+
+        .duty-slot .cell-input::placeholder {
+            color: rgba(255, 255, 255, 0.08);
+            font-weight: 400;
+            font-size: 0.85rem;
+        }
+
+        .duty-slot .ghost-text {
+            position: absolute;
+            top: 0;
+            right: 0;
+            color: rgba(255, 255, 255, 0.3);
+            z-index: 5;
+            pointer-events: none;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            direction: rtl;
+            background: transparent;
+            font-weight: 500;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            padding: 0.35rem 0.7rem;
+            font-size: 0.95rem;
+        }
+
+        .duty-slot .ghost-text .ghost-suggestion {
+            color: rgba(255, 255, 255, 0.25);
+        }
+        .duty-slot .ghost-text .ghost-suggestion-bright {
+            color: rgba(255, 255, 255, 0.45);
+        }
+        .duty-slot .ghost-offset {
+            color: transparent;
+            visibility: hidden;
+            white-space: pre;
+        }
+
+        .duty-slot .prefilled {
+            color: var(--specialty-color) !important;
+            font-weight: 700;
+        }
+        .duty-slot .new-entry {
+            color: #ffffff !important;
+            font-weight: 700;
+        }
+        .duty-slot .cell-input.invalid-name {
+            color: #ef4444 !important;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .duty-slot .dropdown-arrow {
+            position: absolute;
+            left: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.45rem;
+            color: #4b5b70;
+            cursor: pointer;
+            z-index: 25;
+            padding: 3px 6px;
+            border-radius: 2rem;
+            transition: 0.1s ease;
+            background: rgba(0, 0, 0, 0.25);
+            line-height: 1;
+        }
+
+        .duty-slot .dropdown-arrow:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #b0c4dd;
+        }
+
+        .duty-slot .custom-menu {
+            position: absolute;
+            top: calc(100% + 4px);
+            right: 0;
+            width: 100%;
+            max-height: 160px;
+            overflow-y: auto;
+            background: #1a2230;
+            border: 1px solid var(--specialty-color, #60a5fa);
+            border-radius: 0.8rem;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            padding: 0.3rem 0;
+        }
+
+        .duty-slot .custom-menu div {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            text-align: right;
+            cursor: pointer;
+            color: #c8d4e3;
+            font-weight: 500;
+            transition: 0.1s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .duty-slot .custom-menu div:hover {
+            background: var(--specialty-color, #60a5fa);
+            color: #0b0e11;
+        }
+
+        .duty-slot .custom-menu::-webkit-scrollbar {
+            width: 3px;
+        }
+        .duty-slot .custom-menu::-webkit-scrollbar-thumb {
+            background: #3f4d62;
+            border-radius: 20px;
+        }
+
+        .delete-slot-button {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.08);
+            cursor: pointer;
+            font-size: 0.6rem;
+            padding: 0.15rem 0.35rem;
+            border-radius: 0.4rem;
+            transition: 0.2s ease;
+            flex-shrink: 0;
+            line-height: 1;
+            align-self: center;
+        }
+
+        .delete-slot-button:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.08);
+        }
+
+        .duty-slots.single-slot .delete-slot-button {
+            display: none !important;
+        }
+
+        .add-slot-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 0.6rem;
+            border: 1px dashed rgba(255, 255, 255, 0.06);
+            background: transparent;
+            color: var(--text-muted-color);
+            font-size: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s ease;
+            width: 100%;
+            margin-top: 0.1rem;
+            font-family: inherit;
+        }
+
+        .add-slot-button:hover {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: var(--specialty-color, #60a5fa);
+            color: var(--specialty-color, #60a5fa);
+        }
+
+        .slot-tip {
+            font-size: 0.45rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+            margin-top: 0.05rem;
+            animation: fadeTip 0.3s ease;
+            font-weight: 600;
+        }
+
+        .slot-tip.success {
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.06);
+        }
+
+        .slot-tip.error {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.06);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .gap-fix-popup {
+            position: fixed;
+            z-index: 10000;
+            width: min(280px, calc(100vw - 2rem));
+            padding: 0.8rem;
+            background: #1a2230;
+            border: 1px solid #ef4444;
+            border-radius: 0.8rem;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.7);
+            color: var(--text-primary-color);
+            font-size: 0.6rem;
+            text-align: center;
+        }
+
+        .gap-fix-popup p {
+            margin-bottom: 0.65rem;
+            line-height: 1.45;
+        }
+
+        .gap-fix-popup-actions {
+            display: flex;
+            justify-content: center;
+            gap: 0.35rem;
+        }
+
+        .gap-fix-popup-actions button {
+            border: 0;
+            border-radius: 0.45rem;
+            padding: 0.3rem 0.7rem;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 700;
+        }
+
+        .gap-fix-confirm {
+            background: #10b981;
+            color: #07130f;
+        }
+
+        .gap-fix-cancel {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-secondary-color);
+        }
+
+        @keyframes fadeTip {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================================
+           TIME PICKER POPUP - WHEEL STYLE
+           ============================================================ */
+        .time-picker-popup {
+            position: fixed;
+            background: #1a2230;
+            border: 2px solid var(--specialty-color, #60a5fa);
+            border-radius: 1.2rem;
+            padding: 0.8rem 0.8rem;
+            z-index: 9999;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(16px);
+            display: none;
+            min-width: 300px;
+            max-width: 380px;
+        }
+
+        .time-picker-popup.active {
+            display: block;
+        }
+
+        .time-picker-popup .picker-title {
+            text-align: center;
+            font-size: 0.55rem;
+            font-weight: 700;
+            color: var(--text-secondary-color);
+            opacity: 0.4;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.4rem;
+            text-transform: uppercase;
+        }
+
+        .time-picker-popup .picker-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.15rem;
+        }
+
+        .time-picker-popup .picker-row .range-label {
+            font-size: 0.45rem;
+            font-weight: 700;
+            color: var(--text-secondary-color);
+            opacity: 0.3;
+            padding: 0 0.15rem;
+        }
+
+        .time-picker-popup .picker-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.05rem;
+        }
+
+        .time-picker-popup .picker-col .picker-label {
+            font-size: 0.35rem;
+            font-weight: 600;
+            color: var(--text-secondary-color);
+            opacity: 0.25;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .time-picker-popup .picker-col select {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--text-primary-color);
+            padding: 0.25rem 0.15rem;
+            border-radius: 0.4rem;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            text-align: center;
+            min-width: 44px;
+            appearance: none;
+            -webkit-appearance: none;
+            transition: 0.2s ease;
+        }
+
+        .time-picker-popup .picker-col select:focus {
+            outline: none;
+            border-color: var(--specialty-color, #60a5fa);
+            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.15);
+        }
+
+        .time-picker-popup .picker-col select option {
+            background: #1a2230;
+            color: var(--text-primary-color);
+        }
+
+        .time-picker-popup .picker-col select.hours-select {
+            min-width: 48px;
+        }
+
+        .time-picker-popup .picker-col select.minutes-select {
+            min-width: 48px;
+        }
+
+        .time-picker-popup .picker-col select.ampm-select {
+            min-width: 48px;
+            font-size: 0.65rem;
+            font-weight: 700;
+        }
+
+        .time-picker-popup .picker-colon {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-secondary-color);
+            opacity: 0.2;
+            padding: 0 0.05rem;
+            margin-top: 0.25rem;
+        }
+
+        .time-picker-popup .range-separator {
+            font-size: 0.5rem;
+            font-weight: 700;
+            color: var(--text-secondary-color);
+            opacity: 0.2;
+            padding: 0 0.2rem;
+            margin-top: 0.25rem;
+        }
+
+        .time-picker-popup .auto-redistribute-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            margin: 0.2rem 0 0.2rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 0.4rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .time-picker-popup .auto-redistribute-row input[type="checkbox"] {
+            width: 0.85rem;
+            height: 0.85rem;
+            accent-color: var(--specialty-color, #60a5fa);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .time-picker-popup .auto-redistribute-row label {
+            font-size: 0.5rem;
+            font-weight: 600;
+            color: var(--text-secondary-color);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .time-picker-popup .picker-actions {
+            display: flex;
+            gap: 0.3rem;
+            margin-top: 0.2rem;
+            justify-content: center;
+        }
+
+        .time-picker-popup .picker-actions button {
+            padding: 0.25rem 0.8rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-size: 0.55rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s ease;
+            font-family: inherit;
+            flex: 1;
+            max-width: 100px;
+        }
+
+        .time-picker-popup .picker-actions .button-confirm {
+            background: var(--specialty-color, #60a5fa);
+            color: #0b0e11;
+        }
+
+        .time-picker-popup .picker-actions .button-confirm:hover {
+            opacity: 0.85;
+        }
+
+        .time-picker-popup .picker-actions .button-cancel {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary-color);
+        }
+
+        .time-picker-popup .picker-actions .button-cancel:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .navigation-arrows {
+            display: none;
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 90;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary-color);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.2s ease;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .navigation-arrows:hover {
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--text-primary-color);
+        }
+
+        .navigation-arrows:active {
+            transform: translateY(-50%) scale(0.92);
+        }
+
+        .navigation-arrows.left { left: 8px; }
+        .navigation-arrows.right { right: 8px; }
+
+        .board-container.single-view .navigation-arrows {
+            display: flex;
+        }
+
+        .track-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0;
+            position: absolute;
+            bottom: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+        }
+
+        .track-indicators .indicator-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            transition: 0.3s ease;
+            cursor: pointer;
+        }
+
+        .track-indicators .indicator-dot.active {
+            background: var(--specialty-color, #60a5fa);
+            width: 16px;
+            border-radius: 3px;
+        }
+
+        .swipe-hint {
+            position: absolute;
+            bottom: 34px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.5rem;
+            color: var(--text-muted-color);
+            opacity: 0.2;
+            pointer-events: none;
+            animation: pulseHint 2.5s ease-in-out infinite;
+            white-space: nowrap;
+            font-weight: 600;
+        }
+
+        @keyframes pulseHint {
+            0%, 100% { opacity: 0.15; }
+            50% { opacity: 0.4; }
+        }
+
+        .toast-container {
+            position: fixed;
+            top: calc(var(--navigation-height) + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99999;
+            padding: 12px 24px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: white;
+            background: #10b981;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            max-width: 90%;
+            text-align: center;
+            direction: rtl;
+            font-family: 'Inter', sans-serif;
+            pointer-events: none;
+        }
+
+        .loading-active {
+            opacity: 0.6 !important;
+            pointer-events: none !important;
+            cursor: wait !important;
+        }
+
+        @media (max-width: 640px) {
+            :root {
+                --navigation-height: 56px;
+            }
+
+            .navigation-bar {
+                padding: 0.3rem 0.6rem;
+                min-height: 56px;
+                gap: 0.2rem;
+            }
+            .navigation-brand h1 {
+                font-size: 0.75rem;
+            }
+            .navigation-brand span {
+                font-size: 0.9rem;
+            }
+
+            .board-container {
+                padding: 0.6rem 0.4rem 1rem 0.4rem;
+                gap: 0.8rem;
+            }
+            .board-container.all-view {
+                padding: 0.6rem 0.4rem 1rem 0.4rem;
+                gap: 0.8rem;
+            }
+            .board-container.single-view {
+                padding: 0.6rem 0.3rem 1rem 0.3rem;
+            }
+
+            .board-container.all-view .specialty-track {
+                flex: 0 0 260px;
+                width: 260px;
+                min-width: 220px;
+                max-width: 320px;
+                height: calc(100vh - var(--navigation-height) - 2rem);
+            }
+
+            .board-container.single-view .specialty-track {
+                flex: 0 0 96%;
+                max-width: 100%;
+                min-width: 0;
+                width: 96%;
+                height: calc(100vh - var(--navigation-height) - 2rem);
+            }
+
+            .track-header h2 {
+                font-size: 0.75rem;
+            }
+            .track-header .specialty-icon {
+                font-size: 1rem;
+            }
+
+            .duty-slot .time-display {
+                min-width: 40px;
+                font-size: 0.45rem;
+                padding: 0.15rem 0.2rem;
+            }
+            .duty-slot .time-display .time-start,
+            .duty-slot .time-display .time-end {
+                font-size: 0.45rem;
+            }
+            .duty-slot .time-display .single-slot-label {
+                font-size: 0.55rem;
+            }
+            .duty-slot .cell-input {
+                font-size: 0.8rem;
+                padding: 0.25rem 0.5rem;
+                min-height: 30px;
+            }
+            .duty-slot .ghost-text {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.8rem;
+            }
+
+            .view-button {
+                font-size: 0.45rem;
+                padding: 0.15rem 0.45rem;
+            }
+            .month-picker {
+                font-size: 0.55rem;
+                padding: 0.2rem 0.5rem;
+                min-width: 80px;
+            }
+            .synchronize-button {
+                font-size: 0.45rem;
+                padding: 0.2rem 0.6rem;
+            }
+
+            .navigation-arrows {
+                width: 28px;
+                height: 28px;
+                font-size: 0.7rem;
+            }
+            .navigation-arrows.left { left: 3px; }
+            .navigation-arrows.right { right: 3px; }
+
+            .track-indicators .indicator-dot {
+                width: 4px;
+                height: 4px;
+            }
+            .track-indicators .indicator-dot.active {
+                width: 12px;
+            }
+            .swipe-hint {
+                bottom: 24px;
+                font-size: 0.4rem;
+            }
+            .time-picker-popup {
+                min-width: 220px;
+                padding: 0.5rem 0.6rem;
+                max-width: 320px;
+            }
+            .time-picker-popup .picker-col select {
+                font-size: 0.7rem;
+                min-width: 36px;
+                padding: 0.15rem 0.15rem;
+            }
+            .time-picker-popup .picker-col select.hours-select {
+                min-width: 38px;
+            }
+            .time-picker-popup .picker-col select.minutes-select {
+                min-width: 38px;
+            }
+            .time-picker-popup .picker-col select.ampm-select {
+                min-width: 38px;
+                font-size: 0.55rem;
+            }
+            .time-picker-popup .picker-colon {
+                font-size: 0.8rem;
+            }
+            .toast-container {
+                font-size: 0.7rem;
+                padding: 10px 18px;
+                top: calc(var(--navigation-height) + 6px);
+            }
+        }
+
+        @media (max-width: 400px) {
+            .board-container.all-view .specialty-track {
+                flex: 0 0 200px;
+                width: 200px;
+                min-width: 180px;
+            }
+            .board-container.single-view .specialty-track {
+                flex: 0 0 98%;
+                width: 98%;
+            }
+            .duty-slot .time-display {
+                min-width: 34px;
+                font-size: 0.4rem;
+            }
+            .duty-slot .time-display .time-start,
+            .duty-slot .time-display .time-end {
+                font-size: 0.4rem;
+            }
+            .duty-slot .time-display .single-slot-label {
+                font-size: 0.5rem;
+            }
+            .duty-slot .cell-input {
+                font-size: 0.7rem;
+                padding: 0.2rem 0.35rem;
+                min-height: 26px;
+            }
+            .duty-slot .ghost-text {
+                padding: 0.2rem 0.35rem;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="application-wrapper">
+        <div class="navigation-bar">
+            <div class="navigation-brand">
+                <h1 id="hospital-name">Teaching Hosp.</h1>
+                <span>🇮🇶</span>
+            </div>
+            <div class="navigation-actions">
+                <div class="view-selector">
+                    <button class="view-button active" data-view="all" onclick="switchView('all')">الكل</button>
+                    <button class="view-button" data-view="single" onclick="switchView('single')">تخصص</button>
+                </div>
+                <input type="month" id="month-picker" class="month-picker">
+                <button onclick="saveToGithub()" id="synchronize-button" class="synchronize-button">💾 حفظ</button>
+            </div>
+        </div>
+
+        <div class="board-container all-view" id="board-container">
+            <button class="navigation-arrows left" onclick="navigateTrack(-1)">‹</button>
+            <button class="navigation-arrows right" onclick="navigateTrack(1)">›</button>
+            <div class="swipe-hint" id="swipe-hint">↔ اسحب للتنقل</div>
+        </div>
+    </div>
+
+    <script>
+        // ================================================================
+        // CONFIGURATION
+        // ================================================================
+        var configuration = {
+            user: "mHub96",
+            repository: "s",
+            path: "data.json"
+        };
+
+        var githubTokenPart1 = "ghp_dAUtsFhTH";
+        var githubTokenPart2 = "a2KeJQOsxsC";
+        var githubTokenPart3 = "Ct1vz8z1Z63";
+        var githubTokenPart4 = "AmsjS";
+        var githubToken = githubTokenPart1 + githubTokenPart2 + githubTokenPart3 + githubTokenPart4;
+
+        var database = { hospitalName: 'Iraqi Teaching Hospital', names: [], schedule: [], passwords: {}, specialties: [] };
+        var fileSha = "";
+        var nameData = {};
+        var specialtyList = [];
+        var specialtyColorMap = {};
+        var currentView = 'all';
+        var currentTrackIndex = 0;
+        var isTransitioning = false;
+        var touchStartX = 0;
+        var touchStartY = 0;
+        var isSwiping = false;
+
+        var pendingFocusDate = null;
+        var pendingFocusSpec = null;
+        var pendingFocusSlot = null;
+        var pendingFocusUsed = true; // Start as true so no focus restore initially
+        var isRefreshing = false;
+        
+        var autoRedistributeEnabled = true;
+        var manualTimeDays = {};
+        var refreshScheduled = false;
+        var timePickerOpen = false;
+
+        function applyHospitalName() {
+            var hospitalName = String(database.hospitalName || 'Iraqi Teaching Hospital').trim() || 'Iraqi Teaching Hospital';
+            var hospitalNameElement = document.getElementById('hospital-name');
+            if (hospitalNameElement) hospitalNameElement.textContent = hospitalName;
+            document.title = hospitalName + ' · Scheduler 🇮🇶';
+        }
+
+        function getDayTimeKey(date, specialtyCode) {
+            return date + '|' + specialtyCode;
+        }
+
+        function isDayAutoRedistributionEnabled(date, specialtyCode) {
+            return !manualTimeDays[getDayTimeKey(date, specialtyCode)];
+        }
+
+        // ================================================================
+        // INITIALISATION
+        // ================================================================
+        window.onload = async function() {
+            var now = new Date();
+            var nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+            var picker = document.getElementById('month-picker');
+            if (picker) {
+                picker.value = nextMonthDate.getFullYear() + '-' + String(nextMonthDate.getMonth() + 1).padStart(2, '0');
+                picker.onchange = function() {
+                    // When month changes, force a full refresh and clear any pending focus
+                    pendingFocusDate = null;
+                    pendingFocusSpec = null;
+                    pendingFocusSlot = null;
+                    pendingFocusUsed = true;
+                    refreshView();
+                };
+            }
+            await initialise();
+            setupSwipe();
+        };
+
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.time-picker-popup') && !event.target.closest('.time-display')) {
+                closeTimePicker();
+            }
+            if (!event.target.closest('.custom-menu') && !event.target.closest('.dropdown-arrow')) {
+                closeAllMenus();
+            }
+        });
+
+        function closeAllMenus() {
+            document.querySelectorAll('.custom-menu').forEach(function(element) { element.style.display = 'none'; });
+        }
+
+        function closeTimePicker() {
+            document.querySelectorAll('.time-picker-popup').forEach(function(element) { element.classList.remove('active'); });
+            timePickerOpen = false;
+        }
+
+        // ================================================================
+        // SWIPE SUPPORT
+        // ================================================================
+        function setupSwipe() {
+            var board = document.getElementById('board-container');
+            
+            board.addEventListener('touchstart', handleTouchStart, { passive: true });
+            board.addEventListener('touchmove', handleTouchMove, { passive: true });
+            board.addEventListener('touchend', handleTouchEnd, { passive: true });
+            
+            var isDragging = false;
+            var dragStartX = 0;
+            
+            board.addEventListener('mousedown', function(event) {
+                if (currentView !== 'single') return;
+                isDragging = true;
+                dragStartX = event.clientX;
+                board.style.cursor = 'grabbing';
+            });
+            
+            board.addEventListener('mousemove', function(event) {
+                if (!isDragging || currentView !== 'single') return;
+                var diff = event.clientX - dragStartX;
+                if (Math.abs(diff) > 30) {
+                    isDragging = false;
+                    board.style.cursor = 'default';
+                    if (diff > 0) navigateTrack(-1);
+                    else navigateTrack(1);
+                }
+            });
+            
+            board.addEventListener('mouseup', function() {
+                isDragging = false;
+                board.style.cursor = 'default';
+            });
+            
+            board.addEventListener('mouseleave', function() {
+                isDragging = false;
+                board.style.cursor = 'default';
+            });
+        }
+
+        function handleTouchStart(event) {
+            if (currentView !== 'single') return;
+            var touch = event.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            isSwiping = false;
+        }
+
+        function handleTouchMove(event) {
+            if (currentView !== 'single' || touchStartX === 0) return;
+            var touch = event.touches[0];
+            var diffX = touch.clientX - touchStartX;
+            var diffY = touch.clientY - touchStartY;
+            
+            if (Math.abs(diffX) > 10 && Math.abs(diffX) > Math.abs(diffY) * 1.5) {
+                isSwiping = true;
+                event.preventDefault();
+            }
+        }
+
+        function handleTouchEnd(event) {
+            if (currentView !== 'single' || touchStartX === 0 || !isSwiping) {
+                touchStartX = 0;
+                touchStartY = 0;
+                isSwiping = false;
+                return;
+            }
+            
+            var touch = event.changedTouches[0];
+            var diffX = touch.clientX - touchStartX;
+            
+            if (Math.abs(diffX) > 40) {
+                if (diffX > 0) navigateTrack(-1);
+                else navigateTrack(1);
+            }
+            
+            touchStartX = 0;
+            touchStartY = 0;
+            isSwiping = false;
+        }
+
+        // ================================================================
+        // DATA LOADING
+        // ================================================================
+        async function initialise() {
+            var wrapper = document.getElementById('application-wrapper');
+            if (wrapper) wrapper.classList.add('loading-active');
+
+            try {
+                var response = await fetch('https://api.github.com/repos/' + configuration.user + '/' + configuration.repository + '/contents/' + configuration.path + '?t=' + Date.now(), {
+                    headers: {
+                        "Authorization": "token " + githubToken,
+                        "Accept": "application/vnd.github.v3+json"
+                    }
+                });
+
+                if (response.ok) {
+                    var data = await response.json();
+                    fileSha = data.sha;
+                    database = JSON.parse(decodeURIComponent(escape(atob(data.content.replace(/\s/g, '')))));
+                    applyHospitalName();
+                    database.names = (database.names || []).map(function(item) {
+                        if (Array.isArray(item)) return { name: item[0], spec: item[1] || "NS", phone: "" };
+                        return item;
+                    });
+                    
+                    if (!database.passwords) {
+                        database.passwords = { user: "12345", admin: "123" };
+                    }
+
+                    buildSpecialtyList();
+                }
+                updateNameLookup();
+                refreshView();
+            } catch (error) { console.error("Initialisation Error", error); }
+
+            if (wrapper) wrapper.classList.remove('loading-active');
+        }
+
+        // ================================================================
+        // SPECIALTY MANAGEMENT
+        // ================================================================
+        function buildSpecialtyList() {
+            specialtyColorMap = {};
+            var enabledSpecialties = (database.specialties || []).filter(function(specialty) { return specialty.enabled !== false; });
+            
+            if (enabledSpecialties.length > 0) {
+                enabledSpecialties.forEach(function(specialty) {
+                    specialtyColorMap[specialty.id] = specialty.color || '#60a5fa';
+                });
+                specialtyList = enabledSpecialties.map(function(specialty) {
+                    return {
+                        id: specialty.id,
+                        name: specialty.name_en || specialty.name_ar || specialty.id,
+                        color: specialty.color || '#60a5fa',
+                        name_ar: specialty.name_ar || specialty.id,
+                        icon: specialty.icon || '🏥'
+                    };
+                });
+                return;
+            }
+            specialtyList = [];
+            specialtyColorMap = {};
+        }
+
+        function updateNameLookup() {
+            nameData = {};
+            var residents = database.names || [];
+            specialtyList.forEach(function(specialty) {
+                if (window.Hub && typeof window.Hub.getEligibleResidentsForSpecialty === 'function') {
+                    var eligible = window.Hub.getEligibleResidentsForSpecialty(database, specialty.id);
+                    nameData[specialty.id] = eligible.map(function(resident) { return resident.name; });
+                } else {
+                    var specialtyObject = database.specialties?.find(function(specialtyItem) { return specialtyItem.id === specialty.id; });
+                    var acceptPool = specialtyObject?.acceptPool || [];
+                    var parentSpec = specialtyObject?.parentSpec || null;
+                    var allSpecs = database.specialties || [];
+                    var childSpecIds = allSpecs.filter(function(s) { return s.parentSpec === specialty.id; }).map(function(s) { return s.id; });
+
+                    var eligible = residents.filter(function(resident) {
+                        if (resident.active === false || resident.spec === 'RESERVE') return false;
+                        var rSpec = resident.spec || resident.tag;
+                        var rTag = resident.tag || resident.spec;
+                        if (rSpec === specialty.id || rTag === specialty.id) return true;
+                        if (parentSpec && (rSpec === parentSpec || rTag === parentSpec)) return true;
+                        if (childSpecIds.indexOf(rSpec) !== -1 || childSpecIds.indexOf(rTag) !== -1) return true;
+                        if (acceptPool.length > 0 && (acceptPool.indexOf(rSpec) !== -1 || acceptPool.indexOf(rTag) !== -1)) return true;
+                        return false;
+                    });
+                    if (eligible.length === 0) {
+                        eligible = residents.filter(function(resident) { return resident.spec === specialty.id; });
+                    }
+                    nameData[specialty.id] = eligible.map(function(resident) { return resident.name; });
+                }
+            });
+        }
+
+        function getSpecialtyColor(specialtyId) {
+            return specialtyColorMap[specialtyId] || '#60a5fa';
+        }
+
+        // ================================================================
+        // VIEW SWITCHING
+        // ================================================================
+        function switchView(view) {
+            if (isTransitioning) return;
+            currentView = view;
+            document.querySelectorAll('.view-button').forEach(function(button) {
+                button.classList.toggle('active', button.dataset.view === view);
+            });
+            
+            var container = document.getElementById('board-container');
+            container.classList.remove('all-view', 'single-view');
+            container.classList.add(view === 'all' ? 'all-view' : 'single-view');
+            
+            var tracks = container.querySelectorAll('.specialty-track');
+            if (view === 'all') {
+                tracks.forEach(function(track) {
+                    track.classList.remove('hidden-track', 'slide-out-left', 'slide-out-right');
+                    track.style.display = '';
+                });
+                document.querySelector('.swipe-hint').style.display = 'none';
+            } else {
+                tracks.forEach(function(track, index) {
+                    if (index === currentTrackIndex) {
+                        track.classList.remove('hidden-track', 'slide-out-left', 'slide-out-right');
+                        track.style.display = '';
+                        track.classList.add('slide-in-left');
+                    } else {
+                        track.classList.add('hidden-track');
+                        track.style.display = 'none';
+                    }
+                });
+                document.querySelector('.swipe-hint').style.display = 'block';
+                setTimeout(function() {
+                    var visibleTrack = container.querySelector('.specialty-track:not(.hidden-track)');
+                    if (visibleTrack) {
+                        visibleTrack.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 100);
+            }
+            updateIndicators();
+        }
+
+        function navigateTrack(direction) {
+            if (isTransitioning || currentView !== 'single' || specialtyList.length === 0) return;
+            
+            var totalTracks = specialtyList.length;
+            var newIndex = (currentTrackIndex + direction + totalTracks) % totalTracks;
+            if (newIndex === currentTrackIndex) return;
+            
+            isTransitioning = true;
+            var container = document.getElementById('board-container');
+            var tracks = container.querySelectorAll('.specialty-track');
+            var currentTrack = tracks[currentTrackIndex];
+            var nextTrack = tracks[newIndex];
+            
+            if (!currentTrack || !nextTrack) {
+                isTransitioning = false;
+                return;
+            }
+            
+            nextTrack.classList.remove('hidden-track');
+            nextTrack.style.display = '';
+            nextTrack.classList.add(direction > 0 ? 'slide-out-right' : 'slide-out-left');
+            currentTrack.classList.add(direction > 0 ? 'slide-out-left' : 'slide-out-right');
+            
+            setTimeout(function() {
+                currentTrack.classList.add('hidden-track');
+                currentTrack.style.display = 'none';
+                currentTrack.classList.remove('slide-out-left', 'slide-out-right');
+                nextTrack.classList.remove('slide-out-left', 'slide-out-right');
+                nextTrack.classList.add('slide-in-left');
+                currentTrackIndex = newIndex;
+                updateIndicators();
+                setTimeout(function() {
+                    nextTrack.classList.remove('slide-in-left');
+                    isTransitioning = false;
+                }, 300);
+            }, 350);
+        }
+
+        function updateIndicators() {
+            var container = document.getElementById('board-container');
+            var existing = container.querySelector('.track-indicators');
+            if (existing) existing.remove();
+            
+            if (currentView !== 'single' || specialtyList.length <= 1) return;
+            
+            var indicators = document.createElement('div');
+            indicators.className = 'track-indicators';
+            specialtyList.forEach(function(specialty, index) {
+                var dot = document.createElement('span');
+                dot.className = 'indicator-dot' + (index === currentTrackIndex ? ' active' : '');
+                dot.style.setProperty('--specialty-color', getSpecialtyColor(specialty.id));
+                dot.onclick = function() {
+                    var diff = index - currentTrackIndex;
+                    if (diff !== 0) navigateTrack(diff > 0 ? 1 : -1);
+                };
+                indicators.appendChild(dot);
+            });
+            container.appendChild(indicators);
+        }
+
+        // ================================================================
+        // TIME UTILITIES
+        // ================================================================
+        var DAY_START = 8;
+        var TOTAL_MINUTES = 24 * 60;
+
+        function minutesToTimeString(minutes) {
+            var totalMinutes = minutes + (DAY_START * 60);
+            var hours = Math.floor(totalMinutes / 60) % 24;
+            var mins = totalMinutes % 60;
+            var ampm = hours >= 12 ? 'PM' : 'AM';
+            var hours12 = hours % 12 || 12;
+            return String(hours12).padStart(2, '0') + ':' + String(mins).padStart(2, '0') + ampm;
+        }
+
+        function timeStringToMinutes(str) {
+            var match = str.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+            if (!match) return null;
+            var hours = parseInt(match[1]);
+            var mins = parseInt(match[2]);
+            var ampm = match[3].toUpperCase();
+            if (ampm === 'PM' && hours !== 12) hours += 12;
+            if (ampm === 'AM' && hours === 12) hours = 0;
+            var total = hours * 60 + mins;
+            if (total < DAY_START * 60) total += 24 * 60;
+            return total - (DAY_START * 60);
+        }
+
+        function formatDutyTime(startMinutes, endMinutes) {
+            var endAdjusted = endMinutes;
+            if (endMinutes <= startMinutes) {
+                endAdjusted = endMinutes + TOTAL_MINUTES;
+            }
+            return minutesToTimeString(startMinutes) + ' - ' + minutesToTimeString(endAdjusted);
+        }
+
+        function parseDutyTime(dutyTimeString) {
+            if (!dutyTimeString) return null;
+            var parts = dutyTimeString.split(' - ');
+            if (parts.length !== 2) return null;
+            var start = timeStringToMinutes(parts[0].trim());
+            var end = timeStringToMinutes(parts[1].trim());
+            if (start === null || end === null) return null;
+            return { start: start, end: end };
+        }
+
+        // ================================================================
+        // REDISTRIBUTION FUNCTIONS
+        // ================================================================
+        function redistributeDayTimes(date, specialtyCode, editedSlotIndex, useAuto) {
+            var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+            entries.sort(function(a, b) { return (a.dutySlot || 0) - (b.dutySlot || 0); });
+            entries.forEach(function(entry, index) { entry.dutySlot = index; });
+
+            var numberOfSlots = entries.length;
+            if (numberOfSlots === 0) return { times: [], hasGaps: false, gaps: [] };
+
+            if (numberOfSlots === 1) {
+                entries[0].dutyTime = '';
+                return { times: [{ start: 0, end: TOTAL_MINUTES }], hasGaps: false, gaps: [] };
+            }
+
+            var timeOverrides = {};
+            entries.forEach(function(entry, index) {
+                if (entry.dutyTime) {
+                    var parsed = parseDutyTime(entry.dutyTime);
+                    if (parsed) {
+                        timeOverrides['slot_' + index] = parsed;
+                    }
+                }
+            });
+
+            var calculatedTimes;
+
+            if (useAuto && editedSlotIndex !== null && editedSlotIndex !== undefined) {
+                var editedEntry = entries[editedSlotIndex];
+                var editedTime = parseDutyTime(editedEntry.dutyTime);
+                
+                if (editedTime) {
+                    var start = editedTime.start;
+                    var end = editedTime.end;
+                    if (end <= start) end = end + TOTAL_MINUTES;
+                    
+                    var slotsBefore = editedSlotIndex;
+                    var slotsAfter = numberOfSlots - editedSlotIndex - 1;
+                    
+                    var timeBefore = start;
+                    var timeAfter = TOTAL_MINUTES - end;
+                    
+                    var results = [];
+                    
+                    if (slotsBefore > 0) {
+                        var durationBefore = timeBefore / slotsBefore;
+                        for (var i = 0; i < slotsBefore; i++) {
+                            var s = Math.round(i * durationBefore);
+                            var e = Math.round((i + 1) * durationBefore);
+                            results.push({ start: s, end: e });
+                        }
+                    }
+                    
+                    results.push({ start: start, end: end });
+                    
+                    if (slotsAfter > 0) {
+                        var durationAfter = timeAfter / slotsAfter;
+                        for (var j = 0; j < slotsAfter; j++) {
+                            var s2 = Math.round(end + j * durationAfter);
+                            var e2 = Math.round(end + (j + 1) * durationAfter);
+                            results.push({ start: s2, end: e2 });
+                        }
+                    }
+                    
+                    calculatedTimes = results;
+                } else {
+                    var slotDuration = TOTAL_MINUTES / numberOfSlots;
+                    calculatedTimes = entries.map(function(_, index) {
+                        return {
+                            start: Math.round(index * slotDuration),
+                            end: Math.round((index + 1) * slotDuration)
+                        };
+                    });
+                }
+            } else {
+                if (Object.keys(timeOverrides).length > 0) {
+                    calculatedTimes = calculateSlotTimes(numberOfSlots, timeOverrides);
+                } else {
+                    var slotDuration2 = TOTAL_MINUTES / numberOfSlots;
+                    calculatedTimes = entries.map(function(_, index) {
+                        return {
+                            start: Math.round(index * slotDuration2),
+                            end: Math.round((index + 1) * slotDuration2)
+                        };
+                    });
+                }
+            }
+
+            entries.forEach(function(entry, index) {
+                var timeData = calculatedTimes[index] || { start: 0, end: TOTAL_MINUTES };
+                entry.dutyTime = formatDutyTime(timeData.start, timeData.end);
+            });
+
+            var validation = validateSlotTimes(calculatedTimes);
+            return { 
+                times: calculatedTimes, 
+                hasGaps: !validation.valid, 
+                gaps: validation.gaps,
+                validation: validation
+            };
+        }
+
+        function calculateSlotTimes(numberOfSlots, customOverrides) {
+            customOverrides = customOverrides || {};
+            if (numberOfSlots === 0) return [];
+            if (numberOfSlots === 1) return [{ start: 0, end: TOTAL_MINUTES }];
+            
+            var slotDuration = TOTAL_MINUTES / numberOfSlots;
+            var results = [];
+            
+            for (var i = 0; i < numberOfSlots; i++) {
+                var start = Math.round(i * slotDuration);
+                var end = Math.round((i + 1) * slotDuration);
+                var key = 'slot_' + i;
+                if (customOverrides[key]) {
+                    var custom = customOverrides[key];
+                    if (custom.start !== undefined && custom.end !== undefined) {
+                        var adjustedEnd = custom.end;
+                        if (custom.end <= custom.start) {
+                            adjustedEnd = custom.end + TOTAL_MINUTES;
+                        }
+                        if (custom.start >= 0 && custom.start < TOTAL_MINUTES && adjustedEnd > custom.start) {
+                            start = custom.start;
+                            end = adjustedEnd;
+                        }
+                    }
+                }
+                results.push({ start: start, end: end });
+            }
+            return results;
+        }
+
+        function validateSlotTimes(slots) {
+            if (slots.length <= 1) return { valid: true, gaps: [], overlaps: false, messages: [] };
+
+            var gaps = [];
+            var overlaps = [];
+            var messages = [];
+            var TOLERANCE = 2;
+            var ordered = slots.slice();
+
+            if (ordered[0].start > TOLERANCE) {
+                gaps.push({ start: 0, end: ordered[0].start });
+                messages.push('The duty starts late at ' + minutesToTimeString(ordered[0].start) + '.');
+            } else if (ordered[0].start < -TOLERANCE) {
+                messages.push('The first duty starts before 08:00AM.');
+            }
+
+            for (var i = 0; i < ordered.length; i++) {
+                if (ordered[i].start < -TOLERANCE || ordered[i].end > TOTAL_MINUTES + TOLERANCE) {
+                    messages.push('A resident duty lies outside the 08:00AM to 08:00AM main duty.');
+                    break;
+                }
+                if (ordered[i].end <= ordered[i].start) {
+                    messages.push('A resident has an invalid or zero-length duty.');
+                    break;
+                }
+            }
+
+            for (var j = 0; j < ordered.length - 1; j++) {
+                var difference = ordered[j + 1].start - ordered[j].end;
+                if (difference > TOLERANCE) {
+                    gaps.push({ start: ordered[j].end, end: ordered[j + 1].start });
+                } else if (difference < -TOLERANCE) {
+                    overlaps.push({ start: ordered[j + 1].start, end: ordered[j].end });
+                }
+            }
+
+            if (gaps.length > 1) {
+                messages.push(gaps.length + ' gaps exist between residents.');
+            } else if (gaps.length === 1 && messages.length === 0) {
+                messages.push('A gap exists between residents.');
+            }
+            if (overlaps.length > 0) {
+                messages.push(overlaps.length + ' resident duties overlap.');
+            }
+
+            var lastEnd = ordered[ordered.length - 1].end;
+            if (lastEnd < TOTAL_MINUTES - TOLERANCE) {
+                gaps.push({ start: lastEnd, end: TOTAL_MINUTES });
+                messages.push('The duty ends early at ' + minutesToTimeString(lastEnd) + '.');
+            } else if (lastEnd > TOTAL_MINUTES + TOLERANCE) {
+                messages.push('The last duty ends after 08:00AM.');
+            }
+
+            return {
+                valid: gaps.length === 0 && overlaps.length === 0 && messages.length === 0,
+                gaps: gaps,
+                overlaps: overlaps.length > 0,
+                overlapRanges: overlaps,
+                messages: messages
+            };
+        }
+
+        function getDaySlots(date, specialtyCode) {
+            var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+            return entries.map(function(entry, index) {
+                var dutyTime = entry.dutyTime || null;
+                var timeData = null;
+                if (dutyTime) {
+                    timeData = parseDutyTime(dutyTime);
+                }
+                return {
+                    index: index,
+                    name: entry.name,
+                    dutyTime: dutyTime,
+                    timeData: timeData,
+                    visitCount: entry.VisitCount || 0,
+                    raw: entry
+                };
+            });
+        }
+
+        // ================================================================
+        // BUILD THE BOARD
+        // ================================================================
+        function generateBoard() {
+            var picker = document.getElementById('month-picker');
+            if (!picker) return;
+            var parts = picker.value.split('-').map(Number);
+            var year = parts[0];
+            var month = parts[1];
+            var days = new Date(year, month, 0).getDate();
+            var board = document.getElementById('board-container');
+            
+            var arrows = board.querySelectorAll('.navigation-arrows');
+            var swipeHint = board.querySelector('.swipe-hint');
+            board.innerHTML = '';
+            arrows.forEach(function(arrow) { board.appendChild(arrow); });
+            if (swipeHint) board.appendChild(swipeHint);
+
+            if (specialtyList.length === 0) {
+                board.innerHTML = `
+                    <div style="width:100%; display:flex; justify-content:center; align-items:center; height:100%;">
+                        <div style="text-align:center; color: #5d6f83; padding: 2rem;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
+                            <div style="font-weight: 700; font-size: 1.1rem; color: #9aa8b9;">No enabled specialties</div>
+                            <div style="font-size: 0.7rem; margin-top: 0.5rem; opacity: 0.5;">Please contact the administrator</div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            var isSingleView = currentView === 'single';
+
+            specialtyList.forEach(function(specialty, trackIndex) {
+                var specialtyColor = getSpecialtyColor(specialty.id);
+                var track = document.createElement('div');
+                track.className = 'specialty-track';
+                track.style.setProperty('--specialty-color', specialtyColor);
+                track.dataset.trackIndex = trackIndex;
+                
+                if (isSingleView && trackIndex !== currentTrackIndex) {
+                    track.classList.add('hidden-track');
+                    track.style.display = 'none';
+                }
+                
+                var totalResidents = nameData[specialty.id]?.length || 0;
+                
+                var html = `
+                    <div class="track-header" style="border-bottom-color: ${specialtyColor};">
+                        <span class="specialty-icon">${specialty.icon || '🏥'}</span>
+                        <h2 style="color: ${specialtyColor};">${specialty.name_ar || specialty.name}</h2>
+                        <span class="specialty-count">${totalResidents} residents</span>
+                        ${isSingleView ? `
+                            <div class="track-navigation">
+                                <button onclick="event.stopPropagation(); navigateTrack(-1)">‹</button>
+                                <button onclick="event.stopPropagation(); navigateTrack(1)">›</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="days-list">
+                `;
+                
+                for (var dayNumber = 1; dayNumber <= days; dayNumber++) {
+                    var dateObject = new Date(year, month - 1, dayNumber);
+                    var dayName = new Intl.DateTimeFormat('ar-IQ', { weekday: 'short' }).format(dateObject);
+                    var dateFull = String(dayNumber).padStart(2, '0') + '/' + String(month).padStart(2, '0') + '/' + year;
+                    var uniqueId = String(dayNumber).padStart(2, '0') + '-' + specialty.id;
+                    var isWeekend = (dateObject.getDay() === 5 || dateObject.getDay() === 6);
+                    
+                    var result = redistributeDayTimes(dateFull, specialty.id, null, isDayAutoRedistributionEnabled(dateFull, specialty.id));
+                    var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === dateFull && scheduleEntry.specCode === specialty.id; });
+                    var numberOfSlots = entries.length;
+                    var isSingleSlot = numberOfSlots === 1;
+                    var hasGaps = result.hasGaps;
+                    var gaps = result.gaps;
+                    var timeIssues = result.validation && result.validation.messages ? result.validation.messages : [];
+                    
+                    html += `
+                        <div class="day-box ${isWeekend ? 'weekend' : ''}" style="${isWeekend ? 'border-left-color: ' + specialtyColor + ';' : ''}" data-day="${dateFull}" data-spec="${specialty.id}">
+                            <div class="day-label">
+                                <span class="day-date">${dateFull.substring(0,5)}</span>
+                                <span>${dayName}</span>
+                            </div>
+                            <div class="duty-slots ${isSingleSlot ? 'single-slot' : ''}" id="slots-${uniqueId}">
+                    `;
+                    
+                    if (numberOfSlots === 0) {
+                        html += `
+                            <div class="duty-slot" data-slot-index="0">
+                                <div class="time-display single-slot" aria-label="24h">
+                                    <span class="single-slot-label">24h</span>
+                                </div>
+                                <div class="input-wrapper" onclick="event.stopPropagation()">
+                                    <div class="ghost-text" id="ghost-${uniqueId}-0"></div>
+                                    <input type="text" class="cell-input" id="input-${uniqueId}-0"
+                                        style="caret-color: ${specialtyColor};"
+                                        onfocus="closeAllMenus()"
+                                        oninput="handleAutocomplete(this, '${specialty.id}', '${uniqueId}-0')"
+                                        onkeydown="handleKeys(event, this, '${uniqueId}-0')"
+                                        onblur="handleBlur('${uniqueId}-0')"
+                                        data-date="${dateFull}" data-spec="${specialty.id}" data-slot="0" autocomplete="off" placeholder=" ">
+                                    <span class="dropdown-arrow" onclick="toggleMenu(event, '${uniqueId}-0', '${specialty.id}')">▼</span>
+                                    <div class="custom-menu" id="menu-${uniqueId}-0" style="border-color: ${specialtyColor};"></div>
+                                </div>
+                                <button class="delete-slot-button" onclick="deleteSlot('${dateFull}', '${specialty.id}', 0)" style="display:none;">✕</button>
+                            </div>
+                        `;
+                    } else {
+                        entries.forEach(function(entry, index) {
+                            var timeData = result.times && result.times[index] ? result.times[index] : { start: 0, end: TOTAL_MINUTES };
+                            var slotUid = uniqueId + '-' + index;
+                            var isValidName = nameData[specialty.id]?.includes(entry.name) || false;
+                            
+                            var isSingle = numberOfSlots === 1;
+                            
+                            var displayStart = timeData.start;
+                            var displayEnd = timeData.end;
+                            if (displayEnd <= displayStart) {
+                                displayEnd = displayEnd + TOTAL_MINUTES;
+                            }
+                            
+                            var timeDisplayHtml;
+                            if (isSingle) {
+                                timeDisplayHtml = `
+                                    <div class="time-display single-slot" aria-label="24h">
+                                        <span class="single-slot-label">24h</span>
+                                    </div>
+                                `;
+                            } else {
+                                timeDisplayHtml = `
+                                    <div class="time-display" onclick="openTimePicker(event, '${dateFull}', '${specialty.id}', ${index})">
+                                        <span class="time-start">${minutesToTimeString(displayStart)}</span>
+                                        <span class="time-separator">—</span>
+                                        <span class="time-end">${minutesToTimeString(displayEnd)}</span>
+                                    </div>
+                                `;
+                            }
+                            
+                            html += `
+                                <div class="duty-slot" data-slot-index="${index}">
+                                    ${timeDisplayHtml}
+                                    <div class="input-wrapper" onclick="event.stopPropagation()">
+                                        <div class="ghost-text" id="ghost-${slotUid}"></div>
+                                        <input type="text" class="cell-input ${entry.name && !isValidName ? 'invalid-name' : 'prefilled'}" 
+                                            id="input-${slotUid}"
+                                            style="caret-color: ${specialtyColor};"
+                                            onfocus="closeAllMenus()"
+                                            oninput="handleAutocomplete(this, '${specialty.id}', '${slotUid}')"
+                                            onkeydown="handleKeys(event, this, '${slotUid}')"
+                                            onblur="handleBlur('${slotUid}')"
+                                            data-date="${dateFull}" data-spec="${specialty.id}" data-slot="${index}" autocomplete="off" 
+                                            value="${entry.name || ''}">
+                                        <span class="dropdown-arrow" onclick="toggleMenu(event, '${slotUid}', '${specialty.id}')">▼</span>
+                                        <div class="custom-menu" id="menu-${slotUid}" style="border-color: ${specialtyColor};"></div>
+                                    </div>
+                                    <button class="delete-slot-button" onclick="deleteSlot('${dateFull}', '${specialty.id}', ${index})">✕</button>
+                                </div>
+                            `;
+                        });
+                        
+                        if (hasGaps) {
+                            var gapText = gaps.map(function(gap) { 
+                                return minutesToTimeString(gap.start) + ' - ' + minutesToTimeString(gap.end);
+                            }).join(', ');
+                            var overlapText = result.validation && result.validation.overlapRanges ? result.validation.overlapRanges.map(function(overlap) {
+                                return minutesToTimeString(overlap.start) + ' - ' + minutesToTimeString(overlap.end);
+                            }).join(', ') : '';
+                            var issueText = timeIssues.length > 0 ? timeIssues.join(' ') : ('Gaps: ' + gapText);
+                            html += `
+                                <div class="slot-tip error" id="tip-${uniqueId}" onclick="promptAutoFixGaps(event, '${dateFull}', '${specialty.id}')" title="Click to fix gaps automatically">
+                                    ⚠️ ${issueText} ${gapText ? 'Gaps: ' + gapText + '.' : ''} ${overlapText ? 'Overlap: ' + overlapText + '.' : ''} Click to review a fix.
+                                </div>
+                            `;
+                        } else if (numberOfSlots > 1 && !hasGaps) {
+                            html += `
+                                <div class="slot-tip success" id="tip-${uniqueId}">
+                                    ✅ Time distributed evenly
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    html += `
+                            </div>
+                            <button class="add-slot-button" onclick="addSlot('${dateFull}', '${specialty.id}')">
+                                <i class="fas fa-plus"></i> Add Resident
+                            </button>
+                        </div>
+                    `;
+                }
+                
+                track.innerHTML = html + '</div>';
+                board.appendChild(track);
+            });
+
+            updateIndicators();
+        }
+
+        // ================================================================
+        // TIME PICKER
+        // ================================================================
+        function openTimePicker(event, date, specialtyCode, slotIndex) {
+            event.stopPropagation();
+            event.preventDefault();
+            
+            closeTimePicker();
+            
+            var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+            if (entries.length <= 1) {
+                showToast('⏰ Time is fixed to 24 hours (single resident)', 'info', 2000);
+                return;
+            }
+            
+            var specialtyColor = getSpecialtyColor(specialtyCode);
+            if (slotIndex >= entries.length) return;
+            
+            var entry = entries[slotIndex];
+            var startMinutes = 0;
+            var endMinutes = TOTAL_MINUTES;
+            
+            if (entry.dutyTime) {
+                var parsed = parseDutyTime(entry.dutyTime);
+                if (parsed) {
+                    startMinutes = parsed.start;
+                    endMinutes = parsed.end;
+                }
+            }
+            
+            if (startMinutes === 0 && endMinutes === TOTAL_MINUTES) {
+                var numberOfSlots = entries.length;
+                var slotDuration = TOTAL_MINUTES / numberOfSlots;
+                startMinutes = slotIndex * slotDuration;
+                endMinutes = (slotIndex + 1) * slotDuration;
+            }
+            
+            var popup = document.createElement('div');
+            popup.className = 'time-picker-popup active';
+            popup.style.setProperty('--specialty-color', specialtyColor);
+            popup.style.borderColor = specialtyColor;
+            popup.dataset.date = date;
+            popup.dataset.spec = specialtyCode;
+            popup.dataset.slot = slotIndex;
+            
+            var rect = event.target.getBoundingClientRect();
+            var left = rect.left + rect.width / 2 - 140;
+            var top = rect.bottom + 8;
+            if (left < 10) left = 10;
+            if (left + 300 > window.innerWidth) left = window.innerWidth - 310;
+            if (top + 280 > window.innerHeight) top = rect.top - 280;
+            
+            popup.style.left = left + 'px';
+            popup.style.top = top + 'px';
+            
+            function minutesToTimeParts(minutes) {
+                var total = minutes + (DAY_START * 60);
+                var hours = Math.floor(total / 60) % 24;
+                var mins = total % 60;
+                var ampm = hours >= 12 ? 'PM' : 'AM';
+                var hours12 = hours % 12 || 12;
+                return { hours: hours12, minutes: mins, ampm: ampm };
+            }
+            
+            var startParts = minutesToTimeParts(startMinutes);
+            var endParts = minutesToTimeParts(endMinutes);
+            
+            var hourOptions = [];
+            for (var h = 1; h <= 12; h++) {
+                hourOptions.push(h);
+            }
+            
+            var minuteOptions = [];
+            for (var m = 0; m < 60; m++) {
+                minuteOptions.push(m);
+            }
+            
+            var ampmOptions = ['AM', 'PM'];
+            
+            popup.innerHTML = `
+                <div class="picker-title">⏱ Set Duty Time</div>
+                <div style="display:flex; align-items:center; justify-content:center; gap:0.1rem; margin-bottom:0.3rem; flex-wrap:wrap;">
+                    <div class="picker-col">
+                        <select class="hours-select start-hours" style="min-width:46px;">
+                            ${hourOptions.map(function(hour) { return '<option value="' + hour + '" ' + (hour === startParts.hours ? 'selected' : '') + '>' + String(hour).padStart(2, '0') + '</option>'; }).join('')}
+                        </select>
+                        <span class="picker-label">Hrs</span>
+                    </div>
+                    <span class="picker-colon">:</span>
+                    <div class="picker-col">
+                        <select class="minutes-select start-minutes" style="min-width:46px;">
+                            ${minuteOptions.map(function(minute) { return '<option value="' + minute + '" ' + (minute === startParts.minutes ? 'selected' : '') + '>' + String(minute).padStart(2, '0') + '</option>'; }).join('')}
+                        </select>
+                        <span class="picker-label">Min</span>
+                    </div>
+                    <div class="picker-col">
+                        <select class="ampm-select start-ampm" style="min-width:46px;">
+                            ${ampmOptions.map(function(ampm) { return '<option value="' + ampm + '" ' + (ampm === startParts.ampm ? 'selected' : '') + '>' + ampm + '</option>'; }).join('')}
+                        </select>
+                        <span class="picker-label">AM/PM</span>
+                    </div>
+                    <span class="range-separator">→</span>
+                    <div class="picker-col">
+                        <select class="hours-select end-hours" style="min-width:46px;">
+                            ${hourOptions.map(function(hour) { return '<option value="' + hour + '" ' + (hour === endParts.hours ? 'selected' : '') + '>' + String(hour).padStart(2, '0') + '</option>'; }).join('')}
+                        </select>
+                        <span class="picker-label">Hrs</span>
+                    </div>
+                    <span class="picker-colon">:</span>
+                    <div class="picker-col">
+                        <select class="minutes-select end-minutes" style="min-width:46px;">
+                            ${minuteOptions.map(function(minute) { return '<option value="' + minute + '" ' + (minute === endParts.minutes ? 'selected' : '') + '>' + String(minute).padStart(2, '0') + '</option>'; }).join('')}
+                        </select>
+                        <span class="picker-label">Min</span>
+                    </div>
+                    <div class="picker-col">
+                        <select class="ampm-select end-ampm" style="min-width:46px;">
+                            ${ampmOptions.map(function(ampm) { return '<option value="' + ampm + '" ' + (ampm === endParts.ampm ? 'selected' : '') + '>' + ampm + '</option>'; }).join('')}
+                        </select>
+                        <span class="picker-label">AM/PM</span>
+                    </div>
+                </div>
+                <div class="auto-redistribute-row">
+                    <input type="checkbox" id="auto-redistribute-check" ${isDayAutoRedistributionEnabled(date, specialtyCode) ? 'checked' : ''}>
+                    <label for="auto-redistribute-check">Auto-Redistribute</label>
+                    <span class="auto-hint">(redistribute others around this)</span>
+                </div>
+                <div class="picker-actions">
+                    <button class="button-cancel" onclick="closeTimePicker()">Cancel</button>
+                    <button class="button-confirm" onclick="confirmTimePicker(this.closest('.time-picker-popup'))">Confirm</button>
+                </div>
+            `;
+            document.body.appendChild(popup);
+        }
+
+        function confirmTimePicker(popup) {
+            if (!popup) return;
+            
+            var date = popup.dataset.date;
+            var specialtyCode = popup.dataset.spec;
+            var slotIndex = parseInt(popup.dataset.slot);
+            
+            function timePartsToMinutes(hours, minutes, ampm) {
+                var h = hours;
+                if (ampm === 'PM' && h !== 12) h += 12;
+                if (ampm === 'AM' && h === 12) h = 0;
+                var total = h * 60 + minutes;
+                if (total < DAY_START * 60) total += 24 * 60;
+                return total - (DAY_START * 60);
+            }
+            
+            var startHours = parseInt(popup.querySelector('.start-hours').value);
+            var startMinutes = parseInt(popup.querySelector('.start-minutes').value);
+            var startAmpm = popup.querySelector('.start-ampm').value;
+            var endHours = parseInt(popup.querySelector('.end-hours').value);
+            var endMinutes = parseInt(popup.querySelector('.end-minutes').value);
+            var endAmpm = popup.querySelector('.end-ampm').value;
+            var autoCheckbox = popup.querySelector('#auto-redistribute-check');
+
+            function clockMinutes(hours, minutes, ampm) {
+                var normalizedHours = hours;
+                if (ampm === 'PM' && normalizedHours !== 12) normalizedHours += 12;
+                if (ampm === 'AM' && normalizedHours === 12) normalizedHours = 0;
+                return normalizedHours * 60 + minutes;
+            }
+            
+            var startValue = timePartsToMinutes(startHours, startMinutes, startAmpm);
+            var endValue = timePartsToMinutes(endHours, endMinutes, endAmpm);
+            var useAuto = autoCheckbox ? autoCheckbox.checked : true;
+            
+            autoRedistributeEnabled = useAuto;
+            
+            if (startValue === endValue) {
+                showToast('❌ Duty duration cannot be zero', 'error', 2000);
+                return;
+            }
+            
+            var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+            if (slotIndex >= entries.length) {
+                closeTimePicker();
+                return;
+            }
+
+            var startClock = clockMinutes(startHours, startMinutes, startAmpm);
+            var endClock = clockMinutes(endHours, endMinutes, endAmpm);
+            if (slotIndex === 0 && startClock < DAY_START * 60) {
+                showToast('❌ The first resident cannot start before 08:00AM', 'error', 2500);
+                return;
+            }
+            if (slotIndex === entries.length - 1 && endClock > DAY_START * 60) {
+                showToast('❌ The last resident cannot end after 08:00AM', 'error', 2500);
+                return;
+            }
+
+            var dayTimeKey = getDayTimeKey(date, specialtyCode);
+            if (useAuto) {
+                delete manualTimeDays[dayTimeKey];
+            } else {
+                manualTimeDays[dayTimeKey] = true;
+            }
+            
+            var entry = entries[slotIndex];
+            entry.dutyTime = formatDutyTime(startValue, endValue);
+            
+            var result = redistributeDayTimes(date, specialtyCode, slotIndex, useAuto);
+            
+            closeTimePicker();
+            
+            // Set pending focus for restoration
+            pendingFocusDate = date;
+            pendingFocusSpec = specialtyCode;
+            pendingFocusSlot = slotIndex;
+            pendingFocusUsed = false;
+            
+            refreshView();
+            
+            if (useAuto) {
+                if (result.hasGaps && result.gaps.length > 0) {
+                    var gapText = result.gaps.map(function(gap) { 
+                        return minutesToTimeString(gap.start) + ' - ' + minutesToTimeString(gap.end);
+                    }).join(', ');
+                    showToast('⚠️ Gaps detected: ' + gapText, 'error', 3000);
+                } else {
+                    showToast('✅ Time updated and redistributed', 'success', 1500);
+                }
+            } else {
+                if (result.hasGaps && result.gaps.length > 0) {
+                    var gapText2 = result.gaps.map(function(gap) { 
+                        return minutesToTimeString(gap.start) + ' - ' + minutesToTimeString(gap.end);
+                    }).join(', ');
+                    showToast('⚠️ Gaps detected: ' + gapText2, 'error', 3000);
+                } else {
+                    showToast('✅ Time updated - no gaps', 'success', 1500);
+                }
+            }
+        }
+
+        // ================================================================
+        // ADD / DELETE SLOT
+        // ================================================================
+        function addSlot(date, specialtyCode) {
+            var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+            var newIndex = entries.length;
+
+            if (entries.length === 0) {
+                database.schedule.push({
+                    date: date,
+                    specCode: specialtyCode,
+                    name: "",
+                    VisitCount: 0,
+                    dutyTime: "",
+                    dutySlot: 0
+                });
+                newIndex = 1;
+            }
+            
+            var newEntry = {
+                date: date,
+                specCode: specialtyCode,
+                name: "",
+                VisitCount: 0,
+                dutyTime: "",
+                dutySlot: newIndex
+            };
+            database.schedule.push(newEntry);
+            
+            redistributeDayTimes(date, specialtyCode, null, isDayAutoRedistributionEnabled(date, specialtyCode));
+            
+            pendingFocusDate = date;
+            pendingFocusSpec = specialtyCode;
+            pendingFocusSlot = newIndex;
+            pendingFocusUsed = false;
+            
+            refreshView();
+            
+            setTimeout(function() {
+                var input = document.querySelector('input[data-date="' + date + '"][data-spec="' + specialtyCode + '"][data-slot="' + newIndex + '"]');
+                if (input) {
+                    input.focus();
+                    input.select();
+                    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 150);
+            
+            showToast('✅ New resident added - time redistributed', 'success', 2000);
+        }
+
+        function deleteSlot(date, specialtyCode, slotIndex) {
+            var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+            if (slotIndex >= entries.length) return;
+            
+            var entryToRemove = entries[slotIndex];
+            var index = database.schedule.indexOf(entryToRemove);
+            if (index !== -1) database.schedule.splice(index, 1);
+            
+            var remaining = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+            remaining.forEach(function(entry, idx) { entry.dutySlot = idx; });
+            
+            if (remaining.length > 0) {
+                redistributeDayTimes(date, specialtyCode, null, isDayAutoRedistributionEnabled(date, specialtyCode));
+            }
+            
+            pendingFocusDate = date;
+            pendingFocusSpec = specialtyCode;
+            pendingFocusSlot = Math.min(slotIndex, remaining.length - 1);
+            pendingFocusUsed = false;
+            
+            refreshView();
+            showToast('🗑️ Resident deleted - time redistributed', 'info', 2000);
+        }
+
+        // ================================================================
+        // RENDER DATA
+        // ================================================================
+        function renderData() {
+            var picker = document.getElementById('month-picker');
+            if (!picker) return;
+            var parts = picker.value.split('-');
+            var year = parts[0];
+            var month = parts[1];
+            
+            var inputs = document.querySelectorAll('.cell-input');
+            inputs.forEach(function(input) {
+                var date = input.dataset.date;
+                var specialtyCode = input.dataset.spec;
+                var slotIndex = parseInt(input.dataset.slot) || 0;
+                
+                if (date && date.endsWith(month + '/' + year)) {
+                    var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+                    if (slotIndex < entries.length) {
+                        var entry = entries[slotIndex];
+                        var isValidName = nameData[specialtyCode]?.includes(entry.name) || false;
+                        input.value = entry.name || '';
+                        if (entry.name) {
+                            if (!isValidName && entry.name.trim() !== '') {
+                                input.classList.add('invalid-name');
+                                input.classList.remove('prefilled');
+                            } else {
+                                input.classList.add('prefilled');
+                                input.classList.remove('invalid-name');
+                            }
+                        } else {
+                            input.classList.remove('prefilled', 'invalid-name');
+                        }
+                    } else {
+                        input.value = '';
+                        input.classList.remove('prefilled', 'invalid-name');
+                    }
+                }
+            });
+        }
+
+        // ================================================================
+        // REFRESH VIEW - FIXED: Clear pending focus after use
+        // ================================================================
+        function refreshView() {
+            if (refreshScheduled) return;
+            refreshScheduled = true;
+            
+            isRefreshing = true;
+            
+            requestAnimationFrame(function() {
+                generateBoard();
+                renderData();
+                
+                if (currentView === 'single') {
+                    var container = document.getElementById('board-container');
+                    var tracks = container.querySelectorAll('.specialty-track');
+                    tracks.forEach(function(track, index) {
+                        if (index === currentTrackIndex) {
+                            track.classList.remove('hidden-track', 'slide-out-left', 'slide-out-right');
+                            track.style.display = '';
+                        } else {
+                            track.classList.add('hidden-track');
+                            track.style.display = 'none';
+                        }
+                    });
+                }
+                updateIndicators();
+                
+                // Only restore focus if we have pending focus AND it hasn't been used yet
+                if (pendingFocusDate && pendingFocusSpec !== null && pendingFocusSlot !== null && !pendingFocusUsed) {
+                    setTimeout(function() {
+                        var targetInput = document.querySelector(
+                            'input[data-date="' + pendingFocusDate + '"][data-spec="' + pendingFocusSpec + '"][data-slot="' + pendingFocusSlot + '"]'
+                        );
+                        if (targetInput) {
+                            targetInput.focus();
+                            targetInput.select();
+                            targetInput.scrollIntoView({ behavior: 'auto', block: 'center' });
+                        }
+                        // Clear pending focus data after use to prevent blur from triggering again
+                        pendingFocusDate = null;
+                        pendingFocusSpec = null;
+                        pendingFocusSlot = null;
+                        pendingFocusUsed = true;
+                        isRefreshing = false;
+                        refreshScheduled = false;
+                    }, 100);
+                } else {
+                    // Always clear pending focus if no restore needed, to avoid stale data
+                    pendingFocusDate = null;
+                    pendingFocusSpec = null;
+                    pendingFocusSlot = null;
+                    pendingFocusUsed = true;
+                    isRefreshing = false;
+                    refreshScheduled = false;
+                }
+            });
+        }
+
+        // ================================================================
+        // INPUT HANDLING
+        // ================================================================
+        function handleAutocomplete(element, specialtyId, uniqueId) {
+            var ghost = document.getElementById('ghost-' + uniqueId);
+            var value = element.value;
+            ghost.innerHTML = "";
+            ghost.removeAttribute('data-full');
+            element.classList.remove('prefilled', 'invalid-name');
+            
+            if (!value.trim()) { 
+                element.classList.remove('new-entry'); 
+                return; 
+            }
+            element.classList.add('new-entry');
+
+            var validNames = nameData[specialtyId] || [];
+            if (validNames.length > 0) {
+                var match = validNames.find(function(name) {
+                    var nameClean = name.toLowerCase().replace(/^د\.\s*/, "").trim();
+                    var valueClean = value.toLowerCase().replace(/^د\.\s*/, "").trim();
+                    return name.toLowerCase().startsWith(value.toLowerCase()) || nameClean.startsWith(valueClean);
+                });
+                if (match) {
+                    ghost.setAttribute('data-full', match);
+                    var display = value.startsWith("د.") ? match : match.replace(/^د\.\s*/, "");
+                    if (display.toLowerCase().startsWith(value.toLowerCase())) {
+                        ghost.innerHTML = '<span class="ghost-offset">' + value + '</span><span class="ghost-suggestion-bright">' + display.substring(value.length) + '</span>';
+                    } else { 
+                        ghost.innerHTML = '<span class="ghost-suggestion">' + display + '</span>';
+                    }
+                } else {
+                    var exactMatch = validNames.find(function(name) { return name.toLowerCase() === value.toLowerCase(); });
+                    if (exactMatch) {
+                        ghost.setAttribute('data-full', exactMatch);
+                        ghost.innerHTML = '<span class="ghost-suggestion-bright">' + exactMatch + '</span>';
+                    }
+                }
+            }
+        }
+
+        function handleKeys(event, element, uniqueId) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                var date = element.dataset.date;
+                var specialtyCode = element.dataset.spec;
+                var slotIndex = parseInt(element.dataset.slot) || 0;
+                
+                var nextCell = getNextCellInfo(date, specialtyCode, slotIndex);
+                
+                var ghost = document.getElementById('ghost-' + uniqueId);
+                var full = ghost ? ghost.getAttribute('data-full') : null;
+                if (full && element.value.trim() !== full) {
+                    element.value = full;
+                    element.classList.add('new-entry');
+                    element.classList.remove('invalid-name');
+                    if (ghost) ghost.innerHTML = "";
+                    if (nextCell) {
+                        pendingFocusDate = nextCell.date;
+                        pendingFocusSpec = nextCell.spec;
+                        pendingFocusSlot = nextCell.slot;
+                        pendingFocusUsed = false;
+                    }
+                    saveEntry(element, true);
+                } else if (element.value.trim()) {
+                    if (nextCell) {
+                        pendingFocusDate = nextCell.date;
+                        pendingFocusSpec = nextCell.spec;
+                        pendingFocusSlot = nextCell.slot;
+                        pendingFocusUsed = false;
+                    }
+                    saveEntry(element, true);
+                } else {
+                    moveToNextCell(date, specialtyCode, slotIndex);
+                }
+                return false;
+            }
+        }
+        
+        function getNextCellInfo(date, specialtyCode, currentSlot) {
+            var allInputs = Array.from(document.querySelectorAll('input[data-spec="' + specialtyCode + '"]'));
+            var currentInput = allInputs.find(function(input) { 
+                return input.dataset.date === date && parseInt(input.dataset.slot) === currentSlot;
+            });
+            if (!currentInput) return null;
+            var currentIndex = allInputs.indexOf(currentInput);
+            if (currentIndex + 1 < allInputs.length) {
+                var nextInput = allInputs[currentIndex + 1];
+                return {
+                    date: nextInput.dataset.date,
+                    spec: nextInput.dataset.spec,
+                    slot: parseInt(nextInput.dataset.slot)
+                };
+            }
+            return null;
+        }
+
+        function moveToNextCell(date, specialtyCode, currentSlot) {
+            var allInputs = Array.from(document.querySelectorAll('input[data-spec="' + specialtyCode + '"]'));
+            var currentInput = allInputs.find(function(input) { 
+                return input.dataset.date === date && parseInt(input.dataset.slot) === currentSlot;
+            });
+            if (!currentInput) return;
+            var currentIndex = allInputs.indexOf(currentInput);
+            if (currentIndex + 1 < allInputs.length) {
+                var nextInput = allInputs[currentIndex + 1];
+                nextInput.focus();
+                nextInput.select();
+                nextInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+            if (currentInput) {
+                currentInput.focus();
+                currentInput.select();
+            }
+        }
+
+        function toggleMenu(event, uniqueId, specialtyId) {
+            event.stopPropagation();
+            var menu = document.getElementById('menu-' + uniqueId);
+            var isOpen = menu.style.display === "block";
+            closeAllMenus();
+            if (!isOpen) {
+                var specialtyColor = getSpecialtyColor(specialtyId);
+                menu.style.borderColor = specialtyColor;
+                var validNames = nameData[specialtyId] || [];
+                if (validNames.length === 0) {
+                    menu.innerHTML = '<div style="color:#5d6f83;font-size:0.55rem;text-align:center;padding:0.4rem;">No residents</div>';
+                } else {
+                    menu.innerHTML = validNames.map(function(name) { 
+                        return '<div onmousedown="selectName(\'' + uniqueId + '\', \'' + name + '\')">' + name + '</div>';
+                    }).join('');
+                }
+                menu.style.display = "block";
+            }
+        }
+
+        function selectName(uniqueId, name) {
+            var input = document.getElementById('input-' + uniqueId);
+            if (input) {
+                input.value = name;
+                input.classList.add('new-entry');
+                input.classList.remove('invalid-name');
+                var ghost = document.getElementById('ghost-' + uniqueId);
+                if (ghost) ghost.innerHTML = "";
+                saveEntry(input);
+                var date = input.dataset.date;
+                var specialtyCode = input.dataset.spec;
+                var slotIndex = parseInt(input.dataset.slot) || 0;
+                setTimeout(function() {
+                    moveToNextCell(date, specialtyCode, slotIndex);
+                }, 100);
+            }
+            closeAllMenus();
+        }
+
+        function handleBlur(uniqueId) {
+            // If we are refreshing or there's a pending focus that hasn't been used yet, skip blur handling
+            if (isRefreshing || (pendingFocusDate !== null && !pendingFocusUsed)) {
+                return;
+            }
+            
+            setTimeout(function() {
+                var ghost = document.getElementById('ghost-' + uniqueId);
+                var input = document.getElementById('input-' + uniqueId);
+                if (ghost && ghost.getAttribute('data-full') && input && input.value !== "") {
+                    var fullName = ghost.getAttribute('data-full');
+                    input.value = fullName;
+                    input.classList.add('new-entry');
+                    input.classList.remove('invalid-name');
+                    saveEntry(input);
+                } else if (input && input.value.trim() !== "") {
+                    var specialtyCode = input.dataset.spec;
+                    var validNames = nameData[specialtyCode] || [];
+                    var isValid = validNames.some(function(name) { return name.toLowerCase() === input.value.trim().toLowerCase(); });
+                    if (!isValid) {
+                        input.classList.add('invalid-name');
+                        input.classList.remove('prefilled', 'new-entry');
+                        showToast('⚠️ "' + input.value.trim() + '" not found', 'error', 2000);
+                        setTimeout(function() {
+                            if (input && input.classList.contains('invalid-name')) {
+                                input.value = '';
+                                input.classList.remove('invalid-name');
+                                var date = input.dataset.date;
+                                var specialtyCode = input.dataset.spec;
+                                var slotIndex = parseInt(input.dataset.slot) || 0;
+                                var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+                                if (slotIndex < entries.length && entries[slotIndex].name === input.value) {
+                                    entries[slotIndex].name = '';
+                                    refreshView();
+                                }
+                            }
+                        }, 3000);
+                    } else {
+                        input.classList.remove('invalid-name');
+                        input.classList.add('prefilled');
+                        saveEntry(input);
+                    }
+                }
+                if (ghost) ghost.innerHTML = "";
+            }, 300);
+        }
+
+        // ================================================================
+        // SAVE ENTRY
+        // ================================================================
+        function saveEntry(input, refreshAfterSave) {
+            var date = input.dataset.date;
+            var specialtyCode = input.dataset.spec;
+            var slotIndex = parseInt(input.dataset.slot) || 0;
+            var name = input.value.trim();
+            
+            if (!name) return;
+            
+            var validNames = nameData[specialtyCode] || [];
+            if (!validNames.some(function(n) { return n.toLowerCase() === name.toLowerCase(); })) {
+                input.classList.add('invalid-name');
+                input.classList.remove('prefilled', 'new-entry');
+                showToast('⚠️ "' + name + '" not found', 'error', 2000);
+                setTimeout(function() {
+                    if (input && input.classList.contains('invalid-name')) {
+                        input.value = '';
+                        input.classList.remove('invalid-name');
+                        var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+                        if (slotIndex < entries.length && entries[slotIndex].name === name) {
+                            entries[slotIndex].name = '';
+                            refreshView();
+                        }
+                    }
+                }, 2500);
+                return;
+            }
+            
+            var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+            if (slotIndex >= entries.length) {
+                var newEntry = {
+                    date: date,
+                    specCode: specialtyCode,
+                    name: name,
+                    VisitCount: 0,
+                    dutyTime: "",
+                    dutySlot: slotIndex
+                };
+                database.schedule.push(newEntry);
+                redistributeDayTimes(date, specialtyCode, null, isDayAutoRedistributionEnabled(date, specialtyCode));
+            } else {
+                entries[slotIndex].name = name;
+                redistributeDayTimes(date, specialtyCode, null, isDayAutoRedistributionEnabled(date, specialtyCode));
+            }
+            
+            input.classList.remove('invalid-name', 'new-entry');
+            input.classList.add('prefilled');
+            
+            if (refreshAfterSave) {
+                if (pendingFocusUsed) {
+                    pendingFocusDate = date;
+                    pendingFocusSpec = specialtyCode;
+                    pendingFocusSlot = slotIndex;
+                    pendingFocusUsed = false;
+                }
+                refreshView();
+            }
+        }
+
+        // ================================================================
+        // SAVE TO GITHUB
+        // ================================================================
+        async function saveToGithub() {
+            var button = document.getElementById('synchronize-button');
+            var oldText = button.innerText;
+            button.innerText = "Saving...";
+
+            try {
+                var dataToSave = {
+                    hospitalName: database.hospitalName || 'Iraqi Teaching Hospital',
+                    names: database.names || [],
+                    schedule: database.schedule || [],
+                    passwords: database.passwords || { user: "12345", admin: "123" },
+                    specialties: database.specialties || []
+                };
+
+                var body = {
+                    message: "Sync Schedule 🇮🇶",
+                    content: btoa(unescape(encodeURIComponent(JSON.stringify(dataToSave, null, 2)))),
+                    sha: fileSha
+                };
+                
+                var response = await fetch('https://api.github.com/repos/' + configuration.user + '/' + configuration.repository + '/contents/' + configuration.path, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": "token " + githubToken,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(body)
+                });
+                
+                if (response.ok) {
+                    var update = await response.json();
+                    fileSha = update.content.sha;
+                    button.innerText = "✅ Done";
+                    showToast('✅ Schedule saved successfully', 'success');
+                } else { 
+                    button.innerText = "❌ Failed";
+                    showToast('❌ Failed to save schedule', 'error');
+                }
+            } catch (error) { 
+                button.innerText = "⚠️ Error";
+                showToast('❌ Connection error', 'error');
+            }
+            setTimeout(function() { button.innerText = "💾 Save"; }, 2000);
+        }
+
+        // ================================================================
+        // TOAST NOTIFICATIONS
+        // ================================================================
+        var toastTimeout = null;
+
+        function showToast(message, type, duration) {
+            type = type || 'info';
+            duration = duration || 2500;
+            if (toastTimeout) {
+                clearTimeout(toastTimeout);
+                var existing = document.querySelector('.toast-container');
+                if (existing) existing.remove();
+            }
+            
+            var container = document.createElement('div');
+            container.className = 'toast-container';
+            var backgroundColors = {
+                success: '#10b981',
+                error: '#ef4444',
+                info: '#3b82f6'
+            };
+            container.style.background = backgroundColors[type] || '#3b82f6';
+            container.textContent = message;
+            document.body.appendChild(container);
+            
+            toastTimeout = setTimeout(function() {
+                container.style.opacity = '0';
+                container.style.transform = 'translateX(-50%) translateY(-20px)';
+                setTimeout(function() {
+                    if (container.parentElement) container.remove();
+                    toastTimeout = null;
+                }, 300);
+            }, duration);
+        }
+
+        function promptAutoFixGaps(event, date, specialtyCode) {
+            event.stopPropagation();
+            document.querySelectorAll('.gap-fix-popup').forEach(function(popup) { popup.remove(); });
+
+            var popup = document.createElement('div');
+            popup.className = 'gap-fix-popup';
+            popup.innerHTML = `
+                <p>Timing issues detected. Replace the manual times with an equal 24-hour distribution?</p>
+                <div class="gap-fix-popup-actions">
+                    <button class="gap-fix-cancel" onclick="this.closest('.gap-fix-popup').remove()">Cancel</button>
+                    <button class="gap-fix-confirm" onclick="fixDayGaps('${date}', '${specialtyCode}')">Fix gaps</button>
+                </div>
+            `;
+
+            var rect = event.currentTarget.getBoundingClientRect();
+            popup.style.left = Math.max(10, Math.min(rect.left, window.innerWidth - 290)) + 'px';
+            popup.style.top = Math.min(rect.bottom + 6, window.innerHeight - 150) + 'px';
+            document.body.appendChild(popup);
+        }
+
+        function fixDayGaps(date, specialtyCode) {
+            var popup = document.querySelector('.gap-fix-popup');
+            if (popup) popup.remove();
+
+            var entries = (database.schedule || []).filter(function(scheduleEntry) {
+                return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode;
+            });
+            if (entries.length <= 1) return;
+
+            delete manualTimeDays[getDayTimeKey(date, specialtyCode)];
+
+            var slotDuration = TOTAL_MINUTES / entries.length;
+            entries.sort(function(a, b) { return (a.dutySlot || 0) - (b.dutySlot || 0); });
+            entries.forEach(function(entry, index) {
+                entry.dutySlot = index;
+                entry.dutyTime = formatDutyTime(
+                    Math.round(index * slotDuration),
+                    Math.round((index + 1) * slotDuration)
+                );
+            });
+
+            refreshView();
+            showToast('✅ Gaps fixed and time distributed evenly', 'success', 2200);
+        }
+
+        // ================================================================
+        // EXPOSE TO GLOBAL SCOPE
+        // ================================================================
+        window.switchView = switchView;
+        window.navigateTrack = navigateTrack;
+        window.addSlot = addSlot;
+        window.deleteSlot = deleteSlot;
+        window.openTimePicker = openTimePicker;
+        window.confirmTimePicker = confirmTimePicker;
+        window.closeTimePicker = closeTimePicker;
+        window.saveToGithub = saveToGithub;
+        window.refreshView = refreshView;
+        window.handleAutocomplete = handleAutocomplete;
+        window.handleKeys = handleKeys;
+        window.toggleMenu = toggleMenu;
+        window.selectName = selectName;
+        window.handleBlur = handleBlur;
+        window.closeAllMenus = closeAllMenus;
+        window.showToast = showToast;
+        window.promptAutoFixGaps = promptAutoFixGaps;
+        window.fixDayGaps = fixDayGaps;
+        window.redistributeDayTimes = redistributeDayTimes;
+        window.autoRedistributeEnabled = autoRedistributeEnabled;
+    </script>
+    <script src="pwa.js"></script>
+</body>
+</html>

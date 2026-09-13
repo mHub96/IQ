@@ -6,581 +6,747 @@
       "spec": "ENT",
       "phone": "+9647732298185",
       "tag": "ENT",
-      "active": true
+      "active": true,
+      "dept": "ENT",
+      "department": "ENT"
     },
     {
       "name": "د. بنين هشام",
       "spec": "ENT",
       "phone": "+9647702832550",
       "tag": "ENT",
-      "active": true
+      "active": true,
+      "dept": "ENT",
+      "department": "ENT"
     },
     {
       "name": "د. علي جواد",
       "spec": "NS",
       "phone": "+9647816742060",
       "tag": "NS",
-      "active": true
+      "active": true,
+      "dept": "NS",
+      "department": "NS"
     },
     {
       "name": "د. محمد رياض جعفر",
       "spec": "RESERVE",
       "phone": "+9647805195075",
       "tag": "NS",
-      "active": false
+      "active": false,
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "name": "د. اياد يعرب",
       "spec": "NS",
       "phone": "+9647736024102",
       "tag": "NS",
-      "active": true
+      "active": true,
+      "dept": "NS",
+      "department": "NS"
     },
     {
       "name": "د. تبارك عبد العزيز",
       "spec": "NS",
       "phone": "+9647718362763",
       "tag": "NS",
-      "active": true
+      "active": true,
+      "dept": "NS",
+      "department": "NS"
     },
     {
       "name": "د. حسين علي عفراوي",
       "spec": "RESERVE",
       "phone": "+9647812638342",
       "tag": "NS",
-      "active": false
+      "active": false,
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "name": "د. حيدر عبد علي",
       "spec": "RESERVE",
       "phone": "+9647773726610",
       "tag": "NS",
-      "active": false
+      "active": false,
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "name": "د. فراس عباس",
       "spec": "NS",
       "phone": "+9647706225649",
       "tag": "NS",
-      "active": true
+      "active": true,
+      "dept": "NS",
+      "department": "NS"
     },
     {
       "name": "د. محمد عبدالحسين محسن",
       "spec": "RESERVE",
       "phone": "+9647707334546",
       "tag": "NS",
-      "active": false
+      "active": false,
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "name": "د. مصطفى حسن",
       "spec": "RESERVE",
       "phone": "+9647833301233",
       "tag": "NS",
-      "active": false
+      "active": false,
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "name": "د. حيدر قاسم",
       "spec": "NS",
       "phone": "+9647719184448",
       "tag": "NS",
-      "active": true
+      "active": true,
+      "dept": "NS",
+      "department": "NS"
     },
     {
       "name": "د. نور امجد",
       "spec": "GS",
       "phone": "+9647827088919",
       "tag": "GS",
-      "active": true
+      "active": true,
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "name": "د. عبدالهادي باقر",
       "spec": "GS",
       "phone": "+9647716858560",
       "tag": "GS",
-      "active": true
+      "active": true,
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "name": "د. علي عبد الناصر",
       "spec": "GS",
       "phone": "+9647813856692",
       "tag": "GS",
-      "active": true
+      "active": true,
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "name": "د. يوسف اسامه",
       "spec": "US",
       "phone": "+9647712689915",
       "tag": "US",
-      "active": true
+      "active": true,
+      "dept": "US",
+      "department": "US"
     },
     {
       "name": "د. علي عوده",
       "spec": "US",
       "phone": "+9647729918341",
       "tag": "US",
-      "active": true
+      "active": true,
+      "dept": "US",
+      "department": "US"
     },
     {
       "name": "د. علي عدنان",
       "spec": "US",
       "phone": "+9647710808086",
       "tag": "US",
-      "active": true
+      "active": true,
+      "dept": "US",
+      "department": "US"
     },
     {
       "name": "د. محمد فاضل",
       "spec": "OR",
       "phone": "+9647815628060",
       "tag": "OR",
-      "active": true
+      "active": true,
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "name": "د. مصطفى باسم",
       "spec": "OR",
       "phone": "+9647718090001",
       "tag": "OR",
-      "active": true
+      "active": true,
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "name": "د. احمد حسن رحيم",
       "spec": "M",
       "phone": "+9647700052061",
       "tag": "M",
-      "active": true
+      "active": true,
+      "dept": "M",
+      "department": "M"
     },
     {
       "name": "د. نور علي خزعل",
       "spec": "M",
       "phone": "+9647729218515",
       "tag": "M",
-      "active": true
+      "active": true,
+      "dept": "M",
+      "department": "M"
     },
     {
       "name": "د. هدير شريف",
       "spec": "M",
       "phone": "+9647717806103",
       "tag": "M",
-      "active": true
+      "active": true,
+      "dept": "M",
+      "department": "M"
     },
     {
       "name": "د. علي عبد الزهرة طه",
       "spec": "M",
       "phone": "+9647729281183",
       "tag": "M",
-      "active": true
+      "active": true,
+      "dept": "M",
+      "department": "M"
     },
     {
       "name": "د. كرار حيدر راجي",
       "spec": "M",
       "phone": "+9647780477234",
       "tag": "M",
-      "active": true
+      "active": true,
+      "dept": "M",
+      "department": "M"
     },
     {
       "name": "د. شفق فارس",
       "spec": "M",
       "phone": "+9647811487982",
       "tag": "M",
-      "active": true
+      "active": true,
+      "dept": "M",
+      "department": "M"
     },
     {
       "name": "د. حنان محمود حسن",
       "spec": "M",
       "phone": "+9647716127715",
       "tag": "M",
-      "active": true
+      "active": true,
+      "dept": "M",
+      "department": "M"
     },
     {
       "name": "د. فاطمة محمد حسن",
       "spec": "A",
       "phone": "+9647773837499",
       "tag": "A",
-      "active": true
+      "active": true,
+      "dept": "A",
+      "department": "A"
     },
     {
       "name": "د. اسماء مطشر حسين",
       "spec": "A",
       "phone": "+9647745460005",
       "tag": "A",
-      "active": true
+      "active": true,
+      "dept": "A",
+      "department": "A"
     },
     {
       "name": "د. روان عدنان حسين",
       "spec": "A",
       "phone": "+9647776228423",
       "tag": "A",
-      "active": true
+      "active": true,
+      "dept": "A",
+      "department": "A"
     },
     {
       "name": "د. البراء بهاء",
       "spec": "US",
       "phone": "+9647722138029",
       "tag": "US",
-      "active": true
+      "active": true,
+      "dept": "US",
+      "department": "US"
     },
     {
       "name": "د. عباس طالب",
       "spec": "GS",
       "phone": "+9647815701931",
       "tag": "GS",
-      "active": true
+      "active": true,
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "name": "د. عبد الوهاب مصطفى",
       "spec": "M",
       "phone": "+9647838781799",
       "tag": "M",
-      "active": true
+      "active": true,
+      "dept": "M",
+      "department": "M"
     },
     {
       "name": "د. ذو الفقار صارم",
       "spec": "OR",
       "phone": "+9647705535066",
       "tag": "OR",
-      "active": true
+      "active": true,
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "name": "د. حيدر عبد الأمير",
       "spec": "O",
       "phone": "+9647727567076",
       "tag": "O",
-      "active": true
+      "active": true,
+      "dept": "O",
+      "department": "O"
     },
     {
       "name": "د. محمد باقر",
       "spec": "O",
       "phone": "+9647714982924",
       "tag": "O",
-      "active": true
+      "active": true,
+      "dept": "O",
+      "department": "O"
     },
     {
       "name": "د. زينب مالك",
       "spec": "Pe",
       "phone": "+9647738265348",
       "tag": "Pe",
-      "active": true
+      "active": true,
+      "dept": "Pe",
+      "department": "Pe"
     },
     {
       "name": "د. سارة احمد",
       "spec": "EM",
       "phone": "+9647833256993",
       "tag": "EM",
-      "active": true
+      "active": true,
+      "dept": "EM",
+      "department": "EM"
     },
     {
       "name": "د. حسين جاسم",
       "spec": "EM",
       "phone": "+9647806557223",
       "tag": "EM",
-      "active": true
+      "active": true,
+      "dept": "EM",
+      "department": "EM"
     },
     {
       "name": "د. جيهان عبد الكريم",
       "spec": "MF",
       "phone": "+9647811177229",
       "tag": "MF",
-      "active": true
+      "active": true,
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "name": "د. ايهاب حسين",
       "spec": "MF",
       "phone": "+9647735411114",
       "tag": "MF",
-      "active": true
+      "active": true,
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "name": "د. محمد احمد",
       "spec": "MF",
       "phone": "+9647730220070",
       "tag": "MF",
-      "active": true
+      "active": true,
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "name": "د. آلاء عدنان",
       "spec": "MF",
       "phone": "+9647804116604",
       "tag": "MF",
-      "active": true
+      "active": true,
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "name": "د. ضياء جبار",
       "spec": "MF",
       "phone": "+9647726453404",
       "tag": "MF",
-      "active": true
+      "active": true,
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "name": "سالم حسين",
       "spec": "AO",
       "phone": "+9647703214791",
       "tag": "AO",
-      "active": true
+      "active": true,
+      "dept": "AO",
+      "department": "AO"
     },
     {
       "name": "علي عبد الحسين",
       "spec": "AO",
       "phone": "+9647704303025",
       "tag": "AO",
-      "active": true
+      "active": true,
+      "dept": "AO",
+      "department": "AO"
     },
     {
       "name": "ايهاب خضير",
       "spec": "AO",
       "phone": "+9647722772419",
       "tag": "AO",
-      "active": true
+      "active": true,
+      "dept": "AO",
+      "department": "AO"
     },
     {
       "name": "د. فرح سعود",
       "spec": "R",
       "phone": "+9647718705644",
       "tag": "R",
-      "active": true
+      "active": true,
+      "dept": "R",
+      "department": "R"
     },
     {
       "name": "د. زينب عبد الحسين",
       "spec": "R",
       "phone": "+9647705600920",
       "tag": "R",
-      "active": true
+      "active": true,
+      "dept": "R",
+      "department": "R"
     },
     {
       "name": "علي مكي كامل",
       "spec": "AO",
       "phone": "+9647703100531",
       "tag": "AO",
-      "active": true
+      "active": true,
+      "dept": "AO",
+      "department": "AO"
     },
     {
       "name": "د. جبار جليل",
       "spec": "OR",
       "phone": "+9647813977691",
       "tag": "OR",
-      "active": true
+      "active": true,
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "name": "د. ضياء سليم",
       "spec": "R",
       "phone": "+9647827903387",
       "tag": "R",
-      "active": true
+      "active": true,
+      "dept": "R",
+      "department": "R"
     },
     {
       "name": "د. شيرين سمير",
       "spec": "OP",
       "phone": "+9647826655511",
       "tag": "OP",
-      "active": true
+      "active": true,
+      "dept": "OP",
+      "department": "OP"
     },
     {
       "name": "د. حسين عويد",
       "spec": "OP",
       "phone": "+9647739244859",
       "tag": "OP",
-      "active": true
+      "active": true,
+      "dept": "OP",
+      "department": "OP"
     },
     {
       "name": "د. مسره سعد",
       "spec": "OP",
       "phone": "+9647723359625",
       "tag": "OP",
-      "active": true
+      "active": true,
+      "dept": "OP",
+      "department": "OP"
     },
     {
       "name": "د. صافي إبراهيم",
       "spec": "OP",
       "phone": "+9647739468124",
       "tag": "OP",
-      "active": true
+      "active": true,
+      "dept": "OP",
+      "department": "OP"
     },
     {
       "name": "د. آلاء إسماعيل",
       "spec": "OP",
       "phone": "+9647705669930",
       "tag": "OP",
-      "active": true
+      "active": true,
+      "dept": "OP",
+      "department": "OP"
     },
     {
       "name": "د. مريم محمد صابط",
       "spec": "G",
       "phone": "+9647735575678",
       "tag": "G",
-      "active": true
+      "active": true,
+      "dept": "G",
+      "department": "G"
     },
     {
       "name": "د. هبة نعيم",
       "spec": "G",
       "phone": "+9647817932865",
       "tag": "G",
-      "active": true
+      "active": true,
+      "dept": "G",
+      "department": "G"
     },
     {
       "name": "د. ريام ناجح شعلان",
       "spec": "G",
       "phone": "+9647830760046",
       "tag": "G",
-      "active": true
+      "active": true,
+      "dept": "G",
+      "department": "G"
     },
     {
       "name": "د. امنه صفاء",
       "spec": "G",
       "phone": "+9647713639189",
       "tag": "G",
-      "active": true
+      "active": true,
+      "dept": "G",
+      "department": "G"
     },
     {
       "name": "د. اكرام عبد الخالق",
       "spec": "G",
       "phone": "+9647719794535",
       "tag": "G",
-      "active": true
+      "active": true,
+      "dept": "G",
+      "department": "G"
     },
     {
       "name": "د. حيدر عدنان",
       "spec": "G",
       "phone": "+9647722315771",
       "tag": "G",
-      "active": true
+      "active": true,
+      "dept": "G",
+      "department": "G"
     },
     {
       "name": "د. رند عبد الكريم",
       "spec": "G",
       "phone": "+9647714055930",
       "tag": "G",
-      "active": true
+      "active": true,
+      "dept": "G",
+      "department": "G"
     },
     {
       "name": "د. عبد الحكيم هادي صالح",
       "spec": "OR",
       "phone": "+9647719744688",
       "tag": "OR",
-      "active": true
+      "active": true,
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "name": "د. نور عبد الله",
       "spec": "Pe",
       "phone": "+9647732153718",
       "tag": "Pe",
-      "active": true
+      "active": true,
+      "dept": "Pe",
+      "department": "Pe"
     },
     {
       "name": "د. شمس عباس",
       "spec": "Pe",
       "phone": "+9647851990446",
       "tag": "Pe",
-      "active": true
+      "active": true,
+      "dept": "Pe",
+      "department": "Pe"
     },
     {
       "name": "د. حوراء حسن صگبان",
       "spec": "G",
       "phone": "+9647730300297",
       "tag": "G",
-      "active": true
+      "active": true,
+      "dept": "G",
+      "department": "G"
     },
     {
       "name": "د. فاطمة ماجد عبد الكريم",
       "spec": "G",
       "phone": "+9647732165560",
       "tag": "G",
-      "active": true
+      "active": true,
+      "dept": "G",
+      "department": "G"
     },
     {
       "name": "محمد عبد الحي",
       "spec": "AO",
       "phone": "+9647705674831",
       "tag": "AO",
-      "active": true
+      "active": true,
+      "dept": "AO",
+      "department": "AO"
     },
     {
       "name": "د. فاطمة سلطان",
       "spec": "OP",
       "tag": "OP",
       "phone": "+9647735237481",
-      "active": true
+      "active": true,
+      "dept": "OP",
+      "department": "OP"
     },
     {
       "name": "د. شيرين سمير",
       "spec": "ICU",
       "tag": "ICU",
       "phone": "+9647826655511",
-      "active": true
+      "active": true,
+      "dept": "ICU",
+      "department": "ICU"
     },
     {
       "name": "د. حسين عويد",
       "spec": "ICU",
       "tag": "ICU",
       "phone": "+9647739244859",
-      "active": true
+      "active": true,
+      "dept": "ICU",
+      "department": "ICU"
     },
     {
       "name": "د. صافي إبراهيم",
       "spec": "ICU",
       "tag": "ICU",
       "phone": "+9647739468124",
-      "active": true
+      "active": true,
+      "dept": "ICU",
+      "department": "ICU"
     },
     {
       "name": "د. مسره سعد",
       "spec": "ICU",
       "tag": "ICU",
       "phone": "+9647723359625",
-      "active": true
+      "active": true,
+      "dept": "ICU",
+      "department": "ICU"
     },
     {
       "name": "د. فاطمة سلطان",
       "spec": "ICU",
       "tag": "ICU",
       "phone": "+9647735237481",
-      "active": true
+      "active": true,
+      "dept": "ICU",
+      "department": "ICU"
     },
     {
       "name": "د. آلاء إسماعيل",
       "spec": "ICU",
       "tag": "ICU",
       "phone": "+9647735237481",
-      "active": true
+      "active": true,
+      "dept": "ICU",
+      "department": "ICU"
     },
     {
       "name": "د. شيرين سمير",
       "spec": "A",
       "tag": "A",
       "phone": "+9647826655511",
-      "active": true
+      "active": true,
+      "dept": "A",
+      "department": "A"
     },
     {
       "name": "د. حسين عويد",
       "spec": "A",
       "tag": "A",
       "phone": "+9647739244859",
-      "active": true
+      "active": true,
+      "dept": "A",
+      "department": "A"
     },
     {
       "name": "د. مسره سعد",
       "spec": "A",
       "tag": "A",
       "phone": "+9647723359625",
-      "active": true
+      "active": true,
+      "dept": "A",
+      "department": "A"
     },
     {
       "name": "د. صافي إبراهيم",
       "spec": "A",
       "tag": "A",
       "phone": "+9647739468124",
-      "active": true
+      "active": true,
+      "dept": "A",
+      "department": "A"
     },
     {
       "name": "د. فاطمة سلطان",
       "spec": "A",
       "tag": "A",
       "phone": "+9647735237481",
-      "active": true
+      "active": true,
+      "dept": "A",
+      "department": "A"
     },
     {
       "name": "د. آلاء إسماعيل",
       "spec": "A",
       "tag": "A",
       "phone": "+9647705669930",
-      "active": true
+      "active": true,
+      "dept": "A",
+      "department": "A"
     }
   ],
   "schedule": [

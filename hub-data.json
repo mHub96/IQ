@@ -1,9 +1,9 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-13T14:02:39.681Z",
+  "lastUpdated": "2026-09-13T14:04:46.838Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
-    "admin": "Admin1996*",
+    "admin": "Admin1997*",
     "user": "1234"
   },
   "activeHospitalId": "iraqi",
@@ -36365,7 +36365,7 @@
       "color": "#0073e6",
       "passwords": {
         "owner": "MrjBth1996*",
-        "admin": "Sayyab1234",
+        "admin": "Admin1997*",
         "user": "1234"
       },
       "specialties": [

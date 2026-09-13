@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-13T23:31:14.937Z",
+  "lastUpdated": "2026-09-13T23:31:16.760Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -2710,19 +2710,6 @@
           "dept": "NS",
           "department": "NS",
           "active": false,
-          "hospitals": [
-            "iraqi"
-          ]
-        },
-        {
-          "id": "res-mu0g6u6ynjxs",
-          "name": "د. مقيم اختبار التناوب",
-          "phone": "07700000000",
-          "spec": "NS",
-          "tag": "NS",
-          "dept": "GS",
-          "department": "GS",
-          "active": true,
           "hospitals": [
             "iraqi"
           ]
@@ -43390,19 +43377,6 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
-    },
-    {
-      "id": "res-mu0g6u6ynjxs",
-      "name": "د. مقيم اختبار التناوب",
-      "phone": "07700000000",
-      "spec": "NS",
-      "tag": "NS",
-      "dept": "GS",
-      "department": "GS",
-      "active": true,
-      "hospitals": [
-        "iraqi"
       ]
     }
   ],

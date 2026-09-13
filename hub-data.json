@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-13T12:47:26.250Z",
+  "lastUpdated": "2026-09-13T12:52:02.205Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -27,8 +27,9 @@
           "name_en": "Neurosurgery",
           "icon": "🧠",
           "color": "#fea101",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "CT",
@@ -36,8 +37,9 @@
           "name_en": "Cardiothoracic Surgery",
           "icon": "🫀",
           "color": "#e05910",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "GS",
@@ -45,8 +47,9 @@
           "name_en": "General Surgery",
           "icon": "🔪",
           "color": "#2ac200",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "US",
@@ -54,8 +57,9 @@
           "name_en": "Urosurgery",
           "icon": "🫘",
           "color": "#e66551",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "ENT",
@@ -63,8 +67,33 @@
           "name_en": "ENT",
           "icon": "👂",
           "color": "#fbff00",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
+          "id": "OP",
+          "name_ar": "تخدير العمليات",
+          "name_en": "OT Anaesthesia",
+          "icon": "💉",
+          "color": "#b4cc00",
+          "enabled": true,
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ]
+        },
+        {
+          "id": "ICU",
+          "name_ar": "تخدير العناية المركزة",
+          "name_en": "ICU Anaesthesia",
+          "icon": "💉",
+          "color": "#c9e141",
+          "enabled": true,
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ]
         },
         {
           "id": "ON",
@@ -72,8 +101,9 @@
           "name_en": "Oncology",
           "icon": "☢️",
           "color": "#84cc16",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "R",
@@ -81,17 +111,139 @@
           "name_en": "Radiology",
           "icon": "🩻",
           "color": "#6700e6",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
+          "id": "D",
+          "name_ar": "الوفيات",
+          "name_en": "Death Certificates",
+          "icon": "⚰️",
+          "color": "#bababa",
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": [
+            "NS",
+            "CT",
+            "GS",
+            "OR",
+            "US",
+            "ENT",
+            "MF",
+            "O",
+            "Pe",
+            "M",
+            "G",
+            "ICU",
+            "OP",
+            "GA",
+            "A",
+            "R",
+            "ON",
+            "N",
+            "NM",
+            "P",
+            "Der",
+            "EM",
+            "FM",
+            "GP",
+            "H",
+            "PS",
+            "RM"
+          ]
+        },
+        {
+          "id": "G",
+          "name_ar": "النسائية و التوليد",
+          "name_en": "Gynecology",
+          "icon": "🤰",
+          "color": "#e40de7",
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "A",
           "name_ar": "التخدير و العناية المركزة",
-          "name_en": "Anaethesia",
+          "name_en": "Anaesthesia & Intensive Care",
           "icon": "💉",
           "color": "#ff8e24",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
+          "id": "GA",
+          "name_ar": "تخدير صالة الولادة",
+          "name_en": "GYN Anaesthesia",
+          "icon": "🤰",
+          "color": "#fe62ad",
+          "enabled": false,
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ]
+        },
+        {
+          "id": "O",
+          "name_ar": "العيون",
+          "name_en": "Ophthalmology",
+          "icon": "👁️",
+          "color": "#38ffe8",
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
+          "id": "M",
+          "name_ar": "الباطنية",
+          "name_en": "Internal Medicine",
+          "icon": "💊",
+          "color": "#a1e972",
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
+          "id": "P",
+          "name_ar": "النفسية",
+          "name_en": "Psychiatry",
+          "icon": "🧠",
+          "color": "#fef606",
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
+          "id": "N",
+          "name_ar": "طب امراض الكلى",
+          "name_en": "Nephrology",
+          "icon": "🧫",
+          "color": "#ff5ccb",
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
+          "id": "Pe",
+          "name_ar": "الاطفال",
+          "name_en": "Paediatrics",
+          "icon": "👶",
+          "color": "#3dff6e",
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
+          "id": "NM",
+          "name_ar": "طب الجملة العصبية",
+          "name_en": "Neuromedicine",
+          "icon": "🧠",
+          "color": "#79e9f1",
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "Der",
@@ -99,8 +251,19 @@
           "name_en": "Dermatology",
           "icon": "🏥",
           "color": "#e27ef6",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
+          "id": "MF",
+          "name_ar": "جراحة الوجه و الفكين",
+          "name_en": "MaxilloFacial Surgery",
+          "icon": "🦷",
+          "color": "#d600af",
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "EM",
@@ -108,17 +271,19 @@
           "name_en": "Emergency Medicine",
           "icon": "🏥",
           "color": "#8cb3ed",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "FM",
-          "name_ar": "طب الاسرة",
+          "name_ar": "طب الأسرة",
           "name_en": "Family Medicine",
-          "icon": "🏥",
+          "icon": "👨",
           "color": "#f4f67e",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "GP",
@@ -126,8 +291,19 @@
           "name_en": "General Practitioner",
           "icon": "🏥",
           "color": "#627ae4",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
+          "id": "OR",
+          "name_ar": "الكسور",
+          "name_en": "Orthopaedics",
+          "icon": "🦴",
+          "color": "#ff0000",
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "H",
@@ -135,8 +311,9 @@
           "name_en": "Cardiology",
           "icon": "🫀",
           "color": "#c91d70",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "PS",
@@ -144,8 +321,9 @@
           "name_en": "Plastic Surgery",
           "icon": "🪡",
           "color": "#2563eb",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "RM",
@@ -153,8 +331,47 @@
           "name_en": "Respiratory Medicine",
           "icon": "🫁",
           "color": "#3bb8f7",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
+          "id": "AO",
+          "name_ar": "المعاون الاداري",
+          "name_en": "Administrative Officer",
+          "icon": "🧑",
+          "color": "#0f766e",
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": [
+            "NS",
+            "CT",
+            "GS",
+            "OR",
+            "US",
+            "ENT",
+            "MF",
+            "O",
+            "Pe",
+            "M",
+            "G",
+            "ICU",
+            "OP",
+            "GA",
+            "A",
+            "R",
+            "ON",
+            "N",
+            "NM",
+            "P",
+            "Der",
+            "EM",
+            "FM",
+            "GP",
+            "H",
+            "PS",
+            "RM"
+          ]
         }
       ],
       "names": [
@@ -2665,7 +2882,7 @@
           ]
         },
         {
-          "id": "res-mtzt6vrsg9vu",
+          "id": "res-mtztcufx52se",
           "name": "د. مقيم اختبار التناوب",
           "phone": "07700000000",
           "spec": "NS",
@@ -19052,7 +19269,7 @@
           "date": "12/09/2026",
           "specCode": "NS",
           "name": "د. فاطمة خليل",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -20295,8 +20512,9 @@
           "name_en": "MaxilloFacial Surgery",
           "icon": "🦷",
           "color": "#d600af",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "GS",
@@ -20304,8 +20522,9 @@
           "name_en": "General Surgery",
           "icon": "🔪",
           "color": "#2ac200",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "OR",
@@ -20313,8 +20532,9 @@
           "name_en": "Orthopaedics",
           "icon": "🦴",
           "color": "#ff0000",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "US",
@@ -20322,8 +20542,9 @@
           "name_en": "Urosurgery",
           "icon": "🫘",
           "color": "#e66551",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "ENT",
@@ -20331,8 +20552,9 @@
           "name_en": "ENT",
           "icon": "👂",
           "color": "#fbff00",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "O",
@@ -20340,8 +20562,9 @@
           "name_en": "Ophthalmology",
           "icon": "👁️",
           "color": "#38ffe8",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "Pe",
@@ -20349,8 +20572,9 @@
           "name_en": "Paediatrics",
           "icon": "👶",
           "color": "#3dff6e",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "NM",
@@ -20358,8 +20582,9 @@
           "name_en": "Neuromedicine",
           "icon": "🧠",
           "color": "#79e9f1",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "N",
@@ -20367,8 +20592,9 @@
           "name_en": "Nephrology",
           "icon": "🧫",
           "color": "#ff5ccb",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "M",
@@ -20376,8 +20602,9 @@
           "name_en": "Internal Medicine",
           "icon": "💊",
           "color": "#a1e972",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "G",
@@ -20385,8 +20612,9 @@
           "name_en": "Gynecology",
           "icon": "🤰",
           "color": "#e40de7",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "P",
@@ -20394,19 +20622,21 @@
           "name_en": "Psychiatry",
           "icon": "🧠",
           "color": "#fef606",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "ICU",
           "name_ar": "تخدير العناية المركزة",
-          "name_en": "ICU Anaethesia",
+          "name_en": "ICU Anaesthesia",
           "icon": "💉",
           "color": "#c9e141",
+          "enabled": true,
+          "parentSpec": "A",
           "acceptPool": [
             "A"
-          ],
-          "enabled": true
+          ]
         },
         {
           "id": "OP",
@@ -20414,10 +20644,11 @@
           "name_en": "OT Anaesthesia",
           "icon": "💉",
           "color": "#b4cc00",
+          "enabled": true,
+          "parentSpec": "A",
           "acceptPool": [
             "A"
-          ],
-          "enabled": true
+          ]
         },
         {
           "id": "GA",
@@ -20425,10 +20656,11 @@
           "name_en": "GYN Anaesthesia",
           "icon": "🤰",
           "color": "#fe62ad",
+          "enabled": true,
+          "parentSpec": "A",
           "acceptPool": [
             "A"
-          ],
-          "enabled": true
+          ]
         },
         {
           "id": "R",
@@ -20436,39 +20668,47 @@
           "name_en": "Radiology",
           "icon": "🩻",
           "color": "#6700e6",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "D",
           "name_ar": "الوفيات",
-          "name_en": "Death Certificatess",
+          "name_en": "Death Certificates",
           "icon": "⚰️",
           "color": "#bababa",
+          "enabled": true,
+          "parentSpec": null,
           "acceptPool": [
-            "MF",
+            "NS",
+            "CT",
             "GS",
             "OR",
             "US",
             "ENT",
+            "MF",
             "O",
             "Pe",
-            "NM",
-            "N",
             "M",
             "G",
-            "P",
             "ICU",
             "OP",
             "GA",
-            "ON",
             "A",
-            "E",
-            "F",
-            "NS",
-            "CT"
-          ],
-          "enabled": true
+            "R",
+            "ON",
+            "N",
+            "NM",
+            "P",
+            "Der",
+            "EM",
+            "FM",
+            "GP",
+            "H",
+            "PS",
+            "RM"
+          ]
         },
         {
           "id": "AO",
@@ -20476,8 +20716,37 @@
           "name_en": "Administrative Officer",
           "icon": "🧑",
           "color": "#2563eb",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": [
+            "NS",
+            "CT",
+            "GS",
+            "OR",
+            "US",
+            "ENT",
+            "MF",
+            "O",
+            "Pe",
+            "M",
+            "G",
+            "ICU",
+            "OP",
+            "GA",
+            "A",
+            "R",
+            "ON",
+            "N",
+            "NM",
+            "P",
+            "Der",
+            "EM",
+            "FM",
+            "GP",
+            "H",
+            "PS",
+            "RM"
+          ]
         },
         {
           "id": "ON",
@@ -20485,17 +20754,19 @@
           "name_en": "Oncology",
           "icon": "☢️",
           "color": "#84cc16",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "A",
           "name_ar": "التخدير و العناية المركزة",
-          "name_en": "Anaethesia",
+          "name_en": "Anaesthesia & Intensive Care",
           "icon": "💉",
           "color": "#ff8e24",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "Der",
@@ -20503,26 +20774,29 @@
           "name_en": "Dermatology",
           "icon": "🏥",
           "color": "#e27ef6",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
-          "id": "E",
+          "id": "EM",
           "name_ar": "طب الطوارئ",
           "name_en": "Emergency Medicine",
           "icon": "🏥",
           "color": "#9a5ce6",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
-          "id": "F",
+          "id": "FM",
           "name_ar": "طب الأسرة",
           "name_en": "Family Medicine",
           "icon": "👨",
           "color": "#78edb8",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "GP",
@@ -20530,8 +20804,9 @@
           "name_en": "General Practitioner",
           "icon": "🏥",
           "color": "#627ae4",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "H",
@@ -20539,8 +20814,9 @@
           "name_en": "Cardiology",
           "icon": "🫀",
           "color": "#c91d70",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "PS",
@@ -20548,8 +20824,9 @@
           "name_en": "Plastic Surgery",
           "icon": "🪡",
           "color": "#2563eb",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "RM",
@@ -20557,8 +20834,9 @@
           "name_en": "Respiratory Medicine",
           "icon": "🫁",
           "color": "#3bb8f7",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "NS",
@@ -20566,8 +20844,9 @@
           "name_en": "Neurosurgery",
           "icon": "🧠",
           "color": "#fea101",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "CT",
@@ -20575,8 +20854,9 @@
           "name_en": "Cardiothoracic Surgery",
           "icon": "🫀",
           "color": "#e05910",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         }
       ],
       "names": [
@@ -23100,10 +23380,10 @@
           "id": "res-0352",
           "name": "د. زهراء ماجد",
           "phone": "+9647733988464",
-          "spec": "F",
-          "tag": "F",
-          "dept": "F",
-          "department": "F",
+          "spec": "FM",
+          "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23113,10 +23393,10 @@
           "id": "res-0353",
           "name": "د. رؤى بشير",
           "phone": "+9647739999363",
-          "spec": "F",
-          "tag": "F",
-          "dept": "F",
-          "department": "F",
+          "spec": "FM",
+          "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23126,10 +23406,10 @@
           "id": "res-0354",
           "name": "د. غفران قاسم هادي",
           "phone": "+9647725158934",
-          "spec": "F",
-          "tag": "F",
-          "dept": "F",
-          "department": "F",
+          "spec": "FM",
+          "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23139,10 +23419,10 @@
           "id": "res-0355",
           "name": "د. أبرار مؤيد عبدالمنعم",
           "phone": "+9647816922397",
-          "spec": "F",
-          "tag": "F",
-          "dept": "F",
-          "department": "F",
+          "spec": "FM",
+          "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23152,10 +23432,10 @@
           "id": "res-0356",
           "name": "د. امال ناصر ناجي",
           "phone": "+9647723405240",
-          "spec": "F",
-          "tag": "F",
-          "dept": "F",
-          "department": "F",
+          "spec": "FM",
+          "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23165,10 +23445,10 @@
           "id": "res-0357",
           "name": "د. براء عباس",
           "phone": "+9647714985674",
-          "spec": "F",
-          "tag": "F",
-          "dept": "F",
-          "department": "F",
+          "spec": "FM",
+          "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23178,10 +23458,10 @@
           "id": "res-0358",
           "name": "د. فاتن سلمان",
           "phone": "+9647707009908",
-          "spec": "F",
-          "tag": "F",
-          "dept": "F",
-          "department": "F",
+          "spec": "FM",
+          "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23191,10 +23471,10 @@
           "id": "res-0359",
           "name": "د. زمن مصطفى",
           "phone": "+9647731972744",
-          "spec": "F",
-          "tag": "F",
-          "dept": "F",
-          "department": "F",
+          "spec": "FM",
+          "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23204,10 +23484,10 @@
           "id": "res-0360",
           "name": "د. مريم حسن",
           "phone": "+9647709640919",
-          "spec": "F",
-          "tag": "F",
-          "dept": "F",
-          "department": "F",
+          "spec": "FM",
+          "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23217,10 +23497,10 @@
           "id": "res-0361",
           "name": "د. نور عمار",
           "phone": "+9647722921447",
-          "spec": "F",
-          "tag": "F",
-          "dept": "F",
-          "department": "F",
+          "spec": "FM",
+          "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23230,10 +23510,10 @@
           "id": "res-0362",
           "name": "د. نور رياض",
           "phone": "+9647717539972",
-          "spec": "F",
-          "tag": "F",
-          "dept": "F",
-          "department": "F",
+          "spec": "FM",
+          "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23243,10 +23523,10 @@
           "id": "res-0363",
           "name": "د. ثناء احمد",
           "phone": "+9647716750774",
-          "spec": "F",
-          "tag": "F",
-          "dept": "F",
-          "department": "F",
+          "spec": "FM",
+          "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23256,10 +23536,10 @@
           "id": "res-0364",
           "name": "د. طيبة حميد",
           "phone": "+9647819600025",
-          "spec": "F",
-          "tag": "F",
-          "dept": "F",
-          "department": "F",
+          "spec": "FM",
+          "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23269,10 +23549,10 @@
           "id": "res-0365",
           "name": "د. صفا احمد",
           "phone": "+9647814095288",
-          "spec": "F",
-          "tag": "F",
-          "dept": "F",
-          "department": "F",
+          "spec": "FM",
+          "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23282,10 +23562,10 @@
           "id": "res-0366",
           "name": "د. فرح رحيم",
           "phone": "+9647707376328",
-          "spec": "F",
-          "tag": "F",
-          "dept": "F",
-          "department": "F",
+          "spec": "FM",
+          "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23295,10 +23575,10 @@
           "id": "res-0367",
           "name": "د. رفل اسامه",
           "phone": "+9647721895042",
-          "spec": "F",
-          "tag": "F",
-          "dept": "F",
-          "department": "F",
+          "spec": "FM",
+          "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23308,10 +23588,10 @@
           "id": "res-0368",
           "name": "د. عمر جليل عيسى",
           "phone": "+9647746927069",
-          "spec": "E",
-          "tag": "E",
-          "dept": "E",
-          "department": "E",
+          "spec": "EM",
+          "tag": "EM",
+          "dept": "EM",
+          "department": "EM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23321,10 +23601,10 @@
           "id": "res-0369",
           "name": "د. زهراء محمد",
           "phone": "+9647718713995",
-          "spec": "E",
-          "tag": "E",
-          "dept": "E",
-          "department": "E",
+          "spec": "EM",
+          "tag": "EM",
+          "dept": "EM",
+          "department": "EM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23334,10 +23614,10 @@
           "id": "res-0370",
           "name": "د. علي قاسم حسن",
           "phone": "+9647712901906",
-          "spec": "E",
-          "tag": "E",
-          "dept": "E",
-          "department": "E",
+          "spec": "EM",
+          "tag": "EM",
+          "dept": "EM",
+          "department": "EM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23347,10 +23627,10 @@
           "id": "res-0371",
           "name": "د. ايات عبدالكريم",
           "phone": "+9647709401868",
-          "spec": "E",
-          "tag": "E",
-          "dept": "E",
-          "department": "E",
+          "spec": "EM",
+          "tag": "EM",
+          "dept": "EM",
+          "department": "EM",
           "active": true,
           "hospitals": [
             "basra"
@@ -23399,10 +23679,10 @@
           "id": "res-0375",
           "name": "د. شهد سعدون",
           "phone": "+9647721497466",
-          "spec": "F",
-          "tag": "F",
-          "dept": "F",
-          "department": "F",
+          "spec": "FM",
+          "tag": "FM",
+          "dept": "FM",
+          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
@@ -32100,8 +32380,9 @@
           "name_en": "Neurosurgery",
           "icon": "🧠",
           "color": "#fea101",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "GS",
@@ -32109,8 +32390,9 @@
           "name_en": "General Surgery",
           "icon": "🔪",
           "color": "#2ac200",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "OR",
@@ -32118,8 +32400,9 @@
           "name_en": "Orthopaedics",
           "icon": "🦴",
           "color": "#ff0000",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "US",
@@ -32127,17 +32410,19 @@
           "name_en": "Urosurgery",
           "icon": "🫘",
           "color": "#e66551",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "ENT",
           "name_ar": "الأذن و الأنف و الحنجرة",
           "name_en": "ENT",
-          "icon": "👃",
+          "icon": "👂",
           "color": "#fbff00",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "MF",
@@ -32145,8 +32430,9 @@
           "name_en": "MaxilloFacial Surgery",
           "icon": "🦷",
           "color": "#d600af",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "O",
@@ -32154,8 +32440,9 @@
           "name_en": "Ophthalmology",
           "icon": "👁️",
           "color": "#38ffe8",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "Pe",
@@ -32163,17 +32450,19 @@
           "name_en": "Paediatrics",
           "icon": "👶",
           "color": "#3dff6e",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
-          "id": "IM",
+          "id": "M",
           "name_ar": "الباطنية",
           "name_en": "Internal Medicine",
-          "icon": "🩺",
+          "icon": "💊",
           "color": "#2563eb",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "G",
@@ -32181,19 +32470,21 @@
           "name_en": "Gynecology",
           "icon": "🤰",
           "color": "#e40de7",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "ICU",
           "name_ar": "تخدير العناية المركزة",
-          "name_en": "ICU Anaethesia",
+          "name_en": "ICU Anaesthesia",
           "icon": "💉",
           "color": "#c9e141",
+          "enabled": true,
+          "parentSpec": "A",
           "acceptPool": [
             "A"
-          ],
-          "enabled": true
+          ]
         },
         {
           "id": "OP",
@@ -32201,10 +32492,11 @@
           "name_en": "OT Anaesthesia",
           "icon": "💉",
           "color": "#b4cc00",
+          "enabled": true,
+          "parentSpec": "A",
           "acceptPool": [
             "A"
-          ],
-          "enabled": true
+          ]
         },
         {
           "id": "R",
@@ -32212,17 +32504,21 @@
           "name_en": "Radiology",
           "icon": "🩻",
           "color": "#6700e6",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "D",
           "name_ar": "الوفيات",
-          "name_en": "Death Certificatess",
+          "name_en": "Death Certificates",
           "icon": "⚰️",
           "color": "#bababa",
+          "enabled": true,
+          "parentSpec": null,
           "acceptPool": [
             "NS",
+            "CT",
             "GS",
             "OR",
             "US",
@@ -32230,25 +32526,25 @@
             "MF",
             "O",
             "Pe",
-            "IM",
+            "M",
             "G",
             "ICU",
             "OP",
-            "ON",
-            "N",
             "GA",
             "A",
+            "R",
+            "ON",
+            "N",
             "NM",
             "P",
-            "E",
-            "F",
+            "Der",
+            "EM",
+            "FM",
             "GP",
             "H",
             "PS",
-            "RM",
-            "CT"
-          ],
-          "enabled": true
+            "RM"
+          ]
         },
         {
           "id": "AO",
@@ -32256,8 +32552,37 @@
           "name_en": "Administrative Officer",
           "icon": "🧑",
           "color": "#2563eb",
-          "acceptPool": [],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": [
+            "NS",
+            "CT",
+            "GS",
+            "OR",
+            "US",
+            "ENT",
+            "MF",
+            "O",
+            "Pe",
+            "M",
+            "G",
+            "ICU",
+            "OP",
+            "GA",
+            "A",
+            "R",
+            "ON",
+            "N",
+            "NM",
+            "P",
+            "Der",
+            "EM",
+            "FM",
+            "GP",
+            "H",
+            "PS",
+            "RM"
+          ]
         },
         {
           "id": "ON",
@@ -32265,8 +32590,9 @@
           "name_en": "Oncology",
           "icon": "☢️",
           "color": "#84cc16",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "N",
@@ -32274,8 +32600,9 @@
           "name_en": "Nephrology",
           "icon": "🧫",
           "color": "#ff5ccb",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "GA",
@@ -32283,19 +32610,21 @@
           "name_en": "GYN Anaesthesia",
           "icon": "🤰",
           "color": "#fe62ad",
+          "enabled": false,
+          "parentSpec": "A",
           "acceptPool": [
             "A"
-          ],
-          "enabled": false
+          ]
         },
         {
           "id": "A",
           "name_ar": "التخدير و العناية المركزة",
-          "name_en": "Anaethesia",
+          "name_en": "Anaesthesia & Intensive Care",
           "icon": "💉",
           "color": "#ff8e24",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "NM",
@@ -32303,8 +32632,9 @@
           "name_en": "Neuromedicine",
           "icon": "🧠",
           "color": "#79e9f1",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "P",
@@ -32312,8 +32642,9 @@
           "name_en": "Psychiatry",
           "icon": "🧠",
           "color": "#fef606",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "Der",
@@ -32321,26 +32652,29 @@
           "name_en": "Dermatology",
           "icon": "🏥",
           "color": "#e27ef6",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
-          "id": "E",
+          "id": "EM",
           "name_ar": "طب الطوارئ",
           "name_en": "Emergency Medicine",
           "icon": "🏥",
           "color": "#9a5ce6",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
-          "id": "F",
+          "id": "FM",
           "name_ar": "طب الأسرة",
           "name_en": "Family Medicine",
           "icon": "👨",
           "color": "#78edb8",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "GP",
@@ -32348,8 +32682,9 @@
           "name_en": "General Practitioner",
           "icon": "🏥",
           "color": "#627ae4",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "H",
@@ -32357,8 +32692,9 @@
           "name_en": "Cardiology",
           "icon": "🫀",
           "color": "#c91d70",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "PS",
@@ -32366,8 +32702,9 @@
           "name_en": "Plastic Surgery",
           "icon": "🪡",
           "color": "#2563eb",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "RM",
@@ -32375,8 +32712,9 @@
           "name_en": "Respiratory Medicine",
           "icon": "🫁",
           "color": "#3bb8f7",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "CT",
@@ -32384,8 +32722,9 @@
           "name_en": "Cardiothoracic Surgery",
           "icon": "🫀",
           "color": "#e05910",
-          "acceptPool": [],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         }
       ],
       "names": [
@@ -32714,10 +33053,10 @@
           "id": "res-0414",
           "name": "د. احمد حسن رحيم",
           "phone": "+9647700052061",
-          "spec": "IM",
-          "tag": "IM",
-          "dept": "IM",
-          "department": "IM",
+          "spec": "M",
+          "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32727,10 +33066,10 @@
           "id": "res-0415",
           "name": "د. نور علي خزعل",
           "phone": "+9647729218515",
-          "spec": "IM",
-          "tag": "IM",
-          "dept": "IM",
-          "department": "IM",
+          "spec": "M",
+          "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32740,10 +33079,10 @@
           "id": "res-0416",
           "name": "د. هدير شريف",
           "phone": "+9647717806103",
-          "spec": "IM",
-          "tag": "IM",
-          "dept": "IM",
-          "department": "IM",
+          "spec": "M",
+          "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32753,10 +33092,10 @@
           "id": "res-0417",
           "name": "د. علي عبد الزهرة طه",
           "phone": "+9647729281183",
-          "spec": "IM",
-          "tag": "IM",
-          "dept": "IM",
-          "department": "IM",
+          "spec": "M",
+          "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32766,10 +33105,10 @@
           "id": "res-0418",
           "name": "د. كرار حيدر راجي",
           "phone": "+9647780477234",
-          "spec": "IM",
-          "tag": "IM",
-          "dept": "IM",
-          "department": "IM",
+          "spec": "M",
+          "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32779,10 +33118,10 @@
           "id": "res-0419",
           "name": "د. شفق فارس",
           "phone": "+9647811487982",
-          "spec": "IM",
-          "tag": "IM",
-          "dept": "IM",
-          "department": "IM",
+          "spec": "M",
+          "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32792,10 +33131,10 @@
           "id": "res-0420",
           "name": "د. حنان محمود حسن",
           "phone": "+9647716127715",
-          "spec": "IM",
-          "tag": "IM",
-          "dept": "IM",
-          "department": "IM",
+          "spec": "M",
+          "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32870,10 +33209,10 @@
           "id": "res-0426",
           "name": "د. عبد الوهاب مصطفى",
           "phone": "+9647838781799",
-          "spec": "IM",
-          "tag": "IM",
-          "dept": "IM",
-          "department": "IM",
+          "spec": "M",
+          "tag": "M",
+          "dept": "M",
+          "department": "M",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32935,10 +33274,10 @@
           "id": "res-0431",
           "name": "د. سارة احمد",
           "phone": "+9647833256993",
-          "spec": "E",
-          "tag": "E",
-          "dept": "E",
-          "department": "E",
+          "spec": "EM",
+          "tag": "EM",
+          "dept": "EM",
+          "department": "EM",
           "active": true,
           "hospitals": [
             "mawani"
@@ -32948,10 +33287,10 @@
           "id": "res-0432",
           "name": "د. حسين جاسم",
           "phone": "+9647806557223",
-          "spec": "E",
-          "tag": "E",
-          "dept": "E",
-          "department": "E",
+          "spec": "EM",
+          "tag": "EM",
+          "dept": "EM",
+          "department": "EM",
           "active": true,
           "hospitals": [
             "mawani"
@@ -33365,7 +33704,7 @@
         },
         {
           "date": "18/04/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. نور الهدى توفيق",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34349,7 +34688,7 @@
         },
         {
           "date": "01/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. عبد الوهاب مصطفى",
           "VisitCount": 2,
           "dutyTime": "",
@@ -34357,7 +34696,7 @@
         },
         {
           "date": "02/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. كرار حيدر راجي",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34365,7 +34704,7 @@
         },
         {
           "date": "03/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. نور علي خزعل",
           "VisitCount": 2,
           "dutyTime": "",
@@ -34373,7 +34712,7 @@
         },
         {
           "date": "04/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. حنان محمود حسن",
           "VisitCount": 1,
           "dutyTime": "",
@@ -34381,7 +34720,7 @@
         },
         {
           "date": "05/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. عبد الوهاب مصطفى",
           "VisitCount": 1,
           "dutyTime": "",
@@ -34389,7 +34728,7 @@
         },
         {
           "date": "06/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. احمد حسن رحيم",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34397,7 +34736,7 @@
         },
         {
           "date": "07/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. حنان محمود حسن",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34405,7 +34744,7 @@
         },
         {
           "date": "08/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. عبد الوهاب مصطفى",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34413,7 +34752,7 @@
         },
         {
           "date": "09/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. نور علي خزعل",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34421,7 +34760,7 @@
         },
         {
           "date": "10/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. كرار حيدر راجي",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34429,7 +34768,7 @@
         },
         {
           "date": "11/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. هدير شريف",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34437,7 +34776,7 @@
         },
         {
           "date": "12/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. حنان محمود حسن",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34445,7 +34784,7 @@
         },
         {
           "date": "13/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. كرار حيدر راجي",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34453,7 +34792,7 @@
         },
         {
           "date": "14/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. هدير شريف",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34461,7 +34800,7 @@
         },
         {
           "date": "15/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. احمد حسن رحيم",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34469,7 +34808,7 @@
         },
         {
           "date": "16/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. حنان محمود حسن",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34477,7 +34816,7 @@
         },
         {
           "date": "17/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. هدير شريف",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34485,7 +34824,7 @@
         },
         {
           "date": "18/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. كرار حيدر راجي",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34493,7 +34832,7 @@
         },
         {
           "date": "19/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. هدير شريف",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34501,7 +34840,7 @@
         },
         {
           "date": "20/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. احمد حسن رحيم",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34509,7 +34848,7 @@
         },
         {
           "date": "21/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. عبد الوهاب مصطفى",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34517,7 +34856,7 @@
         },
         {
           "date": "22/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. حنان محمود حسن",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34525,7 +34864,7 @@
         },
         {
           "date": "23/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. نور علي خزعل",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34533,7 +34872,7 @@
         },
         {
           "date": "24/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. احمد حسن رحيم",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34541,7 +34880,7 @@
         },
         {
           "date": "25/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. عبد الوهاب مصطفى",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34549,7 +34888,7 @@
         },
         {
           "date": "26/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. كرار حيدر راجي",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34557,7 +34896,7 @@
         },
         {
           "date": "27/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. نور علي خزعل",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34565,7 +34904,7 @@
         },
         {
           "date": "28/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. هدير شريف",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34573,7 +34912,7 @@
         },
         {
           "date": "29/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. حنان محمود حسن",
           "VisitCount": 0,
           "dutyTime": "",
@@ -34581,7 +34920,7 @@
         },
         {
           "date": "30/09/2026",
-          "specCode": "IM",
+          "specCode": "M",
           "name": "د. نور علي خزعل",
           "VisitCount": 0,
           "dutyTime": "",
@@ -37224,7 +37563,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0002",
@@ -37235,7 +37576,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0003",
@@ -37246,7 +37589,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0004",
@@ -37258,7 +37603,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0005",
@@ -37270,7 +37617,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0006",
@@ -37281,7 +37630,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0007",
@@ -37292,7 +37643,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0008",
@@ -37303,7 +37656,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0009",
@@ -37315,7 +37670,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0010",
@@ -37327,7 +37684,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0011",
@@ -37339,7 +37698,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0012",
@@ -37350,7 +37711,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0013",
@@ -37362,7 +37725,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0014",
@@ -37373,7 +37738,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0015",
@@ -37385,7 +37752,9 @@
       "hospitals": [
         "iraqi",
         "mawani"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0016",
@@ -37396,7 +37765,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0017",
@@ -37407,7 +37778,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0018",
@@ -37418,7 +37791,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0019",
@@ -37429,7 +37804,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0020",
@@ -37440,7 +37817,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0021",
@@ -37451,7 +37830,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0022",
@@ -37462,7 +37843,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0023",
@@ -37474,7 +37857,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0024",
@@ -37485,7 +37870,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0025",
@@ -37497,7 +37884,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0026",
@@ -37509,7 +37898,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0027",
@@ -37521,7 +37912,9 @@
       "hospitals": [
         "iraqi",
         "mawani"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0028",
@@ -37533,7 +37926,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0029",
@@ -37545,7 +37940,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0030",
@@ -37556,7 +37953,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0031",
@@ -37567,7 +37966,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0032",
@@ -37579,7 +37980,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0033",
@@ -37591,7 +37994,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0034",
@@ -37603,7 +38008,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0035",
@@ -37615,7 +38022,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0036",
@@ -37628,7 +38037,9 @@
         "iraqi",
         "basra",
         "mawani"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0037",
@@ -37640,7 +38051,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0038",
@@ -37651,7 +38064,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0039",
@@ -37662,7 +38077,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0040",
@@ -37674,7 +38091,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0041",
@@ -37685,7 +38104,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0042",
@@ -37697,7 +38118,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0043",
@@ -37708,7 +38131,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0044",
@@ -37720,7 +38145,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0045",
@@ -37731,7 +38158,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0046",
@@ -37743,7 +38172,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0047",
@@ -37754,7 +38185,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0048",
@@ -37765,7 +38198,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0049",
@@ -37776,7 +38211,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0050",
@@ -37787,7 +38224,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0051",
@@ -37798,7 +38237,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "CT",
+      "department": "CT"
     },
     {
       "id": "res-0052",
@@ -37809,7 +38250,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "CT",
+      "department": "CT"
     },
     {
       "id": "res-0053",
@@ -37820,7 +38263,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "CT",
+      "department": "CT"
     },
     {
       "id": "res-0054",
@@ -37831,7 +38276,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0055",
@@ -37842,7 +38289,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "CT",
+      "department": "CT"
     },
     {
       "id": "res-0056",
@@ -37853,7 +38302,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "CT",
+      "department": "CT"
     },
     {
       "id": "res-0057",
@@ -37864,7 +38315,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "Der",
+      "department": "Der"
     },
     {
       "id": "res-0058",
@@ -37875,7 +38328,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "Der",
+      "department": "Der"
     },
     {
       "id": "res-0059",
@@ -37886,7 +38341,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "Der",
+      "department": "Der"
     },
     {
       "id": "res-0060",
@@ -37897,7 +38354,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "Der",
+      "department": "Der"
     },
     {
       "id": "res-0061",
@@ -37908,7 +38367,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "Der",
+      "department": "Der"
     },
     {
       "id": "res-0062",
@@ -37919,7 +38380,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "Der",
+      "department": "Der"
     },
     {
       "id": "res-0063",
@@ -37930,7 +38393,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "Der",
+      "department": "Der"
     },
     {
       "id": "res-0064",
@@ -37941,7 +38406,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "EM",
+      "department": "EM"
     },
     {
       "id": "res-0065",
@@ -37952,7 +38419,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "ENT",
+      "department": "ENT"
     },
     {
       "id": "res-0066",
@@ -37963,7 +38432,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "ENT",
+      "department": "ENT"
     },
     {
       "id": "res-0067",
@@ -37974,7 +38445,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "ENT",
+      "department": "ENT"
     },
     {
       "id": "res-0068",
@@ -37985,7 +38458,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "ENT",
+      "department": "ENT"
     },
     {
       "id": "res-0069",
@@ -37996,7 +38471,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "ENT",
+      "department": "ENT"
     },
     {
       "id": "res-0070",
@@ -38007,7 +38484,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0071",
@@ -38018,7 +38497,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0072",
@@ -38029,7 +38510,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0073",
@@ -38040,7 +38523,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0074",
@@ -38051,7 +38536,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0075",
@@ -38062,7 +38549,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0076",
@@ -38073,7 +38562,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "GP",
+      "department": "GP"
     },
     {
       "id": "res-0077",
@@ -38084,7 +38575,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "GP",
+      "department": "GP"
     },
     {
       "id": "res-0078",
@@ -38095,7 +38588,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "GP",
+      "department": "GP"
     },
     {
       "id": "res-0079",
@@ -38106,7 +38601,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "GP",
+      "department": "GP"
     },
     {
       "id": "res-0080",
@@ -38117,7 +38614,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0081",
@@ -38129,7 +38628,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0082",
@@ -38140,7 +38641,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0083",
@@ -38151,7 +38654,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0084",
@@ -38162,7 +38667,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0085",
@@ -38173,7 +38680,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0086",
@@ -38184,7 +38693,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0087",
@@ -38195,7 +38706,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0088",
@@ -38206,7 +38719,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0089",
@@ -38218,7 +38733,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0090",
@@ -38229,7 +38746,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0091",
@@ -38241,7 +38760,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0092",
@@ -38252,7 +38773,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0093",
@@ -38263,7 +38786,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0094",
@@ -38275,7 +38800,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0095",
@@ -38286,7 +38813,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0096",
@@ -38297,7 +38826,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0097",
@@ -38308,7 +38839,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0098",
@@ -38319,7 +38852,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "H",
+      "department": "H"
     },
     {
       "id": "res-0099",
@@ -38330,7 +38865,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "H",
+      "department": "H"
     },
     {
       "id": "res-0100",
@@ -38341,7 +38878,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "H",
+      "department": "H"
     },
     {
       "id": "res-0101",
@@ -38352,7 +38891,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "H",
+      "department": "H"
     },
     {
       "id": "res-0102",
@@ -38363,7 +38904,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "H",
+      "department": "H"
     },
     {
       "id": "res-0103",
@@ -38374,7 +38917,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "H",
+      "department": "H"
     },
     {
       "id": "res-0104",
@@ -38385,7 +38930,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "H",
+      "department": "H"
     },
     {
       "id": "res-0105",
@@ -38397,7 +38944,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "H",
+      "department": "H"
     },
     {
       "id": "res-0106",
@@ -38408,7 +38957,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "H",
+      "department": "H"
     },
     {
       "id": "res-0107",
@@ -38419,7 +38970,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "NS",
+      "department": "NS"
     },
     {
       "id": "res-0108",
@@ -38430,7 +38983,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "NS",
+      "department": "NS"
     },
     {
       "id": "res-0109",
@@ -38442,7 +38997,9 @@
       "hospitals": [
         "iraqi",
         "mawani"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0110",
@@ -38453,7 +39010,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0111",
@@ -38464,7 +39023,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0112",
@@ -38475,7 +39036,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0113",
@@ -38486,7 +39049,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "NS",
+      "department": "NS"
     },
     {
       "id": "res-0114",
@@ -38497,7 +39062,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "NS",
+      "department": "NS"
     },
     {
       "id": "res-0115",
@@ -38508,7 +39075,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0116",
@@ -38519,7 +39088,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0117",
@@ -38530,7 +39101,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "ON",
+      "department": "ON"
     },
     {
       "id": "res-0118",
@@ -38541,7 +39114,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "ON",
+      "department": "ON"
     },
     {
       "id": "res-0119",
@@ -38552,7 +39127,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "ON",
+      "department": "ON"
     },
     {
       "id": "res-0120",
@@ -38563,7 +39140,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0121",
@@ -38574,7 +39153,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "ON",
+      "department": "ON"
     },
     {
       "id": "res-0122",
@@ -38585,7 +39166,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "ON",
+      "department": "ON"
     },
     {
       "id": "res-0123",
@@ -38596,7 +39179,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "ON",
+      "department": "ON"
     },
     {
       "id": "res-0124",
@@ -38607,7 +39192,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "ON",
+      "department": "ON"
     },
     {
       "id": "res-0125",
@@ -38618,7 +39205,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "ON",
+      "department": "ON"
     },
     {
       "id": "res-0126",
@@ -38629,7 +39218,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "PS",
+      "department": "PS"
     },
     {
       "id": "res-0127",
@@ -38640,7 +39231,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "PS",
+      "department": "PS"
     },
     {
       "id": "res-0128",
@@ -38651,7 +39244,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "PS",
+      "department": "PS"
     },
     {
       "id": "res-0129",
@@ -38662,7 +39257,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0130",
@@ -38673,7 +39270,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0131",
@@ -38684,7 +39283,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0132",
@@ -38695,7 +39296,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0133",
@@ -38706,7 +39309,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0134",
@@ -38717,7 +39322,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0135",
@@ -38728,7 +39335,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0136",
@@ -38739,7 +39348,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0137",
@@ -38750,7 +39361,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0138",
@@ -38761,7 +39374,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0139",
@@ -38772,7 +39387,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0140",
@@ -38783,7 +39400,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0141",
@@ -38794,7 +39413,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0142",
@@ -38805,7 +39426,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0143",
@@ -38816,7 +39439,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0144",
@@ -38827,7 +39452,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0145",
@@ -38838,7 +39465,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0146",
@@ -38849,7 +39478,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0147",
@@ -38860,7 +39491,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0148",
@@ -38871,7 +39504,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RM",
+      "department": "RM"
     },
     {
       "id": "res-0149",
@@ -38882,7 +39517,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0150",
@@ -38893,7 +39530,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0151",
@@ -38905,7 +39544,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0152",
@@ -38916,7 +39557,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0153",
@@ -38927,7 +39570,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0154",
@@ -38938,7 +39583,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0155",
@@ -38949,7 +39596,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0156",
@@ -38960,7 +39609,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0157",
@@ -38971,7 +39622,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0158",
@@ -38982,7 +39635,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "NS",
+      "department": "NS"
     },
     {
       "id": "res-0159",
@@ -38993,7 +39648,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0160",
@@ -39005,7 +39662,9 @@
       "hospitals": [
         "iraqi",
         "mawani"
-      ]
+      ],
+      "dept": "NS",
+      "department": "NS"
     },
     {
       "id": "res-0161",
@@ -39017,7 +39676,9 @@
       "hospitals": [
         "iraqi",
         "mawani"
-      ]
+      ],
+      "dept": "NS",
+      "department": "NS"
     },
     {
       "id": "res-0162",
@@ -39028,7 +39689,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0163",
@@ -39039,7 +39702,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "US",
+      "department": "US"
     },
     {
       "id": "res-0164",
@@ -39050,7 +39715,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "US",
+      "department": "US"
     },
     {
       "id": "res-0165",
@@ -39061,7 +39728,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "US",
+      "department": "US"
     },
     {
       "id": "res-0166",
@@ -39072,7 +39741,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "US",
+      "department": "US"
     },
     {
       "id": "res-0167",
@@ -39083,7 +39754,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0168",
@@ -39094,7 +39767,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "H",
+      "department": "H"
     },
     {
       "id": "res-0169",
@@ -39105,7 +39780,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "H",
+      "department": "H"
     },
     {
       "id": "res-0170",
@@ -39116,7 +39793,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "H",
+      "department": "H"
     },
     {
       "id": "res-0171",
@@ -39127,7 +39806,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "CT",
+      "department": "CT"
     },
     {
       "id": "res-0172",
@@ -39138,7 +39819,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0173",
@@ -39149,7 +39832,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0174",
@@ -39160,7 +39845,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0175",
@@ -39171,7 +39858,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0176",
@@ -39182,7 +39871,9 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0177",
@@ -39193,7 +39884,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "ENT",
+      "department": "ENT"
     },
     {
       "id": "res-0178",
@@ -39204,7 +39897,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "ENT",
+      "department": "ENT"
     },
     {
       "id": "res-0179",
@@ -39215,7 +39910,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0180",
@@ -39227,7 +39924,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0181",
@@ -39238,7 +39937,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "CT",
+      "department": "CT"
     },
     {
       "id": "res-0182",
@@ -39249,7 +39950,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "ON",
+      "department": "ON"
     },
     {
       "id": "res-0183",
@@ -39260,7 +39963,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "NS",
+      "department": "NS"
     },
     {
       "id": "res-0184",
@@ -39272,7 +39977,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0185",
@@ -39283,7 +39990,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "ENT",
+      "department": "ENT"
     },
     {
       "id": "res-0186",
@@ -39294,7 +40003,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "US",
+      "department": "US"
     },
     {
       "id": "res-0187",
@@ -39305,7 +40016,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "ON",
+      "department": "ON"
     },
     {
       "id": "res-0188",
@@ -39316,7 +40029,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0189",
@@ -39327,7 +40042,9 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "dept": "US",
+      "department": "US"
     },
     {
       "id": "res-0190",
@@ -39339,7 +40056,9 @@
       "hospitals": [
         "iraqi",
         "basra"
-      ]
+      ],
+      "dept": "CT",
+      "department": "CT"
     },
     {
       "id": "res-0191",
@@ -39350,7 +40069,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0192",
@@ -39361,7 +40082,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0193",
@@ -39372,7 +40095,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0194",
@@ -39383,7 +40108,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0195",
@@ -39394,7 +40121,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0196",
@@ -39405,7 +40134,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0197",
@@ -39416,7 +40147,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0198",
@@ -39427,7 +40160,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0199",
@@ -39438,7 +40173,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0200",
@@ -39449,7 +40186,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0201",
@@ -39460,7 +40199,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0202",
@@ -39471,7 +40212,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0203",
@@ -39482,7 +40225,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0204",
@@ -39493,7 +40238,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0205",
@@ -39504,7 +40251,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0206",
@@ -39515,7 +40264,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0207",
@@ -39526,7 +40277,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0208",
@@ -39537,7 +40290,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0209",
@@ -39548,7 +40303,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0210",
@@ -39559,7 +40316,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0211",
@@ -39570,7 +40329,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0212",
@@ -39581,7 +40342,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0213",
@@ -39592,7 +40355,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0214",
@@ -39603,7 +40368,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0215",
@@ -39614,7 +40381,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0216",
@@ -39625,7 +40394,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0217",
@@ -39636,7 +40407,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0218",
@@ -39647,7 +40420,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0219",
@@ -39658,7 +40433,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0220",
@@ -39669,7 +40446,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0221",
@@ -39680,7 +40459,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0222",
@@ -39691,7 +40472,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0223",
@@ -39702,7 +40485,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0224",
@@ -39713,7 +40498,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0225",
@@ -39724,7 +40511,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0226",
@@ -39735,7 +40524,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0227",
@@ -39746,7 +40537,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0228",
@@ -39757,7 +40550,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0229",
@@ -39768,7 +40563,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "ENT",
+      "department": "ENT"
     },
     {
       "id": "res-0230",
@@ -39779,7 +40576,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "ENT",
+      "department": "ENT"
     },
     {
       "id": "res-0231",
@@ -39790,7 +40589,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "ENT",
+      "department": "ENT"
     },
     {
       "id": "res-0232",
@@ -39801,7 +40602,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "ENT",
+      "department": "ENT"
     },
     {
       "id": "res-0233",
@@ -39812,7 +40615,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "ENT",
+      "department": "ENT"
     },
     {
       "id": "res-0234",
@@ -39823,7 +40628,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "ENT",
+      "department": "ENT"
     },
     {
       "id": "res-0235",
@@ -39834,7 +40641,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "O",
+      "department": "O"
     },
     {
       "id": "res-0236",
@@ -39845,7 +40654,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "O",
+      "department": "O"
     },
     {
       "id": "res-0237",
@@ -39856,7 +40667,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "O",
+      "department": "O"
     },
     {
       "id": "res-0238",
@@ -39867,7 +40680,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "O",
+      "department": "O"
     },
     {
       "id": "res-0239",
@@ -39878,7 +40693,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "O",
+      "department": "O"
     },
     {
       "id": "res-0240",
@@ -39889,7 +40706,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "O",
+      "department": "O"
     },
     {
       "id": "res-0241",
@@ -39900,7 +40719,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "O",
+      "department": "O"
     },
     {
       "id": "res-0242",
@@ -39911,7 +40732,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "US",
+      "department": "US"
     },
     {
       "id": "res-0243",
@@ -39922,7 +40745,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "US",
+      "department": "US"
     },
     {
       "id": "res-0244",
@@ -39933,7 +40758,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "US",
+      "department": "US"
     },
     {
       "id": "res-0245",
@@ -39944,7 +40771,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "US",
+      "department": "US"
     },
     {
       "id": "res-0246",
@@ -39955,7 +40784,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "US",
+      "department": "US"
     },
     {
       "id": "res-0247",
@@ -39966,7 +40797,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "US",
+      "department": "US"
     },
     {
       "id": "res-0248",
@@ -39977,7 +40810,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "G",
+      "department": "G"
     },
     {
       "id": "res-0249",
@@ -39988,7 +40823,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "G",
+      "department": "G"
     },
     {
       "id": "res-0250",
@@ -39999,7 +40836,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "G",
+      "department": "G"
     },
     {
       "id": "res-0251",
@@ -40010,7 +40849,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "G",
+      "department": "G"
     },
     {
       "id": "res-0252",
@@ -40021,7 +40862,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "G",
+      "department": "G"
     },
     {
       "id": "res-0253",
@@ -40032,7 +40875,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0254",
@@ -40043,7 +40888,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0255",
@@ -40054,7 +40901,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0256",
@@ -40065,7 +40914,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0257",
@@ -40076,7 +40927,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0258",
@@ -40087,7 +40940,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0259",
@@ -40098,7 +40953,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0260",
@@ -40109,7 +40966,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0261",
@@ -40120,7 +40979,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0262",
@@ -40131,7 +40992,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0263",
@@ -40142,7 +41005,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0264",
@@ -40153,7 +41018,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0265",
@@ -40164,7 +41031,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0266",
@@ -40175,7 +41044,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0267",
@@ -40186,7 +41057,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0268",
@@ -40197,7 +41070,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0269",
@@ -40208,7 +41083,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0270",
@@ -40219,7 +41096,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "P",
+      "department": "P"
     },
     {
       "id": "res-0271",
@@ -40230,7 +41109,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "P",
+      "department": "P"
     },
     {
       "id": "res-0272",
@@ -40241,7 +41122,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "G",
+      "department": "G"
     },
     {
       "id": "res-0273",
@@ -40252,7 +41135,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "P",
+      "department": "P"
     },
     {
       "id": "res-0274",
@@ -40263,7 +41148,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "P",
+      "department": "P"
     },
     {
       "id": "res-0275",
@@ -40274,7 +41161,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "P",
+      "department": "P"
     },
     {
       "id": "res-0276",
@@ -40285,7 +41174,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "P",
+      "department": "P"
     },
     {
       "id": "res-0277",
@@ -40296,7 +41187,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0278",
@@ -40307,7 +41200,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0279",
@@ -40318,7 +41213,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0280",
@@ -40329,7 +41226,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0281",
@@ -40340,7 +41239,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0282",
@@ -40351,7 +41252,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0283",
@@ -40362,7 +41265,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0284",
@@ -40373,7 +41278,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0285",
@@ -40384,7 +41291,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "P",
+      "department": "P"
     },
     {
       "id": "res-0286",
@@ -40395,7 +41304,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0287",
@@ -40406,7 +41317,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0288",
@@ -40417,7 +41330,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "P",
+      "department": "P"
     },
     {
       "id": "res-0289",
@@ -40428,7 +41343,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0290",
@@ -40439,7 +41356,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0291",
@@ -40450,7 +41369,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0292",
@@ -40461,7 +41382,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "Pe",
+      "department": "Pe"
     },
     {
       "id": "res-0293",
@@ -40472,7 +41395,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "Pe",
+      "department": "Pe"
     },
     {
       "id": "res-0294",
@@ -40483,7 +41408,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "Pe",
+      "department": "Pe"
     },
     {
       "id": "res-0295",
@@ -40494,7 +41421,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0296",
@@ -40505,7 +41434,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0297",
@@ -40516,7 +41447,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0298",
@@ -40527,7 +41460,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0299",
@@ -40538,7 +41473,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0300",
@@ -40549,7 +41486,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0301",
@@ -40560,7 +41499,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0302",
@@ -40571,7 +41512,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0303",
@@ -40582,7 +41525,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0304",
@@ -40593,7 +41538,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0305",
@@ -40604,7 +41551,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0306",
@@ -40615,7 +41564,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0307",
@@ -40626,7 +41577,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0308",
@@ -40637,7 +41590,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0309",
@@ -40648,7 +41603,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0310",
@@ -40659,7 +41616,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0311",
@@ -40670,7 +41629,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0312",
@@ -40681,7 +41642,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0313",
@@ -40692,7 +41655,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0314",
@@ -40703,7 +41668,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0315",
@@ -40714,7 +41681,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0316",
@@ -40725,7 +41694,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0317",
@@ -40736,7 +41707,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0318",
@@ -40747,7 +41720,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0319",
@@ -40758,7 +41733,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "NM",
+      "department": "NM"
     },
     {
       "id": "res-0320",
@@ -40769,7 +41746,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "NM",
+      "department": "NM"
     },
     {
       "id": "res-0321",
@@ -40780,7 +41759,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0322",
@@ -40791,7 +41772,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0323",
@@ -40802,7 +41785,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0324",
@@ -40813,7 +41798,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0325",
@@ -40824,7 +41811,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0326",
@@ -40835,7 +41824,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0327",
@@ -40846,7 +41837,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0328",
@@ -40857,7 +41850,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0329",
@@ -40868,7 +41863,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0330",
@@ -40879,7 +41876,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0331",
@@ -40890,7 +41889,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0332",
@@ -40902,7 +41903,9 @@
       "hospitals": [
         "basra",
         "mawani"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0333",
@@ -40913,7 +41916,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0334",
@@ -40924,7 +41929,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0335",
@@ -40936,7 +41943,9 @@
       "hospitals": [
         "basra",
         "mawani"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0336",
@@ -40947,7 +41956,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0337",
@@ -40958,7 +41969,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0338",
@@ -40969,7 +41982,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0339",
@@ -40980,7 +41995,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0340",
@@ -40991,7 +42008,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0341",
@@ -41002,7 +42021,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0342",
@@ -41013,7 +42034,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0343",
@@ -41024,7 +42047,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0344",
@@ -41035,7 +42060,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0345",
@@ -41046,7 +42073,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "N",
+      "department": "N"
     },
     {
       "id": "res-0346",
@@ -41057,7 +42086,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "N",
+      "department": "N"
     },
     {
       "id": "res-0347",
@@ -41068,7 +42099,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "N",
+      "department": "N"
     },
     {
       "id": "res-0348",
@@ -41079,7 +42112,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "N",
+      "department": "N"
     },
     {
       "id": "res-0349",
@@ -41090,7 +42125,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "N",
+      "department": "N"
     },
     {
       "id": "res-0350",
@@ -41101,7 +42138,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "N",
+      "department": "N"
     },
     {
       "id": "res-0351",
@@ -41112,227 +42151,269 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "N",
+      "department": "N"
     },
     {
       "id": "res-0352",
       "name": "د. زهراء ماجد",
       "phone": "+9647733988464",
-      "spec": "F",
-      "tag": "F",
+      "spec": "FM",
+      "tag": "FM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0353",
       "name": "د. رؤى بشير",
       "phone": "+9647739999363",
-      "spec": "F",
-      "tag": "F",
+      "spec": "FM",
+      "tag": "FM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0354",
       "name": "د. غفران قاسم هادي",
       "phone": "+9647725158934",
-      "spec": "F",
-      "tag": "F",
+      "spec": "FM",
+      "tag": "FM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0355",
       "name": "د. أبرار مؤيد عبدالمنعم",
       "phone": "+9647816922397",
-      "spec": "F",
-      "tag": "F",
+      "spec": "FM",
+      "tag": "FM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0356",
       "name": "د. امال ناصر ناجي",
       "phone": "+9647723405240",
-      "spec": "F",
-      "tag": "F",
+      "spec": "FM",
+      "tag": "FM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0357",
       "name": "د. براء عباس",
       "phone": "+9647714985674",
-      "spec": "F",
-      "tag": "F",
+      "spec": "FM",
+      "tag": "FM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0358",
       "name": "د. فاتن سلمان",
       "phone": "+9647707009908",
-      "spec": "F",
-      "tag": "F",
+      "spec": "FM",
+      "tag": "FM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0359",
       "name": "د. زمن مصطفى",
       "phone": "+9647731972744",
-      "spec": "F",
-      "tag": "F",
+      "spec": "FM",
+      "tag": "FM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0360",
       "name": "د. مريم حسن",
       "phone": "+9647709640919",
-      "spec": "F",
-      "tag": "F",
+      "spec": "FM",
+      "tag": "FM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0361",
       "name": "د. نور عمار",
       "phone": "+9647722921447",
-      "spec": "F",
-      "tag": "F",
+      "spec": "FM",
+      "tag": "FM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0362",
       "name": "د. نور رياض",
       "phone": "+9647717539972",
-      "spec": "F",
-      "tag": "F",
+      "spec": "FM",
+      "tag": "FM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0363",
       "name": "د. ثناء احمد",
       "phone": "+9647716750774",
-      "spec": "F",
-      "tag": "F",
+      "spec": "FM",
+      "tag": "FM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0364",
       "name": "د. طيبة حميد",
       "phone": "+9647819600025",
-      "spec": "F",
-      "tag": "F",
+      "spec": "FM",
+      "tag": "FM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0365",
       "name": "د. صفا احمد",
       "phone": "+9647814095288",
-      "spec": "F",
-      "tag": "F",
+      "spec": "FM",
+      "tag": "FM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0366",
       "name": "د. فرح رحيم",
       "phone": "+9647707376328",
-      "spec": "F",
-      "tag": "F",
+      "spec": "FM",
+      "tag": "FM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0367",
       "name": "د. رفل اسامه",
       "phone": "+9647721895042",
-      "spec": "F",
-      "tag": "F",
+      "spec": "FM",
+      "tag": "FM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0368",
       "name": "د. عمر جليل عيسى",
       "phone": "+9647746927069",
-      "spec": "E",
-      "tag": "E",
+      "spec": "EM",
+      "tag": "EM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "EM",
+      "department": "EM"
     },
     {
       "id": "res-0369",
       "name": "د. زهراء محمد",
       "phone": "+9647718713995",
-      "spec": "E",
-      "tag": "E",
+      "spec": "EM",
+      "tag": "EM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "EM",
+      "department": "EM"
     },
     {
       "id": "res-0370",
       "name": "د. علي قاسم حسن",
       "phone": "+9647712901906",
-      "spec": "E",
-      "tag": "E",
+      "spec": "EM",
+      "tag": "EM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "EM",
+      "department": "EM"
     },
     {
       "id": "res-0371",
       "name": "د. ايات عبدالكريم",
       "phone": "+9647709401868",
-      "spec": "E",
-      "tag": "E",
+      "spec": "EM",
+      "tag": "EM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "EM",
+      "department": "EM"
     },
     {
       "id": "res-0372",
@@ -41343,7 +42424,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "P",
+      "department": "P"
     },
     {
       "id": "res-0373",
@@ -41354,7 +42437,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "P",
+      "department": "P"
     },
     {
       "id": "res-0374",
@@ -41365,18 +42450,22 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "P",
+      "department": "P"
     },
     {
       "id": "res-0375",
       "name": "د. شهد سعدون",
       "phone": "+9647721497466",
-      "spec": "F",
-      "tag": "F",
+      "spec": "FM",
+      "tag": "FM",
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "FM",
+      "department": "FM"
     },
     {
       "id": "res-0376",
@@ -41387,7 +42476,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "N",
+      "department": "N"
     },
     {
       "id": "res-0377",
@@ -41398,7 +42489,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0378",
@@ -41409,7 +42502,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0379",
@@ -41420,7 +42515,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0380",
@@ -41431,7 +42528,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0381",
@@ -41442,7 +42541,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0382",
@@ -41453,7 +42554,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "AO",
+      "department": "AO"
     },
     {
       "id": "res-0383",
@@ -41464,7 +42567,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "AO",
+      "department": "AO"
     },
     {
       "id": "res-0384",
@@ -41475,7 +42580,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "AO",
+      "department": "AO"
     },
     {
       "id": "res-0385",
@@ -41486,7 +42593,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "AO",
+      "department": "AO"
     },
     {
       "id": "res-0386",
@@ -41497,7 +42606,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "G",
+      "department": "G"
     },
     {
       "id": "res-0387",
@@ -41508,7 +42619,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "G",
+      "department": "G"
     },
     {
       "id": "res-0388",
@@ -41519,7 +42632,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "G",
+      "department": "G"
     },
     {
       "id": "res-0389",
@@ -41530,7 +42645,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0390",
@@ -41541,7 +42658,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0391",
@@ -41552,7 +42671,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0392",
@@ -41563,7 +42684,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0393",
@@ -41574,7 +42697,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0394",
@@ -41585,7 +42710,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0395",
@@ -41596,7 +42723,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0396",
@@ -41607,7 +42736,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "Pe",
+      "department": "Pe"
     },
     {
       "id": "res-0397",
@@ -41618,7 +42749,9 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
+      ],
+      "dept": "NM",
+      "department": "NM"
     },
     {
       "id": "res-0398",
@@ -41629,7 +42762,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "ENT",
+      "department": "ENT"
     },
     {
       "id": "res-0399",
@@ -41640,7 +42775,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "ENT",
+      "department": "ENT"
     },
     {
       "id": "res-0400",
@@ -41651,7 +42788,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "NS",
+      "department": "NS"
     },
     {
       "id": "res-0401",
@@ -41662,7 +42801,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "NS",
+      "department": "NS"
     },
     {
       "id": "res-0402",
@@ -41673,7 +42814,9 @@
       "active": false,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0403",
@@ -41684,7 +42827,9 @@
       "active": false,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0404",
@@ -41695,7 +42840,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "NS",
+      "department": "NS"
     },
     {
       "id": "res-0405",
@@ -41706,7 +42853,9 @@
       "active": false,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "RESERVE",
+      "department": "RESERVE"
     },
     {
       "id": "res-0406",
@@ -41717,7 +42866,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "NS",
+      "department": "NS"
     },
     {
       "id": "res-0407",
@@ -41728,7 +42879,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0408",
@@ -41739,7 +42892,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0409",
@@ -41750,7 +42905,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0410",
@@ -41761,7 +42918,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "US",
+      "department": "US"
     },
     {
       "id": "res-0411",
@@ -41772,7 +42931,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "US",
+      "department": "US"
     },
     {
       "id": "res-0412",
@@ -41783,7 +42944,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0413",
@@ -41794,84 +42957,100 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0414",
       "name": "د. احمد حسن رحيم",
       "phone": "+9647700052061",
-      "spec": "IM",
-      "tag": "IM",
+      "spec": "M",
+      "tag": "M",
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0415",
       "name": "د. نور علي خزعل",
       "phone": "+9647729218515",
-      "spec": "IM",
-      "tag": "IM",
+      "spec": "M",
+      "tag": "M",
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0416",
       "name": "د. هدير شريف",
       "phone": "+9647717806103",
-      "spec": "IM",
-      "tag": "IM",
+      "spec": "M",
+      "tag": "M",
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0417",
       "name": "د. علي عبد الزهرة طه",
       "phone": "+9647729281183",
-      "spec": "IM",
-      "tag": "IM",
+      "spec": "M",
+      "tag": "M",
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0418",
       "name": "د. كرار حيدر راجي",
       "phone": "+9647780477234",
-      "spec": "IM",
-      "tag": "IM",
+      "spec": "M",
+      "tag": "M",
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0419",
       "name": "د. شفق فارس",
       "phone": "+9647811487982",
-      "spec": "IM",
-      "tag": "IM",
+      "spec": "M",
+      "tag": "M",
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0420",
       "name": "د. حنان محمود حسن",
       "phone": "+9647716127715",
-      "spec": "IM",
-      "tag": "IM",
+      "spec": "M",
+      "tag": "M",
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0421",
@@ -41882,7 +43061,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0422",
@@ -41893,7 +43074,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0423",
@@ -41904,7 +43087,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "A",
+      "department": "A"
     },
     {
       "id": "res-0424",
@@ -41915,7 +43100,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "US",
+      "department": "US"
     },
     {
       "id": "res-0425",
@@ -41926,18 +43113,22 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "GS",
+      "department": "GS"
     },
     {
       "id": "res-0426",
       "name": "د. عبد الوهاب مصطفى",
       "phone": "+9647838781799",
-      "spec": "IM",
-      "tag": "IM",
+      "spec": "M",
+      "tag": "M",
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "M",
+      "department": "M"
     },
     {
       "id": "res-0427",
@@ -41948,7 +43139,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0428",
@@ -41959,7 +43152,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "O",
+      "department": "O"
     },
     {
       "id": "res-0429",
@@ -41970,7 +43165,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "O",
+      "department": "O"
     },
     {
       "id": "res-0430",
@@ -41981,29 +43178,35 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "Pe",
+      "department": "Pe"
     },
     {
       "id": "res-0431",
       "name": "د. سارة احمد",
       "phone": "+9647833256993",
-      "spec": "E",
-      "tag": "E",
+      "spec": "EM",
+      "tag": "EM",
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "EM",
+      "department": "EM"
     },
     {
       "id": "res-0432",
       "name": "د. حسين جاسم",
       "phone": "+9647806557223",
-      "spec": "E",
-      "tag": "E",
+      "spec": "EM",
+      "tag": "EM",
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "EM",
+      "department": "EM"
     },
     {
       "id": "res-0433",
@@ -42014,7 +43217,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0434",
@@ -42025,7 +43230,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0435",
@@ -42036,7 +43243,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0436",
@@ -42047,7 +43256,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0437",
@@ -42058,7 +43269,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "MF",
+      "department": "MF"
     },
     {
       "id": "res-0438",
@@ -42069,7 +43282,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "AO",
+      "department": "AO"
     },
     {
       "id": "res-0439",
@@ -42080,7 +43295,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "AO",
+      "department": "AO"
     },
     {
       "id": "res-0440",
@@ -42091,7 +43308,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "AO",
+      "department": "AO"
     },
     {
       "id": "res-0441",
@@ -42102,7 +43321,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0442",
@@ -42113,7 +43334,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0443",
@@ -42124,7 +43347,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "AO",
+      "department": "AO"
     },
     {
       "id": "res-0444",
@@ -42135,7 +43360,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "R",
+      "department": "R"
     },
     {
       "id": "res-0445",
@@ -42146,7 +43373,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "OP",
+      "department": "OP"
     },
     {
       "id": "res-0446",
@@ -42157,7 +43386,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "OP",
+      "department": "OP"
     },
     {
       "id": "res-0447",
@@ -42168,7 +43399,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "OP",
+      "department": "OP"
     },
     {
       "id": "res-0448",
@@ -42179,7 +43412,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "G",
+      "department": "G"
     },
     {
       "id": "res-0449",
@@ -42190,7 +43425,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "G",
+      "department": "G"
     },
     {
       "id": "res-0450",
@@ -42201,7 +43438,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "G",
+      "department": "G"
     },
     {
       "id": "res-0451",
@@ -42212,7 +43451,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "G",
+      "department": "G"
     },
     {
       "id": "res-0452",
@@ -42223,7 +43464,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "G",
+      "department": "G"
     },
     {
       "id": "res-0453",
@@ -42234,7 +43477,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "G",
+      "department": "G"
     },
     {
       "id": "res-0454",
@@ -42245,7 +43490,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "G",
+      "department": "G"
     },
     {
       "id": "res-0455",
@@ -42256,7 +43503,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "OR",
+      "department": "OR"
     },
     {
       "id": "res-0456",
@@ -42267,7 +43516,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "Pe",
+      "department": "Pe"
     },
     {
       "id": "res-0457",
@@ -42278,7 +43529,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "Pe",
+      "department": "Pe"
     },
     {
       "id": "res-0458",
@@ -42289,7 +43542,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "G",
+      "department": "G"
     },
     {
       "id": "res-0459",
@@ -42300,7 +43555,9 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "G",
+      "department": "G"
     },
     {
       "id": "res-0460",
@@ -42311,10 +43568,12 @@
       "active": true,
       "hospitals": [
         "mawani"
-      ]
+      ],
+      "dept": "AO",
+      "department": "AO"
     },
     {
-      "id": "res-mtzt6vrsg9vu",
+      "id": "res-mtztcufx52se",
       "name": "د. مقيم اختبار التناوب",
       "phone": "07700000000",
       "spec": "NS",
@@ -42325,6 +43584,360 @@
       "hospitals": [
         "iraqi"
       ]
+    }
+  ],
+  "globalSpecialties": [
+    {
+      "id": "NS",
+      "name_ar": "جراحة الجملة العصبية",
+      "name_en": "Neurosurgery",
+      "icon": "🧠",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "CT",
+      "name_ar": "جراحة الصدر و الاوعية الدموية",
+      "name_en": "Cardiothoracic Surgery",
+      "icon": "🫀",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "GS",
+      "name_ar": "الجراحة العامة",
+      "name_en": "General Surgery",
+      "icon": "🔪",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "OR",
+      "name_ar": "الكسور",
+      "name_en": "Orthopaedics",
+      "icon": "🦴",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "US",
+      "name_ar": "جراحة المسالك البولية",
+      "name_en": "Urosurgery",
+      "icon": "🫘",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "ENT",
+      "name_ar": "الأذن و الأنف و الحنجرة",
+      "name_en": "ENT",
+      "icon": "👂",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "MF",
+      "name_ar": "جراحة الوجه و الفكين",
+      "name_en": "MaxilloFacial Surgery",
+      "icon": "🦷",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "O",
+      "name_ar": "العيون",
+      "name_en": "Ophthalmology",
+      "icon": "👁️",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "Pe",
+      "name_ar": "الاطفال",
+      "name_en": "Paediatrics",
+      "icon": "👶",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "M",
+      "name_ar": "الباطنية",
+      "name_en": "Internal Medicine",
+      "icon": "💊",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "G",
+      "name_ar": "النسائية و التوليد",
+      "name_en": "Gynecology",
+      "icon": "🤰",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "ICU",
+      "name_ar": "تخدير العناية المركزة",
+      "name_en": "ICU Anaesthesia",
+      "icon": "💉",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": "A",
+      "acceptPool": [
+        "A"
+      ]
+    },
+    {
+      "id": "OP",
+      "name_ar": "تخدير العمليات",
+      "name_en": "OT Anaesthesia",
+      "icon": "💉",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": "A",
+      "acceptPool": [
+        "A"
+      ]
+    },
+    {
+      "id": "GA",
+      "name_ar": "تخدير صالة الولادة",
+      "name_en": "GYN Anaesthesia",
+      "icon": "🤰",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": "A",
+      "acceptPool": [
+        "A"
+      ]
+    },
+    {
+      "id": "A",
+      "name_ar": "التخدير و العناية المركزة",
+      "name_en": "Anaesthesia & Intensive Care",
+      "icon": "💉",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "R",
+      "name_ar": "الأشعة و السونار",
+      "name_en": "Radiology",
+      "icon": "🩻",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "D",
+      "name_ar": "الوفيات",
+      "name_en": "Death Certificates",
+      "icon": "⚰️",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": [
+        "NS",
+        "CT",
+        "GS",
+        "OR",
+        "US",
+        "ENT",
+        "MF",
+        "O",
+        "Pe",
+        "M",
+        "G",
+        "ICU",
+        "OP",
+        "GA",
+        "A",
+        "R",
+        "ON",
+        "N",
+        "NM",
+        "P",
+        "Der",
+        "EM",
+        "FM",
+        "GP",
+        "H",
+        "PS",
+        "RM"
+      ]
+    },
+    {
+      "id": "AO",
+      "name_ar": "المعاون الاداري",
+      "name_en": "Administrative Officer",
+      "icon": "🧑",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": [
+        "NS",
+        "CT",
+        "GS",
+        "OR",
+        "US",
+        "ENT",
+        "MF",
+        "O",
+        "Pe",
+        "M",
+        "G",
+        "ICU",
+        "OP",
+        "GA",
+        "A",
+        "R",
+        "ON",
+        "N",
+        "NM",
+        "P",
+        "Der",
+        "EM",
+        "FM",
+        "GP",
+        "H",
+        "PS",
+        "RM"
+      ]
+    },
+    {
+      "id": "ON",
+      "name_ar": "طب الاورام",
+      "name_en": "Oncology",
+      "icon": "☢️",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "N",
+      "name_ar": "طب امراض الكلى",
+      "name_en": "Nephrology",
+      "icon": "🧫",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "NM",
+      "name_ar": "طب الجملة العصبية",
+      "name_en": "Neuromedicine",
+      "icon": "🧠",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "P",
+      "name_ar": "النفسية",
+      "name_en": "Psychiatry",
+      "icon": "🧠",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "Der",
+      "name_ar": "الجلدية",
+      "name_en": "Dermatology",
+      "icon": "🏥",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "EM",
+      "name_ar": "طب الطوارئ",
+      "name_en": "Emergency Medicine",
+      "icon": "🏥",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "FM",
+      "name_ar": "طب الأسرة",
+      "name_en": "Family Medicine",
+      "icon": "👨",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "GP",
+      "name_ar": "ممارسين",
+      "name_en": "General Practitioner",
+      "icon": "🏥",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "H",
+      "name_ar": "طب الامراض القلبية",
+      "name_en": "Cardiology",
+      "icon": "🫀",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "PS",
+      "name_ar": "الجراحة التجميلية",
+      "name_en": "Plastic Surgery",
+      "icon": "🪡",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
+    },
+    {
+      "id": "RM",
+      "name_ar": "طب الامراض التنفسية",
+      "name_en": "Respiratory Medicine",
+      "icon": "🫁",
+      "color": "#0f766e",
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     }
   ]
 }

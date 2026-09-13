@@ -36,36 +36,41 @@
     let loadPromise = null;
 
     // Canonical 29 Unified Specialties
+    const ALL_CLINICAL_SPECIALTY_IDS = [
+        "NS", "CT", "GS", "OR", "US", "ENT", "MF", "O", "Pe", "M", "G", "ICU", "OP", "GA", "A", 
+        "R", "ON", "N", "NM", "P", "Der", "EM", "FM", "GP", "H", "PS", "RM"
+    ];
+
     const CANONICAL_SPECIALTIES = [
-        { id: "NS", name_ar: "جراحة الجملة العصبية", name_en: "Neurosurgery", icon: "🧠", color: "#0f766e", enabled: true },
-        { id: "CT", name_ar: "جراحة الصدر و الاوعية الدموية", name_en: "Cardiothoracic Surgery", icon: "🫀", color: "#0f766e", enabled: true },
-        { id: "GS", name_ar: "الجراحة العامة", name_en: "General Surgery", icon: "🔪", color: "#0f766e", enabled: true },
-        { id: "OR", name_ar: "الكسور", name_en: "Orthopaedics", icon: "🦴", color: "#0f766e", enabled: true },
-        { id: "US", name_ar: "جراحة المسالك البولية", name_en: "Urosurgery", icon: "🫘", color: "#0f766e", enabled: true },
-        { id: "ENT", name_ar: "الأذن و الأنف و الحنجرة", name_en: "ENT", icon: "👂", color: "#0f766e", enabled: true },
-        { id: "MF", name_ar: "جراحة الوجه و الفكين", name_en: "MaxilloFacial Surgery", icon: "🦷", color: "#0f766e", enabled: true },
-        { id: "O", name_ar: "العيون", name_en: "Ophthalmology", icon: "👁️", color: "#0f766e", enabled: true },
-        { id: "Pe", name_ar: "الاطفال", name_en: "Paediatrics", icon: "👶", color: "#0f766e", enabled: true },
-        { id: "M", name_ar: "الباطنية", name_en: "Internal Medicine", icon: "💊", color: "#0f766e", enabled: true },
-        { id: "G", name_ar: "النسائية و التوليد", name_en: "Gynecology", icon: "🤰", color: "#0f766e", enabled: true },
-        { id: "ICU", name_ar: "تخدير العناية المركزة", name_en: "ICU Anaesthesia", icon: "💉", color: "#0f766e", enabled: true },
-        { id: "OP", name_ar: "تخدير العمليات", name_en: "OT Anaesthesia", icon: "💉", color: "#0f766e", enabled: true },
-        { id: "GA", name_ar: "تخدير صالة الولادة", name_en: "GYN Anaesthesia", icon: "🤰", color: "#0f766e", enabled: true },
-        { id: "A", name_ar: "التخدير و العناية المركزة", name_en: "Anaesthesia & Intensive Care", icon: "💉", color: "#0f766e", enabled: true },
-        { id: "R", name_ar: "الأشعة و السونار", name_en: "Radiology", icon: "🩻", color: "#0f766e", enabled: true },
-        { id: "D", name_ar: "الوفيات", name_en: "Death Certificates", icon: "⚰️", color: "#0f766e", enabled: true },
-        { id: "AO", name_ar: "المعاون الاداري", name_en: "Administrative Officer", icon: "🧑", color: "#0f766e", enabled: true },
-        { id: "ON", name_ar: "طب الاورام", name_en: "Oncology", icon: "☢️", color: "#0f766e", enabled: true },
-        { id: "N", name_ar: "طب امراض الكلى", name_en: "Nephrology", icon: "🧫", color: "#0f766e", enabled: true },
-        { id: "NM", name_ar: "طب الجملة العصبية", name_en: "Neuromedicine", icon: "🧠", color: "#0f766e", enabled: true },
-        { id: "P", name_ar: "النفسية", name_en: "Psychiatry", icon: "🧠", color: "#0f766e", enabled: true },
-        { id: "Der", name_ar: "الجلدية", name_en: "Dermatology", icon: "🏥", color: "#0f766e", enabled: true },
-        { id: "EM", name_ar: "طب الطوارئ", name_en: "Emergency Medicine", icon: "🏥", color: "#0f766e", enabled: true },
-        { id: "FM", name_ar: "طب الأسرة", name_en: "Family Medicine", icon: "👨", color: "#0f766e", enabled: true },
-        { id: "GP", name_ar: "ممارسين", name_en: "General Practitioner", icon: "🏥", color: "#0f766e", enabled: true },
-        { id: "H", name_ar: "طب الامراض القلبية", name_en: "Cardiology", icon: "🫀", color: "#0f766e", enabled: true },
-        { id: "PS", name_ar: "الجراحة التجميلية", name_en: "Plastic Surgery", icon: "🪡", color: "#0f766e", enabled: true },
-        { id: "RM", name_ar: "طب الامراض التنفسية", name_en: "Respiratory Medicine", icon: "🫁", color: "#0f766e", enabled: true }
+        { id: "NS", name_ar: "جراحة الجملة العصبية", name_en: "Neurosurgery", icon: "🧠", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "CT", name_ar: "جراحة الصدر و الاوعية الدموية", name_en: "Cardiothoracic Surgery", icon: "🫀", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "GS", name_ar: "الجراحة العامة", name_en: "General Surgery", icon: "🔪", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "OR", name_ar: "الكسور", name_en: "Orthopaedics", icon: "🦴", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "US", name_ar: "جراحة المسالك البولية", name_en: "Urosurgery", icon: "🫘", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "ENT", name_ar: "الأذن و الأنف و الحنجرة", name_en: "ENT", icon: "👂", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "MF", name_ar: "جراحة الوجه و الفكين", name_en: "MaxilloFacial Surgery", icon: "🦷", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "O", name_ar: "العيون", name_en: "Ophthalmology", icon: "👁️", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "Pe", name_ar: "الاطفال", name_en: "Paediatrics", icon: "👶", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "M", name_ar: "الباطنية", name_en: "Internal Medicine", icon: "💊", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "G", name_ar: "النسائية و التوليد", name_en: "Gynecology", icon: "🤰", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "ICU", name_ar: "تخدير العناية المركزة", name_en: "ICU Anaesthesia", icon: "💉", color: "#0f766e", parentSpec: "A", acceptPool: ["A"], enabled: true },
+        { id: "OP", name_ar: "تخدير العمليات", name_en: "OT Anaesthesia", icon: "💉", color: "#0f766e", parentSpec: "A", acceptPool: ["A"], enabled: true },
+        { id: "GA", name_ar: "تخدير صالة الولادة", name_en: "GYN Anaesthesia", icon: "🤰", color: "#0f766e", parentSpec: "A", acceptPool: ["A"], enabled: true },
+        { id: "A", name_ar: "التخدير و العناية المركزة", name_en: "Anaesthesia & Intensive Care", icon: "💉", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "R", name_ar: "الأشعة و السونار", name_en: "Radiology", icon: "🩻", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "D", name_ar: "الوفيات", name_en: "Death Certificates", icon: "⚰️", color: "#0f766e", parentSpec: null, acceptPool: [...ALL_CLINICAL_SPECIALTY_IDS], enabled: true },
+        { id: "AO", name_ar: "المعاون الاداري", name_en: "Administrative Officer", icon: "🧑", color: "#0f766e", parentSpec: null, acceptPool: [...ALL_CLINICAL_SPECIALTY_IDS], enabled: true },
+        { id: "ON", name_ar: "طب الاورام", name_en: "Oncology", icon: "☢️", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "N", name_ar: "طب امراض الكلى", name_en: "Nephrology", icon: "🧫", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "NM", name_ar: "طب الجملة العصبية", name_en: "Neuromedicine", icon: "🧠", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "P", name_ar: "النفسية", name_en: "Psychiatry", icon: "🧠", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "Der", name_ar: "الجلدية", name_en: "Dermatology", icon: "🏥", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "EM", name_ar: "طب الطوارئ", name_en: "Emergency Medicine", icon: "🏥", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "FM", name_ar: "طب الأسرة", name_en: "Family Medicine", icon: "👨", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "GP", name_ar: "ممارسين", name_en: "General Practitioner", icon: "🏥", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "H", name_ar: "طب الامراض القلبية", name_en: "Cardiology", icon: "🫀", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "PS", name_ar: "الجراحة التجميلية", name_en: "Plastic Surgery", icon: "🪡", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "RM", name_ar: "طب الامراض التنفسية", name_en: "Respiratory Medicine", icon: "🫁", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true }
     ];
 
     // Default Fallback Database Structure
@@ -640,6 +645,276 @@
         return hosp.specialties;
     }
 
+    async function updateGlobalSpecialty(oldId, updatedData) {
+        if (!auth.isOwner()) {
+            throw new Error('تعديل مستودع التخصصات العام مخصص للمالك (Owner) حصراً.');
+        }
+        if (!db) throw new Error('قاعدة البيانات غير محملة');
+        if (!Array.isArray(db.globalSpecialties)) {
+            db.globalSpecialties = getGlobalSpecialties();
+        }
+
+        const idx = db.globalSpecialties.findIndex(s => s.id === oldId);
+        if (idx === -1) throw new Error('التخصص غير موجود في المستودع العام');
+
+        const newId = String(updatedData.id || oldId).trim().toUpperCase();
+        if (!newId) throw new Error('رمز التخصص مطلوب');
+
+        // Check ID uniqueness if changing ID
+        if (newId !== oldId && db.globalSpecialties.some(s => s.id === newId)) {
+            throw new Error(`رمز التخصص "${newId}" مستخدم بالفعل.`);
+        }
+
+        const nameAr = String(updatedData.name_ar || '').trim();
+        if (!nameAr) throw new Error('اسم التخصص بالعربية مطلوب');
+
+        const nameEn = String(updatedData.name_en || updatedData.name_ar || '').trim();
+        const icon = String(updatedData.icon || '🏥').trim() || '🏥';
+        const parentSpec = updatedData.parentSpec ? String(updatedData.parentSpec).trim().toUpperCase() : null;
+        const acceptPool = Array.isArray(updatedData.acceptPool) ? updatedData.acceptPool : [];
+
+        // Cascade rename if ID changed across all residents, schedules, and specialties
+        if (newId !== oldId) {
+            // 1. In globalSpecialties
+            db.globalSpecialties.forEach(s => {
+                if (s.parentSpec === oldId) s.parentSpec = newId;
+                if (Array.isArray(s.acceptPool)) {
+                    s.acceptPool = s.acceptPool.map(p => p === oldId ? newId : p);
+                }
+            });
+
+            // 2. In all hospitals
+            if (db.hospitals) {
+                Object.keys(db.hospitals).forEach(hid => {
+                    const h = db.hospitals[hid];
+                    (h.specialties || []).forEach(s => {
+                        if (s.id === oldId) s.id = newId;
+                        if (s.parentSpec === oldId) s.parentSpec = newId;
+                        if (Array.isArray(s.acceptPool)) {
+                            s.acceptPool = s.acceptPool.map(p => p === oldId ? newId : p);
+                        }
+                    });
+                    (h.names || []).forEach(n => {
+                        if (n.spec === oldId) n.spec = newId;
+                        if (n.tag === oldId) n.tag = newId;
+                    });
+                    (h.schedule || []).forEach(entry => {
+                        if (entry.specCode === oldId) entry.specCode = newId;
+                    });
+                });
+            }
+
+            // 3. In global residents
+            (db.residents || []).forEach(r => {
+                if (r.spec === oldId) r.spec = newId;
+                if (r.tag === oldId) r.tag = newId;
+            });
+        }
+
+        // Update target item in globalSpecialties
+        db.globalSpecialties[idx] = {
+            id: newId,
+            name_ar: nameAr,
+            name_en: nameEn,
+            icon: icon,
+            parentSpec: parentSpec,
+            acceptPool: acceptPool,
+            enabled: db.globalSpecialties[idx].enabled !== false
+        };
+
+        // Propagate updated metadata to all hospitals' matching specialty (preserving local color and enabled status)
+        if (db.hospitals) {
+            Object.keys(db.hospitals).forEach(hid => {
+                const h = db.hospitals[hid];
+                const hospSpec = (h.specialties || []).find(s => s.id === newId);
+                if (hospSpec) {
+                    hospSpec.name_ar = nameAr;
+                    hospSpec.name_en = nameEn;
+                    hospSpec.icon = icon;
+                    hospSpec.parentSpec = parentSpec;
+                    hospSpec.acceptPool = acceptPool;
+                }
+            });
+        }
+
+        await saveDatabase(`Owner update global specialty: ${oldId} -> ${newId} (${nameAr})`);
+        return db.globalSpecialties[idx];
+    }
+
+    async function addGlobalSpecialty(specData) {
+        if (!auth.isOwner()) {
+            throw new Error('إضافة تخصص للمستودع العام مخصصة للمالك (Owner) حصراً.');
+        }
+        if (!db) throw new Error('قاعدة البيانات غير محملة');
+        if (!Array.isArray(db.globalSpecialties)) {
+            db.globalSpecialties = getGlobalSpecialties();
+        }
+
+        const id = String(specData.id || '').trim().toUpperCase();
+        const nameAr = String(specData.name_ar || '').trim();
+        const nameEn = String(specData.name_en || specData.name_ar || '').trim();
+        const icon = String(specData.icon || '🏥').trim() || '🏥';
+        const parentSpec = specData.parentSpec ? String(specData.parentSpec).trim().toUpperCase() : null;
+        const acceptPool = Array.isArray(specData.acceptPool) ? specData.acceptPool : [];
+
+        if (!id) throw new Error('رمز التخصص مطلوب');
+        if (!nameAr) throw new Error('اسم التخصص بالعربية مطلوب');
+
+        if (db.globalSpecialties.some(s => s.id === id)) {
+            throw new Error(`رمز التخصص "${id}" مستخدم بالفعل.`);
+        }
+
+        const newSpec = {
+            id,
+            name_ar: nameAr,
+            name_en: nameEn,
+            icon,
+            parentSpec,
+            acceptPool,
+            enabled: true
+        };
+
+        db.globalSpecialties.push(newSpec);
+
+        // Also add to all existing hospitals with default color #0f766e
+        if (db.hospitals) {
+            Object.keys(db.hospitals).forEach(hid => {
+                const h = db.hospitals[hid];
+                if (Array.isArray(h.specialties) && !h.specialties.some(s => s.id === id)) {
+                    h.specialties.push({
+                        ...newSpec,
+                        color: '#0f766e',
+                        enabled: true
+                    });
+                }
+            });
+        }
+
+        await saveDatabase(`Owner add global specialty: ${id} (${nameAr})`);
+        return newSpec;
+    }
+
+    async function deleteGlobalSpecialty(id) {
+        if (!auth.isOwner()) {
+            throw new Error('حذف تخصص من المستودع العام مخصص للمالك (Owner) حصراً.');
+        }
+        if (!db) throw new Error('قاعدة البيانات غير محملة');
+        const specId = String(id || '').trim().toUpperCase();
+
+        // Check if in use by residents
+        let inUse = (db.residents || []).some(r => r.spec === specId || r.tag === specId);
+        if (!inUse && db.hospitals) {
+            inUse = Object.values(db.hospitals).some(h => (h.names || []).some(n => n.spec === specId || n.tag === specId));
+        }
+        if (inUse) {
+            throw new Error(`لا يمكن حذف التخصص "${specId}" لوجود أطباء مقيمين مسجلين عليه.`);
+        }
+
+        // Remove from globalSpecialties
+        db.globalSpecialties = (db.globalSpecialties || []).filter(s => s.id !== specId);
+
+        // Remove from all hospitals
+        if (db.hospitals) {
+            Object.keys(db.hospitals).forEach(hid => {
+                const h = db.hospitals[hid];
+                h.specialties = (h.specialties || []).filter(s => s.id !== specId);
+                (h.specialties || []).forEach(s => {
+                    if (s.parentSpec === specId) s.parentSpec = null;
+                    if (Array.isArray(s.acceptPool)) s.acceptPool = s.acceptPool.filter(p => p !== specId);
+                });
+            });
+        }
+
+        await saveDatabase(`Owner delete global specialty: ${specId}`);
+        return true;
+    }
+
+    async function addHospitalSpecialtyFromGlobal(hospitalId, specId, color = '#0f766e') {
+        if (!auth.isAdmin()) {
+            throw new Error('غير مصرح لك بإضافة تخصص للمستشفى.');
+        }
+        const hosp = getHospital(hospitalId);
+        if (!hosp) throw new Error('المستشفى غير موجود');
+
+        const globalSpecs = getGlobalSpecialties();
+        const g = globalSpecs.find(s => s.id === specId);
+        if (!g) throw new Error('التخصص غير موجود في المستودع العام');
+
+        if (!Array.isArray(hosp.specialties)) hosp.specialties = [];
+        const existing = hosp.specialties.find(s => s.id === specId);
+        if (existing) {
+            existing.enabled = true;
+            existing.color = color || existing.color || '#0f766e';
+        } else {
+            hosp.specialties.push({
+                ...g,
+                color: color || '#0f766e',
+                enabled: true
+            });
+        }
+
+        await saveDatabase(`Add specialty ${specId} to ${hosp.hospitalName}`);
+        return hosp.specialties;
+    }
+
+    async function updateHospitalSpecialty(hospitalId, specId, updates) {
+        if (!auth.isAdmin()) {
+            throw new Error('غير مصرح لك بتعديل التخصص في المستشفى.');
+        }
+        const hosp = getHospital(hospitalId);
+        if (!hosp) throw new Error('المستشفى غير موجود');
+
+        const s = (hosp.specialties || []).find(x => x.id === specId);
+        if (!s) throw new Error('التخصص غير موجود في المستشفى');
+
+        // Only color and enabled are allowed to be updated at hospital level!
+        if (updates.color) s.color = updates.color;
+        if (updates.enabled !== undefined) s.enabled = Boolean(updates.enabled);
+
+        await saveDatabase(`Update specialty ${specId} in ${hosp.hospitalName}`);
+        return s;
+    }
+
+    function getEligibleResidentsForSpecialty(hospitalOrId, specId) {
+        const hospital = (typeof hospitalOrId === 'string') ? getHospital(hospitalOrId) : hospitalOrId;
+        if (!hospital || !Array.isArray(hospital.names)) return [];
+
+        const allSpecs = hospital.specialties || getGlobalSpecialties() || [];
+        const specObj = allSpecs.find(s => s.id === specId);
+        const acceptPool = Array.isArray(specObj?.acceptPool) ? specObj.acceptPool : [];
+        const parentSpec = specObj?.parentSpec || null;
+        const childSpecIds = allSpecs.filter(s => s.parentSpec === specId).map(s => s.id);
+
+        const residents = hospital.names || [];
+
+        if (acceptPool.includes('ALL') || acceptPool.includes('*')) {
+            return residents.filter(r => r.active !== false && r.spec !== 'RESERVE');
+        }
+
+        const eligible = residents.filter(r => {
+            if (r.active === false || r.spec === 'RESERVE') return false;
+            const rSpec = r.spec || r.tag;
+            const rTag = r.tag || r.spec;
+
+            // 1. Direct specialty match
+            if (rSpec === specId || rTag === specId) return true;
+
+            // 2. Specialty has a parent, and resident belongs to parent (e.g. Anaesthesia covers ICU / OP / GA)
+            if (parentSpec && (rSpec === parentSpec || rTag === parentSpec)) return true;
+
+            // 3. Resident belongs to child/sub-specialty
+            if (childSpecIds.includes(rSpec) || childSpecIds.includes(rTag)) return true;
+
+            // 4. Resident belongs to a specialty in acceptPool
+            if (acceptPool.length > 0 && (acceptPool.includes(rSpec) || acceptPool.includes(rTag))) return true;
+
+            return false;
+        });
+
+        // Fallback: If no eligible residents found, return all active non-reserve residents
+        return eligible.length > 0 ? eligible : residents.filter(r => r.active !== false && r.spec !== 'RESERVE');
+    }
+
     // ============================================================
     // ACTIVE ON-CALL RESIDENTS REAL-TIME METRICS
     // ============================================================
@@ -663,7 +938,7 @@
             const entryDate = normalizeDateString(entry.date);
             if (entryDate === normTarget) {
                 const name = String(entry.name || '').trim();
-                if (name && name !== 'بدون خفير' && name !== 'بدون خفر') {
+                if (name && !name.includes('بدون خفر') && !name.includes('بدون خفارة')) {
                     uniqueOnCall.add(name);
                 }
             }
@@ -1050,6 +1325,12 @@
         CANONICAL_SPECIALTIES,
         getGlobalSpecialties,
         saveGlobalSpecialties,
+        updateGlobalSpecialty,
+        addGlobalSpecialty,
+        deleteGlobalSpecialty,
+        addHospitalSpecialtyFromGlobal,
+        updateHospitalSpecialty,
+        getEligibleResidentsForSpecialty,
         syncHospitalSpecialtiesWithGlobal,
         getActiveOnCallResidentsCount,
         getTotalActiveOnCallCount,

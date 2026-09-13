@@ -182,8 +182,14 @@
             }
 
             // 4. Final fallback to default template if all else fails
-            if (!db) {
-                db = defaultTemplate;
+            if (db) {
+                if (!Array.isArray(db.globalSpecialties) || db.globalSpecialties.length === 0) {
+                    const firstHosp = db.hospitals ? Object.values(db.hospitals)[0] : null;
+                    const source = (firstHosp && Array.isArray(firstHosp.specialties) && firstHosp.specialties.length > 0)
+                        ? firstHosp.specialties
+                        : CANONICAL_SPECIALTIES;
+                    db.globalSpecialties = JSON.parse(JSON.stringify(source));
+                }
             }
 
             isLoaded = true;
@@ -605,9 +611,13 @@
         if (db && Array.isArray(db.globalSpecialties) && db.globalSpecialties.length > 0) {
             return db.globalSpecialties;
         }
-        const active = getActiveHospital();
-        if (active && Array.isArray(active.specialties) && active.specialties.length > 0) {
-            return active.specialties;
+        if (db) {
+            const firstHosp = db.hospitals ? Object.values(db.hospitals)[0] : null;
+            const source = (firstHosp && Array.isArray(firstHosp.specialties) && firstHosp.specialties.length > 0)
+                ? firstHosp.specialties
+                : CANONICAL_SPECIALTIES;
+            db.globalSpecialties = JSON.parse(JSON.stringify(source));
+            return db.globalSpecialties;
         }
         return JSON.parse(JSON.stringify(CANONICAL_SPECIALTIES));
     }
@@ -697,6 +707,8 @@
                     (h.names || []).forEach(n => {
                         if (n.spec === oldId) n.spec = newId;
                         if (n.tag === oldId) n.tag = newId;
+                        if (n.dept === oldId) n.dept = newId;
+                        if (n.department === oldId) n.department = newId;
                     });
                     (h.schedule || []).forEach(entry => {
                         if (entry.specCode === oldId) entry.specCode = newId;
@@ -708,6 +720,8 @@
             (db.residents || []).forEach(r => {
                 if (r.spec === oldId) r.spec = newId;
                 if (r.tag === oldId) r.tag = newId;
+                if (r.dept === oldId) r.dept = newId;
+                if (r.department === oldId) r.department = newId;
             });
         }
 
@@ -875,6 +889,30 @@
         return s;
     }
 
+    async function deleteEmptyHospitalSpecialties(hospitalId) {
+        if (!auth.isAdmin()) {
+            throw new Error('غير مصرح لك بحذف التخصصات. يتطلب صلاحيات المدير.');
+        }
+        const hosp = getHospital(hospitalId);
+        if (!hosp) throw new Error('المستشفى غير موجود');
+
+        const residents = hosp.names || [];
+        const initialCount = (hosp.specialties || []).length;
+
+        // A specialty is retained if at least one resident has it as their primary specialty (spec) or assigned rotation (dept)
+        hosp.specialties = (hosp.specialties || []).filter(s => {
+            return residents.some(r => 
+                (r.spec === s.id || r.tag === s.id || r.dept === s.id || r.department === s.id)
+            );
+        });
+
+        const deletedCount = initialCount - hosp.specialties.length;
+        if (deletedCount > 0) {
+            await saveDatabase(`حذف ${deletedCount} تخصص فارغ (0 مقيم) من مستشفى ${hosp.name_ar || hosp.hospitalName}`);
+        }
+        return { deletedCount, remainingCount: hosp.specialties.length };
+    }
+
     function getEligibleResidentsForSpecialty(hospitalOrId, specId) {
         const hospital = (typeof hospitalOrId === 'string') ? getHospital(hospitalOrId) : hospitalOrId;
         if (!hospital || !Array.isArray(hospital.names)) return [];
@@ -893,20 +931,21 @@
 
         const eligible = residents.filter(r => {
             if (r.active === false || r.spec === 'RESERVE') return false;
-            const rSpec = r.spec || r.tag;
-            const rTag = r.tag || r.spec;
 
-            // 1. Direct specialty match
-            if (rSpec === specId || rTag === specId) return true;
+            // Effective duty department (assigned rotation takes precedence for duty schedule)
+            const rDutyDept = r.dept || r.department || r.spec || r.tag;
 
-            // 2. Specialty has a parent, and resident belongs to parent (e.g. Anaesthesia covers ICU / OP / GA)
-            if (parentSpec && (rSpec === parentSpec || rTag === parentSpec)) return true;
+            // 1. Direct duty department match (e.g. resident assigned to GS rotation has GS duties)
+            if (rDutyDept === specId) return true;
 
-            // 3. Resident belongs to child/sub-specialty
-            if (childSpecIds.includes(rSpec) || childSpecIds.includes(rTag)) return true;
+            // 2. Specialty has a parent, and resident's duty belongs to parent
+            if (parentSpec && (rDutyDept === parentSpec)) return true;
 
-            // 4. Resident belongs to a specialty in acceptPool
-            if (acceptPool.length > 0 && (acceptPool.includes(rSpec) || acceptPool.includes(rTag))) return true;
+            // 3. Resident duty belongs to child/sub-specialty
+            if (childSpecIds.includes(rDutyDept)) return true;
+
+            // 4. Resident duty belongs to a specialty in acceptPool
+            if (acceptPool.length > 0 && acceptPool.includes(rDutyDept)) return true;
 
             return false;
         });
@@ -985,12 +1024,16 @@
                 const name = (n.name || '').trim();
                 if (!name) return;
                 if (!map.has(name)) {
+                    const spec = n.spec || 'GS';
+                    const dept = n.dept || n.department || spec;
                     map.set(name, {
                         id: n.id || ('res-' + Math.random().toString(36).substr(2, 9)),
                         name: name,
                         phone: (n.phone && n.phone !== 'رقم غير متوفر') ? n.phone : '',
-                        spec: n.spec || 'GS',
-                        tag: n.tag || n.spec || 'GS',
+                        spec: spec,
+                        tag: n.tag || spec,
+                        dept: dept,
+                        department: dept,
                         active: n.active !== false && n.spec !== 'RESERVE',
                         hospitals: [hid]
                     });
@@ -1001,6 +1044,10 @@
                     }
                     if (!existing.phone && n.phone && n.phone !== 'رقم غير متوفر') {
                         existing.phone = n.phone;
+                    }
+                    if (n.dept && (!existing.dept || existing.dept === existing.spec)) {
+                        existing.dept = n.dept;
+                        existing.department = n.dept;
                     }
                 }
             });
@@ -1020,6 +1067,8 @@
                 phone: r.phone || 'رقم غير متوفر',
                 spec: r.spec,
                 tag: r.tag,
+                dept: r.dept || r.department || r.spec,
+                department: r.dept || r.department || r.spec,
                 active: r.active,
                 hospitals: r.hospitals
             }));
@@ -1045,12 +1094,17 @@
             hospitals = [residentData.hospitalId || getActiveHospitalId()];
         }
 
+        const spec = residentData.spec || 'GS';
+        const dept = residentData.dept || residentData.department || spec;
+
         const newRes = {
             id: 'res-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4),
             name: formattedName,
             phone: (residentData.phone || '').trim(),
-            spec: residentData.spec || 'GS',
-            tag: residentData.tag || residentData.spec || 'GS',
+            spec: spec,
+            tag: residentData.tag || spec,
+            dept: dept,
+            department: dept,
             active: residentData.active !== false,
             hospitals: hospitals
         };
@@ -1083,6 +1137,16 @@
         if (updates.name) {
             const n = updates.name.trim();
             updated.name = (n.startsWith('د.') || n.startsWith('د ')) ? n : `د. ${n}`;
+        }
+
+        if (updates.spec) {
+            updated.spec = updates.spec;
+            updated.tag = updates.tag || updates.spec;
+        }
+
+        if (updates.dept || updates.department) {
+            updated.dept = updates.dept || updates.department;
+            updated.department = updated.dept;
         }
 
         if (updates.hospitals) {
@@ -1330,6 +1394,7 @@
         deleteGlobalSpecialty,
         addHospitalSpecialtyFromGlobal,
         updateHospitalSpecialty,
+        deleteEmptyHospitalSpecialties,
         getEligibleResidentsForSpecialty,
         syncHospitalSpecialtiesWithGlobal,
         getActiveOnCallResidentsCount,

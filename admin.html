@@ -1679,6 +1679,7 @@
         }
 
         async function syncWithGlobalSpecialties() {
+            if (!confirm('هل تريد مزامنة تخصصات المستشفى مع المستودع العام؟\nسيتم دمج أي تخصصات مكررة وتوحيد كافة التخصصات حصراً وفق المستودع العام للمالك مع الحفاظ على ألوان العرض.')) return;
             try {
                 if (!currentHospital) return;
                 await Hub.syncHospitalSpecialtiesWithGlobal(currentHospital.id);
@@ -1687,7 +1688,7 @@
                 renderResidentsAccordion();
                 populateSpecialtyDropdowns();
                 updateStatsBadges();
-                showToast('تمت مزامنة تخصصات المستشفى مع الدليل الموحد بنجاح', 'success');
+                showToast('تمت مزامنة تخصصات المستشفى مع المستودع العام الموحد بنجاح', 'success');
             } catch (err) {
                 console.error(err);
                 showToast(err.message || 'خطأ أثناء المزامنة', 'error');

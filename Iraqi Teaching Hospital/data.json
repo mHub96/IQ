@@ -1,1733 +1,5388 @@
 {
   "hospitalName": "Iraqi Teaching Hospital",
+  "name_ar": "المستشفى العراقي التعليمي",
+  "location": "Basra · Iraq",
+  "icon": "fa-hospital",
+  "color": "#0f766e",
+  "passwords": {
+    "owner": "MrjBth1996*",
+    "admin": "Admin1996*",
+    "user": "1234"
+  },
+  "specialties": [
+    {
+      "id": "NS",
+      "name_ar": "جراحة الجملة العصبية",
+      "name_en": "Neurosurgery",
+      "icon": "🧠",
+      "color": "#fea101",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "CT",
+      "name_ar": "جراحة الصدر و الاوعية الدموية",
+      "name_en": "Cardiothoracic Surgery",
+      "icon": "🫀",
+      "color": "#e05910",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "GS",
+      "name_ar": "الجراحة العامة",
+      "name_en": "General Surgery",
+      "icon": "🔪",
+      "color": "#2ac200",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "OR",
+      "name_ar": "الكسور",
+      "name_en": "Orthopaedics",
+      "icon": "🦴",
+      "color": "#ff0000",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": false
+    },
+    {
+      "id": "US",
+      "name_ar": "جراحة المسالك البولية",
+      "name_en": "Urosurgery",
+      "icon": "🫘",
+      "color": "#e66551",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "ENT",
+      "name_ar": "الأذن و الأنف و الحنجرة",
+      "name_en": "ENT",
+      "icon": "👂",
+      "color": "#fbff00",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "MF",
+      "name_ar": "جراحة الوجه و الفكين",
+      "name_en": "MaxilloFacial Surgery",
+      "icon": "🦷",
+      "color": "#d600af",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": false
+    },
+    {
+      "id": "O",
+      "name_ar": "العيون",
+      "name_en": "Ophthalmology",
+      "icon": "👁️",
+      "color": "#38ffe8",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": false
+    },
+    {
+      "id": "Pe",
+      "name_ar": "الاطفال",
+      "name_en": "Paediatrics",
+      "icon": "👶",
+      "color": "#3dff6e",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": false
+    },
+    {
+      "id": "M",
+      "name_ar": "الباطنية",
+      "name_en": "Internal Medicine",
+      "icon": "💊",
+      "color": "#a1e972",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": false
+    },
+    {
+      "id": "G",
+      "name_ar": "النسائية و التوليد",
+      "name_en": "Gynecology",
+      "icon": "🤰",
+      "color": "#e40de7",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": false
+    },
+    {
+      "id": "ICU",
+      "name_ar": "تخدير العناية المركزة",
+      "name_en": "ICU Anaesthesia",
+      "icon": "💉",
+      "color": "#c9e141",
+      "parentSpec": "A",
+      "acceptPool": [
+        "A"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "OP",
+      "name_ar": "تخدير العمليات",
+      "name_en": "OT Anaesthesia",
+      "icon": "💉",
+      "color": "#b4cc00",
+      "parentSpec": "A",
+      "acceptPool": [
+        "A"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "GA",
+      "name_ar": "تخدير صالة الولادة",
+      "name_en": "GYN Anaesthesia",
+      "icon": "🤰",
+      "color": "#fe62ad",
+      "parentSpec": "A",
+      "acceptPool": [
+        "A"
+      ],
+      "enabled": false
+    },
+    {
+      "id": "A",
+      "name_ar": "التخدير و العناية المركزة",
+      "name_en": "Anaesthesia & Intensive Care",
+      "icon": "💉",
+      "color": "#ff8e24",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": false
+    },
+    {
+      "id": "R",
+      "name_ar": "الأشعة و السونار",
+      "name_en": "Radiology",
+      "icon": "🩻",
+      "color": "#6700e6",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "D",
+      "name_ar": "الوفيات",
+      "name_en": "Death Certificates",
+      "icon": "⚰️",
+      "color": "#bababa",
+      "parentSpec": null,
+      "acceptPool": [
+        "NS",
+        "CT",
+        "GS",
+        "OR",
+        "US",
+        "ENT",
+        "MF",
+        "O",
+        "Pe",
+        "M",
+        "G",
+        "ICU",
+        "OP",
+        "GA",
+        "A",
+        "R",
+        "ON",
+        "N",
+        "NM",
+        "P",
+        "Der",
+        "EM",
+        "FM",
+        "GP",
+        "H",
+        "PS",
+        "RM"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "AO",
+      "name_ar": "المعاون الاداري",
+      "name_en": "Administrative Officer",
+      "icon": "🧑",
+      "color": "#0f766e",
+      "parentSpec": null,
+      "acceptPool": [
+        "NS",
+        "CT",
+        "GS",
+        "OR",
+        "US",
+        "ENT",
+        "MF",
+        "O",
+        "Pe",
+        "M",
+        "G",
+        "ICU",
+        "OP",
+        "GA",
+        "A",
+        "R",
+        "ON",
+        "N",
+        "NM",
+        "P",
+        "Der",
+        "EM",
+        "FM",
+        "GP",
+        "H",
+        "PS",
+        "RM"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "ON",
+      "name_ar": "طب الاورام",
+      "name_en": "Oncology",
+      "icon": "☢️",
+      "color": "#84cc16",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "N",
+      "name_ar": "طب امراض الكلى",
+      "name_en": "Nephrology",
+      "icon": "🧫",
+      "color": "#ff5ccb",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": false
+    },
+    {
+      "id": "NM",
+      "name_ar": "طب الجملة العصبية",
+      "name_en": "Neuromedicine",
+      "icon": "🧠",
+      "color": "#79e9f1",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": false
+    },
+    {
+      "id": "P",
+      "name_ar": "النفسية",
+      "name_en": "Psychiatry",
+      "icon": "🧠",
+      "color": "#fef606",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": false
+    },
+    {
+      "id": "Der",
+      "name_ar": "الجلدية",
+      "name_en": "Dermatology",
+      "icon": "🏥",
+      "color": "#e27ef6",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": false
+    },
+    {
+      "id": "EM",
+      "name_ar": "طب الطوارئ",
+      "name_en": "Emergency Medicine",
+      "icon": "🏥",
+      "color": "#8cb3ed",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": false
+    },
+    {
+      "id": "FM",
+      "name_ar": "طب الأسرة",
+      "name_en": "Family Medicine",
+      "icon": "👨",
+      "color": "#f4f67e",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": false
+    },
+    {
+      "id": "GP",
+      "name_ar": "ممارسين",
+      "name_en": "General Practitioner",
+      "icon": "🏥",
+      "color": "#627ae4",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": false
+    },
+    {
+      "id": "H",
+      "name_ar": "طب الامراض القلبية",
+      "name_en": "Cardiology",
+      "icon": "🫀",
+      "color": "#c91d70",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": false
+    },
+    {
+      "id": "PS",
+      "name_ar": "الجراحة التجميلية",
+      "name_en": "Plastic Surgery",
+      "icon": "🪡",
+      "color": "#2563eb",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": false
+    },
+    {
+      "id": "RM",
+      "name_ar": "طب الامراض التنفسية",
+      "name_en": "Respiratory Medicine",
+      "icon": "🫁",
+      "color": "#3bb8f7",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": false
+    }
+  ],
   "names": [
     {
-      "name": "د. احمد حقي",
-      "spec": "A",
-      "phone": "+9647804080071",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. احمد عبدالله",
-      "spec": "A",
-      "phone": "+9647725582728",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. احمد كريم",
-      "spec": "A",
-      "phone": "+9647739862206",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. اديان محمد",
-      "spec": "A",
-      "phone": "+9647726496657",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. الاء اسماعيل",
-      "spec": "A",
-      "phone": "+9647705669930",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. الاء حسن",
-      "spec": "A",
-      "phone": "+9647727913007",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. انور ماجد",
-      "spec": "A",
-      "phone": "+9647758674695",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. اوراس صباح",
-      "spec": "A",
-      "phone": "+9647707059984",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. ايات فلاح",
-      "spec": "A",
-      "phone": "+9647806041352",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. ايات فيصل",
-      "spec": "A",
-      "phone": "+9647725582752",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. اياد فالح",
-      "spec": "A",
-      "phone": "+9647811352828",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. ايمان لقمان",
-      "spec": "A",
-      "phone": "+9647725512399",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. ايناس عدنان",
-      "spec": "A",
-      "phone": "+9647733358134",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. بسام سعد",
-      "spec": "A",
-      "phone": "+9647706872415",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. حسين عويد",
-      "spec": "A",
-      "phone": "+9647739244859",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. حنين اسعد",
-      "spec": "A",
-      "phone": "+9647700502209",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. حنين جاسم",
-      "spec": "A",
-      "phone": "+9647811876100",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. رسل عودة",
-      "spec": "A",
-      "phone": "+9647729975078",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. رقية باسم",
-      "spec": "A",
-      "phone": "+9647725519270",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. ريام نصير",
-      "spec": "A",
-      "phone": "+9647729199914",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. زين العابدين ثجيل",
-      "spec": "A",
-      "phone": "+9647717300360",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. زينب صدام",
-      "spec": "A",
-      "phone": "+9647733959046",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. زينب عبد الرزاق",
-      "spec": "A",
-      "phone": "+9647727916014",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. سجى نعيم",
-      "spec": "A",
-      "phone": "+9647707571167",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. سماء علي",
-      "spec": "A",
-      "phone": "+9647722752658",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. شهد عبد الله",
-      "spec": "A",
-      "phone": "+9647734634301",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. شيرين سمير",
-      "spec": "A",
-      "phone": "+9647826655511",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. صافي ابراهيم",
-      "spec": "A",
-      "phone": "+9647739468124",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. صفا كاظم",
-      "spec": "A",
-      "phone": "+9647732196899",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. صفاء محمد",
-      "spec": "A",
-      "phone": "+9647713551570",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. عبدالله نادر",
-      "spec": "A",
-      "phone": "+9647703272926",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. علاء سلمان",
-      "spec": "A",
-      "phone": "+9647704997282",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. علي خالد",
-      "spec": "A",
-      "phone": "+9647725151957",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. علياء عباس",
-      "spec": "A",
-      "phone": "+9647862498727",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. غسق مصطفى",
-      "spec": "A",
-      "phone": "+9647722920453",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. فاطمة سلطان",
-      "spec": "A",
-      "phone": "+9647735237481",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. فاطمة عباس",
-      "spec": "A",
-      "phone": "+9647734910577",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. فاطمة محمود",
-      "spec": "A",
-      "phone": "+9647719794237",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. مريم حاكم",
-      "spec": "A",
-      "phone": "+9647816663142",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. مريم عبد الحميد",
-      "spec": "A",
-      "phone": "+9647810548678",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. مسرة سعد",
-      "spec": "A",
-      "phone": "+9647723359625",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. مصطفى عبد الله",
-      "spec": "A",
-      "phone": "+9647767785961",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. مصطفى علي",
-      "spec": "A",
-      "phone": "+9647819237146",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. ميسم اكرم",
-      "spec": "A",
-      "phone": "+9647707055130",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. ميسم مؤيد",
-      "spec": "A",
-      "phone": "+9647730520002",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. نور عبد المطلب",
-      "spec": "A",
-      "phone": "+9647730213323",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. هاجر موسى",
-      "spec": "A",
-      "phone": "+9647812445850",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. هدير ماجد",
-      "spec": "A",
-      "phone": "+9647718995613",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. هديل ماجد",
-      "spec": "A",
-      "phone": "+9647735617850",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. ياسر ياس",
-      "spec": "A",
-      "phone": "+9647736762841",
-      "tag": "A",
-      "active": true,
-      "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. ايهاب عبدالكريم غالب",
-      "spec": "CT",
-      "phone": "+9647704868335",
-      "tag": "CT",
-      "active": true,
-      "dept": "CT",
-      "department": "CT"
-    },
-    {
-      "name": "د. حسين يحيى صبار",
-      "spec": "CT",
-      "phone": "+9647808930151",
-      "tag": "CT",
-      "active": true,
-      "dept": "CT",
-      "department": "CT"
-    },
-    {
-      "name": "د. شهد كريم عبدالكاظم",
-      "spec": "CT",
-      "phone": "+9647722910490",
-      "tag": "CT",
-      "active": true,
-      "dept": "CT",
-      "department": "CT"
-    },
-    {
-      "name": "د. عبدالحليم حسن موسى",
-      "spec": "RESERVE",
-      "phone": "+9647711207221",
-      "tag": "CT",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. منتظر صفاء ماجد",
-      "spec": "CT",
-      "phone": "+9647823939952",
-      "tag": "CT",
-      "active": true,
-      "dept": "CT",
-      "department": "CT"
-    },
-    {
-      "name": "د. همام حبيب عبدالله",
-      "spec": "CT",
-      "phone": "+9647770021007",
-      "tag": "CT",
-      "active": true,
-      "dept": "CT",
-      "department": "CT"
-    },
-    {
-      "name": "د. امال سامي ثامر",
-      "spec": "Der",
-      "phone": "+9647713176798",
-      "tag": "Der",
-      "active": true,
-      "dept": "Der",
-      "department": "Der"
-    },
-    {
-      "name": "د. رفل علي رسمي",
-      "spec": "Der",
-      "phone": "",
-      "tag": "Der",
-      "active": true,
-      "dept": "Der",
-      "department": "Der"
-    },
-    {
-      "name": "د. زهراء قتيبة عبد",
-      "spec": "Der",
-      "phone": "+9647823006698",
-      "tag": "Der",
-      "active": true,
-      "dept": "Der",
-      "department": "Der"
-    },
-    {
-      "name": "د. علي حسن خريبط",
-      "spec": "Der",
-      "phone": "",
-      "tag": "Der",
-      "active": true,
-      "dept": "Der",
-      "department": "Der"
-    },
-    {
-      "name": "د. علي وهاب سوادي",
-      "spec": "Der",
-      "phone": "+9647812822360",
-      "tag": "Der",
-      "active": true,
-      "dept": "Der",
-      "department": "Der"
-    },
-    {
-      "name": "د. مروة محمد عبدالوهاب",
-      "spec": "Der",
-      "phone": "+9647733605305",
-      "tag": "Der",
-      "active": true,
-      "dept": "Der",
-      "department": "Der"
-    },
-    {
-      "name": "د. منتظر مؤيد حسين",
-      "spec": "Der",
-      "phone": "+9647722017351",
-      "tag": "Der",
-      "active": true,
-      "dept": "Der",
-      "department": "Der"
-    },
-    {
-      "name": "د. زهراء احمد عبدالكاظم",
-      "spec": "EM",
-      "phone": "+9647712630805",
-      "tag": "EM",
-      "active": true,
-      "dept": "EM",
-      "department": "EM"
-    },
-    {
-      "name": "د. ام البنين عيدان كاظم",
-      "spec": "ENT",
-      "phone": "+9647762744700",
-      "tag": "ENT",
-      "active": true,
-      "dept": "ENT",
-      "department": "ENT"
-    },
-    {
-      "name": "د. ايات عباس مطشر",
-      "spec": "ENT",
-      "phone": "+9647725809721",
-      "tag": "ENT",
-      "active": true,
-      "dept": "ENT",
-      "department": "ENT"
-    },
-    {
-      "name": "د. زين العابدين مصطفى محمد",
-      "spec": "ENT",
-      "phone": "+9647703100283",
-      "tag": "ENT",
-      "active": true,
-      "dept": "ENT",
-      "department": "ENT"
-    },
-    {
-      "name": "د. مايا عادل عبدالهادي",
-      "spec": "ENT",
-      "phone": "+9647818897778",
-      "tag": "ENT",
-      "active": true,
-      "dept": "ENT",
-      "department": "ENT"
-    },
-    {
-      "name": "د. مصطفى عبدالصاحب",
-      "spec": "ENT",
-      "phone": "+9647735280259",
-      "tag": "ENT",
-      "active": true,
-      "dept": "ENT",
-      "department": "ENT"
-    },
-    {
-      "name": "د. دنيا فارس حسون",
-      "spec": "FM",
-      "phone": "+9647711939863",
-      "tag": "FM",
-      "active": true,
-      "dept": "FM",
-      "department": "FM"
-    },
-    {
-      "name": "د. رسل سامي خضير",
-      "spec": "FM",
-      "phone": "",
-      "tag": "FM",
-      "active": true,
-      "dept": "FM",
-      "department": "FM"
-    },
-    {
-      "name": "د. سارة عدنان مالك",
-      "spec": "FM",
-      "phone": "+9647868000623",
-      "tag": "FM",
-      "active": true,
-      "dept": "FM",
-      "department": "FM"
-    },
-    {
-      "name": "د. سحر فالح حسن",
-      "spec": "FM",
-      "phone": "",
-      "tag": "FM",
-      "active": true,
-      "dept": "FM",
-      "department": "FM"
-    },
-    {
-      "name": "د. فرح علي عبدالحسين",
-      "spec": "FM",
-      "phone": "+9647721170760",
-      "tag": "FM",
-      "active": true,
-      "dept": "FM",
-      "department": "FM"
-    },
-    {
-      "name": "د. مريم سالم جارالله",
-      "spec": "FM",
-      "phone": "+9647719557060",
-      "tag": "FM",
-      "active": true,
-      "dept": "FM",
-      "department": "FM"
-    },
-    {
-      "name": "د. احمد ناصرقاسم",
-      "spec": "GP",
-      "phone": "+9647716717702",
-      "tag": "GP",
-      "active": true,
-      "dept": "GP",
-      "department": "GP"
-    },
-    {
-      "name": "د. منى عبدالباري",
-      "spec": "GP",
-      "phone": "+9647740399801",
-      "tag": "GP",
-      "active": true,
-      "dept": "GP",
-      "department": "GP"
-    },
-    {
-      "name": "د. هبة سعدون مجبل",
-      "spec": "GP",
-      "phone": "+9647716757205",
-      "tag": "GP",
-      "active": true,
-      "dept": "GP",
-      "department": "GP"
-    },
-    {
-      "name": "د. وفاء عبدالعال جدوع",
-      "spec": "GP",
-      "phone": "+9647811741751",
-      "tag": "GP",
-      "active": true,
-      "dept": "GP",
-      "department": "GP"
-    },
-    {
-      "name": "د. احمد الراوي",
-      "spec": "GS",
-      "phone": "+9647707173044",
-      "tag": "GS",
-      "active": true,
-      "dept": "GS",
-      "department": "GS"
-    },
-    {
-      "name": "د. احمد حارث عبدالمحسن",
-      "spec": "GS",
-      "phone": "+9647707167689",
-      "tag": "GS",
-      "active": true,
-      "dept": "GS",
-      "department": "GS"
-    },
-    {
-      "name": "د. احمد خضر بجاي",
-      "spec": "RESERVE",
-      "phone": "",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. الحسين جاسب فاخر",
-      "spec": "GS",
-      "phone": "+9647722917732",
-      "tag": "GS",
-      "active": true,
-      "dept": "GS",
-      "department": "GS"
-    },
-    {
-      "name": "د. براء حسن عبدالهادي",
-      "spec": "GS",
-      "phone": "+9647721174861",
-      "tag": "GS",
-      "active": true,
-      "dept": "GS",
-      "department": "GS"
-    },
-    {
-      "name": "د. حسين علي جبار",
-      "spec": "GS",
-      "phone": "+9647715498645",
-      "tag": "GS",
-      "active": true,
-      "dept": "GS",
-      "department": "GS"
-    },
-    {
-      "name": "د. خالد ابراهيم عبدالقادر",
-      "spec": "GS",
-      "phone": "+9647803770672",
-      "tag": "GS",
-      "active": true,
-      "dept": "GS",
-      "department": "GS"
-    },
-    {
-      "name": "د. دعاء كريم",
-      "spec": "GS",
-      "phone": "+9647807272388",
-      "tag": "GS",
-      "active": true,
-      "dept": "GS",
-      "department": "GS"
-    },
-    {
-      "name": "د. رافع احمد عاشور",
-      "spec": "GS",
-      "phone": "+9647812507841",
-      "tag": "GS",
-      "active": true,
-      "dept": "GS",
-      "department": "GS"
-    },
-    {
-      "name": "د. زين العابدين مصطفى محمد",
-      "spec": "GS",
-      "phone": "+9647703100283",
-      "tag": "GS",
-      "active": true,
-      "dept": "GS",
-      "department": "GS"
-    },
-    {
-      "name": "د. سعيد جندي لهمود",
-      "spec": "GS",
-      "phone": "+9647801186266",
-      "tag": "GS",
-      "active": true,
-      "dept": "GS",
-      "department": "GS"
-    },
-    {
-      "name": "د. علي جميل حنتوش",
-      "spec": "GS",
-      "phone": "+9647715913508",
-      "tag": "GS",
-      "active": true,
-      "dept": "GS",
-      "department": "GS"
-    },
-    {
-      "name": "د. فاطمة فاضل كاظم",
-      "spec": "GS",
-      "phone": "+9647716761069",
-      "tag": "GS",
-      "active": true,
-      "dept": "GS",
-      "department": "GS"
-    },
-    {
-      "name": "د. قنوت حيدر كاظم",
-      "spec": "RESERVE",
-      "phone": "",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. كرار علي زغير",
-      "spec": "GS",
-      "phone": "+9647809619854",
-      "tag": "GS",
-      "active": true,
-      "dept": "GS",
-      "department": "GS"
-    },
-    {
-      "name": "د. محمد حيدر باقر",
-      "spec": "GS",
-      "phone": "+9647708795989",
-      "tag": "GS",
-      "active": true,
-      "dept": "GS",
-      "department": "GS"
-    },
-    {
-      "name": "د. محمد فتحي عبدالرزاق",
-      "spec": "GS",
-      "phone": "+9647700546979",
-      "tag": "GS",
-      "active": true,
-      "dept": "GS",
-      "department": "GS"
-    },
-    {
-      "name": "د. محمد هاشم خضير",
-      "spec": "GS",
-      "phone": "+9647810202728",
-      "tag": "GS",
-      "active": true,
-      "dept": "GS",
-      "department": "GS"
-    },
-    {
-      "name": "د. نجم هدو راضي",
-      "spec": "GS",
-      "phone": "+9647757449886",
-      "tag": "GS",
-      "active": true,
-      "dept": "GS",
-      "department": "GS"
-    },
-    {
-      "name": "د. احرار غانم نوري",
-      "spec": "H",
-      "phone": "+9647821082337",
-      "tag": "H",
-      "active": true,
-      "dept": "H",
-      "department": "H"
-    },
-    {
-      "name": "د. ام البنين عبدالله عبدالحسين",
-      "spec": "H",
-      "phone": "+9647719192001",
-      "tag": "H",
-      "active": true,
-      "dept": "H",
-      "department": "H"
-    },
-    {
-      "name": "د. أيام زاهر عبدالمجيد",
-      "spec": "H",
-      "phone": "+9647821850778",
-      "tag": "H",
-      "active": true,
-      "dept": "H",
-      "department": "H"
-    },
-    {
-      "name": "د. ايمان نعيم خيول",
-      "spec": "H",
-      "phone": "+9647725597713",
-      "tag": "H",
-      "active": true,
-      "dept": "H",
-      "department": "H"
-    },
-    {
-      "name": "د. بشير كريم مهنا",
-      "spec": "H",
-      "phone": "+9647718324157",
-      "tag": "H",
-      "active": true,
-      "dept": "H",
-      "department": "H"
-    },
-    {
-      "name": "د. دعاء نبيل عبدالجليل",
-      "spec": "H",
-      "phone": "+9647705281976",
-      "tag": "H",
-      "active": true,
-      "dept": "H",
-      "department": "H"
-    },
-    {
-      "name": "د. عبدالرحمن محمد مكي",
-      "spec": "H",
-      "phone": "+9647707837905",
-      "tag": "H",
-      "active": true,
-      "dept": "H",
-      "department": "H"
-    },
-    {
-      "name": "د. منتظر حميد هاشم",
-      "spec": "H",
-      "phone": "+9647827925226",
-      "tag": "H",
-      "active": true,
-      "dept": "H",
-      "department": "H"
-    },
-    {
-      "name": "د. ياسر علي فاضل",
-      "spec": "H",
-      "phone": "+9647732580106",
-      "tag": "H",
-      "active": true,
-      "dept": "H",
-      "department": "H"
-    },
-    {
-      "name": "د. احمد عبدالله حسن",
-      "spec": "NS",
-      "phone": "+9647847135744",
-      "tag": "NS",
-      "active": true,
-      "dept": "NS",
-      "department": "NS"
-    },
-    {
-      "name": "د. اسعد حسن فرحان",
-      "spec": "NS",
-      "phone": "+9647810815395",
-      "tag": "NS",
-      "active": true,
-      "dept": "NS",
-      "department": "NS"
-    },
-    {
-      "name": "د. اياد يعرب",
-      "spec": "RESERVE",
-      "phone": "+9647736024102",
-      "tag": "NS",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. سرمد نوفل علي",
-      "spec": "RESERVE",
-      "phone": "+9647825210393",
-      "tag": "NS",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. علي عبد ماضي",
-      "spec": "RESERVE",
-      "phone": "+9647719007077",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. عمار صلاح (نيورو)",
-      "spec": "RESERVE",
-      "phone": "+9647725563679",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. فاطمة خليل",
-      "spec": "NS",
-      "phone": "+9647831887821",
-      "tag": "NS",
-      "active": true,
-      "dept": "NS",
-      "department": "NS"
-    },
-    {
-      "name": "د. ليث انور",
-      "spec": "NS",
-      "phone": "+9647812344891",
-      "tag": "NS",
-      "active": true,
-      "dept": "NS",
-      "department": "NS"
-    },
-    {
-      "name": "د. محمد راضي خضر",
-      "spec": "RESERVE",
-      "phone": "+9647739407174",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. يوسف علي يوسف",
-      "spec": "RESERVE",
-      "phone": "+9647705625359",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. احمد مرتضى جواد",
-      "spec": "ON",
-      "phone": "+9647736005059",
-      "tag": "ON",
-      "active": true,
-      "dept": "ON",
-      "department": "ON"
-    },
-    {
-      "name": "د. حميدة حبيب عباس",
-      "spec": "ON",
-      "phone": "+9647732797021",
-      "tag": "ON",
-      "active": true,
-      "dept": "ON",
-      "department": "ON"
-    },
-    {
-      "name": "د. زهراء سهيل نجم",
-      "spec": "ON",
-      "phone": "+9647863700065",
-      "tag": "ON",
-      "active": true,
-      "dept": "ON",
-      "department": "ON"
-    },
-    {
-      "name": "د. صفا كاظم حسن",
-      "spec": "RESERVE",
-      "phone": "+9647710888537",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. علي اسعد يحيى",
-      "spec": "ON",
-      "phone": "+9647821450742",
-      "tag": "ON",
-      "active": true,
-      "dept": "ON",
-      "department": "ON"
-    },
-    {
-      "name": "د. مروة ليث شاكر",
-      "spec": "ON",
-      "phone": "+9647718681403",
-      "tag": "ON",
-      "active": true,
-      "dept": "ON",
-      "department": "ON"
-    },
-    {
-      "name": "د. مريم مشرق ياسين",
-      "spec": "ON",
-      "phone": "+9647801917641",
-      "tag": "ON",
-      "active": true,
-      "dept": "ON",
-      "department": "ON"
-    },
-    {
-      "name": "د. نور الهدى عادل عبدالله",
-      "spec": "ON",
-      "phone": "+9647731361550",
-      "tag": "ON",
-      "active": true,
-      "dept": "ON",
-      "department": "ON"
-    },
-    {
-      "name": "د. نور الهدى عضيد حبيب",
-      "spec": "ON",
-      "phone": "+9647712124987",
-      "tag": "ON",
-      "active": true,
-      "dept": "ON",
-      "department": "ON"
-    },
-    {
-      "name": "د. زهراء توفيق عبدالله",
-      "spec": "PS",
-      "phone": "+9647811991975",
-      "tag": "PS",
-      "active": true,
-      "dept": "PS",
-      "department": "PS"
-    },
-    {
-      "name": "د. نور خالد طارش",
-      "spec": "PS",
-      "phone": "+9647812791617",
-      "tag": "PS",
-      "active": true,
-      "dept": "PS",
-      "department": "PS"
-    },
-    {
-      "name": "د. هبة اياد طارق",
-      "spec": "PS",
-      "phone": "+9647806028076",
-      "tag": "PS",
-      "active": true,
-      "dept": "PS",
-      "department": "PS"
-    },
-    {
-      "name": "د. الحسين عبدالرحمن خويط",
-      "spec": "R",
-      "phone": "+9647704740752",
-      "tag": "R",
-      "active": true,
-      "dept": "R",
-      "department": "R"
-    },
-    {
-      "name": "د. ايات سلمان قاسم",
-      "spec": "R",
-      "phone": "+9647732089197",
-      "tag": "R",
-      "active": true,
-      "dept": "R",
-      "department": "R"
-    },
-    {
-      "name": "د. رسل علي عبدالباقي",
-      "spec": "R",
-      "phone": "+9647717806018",
-      "tag": "R",
-      "active": true,
-      "dept": "R",
-      "department": "R"
-    },
-    {
-      "name": "د. زينب اياد عبدالدايم (اشعة)",
-      "spec": "RESERVE",
-      "phone": "+9647800039430",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. زينب جبار محسن",
-      "spec": "R",
-      "phone": "+9647717560453",
-      "tag": "R",
-      "active": true,
-      "dept": "R",
-      "department": "R"
-    },
-    {
-      "name": "د. زينب سلمان سعيد",
-      "spec": "R",
-      "phone": "+9647700237273",
-      "tag": "R",
-      "active": true,
-      "dept": "R",
-      "department": "R"
-    },
-    {
-      "name": "د. زينب مسلم ناصر (اشعة)",
-      "spec": "RESERVE",
-      "phone": "+9647814155225",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. سارة عبدالله محمد",
-      "spec": "R",
-      "phone": "+9647728456542",
-      "tag": "R",
-      "active": true,
-      "dept": "R",
-      "department": "R"
-    },
-    {
-      "name": "د. سنا احسان علوان",
-      "spec": "R",
-      "phone": "+9647829303398",
-      "tag": "R",
-      "active": true,
-      "dept": "R",
-      "department": "R"
-    },
-    {
-      "name": "د. صالح بهجت حردان (اشعة)",
-      "spec": "RESERVE",
-      "phone": "+9647729197541",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. عباس شداد خضير (اشعة)",
-      "spec": "RESERVE",
-      "phone": "+9647739245121",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. عذراء محمد عبدالحي",
-      "spec": "R",
-      "phone": "+9647708792317",
-      "tag": "R",
-      "active": true,
-      "dept": "R",
-      "department": "R"
-    },
-    {
-      "name": "د. محمد رائد محمد",
-      "spec": "R",
-      "phone": "+9647823074884",
-      "tag": "R",
-      "active": true,
-      "dept": "R",
-      "department": "R"
-    },
-    {
-      "name": "د. منار رحيم عبد",
-      "spec": "R",
-      "phone": "+9647818416263",
-      "tag": "R",
-      "active": true,
-      "dept": "R",
-      "department": "R"
-    },
-    {
-      "name": "د. منتظر توفيق عبدالكريم",
-      "spec": "R",
-      "phone": "+9647737373951",
-      "tag": "R",
-      "active": true,
-      "dept": "R",
-      "department": "R"
-    },
-    {
-      "name": "د. نازك احمد ماجد",
-      "spec": "R",
-      "phone": "+9647702248864",
-      "tag": "R",
-      "active": true,
-      "dept": "R",
-      "department": "R"
-    },
-    {
-      "name": "د. نجوان براق كاظم",
-      "spec": "R",
-      "phone": "+9647722033535",
-      "tag": "R",
-      "active": true,
-      "dept": "R",
-      "department": "R"
-    },
-    {
-      "name": "د. ندى كرار وهيب (اشعة)",
-      "spec": "RESERVE",
-      "phone": "+9647725819814",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. هناء شدود منشد",
-      "spec": "R",
-      "phone": "+9647706746212",
-      "tag": "R",
-      "active": true,
-      "dept": "R",
-      "department": "R"
-    },
-    {
-      "name": "د. عيسى وليد عيسى",
-      "spec": "RM",
-      "phone": "+9647840828301",
-      "tag": "RM",
-      "active": true,
-      "dept": "RM",
-      "department": "RM"
-    },
-    {
-      "name": "د. الحسن حسين جبار",
-      "spec": "RESERVE",
-      "phone": "+9647827207021",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. علي ياسين محمد",
-      "spec": "RESERVE",
-      "phone": "+9647715459469",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. حسنين فيصل",
-      "spec": "RESERVE",
-      "phone": "+9647803101498",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. فهد يوسف عبدالله",
-      "spec": "RESERVE",
-      "phone": "+9647716273485",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. ماهر محمود عبدالله",
-      "spec": "RESERVE",
-      "phone": "+9647707481437",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. علا طالب عبدالامير",
-      "spec": "RESERVE",
-      "phone": "+9647738125706",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. مهاجر زياد راشد",
-      "spec": "RESERVE",
-      "phone": "+9647829900959",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. عبدالرحمن صفاء",
-      "spec": "RESERVE",
-      "phone": "+9647841917643",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. علي عارف",
-      "spec": "RESERVE",
-      "phone": "+9647700342391",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. علي مهدي منصور",
-      "spec": "NS",
-      "phone": "+9647819761239",
-      "tag": "NS",
-      "active": true,
-      "dept": "NS",
-      "department": "NS"
-    },
-    {
-      "name": "د. مجيد حميد مجيد",
-      "spec": "RESERVE",
-      "phone": "+9647831004089",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. محمد رياض جعفر",
-      "spec": "NS",
-      "phone": "+9647805195075",
-      "tag": "NS",
-      "active": true,
-      "dept": "NS",
-      "department": "NS"
-    },
-    {
-      "name": "د. محمد عبدالحسين محسن",
-      "spec": "NS",
-      "phone": "+9647707334546",
-      "tag": "NS",
-      "active": true,
-      "dept": "NS",
-      "department": "NS"
-    },
-    {
-      "name": "د. عباس احمد رجب",
-      "spec": "RESERVE",
-      "phone": "+9647733960708",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. احمد حسين علي",
-      "spec": "US",
-      "phone": "+9647708753776",
-      "tag": "US",
-      "active": true,
-      "dept": "US",
-      "department": "US"
-    },
-    {
-      "name": "د. احمد كريم غتر",
-      "spec": "US",
-      "phone": "+9647830538071",
-      "tag": "US",
-      "active": true,
-      "dept": "US",
-      "department": "US"
-    },
-    {
-      "name": "د. ضرغام عامر حسان",
-      "spec": "US",
-      "phone": "+9647726196639",
-      "tag": "US",
-      "active": true,
-      "dept": "US",
-      "department": "US"
-    },
-    {
-      "name": "د. عبدالله عبدالمجيد ماضي",
-      "spec": "US",
-      "phone": "+9647708304252",
-      "tag": "US",
-      "active": true,
-      "dept": "US",
-      "department": "US"
-    },
-    {
-      "name": "د. احمد كريم غتر",
-      "spec": "GS",
-      "phone": "+9647830538071",
-      "tag": "GS",
-      "active": true,
-      "dept": "GS",
-      "department": "GS"
-    },
-    {
+      "id": "res-0167",
       "name": "د. RESERVE",
-      "spec": "RESERVE",
       "phone": "+9647805658985",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. وسن عباس عبدالكريم",
-      "spec": "H",
-      "phone": "+9647808794104",
-      "tag": "H",
-      "active": true,
-      "dept": "H",
-      "department": "H"
-    },
-    {
-      "name": "د. احمد عبدالزهرة طه",
-      "spec": "H",
-      "phone": "+9647851990332",
-      "tag": "H",
-      "active": true,
-      "dept": "H",
-      "department": "H"
-    },
-    {
-      "name": "د. زهراء عماد خضير",
-      "spec": "H",
-      "phone": "+9647716189935",
-      "tag": "H",
-      "active": true,
-      "dept": "H",
-      "department": "H"
-    },
-    {
-      "name": "د. عماد سمير عبدالرضا",
-      "spec": "CT",
-      "phone": "+9647817215779",
-      "tag": "CT",
-      "active": true,
-      "dept": "CT",
-      "department": "CT"
-    },
-    {
-      "name": "د. طيف كريم خضير",
-      "spec": "R",
-      "phone": "+9647806605522",
-      "tag": "R",
-      "active": true,
-      "dept": "R",
-      "department": "R"
-    },
-    {
-      "name": "د. حسن ابراهيم علي",
-      "spec": "RESERVE",
-      "phone": "+9647726300975",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. علي ضياء عبدالنبي",
-      "spec": "RESERVE",
-      "phone": "+9647702958143",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. محمد ليث عباس",
-      "spec": "RESERVE",
-      "phone": "+9647710799367",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. حسين عبدالامير كاطع",
-      "spec": "RESERVE",
-      "phone": "+9647703347068",
-      "tag": "RESERVE",
-      "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
-    },
-    {
-      "name": "د. زينب عبدالكريم احمد",
-      "spec": "ENT",
-      "phone": "+9647704726124",
-      "tag": "ENT",
-      "active": true,
-      "dept": "ENT",
-      "department": "ENT"
-    },
-    {
-      "name": "د. فاطمة صبيح صاحب",
-      "spec": "ENT",
-      "phone": "+9647804332274",
-      "tag": "ENT",
-      "active": true,
-      "dept": "ENT",
-      "department": "ENT"
-    },
-    {
-      "name": "د. محمد محروس علي",
       "spec": "GS",
-      "phone": "+9647704480837",
       "tag": "GS",
-      "active": true,
       "dept": "GS",
-      "department": "GS"
-    },
-    {
-      "name": "د. زهير فائق صادق",
-      "spec": "RESERVE",
-      "phone": "+9647704720169",
-      "tag": "RESERVE",
+      "department": "GS",
       "active": false,
-      "dept": "RESERVE",
-      "department": "RESERVE"
+      "hospitals": [
+        "iraqi"
+      ]
     },
     {
-      "name": "د. علي عبدالرحمن عبدالصمد",
-      "spec": "CT",
-      "phone": "+9647717956125",
-      "tag": "CT",
+      "id": "res-0447",
+      "name": "د. آلاء إسماعيل",
+      "phone": "+9647705669930",
+      "spec": "OP",
+      "tag": "OP",
+      "dept": "OP",
+      "department": "OP",
       "active": true,
-      "dept": "CT",
-      "department": "CT"
+      "hospitals": [
+        "basra",
+        "iraqi",
+        "mawani"
+      ]
     },
     {
-      "name": "د. فاطمة مضر علي",
-      "spec": "ON",
-      "phone": "+9647708103504",
-      "tag": "ON",
-      "active": true,
-      "dept": "ON",
-      "department": "ON"
-    },
-    {
-      "name": "د. عبدالرحمن صفاء صالح",
-      "spec": "NS",
-      "phone": "+9647841917643",
-      "tag": "NS",
-      "active": true,
-      "dept": "NS",
-      "department": "NS"
-    },
-    {
-      "name": "د. ايثار عدنان",
+      "id": "res-0338",
+      "name": "د. آياد فالح",
+      "phone": "+9647811352828",
       "spec": "A",
-      "phone": "+9647862450853",
       "tag": "A",
-      "active": true,
       "dept": "A",
-      "department": "A"
-    },
-    {
-      "name": "د. دعاء علي مجيد",
-      "spec": "ENT",
-      "phone": "+9647705767570",
-      "tag": "ENT",
+      "department": "A",
       "active": true,
-      "dept": "ENT",
-      "department": "ENT"
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
     },
     {
-      "name": "د. مرتضى امين عبدالخضر",
+      "id": "res-0100",
+      "name": "د. أيام زاهر عبدالمجيد",
+      "phone": "+9647821850778",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0098",
+      "name": "د. احرار غانم نوري",
+      "phone": "+9647821082337",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0080",
+      "name": "د. احمد الراوي",
+      "phone": "+9647707173044",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0081",
+      "name": "د. احمد حارث عبدالمحسن",
+      "phone": "+9647707167689",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0163",
+      "name": "د. احمد حسين علي",
+      "phone": "+9647708753776",
       "spec": "US",
-      "phone": "+9647716870514",
       "tag": "US",
-      "active": true,
       "dept": "US",
-      "department": "US"
+      "department": "US",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
     },
     {
-      "name": "د. علي محمد احمد",
+      "id": "res-0001",
+      "name": "د. احمد حقي",
+      "phone": "+9647804080071",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0082",
+      "name": "د. احمد خضر بجاي",
+      "phone": "رقم غير متوفر",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0169",
+      "name": "د. احمد عبدالزهرة طه",
+      "phone": "+9647851990332",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0002",
+      "name": "د. احمد عبدالله",
+      "phone": "+9647725582728",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0107",
+      "name": "د. احمد عبدالله حسن",
+      "phone": "+9647847135744",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0003",
+      "name": "د. احمد كريم",
+      "phone": "+9647739862206",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0164",
+      "name": "د. احمد كريم غتر",
+      "phone": "+9647830538071",
+      "spec": "US",
+      "tag": "US",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0117",
+      "name": "د. احمد مرتضى جواد",
+      "phone": "+9647736005059",
       "spec": "ON",
-      "phone": "+9647709681505",
       "tag": "ON",
-      "active": true,
       "dept": "ON",
-      "department": "ON"
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
     },
     {
-      "name": "د. سارة عبدالحكيم",
+      "id": "res-0076",
+      "name": "د. احمد ناصرقاسم",
+      "phone": "+9647716717702",
+      "spec": "GP",
+      "tag": "GP",
+      "dept": "GP",
+      "department": "GP",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0004",
+      "name": "د. اديان محمد",
+      "phone": "+9647726496657",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0108",
+      "name": "د. اسعد حسن فرحان",
+      "phone": "+9647810815395",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0006",
+      "name": "د. الاء حسن",
+      "phone": "+9647727913007",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0149",
+      "name": "د. الحسن حسين جبار",
+      "phone": "+9647827207021",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0083",
+      "name": "د. الحسين جاسب فاخر",
+      "phone": "+9647722917732",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0129",
+      "name": "د. الحسين عبدالرحمن خويط",
+      "phone": "+9647704740752",
       "spec": "R",
-      "phone": "+9647739864832",
       "tag": "R",
-      "active": true,
       "dept": "R",
-      "department": "R"
-    },
-    {
-      "name": "د. عذراء صبيح بدر",
-      "spec": "US",
-      "phone": "+9647877788058",
-      "tag": "US",
+      "department": "R",
       "active": true,
-      "dept": "US",
-      "department": "US"
+      "hospitals": [
+        "iraqi"
+      ]
     },
     {
-      "name": "د. علي حسين عبدالرضا",
+      "id": "res-0099",
+      "name": "د. ام البنين عبدالله عبدالحسين",
+      "phone": "+9647719192001",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0065",
+      "name": "د. ام البنين عيدان كاظم",
+      "phone": "+9647762744700",
+      "spec": "ENT",
+      "tag": "ENT",
+      "dept": "ENT",
+      "department": "ENT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0057",
+      "name": "د. امال سامي ثامر",
+      "phone": "+9647713176798",
+      "spec": "Der",
+      "tag": "Der",
+      "dept": "Der",
+      "department": "Der",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0007",
+      "name": "د. انور ماجد",
+      "phone": "+9647758674695",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0008",
+      "name": "د. اوراس صباح",
+      "phone": "+9647707059984",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0130",
+      "name": "د. ايات سلمان قاسم",
+      "phone": "+9647732089197",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0066",
+      "name": "د. ايات عباس مطشر",
+      "phone": "+9647725809721",
+      "spec": "ENT",
+      "tag": "ENT",
+      "dept": "ENT",
+      "department": "ENT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0009",
+      "name": "د. ايات فلاح",
+      "phone": "+9647806041352",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0010",
+      "name": "د. ايات فيصل",
+      "phone": "+9647725582752",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0109",
+      "name": "د. اياد يعرب",
+      "phone": "+9647736024102",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi",
+        "mawani"
+      ]
+    },
+    {
+      "id": "res-0184",
+      "name": "د. ايثار عدنان",
+      "phone": "+9647862450853",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0012",
+      "name": "د. ايمان لقمان",
+      "phone": "+9647725512399",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0101",
+      "name": "د. ايمان نعيم خيول",
+      "phone": "+9647725597713",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0013",
+      "name": "د. ايناس عدنان",
+      "phone": "+9647733358134",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0051",
+      "name": "د. ايهاب عبدالكريم غالب",
+      "phone": "+9647704868335",
       "spec": "CT",
       "tag": "CT",
-      "phone": "+9647849000964",
-      "active": true,
       "dept": "CT",
-      "department": "CT"
+      "department": "CT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0084",
+      "name": "د. براء حسن عبدالهادي",
+      "phone": "+9647721174861",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0014",
+      "name": "د. بسام سعد",
+      "phone": "+9647706872415",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0102",
+      "name": "د. بشير كريم مهنا",
+      "phone": "+9647718324157",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0173",
+      "name": "د. حسن ابراهيم علي",
+      "phone": "+9647726300975",
+      "spec": "OR",
+      "tag": "OR",
+      "dept": "OR",
+      "department": "OR",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0151",
+      "name": "د. حسنين فيصل",
+      "phone": "+9647803101498",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": false,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0176",
+      "name": "د. حسين عبدالامير كاطع",
+      "phone": "+9647703347068",
+      "spec": "OR",
+      "tag": "OR",
+      "dept": "OR",
+      "department": "OR",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0085",
+      "name": "د. حسين علي جبار",
+      "phone": "+9647715498645",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0015",
+      "name": "د. حسين عويد",
+      "phone": "+9647739244859",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi",
+        "mawani"
+      ]
+    },
+    {
+      "id": "res-0052",
+      "name": "د. حسين يحيى صبار",
+      "phone": "+9647808930151",
+      "spec": "CT",
+      "tag": "CT",
+      "dept": "CT",
+      "department": "CT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0118",
+      "name": "د. حميدة حبيب عباس",
+      "phone": "+9647732797021",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0016",
+      "name": "د. حنين اسعد",
+      "phone": "+9647700502209",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0017",
+      "name": "د. حنين جاسم",
+      "phone": "+9647811876100",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0086",
+      "name": "د. خالد ابراهيم عبدالقادر",
+      "phone": "+9647803770672",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0185",
+      "name": "د. دعاء علي مجيد",
+      "phone": "+9647705767570",
+      "spec": "ENT",
+      "tag": "ENT",
+      "dept": "ENT",
+      "department": "ENT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0087",
+      "name": "د. دعاء كريم",
+      "phone": "+9647807272388",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0103",
+      "name": "د. دعاء نبيل عبدالجليل",
+      "phone": "+9647705281976",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0070",
+      "name": "د. دنيا فارس حسون",
+      "phone": "+9647711939863",
+      "spec": "FM",
+      "tag": "FM",
+      "dept": "FM",
+      "department": "FM",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0088",
+      "name": "د. رافع احمد عاشور",
+      "phone": "+9647812507841",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0071",
+      "name": "د. رسل سامي خضير",
+      "phone": "رقم غير متوفر",
+      "spec": "FM",
+      "tag": "FM",
+      "dept": "FM",
+      "department": "FM",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0131",
+      "name": "د. رسل علي عبدالباقي",
+      "phone": "+9647717806018",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0018",
+      "name": "د. رسل عودة",
+      "phone": "+9647729975078",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0058",
+      "name": "د. رفل علي رسمي",
+      "phone": "رقم غير متوفر",
+      "spec": "Der",
+      "tag": "Der",
+      "dept": "Der",
+      "department": "Der",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0019",
+      "name": "د. رقية باسم",
+      "phone": "+9647725519270",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0020",
+      "name": "د. ريام نصير",
+      "phone": "+9647729199914",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0064",
+      "name": "د. زهراء احمد عبدالكاظم",
+      "phone": "+9647712630805",
+      "spec": "EM",
+      "tag": "EM",
+      "dept": "EM",
+      "department": "EM",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0126",
+      "name": "د. زهراء توفيق عبدالله",
+      "phone": "+9647811991975",
+      "spec": "PS",
+      "tag": "PS",
+      "dept": "PS",
+      "department": "PS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0119",
+      "name": "د. زهراء سهيل نجم",
+      "phone": "+9647863700065",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0170",
+      "name": "د. زهراء عماد خضير",
+      "phone": "+9647716189935",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0059",
+      "name": "د. زهراء قتيبة عبد",
+      "phone": "+9647823006698",
+      "spec": "Der",
+      "tag": "Der",
+      "dept": "Der",
+      "department": "Der",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0180",
+      "name": "د. زهير فائق صادق",
+      "phone": "+9647704720169",
+      "spec": "OR",
+      "tag": "OR",
+      "dept": "OR",
+      "department": "OR",
+      "active": false,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0021",
+      "name": "د. زين العابدين ثجيل",
+      "phone": "+9647717300360",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0067",
+      "name": "د. زين العابدين مصطفى محمد",
+      "phone": "+9647703100283",
+      "spec": "ENT",
+      "tag": "ENT",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0132",
+      "name": "د. زينب اياد عبدالدايم (اشعة)",
+      "phone": "+9647800039430",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0133",
+      "name": "د. زينب جبار محسن",
+      "phone": "+9647717560453",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0134",
+      "name": "د. زينب سلمان سعيد",
+      "phone": "+9647700237273",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0022",
+      "name": "د. زينب صدام",
+      "phone": "+9647733959046",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0023",
+      "name": "د. زينب عبد الرزاق",
+      "phone": "+9647727916014",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0177",
+      "name": "د. زينب عبدالكريم احمد",
+      "phone": "+9647704726124",
+      "spec": "ENT",
+      "tag": "ENT",
+      "dept": "ENT",
+      "department": "ENT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0135",
+      "name": "د. زينب مسلم ناصر (اشعة)",
+      "phone": "+9647814155225",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0188",
+      "name": "د. سارة عبدالحكيم",
+      "phone": "+9647739864832",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0136",
+      "name": "د. سارة عبدالله محمد",
+      "phone": "+9647728456542",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0072",
+      "name": "د. سارة عدنان مالك",
+      "phone": "+9647868000623",
+      "spec": "FM",
+      "tag": "FM",
+      "dept": "FM",
+      "department": "FM",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0024",
+      "name": "د. سجى نعيم",
+      "phone": "+9647707571167",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0073",
+      "name": "د. سحر فالح حسن",
+      "phone": "رقم غير متوفر",
+      "spec": "FM",
+      "tag": "FM",
+      "dept": "FM",
+      "department": "FM",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0110",
+      "name": "د. سرمد نوفل علي",
+      "phone": "+9647825210393",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0089",
+      "name": "د. سعيد جندي لهمود",
+      "phone": "+9647801186266",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0025",
+      "name": "د. سماء علي",
+      "phone": "+9647722752658",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0137",
+      "name": "د. سنا احسان علوان",
+      "phone": "+9647829303398",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0026",
+      "name": "د. شهد عبد الله",
+      "phone": "+9647734634301",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0053",
+      "name": "د. شهد كريم عبدالكاظم",
+      "phone": "+9647722910490",
+      "spec": "CT",
+      "tag": "CT",
+      "dept": "CT",
+      "department": "CT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0027",
+      "name": "د. شيرين سمير",
+      "phone": "+9647826655511",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi",
+        "mawani"
+      ]
+    },
+    {
+      "id": "res-0446",
+      "name": "د. صافي إبراهيم",
+      "phone": "+9647739468124",
+      "spec": "OP",
+      "tag": "OP",
+      "dept": "OP",
+      "department": "OP",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi",
+        "mawani"
+      ]
+    },
+    {
+      "id": "res-0138",
+      "name": "د. صالح بهجت حردان (اشعة)",
+      "phone": "+9647729197541",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0029",
+      "name": "د. صفا كاظم",
+      "phone": "+9647732196899",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0120",
+      "name": "د. صفا كاظم حسن",
+      "phone": "+9647710888537",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0030",
+      "name": "د. صفاء محمد",
+      "phone": "+9647713551570",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0165",
+      "name": "د. ضرغام عامر حسان",
+      "phone": "+9647726196639",
+      "spec": "US",
+      "tag": "US",
+      "dept": "US",
+      "department": "US",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0172",
+      "name": "د. طيف كريم خضير",
+      "phone": "+9647806605522",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0162",
+      "name": "د. عباس احمد رجب",
+      "phone": "+9647733960708",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0139",
+      "name": "د. عباس شداد خضير (اشعة)",
+      "phone": "+9647739245121",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0054",
+      "name": "د. عبدالحليم حسن موسى",
+      "phone": "+9647711207221",
+      "spec": "CT",
+      "tag": "CT",
+      "dept": "CT",
+      "department": "CT",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0156",
+      "name": "د. عبدالرحمن صفاء",
+      "phone": "+9647841917643",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0183",
+      "name": "د. عبدالرحمن صفاء صالح",
+      "phone": "+9647841917643",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0104",
+      "name": "د. عبدالرحمن محمد مكي",
+      "phone": "+9647707837905",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0166",
+      "name": "د. عبدالله عبدالمجيد ماضي",
+      "phone": "+9647708304252",
+      "spec": "US",
+      "tag": "US",
+      "dept": "US",
+      "department": "US",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0031",
+      "name": "د. عبدالله نادر",
+      "phone": "+9647703272926",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0189",
+      "name": "د. عذراء صبيح بدر",
+      "phone": "+9647877788058",
+      "spec": "US",
+      "tag": "US",
+      "dept": "US",
+      "department": "US",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0140",
+      "name": "د. عذراء محمد عبدالحي",
+      "phone": "+9647708792317",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0154",
+      "name": "د. علا طالب عبدالامير",
+      "phone": "+9647738125706",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0032",
+      "name": "د. علاء سلمان",
+      "phone": "+9647704997282",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0121",
+      "name": "د. علي اسعد يحيى",
+      "phone": "+9647821450742",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0090",
+      "name": "د. علي جميل حنتوش",
+      "phone": "+9647715913508",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0060",
+      "name": "د. علي حسن خريبط",
+      "phone": "رقم غير متوفر",
+      "spec": "Der",
+      "tag": "Der",
+      "dept": "Der",
+      "department": "Der",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0190",
+      "name": "د. علي حسين عبدالرضا",
+      "phone": "+9647849000964",
+      "spec": "CT",
+      "tag": "CT",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0033",
+      "name": "د. علي خالد",
+      "phone": "+9647725151957",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0174",
+      "name": "د. علي ضياء عبدالنبي",
+      "phone": "+9647702958143",
+      "spec": "OR",
+      "tag": "OR",
+      "dept": "OR",
+      "department": "OR",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0157",
+      "name": "د. علي عارف",
+      "phone": "+9647700342391",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0111",
+      "name": "د. علي عبد ماضي",
+      "phone": "+9647719007077",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0181",
+      "name": "د. علي عبدالرحمن عبدالصمد",
+      "phone": "+9647717956125",
+      "spec": "CT",
+      "tag": "CT",
+      "dept": "CT",
+      "department": "CT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0187",
+      "name": "د. علي محمد احمد",
+      "phone": "+9647709681505",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0158",
+      "name": "د. علي مهدي منصور",
+      "phone": "+9647819761239",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0061",
+      "name": "د. علي وهاب سوادي",
+      "phone": "+9647812822360",
+      "spec": "Der",
+      "tag": "Der",
+      "dept": "Der",
+      "department": "Der",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0150",
+      "name": "د. علي ياسين محمد",
+      "phone": "+9647715459469",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0034",
+      "name": "د. علياء عباس",
+      "phone": "+9647862498727",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0171",
+      "name": "د. عماد سمير عبدالرضا",
+      "phone": "+9647817215779",
+      "spec": "CT",
+      "tag": "CT",
+      "dept": "CT",
+      "department": "CT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0112",
+      "name": "د. عمار صلاح (نيورو)",
+      "phone": "+9647725563679",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0148",
+      "name": "د. عيسى وليد عيسى",
+      "phone": "+9647840828301",
+      "spec": "RM",
+      "tag": "RM",
+      "dept": "RM",
+      "department": "RM",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0035",
+      "name": "د. غسق مصطفى",
+      "phone": "+9647722920453",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0113",
+      "name": "د. فاطمة خليل",
+      "phone": "+9647831887821",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0036",
+      "name": "د. فاطمة سلطان",
+      "phone": "+9647735237481",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi",
+        "mawani"
+      ]
+    },
+    {
+      "id": "res-0178",
+      "name": "د. فاطمة صبيح صاحب",
+      "phone": "+9647804332274",
+      "spec": "ENT",
+      "tag": "ENT",
+      "dept": "ENT",
+      "department": "ENT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0037",
+      "name": "د. فاطمة عباس",
+      "phone": "+9647734910577",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0091",
+      "name": "د. فاطمة فاضل كاظم",
+      "phone": "+9647716761069",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0038",
+      "name": "د. فاطمة محمود",
+      "phone": "+9647719794237",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0182",
+      "name": "د. فاطمة مضر علي",
+      "phone": "+9647708103504",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0074",
+      "name": "د. فرح علي عبدالحسين",
+      "phone": "+9647721170760",
+      "spec": "FM",
+      "tag": "FM",
+      "dept": "FM",
+      "department": "FM",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0152",
+      "name": "د. فهد يوسف عبدالله",
+      "phone": "+9647716273485",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0092",
+      "name": "د. قنوت حيدر كاظم",
+      "phone": "رقم غير متوفر",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0093",
+      "name": "د. كرار علي زغير",
+      "phone": "+9647809619854",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0114",
+      "name": "د. ليث انور",
+      "phone": "+9647812344891",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0153",
+      "name": "د. ماهر محمود عبدالله",
+      "phone": "+9647707481437",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0068",
+      "name": "د. مايا عادل عبدالهادي",
+      "phone": "+9647818897778",
+      "spec": "ENT",
+      "tag": "ENT",
+      "dept": "ENT",
+      "department": "ENT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0159",
+      "name": "د. مجيد حميد مجيد",
+      "phone": "+9647831004089",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0094",
+      "name": "د. محمد حيدر باقر",
+      "phone": "+9647708795989",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0141",
+      "name": "د. محمد رائد محمد",
+      "phone": "+9647823074884",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0115",
+      "name": "د. محمد راضي خضر",
+      "phone": "+9647739407174",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0160",
+      "name": "د. محمد رياض جعفر",
+      "phone": "+9647805195075",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi",
+        "mawani"
+      ]
+    },
+    {
+      "id": "res-0161",
+      "name": "د. محمد عبدالحسين محسن",
+      "phone": "+9647707334546",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi",
+        "mawani"
+      ]
+    },
+    {
+      "id": "res-0095",
+      "name": "د. محمد فتحي عبدالرزاق",
+      "phone": "+9647700546979",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0175",
+      "name": "د. محمد ليث عباس",
+      "phone": "+9647710799367",
+      "spec": "OR",
+      "tag": "OR",
+      "dept": "OR",
+      "department": "OR",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0179",
+      "name": "د. محمد محروس علي",
+      "phone": "+9647704480837",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0096",
+      "name": "د. محمد هاشم خضير",
+      "phone": "+9647810202728",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0186",
+      "name": "د. مرتضى امين عبدالخضر",
+      "phone": "+9647716870514",
+      "spec": "US",
+      "tag": "US",
+      "dept": "US",
+      "department": "US",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0122",
+      "name": "د. مروة ليث شاكر",
+      "phone": "+9647718681403",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0062",
+      "name": "د. مروة محمد عبدالوهاب",
+      "phone": "+9647733605305",
+      "spec": "Der",
+      "tag": "Der",
+      "dept": "Der",
+      "department": "Der",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0039",
+      "name": "د. مريم حاكم",
+      "phone": "+9647816663142",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0075",
+      "name": "د. مريم سالم جارالله",
+      "phone": "+9647719557060",
+      "spec": "FM",
+      "tag": "FM",
+      "dept": "FM",
+      "department": "FM",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0040",
+      "name": "د. مريم عبد الحميد",
+      "phone": "+9647810548678",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0123",
+      "name": "د. مريم مشرق ياسين",
+      "phone": "+9647801917641",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0445",
+      "name": "د. مسره سعد",
+      "phone": "+9647723359625",
+      "spec": "OP",
+      "tag": "OP",
+      "dept": "OP",
+      "department": "OP",
+      "active": true,
+      "hospitals": [
+        "iraqi",
+        "mawani"
+      ]
+    },
+    {
+      "id": "res-0042",
+      "name": "د. مصطفى عبد الله",
+      "phone": "+9647767785961",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0069",
+      "name": "د. مصطفى عبدالصاحب",
+      "phone": "+9647735280259",
+      "spec": "ENT",
+      "tag": "ENT",
+      "dept": "ENT",
+      "department": "ENT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0043",
+      "name": "د. مصطفى علي",
+      "phone": "+9647819237146",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0142",
+      "name": "د. منار رحيم عبد",
+      "phone": "+9647818416263",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0143",
+      "name": "د. منتظر توفيق عبدالكريم",
+      "phone": "+9647737373951",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0105",
+      "name": "د. منتظر حميد هاشم",
+      "phone": "+9647827925226",
+      "spec": "H",
+      "tag": "H",
+      "dept": "M",
+      "department": "M",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0055",
+      "name": "د. منتظر صفاء ماجد",
+      "phone": "+9647823939952",
+      "spec": "CT",
+      "tag": "CT",
+      "dept": "CT",
+      "department": "CT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0063",
+      "name": "د. منتظر مؤيد حسين",
+      "phone": "+9647722017351",
+      "spec": "Der",
+      "tag": "Der",
+      "dept": "Der",
+      "department": "Der",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0077",
+      "name": "د. منى عبدالباري",
+      "phone": "+9647740399801",
+      "spec": "GP",
+      "tag": "GP",
+      "dept": "GP",
+      "department": "GP",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0155",
+      "name": "د. مهاجر زياد راشد",
+      "phone": "+9647829900959",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0044",
+      "name": "د. ميسم اكرم",
+      "phone": "+9647707055130",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0045",
+      "name": "د. ميسم مؤيد",
+      "phone": "+9647730520002",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0144",
+      "name": "د. نازك احمد ماجد",
+      "phone": "+9647702248864",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0097",
+      "name": "د. نجم هدو راضي",
+      "phone": "+9647757449886",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0145",
+      "name": "د. نجوان براق كاظم",
+      "phone": "+9647722033535",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0146",
+      "name": "د. ندى كرار وهيب (اشعة)",
+      "phone": "+9647725819814",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0124",
+      "name": "د. نور الهدى عادل عبدالله",
+      "phone": "+9647731361550",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0125",
+      "name": "د. نور الهدى عضيد حبيب",
+      "phone": "+9647712124987",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0127",
+      "name": "د. نور خالد طارش",
+      "phone": "+9647812791617",
+      "spec": "PS",
+      "tag": "PS",
+      "dept": "PS",
+      "department": "PS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0046",
+      "name": "د. نور عبد المطلب",
+      "phone": "+9647730213323",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0047",
+      "name": "د. هاجر موسى",
+      "phone": "+9647812445850",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0128",
+      "name": "د. هبة اياد طارق",
+      "phone": "+9647806028076",
+      "spec": "PS",
+      "tag": "PS",
+      "dept": "PS",
+      "department": "PS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0078",
+      "name": "د. هبة سعدون مجبل",
+      "phone": "+9647716757205",
+      "spec": "GP",
+      "tag": "GP",
+      "dept": "GP",
+      "department": "GP",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0048",
+      "name": "د. هدير ماجد",
+      "phone": "+9647718995613",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0049",
+      "name": "د. هديل ماجد",
+      "phone": "+9647735617850",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0056",
+      "name": "د. همام حبيب عبدالله",
+      "phone": "+9647770021007",
+      "spec": "CT",
+      "tag": "CT",
+      "dept": "CT",
+      "department": "CT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0147",
+      "name": "د. هناء شدود منشد",
+      "phone": "+9647706746212",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0168",
+      "name": "د. وسن عباس عبدالكريم",
+      "phone": "+9647808794104",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0079",
+      "name": "د. وفاء عبدالعال جدوع",
+      "phone": "+9647811741751",
+      "spec": "GP",
+      "tag": "GP",
+      "dept": "GP",
+      "department": "GP",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0106",
+      "name": "د. ياسر علي فاضل",
+      "phone": "+9647732580106",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0050",
+      "name": "د. ياسر ياس",
+      "phone": "+9647736762841",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0116",
+      "name": "د. يوسف علي يوسف",
+      "phone": "+9647705625359",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    }
+  ],
+  "residents": [
+    {
+      "id": "res-0167",
+      "name": "د. RESERVE",
+      "phone": "+9647805658985",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0447",
+      "name": "د. آلاء إسماعيل",
+      "phone": "+9647705669930",
+      "spec": "OP",
+      "tag": "OP",
+      "dept": "OP",
+      "department": "OP",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi",
+        "mawani"
+      ]
+    },
+    {
+      "id": "res-0338",
+      "name": "د. آياد فالح",
+      "phone": "+9647811352828",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0100",
+      "name": "د. أيام زاهر عبدالمجيد",
+      "phone": "+9647821850778",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0098",
+      "name": "د. احرار غانم نوري",
+      "phone": "+9647821082337",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0080",
+      "name": "د. احمد الراوي",
+      "phone": "+9647707173044",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0081",
+      "name": "د. احمد حارث عبدالمحسن",
+      "phone": "+9647707167689",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0163",
+      "name": "د. احمد حسين علي",
+      "phone": "+9647708753776",
+      "spec": "US",
+      "tag": "US",
+      "dept": "US",
+      "department": "US",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0001",
+      "name": "د. احمد حقي",
+      "phone": "+9647804080071",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0082",
+      "name": "د. احمد خضر بجاي",
+      "phone": "رقم غير متوفر",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0169",
+      "name": "د. احمد عبدالزهرة طه",
+      "phone": "+9647851990332",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0002",
+      "name": "د. احمد عبدالله",
+      "phone": "+9647725582728",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0107",
+      "name": "د. احمد عبدالله حسن",
+      "phone": "+9647847135744",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0003",
+      "name": "د. احمد كريم",
+      "phone": "+9647739862206",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0164",
+      "name": "د. احمد كريم غتر",
+      "phone": "+9647830538071",
+      "spec": "US",
+      "tag": "US",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0117",
+      "name": "د. احمد مرتضى جواد",
+      "phone": "+9647736005059",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0076",
+      "name": "د. احمد ناصرقاسم",
+      "phone": "+9647716717702",
+      "spec": "GP",
+      "tag": "GP",
+      "dept": "GP",
+      "department": "GP",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0004",
+      "name": "د. اديان محمد",
+      "phone": "+9647726496657",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0108",
+      "name": "د. اسعد حسن فرحان",
+      "phone": "+9647810815395",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0006",
+      "name": "د. الاء حسن",
+      "phone": "+9647727913007",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0149",
+      "name": "د. الحسن حسين جبار",
+      "phone": "+9647827207021",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0083",
+      "name": "د. الحسين جاسب فاخر",
+      "phone": "+9647722917732",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0129",
+      "name": "د. الحسين عبدالرحمن خويط",
+      "phone": "+9647704740752",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0099",
+      "name": "د. ام البنين عبدالله عبدالحسين",
+      "phone": "+9647719192001",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0065",
+      "name": "د. ام البنين عيدان كاظم",
+      "phone": "+9647762744700",
+      "spec": "ENT",
+      "tag": "ENT",
+      "dept": "ENT",
+      "department": "ENT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0057",
+      "name": "د. امال سامي ثامر",
+      "phone": "+9647713176798",
+      "spec": "Der",
+      "tag": "Der",
+      "dept": "Der",
+      "department": "Der",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0007",
+      "name": "د. انور ماجد",
+      "phone": "+9647758674695",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0008",
+      "name": "د. اوراس صباح",
+      "phone": "+9647707059984",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0130",
+      "name": "د. ايات سلمان قاسم",
+      "phone": "+9647732089197",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0066",
+      "name": "د. ايات عباس مطشر",
+      "phone": "+9647725809721",
+      "spec": "ENT",
+      "tag": "ENT",
+      "dept": "ENT",
+      "department": "ENT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0009",
+      "name": "د. ايات فلاح",
+      "phone": "+9647806041352",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0010",
+      "name": "د. ايات فيصل",
+      "phone": "+9647725582752",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0109",
+      "name": "د. اياد يعرب",
+      "phone": "+9647736024102",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi",
+        "mawani"
+      ]
+    },
+    {
+      "id": "res-0184",
+      "name": "د. ايثار عدنان",
+      "phone": "+9647862450853",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0012",
+      "name": "د. ايمان لقمان",
+      "phone": "+9647725512399",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0101",
+      "name": "د. ايمان نعيم خيول",
+      "phone": "+9647725597713",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0013",
+      "name": "د. ايناس عدنان",
+      "phone": "+9647733358134",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0051",
+      "name": "د. ايهاب عبدالكريم غالب",
+      "phone": "+9647704868335",
+      "spec": "CT",
+      "tag": "CT",
+      "dept": "CT",
+      "department": "CT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0084",
+      "name": "د. براء حسن عبدالهادي",
+      "phone": "+9647721174861",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0014",
+      "name": "د. بسام سعد",
+      "phone": "+9647706872415",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0102",
+      "name": "د. بشير كريم مهنا",
+      "phone": "+9647718324157",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0173",
+      "name": "د. حسن ابراهيم علي",
+      "phone": "+9647726300975",
+      "spec": "OR",
+      "tag": "OR",
+      "dept": "OR",
+      "department": "OR",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0151",
+      "name": "د. حسنين فيصل",
+      "phone": "+9647803101498",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": false,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0176",
+      "name": "د. حسين عبدالامير كاطع",
+      "phone": "+9647703347068",
+      "spec": "OR",
+      "tag": "OR",
+      "dept": "OR",
+      "department": "OR",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0085",
+      "name": "د. حسين علي جبار",
+      "phone": "+9647715498645",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0015",
+      "name": "د. حسين عويد",
+      "phone": "+9647739244859",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi",
+        "mawani"
+      ]
+    },
+    {
+      "id": "res-0052",
+      "name": "د. حسين يحيى صبار",
+      "phone": "+9647808930151",
+      "spec": "CT",
+      "tag": "CT",
+      "dept": "CT",
+      "department": "CT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0118",
+      "name": "د. حميدة حبيب عباس",
+      "phone": "+9647732797021",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0016",
+      "name": "د. حنين اسعد",
+      "phone": "+9647700502209",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0017",
+      "name": "د. حنين جاسم",
+      "phone": "+9647811876100",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0086",
+      "name": "د. خالد ابراهيم عبدالقادر",
+      "phone": "+9647803770672",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0185",
+      "name": "د. دعاء علي مجيد",
+      "phone": "+9647705767570",
+      "spec": "ENT",
+      "tag": "ENT",
+      "dept": "ENT",
+      "department": "ENT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0087",
+      "name": "د. دعاء كريم",
+      "phone": "+9647807272388",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0103",
+      "name": "د. دعاء نبيل عبدالجليل",
+      "phone": "+9647705281976",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0070",
+      "name": "د. دنيا فارس حسون",
+      "phone": "+9647711939863",
+      "spec": "FM",
+      "tag": "FM",
+      "dept": "FM",
+      "department": "FM",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0088",
+      "name": "د. رافع احمد عاشور",
+      "phone": "+9647812507841",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0071",
+      "name": "د. رسل سامي خضير",
+      "phone": "رقم غير متوفر",
+      "spec": "FM",
+      "tag": "FM",
+      "dept": "FM",
+      "department": "FM",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0131",
+      "name": "د. رسل علي عبدالباقي",
+      "phone": "+9647717806018",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0018",
+      "name": "د. رسل عودة",
+      "phone": "+9647729975078",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0058",
+      "name": "د. رفل علي رسمي",
+      "phone": "رقم غير متوفر",
+      "spec": "Der",
+      "tag": "Der",
+      "dept": "Der",
+      "department": "Der",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0019",
+      "name": "د. رقية باسم",
+      "phone": "+9647725519270",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0020",
+      "name": "د. ريام نصير",
+      "phone": "+9647729199914",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0064",
+      "name": "د. زهراء احمد عبدالكاظم",
+      "phone": "+9647712630805",
+      "spec": "EM",
+      "tag": "EM",
+      "dept": "EM",
+      "department": "EM",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0126",
+      "name": "د. زهراء توفيق عبدالله",
+      "phone": "+9647811991975",
+      "spec": "PS",
+      "tag": "PS",
+      "dept": "PS",
+      "department": "PS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0119",
+      "name": "د. زهراء سهيل نجم",
+      "phone": "+9647863700065",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0170",
+      "name": "د. زهراء عماد خضير",
+      "phone": "+9647716189935",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0059",
+      "name": "د. زهراء قتيبة عبد",
+      "phone": "+9647823006698",
+      "spec": "Der",
+      "tag": "Der",
+      "dept": "Der",
+      "department": "Der",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0180",
+      "name": "د. زهير فائق صادق",
+      "phone": "+9647704720169",
+      "spec": "OR",
+      "tag": "OR",
+      "dept": "OR",
+      "department": "OR",
+      "active": false,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0021",
+      "name": "د. زين العابدين ثجيل",
+      "phone": "+9647717300360",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0067",
+      "name": "د. زين العابدين مصطفى محمد",
+      "phone": "+9647703100283",
+      "spec": "ENT",
+      "tag": "ENT",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0132",
+      "name": "د. زينب اياد عبدالدايم (اشعة)",
+      "phone": "+9647800039430",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0133",
+      "name": "د. زينب جبار محسن",
+      "phone": "+9647717560453",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0134",
+      "name": "د. زينب سلمان سعيد",
+      "phone": "+9647700237273",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0022",
+      "name": "د. زينب صدام",
+      "phone": "+9647733959046",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0023",
+      "name": "د. زينب عبد الرزاق",
+      "phone": "+9647727916014",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0177",
+      "name": "د. زينب عبدالكريم احمد",
+      "phone": "+9647704726124",
+      "spec": "ENT",
+      "tag": "ENT",
+      "dept": "ENT",
+      "department": "ENT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0135",
+      "name": "د. زينب مسلم ناصر (اشعة)",
+      "phone": "+9647814155225",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0188",
+      "name": "د. سارة عبدالحكيم",
+      "phone": "+9647739864832",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0136",
+      "name": "د. سارة عبدالله محمد",
+      "phone": "+9647728456542",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0072",
+      "name": "د. سارة عدنان مالك",
+      "phone": "+9647868000623",
+      "spec": "FM",
+      "tag": "FM",
+      "dept": "FM",
+      "department": "FM",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0024",
+      "name": "د. سجى نعيم",
+      "phone": "+9647707571167",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0073",
+      "name": "د. سحر فالح حسن",
+      "phone": "رقم غير متوفر",
+      "spec": "FM",
+      "tag": "FM",
+      "dept": "FM",
+      "department": "FM",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0110",
+      "name": "د. سرمد نوفل علي",
+      "phone": "+9647825210393",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0089",
+      "name": "د. سعيد جندي لهمود",
+      "phone": "+9647801186266",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0025",
+      "name": "د. سماء علي",
+      "phone": "+9647722752658",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0137",
+      "name": "د. سنا احسان علوان",
+      "phone": "+9647829303398",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0026",
+      "name": "د. شهد عبد الله",
+      "phone": "+9647734634301",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0053",
+      "name": "د. شهد كريم عبدالكاظم",
+      "phone": "+9647722910490",
+      "spec": "CT",
+      "tag": "CT",
+      "dept": "CT",
+      "department": "CT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0027",
+      "name": "د. شيرين سمير",
+      "phone": "+9647826655511",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi",
+        "mawani"
+      ]
+    },
+    {
+      "id": "res-0446",
+      "name": "د. صافي إبراهيم",
+      "phone": "+9647739468124",
+      "spec": "OP",
+      "tag": "OP",
+      "dept": "OP",
+      "department": "OP",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi",
+        "mawani"
+      ]
+    },
+    {
+      "id": "res-0138",
+      "name": "د. صالح بهجت حردان (اشعة)",
+      "phone": "+9647729197541",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0029",
+      "name": "د. صفا كاظم",
+      "phone": "+9647732196899",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0120",
+      "name": "د. صفا كاظم حسن",
+      "phone": "+9647710888537",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0030",
+      "name": "د. صفاء محمد",
+      "phone": "+9647713551570",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0165",
+      "name": "د. ضرغام عامر حسان",
+      "phone": "+9647726196639",
+      "spec": "US",
+      "tag": "US",
+      "dept": "US",
+      "department": "US",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0172",
+      "name": "د. طيف كريم خضير",
+      "phone": "+9647806605522",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0162",
+      "name": "د. عباس احمد رجب",
+      "phone": "+9647733960708",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0139",
+      "name": "د. عباس شداد خضير (اشعة)",
+      "phone": "+9647739245121",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0054",
+      "name": "د. عبدالحليم حسن موسى",
+      "phone": "+9647711207221",
+      "spec": "CT",
+      "tag": "CT",
+      "dept": "CT",
+      "department": "CT",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0156",
+      "name": "د. عبدالرحمن صفاء",
+      "phone": "+9647841917643",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0183",
+      "name": "د. عبدالرحمن صفاء صالح",
+      "phone": "+9647841917643",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0104",
+      "name": "د. عبدالرحمن محمد مكي",
+      "phone": "+9647707837905",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0166",
+      "name": "د. عبدالله عبدالمجيد ماضي",
+      "phone": "+9647708304252",
+      "spec": "US",
+      "tag": "US",
+      "dept": "US",
+      "department": "US",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0031",
+      "name": "د. عبدالله نادر",
+      "phone": "+9647703272926",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0189",
+      "name": "د. عذراء صبيح بدر",
+      "phone": "+9647877788058",
+      "spec": "US",
+      "tag": "US",
+      "dept": "US",
+      "department": "US",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0140",
+      "name": "د. عذراء محمد عبدالحي",
+      "phone": "+9647708792317",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0154",
+      "name": "د. علا طالب عبدالامير",
+      "phone": "+9647738125706",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0032",
+      "name": "د. علاء سلمان",
+      "phone": "+9647704997282",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0121",
+      "name": "د. علي اسعد يحيى",
+      "phone": "+9647821450742",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0090",
+      "name": "د. علي جميل حنتوش",
+      "phone": "+9647715913508",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0060",
+      "name": "د. علي حسن خريبط",
+      "phone": "رقم غير متوفر",
+      "spec": "Der",
+      "tag": "Der",
+      "dept": "Der",
+      "department": "Der",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0190",
+      "name": "د. علي حسين عبدالرضا",
+      "phone": "+9647849000964",
+      "spec": "CT",
+      "tag": "CT",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0033",
+      "name": "د. علي خالد",
+      "phone": "+9647725151957",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0174",
+      "name": "د. علي ضياء عبدالنبي",
+      "phone": "+9647702958143",
+      "spec": "OR",
+      "tag": "OR",
+      "dept": "OR",
+      "department": "OR",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0157",
+      "name": "د. علي عارف",
+      "phone": "+9647700342391",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0111",
+      "name": "د. علي عبد ماضي",
+      "phone": "+9647719007077",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0181",
+      "name": "د. علي عبدالرحمن عبدالصمد",
+      "phone": "+9647717956125",
+      "spec": "CT",
+      "tag": "CT",
+      "dept": "CT",
+      "department": "CT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0187",
+      "name": "د. علي محمد احمد",
+      "phone": "+9647709681505",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0158",
+      "name": "د. علي مهدي منصور",
+      "phone": "+9647819761239",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0061",
+      "name": "د. علي وهاب سوادي",
+      "phone": "+9647812822360",
+      "spec": "Der",
+      "tag": "Der",
+      "dept": "Der",
+      "department": "Der",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0150",
+      "name": "د. علي ياسين محمد",
+      "phone": "+9647715459469",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0034",
+      "name": "د. علياء عباس",
+      "phone": "+9647862498727",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0171",
+      "name": "د. عماد سمير عبدالرضا",
+      "phone": "+9647817215779",
+      "spec": "CT",
+      "tag": "CT",
+      "dept": "CT",
+      "department": "CT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0112",
+      "name": "د. عمار صلاح (نيورو)",
+      "phone": "+9647725563679",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0148",
+      "name": "د. عيسى وليد عيسى",
+      "phone": "+9647840828301",
+      "spec": "RM",
+      "tag": "RM",
+      "dept": "RM",
+      "department": "RM",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0035",
+      "name": "د. غسق مصطفى",
+      "phone": "+9647722920453",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0113",
+      "name": "د. فاطمة خليل",
+      "phone": "+9647831887821",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0036",
+      "name": "د. فاطمة سلطان",
+      "phone": "+9647735237481",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi",
+        "mawani"
+      ]
+    },
+    {
+      "id": "res-0178",
+      "name": "د. فاطمة صبيح صاحب",
+      "phone": "+9647804332274",
+      "spec": "ENT",
+      "tag": "ENT",
+      "dept": "ENT",
+      "department": "ENT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0037",
+      "name": "د. فاطمة عباس",
+      "phone": "+9647734910577",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0091",
+      "name": "د. فاطمة فاضل كاظم",
+      "phone": "+9647716761069",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0038",
+      "name": "د. فاطمة محمود",
+      "phone": "+9647719794237",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0182",
+      "name": "د. فاطمة مضر علي",
+      "phone": "+9647708103504",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0074",
+      "name": "د. فرح علي عبدالحسين",
+      "phone": "+9647721170760",
+      "spec": "FM",
+      "tag": "FM",
+      "dept": "FM",
+      "department": "FM",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0152",
+      "name": "د. فهد يوسف عبدالله",
+      "phone": "+9647716273485",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0092",
+      "name": "د. قنوت حيدر كاظم",
+      "phone": "رقم غير متوفر",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0093",
+      "name": "د. كرار علي زغير",
+      "phone": "+9647809619854",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0114",
+      "name": "د. ليث انور",
+      "phone": "+9647812344891",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0153",
+      "name": "د. ماهر محمود عبدالله",
+      "phone": "+9647707481437",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0068",
+      "name": "د. مايا عادل عبدالهادي",
+      "phone": "+9647818897778",
+      "spec": "ENT",
+      "tag": "ENT",
+      "dept": "ENT",
+      "department": "ENT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0159",
+      "name": "د. مجيد حميد مجيد",
+      "phone": "+9647831004089",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0094",
+      "name": "د. محمد حيدر باقر",
+      "phone": "+9647708795989",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0141",
+      "name": "د. محمد رائد محمد",
+      "phone": "+9647823074884",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0115",
+      "name": "د. محمد راضي خضر",
+      "phone": "+9647739407174",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0160",
+      "name": "د. محمد رياض جعفر",
+      "phone": "+9647805195075",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi",
+        "mawani"
+      ]
+    },
+    {
+      "id": "res-0161",
+      "name": "د. محمد عبدالحسين محسن",
+      "phone": "+9647707334546",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi",
+        "mawani"
+      ]
+    },
+    {
+      "id": "res-0095",
+      "name": "د. محمد فتحي عبدالرزاق",
+      "phone": "+9647700546979",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0175",
+      "name": "د. محمد ليث عباس",
+      "phone": "+9647710799367",
+      "spec": "OR",
+      "tag": "OR",
+      "dept": "OR",
+      "department": "OR",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0179",
+      "name": "د. محمد محروس علي",
+      "phone": "+9647704480837",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0096",
+      "name": "د. محمد هاشم خضير",
+      "phone": "+9647810202728",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0186",
+      "name": "د. مرتضى امين عبدالخضر",
+      "phone": "+9647716870514",
+      "spec": "US",
+      "tag": "US",
+      "dept": "US",
+      "department": "US",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0122",
+      "name": "د. مروة ليث شاكر",
+      "phone": "+9647718681403",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0062",
+      "name": "د. مروة محمد عبدالوهاب",
+      "phone": "+9647733605305",
+      "spec": "Der",
+      "tag": "Der",
+      "dept": "Der",
+      "department": "Der",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0039",
+      "name": "د. مريم حاكم",
+      "phone": "+9647816663142",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0075",
+      "name": "د. مريم سالم جارالله",
+      "phone": "+9647719557060",
+      "spec": "FM",
+      "tag": "FM",
+      "dept": "FM",
+      "department": "FM",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0040",
+      "name": "د. مريم عبد الحميد",
+      "phone": "+9647810548678",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0123",
+      "name": "د. مريم مشرق ياسين",
+      "phone": "+9647801917641",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0445",
+      "name": "د. مسره سعد",
+      "phone": "+9647723359625",
+      "spec": "OP",
+      "tag": "OP",
+      "dept": "OP",
+      "department": "OP",
+      "active": true,
+      "hospitals": [
+        "iraqi",
+        "mawani"
+      ]
+    },
+    {
+      "id": "res-0042",
+      "name": "د. مصطفى عبد الله",
+      "phone": "+9647767785961",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0069",
+      "name": "د. مصطفى عبدالصاحب",
+      "phone": "+9647735280259",
+      "spec": "ENT",
+      "tag": "ENT",
+      "dept": "ENT",
+      "department": "ENT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0043",
+      "name": "د. مصطفى علي",
+      "phone": "+9647819237146",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0142",
+      "name": "د. منار رحيم عبد",
+      "phone": "+9647818416263",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0143",
+      "name": "د. منتظر توفيق عبدالكريم",
+      "phone": "+9647737373951",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0105",
+      "name": "د. منتظر حميد هاشم",
+      "phone": "+9647827925226",
+      "spec": "H",
+      "tag": "H",
+      "dept": "M",
+      "department": "M",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0055",
+      "name": "د. منتظر صفاء ماجد",
+      "phone": "+9647823939952",
+      "spec": "CT",
+      "tag": "CT",
+      "dept": "CT",
+      "department": "CT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0063",
+      "name": "د. منتظر مؤيد حسين",
+      "phone": "+9647722017351",
+      "spec": "Der",
+      "tag": "Der",
+      "dept": "Der",
+      "department": "Der",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0077",
+      "name": "د. منى عبدالباري",
+      "phone": "+9647740399801",
+      "spec": "GP",
+      "tag": "GP",
+      "dept": "GP",
+      "department": "GP",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0155",
+      "name": "د. مهاجر زياد راشد",
+      "phone": "+9647829900959",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0044",
+      "name": "د. ميسم اكرم",
+      "phone": "+9647707055130",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0045",
+      "name": "د. ميسم مؤيد",
+      "phone": "+9647730520002",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0144",
+      "name": "د. نازك احمد ماجد",
+      "phone": "+9647702248864",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0097",
+      "name": "د. نجم هدو راضي",
+      "phone": "+9647757449886",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0145",
+      "name": "د. نجوان براق كاظم",
+      "phone": "+9647722033535",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0146",
+      "name": "د. ندى كرار وهيب (اشعة)",
+      "phone": "+9647725819814",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0124",
+      "name": "د. نور الهدى عادل عبدالله",
+      "phone": "+9647731361550",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0125",
+      "name": "د. نور الهدى عضيد حبيب",
+      "phone": "+9647712124987",
+      "spec": "ON",
+      "tag": "ON",
+      "dept": "ON",
+      "department": "ON",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0127",
+      "name": "د. نور خالد طارش",
+      "phone": "+9647812791617",
+      "spec": "PS",
+      "tag": "PS",
+      "dept": "PS",
+      "department": "PS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0046",
+      "name": "د. نور عبد المطلب",
+      "phone": "+9647730213323",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "basra",
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0047",
+      "name": "د. هاجر موسى",
+      "phone": "+9647812445850",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0128",
+      "name": "د. هبة اياد طارق",
+      "phone": "+9647806028076",
+      "spec": "PS",
+      "tag": "PS",
+      "dept": "PS",
+      "department": "PS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0078",
+      "name": "د. هبة سعدون مجبل",
+      "phone": "+9647716757205",
+      "spec": "GP",
+      "tag": "GP",
+      "dept": "GP",
+      "department": "GP",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0048",
+      "name": "د. هدير ماجد",
+      "phone": "+9647718995613",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0049",
+      "name": "د. هديل ماجد",
+      "phone": "+9647735617850",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0056",
+      "name": "د. همام حبيب عبدالله",
+      "phone": "+9647770021007",
+      "spec": "CT",
+      "tag": "CT",
+      "dept": "CT",
+      "department": "CT",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0147",
+      "name": "د. هناء شدود منشد",
+      "phone": "+9647706746212",
+      "spec": "R",
+      "tag": "R",
+      "dept": "R",
+      "department": "R",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0168",
+      "name": "د. وسن عباس عبدالكريم",
+      "phone": "+9647808794104",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0079",
+      "name": "د. وفاء عبدالعال جدوع",
+      "phone": "+9647811741751",
+      "spec": "GP",
+      "tag": "GP",
+      "dept": "GP",
+      "department": "GP",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0106",
+      "name": "د. ياسر علي فاضل",
+      "phone": "+9647732580106",
+      "spec": "H",
+      "tag": "H",
+      "dept": "H",
+      "department": "H",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0050",
+      "name": "د. ياسر ياس",
+      "phone": "+9647736762841",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-0116",
+      "name": "د. يوسف علي يوسف",
+      "phone": "+9647705625359",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ]
     }
   ],
   "schedule": [
@@ -19325,364 +22980,6 @@
       "name": "د. علي عبدالرحمن عبدالصمد",
       "timestamp": "09:53",
       "VisitCount": 0
-    }
-  ],
-  "passwords": {
-    "user": "1234",
-    "admin": "MrjBth1996*"
-  },
-  "specialties": [
-    {
-      "id": "NS",
-      "name_ar": "جراحة الجملة العصبية",
-      "name_en": "Neurosurgery",
-      "icon": "🧠",
-      "color": "#fea101",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "CT",
-      "name_ar": "جراحة الصدر و الاوعية الدموية",
-      "name_en": "Cardiothoracic Surgery",
-      "icon": "🫀",
-      "color": "#e05910",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "GS",
-      "name_ar": "الجراحة العامة",
-      "name_en": "General Surgery",
-      "icon": "🔪",
-      "color": "#2ac200",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "US",
-      "name_ar": "جراحة المسالك البولية",
-      "name_en": "Urosurgery",
-      "icon": "🫘",
-      "color": "#e66551",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "ENT",
-      "name_ar": "الأذن و الأنف و الحنجرة",
-      "name_en": "ENT",
-      "icon": "👂",
-      "color": "#fbff00",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "OP",
-      "name_ar": "تخدير العمليات",
-      "name_en": "OT Anaesthesia",
-      "icon": "💉",
-      "color": "#b4cc00",
-      "enabled": true,
-      "parentSpec": "A",
-      "acceptPool": [
-        "A"
-      ]
-    },
-    {
-      "id": "ICU",
-      "name_ar": "تخدير العناية المركزة",
-      "name_en": "ICU Anaesthesia",
-      "icon": "💉",
-      "color": "#c9e141",
-      "enabled": true,
-      "parentSpec": "A",
-      "acceptPool": [
-        "A"
-      ]
-    },
-    {
-      "id": "ON",
-      "name_ar": "طب الاورام",
-      "name_en": "Oncology",
-      "icon": "☢️",
-      "color": "#84cc16",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "R",
-      "name_ar": "الأشعة و السونار",
-      "name_en": "Radiology",
-      "icon": "🩻",
-      "color": "#6700e6",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "D",
-      "name_ar": "الوفيات",
-      "name_en": "Death Certificates",
-      "icon": "⚰️",
-      "color": "#bababa",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": [
-        "NS",
-        "CT",
-        "GS",
-        "OR",
-        "US",
-        "ENT",
-        "MF",
-        "O",
-        "Pe",
-        "M",
-        "G",
-        "ICU",
-        "OP",
-        "GA",
-        "A",
-        "R",
-        "ON",
-        "N",
-        "NM",
-        "P",
-        "Der",
-        "EM",
-        "FM",
-        "GP",
-        "H",
-        "PS",
-        "RM"
-      ]
-    },
-    {
-      "id": "G",
-      "name_ar": "النسائية و التوليد",
-      "name_en": "Gynecology",
-      "icon": "🤰",
-      "color": "#e40de7",
-      "enabled": false,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "A",
-      "name_ar": "التخدير و العناية المركزة",
-      "name_en": "Anaesthesia & Intensive Care",
-      "icon": "💉",
-      "color": "#ff8e24",
-      "enabled": false,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "GA",
-      "name_ar": "تخدير صالة الولادة",
-      "name_en": "GYN Anaesthesia",
-      "icon": "🤰",
-      "color": "#fe62ad",
-      "enabled": false,
-      "parentSpec": "A",
-      "acceptPool": [
-        "A"
-      ]
-    },
-    {
-      "id": "O",
-      "name_ar": "العيون",
-      "name_en": "Ophthalmology",
-      "icon": "👁️",
-      "color": "#38ffe8",
-      "enabled": false,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "M",
-      "name_ar": "الباطنية",
-      "name_en": "Internal Medicine",
-      "icon": "💊",
-      "color": "#a1e972",
-      "enabled": false,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "P",
-      "name_ar": "النفسية",
-      "name_en": "Psychiatry",
-      "icon": "🧠",
-      "color": "#fef606",
-      "enabled": false,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "N",
-      "name_ar": "طب امراض الكلى",
-      "name_en": "Nephrology",
-      "icon": "🧫",
-      "color": "#ff5ccb",
-      "enabled": false,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "Pe",
-      "name_ar": "الاطفال",
-      "name_en": "Paediatrics",
-      "icon": "👶",
-      "color": "#3dff6e",
-      "enabled": false,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "NM",
-      "name_ar": "طب الجملة العصبية",
-      "name_en": "Neuromedicine",
-      "icon": "🧠",
-      "color": "#79e9f1",
-      "enabled": false,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "Der",
-      "name_ar": "الجلدية",
-      "name_en": "Dermatology",
-      "icon": "🏥",
-      "color": "#e27ef6",
-      "enabled": false,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "MF",
-      "name_ar": "جراحة الوجه و الفكين",
-      "name_en": "MaxilloFacial Surgery",
-      "icon": "🦷",
-      "color": "#d600af",
-      "enabled": false,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "EM",
-      "name_ar": "طب الطوارئ",
-      "name_en": "Emergency Medicine",
-      "icon": "🏥",
-      "color": "#8cb3ed",
-      "enabled": false,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "FM",
-      "name_ar": "طب الأسرة",
-      "name_en": "Family Medicine",
-      "icon": "👨",
-      "color": "#f4f67e",
-      "enabled": false,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "GP",
-      "name_ar": "ممارسين",
-      "name_en": "General Practitioner",
-      "icon": "🏥",
-      "color": "#627ae4",
-      "enabled": false,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "OR",
-      "name_ar": "الكسور",
-      "name_en": "Orthopaedics",
-      "icon": "🦴",
-      "color": "#ff0000",
-      "enabled": false,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "H",
-      "name_ar": "طب الامراض القلبية",
-      "name_en": "Cardiology",
-      "icon": "🫀",
-      "color": "#c91d70",
-      "enabled": false,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "PS",
-      "name_ar": "الجراحة التجميلية",
-      "name_en": "Plastic Surgery",
-      "icon": "🪡",
-      "color": "#2563eb",
-      "enabled": false,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "RM",
-      "name_ar": "طب الامراض التنفسية",
-      "name_en": "Respiratory Medicine",
-      "icon": "🫁",
-      "color": "#3bb8f7",
-      "enabled": false,
-      "parentSpec": null,
-      "acceptPool": []
-    },
-    {
-      "id": "AO",
-      "name_ar": "المعاون الاداري",
-      "name_en": "Administrative Officer",
-      "icon": "🧑",
-      "color": "#0f766e",
-      "enabled": true,
-      "parentSpec": null,
-      "acceptPool": [
-        "NS",
-        "CT",
-        "GS",
-        "OR",
-        "US",
-        "ENT",
-        "MF",
-        "O",
-        "Pe",
-        "M",
-        "G",
-        "ICU",
-        "OP",
-        "GA",
-        "A",
-        "R",
-        "ON",
-        "N",
-        "NM",
-        "P",
-        "Der",
-        "EM",
-        "FM",
-        "GP",
-        "H",
-        "PS",
-        "RM"
-      ]
     }
   ]
 }

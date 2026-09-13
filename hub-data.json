@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-13T12:47:23.992Z",
+  "lastUpdated": "2026-09-13T12:47:26.250Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -67,26 +67,6 @@
           "enabled": true
         },
         {
-          "id": "OP",
-          "name_ar": "تخدير العمليات",
-          "name_en": "OT Anaesthesia",
-          "icon": "💉",
-          "color": "#b4cc00",
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
-          "id": "ICU",
-          "name_ar": "تخدير العناية المركزة",
-          "name_en": "ICU Anaethesia",
-          "icon": "💉",
-          "color": "#c9e141",
-          "acceptPool": [
-            "A"
-          ],
-          "enabled": true
-        },
-        {
           "id": "ON",
           "name_ar": "طب الاورام",
           "name_en": "Oncology",
@@ -105,33 +85,6 @@
           "enabled": true
         },
         {
-          "id": "D",
-          "name_ar": "الوفيات",
-          "name_en": "Death Certificatess",
-          "icon": "⚰️",
-          "color": "#bababa",
-          "acceptPool": [
-            "NS",
-            "CT",
-            "GS",
-            "US",
-            "ENT",
-            "OP",
-            "ICU",
-            "G"
-          ],
-          "enabled": true
-        },
-        {
-          "id": "G",
-          "name_ar": "النسائية و التوليد",
-          "name_en": "Gynecology",
-          "icon": "🤰",
-          "color": "#e40de7",
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
           "id": "A",
           "name_ar": "التخدير و العناية المركزة",
           "name_en": "Anaethesia",
@@ -141,74 +94,11 @@
           "enabled": false
         },
         {
-          "id": "GA",
-          "name_ar": "تخدير صالة الولادة",
-          "name_en": "GYN Anaesthesia",
-          "icon": "🤰",
-          "color": "#fe62ad",
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
-          "id": "O",
-          "name_ar": "العيون",
-          "name_en": "Ophthalmology",
-          "icon": "👁️",
-          "color": "#38ffe8",
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
-          "id": "M",
-          "name_ar": "الباطنية",
-          "name_en": "Internal Medicine",
-          "icon": "💊",
-          "color": "#a1e972",
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
-          "id": "P",
-          "name_ar": "النفسية",
-          "name_en": "Psychiatry",
-          "icon": "🧠",
-          "color": "#fef606",
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
-          "id": "N",
-          "name_ar": "طب امراض الكلى",
-          "name_en": "Nephrology",
-          "icon": "🧫",
-          "color": "#ff5ccb",
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
-          "id": "Pe",
-          "name_ar": "الاطفال",
-          "name_en": "Paediatrics",
-          "icon": "👶",
-          "color": "#3dff6e",
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
           "id": "Der",
           "name_ar": "الجلدية",
           "name_en": "Dermatology",
           "icon": "🏥",
           "color": "#e27ef6",
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
-          "id": "MF",
-          "name_ar": "جراحة الوجه و الفكين",
-          "name_en": "MaxilloFacial Surgery",
-          "icon": "🦷",
-          "color": "#d600af",
           "acceptPool": [],
           "enabled": false
         },
@@ -236,15 +126,6 @@
           "name_en": "General Practitioner",
           "icon": "🏥",
           "color": "#627ae4",
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
-          "id": "OR",
-          "name_ar": "الكسور",
-          "name_en": "Orthopaedics",
-          "icon": "🦴",
-          "color": "#ff0000",
           "acceptPool": [],
           "enabled": false
         },

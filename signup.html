@@ -630,12 +630,25 @@
             matchingDuties = (currentHospital?.schedule || []).filter(s => s.specCode === specId && s.date === medDate);
 
             // Populate resident suggestions for this specialty
-            const specObj = (currentHospital?.specialties || []).find(s => s.id === specId);
-            const acceptPool = specObj?.acceptPool || [];
-            if (acceptPool.length > 0) {
-                currentResidents = (currentHospital?.names || []).filter(n => acceptPool.includes(n.spec) || acceptPool.includes(n.tag));
+            if (window.Hub && typeof window.Hub.getEligibleResidentsForSpecialty === 'function') {
+                currentResidents = window.Hub.getEligibleResidentsForSpecialty(currentHospital, specId);
             } else {
-                currentResidents = (currentHospital?.names || []).filter(n => n.spec === specId || n.tag === specId);
+                const specObj = (currentHospital?.specialties || []).find(s => s.id === specId);
+                const acceptPool = specObj?.acceptPool || [];
+                const parentSpec = specObj?.parentSpec || null;
+                const allSpecs = currentHospital?.specialties || [];
+                const childSpecIds = allSpecs.filter(s => s.parentSpec === specId).map(s => s.id);
+
+                currentResidents = (currentHospital?.names || []).filter(n => {
+                    if (n.active === false || n.spec === 'RESERVE') return false;
+                    const rSpec = n.spec || n.tag;
+                    const rTag = n.tag || n.spec;
+                    if (rSpec === specId || rTag === specId) return true;
+                    if (parentSpec && (rSpec === parentSpec || rTag === parentSpec)) return true;
+                    if (childSpecIds.includes(rSpec) || childSpecIds.includes(rTag)) return true;
+                    if (acceptPool.length > 0 && (acceptPool.includes(rSpec) || acceptPool.includes(rTag))) return true;
+                    return false;
+                });
             }
             if (currentResidents.length === 0) {
                 currentResidents = currentHospital?.names || [];

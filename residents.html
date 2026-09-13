@@ -540,9 +540,18 @@
                     <input type="text" id="form-res-phone" class="input-field font-mono text-left" placeholder="07804080071" dir="ltr" />
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">التخصص الطبي</label>
-                    <select id="form-res-spec" class="input-field" required></select>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">التخصص الطبي الأساسي</label>
+                        <select id="form-res-spec" class="input-field" onchange="onFormResSpecChanged(this.value)" required></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1 flex items-center justify-between">
+                            <span>القسم المكلف به (الخفارات)</span>
+                            <span class="text-[10px] text-teal-600 dark:text-amber-400 font-normal">تناوب Rotation</span>
+                        </label>
+                        <select id="form-res-dept" class="input-field" onchange="onFormResDeptChanged()"></select>
+                    </div>
                 </div>
 
                 <!-- Hospital Assignment & Multi-Hospital Switch -->
@@ -810,9 +819,14 @@
                                         <span class="w-2 h-2 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-amber-500'}"></span>
                                         <span>${r.name}</span>
                                     </h3>
-                                    <div class="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                                    <div class="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 mt-0.5 flex-wrap">
                                         <span>${specObj.icon || '🏥'}</span>
                                         <span class="font-bold">${specObj.name_ar}</span>
+                                        ${r.dept && r.dept !== (r.spec || r.tag) ? `
+                                            <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                                                <i class="fas fa-rotate ml-1"></i> تناوب في: ${(allSpecialties.find(s => s.id === r.dept) || {}).name_ar || r.dept}
+                                            </span>
+                                        ` : ''}
                                     </div>
                                 </div>
 
@@ -903,7 +917,11 @@
         function populateModalDropdowns() {
             // Specialties
             const specSelect = document.getElementById('form-res-spec');
-            specSelect.innerHTML = allSpecialties.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar}</option>`).join('');
+            const deptSelect = document.getElementById('form-res-dept');
+            const optsHtml = allSpecialties.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar} (${s.id})</option>`).join('');
+            
+            if (specSelect) specSelect.innerHTML = optsHtml;
+            if (deptSelect) deptSelect.innerHTML = optsHtml;
 
             // Single Hospital Dropdown
             const singleHospSelect = document.getElementById('form-single-hospital');
@@ -920,6 +938,18 @@
                     </span>
                 </label>
             `).join('');
+        }
+
+        function onFormResSpecChanged(specId) {
+            const deptSelect = document.getElementById('form-res-dept');
+            if (deptSelect && !deptSelect.dataset.userModified) {
+                deptSelect.value = specId;
+            }
+        }
+
+        function onFormResDeptChanged() {
+            const deptSelect = document.getElementById('form-res-dept');
+            if (deptSelect) deptSelect.dataset.userModified = 'true';
         }
 
         function handleMultiHospitalToggle(isMulti) {
@@ -946,6 +976,9 @@
             document.getElementById('form-res-name').value = '';
             document.getElementById('form-res-phone').value = '';
             document.getElementById('form-res-active').checked = true;
+
+            const deptEl = document.getElementById('form-res-dept');
+            if (deptEl) delete deptEl.dataset.userModified;
 
             // Hospital assignment default to active hospital or currently selected filter
             const activeHid = selectedHospitalId !== 'all' ? selectedHospitalId : Hub.getActiveHospitalId();
@@ -982,7 +1015,8 @@
             document.getElementById('form-res-id').value = resident.id;
             document.getElementById('form-res-name').value = resident.name;
             document.getElementById('form-res-phone').value = resident.phone === 'رقم غير متوفر' ? '' : resident.phone;
-            document.getElementById('form-res-spec').value = resident.tag || resident.spec;
+            document.getElementById('form-res-spec').value = resident.spec || resident.tag;
+            document.getElementById('form-res-dept').value = resident.dept || resident.department || resident.spec || resident.tag;
             document.getElementById('form-res-active').checked = resident.active !== false && resident.spec !== 'RESERVE';
 
             const hospitals = Array.isArray(resident.hospitals) ? resident.hospitals : [Hub.getActiveHospitalId()];
@@ -1019,6 +1053,7 @@
             const name = document.getElementById('form-res-name').value.trim();
             const phone = document.getElementById('form-res-phone').value.trim();
             const spec = document.getElementById('form-res-spec').value;
+            const dept = document.getElementById('form-res-dept').value || spec;
             const active = document.getElementById('form-res-active').checked;
             const isMulti = document.getElementById('multi-hospital-toggle').checked;
 
@@ -1054,6 +1089,8 @@
                         phone: phone,
                         spec: spec,
                         tag: spec,
+                        dept: dept,
+                        department: dept,
                         active: active,
                         hospitals: assignedHospitals
                     });
@@ -1065,6 +1102,8 @@
                         phone: phone,
                         spec: spec,
                         tag: spec,
+                        dept: dept,
+                        department: dept,
                         active: active,
                         hospitals: assignedHospitals
                     });

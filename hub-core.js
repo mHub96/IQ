@@ -73,6 +73,42 @@
         { id: "RM", name_ar: "طب الامراض التنفسية", name_en: "Respiratory Medicine", icon: "🫁", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true }
     ];
 
+    // Canonical Specialty Aliases (e.g. F -> FM for Family Medicine)
+    const SPECIALTY_ALIASES = {
+        'F': 'FM',
+        'DC': 'D',
+        'DERM': 'Der',
+        'PAED': 'Pe',
+        'PED': 'Pe',
+        'CARDIO': 'H',
+        'CARD': 'H',
+        'PLAST': 'PS',
+        'URO': 'US',
+        'ORTHO': 'OR',
+        'OPHTH': 'O',
+        'EYE': 'O',
+        'RADIO': 'R',
+        'ONCO': 'ON',
+        'PSYCH': 'P',
+        'RESP': 'RM',
+        'PULM': 'RM',
+        'NEPHRO': 'N',
+        'ADMIN': 'AO'
+    };
+
+    function normalizeSpecialtyId(id) {
+        if (!id) return id;
+        const trimmed = String(id).trim();
+        const upper = trimmed.toUpperCase();
+        if (SPECIALTY_ALIASES[trimmed]) return SPECIALTY_ALIASES[trimmed];
+        if (SPECIALTY_ALIASES[upper]) return SPECIALTY_ALIASES[upper];
+        
+        // Exact match check against CANONICAL_SPECIALTIES (case-insensitive)
+        const matched = CANONICAL_SPECIALTIES.find(s => s.id.toUpperCase() === upper);
+        if (matched) return matched.id;
+        return trimmed;
+    }
+
     // Default Fallback Database Structure
     const defaultTemplate = {
         version: "2.0",
@@ -642,7 +678,29 @@
         const globals = getGlobalSpecialties();
         if (!globals || globals.length === 0) return false;
 
-        const currentMap = new Map((hosp.specialties || []).map(s => [s.id, s]));
+        // Build map from current hospital specialties, normalizing any legacy alias (e.g. F -> FM)
+        const currentMap = new Map();
+        (hosp.specialties || []).forEach(s => {
+            const normId = normalizeSpecialtyId(s.id);
+            if (!currentMap.has(normId)) {
+                currentMap.set(normId, s);
+            }
+        });
+
+        // Also normalize all residents in this hospital if any have legacy aliases
+        (hosp.names || []).forEach(r => {
+            if (r.spec) r.spec = normalizeSpecialtyId(r.spec);
+            if (r.tag) r.tag = normalizeSpecialtyId(r.tag);
+            if (r.dept) r.dept = normalizeSpecialtyId(r.dept);
+            if (r.department) r.department = normalizeSpecialtyId(r.department);
+        });
+
+        // Also normalize schedule
+        (hosp.schedule || []).forEach(sc => {
+            if (sc.specCode) sc.specCode = normalizeSpecialtyId(sc.specCode);
+        });
+
+        // Hospital specialties are strictly drawn from the Main Specialty Store
         hosp.specialties = globals.map(g => {
             const cur = currentMap.get(g.id);
             return {
@@ -1112,15 +1170,15 @@
             hospitals = [residentData.hospitalId || getActiveHospitalId()];
         }
 
-        const spec = residentData.spec || 'GS';
-        const dept = residentData.dept || residentData.department || spec;
+        const spec = normalizeSpecialtyId(residentData.spec || 'GS');
+        const dept = normalizeSpecialtyId(residentData.dept || residentData.department || spec);
 
         const newRes = {
             id: 'res-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4),
             name: formattedName,
             phone: (residentData.phone || '').trim(),
             spec: spec,
-            tag: residentData.tag || spec,
+            tag: normalizeSpecialtyId(residentData.tag || spec),
             dept: dept,
             department: dept,
             active: residentData.active !== false,
@@ -1158,13 +1216,15 @@
         }
 
         if (updates.spec) {
-            updated.spec = updates.spec;
-            updated.tag = updates.tag || updates.spec;
+            const normSpec = normalizeSpecialtyId(updates.spec);
+            updated.spec = normSpec;
+            updated.tag = normalizeSpecialtyId(updates.tag || normSpec);
         }
 
         if (updates.dept || updates.department) {
-            updated.dept = updates.dept || updates.department;
-            updated.department = updated.dept;
+            const normDept = normalizeSpecialtyId(updates.dept || updates.department);
+            updated.dept = normDept;
+            updated.department = normDept;
         }
 
         if (updates.hospitals) {
@@ -1420,6 +1480,8 @@
         auth,
         getMedicalDate,
         getCurrentMedicalMinutes,
+        normalizeSpecialtyId,
+        SPECIALTY_ALIASES,
         getTheme,
         setTheme,
         toggleTheme

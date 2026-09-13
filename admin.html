@@ -398,6 +398,9 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" id="admin-owner-store-btn" onclick="openGlobalSpecialtiesModal()" class="btn-ghost text-xs" style="display:none; color:#8b5cf6; border-color:rgba(139,92,246,0.4); background:rgba(139,92,246,0.08);">
+                        <i class="fas fa-crown text-purple-500"></i> مستودع التخصصات العام 👑
+                    </button>
                     <button type="button" id="admin-owner-passwords-btn" onclick="openAllPasswordsModalNav()" class="btn-ghost text-xs" style="display:none; color:#d97706; border-color:rgba(217,119,6,0.4); background:rgba(217,119,6,0.08);">
                         <i class="fas fa-key text-amber-500"></i> تعديل كلمات المرور
                     </button>
@@ -567,19 +570,19 @@
         </div>
     </div>
 
-    <!-- SPECIALTIES MANAGEMENT MODAL -->
+    <!-- SPECIALTIES MANAGEMENT MODAL (HOSPITAL LEVEL) -->
     <div id="specialties-modal" class="modal-overlay">
-        <div class="modal-card" style="max-width: 600px;">
+        <div class="modal-card" style="max-width: 660px;">
             <div class="flex justify-between items-center mb-3">
                 <h3 class="text-xl font-black flex items-center gap-2">
-                    <i class="fas fa-tags text-teal-600 dark:text-amber-400"></i> إدارة التخصصات الطبية
+                    <i class="fas fa-tags text-teal-600 dark:text-amber-400"></i> تخصصات المستشفى الحالي
                 </h3>
                 <button type="button" onclick="closeSpecialtiesModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <p class="text-xs text-slate-500 mb-4">
-                قم بتفعيل أو إخفاء التخصصات، تعديل ألوانها وأيقوناتها، وتحديد مصادر الأسماء المشتركة.
+            <p class="text-xs text-slate-500 mb-3">
+                يمكنك إظهار أو إخفاء التخصصات، وتعديل لون ظهورها في جدول الخفارات، وإعادة ترتيبها بالسحب والإفلات. التعديل الأساسي للتخصصات متاح حصراً في المستودع العام للمالك.
             </p>
 
             <div id="specialties-items-container" class="space-y-1 max-h-80 overflow-y-auto mb-4 p-1">
@@ -588,11 +591,14 @@
 
             <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center gap-2 flex-wrap">
                 <div class="flex items-center gap-2 flex-wrap">
-                    <button type="button" onclick="openAddSpecialtyModal()" class="btn-gradient text-xs">
-                        <i class="fas fa-plus"></i> إضافة تخصص
+                    <button type="button" onclick="openAddHospitalSpecModal()" class="btn-gradient text-xs">
+                        <i class="fas fa-plus"></i> إضافة تخصص من المستودع
+                    </button>
+                    <button type="button" id="hosp-modal-owner-store-btn" onclick="openGlobalSpecialtiesModal()" class="btn-ghost text-xs text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800" style="display:none;">
+                        <i class="fas fa-crown ml-1"></i> المستودع العام 👑
                     </button>
                     <button type="button" onclick="syncWithGlobalSpecialties()" class="btn-ghost text-xs text-teal-700 dark:text-amber-400 border-teal-200 dark:border-amber-800/40" title="مزامنة التخصصات مع الدليل العام الموحد">
-                        <i class="fas fa-rotate"></i> مزامنة مع الدليل الموحد
+                        <i class="fas fa-rotate"></i> مزامنة
                     </button>
                 </div>
                 <button type="button" onclick="closeSpecialtiesModal()" class="btn-ghost text-xs">إغلاق</button>
@@ -600,41 +606,168 @@
         </div>
     </div>
 
-    <!-- ADD/EDIT SPECIALTY MODAL -->
-    <div id="single-specialty-modal" class="modal-overlay">
-        <div class="modal-card">
-            <h3 class="text-lg font-black mb-3" id="single-spec-modal-title">إضافة تخصص جديد</h3>
-            <input type="hidden" id="spec-edit-id" />
+    <!-- ADD SPECIALTY TO HOSPITAL MODAL -->
+    <div id="add-hospital-spec-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 480px;">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-lg font-black flex items-center gap-2">
+                    <i class="fas fa-plus-circle text-teal-600 dark:text-amber-400"></i> إضافة تخصص للمستشفى
+                </h3>
+                <button type="button" onclick="closeAddHospitalSpecModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">
+                اختر تخصصاً متوفراً من مستودع التخصصات العام لإضافته لهذا المستشفى وتعيين لون العرض في الجدول.
+            </p>
+            <input type="hidden" id="spec-add-to-global" value="true" />
             <div class="space-y-3">
-                <div id="spec-catalog-picker-wrap">
-                    <label class="block text-xs font-bold text-slate-500 mb-1">اختر من الدليل العام الموحد للتخصصات:</label>
-                    <select id="spec-catalog-select" onchange="onCatalogSpecSelected(this.value)" class="input-field text-xs mb-1">
-                        <!-- Populated from Hub.getGlobalSpecialties() -->
-                    </select>
-                </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">الاسم بالعربية</label>
-                    <input type="text" id="spec-name-ar" class="input-field" placeholder="مثال: الجراحة العامة" />
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">المعرف (رمز التخصص)</label>
-                    <input type="text" id="spec-id" class="input-field font-mono" placeholder="GS" maxlength="10" />
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">الأيقونة (Emoji)</label>
-                    <input type="text" id="spec-icon" class="input-field" placeholder="🏥" maxlength="2" />
+                    <label class="block text-xs font-bold text-slate-500 mb-1">اختر التخصص من المستودع العام:</label>
+                    <select id="add-hosp-spec-select" name="spec-catalog-select" class="input-field text-xs mb-1"></select>
                 </div>
                 <div class="flex gap-2 items-center">
-                    <label class="text-xs font-bold text-slate-500">لون التخصص:</label>
-                    <input type="color" id="spec-color" value="#0f766e" class="h-10 w-16 p-1 rounded-lg border border-slate-300 cursor-pointer" />
+                    <label class="text-xs font-bold text-slate-500">لون عرض التخصص في الجدول:</label>
+                    <input type="color" id="add-hosp-spec-color" value="#0f766e" class="h-10 w-16 p-1 rounded-lg border border-slate-300 dark:border-slate-700 cursor-pointer" />
                 </div>
-                <label id="spec-add-to-global-wrap" class="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer pt-1">
-                    <input type="checkbox" id="spec-add-to-global" checked class="w-4 h-4 accent-teal-600" />
-                    <span>حفظ التخصص في الدليل العام ليتاح لجميع المستشفيات</span>
-                </label>
                 <div class="flex gap-3 pt-3">
-                    <button type="button" onclick="saveSingleSpecialty()" class="flex-1 btn-gradient">حفظ</button>
-                    <button type="button" onclick="closeSingleSpecialtyModal()" class="btn-ghost">إلغاء</button>
+                    <button type="button" onclick="confirmAddHospitalSpecialty()" class="flex-1 btn-gradient">
+                        <i class="fas fa-plus ml-1"></i> إضافة للمستشفى
+                    </button>
+                    <button type="button" onclick="closeAddHospitalSpecModal()" class="btn-ghost">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OWNER MAIN SPECIALTY STORE MODAL (GENERAL SPECIALTIES) -->
+    <div id="global-specialties-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 760px;">
+            <div class="flex justify-between items-center mb-3">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-950/60 flex items-center justify-center text-purple-600 dark:text-purple-400 text-base">
+                        <i class="fas fa-crown"></i>
+                    </span>
+                    <div>
+                        <h3 class="text-xl font-black text-slate-800 dark:text-white">
+                            مستودع التخصصات العام (المتجر الرئيسي)
+                        </h3>
+                        <div class="text-xs text-purple-600 dark:text-purple-400 font-bold">صلاحيات المالك الحصرية · الدليل الموحد لجميع المستشفيات</div>
+                    </div>
+                </div>
+                <button type="button" onclick="closeGlobalSpecialtiesModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                المصدر المركزي الوحيد لكافة المستشفيات. يمكنك هنا تعديل الأسماء والمعرفات (مع تحديث تسلسلي شامل لكافة الأطباء وجداول الخفارات)، وضبط الفئات الفرعية (مثل العناية والعمليات كفروع للتخدير)، وتحديد مصادر سحب واستعارة الأطباء (Accept Pools). ألوان العرض تُخصص داخل كل مستشفى.
+            </p>
+
+            <div class="flex flex-wrap gap-2 items-center justify-between mb-3">
+                <div class="relative flex-1 min-w-[220px]">
+                    <i class="fas fa-search absolute right-3 top-3 text-slate-400 text-xs"></i>
+                    <input type="text" id="global-spec-search-input" oninput="renderGlobalSpecialtiesList()" placeholder="بحث عن تخصص بالاسم أو الرمز..." class="input-field text-xs pr-8" />
+                </div>
+                <button type="button" onclick="openGlobalSpecEditModal()" class="btn-gradient text-xs" style="background:linear-gradient(135deg,#7c3aed,#9333ea);">
+                    <i class="fas fa-plus ml-1"></i> إضافة تخصص عام جديد
+                </button>
+            </div>
+
+            <div id="global-specialties-items-container" class="space-y-1.5 max-h-96 overflow-y-auto mb-4 p-1">
+                <!-- Rendered dynamically -->
+            </div>
+
+            <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <span id="global-spec-count-badge" class="counter-badge">0 تخصص في المستودع</span>
+                <button type="button" onclick="closeGlobalSpecialtiesModal()" class="btn-ghost text-xs">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- OWNER GLOBAL SPECIALTY ADD / EDIT DIALOG -->
+    <div id="global-spec-edit-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 620px;">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-lg font-black flex items-center gap-2" id="global-spec-modal-title">
+                    <i class="fas fa-crown text-purple-600"></i> تعديل التخصص في المستودع العام
+                </h3>
+                <button type="button" onclick="closeGlobalSpecEditModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <input type="hidden" id="global-spec-orig-id" />
+
+            <div id="global-spec-cascade-alert" style="display:none;" class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700 text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2 mb-3">
+                <i class="fas fa-triangle-exclamation text-amber-500 mt-0.5 text-base"></i>
+                <div>
+                    <strong>تحديث تسلسلي تلقائي:</strong> عند تغيير رمز التخصص (ID)، سيقوم النظام تلقائياً بتحديث كافة الأطباء المقيمين المسجلين عليه، وتحديث سجلات الخفارات في جميع المستشفيات دون فقدان أي بيانات.
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">رمز التخصص (ID)</label>
+                        <input type="text" id="global-spec-id" class="input-field font-mono font-bold uppercase" placeholder="مثال: ICU أو D" maxlength="10" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">الأيقونة (Emoji)</label>
+                        <input type="text" id="global-spec-icon" class="input-field text-center text-xl" placeholder="🏥" maxlength="4" />
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">الاسم بالعربية</label>
+                        <input type="text" id="global-spec-name-ar" class="input-field" placeholder="مثال: تخدير العناية المركزة" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">الاسم بالإنجليزية</label>
+                        <input type="text" id="global-spec-name-en" class="input-field font-mono text-left" placeholder="مثال: ICU Anaesthesia" dir="ltr" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-purple-700 dark:text-purple-300 mb-1 flex items-center gap-1">
+                        <i class="fas fa-diagram-project"></i> التخصص الأب (Subcategory Parent):
+                    </label>
+                    <select id="global-spec-parent" class="input-field text-xs">
+                        <option value="">-- تخصص رئيسي مستقل (بدون تخصص أب) --</option>
+                    </select>
+                    <p class="text-[11px] text-slate-500 mt-1">
+                        عند اختيار تخصص أب (مثل التخدير A)، يصبح أطباء التخصص الأب مؤهلين تلقائياً لتغطية خفارات هذا التخصص في الجداول وبدائل الخفارة.
+                    </p>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-bold text-blue-700 dark:text-blue-300 flex items-center gap-1">
+                            <i class="fas fa-users-viewfinder"></i> مصادر سحب واستعارة الأطباء (Accept Pool):
+                        </label>
+                        <div class="flex gap-1">
+                            <button type="button" onclick="selectAllGlobalPool()" class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                تحديد الكل
+                            </button>
+                            <button type="button" onclick="clearAllGlobalPool()" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
+                                إلغاء التحديد
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mb-2">
+                        حدد التخصصات التي يمكن لهذا التخصص سحب أطباء منها لتغطية الخفارات (مثل شهادات الوفيات D والمعاون الإداري AO):
+                    </p>
+                    <div id="global-spec-pool-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-44 overflow-y-auto p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40">
+                        <!-- Populated dynamically with checkboxes -->
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-3">
+                    <button type="button" onclick="saveGlobalSpecEdit()" class="flex-1 btn-gradient" style="background:linear-gradient(135deg,#7c3aed,#9333ea);">
+                        <i class="fas fa-check ml-1"></i> حفظ في المستودع العام
+                    </button>
+                    <button type="button" onclick="closeGlobalSpecEditModal()" class="btn-ghost">إلغاء</button>
                 </div>
             </div>
         </div>
@@ -782,9 +915,18 @@
                 }
 
                 // Show Owner Edit Passwords button only if isOwner
+                const isOwner = Hub.auth.isOwner();
                 const ownerPwdBtn = document.getElementById('admin-owner-passwords-btn');
                 if (ownerPwdBtn) {
                     ownerPwdBtn.style.display = Hub.auth.isOwner() ? 'inline-flex' : 'none';
+                }
+                const ownerStoreBtn = document.getElementById('admin-owner-store-btn');
+                if (ownerStoreBtn) {
+                    ownerStoreBtn.style.display = isOwner ? 'inline-flex' : 'none';
+                }
+                const hospOwnerStoreBtn = document.getElementById('hosp-modal-owner-store-btn');
+                if (hospOwnerStoreBtn) {
+                    hospOwnerStoreBtn.style.display = isOwner ? 'inline-flex' : 'none';
                 }
 
                 populateSpecialtyDropdowns();
@@ -1116,8 +1258,15 @@
         // ============================================================
         // SPECIALTIES MANAGEMENT
         // ============================================================
+        // ============================================================
+        // SPECIALTIES MANAGEMENT (HOSPITAL & OWNER STORE)
+        // ============================================================
         function openSpecialtiesModal() {
             renderSpecialtiesList();
+            const hospOwnerStoreBtn = document.getElementById('hosp-modal-owner-store-btn');
+            if (hospOwnerStoreBtn) {
+                hospOwnerStoreBtn.style.display = Hub.auth.isOwner() ? 'inline-flex' : 'none';
+            }
             document.getElementById('specialties-modal').classList.add('active');
         }
 
@@ -1128,9 +1277,17 @@
         function renderSpecialtiesList() {
             const container = document.getElementById('specialties-items-container');
             const specs = currentHospital?.specialties || [];
+            const isOwner = Hub.auth.isOwner();
+
+            if (specs.length === 0) {
+                container.innerHTML = '<div class="p-4 text-center text-xs text-slate-400">لا توجد تخصصات مضافة لهذا المستشفى بعد.</div>';
+                return;
+            }
 
             container.innerHTML = specs.map((s, idx) => {
                 const isEnabled = s.enabled !== false;
+                const poolCount = Array.isArray(s.acceptPool) ? s.acceptPool.length : 0;
+
                 return `
                     <div class="specialty-item ${!isEnabled ? 'disabled-spec' : ''}"
                          draggable="true"
@@ -1141,28 +1298,62 @@
                          ondragleave="handleSpecDragLeave(event, ${idx})"
                          ondrop="handleSpecDrop(event, ${idx})"
                          ondragend="handleSpecDragEnd(event)">
-                        <span class="drag-handle text-slate-400 hover:text-teal-600 dark:hover:text-amber-400 p-1 text-base ml-1 cursor-grab" title="اسحب لتغيير الترتيب">
+                        <span class="drag-handle text-slate-400 hover:text-teal-600 dark:hover:text-amber-400 p-1 text-base ml-1 cursor-grab" title="اسحب لتغيير ترتيب الظهور في الجدول">
                             <i class="fas fa-grip-vertical"></i>
                         </span>
-                        <span class="text-xl w-7 text-center">${s.icon || '🏥'}</span>
+                        <span class="text-xl w-7 text-center flex-shrink-0">${s.icon || '🏥'}</span>
                         <span class="font-mono text-xs font-bold text-slate-400 w-10">${s.id}</span>
-                        <span class="spec-name font-bold text-sm flex-1">${s.name_ar}</span>
-                        <span class="w-4 h-4 rounded-full border" style="background:${s.color || '#0f766e'};"></span>
+                        <span class="spec-name font-bold text-sm flex-1 truncate">${s.name_ar}</span>
 
-                        <label class="toggle-switch-compact ml-2" title="إظهار / إخفاء">
+                        ${s.parentSpec ? `
+                            <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800" title="فئة فرعية من التخصص الأب">
+                                فرعي من: ${s.parentSpec}
+                            </span>
+                        ` : ''}
+                        ${poolCount > 0 ? `
+                            <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800" title="يسحب أطباء من ${poolCount} تخصص">
+                                يسحب من ${poolCount}
+                            </span>
+                        ` : ''}
+
+                        <!-- Hospital Display Color Picker -->
+                        <input type="color"
+                               value="${s.color || '#0f766e'}"
+                               onchange="changeHospitalSpecColor('${s.id}', this.value)"
+                               class="h-7 w-9 p-0.5 rounded-md border border-slate-300 dark:border-slate-700 cursor-pointer flex-shrink-0"
+                               title="تعديل لون عرض التخصص في جدول الخفارات" />
+
+                        <!-- Show / Hide iOS Switch -->
+                        <label class="toggle-switch-compact ml-1" title="${isEnabled ? 'ظاهر في الجدول' : 'مخفي من الجدول'}">
                             <input type="checkbox" ${isEnabled ? 'checked' : ''} onchange="toggleSpecEnabled('${s.id}', this.checked)" />
                             <span class="toggle-slider-compact"></span>
                         </label>
 
-                        <button type="button" onclick="openEditSpecialty('${s.id}')" class="p-1 px-2 text-xs rounded text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30" title="تعديل">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button type="button" onclick="deleteSpecialty('${s.id}', '${s.name_ar}')" class="p-1 px-2 text-xs rounded text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30" title="حذف">
+                        ${isOwner ? `
+                            <button type="button" onclick="openGlobalSpecEditModal('${s.id}')" class="p-1 px-2 text-xs rounded text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/30" title="تعديل في المستودع العام للمالك 👑">
+                                <i class="fas fa-crown"></i>
+                            </button>
+                        ` : ''}
+
+                        <button type="button" onclick="removeHospitalSpecialty('${s.id}', '${s.name_ar}')" class="p-1 px-2 text-xs rounded text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30" title="إزالة من هذا المستشفى">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
                 `;
             }).join('');
+        }
+
+        async function changeHospitalSpecColor(specId, newColor) {
+            try {
+                await Hub.updateHospitalSpecialty(currentHospital.id, specId, { color: newColor });
+                currentHospital = Hub.getActiveHospital();
+                renderSpecialtiesList();
+                renderResidentsAccordion();
+                showToast('تم تحديث لون التخصص في جدول الخفارات', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'خطأ أثناء تغيير اللون', 'error');
+            }
         }
 
         let draggedSpecIdx = null;
@@ -1219,22 +1410,6 @@
             });
         }
 
-        async function moveSpecialty(index, delta) {
-            const specs = currentHospital?.specialties;
-            if (!specs) return;
-            const targetIndex = index + delta;
-            if (targetIndex < 0 || targetIndex >= specs.length) return;
-
-            const [moved] = specs.splice(index, 1);
-            specs.splice(targetIndex, 0, moved);
-
-            renderSpecialtiesList();
-            renderResidentsAccordion();
-            populateSpecialtyDropdowns();
-            showToast(`تم تغيير ترتيب تخصص: ${moved.name_ar}`, 'info');
-            await Hub.saveDatabase(`Reorder specialty ${moved.name_ar} in ${currentHospital.hospitalName}`);
-        }
-
         async function toggleSpecEnabled(specId, checked) {
             const s = (currentHospital?.specialties || []).find(x => x.id === specId);
             if (s) {
@@ -1242,9 +1417,26 @@
                 renderSpecialtiesList();
                 renderResidentsAccordion();
                 populateSpecialtyDropdowns();
-                showToast(checked ? 'تم تفعيل التخصص' : 'تم إخفاء التخصص', 'info');
+                showToast(checked ? 'تم تفعيل التخصص في المستشفى' : 'تم إخفاء التخصص من المستشفى', 'info');
                 await Hub.saveDatabase(`Toggle specialty ${specId}: ${checked}`);
             }
+        }
+
+        async function removeHospitalSpecialty(specId, name) {
+            const inUse = (currentHospital.names || []).some(r => r.spec === specId || r.tag === specId);
+            if (inUse) {
+                showToast(`لا يمكن إزالة تخصص "${name}" لوجود أطباء مسجلين عليه في هذا المستشفى. يمكنك إخفاؤه بدلاً من ذلك.`, 'error');
+                return;
+            }
+            if (!confirm(`هل أنت متأكد من إزالة التخصص "${name}" من هذا المستشفى؟ (سيبقى التخصص محفوظاً في المستودع العام)`)) return;
+
+            currentHospital.specialties = (currentHospital.specialties || []).filter(s => s.id !== specId);
+            renderSpecialtiesList();
+            renderResidentsAccordion();
+            populateSpecialtyDropdowns();
+            updateStatsBadges();
+            showToast(`تمت إزالة ${name} من المستشفى`, 'info');
+            await Hub.saveDatabase(`Remove specialty ${specId} from ${currentHospital.hospitalName}`);
         }
 
         async function syncWithGlobalSpecialties() {
@@ -1263,148 +1455,291 @@
             }
         }
 
-        function populateCatalogSelect() {
-            const select = document.getElementById('spec-catalog-select');
+        // ============================================================
+        // ADD SPECIALTY TO HOSPITAL (FROM GLOBAL STORE ONLY)
+        // ============================================================
+        function openAddHospitalSpecModal() {
+            const select = document.getElementById('add-hosp-spec-select');
             if (!select) return;
+
             const globals = Hub.getGlobalSpecialties ? Hub.getGlobalSpecialties() : [];
-            const existingIds = new Set((currentHospital?.specialties || []).map(s => s.id));
-            
-            let html = '<option value="">-- اختر من الدليل الموحد (29 تخصص) --</option>';
-            globals.forEach(g => {
-                const isAdded = existingIds.has(g.id);
-                html += `<option value="${g.id}">${g.icon || '🏥'} ${g.name_ar} [${g.id}] ${isAdded ? '(مضاف بالفعل)' : ''}</option>`;
-            });
-            html += '<option value="__custom__">➕ تخصص جديد غير موجود في الدليل...</option>';
-            select.innerHTML = html;
-        }
+            const currentIds = new Set((currentHospital?.specialties || []).map(s => s.id));
+            const available = globals.filter(g => !currentIds.has(g.id));
 
-        function onCatalogSpecSelected(val) {
-            if (!val || val === '__custom__') {
-                document.getElementById('spec-name-ar').value = '';
-                document.getElementById('spec-id').value = '';
-                document.getElementById('spec-id').disabled = false;
-                document.getElementById('spec-icon').value = '🏥';
-                document.getElementById('spec-color').value = '#0f766e';
-                return;
-            }
-            const globals = Hub.getGlobalSpecialties ? Hub.getGlobalSpecialties() : [];
-            const found = globals.find(g => g.id === val);
-            if (found) {
-                document.getElementById('spec-name-ar').value = found.name_ar;
-                document.getElementById('spec-id').value = found.id;
-                document.getElementById('spec-id').disabled = true;
-                document.getElementById('spec-icon').value = found.icon || '🏥';
-                document.getElementById('spec-color').value = found.color || '#0f766e';
-            }
-        }
-
-        function openAddSpecialtyModal() {
-            document.getElementById('single-spec-modal-title').textContent = 'إضافة تخصص جديد';
-            document.getElementById('spec-edit-id').value = '';
-            document.getElementById('spec-name-ar').value = '';
-            document.getElementById('spec-id').value = '';
-            document.getElementById('spec-id').disabled = false;
-            document.getElementById('spec-icon').value = '🏥';
-            document.getElementById('spec-color').value = '#0f766e';
-            const catalogWrap = document.getElementById('spec-catalog-picker-wrap');
-            if (catalogWrap) catalogWrap.style.display = 'block';
-            const addToGlobalWrap = document.getElementById('spec-add-to-global-wrap');
-            if (addToGlobalWrap) addToGlobalWrap.style.display = 'flex';
-            populateCatalogSelect();
-            document.getElementById('single-specialty-modal').classList.add('active');
-        }
-
-        function openEditSpecialty(id) {
-            const s = (currentHospital?.specialties || []).find(x => x.id === id);
-            if (!s) return;
-
-            document.getElementById('single-spec-modal-title').textContent = 'تعديل التخصص';
-            document.getElementById('spec-edit-id').value = id;
-            document.getElementById('spec-name-ar').value = s.name_ar;
-            document.getElementById('spec-id').value = s.id;
-            document.getElementById('spec-id').disabled = true;
-            document.getElementById('spec-icon').value = s.icon || '🏥';
-            document.getElementById('spec-color').value = s.color || '#0f766e';
-            const catalogWrap = document.getElementById('spec-catalog-picker-wrap');
-            if (catalogWrap) catalogWrap.style.display = 'none';
-            const addToGlobalWrap = document.getElementById('spec-add-to-global-wrap');
-            if (addToGlobalWrap) addToGlobalWrap.style.display = 'none';
-            document.getElementById('single-specialty-modal').classList.add('active');
-        }
-
-        function closeSingleSpecialtyModal() {
-            document.getElementById('single-specialty-modal').classList.remove('active');
-        }
-
-        async function saveSingleSpecialty() {
-            const editId = document.getElementById('spec-edit-id').value;
-            const name = document.getElementById('spec-name-ar').value.trim();
-            const id = document.getElementById('spec-id').value.trim().toUpperCase();
-            const icon = document.getElementById('spec-icon').value.trim() || '🏥';
-            const color = document.getElementById('spec-color').value;
-            const addToGlobal = document.getElementById('spec-add-to-global')?.checked;
-
-            if (!name || !id) {
-                showToast('الرجاء إدخال الاسم والمعرف', 'error');
-                return;
-            }
-
-            if (!editId) {
-                if ((currentHospital.specialties || []).some(s => s.id === id)) {
-                    showToast('رمز التخصص مستخدم بالفعل في هذا المستشفى', 'error');
-                    return;
-                }
-                currentHospital.specialties.push({
-                    id, name_ar: name, name_en: name, icon, color, acceptPool: [], enabled: true
-                });
-
-                if (addToGlobal && Hub.getGlobalSpecialties) {
-                    const globals = Hub.getGlobalSpecialties();
-                    if (!globals.some(g => g.id === id)) {
-                        globals.push({ id, name_ar: name, name_en: name, icon, color, enabled: true });
-                        await Hub.saveGlobalSpecialties(globals);
-                    }
-                }
+            if (available.length === 0) {
+                select.innerHTML = '<option value="">جميع تخصصات المستودع العام مضافة بالفعل لهذا المستشفى</option>';
             } else {
-                const s = currentHospital.specialties.find(x => x.id === editId);
-                if (s) {
-                    s.name_ar = name;
-                    s.icon = icon;
-                    s.color = color;
-                }
-                if (Hub.getGlobalSpecialties) {
-                    const globals = Hub.getGlobalSpecialties();
-                    const g = globals.find(x => x.id === editId);
-                    if (g) {
-                        g.name_ar = name;
-                        g.icon = icon;
-                        g.color = color;
-                    }
-                }
+                select.innerHTML = '<option value="">-- اختر تخصصاً من المستودع العام --</option>' + available.map(g => `
+                    <option value="${g.id}">${g.icon || '🏥'} ${g.name_ar} [${g.id}] ${g.parentSpec ? '(فرعي من ' + g.parentSpec + ')' : ''}</option>
+                `).join('');
             }
 
-            closeSingleSpecialtyModal();
-            renderSpecialtiesList();
-            renderResidentsAccordion();
-            populateSpecialtyDropdowns();
-            showToast('تم حفظ التخصص بنجاح', 'success');
-            await Hub.saveDatabase(`Save specialty: ${id}`);
+            document.getElementById('add-hosp-spec-color').value = '#0f766e';
+            document.getElementById('add-hospital-spec-modal').classList.add('active');
         }
 
-        async function deleteSpecialty(id, name) {
-            const inUse = (currentHospital.names || []).some(r => r.spec === id || r.tag === id);
-            if (inUse) {
-                showToast('لا يمكن حذف تخصص مسجل به مقيمين', 'error');
+        function closeAddHospitalSpecModal() {
+            document.getElementById('add-hospital-spec-modal').classList.remove('active');
+        }
+
+        async function confirmAddHospitalSpecialty() {
+            const select = document.getElementById('add-hosp-spec-select');
+            const specId = select.value;
+            const color = document.getElementById('add-hosp-spec-color').value || '#0f766e';
+
+            if (!specId) {
+                showToast('الرجاء اختيار تخصص من المستودع العام', 'error');
                 return;
             }
-            if (!confirm(`هل أنت متأكد من حذف التخصص "${name}"؟`)) return;
 
-            currentHospital.specialties = currentHospital.specialties.filter(s => s.id !== id);
-            renderSpecialtiesList();
-            renderResidentsAccordion();
-            populateSpecialtyDropdowns();
-            showToast(`تم حذف ${name}`, 'info');
-            await Hub.saveDatabase(`Delete specialty: ${id}`);
+            try {
+                await Hub.addHospitalSpecialtyFromGlobal(currentHospital.id, specId, color);
+                currentHospital = Hub.getActiveHospital();
+                closeAddHospitalSpecModal();
+                renderSpecialtiesList();
+                renderResidentsAccordion();
+                populateSpecialtyDropdowns();
+                updateStatsBadges();
+                showToast('تمت إضافة التخصص للمستشفى بنجاح', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'خطأ أثناء إضافة التخصص للمستشفى', 'error');
+            }
+        }
+
+        // Legacy aliases
+        function openAddSpecialtyModal() { openAddHospitalSpecModal(); }
+        function openEditSpecialty(id) { if (Hub.auth.isOwner()) openGlobalSpecEditModal(id); }
+        function populateCatalogSelect() { return openAddHospitalSpecModal(); }
+        function onCatalogSpecSelected() {}
+
+        // ============================================================
+        // OWNER MAIN SPECIALTY STORE CONTROLLER
+        // ============================================================
+        function openGlobalSpecialtiesModal() {
+            if (!Hub.auth.isOwner()) {
+                showToast('مستودع التخصصات العام مخصص للمالك (Owner) فقط', 'error');
+                return;
+            }
+            renderGlobalSpecialtiesList();
+            document.getElementById('global-specialties-modal').classList.add('active');
+        }
+
+        function closeGlobalSpecialtiesModal() {
+            document.getElementById('global-specialties-modal').classList.remove('active');
+        }
+
+        function renderGlobalSpecialtiesList() {
+            const container = document.getElementById('global-specialties-items-container');
+            const searchInput = document.getElementById('global-spec-search-input');
+            const q = (searchInput?.value || '').trim().toLowerCase();
+
+            const globals = Hub.getGlobalSpecialties ? Hub.getGlobalSpecialties() : [];
+            const countBadge = document.getElementById('global-spec-count-badge');
+            if (countBadge) countBadge.textContent = `${globals.length} تخصص في المستودع العام`;
+
+            const filtered = globals.filter(s => {
+                if (!q) return true;
+                return (s.id && s.id.toLowerCase().includes(q)) ||
+                       (s.name_ar && s.name_ar.toLowerCase().includes(q)) ||
+                       (s.name_en && s.name_en.toLowerCase().includes(q));
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">لا توجد نتائج مطابقة للبحث "${q}"</div>`;
+                return;
+            }
+
+            const globalMap = new Map(globals.map(s => [s.id, s]));
+
+            container.innerHTML = filtered.map(s => {
+                const parentObj = s.parentSpec ? globalMap.get(s.parentSpec) : null;
+                const parentLabel = parentObj ? `${parentObj.name_ar} (${s.parentSpec})` : s.parentSpec;
+                const poolCount = Array.isArray(s.acceptPool) ? s.acceptPool.length : 0;
+
+                return `
+                    <div class="specialty-item flex items-center justify-between gap-3 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/50">
+                        <div class="flex items-center gap-2.5 flex-1 min-w-0">
+                            <span class="text-xl w-8 text-center flex-shrink-0">${s.icon || '🏥'}</span>
+                            <span class="font-mono text-xs font-black px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex-shrink-0">${s.id}</span>
+                            <div class="min-w-0 flex-1">
+                                <div class="font-bold text-xs text-slate-800 dark:text-white truncate">${s.name_ar}</div>
+                                <div class="text-[10px] text-slate-400 font-mono truncate" dir="ltr">${s.name_en || ''}</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                            ${s.parentSpec ? `
+                                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800" title="فئة فرعية من التخصص الأب">
+                                    <i class="fas fa-diagram-project ml-1"></i> فرعي من ${parentLabel}
+                                </span>
+                            ` : ''}
+                            ${poolCount > 0 ? `
+                                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800" title="يسحب أطباء من ${poolCount} تخصص">
+                                    <i class="fas fa-users-viewfinder ml-1"></i> يسحب من ${poolCount}
+                                </span>
+                            ` : ''}
+
+                            <button type="button" onclick="openGlobalSpecEditModal('${s.id}')" class="p-1 px-2.5 text-xs font-bold rounded-lg text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 border border-purple-200 dark:border-purple-800 flex items-center gap-1">
+                                <i class="fas fa-edit"></i> تعديل
+                            </button>
+                            <button type="button" onclick="deleteGlobalSpec('${s.id}', '${s.name_ar}')" class="p-1 px-2 text-xs rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 border border-red-200 dark:border-red-900/30" title="حذف التخصص من المستودع العام">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openGlobalSpecEditModal(specId) {
+            if (!Hub.auth.isOwner()) {
+                showToast('تعديل المستودع العام مخصص للمالك حصراً', 'error');
+                return;
+            }
+
+            const globals = Hub.getGlobalSpecialties ? Hub.getGlobalSpecialties() : [];
+            const target = specId ? globals.find(s => s.id === specId) : null;
+
+            document.getElementById('global-spec-orig-id').value = target ? target.id : '';
+            document.getElementById('global-spec-id').value = target ? target.id : '';
+            document.getElementById('global-spec-name-ar').value = target ? target.name_ar : '';
+            document.getElementById('global-spec-name-en').value = target ? (target.name_en || '') : '';
+            document.getElementById('global-spec-icon').value = target ? (target.icon || '🏥') : '🏥';
+
+            const titleEl = document.getElementById('global-spec-modal-title');
+            const alertEl = document.getElementById('global-spec-cascade-alert');
+
+            if (target) {
+                titleEl.innerHTML = `<i class="fas fa-crown text-purple-600"></i> تعديل التخصص [${target.id}] في المستودع العام`;
+                alertEl.style.display = 'flex';
+            } else {
+                titleEl.innerHTML = `<i class="fas fa-crown text-purple-600"></i> إضافة تخصص عام جديد للمستودع`;
+                alertEl.style.display = 'none';
+            }
+
+            // Populate Parent Specialty Dropdown
+            const parentSelect = document.getElementById('global-spec-parent');
+            let parentHtml = '<option value="">-- تخصص رئيسي مستقل (بدون تخصص أب) --</option>';
+            globals.forEach(g => {
+                if (!target || g.id !== target.id) {
+                    const selected = (target && target.parentSpec === g.id) ? 'selected' : '';
+                    parentHtml += `<option value="${g.id}" ${selected}>${g.icon || '🏥'} ${g.name_ar} [${g.id}]</option>`;
+                }
+            });
+            parentSelect.innerHTML = parentHtml;
+
+            // Populate Accept Pool Checkbox Grid
+            const poolGrid = document.getElementById('global-spec-pool-grid');
+            const targetPool = (target && Array.isArray(target.acceptPool)) ? target.acceptPool : [];
+            let poolHtml = '';
+            globals.forEach(g => {
+                if (!target || g.id !== target.id) {
+                    const checked = targetPool.includes(g.id) ? 'checked' : '';
+                    poolHtml += `
+                        <label class="flex items-center gap-1.5 p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 hover:border-purple-400 cursor-pointer text-[11px] font-semibold select-none">
+                            <input type="checkbox" value="${g.id}" ${checked} class="w-3.5 h-3.5 rounded accent-purple-600 global-pool-checkbox" />
+                            <span class="truncate">${g.icon || '🏥'} ${g.name_ar}</span>
+                            <span class="font-mono text-[9px] text-slate-400">(${g.id})</span>
+                        </label>
+                    `;
+                }
+            });
+            poolGrid.innerHTML = poolHtml;
+
+            document.getElementById('global-spec-edit-modal').classList.add('active');
+        }
+
+        function closeGlobalSpecEditModal() {
+            document.getElementById('global-spec-edit-modal').classList.remove('active');
+        }
+
+        function selectAllGlobalPool() {
+            document.querySelectorAll('.global-pool-checkbox').forEach(cb => cb.checked = true);
+        }
+
+        function clearAllGlobalPool() {
+            document.querySelectorAll('.global-pool-checkbox').forEach(cb => cb.checked = false);
+        }
+
+        async function saveGlobalSpecEdit() {
+            if (!Hub.auth.isOwner()) {
+                showToast('هذه العملية تتطلب صلاحيات المالك', 'error');
+                return;
+            }
+
+            const origId = document.getElementById('global-spec-orig-id').value;
+            const id = document.getElementById('global-spec-id').value.trim().toUpperCase();
+            const nameAr = document.getElementById('global-spec-name-ar').value.trim();
+            const nameEn = document.getElementById('global-spec-name-en').value.trim() || nameAr;
+            const icon = document.getElementById('global-spec-icon').value.trim() || '🏥';
+            const parentSpec = document.getElementById('global-spec-parent').value || null;
+
+            const checkedBoxes = document.querySelectorAll('.global-pool-checkbox:checked');
+            const acceptPool = Array.from(checkedBoxes).map(cb => cb.value);
+
+            if (!id || !nameAr) {
+                showToast('رمز التخصص واسم التخصص بالعربية حقول مطلوبة', 'error');
+                return;
+            }
+
+            try {
+                if (origId) {
+                    await Hub.updateGlobalSpecialty(origId, {
+                        id,
+                        name_ar: nameAr,
+                        name_en: nameEn,
+                        icon,
+                        parentSpec,
+                        acceptPool
+                    });
+                    showToast(`تم تحديث التخصص "${nameAr}" في المستودع العام وتحديث كافة المراجع بنجاح`, 'success');
+                } else {
+                    await Hub.addGlobalSpecialty({
+                        id,
+                        name_ar: nameAr,
+                        name_en: nameEn,
+                        icon,
+                        parentSpec,
+                        acceptPool
+                    });
+                    showToast(`تمت إضافة التخصص "${nameAr}" إلى المستودع العام بنجاح`, 'success');
+                }
+
+                currentHospital = Hub.getActiveHospital();
+                closeGlobalSpecEditModal();
+                renderGlobalSpecialtiesList();
+                renderSpecialtiesList();
+                renderResidentsAccordion();
+                populateSpecialtyDropdowns();
+                updateStatsBadges();
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'خطأ أثناء حفظ التخصص في المستودع', 'error');
+            }
+        }
+
+        async function deleteGlobalSpec(specId, name) {
+            if (!Hub.auth.isOwner()) {
+                showToast('حذف التخصص من المستودع العام مخصص للمالك حصراً', 'error');
+                return;
+            }
+            if (!confirm(`تحذير هام: هل أنت متأكد من حذف التخصص "${name}" [${specId}] نهائياً من المستودع العام ومن كافة المستشفيات؟`)) {
+                return;
+            }
+            try {
+                await Hub.deleteGlobalSpecialty(specId);
+                currentHospital = Hub.getActiveHospital();
+                renderGlobalSpecialtiesList();
+                renderSpecialtiesList();
+                renderResidentsAccordion();
+                populateSpecialtyDropdowns();
+                updateStatsBadges();
+                showToast(`تم حذف التخصص "${name}" من المستودع العام بنجاح`, 'info');
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'تعذر حذف التخصص', 'error');
+            }
         }
 
         // ============================================================

@@ -27,7 +27,9 @@
           "name_en": "Neurosurgery",
           "icon": "🧠",
           "color": "#fea101",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "CT",
@@ -35,7 +37,9 @@
           "name_en": "Cardiothoracic Surgery",
           "icon": "🫀",
           "color": "#e05910",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "GS",
@@ -43,7 +47,9 @@
           "name_en": "General Surgery",
           "icon": "🔪",
           "color": "#2ac200",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "US",
@@ -51,7 +57,9 @@
           "name_en": "Urosurgery",
           "icon": "🫘",
           "color": "#e66551",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "ENT",
@@ -59,7 +67,9 @@
           "name_en": "ENT",
           "icon": "👂",
           "color": "#fbff00",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "OP",
@@ -67,7 +77,11 @@
           "name_en": "OT Anaesthesia",
           "icon": "💉",
           "color": "#b4cc00",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ]
         },
         {
           "id": "ICU",
@@ -75,7 +89,11 @@
           "name_en": "ICU Anaesthesia",
           "icon": "💉",
           "color": "#c9e141",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ]
         },
         {
           "id": "ON",
@@ -83,7 +101,9 @@
           "name_en": "Oncology",
           "icon": "☢️",
           "color": "#84cc16",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "R",
@@ -91,7 +111,9 @@
           "name_en": "Radiology",
           "icon": "🩻",
           "color": "#6700e6",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "D",
@@ -99,7 +121,37 @@
           "name_en": "Death Certificates",
           "icon": "⚰️",
           "color": "#bababa",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": [
+            "NS",
+            "CT",
+            "GS",
+            "OR",
+            "US",
+            "ENT",
+            "MF",
+            "O",
+            "Pe",
+            "M",
+            "G",
+            "ICU",
+            "OP",
+            "GA",
+            "A",
+            "R",
+            "ON",
+            "N",
+            "NM",
+            "P",
+            "Der",
+            "EM",
+            "FM",
+            "GP",
+            "H",
+            "PS",
+            "RM"
+          ]
         },
         {
           "id": "G",
@@ -107,7 +159,9 @@
           "name_en": "Gynecology",
           "icon": "🤰",
           "color": "#e40de7",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "A",
@@ -115,7 +169,9 @@
           "name_en": "Anaesthesia & Intensive Care",
           "icon": "💉",
           "color": "#ff8e24",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "GA",
@@ -123,7 +179,11 @@
           "name_en": "GYN Anaesthesia",
           "icon": "🤰",
           "color": "#fe62ad",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ]
         },
         {
           "id": "O",
@@ -131,7 +191,9 @@
           "name_en": "Ophthalmology",
           "icon": "👁️",
           "color": "#38ffe8",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "M",
@@ -139,7 +201,9 @@
           "name_en": "Internal Medicine",
           "icon": "💊",
           "color": "#a1e972",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "P",
@@ -147,7 +211,9 @@
           "name_en": "Psychiatry",
           "icon": "🧠",
           "color": "#fef606",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "N",
@@ -155,7 +221,9 @@
           "name_en": "Nephrology",
           "icon": "🧫",
           "color": "#ff5ccb",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "Pe",
@@ -163,7 +231,9 @@
           "name_en": "Paediatrics",
           "icon": "👶",
           "color": "#3dff6e",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "NM",
@@ -171,7 +241,9 @@
           "name_en": "Neuromedicine",
           "icon": "🧠",
           "color": "#79e9f1",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "Der",
@@ -179,7 +251,9 @@
           "name_en": "Dermatology",
           "icon": "🏥",
           "color": "#e27ef6",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "MF",
@@ -187,7 +261,9 @@
           "name_en": "MaxilloFacial Surgery",
           "icon": "🦷",
           "color": "#d600af",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "EM",
@@ -195,7 +271,9 @@
           "name_en": "Emergency Medicine",
           "icon": "🏥",
           "color": "#8cb3ed",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "FM",
@@ -203,7 +281,9 @@
           "name_en": "Family Medicine",
           "icon": "👨",
           "color": "#f4f67e",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "GP",
@@ -211,7 +291,9 @@
           "name_en": "General Practitioner",
           "icon": "🏥",
           "color": "#627ae4",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "OR",
@@ -219,7 +301,9 @@
           "name_en": "Orthopaedics",
           "icon": "🦴",
           "color": "#ff0000",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "H",
@@ -227,7 +311,9 @@
           "name_en": "Cardiology",
           "icon": "🫀",
           "color": "#c91d70",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "PS",
@@ -235,7 +321,9 @@
           "name_en": "Plastic Surgery",
           "icon": "🪡",
           "color": "#2563eb",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "RM",
@@ -243,7 +331,9 @@
           "name_en": "Respiratory Medicine",
           "icon": "🫁",
           "color": "#3bb8f7",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "AO",
@@ -251,7 +341,37 @@
           "name_en": "Administrative Officer",
           "icon": "🧑",
           "color": "#0f766e",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": [
+            "NS",
+            "CT",
+            "GS",
+            "OR",
+            "US",
+            "ENT",
+            "MF",
+            "O",
+            "Pe",
+            "M",
+            "G",
+            "ICU",
+            "OP",
+            "GA",
+            "A",
+            "R",
+            "ON",
+            "N",
+            "NM",
+            "P",
+            "Der",
+            "EM",
+            "FM",
+            "GP",
+            "H",
+            "PS",
+            "RM"
+          ]
         }
       ],
       "names": [
@@ -19999,7 +20119,9 @@
           "name_en": "MaxilloFacial Surgery",
           "icon": "🦷",
           "color": "#d600af",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "GS",
@@ -20007,7 +20129,9 @@
           "name_en": "General Surgery",
           "icon": "🔪",
           "color": "#2ac200",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "OR",
@@ -20015,7 +20139,9 @@
           "name_en": "Orthopaedics",
           "icon": "🦴",
           "color": "#ff0000",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "US",
@@ -20023,7 +20149,9 @@
           "name_en": "Urosurgery",
           "icon": "🫘",
           "color": "#e66551",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "ENT",
@@ -20031,7 +20159,9 @@
           "name_en": "ENT",
           "icon": "👂",
           "color": "#fbff00",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "O",
@@ -20039,7 +20169,9 @@
           "name_en": "Ophthalmology",
           "icon": "👁️",
           "color": "#38ffe8",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "Pe",
@@ -20047,7 +20179,9 @@
           "name_en": "Paediatrics",
           "icon": "👶",
           "color": "#3dff6e",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "NM",
@@ -20055,7 +20189,9 @@
           "name_en": "Neuromedicine",
           "icon": "🧠",
           "color": "#79e9f1",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "N",
@@ -20063,7 +20199,9 @@
           "name_en": "Nephrology",
           "icon": "🧫",
           "color": "#ff5ccb",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "M",
@@ -20071,7 +20209,9 @@
           "name_en": "Internal Medicine",
           "icon": "💊",
           "color": "#a1e972",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "G",
@@ -20079,7 +20219,9 @@
           "name_en": "Gynecology",
           "icon": "🤰",
           "color": "#e40de7",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "P",
@@ -20087,7 +20229,9 @@
           "name_en": "Psychiatry",
           "icon": "🧠",
           "color": "#fef606",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "ICU",
@@ -20095,7 +20239,11 @@
           "name_en": "ICU Anaesthesia",
           "icon": "💉",
           "color": "#c9e141",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ]
         },
         {
           "id": "OP",
@@ -20103,7 +20251,11 @@
           "name_en": "OT Anaesthesia",
           "icon": "💉",
           "color": "#b4cc00",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ]
         },
         {
           "id": "GA",
@@ -20111,7 +20263,11 @@
           "name_en": "GYN Anaesthesia",
           "icon": "🤰",
           "color": "#fe62ad",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ]
         },
         {
           "id": "R",
@@ -20119,7 +20275,9 @@
           "name_en": "Radiology",
           "icon": "🩻",
           "color": "#6700e6",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "D",
@@ -20127,7 +20285,37 @@
           "name_en": "Death Certificates",
           "icon": "⚰️",
           "color": "#bababa",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": [
+            "NS",
+            "CT",
+            "GS",
+            "OR",
+            "US",
+            "ENT",
+            "MF",
+            "O",
+            "Pe",
+            "M",
+            "G",
+            "ICU",
+            "OP",
+            "GA",
+            "A",
+            "R",
+            "ON",
+            "N",
+            "NM",
+            "P",
+            "Der",
+            "EM",
+            "FM",
+            "GP",
+            "H",
+            "PS",
+            "RM"
+          ]
         },
         {
           "id": "AO",
@@ -20135,7 +20323,37 @@
           "name_en": "Administrative Officer",
           "icon": "🧑",
           "color": "#2563eb",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": [
+            "NS",
+            "CT",
+            "GS",
+            "OR",
+            "US",
+            "ENT",
+            "MF",
+            "O",
+            "Pe",
+            "M",
+            "G",
+            "ICU",
+            "OP",
+            "GA",
+            "A",
+            "R",
+            "ON",
+            "N",
+            "NM",
+            "P",
+            "Der",
+            "EM",
+            "FM",
+            "GP",
+            "H",
+            "PS",
+            "RM"
+          ]
         },
         {
           "id": "ON",
@@ -20143,7 +20361,9 @@
           "name_en": "Oncology",
           "icon": "☢️",
           "color": "#84cc16",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "A",
@@ -20151,7 +20371,9 @@
           "name_en": "Anaesthesia & Intensive Care",
           "icon": "💉",
           "color": "#ff8e24",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "Der",
@@ -20159,7 +20381,9 @@
           "name_en": "Dermatology",
           "icon": "🏥",
           "color": "#e27ef6",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "EM",
@@ -20167,7 +20391,9 @@
           "name_en": "Emergency Medicine",
           "icon": "🏥",
           "color": "#9a5ce6",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "FM",
@@ -20175,7 +20401,9 @@
           "name_en": "Family Medicine",
           "icon": "👨",
           "color": "#78edb8",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "GP",
@@ -20183,7 +20411,9 @@
           "name_en": "General Practitioner",
           "icon": "🏥",
           "color": "#627ae4",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "H",
@@ -20191,7 +20421,9 @@
           "name_en": "Cardiology",
           "icon": "🫀",
           "color": "#c91d70",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "PS",
@@ -20199,7 +20431,9 @@
           "name_en": "Plastic Surgery",
           "icon": "🪡",
           "color": "#2563eb",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "RM",
@@ -20207,7 +20441,9 @@
           "name_en": "Respiratory Medicine",
           "icon": "🫁",
           "color": "#3bb8f7",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "NS",
@@ -20215,7 +20451,9 @@
           "name_en": "Neurosurgery",
           "icon": "🧠",
           "color": "#fea101",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "CT",
@@ -20223,7 +20461,9 @@
           "name_en": "Cardiothoracic Surgery",
           "icon": "🫀",
           "color": "#e05910",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         }
       ],
       "names": [
@@ -31273,7 +31513,9 @@
           "name_en": "Neurosurgery",
           "icon": "🧠",
           "color": "#fea101",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "GS",
@@ -31281,7 +31523,9 @@
           "name_en": "General Surgery",
           "icon": "🔪",
           "color": "#2ac200",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "OR",
@@ -31289,7 +31533,9 @@
           "name_en": "Orthopaedics",
           "icon": "🦴",
           "color": "#ff0000",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "US",
@@ -31297,7 +31543,9 @@
           "name_en": "Urosurgery",
           "icon": "🫘",
           "color": "#e66551",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "ENT",
@@ -31305,7 +31553,9 @@
           "name_en": "ENT",
           "icon": "👂",
           "color": "#fbff00",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "MF",
@@ -31313,7 +31563,9 @@
           "name_en": "MaxilloFacial Surgery",
           "icon": "🦷",
           "color": "#d600af",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "O",
@@ -31321,7 +31573,9 @@
           "name_en": "Ophthalmology",
           "icon": "👁️",
           "color": "#38ffe8",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "Pe",
@@ -31329,7 +31583,9 @@
           "name_en": "Paediatrics",
           "icon": "👶",
           "color": "#3dff6e",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "M",
@@ -31337,7 +31593,9 @@
           "name_en": "Internal Medicine",
           "icon": "💊",
           "color": "#2563eb",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "G",
@@ -31345,7 +31603,9 @@
           "name_en": "Gynecology",
           "icon": "🤰",
           "color": "#e40de7",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "ICU",
@@ -31353,7 +31613,11 @@
           "name_en": "ICU Anaesthesia",
           "icon": "💉",
           "color": "#c9e141",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ]
         },
         {
           "id": "OP",
@@ -31361,7 +31625,11 @@
           "name_en": "OT Anaesthesia",
           "icon": "💉",
           "color": "#b4cc00",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ]
         },
         {
           "id": "R",
@@ -31369,7 +31637,9 @@
           "name_en": "Radiology",
           "icon": "🩻",
           "color": "#6700e6",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "D",
@@ -31377,7 +31647,37 @@
           "name_en": "Death Certificates",
           "icon": "⚰️",
           "color": "#bababa",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": [
+            "NS",
+            "CT",
+            "GS",
+            "OR",
+            "US",
+            "ENT",
+            "MF",
+            "O",
+            "Pe",
+            "M",
+            "G",
+            "ICU",
+            "OP",
+            "GA",
+            "A",
+            "R",
+            "ON",
+            "N",
+            "NM",
+            "P",
+            "Der",
+            "EM",
+            "FM",
+            "GP",
+            "H",
+            "PS",
+            "RM"
+          ]
         },
         {
           "id": "AO",
@@ -31385,7 +31685,37 @@
           "name_en": "Administrative Officer",
           "icon": "🧑",
           "color": "#2563eb",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": [
+            "NS",
+            "CT",
+            "GS",
+            "OR",
+            "US",
+            "ENT",
+            "MF",
+            "O",
+            "Pe",
+            "M",
+            "G",
+            "ICU",
+            "OP",
+            "GA",
+            "A",
+            "R",
+            "ON",
+            "N",
+            "NM",
+            "P",
+            "Der",
+            "EM",
+            "FM",
+            "GP",
+            "H",
+            "PS",
+            "RM"
+          ]
         },
         {
           "id": "ON",
@@ -31393,7 +31723,9 @@
           "name_en": "Oncology",
           "icon": "☢️",
           "color": "#84cc16",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "N",
@@ -31401,7 +31733,9 @@
           "name_en": "Nephrology",
           "icon": "🧫",
           "color": "#ff5ccb",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "GA",
@@ -31409,7 +31743,11 @@
           "name_en": "GYN Anaesthesia",
           "icon": "🤰",
           "color": "#fe62ad",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ]
         },
         {
           "id": "A",
@@ -31417,7 +31755,9 @@
           "name_en": "Anaesthesia & Intensive Care",
           "icon": "💉",
           "color": "#ff8e24",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "NM",
@@ -31425,7 +31765,9 @@
           "name_en": "Neuromedicine",
           "icon": "🧠",
           "color": "#79e9f1",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "P",
@@ -31433,7 +31775,9 @@
           "name_en": "Psychiatry",
           "icon": "🧠",
           "color": "#fef606",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "Der",
@@ -31441,7 +31785,9 @@
           "name_en": "Dermatology",
           "icon": "🏥",
           "color": "#e27ef6",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "EM",
@@ -31449,7 +31795,9 @@
           "name_en": "Emergency Medicine",
           "icon": "🏥",
           "color": "#9a5ce6",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "FM",
@@ -31457,7 +31805,9 @@
           "name_en": "Family Medicine",
           "icon": "👨",
           "color": "#78edb8",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "GP",
@@ -31465,7 +31815,9 @@
           "name_en": "General Practitioner",
           "icon": "🏥",
           "color": "#627ae4",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "H",
@@ -31473,7 +31825,9 @@
           "name_en": "Cardiology",
           "icon": "🫀",
           "color": "#c91d70",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "PS",
@@ -31481,7 +31835,9 @@
           "name_en": "Plastic Surgery",
           "icon": "🪡",
           "color": "#2563eb",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "RM",
@@ -31489,7 +31845,9 @@
           "name_en": "Respiratory Medicine",
           "icon": "🫁",
           "color": "#3bb8f7",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "CT",
@@ -31497,7 +31855,9 @@
           "name_en": "Cardiothoracic Surgery",
           "icon": "🫀",
           "color": "#e05910",
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
         }
       ],
       "names": [
@@ -41291,7 +41651,9 @@
       "name_en": "Neurosurgery",
       "icon": "🧠",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "CT",
@@ -41299,7 +41661,9 @@
       "name_en": "Cardiothoracic Surgery",
       "icon": "🫀",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "GS",
@@ -41307,7 +41671,9 @@
       "name_en": "General Surgery",
       "icon": "🔪",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "OR",
@@ -41315,7 +41681,9 @@
       "name_en": "Orthopaedics",
       "icon": "🦴",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "US",
@@ -41323,7 +41691,9 @@
       "name_en": "Urosurgery",
       "icon": "🫘",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "ENT",
@@ -41331,7 +41701,9 @@
       "name_en": "ENT",
       "icon": "👂",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "MF",
@@ -41339,7 +41711,9 @@
       "name_en": "MaxilloFacial Surgery",
       "icon": "🦷",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "O",
@@ -41347,7 +41721,9 @@
       "name_en": "Ophthalmology",
       "icon": "👁️",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "Pe",
@@ -41355,7 +41731,9 @@
       "name_en": "Paediatrics",
       "icon": "👶",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "M",
@@ -41363,7 +41741,9 @@
       "name_en": "Internal Medicine",
       "icon": "💊",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "G",
@@ -41371,7 +41751,9 @@
       "name_en": "Gynecology",
       "icon": "🤰",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "ICU",
@@ -41379,7 +41761,11 @@
       "name_en": "ICU Anaesthesia",
       "icon": "💉",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": "A",
+      "acceptPool": [
+        "A"
+      ]
     },
     {
       "id": "OP",
@@ -41387,7 +41773,11 @@
       "name_en": "OT Anaesthesia",
       "icon": "💉",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": "A",
+      "acceptPool": [
+        "A"
+      ]
     },
     {
       "id": "GA",
@@ -41395,7 +41785,11 @@
       "name_en": "GYN Anaesthesia",
       "icon": "🤰",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": "A",
+      "acceptPool": [
+        "A"
+      ]
     },
     {
       "id": "A",
@@ -41403,7 +41797,9 @@
       "name_en": "Anaesthesia & Intensive Care",
       "icon": "💉",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "R",
@@ -41411,7 +41807,9 @@
       "name_en": "Radiology",
       "icon": "🩻",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "D",
@@ -41419,7 +41817,37 @@
       "name_en": "Death Certificates",
       "icon": "⚰️",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": [
+        "NS",
+        "CT",
+        "GS",
+        "OR",
+        "US",
+        "ENT",
+        "MF",
+        "O",
+        "Pe",
+        "M",
+        "G",
+        "ICU",
+        "OP",
+        "GA",
+        "A",
+        "R",
+        "ON",
+        "N",
+        "NM",
+        "P",
+        "Der",
+        "EM",
+        "FM",
+        "GP",
+        "H",
+        "PS",
+        "RM"
+      ]
     },
     {
       "id": "AO",
@@ -41427,7 +41855,37 @@
       "name_en": "Administrative Officer",
       "icon": "🧑",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": [
+        "NS",
+        "CT",
+        "GS",
+        "OR",
+        "US",
+        "ENT",
+        "MF",
+        "O",
+        "Pe",
+        "M",
+        "G",
+        "ICU",
+        "OP",
+        "GA",
+        "A",
+        "R",
+        "ON",
+        "N",
+        "NM",
+        "P",
+        "Der",
+        "EM",
+        "FM",
+        "GP",
+        "H",
+        "PS",
+        "RM"
+      ]
     },
     {
       "id": "ON",
@@ -41435,7 +41893,9 @@
       "name_en": "Oncology",
       "icon": "☢️",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "N",
@@ -41443,7 +41903,9 @@
       "name_en": "Nephrology",
       "icon": "🧫",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "NM",
@@ -41451,7 +41913,9 @@
       "name_en": "Neuromedicine",
       "icon": "🧠",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "P",
@@ -41459,7 +41923,9 @@
       "name_en": "Psychiatry",
       "icon": "🧠",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "Der",
@@ -41467,7 +41933,9 @@
       "name_en": "Dermatology",
       "icon": "🏥",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "EM",
@@ -41475,7 +41943,9 @@
       "name_en": "Emergency Medicine",
       "icon": "🏥",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "FM",
@@ -41483,7 +41953,9 @@
       "name_en": "Family Medicine",
       "icon": "👨",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "GP",
@@ -41491,7 +41963,9 @@
       "name_en": "General Practitioner",
       "icon": "🏥",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "H",
@@ -41499,7 +41973,9 @@
       "name_en": "Cardiology",
       "icon": "🫀",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "PS",
@@ -41507,7 +41983,9 @@
       "name_en": "Plastic Surgery",
       "icon": "🪡",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     },
     {
       "id": "RM",
@@ -41515,7 +41993,9 @@
       "name_en": "Respiratory Medicine",
       "icon": "🫁",
       "color": "#0f766e",
-      "enabled": true
+      "enabled": true,
+      "parentSpec": null,
+      "acceptPool": []
     }
   ]
 }

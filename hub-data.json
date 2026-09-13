@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-13T13:13:51.158Z",
+  "lastUpdated": "2026-09-13T13:22:00.712Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -166,8 +166,11 @@
           "name_en": "GYN Anaesthesia",
           "icon": "🤰",
           "color": "#fe62ad",
-          "acceptPool": [],
-          "enabled": false
+          "acceptPool": [
+            "ICU"
+          ],
+          "enabled": false,
+          "parentSpec": null
         },
         {
           "id": "O",
@@ -20173,9 +20176,10 @@
           "icon": "🤰",
           "color": "#fe62ad",
           "acceptPool": [
-            "A"
+            "ICU"
           ],
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null
         },
         {
           "id": "R",
@@ -31562,9 +31566,10 @@
           "icon": "🤰",
           "color": "#fe62ad",
           "acceptPool": [
-            "A"
+            "ICU"
           ],
-          "enabled": false
+          "enabled": false,
+          "parentSpec": null
         },
         {
           "id": "A",
@@ -41593,8 +41598,10 @@
       "name_ar": "تخدير صالة الولادة",
       "name_en": "GYN Anaesthesia",
       "icon": "🤰",
-      "color": "#fe62ad",
-      "acceptPool": [],
+      "parentSpec": null,
+      "acceptPool": [
+        "ICU"
+      ],
       "enabled": false
     },
     {

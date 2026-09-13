@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-13T12:52:05.869Z",
+  "lastUpdated": "2026-09-13T01:52:00Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -72,6 +72,30 @@
           "acceptPool": []
         },
         {
+          "id": "OP",
+          "name_ar": "تخدير العمليات",
+          "name_en": "OT Anaesthesia",
+          "icon": "💉",
+          "color": "#b4cc00",
+          "enabled": true,
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ]
+        },
+        {
+          "id": "ICU",
+          "name_ar": "تخدير العناية المركزة",
+          "name_en": "ICU Anaesthesia",
+          "icon": "💉",
+          "color": "#c9e141",
+          "enabled": true,
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ]
+        },
+        {
           "id": "ON",
           "name_ar": "طب الاورام",
           "name_en": "Oncology",
@@ -92,6 +116,54 @@
           "acceptPool": []
         },
         {
+          "id": "D",
+          "name_ar": "الوفيات",
+          "name_en": "Death Certificates",
+          "icon": "⚰️",
+          "color": "#bababa",
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": [
+            "NS",
+            "CT",
+            "GS",
+            "OR",
+            "US",
+            "ENT",
+            "MF",
+            "O",
+            "Pe",
+            "M",
+            "G",
+            "ICU",
+            "OP",
+            "GA",
+            "A",
+            "R",
+            "ON",
+            "N",
+            "NM",
+            "P",
+            "Der",
+            "EM",
+            "FM",
+            "GP",
+            "H",
+            "PS",
+            "RM"
+          ]
+        },
+        {
+          "id": "G",
+          "name_ar": "النسائية و التوليد",
+          "name_en": "Gynecology",
+          "icon": "🤰",
+          "color": "#e40de7",
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
           "id": "A",
           "name_ar": "التخدير و العناية المركزة",
           "name_en": "Anaesthesia & Intensive Care",
@@ -102,11 +174,93 @@
           "acceptPool": []
         },
         {
+          "id": "GA",
+          "name_ar": "تخدير صالة الولادة",
+          "name_en": "GYN Anaesthesia",
+          "icon": "🤰",
+          "color": "#fe62ad",
+          "enabled": false,
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ]
+        },
+        {
+          "id": "O",
+          "name_ar": "العيون",
+          "name_en": "Ophthalmology",
+          "icon": "👁️",
+          "color": "#38ffe8",
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
+          "id": "M",
+          "name_ar": "الباطنية",
+          "name_en": "Internal Medicine",
+          "icon": "💊",
+          "color": "#a1e972",
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
+          "id": "P",
+          "name_ar": "النفسية",
+          "name_en": "Psychiatry",
+          "icon": "🧠",
+          "color": "#fef606",
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
+          "id": "N",
+          "name_ar": "طب امراض الكلى",
+          "name_en": "Nephrology",
+          "icon": "🧫",
+          "color": "#ff5ccb",
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
+          "id": "Pe",
+          "name_ar": "الاطفال",
+          "name_en": "Paediatrics",
+          "icon": "👶",
+          "color": "#3dff6e",
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
+          "id": "NM",
+          "name_ar": "طب الجملة العصبية",
+          "name_en": "Neuromedicine",
+          "icon": "🧠",
+          "color": "#79e9f1",
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
           "id": "Der",
           "name_ar": "الجلدية",
           "name_en": "Dermatology",
           "icon": "🏥",
           "color": "#e27ef6",
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
+          "id": "MF",
+          "name_ar": "جراحة الوجه و الفكين",
+          "name_en": "MaxilloFacial Surgery",
+          "icon": "🦷",
+          "color": "#d600af",
           "enabled": false,
           "parentSpec": null,
           "acceptPool": []
@@ -142,6 +296,16 @@
           "acceptPool": []
         },
         {
+          "id": "OR",
+          "name_ar": "الكسور",
+          "name_en": "Orthopaedics",
+          "icon": "🦴",
+          "color": "#ff0000",
+          "enabled": false,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
           "id": "H",
           "name_ar": "طب الامراض القلبية",
           "name_en": "Cardiology",
@@ -170,6 +334,44 @@
           "enabled": false,
           "parentSpec": null,
           "acceptPool": []
+        },
+        {
+          "id": "AO",
+          "name_ar": "المعاون الاداري",
+          "name_en": "Administrative Officer",
+          "icon": "🧑",
+          "color": "#0f766e",
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": [
+            "NS",
+            "CT",
+            "GS",
+            "OR",
+            "US",
+            "ENT",
+            "MF",
+            "O",
+            "Pe",
+            "M",
+            "G",
+            "ICU",
+            "OP",
+            "GA",
+            "A",
+            "R",
+            "ON",
+            "N",
+            "NM",
+            "P",
+            "Der",
+            "EM",
+            "FM",
+            "GP",
+            "H",
+            "PS",
+            "RM"
+          ]
         }
       ],
       "names": [
@@ -179,12 +381,12 @@
           "phone": "+9647804080071",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0002",
@@ -192,12 +394,12 @@
           "phone": "+9647725582728",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0003",
@@ -205,12 +407,12 @@
           "phone": "+9647739862206",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0004",
@@ -218,13 +420,13 @@
           "phone": "+9647726496657",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0005",
@@ -232,13 +434,13 @@
           "phone": "+9647705669930",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0006",
@@ -246,12 +448,12 @@
           "phone": "+9647727913007",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0007",
@@ -259,12 +461,12 @@
           "phone": "+9647758674695",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0008",
@@ -272,12 +474,12 @@
           "phone": "+9647707059984",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0009",
@@ -285,13 +487,13 @@
           "phone": "+9647806041352",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0010",
@@ -299,13 +501,13 @@
           "phone": "+9647725582752",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0011",
@@ -313,13 +515,13 @@
           "phone": "+9647811352828",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0012",
@@ -327,12 +529,12 @@
           "phone": "+9647725512399",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0013",
@@ -340,13 +542,13 @@
           "phone": "+9647733358134",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0014",
@@ -354,12 +556,12 @@
           "phone": "+9647706872415",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0015",
@@ -367,13 +569,13 @@
           "phone": "+9647739244859",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "mawani"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0016",
@@ -381,12 +583,12 @@
           "phone": "+9647700502209",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0017",
@@ -394,12 +596,12 @@
           "phone": "+9647811876100",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0018",
@@ -407,12 +609,12 @@
           "phone": "+9647729975078",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0019",
@@ -420,12 +622,12 @@
           "phone": "+9647725519270",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0020",
@@ -433,12 +635,12 @@
           "phone": "+9647729199914",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0021",
@@ -446,12 +648,12 @@
           "phone": "+9647717300360",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0022",
@@ -459,12 +661,12 @@
           "phone": "+9647733959046",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0023",
@@ -472,13 +674,13 @@
           "phone": "+9647727916014",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0024",
@@ -486,12 +688,12 @@
           "phone": "+9647707571167",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0025",
@@ -499,13 +701,13 @@
           "phone": "+9647722752658",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0026",
@@ -513,13 +715,13 @@
           "phone": "+9647734634301",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0027",
@@ -527,13 +729,13 @@
           "phone": "+9647826655511",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "mawani"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0028",
@@ -541,13 +743,13 @@
           "phone": "+9647739468124",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0029",
@@ -555,13 +757,13 @@
           "phone": "+9647732196899",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0030",
@@ -569,12 +771,12 @@
           "phone": "+9647713551570",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0031",
@@ -582,12 +784,12 @@
           "phone": "+9647703272926",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0032",
@@ -595,13 +797,13 @@
           "phone": "+9647704997282",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0033",
@@ -609,13 +811,13 @@
           "phone": "+9647725151957",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0034",
@@ -623,13 +825,13 @@
           "phone": "+9647862498727",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0035",
@@ -637,13 +839,13 @@
           "phone": "+9647722920453",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0036",
@@ -651,14 +853,14 @@
           "phone": "+9647735237481",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra",
             "mawani"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0037",
@@ -666,13 +868,13 @@
           "phone": "+9647734910577",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0038",
@@ -680,12 +882,12 @@
           "phone": "+9647719794237",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0039",
@@ -693,12 +895,12 @@
           "phone": "+9647816663142",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0040",
@@ -706,13 +908,13 @@
           "phone": "+9647810548678",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0041",
@@ -720,12 +922,12 @@
           "phone": "+9647723359625",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0042",
@@ -733,13 +935,13 @@
           "phone": "+9647767785961",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0043",
@@ -747,12 +949,12 @@
           "phone": "+9647819237146",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0044",
@@ -760,13 +962,13 @@
           "phone": "+9647707055130",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0045",
@@ -774,12 +976,12 @@
           "phone": "+9647730520002",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0046",
@@ -787,13 +989,13 @@
           "phone": "+9647730213323",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0047",
@@ -801,12 +1003,12 @@
           "phone": "+9647812445850",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0048",
@@ -814,12 +1016,12 @@
           "phone": "+9647718995613",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0049",
@@ -827,12 +1029,12 @@
           "phone": "+9647735617850",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0050",
@@ -840,12 +1042,12 @@
           "phone": "+9647736762841",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0051",
@@ -853,12 +1055,12 @@
           "phone": "+9647704868335",
           "spec": "CT",
           "tag": "CT",
-          "dept": "CT",
-          "department": "CT",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "CT",
+          "department": "CT"
         },
         {
           "id": "res-0052",
@@ -866,12 +1068,12 @@
           "phone": "+9647808930151",
           "spec": "CT",
           "tag": "CT",
-          "dept": "CT",
-          "department": "CT",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "CT",
+          "department": "CT"
         },
         {
           "id": "res-0053",
@@ -879,12 +1081,12 @@
           "phone": "+9647722910490",
           "spec": "CT",
           "tag": "CT",
-          "dept": "CT",
-          "department": "CT",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "CT",
+          "department": "CT"
         },
         {
           "id": "res-0054",
@@ -892,12 +1094,12 @@
           "phone": "+9647711207221",
           "spec": "RESERVE",
           "tag": "CT",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0055",
@@ -905,12 +1107,12 @@
           "phone": "+9647823939952",
           "spec": "CT",
           "tag": "CT",
-          "dept": "CT",
-          "department": "CT",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "CT",
+          "department": "CT"
         },
         {
           "id": "res-0056",
@@ -918,12 +1120,12 @@
           "phone": "+9647770021007",
           "spec": "CT",
           "tag": "CT",
-          "dept": "CT",
-          "department": "CT",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "CT",
+          "department": "CT"
         },
         {
           "id": "res-0057",
@@ -931,12 +1133,12 @@
           "phone": "+9647713176798",
           "spec": "Der",
           "tag": "Der",
-          "dept": "Der",
-          "department": "Der",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "Der",
+          "department": "Der"
         },
         {
           "id": "res-0058",
@@ -944,12 +1146,12 @@
           "phone": "رقم غير متوفر",
           "spec": "Der",
           "tag": "Der",
-          "dept": "Der",
-          "department": "Der",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "Der",
+          "department": "Der"
         },
         {
           "id": "res-0059",
@@ -957,12 +1159,12 @@
           "phone": "+9647823006698",
           "spec": "Der",
           "tag": "Der",
-          "dept": "Der",
-          "department": "Der",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "Der",
+          "department": "Der"
         },
         {
           "id": "res-0060",
@@ -970,12 +1172,12 @@
           "phone": "رقم غير متوفر",
           "spec": "Der",
           "tag": "Der",
-          "dept": "Der",
-          "department": "Der",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "Der",
+          "department": "Der"
         },
         {
           "id": "res-0061",
@@ -983,12 +1185,12 @@
           "phone": "+9647812822360",
           "spec": "Der",
           "tag": "Der",
-          "dept": "Der",
-          "department": "Der",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "Der",
+          "department": "Der"
         },
         {
           "id": "res-0062",
@@ -996,12 +1198,12 @@
           "phone": "+9647733605305",
           "spec": "Der",
           "tag": "Der",
-          "dept": "Der",
-          "department": "Der",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "Der",
+          "department": "Der"
         },
         {
           "id": "res-0063",
@@ -1009,12 +1211,12 @@
           "phone": "+9647722017351",
           "spec": "Der",
           "tag": "Der",
-          "dept": "Der",
-          "department": "Der",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "Der",
+          "department": "Der"
         },
         {
           "id": "res-0064",
@@ -1022,12 +1224,12 @@
           "phone": "+9647712630805",
           "spec": "EM",
           "tag": "EM",
-          "dept": "EM",
-          "department": "EM",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "EM",
+          "department": "EM"
         },
         {
           "id": "res-0065",
@@ -1035,12 +1237,12 @@
           "phone": "+9647762744700",
           "spec": "ENT",
           "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "ENT",
+          "department": "ENT"
         },
         {
           "id": "res-0066",
@@ -1048,12 +1250,12 @@
           "phone": "+9647725809721",
           "spec": "ENT",
           "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "ENT",
+          "department": "ENT"
         },
         {
           "id": "res-0067",
@@ -1061,12 +1263,12 @@
           "phone": "+9647703100283",
           "spec": "ENT",
           "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "ENT",
+          "department": "ENT"
         },
         {
           "id": "res-0068",
@@ -1074,12 +1276,12 @@
           "phone": "+9647818897778",
           "spec": "ENT",
           "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "ENT",
+          "department": "ENT"
         },
         {
           "id": "res-0069",
@@ -1087,12 +1289,12 @@
           "phone": "+9647735280259",
           "spec": "ENT",
           "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "ENT",
+          "department": "ENT"
         },
         {
           "id": "res-0070",
@@ -1100,12 +1302,12 @@
           "phone": "+9647711939863",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0071",
@@ -1113,12 +1315,12 @@
           "phone": "رقم غير متوفر",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0072",
@@ -1126,12 +1328,12 @@
           "phone": "+9647868000623",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0073",
@@ -1139,12 +1341,12 @@
           "phone": "رقم غير متوفر",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0074",
@@ -1152,12 +1354,12 @@
           "phone": "+9647721170760",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0075",
@@ -1165,12 +1367,12 @@
           "phone": "+9647719557060",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0076",
@@ -1178,12 +1380,12 @@
           "phone": "+9647716717702",
           "spec": "GP",
           "tag": "GP",
-          "dept": "GP",
-          "department": "GP",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "GP",
+          "department": "GP"
         },
         {
           "id": "res-0077",
@@ -1191,12 +1393,12 @@
           "phone": "+9647740399801",
           "spec": "GP",
           "tag": "GP",
-          "dept": "GP",
-          "department": "GP",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "GP",
+          "department": "GP"
         },
         {
           "id": "res-0078",
@@ -1204,12 +1406,12 @@
           "phone": "+9647716757205",
           "spec": "GP",
           "tag": "GP",
-          "dept": "GP",
-          "department": "GP",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "GP",
+          "department": "GP"
         },
         {
           "id": "res-0079",
@@ -1217,12 +1419,12 @@
           "phone": "+9647811741751",
           "spec": "GP",
           "tag": "GP",
-          "dept": "GP",
-          "department": "GP",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "GP",
+          "department": "GP"
         },
         {
           "id": "res-0080",
@@ -1230,12 +1432,12 @@
           "phone": "+9647707173044",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0081",
@@ -1243,13 +1445,13 @@
           "phone": "+9647707167689",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0082",
@@ -1257,12 +1459,12 @@
           "phone": "رقم غير متوفر",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0083",
@@ -1270,12 +1472,12 @@
           "phone": "+9647722917732",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0084",
@@ -1283,12 +1485,12 @@
           "phone": "+9647721174861",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0085",
@@ -1296,12 +1498,12 @@
           "phone": "+9647715498645",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0086",
@@ -1309,12 +1511,12 @@
           "phone": "+9647803770672",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0087",
@@ -1322,12 +1524,12 @@
           "phone": "+9647807272388",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0088",
@@ -1335,12 +1537,12 @@
           "phone": "+9647812507841",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0089",
@@ -1348,13 +1550,13 @@
           "phone": "+9647801186266",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0090",
@@ -1362,12 +1564,12 @@
           "phone": "+9647715913508",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0091",
@@ -1375,13 +1577,13 @@
           "phone": "+9647716761069",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0092",
@@ -1389,12 +1591,12 @@
           "phone": "رقم غير متوفر",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0093",
@@ -1402,12 +1604,12 @@
           "phone": "+9647809619854",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0094",
@@ -1415,13 +1617,13 @@
           "phone": "+9647708795989",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0095",
@@ -1429,12 +1631,12 @@
           "phone": "+9647700546979",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0096",
@@ -1442,12 +1644,12 @@
           "phone": "+9647810202728",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0097",
@@ -1455,12 +1657,12 @@
           "phone": "+9647757449886",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0098",
@@ -1468,12 +1670,12 @@
           "phone": "+9647821082337",
           "spec": "H",
           "tag": "H",
-          "dept": "H",
-          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "H",
+          "department": "H"
         },
         {
           "id": "res-0099",
@@ -1481,12 +1683,12 @@
           "phone": "+9647719192001",
           "spec": "H",
           "tag": "H",
-          "dept": "H",
-          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "H",
+          "department": "H"
         },
         {
           "id": "res-0100",
@@ -1494,12 +1696,12 @@
           "phone": "+9647821850778",
           "spec": "H",
           "tag": "H",
-          "dept": "H",
-          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "H",
+          "department": "H"
         },
         {
           "id": "res-0101",
@@ -1507,12 +1709,12 @@
           "phone": "+9647725597713",
           "spec": "H",
           "tag": "H",
-          "dept": "H",
-          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "H",
+          "department": "H"
         },
         {
           "id": "res-0102",
@@ -1520,12 +1722,12 @@
           "phone": "+9647718324157",
           "spec": "H",
           "tag": "H",
-          "dept": "H",
-          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "H",
+          "department": "H"
         },
         {
           "id": "res-0103",
@@ -1533,12 +1735,12 @@
           "phone": "+9647705281976",
           "spec": "H",
           "tag": "H",
-          "dept": "H",
-          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "H",
+          "department": "H"
         },
         {
           "id": "res-0104",
@@ -1546,12 +1748,12 @@
           "phone": "+9647707837905",
           "spec": "H",
           "tag": "H",
-          "dept": "H",
-          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "H",
+          "department": "H"
         },
         {
           "id": "res-0105",
@@ -1559,13 +1761,13 @@
           "phone": "+9647827925226",
           "spec": "H",
           "tag": "H",
-          "dept": "H",
-          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "H",
+          "department": "H"
         },
         {
           "id": "res-0106",
@@ -1573,12 +1775,12 @@
           "phone": "+9647732580106",
           "spec": "H",
           "tag": "H",
-          "dept": "H",
-          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "H",
+          "department": "H"
         },
         {
           "id": "res-0107",
@@ -1586,12 +1788,12 @@
           "phone": "+9647847135744",
           "spec": "NS",
           "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "NS",
+          "department": "NS"
         },
         {
           "id": "res-0108",
@@ -1599,12 +1801,12 @@
           "phone": "+9647810815395",
           "spec": "NS",
           "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "NS",
+          "department": "NS"
         },
         {
           "id": "res-0109",
@@ -1612,13 +1814,13 @@
           "phone": "+9647736024102",
           "spec": "RESERVE",
           "tag": "NS",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": true,
           "hospitals": [
             "iraqi",
             "mawani"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0110",
@@ -1626,12 +1828,12 @@
           "phone": "+9647825210393",
           "spec": "RESERVE",
           "tag": "NS",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0111",
@@ -1639,12 +1841,12 @@
           "phone": "+9647719007077",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0112",
@@ -1652,12 +1854,12 @@
           "phone": "+9647725563679",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0113",
@@ -1665,12 +1867,12 @@
           "phone": "+9647831887821",
           "spec": "NS",
           "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "NS",
+          "department": "NS"
         },
         {
           "id": "res-0114",
@@ -1678,12 +1880,12 @@
           "phone": "+9647812344891",
           "spec": "NS",
           "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "NS",
+          "department": "NS"
         },
         {
           "id": "res-0115",
@@ -1691,12 +1893,12 @@
           "phone": "+9647739407174",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0116",
@@ -1704,12 +1906,12 @@
           "phone": "+9647705625359",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0117",
@@ -1717,12 +1919,12 @@
           "phone": "+9647736005059",
           "spec": "ON",
           "tag": "ON",
-          "dept": "ON",
-          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "ON",
+          "department": "ON"
         },
         {
           "id": "res-0118",
@@ -1730,12 +1932,12 @@
           "phone": "+9647732797021",
           "spec": "ON",
           "tag": "ON",
-          "dept": "ON",
-          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "ON",
+          "department": "ON"
         },
         {
           "id": "res-0119",
@@ -1743,12 +1945,12 @@
           "phone": "+9647863700065",
           "spec": "ON",
           "tag": "ON",
-          "dept": "ON",
-          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "ON",
+          "department": "ON"
         },
         {
           "id": "res-0120",
@@ -1756,12 +1958,12 @@
           "phone": "+9647710888537",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0121",
@@ -1769,12 +1971,12 @@
           "phone": "+9647821450742",
           "spec": "ON",
           "tag": "ON",
-          "dept": "ON",
-          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "ON",
+          "department": "ON"
         },
         {
           "id": "res-0122",
@@ -1782,12 +1984,12 @@
           "phone": "+9647718681403",
           "spec": "ON",
           "tag": "ON",
-          "dept": "ON",
-          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "ON",
+          "department": "ON"
         },
         {
           "id": "res-0123",
@@ -1795,12 +1997,12 @@
           "phone": "+9647801917641",
           "spec": "ON",
           "tag": "ON",
-          "dept": "ON",
-          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "ON",
+          "department": "ON"
         },
         {
           "id": "res-0124",
@@ -1808,12 +2010,12 @@
           "phone": "+9647731361550",
           "spec": "ON",
           "tag": "ON",
-          "dept": "ON",
-          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "ON",
+          "department": "ON"
         },
         {
           "id": "res-0125",
@@ -1821,12 +2023,12 @@
           "phone": "+9647712124987",
           "spec": "ON",
           "tag": "ON",
-          "dept": "ON",
-          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "ON",
+          "department": "ON"
         },
         {
           "id": "res-0126",
@@ -1834,12 +2036,12 @@
           "phone": "+9647811991975",
           "spec": "PS",
           "tag": "PS",
-          "dept": "PS",
-          "department": "PS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "PS",
+          "department": "PS"
         },
         {
           "id": "res-0127",
@@ -1847,12 +2049,12 @@
           "phone": "+9647812791617",
           "spec": "PS",
           "tag": "PS",
-          "dept": "PS",
-          "department": "PS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "PS",
+          "department": "PS"
         },
         {
           "id": "res-0128",
@@ -1860,12 +2062,12 @@
           "phone": "+9647806028076",
           "spec": "PS",
           "tag": "PS",
-          "dept": "PS",
-          "department": "PS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "PS",
+          "department": "PS"
         },
         {
           "id": "res-0129",
@@ -1873,12 +2075,12 @@
           "phone": "+9647704740752",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0130",
@@ -1886,12 +2088,12 @@
           "phone": "+9647732089197",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0131",
@@ -1899,12 +2101,12 @@
           "phone": "+9647717806018",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0132",
@@ -1912,12 +2114,12 @@
           "phone": "+9647800039430",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0133",
@@ -1925,12 +2127,12 @@
           "phone": "+9647717560453",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0134",
@@ -1938,12 +2140,12 @@
           "phone": "+9647700237273",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0135",
@@ -1951,12 +2153,12 @@
           "phone": "+9647814155225",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0136",
@@ -1964,12 +2166,12 @@
           "phone": "+9647728456542",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0137",
@@ -1977,12 +2179,12 @@
           "phone": "+9647829303398",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0138",
@@ -1990,12 +2192,12 @@
           "phone": "+9647729197541",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0139",
@@ -2003,12 +2205,12 @@
           "phone": "+9647739245121",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0140",
@@ -2016,12 +2218,12 @@
           "phone": "+9647708792317",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0141",
@@ -2029,12 +2231,12 @@
           "phone": "+9647823074884",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0142",
@@ -2042,12 +2244,12 @@
           "phone": "+9647818416263",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0143",
@@ -2055,12 +2257,12 @@
           "phone": "+9647737373951",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0144",
@@ -2068,12 +2270,12 @@
           "phone": "+9647702248864",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0145",
@@ -2081,12 +2283,12 @@
           "phone": "+9647722033535",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0146",
@@ -2094,12 +2296,12 @@
           "phone": "+9647725819814",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0147",
@@ -2107,12 +2309,12 @@
           "phone": "+9647706746212",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0148",
@@ -2120,12 +2322,12 @@
           "phone": "+9647840828301",
           "spec": "RM",
           "tag": "RM",
-          "dept": "RM",
-          "department": "RM",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RM",
+          "department": "RM"
         },
         {
           "id": "res-0149",
@@ -2133,12 +2335,12 @@
           "phone": "+9647827207021",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0150",
@@ -2146,12 +2348,12 @@
           "phone": "+9647715459469",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0151",
@@ -2159,13 +2361,13 @@
           "phone": "+9647803101498",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0152",
@@ -2173,12 +2375,12 @@
           "phone": "+9647716273485",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0153",
@@ -2186,12 +2388,12 @@
           "phone": "+9647707481437",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0154",
@@ -2199,12 +2401,12 @@
           "phone": "+9647738125706",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0155",
@@ -2212,12 +2414,12 @@
           "phone": "+9647829900959",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0156",
@@ -2225,12 +2427,12 @@
           "phone": "+9647841917643",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0157",
@@ -2238,12 +2440,12 @@
           "phone": "+9647700342391",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0158",
@@ -2251,12 +2453,12 @@
           "phone": "+9647819761239",
           "spec": "NS",
           "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "NS",
+          "department": "NS"
         },
         {
           "id": "res-0159",
@@ -2264,12 +2466,12 @@
           "phone": "+9647831004089",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0160",
@@ -2277,13 +2479,13 @@
           "phone": "+9647805195075",
           "spec": "NS",
           "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi",
             "mawani"
-          ]
+          ],
+          "dept": "NS",
+          "department": "NS"
         },
         {
           "id": "res-0161",
@@ -2291,13 +2493,13 @@
           "phone": "+9647707334546",
           "spec": "NS",
           "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi",
             "mawani"
-          ]
+          ],
+          "dept": "NS",
+          "department": "NS"
         },
         {
           "id": "res-0162",
@@ -2305,12 +2507,12 @@
           "phone": "+9647733960708",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0163",
@@ -2318,12 +2520,12 @@
           "phone": "+9647708753776",
           "spec": "US",
           "tag": "US",
-          "dept": "US",
-          "department": "US",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "US",
+          "department": "US"
         },
         {
           "id": "res-0164",
@@ -2331,12 +2533,12 @@
           "phone": "+9647830538071",
           "spec": "US",
           "tag": "US",
-          "dept": "US",
-          "department": "US",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "US",
+          "department": "US"
         },
         {
           "id": "res-0165",
@@ -2344,12 +2546,12 @@
           "phone": "+9647726196639",
           "spec": "US",
           "tag": "US",
-          "dept": "US",
-          "department": "US",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "US",
+          "department": "US"
         },
         {
           "id": "res-0166",
@@ -2357,12 +2559,12 @@
           "phone": "+9647708304252",
           "spec": "US",
           "tag": "US",
-          "dept": "US",
-          "department": "US",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "US",
+          "department": "US"
         },
         {
           "id": "res-0167",
@@ -2370,12 +2572,12 @@
           "phone": "+9647805658985",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0168",
@@ -2383,12 +2585,12 @@
           "phone": "+9647808794104",
           "spec": "H",
           "tag": "H",
-          "dept": "H",
-          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "H",
+          "department": "H"
         },
         {
           "id": "res-0169",
@@ -2396,12 +2598,12 @@
           "phone": "+9647851990332",
           "spec": "H",
           "tag": "H",
-          "dept": "H",
-          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "H",
+          "department": "H"
         },
         {
           "id": "res-0170",
@@ -2409,12 +2611,12 @@
           "phone": "+9647716189935",
           "spec": "H",
           "tag": "H",
-          "dept": "H",
-          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "H",
+          "department": "H"
         },
         {
           "id": "res-0171",
@@ -2422,12 +2624,12 @@
           "phone": "+9647817215779",
           "spec": "CT",
           "tag": "CT",
-          "dept": "CT",
-          "department": "CT",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "CT",
+          "department": "CT"
         },
         {
           "id": "res-0172",
@@ -2435,12 +2637,12 @@
           "phone": "+9647806605522",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0173",
@@ -2448,12 +2650,12 @@
           "phone": "+9647726300975",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0174",
@@ -2461,12 +2663,12 @@
           "phone": "+9647702958143",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0175",
@@ -2474,12 +2676,12 @@
           "phone": "+9647710799367",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0176",
@@ -2487,12 +2689,12 @@
           "phone": "+9647703347068",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0177",
@@ -2500,12 +2702,12 @@
           "phone": "+9647704726124",
           "spec": "ENT",
           "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "ENT",
+          "department": "ENT"
         },
         {
           "id": "res-0178",
@@ -2513,12 +2715,12 @@
           "phone": "+9647804332274",
           "spec": "ENT",
           "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "ENT",
+          "department": "ENT"
         },
         {
           "id": "res-0179",
@@ -2526,12 +2728,12 @@
           "phone": "+9647704480837",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0180",
@@ -2539,13 +2741,13 @@
           "phone": "+9647704720169",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0181",
@@ -2553,12 +2755,12 @@
           "phone": "+9647717956125",
           "spec": "CT",
           "tag": "CT",
-          "dept": "CT",
-          "department": "CT",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "CT",
+          "department": "CT"
         },
         {
           "id": "res-0182",
@@ -2566,12 +2768,12 @@
           "phone": "+9647708103504",
           "spec": "ON",
           "tag": "ON",
-          "dept": "ON",
-          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "ON",
+          "department": "ON"
         },
         {
           "id": "res-0183",
@@ -2579,12 +2781,12 @@
           "phone": "+9647841917643",
           "spec": "NS",
           "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "NS",
+          "department": "NS"
         },
         {
           "id": "res-0184",
@@ -2592,13 +2794,13 @@
           "phone": "+9647862450853",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0185",
@@ -2606,12 +2808,12 @@
           "phone": "+9647705767570",
           "spec": "ENT",
           "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "ENT",
+          "department": "ENT"
         },
         {
           "id": "res-0186",
@@ -2619,12 +2821,12 @@
           "phone": "+9647716870514",
           "spec": "US",
           "tag": "US",
-          "dept": "US",
-          "department": "US",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "US",
+          "department": "US"
         },
         {
           "id": "res-0187",
@@ -2632,12 +2834,12 @@
           "phone": "+9647709681505",
           "spec": "ON",
           "tag": "ON",
-          "dept": "ON",
-          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "ON",
+          "department": "ON"
         },
         {
           "id": "res-0188",
@@ -2645,12 +2847,12 @@
           "phone": "+9647739864832",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0189",
@@ -2658,12 +2860,12 @@
           "phone": "+9647877788058",
           "spec": "US",
           "tag": "US",
-          "dept": "US",
-          "department": "US",
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
+          ],
+          "dept": "US",
+          "department": "US"
         },
         {
           "id": "res-0190",
@@ -2671,13 +2873,13 @@
           "phone": "+9647849000964",
           "spec": "CT",
           "tag": "CT",
-          "dept": "CT",
-          "department": "CT",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "CT",
+          "department": "CT"
         }
       ],
       "schedule": [
@@ -20651,13 +20853,13 @@
           "phone": "+9647726496657",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0005",
@@ -20665,13 +20867,13 @@
           "phone": "+9647705669930",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0009",
@@ -20679,13 +20881,13 @@
           "phone": "+9647806041352",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0010",
@@ -20693,13 +20895,13 @@
           "phone": "+9647725582752",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0011",
@@ -20707,13 +20909,13 @@
           "phone": "+9647811352828",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0013",
@@ -20721,13 +20923,13 @@
           "phone": "+9647733358134",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0023",
@@ -20735,13 +20937,13 @@
           "phone": "+9647727916014",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0025",
@@ -20749,13 +20951,13 @@
           "phone": "+9647722752658",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0026",
@@ -20763,13 +20965,13 @@
           "phone": "+9647734634301",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0028",
@@ -20777,13 +20979,13 @@
           "phone": "+9647739468124",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0029",
@@ -20791,13 +20993,13 @@
           "phone": "+9647732196899",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0032",
@@ -20805,13 +21007,13 @@
           "phone": "+9647704997282",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0033",
@@ -20819,13 +21021,13 @@
           "phone": "+9647725151957",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0034",
@@ -20833,13 +21035,13 @@
           "phone": "+9647862498727",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0035",
@@ -20847,13 +21049,13 @@
           "phone": "+9647722920453",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0036",
@@ -20861,14 +21063,14 @@
           "phone": "+9647735237481",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra",
             "mawani"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0037",
@@ -20876,13 +21078,13 @@
           "phone": "+9647734910577",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0040",
@@ -20890,13 +21092,13 @@
           "phone": "+9647810548678",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0042",
@@ -20904,13 +21106,13 @@
           "phone": "+9647767785961",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0044",
@@ -20918,13 +21120,13 @@
           "phone": "+9647707055130",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0046",
@@ -20932,13 +21134,13 @@
           "phone": "+9647730213323",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0081",
@@ -20946,13 +21148,13 @@
           "phone": "+9647707167689",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0089",
@@ -20960,13 +21162,13 @@
           "phone": "+9647801186266",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0091",
@@ -20974,13 +21176,13 @@
           "phone": "+9647716761069",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0094",
@@ -20988,13 +21190,13 @@
           "phone": "+9647708795989",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0105",
@@ -21002,13 +21204,13 @@
           "phone": "+9647827925226",
           "spec": "H",
           "tag": "H",
-          "dept": "H",
-          "department": "H",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "H",
+          "department": "H"
         },
         {
           "id": "res-0151",
@@ -21016,13 +21218,13 @@
           "phone": "+9647803101498",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0180",
@@ -21030,13 +21232,13 @@
           "phone": "+9647704720169",
           "spec": "RESERVE",
           "tag": "RESERVE",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0184",
@@ -21044,13 +21246,13 @@
           "phone": "+9647862450853",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0190",
@@ -21058,13 +21260,13 @@
           "phone": "+9647849000964",
           "spec": "CT",
           "tag": "CT",
-          "dept": "CT",
-          "department": "CT",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra"
-          ]
+          ],
+          "dept": "CT",
+          "department": "CT"
         },
         {
           "id": "res-0191",
@@ -21072,12 +21274,12 @@
           "phone": "+9647800020294",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0192",
@@ -21085,12 +21287,12 @@
           "phone": "+9647734613381",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0193",
@@ -21098,12 +21300,12 @@
           "phone": "+9647726050437",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0194",
@@ -21111,12 +21313,12 @@
           "phone": "+9647805920230",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0195",
@@ -21124,12 +21326,12 @@
           "phone": "+9647710888920",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0196",
@@ -21137,12 +21339,12 @@
           "phone": "+9647708013278",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0197",
@@ -21150,12 +21352,12 @@
           "phone": "+9647729310775",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0198",
@@ -21163,12 +21365,12 @@
           "phone": "+9647719507570",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0199",
@@ -21176,12 +21378,12 @@
           "phone": "+9647714925135",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0200",
@@ -21189,12 +21391,12 @@
           "phone": "+9647732777639",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0201",
@@ -21202,12 +21404,12 @@
           "phone": "+9647733902238",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0202",
@@ -21215,12 +21417,12 @@
           "phone": "+9647719541954",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0203",
@@ -21228,12 +21430,12 @@
           "phone": "+9647735966686",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0204",
@@ -21241,12 +21443,12 @@
           "phone": "+9647821182559",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0205",
@@ -21254,12 +21456,12 @@
           "phone": "+9647721172641",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0206",
@@ -21267,12 +21469,12 @@
           "phone": "+9647734605075",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0207",
@@ -21280,12 +21482,12 @@
           "phone": "+9647729664414",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0208",
@@ -21293,12 +21495,12 @@
           "phone": "+9647712651746",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0209",
@@ -21306,12 +21508,12 @@
           "phone": "+9647706767877",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0210",
@@ -21319,12 +21521,12 @@
           "phone": "+9647735019530",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0211",
@@ -21332,12 +21534,12 @@
           "phone": "+9647817602353",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0212",
@@ -21345,12 +21547,12 @@
           "phone": "+9647739850642",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0213",
@@ -21358,12 +21560,12 @@
           "phone": "+9647707173044",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0214",
@@ -21371,12 +21573,12 @@
           "phone": "+9647887801516",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0215",
@@ -21384,12 +21586,12 @@
           "phone": "+9647750654222",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0216",
@@ -21397,12 +21599,12 @@
           "phone": "+9647705872661",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0217",
@@ -21410,12 +21612,12 @@
           "phone": "+9647716198423",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0218",
@@ -21423,12 +21625,12 @@
           "phone": "+9647707098818",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0219",
@@ -21436,12 +21638,12 @@
           "phone": "+9647846660880",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0220",
@@ -21449,12 +21651,12 @@
           "phone": "+9647712416957",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0221",
@@ -21462,12 +21664,12 @@
           "phone": "+9647710832982",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0222",
@@ -21475,12 +21677,12 @@
           "phone": "+9647812995812",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0223",
@@ -21488,12 +21690,12 @@
           "phone": "+9647705644180",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0224",
@@ -21501,12 +21703,12 @@
           "phone": "+9647708183670",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0225",
@@ -21514,12 +21716,12 @@
           "phone": "+9647712555706",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0226",
@@ -21527,12 +21729,12 @@
           "phone": "+9647805303119",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0227",
@@ -21540,12 +21742,12 @@
           "phone": "+9647828688862",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0228",
@@ -21553,12 +21755,12 @@
           "phone": "+9647707015400",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0229",
@@ -21566,12 +21768,12 @@
           "phone": "+9647703112034",
           "spec": "ENT",
           "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "ENT",
+          "department": "ENT"
         },
         {
           "id": "res-0230",
@@ -21579,12 +21781,12 @@
           "phone": "+9647726636110",
           "spec": "ENT",
           "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "ENT",
+          "department": "ENT"
         },
         {
           "id": "res-0231",
@@ -21592,12 +21794,12 @@
           "phone": "+9647718343275",
           "spec": "ENT",
           "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "ENT",
+          "department": "ENT"
         },
         {
           "id": "res-0232",
@@ -21605,12 +21807,12 @@
           "phone": "+9647716716273",
           "spec": "ENT",
           "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "ENT",
+          "department": "ENT"
         },
         {
           "id": "res-0233",
@@ -21618,12 +21820,12 @@
           "phone": "+9647827452033",
           "spec": "ENT",
           "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "ENT",
+          "department": "ENT"
         },
         {
           "id": "res-0234",
@@ -21631,12 +21833,12 @@
           "phone": "+9647705957374",
           "spec": "ENT",
           "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "ENT",
+          "department": "ENT"
         },
         {
           "id": "res-0235",
@@ -21644,12 +21846,12 @@
           "phone": "+9647827735028",
           "spec": "O",
           "tag": "O",
-          "dept": "O",
-          "department": "O",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "O",
+          "department": "O"
         },
         {
           "id": "res-0236",
@@ -21657,12 +21859,12 @@
           "phone": "+9647809888070",
           "spec": "O",
           "tag": "O",
-          "dept": "O",
-          "department": "O",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "O",
+          "department": "O"
         },
         {
           "id": "res-0237",
@@ -21670,12 +21872,12 @@
           "phone": "+9647822658868",
           "spec": "O",
           "tag": "O",
-          "dept": "O",
-          "department": "O",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "O",
+          "department": "O"
         },
         {
           "id": "res-0238",
@@ -21683,12 +21885,12 @@
           "phone": "+9647721090207",
           "spec": "O",
           "tag": "O",
-          "dept": "O",
-          "department": "O",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "O",
+          "department": "O"
         },
         {
           "id": "res-0239",
@@ -21696,12 +21898,12 @@
           "phone": "+9647726655597",
           "spec": "O",
           "tag": "O",
-          "dept": "O",
-          "department": "O",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "O",
+          "department": "O"
         },
         {
           "id": "res-0240",
@@ -21709,12 +21911,12 @@
           "phone": "+9647864417081",
           "spec": "O",
           "tag": "O",
-          "dept": "O",
-          "department": "O",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "O",
+          "department": "O"
         },
         {
           "id": "res-0241",
@@ -21722,12 +21924,12 @@
           "phone": "+9647807688452",
           "spec": "O",
           "tag": "O",
-          "dept": "O",
-          "department": "O",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "O",
+          "department": "O"
         },
         {
           "id": "res-0242",
@@ -21735,12 +21937,12 @@
           "phone": "+9647809349202",
           "spec": "US",
           "tag": "US",
-          "dept": "US",
-          "department": "US",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "US",
+          "department": "US"
         },
         {
           "id": "res-0243",
@@ -21748,12 +21950,12 @@
           "phone": "+9647723875346",
           "spec": "US",
           "tag": "US",
-          "dept": "US",
-          "department": "US",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "US",
+          "department": "US"
         },
         {
           "id": "res-0244",
@@ -21761,12 +21963,12 @@
           "phone": "+9647711149350",
           "spec": "US",
           "tag": "US",
-          "dept": "US",
-          "department": "US",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "US",
+          "department": "US"
         },
         {
           "id": "res-0245",
@@ -21774,12 +21976,12 @@
           "phone": "+9647703183503",
           "spec": "US",
           "tag": "US",
-          "dept": "US",
-          "department": "US",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "US",
+          "department": "US"
         },
         {
           "id": "res-0246",
@@ -21787,12 +21989,12 @@
           "phone": "+9647719506725",
           "spec": "US",
           "tag": "US",
-          "dept": "US",
-          "department": "US",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "US",
+          "department": "US"
         },
         {
           "id": "res-0247",
@@ -21800,12 +22002,12 @@
           "phone": "+9647713744438",
           "spec": "US",
           "tag": "US",
-          "dept": "US",
-          "department": "US",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "US",
+          "department": "US"
         },
         {
           "id": "res-0248",
@@ -21813,12 +22015,12 @@
           "phone": "+9647700060743",
           "spec": "G",
           "tag": "G",
-          "dept": "G",
-          "department": "G",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "G",
+          "department": "G"
         },
         {
           "id": "res-0249",
@@ -21826,12 +22028,12 @@
           "phone": "+9647816173443",
           "spec": "G",
           "tag": "G",
-          "dept": "G",
-          "department": "G",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "G",
+          "department": "G"
         },
         {
           "id": "res-0250",
@@ -21839,12 +22041,12 @@
           "phone": "+9647735625901",
           "spec": "G",
           "tag": "G",
-          "dept": "G",
-          "department": "G",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "G",
+          "department": "G"
         },
         {
           "id": "res-0251",
@@ -21852,12 +22054,12 @@
           "phone": "+9647703024761",
           "spec": "G",
           "tag": "G",
-          "dept": "G",
-          "department": "G",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "G",
+          "department": "G"
         },
         {
           "id": "res-0252",
@@ -21865,12 +22067,12 @@
           "phone": "+9647809757168",
           "spec": "G",
           "tag": "G",
-          "dept": "G",
-          "department": "G",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "G",
+          "department": "G"
         },
         {
           "id": "res-0253",
@@ -21878,12 +22080,12 @@
           "phone": "+9647703115964",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0254",
@@ -21891,12 +22093,12 @@
           "phone": "+9647836054430",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0255",
@@ -21904,12 +22106,12 @@
           "phone": "+9647838393988",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0256",
@@ -21917,12 +22119,12 @@
           "phone": "+9647824064046",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0257",
@@ -21930,12 +22132,12 @@
           "phone": "+9647705677765",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0258",
@@ -21943,12 +22145,12 @@
           "phone": "+9647725826002",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0259",
@@ -21956,12 +22158,12 @@
           "phone": "+9647746633669",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0260",
@@ -21969,12 +22171,12 @@
           "phone": "+9647705765003",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0261",
@@ -21982,12 +22184,12 @@
           "phone": "+9647705769256",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0262",
@@ -21995,12 +22197,12 @@
           "phone": "+9647717806093",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0263",
@@ -22008,12 +22210,12 @@
           "phone": "+9647704950105",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0264",
@@ -22021,12 +22223,12 @@
           "phone": "+9647805661181",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0265",
@@ -22034,12 +22236,12 @@
           "phone": "+9647716189349",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0266",
@@ -22047,12 +22249,12 @@
           "phone": "+9647800774202",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0267",
@@ -22060,12 +22262,12 @@
           "phone": "+9647708765123",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0268",
@@ -22073,12 +22275,12 @@
           "phone": "+9647809734007",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0269",
@@ -22086,12 +22288,12 @@
           "phone": "+9647704779044",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0270",
@@ -22099,12 +22301,12 @@
           "phone": "+9647754400079",
           "spec": "P",
           "tag": "P",
-          "dept": "P",
-          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "P",
+          "department": "P"
         },
         {
           "id": "res-0271",
@@ -22112,12 +22314,12 @@
           "phone": "+9647806594000",
           "spec": "P",
           "tag": "P",
-          "dept": "P",
-          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "P",
+          "department": "P"
         },
         {
           "id": "res-0272",
@@ -22125,12 +22327,12 @@
           "phone": "+9647765012468",
           "spec": "G",
           "tag": "G",
-          "dept": "G",
-          "department": "G",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "G",
+          "department": "G"
         },
         {
           "id": "res-0273",
@@ -22138,12 +22340,12 @@
           "phone": "+9647831790048",
           "spec": "P",
           "tag": "P",
-          "dept": "P",
-          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "P",
+          "department": "P"
         },
         {
           "id": "res-0274",
@@ -22151,12 +22353,12 @@
           "phone": "+9647704975263",
           "spec": "P",
           "tag": "P",
-          "dept": "P",
-          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "P",
+          "department": "P"
         },
         {
           "id": "res-0275",
@@ -22164,12 +22366,12 @@
           "phone": "+9647734093307",
           "spec": "P",
           "tag": "P",
-          "dept": "P",
-          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "P",
+          "department": "P"
         },
         {
           "id": "res-0276",
@@ -22177,12 +22379,12 @@
           "phone": "+9647735727717",
           "spec": "P",
           "tag": "P",
-          "dept": "P",
-          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "P",
+          "department": "P"
         },
         {
           "id": "res-0277",
@@ -22190,12 +22392,12 @@
           "phone": "+9647832160195",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0278",
@@ -22203,12 +22405,12 @@
           "phone": "+9647726614077",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0279",
@@ -22216,12 +22418,12 @@
           "phone": "+9647717806124",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0280",
@@ -22229,12 +22431,12 @@
           "phone": "+9647705540117",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0281",
@@ -22242,12 +22444,12 @@
           "phone": "+9647811529695",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0282",
@@ -22255,12 +22457,12 @@
           "phone": "+9647740391400",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0283",
@@ -22268,12 +22470,12 @@
           "phone": "+9647740751555",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0284",
@@ -22281,12 +22483,12 @@
           "phone": "رقم غير متوفر",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0285",
@@ -22294,12 +22496,12 @@
           "phone": "+9647717827801",
           "spec": "P",
           "tag": "P",
-          "dept": "P",
-          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "P",
+          "department": "P"
         },
         {
           "id": "res-0286",
@@ -22307,12 +22509,12 @@
           "phone": "+9647715955629",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0287",
@@ -22320,12 +22522,12 @@
           "phone": "+9647704752912",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0288",
@@ -22333,12 +22535,12 @@
           "phone": "+9647707655408",
           "spec": "P",
           "tag": "P",
-          "dept": "P",
-          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "P",
+          "department": "P"
         },
         {
           "id": "res-0289",
@@ -22346,12 +22548,12 @@
           "phone": "+9647826607363",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0290",
@@ -22359,12 +22561,12 @@
           "phone": "+9647807686024",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0291",
@@ -22372,12 +22574,12 @@
           "phone": "+9647703209507",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0292",
@@ -22385,12 +22587,12 @@
           "phone": "+9647737857805",
           "spec": "Pe",
           "tag": "Pe",
-          "dept": "Pe",
-          "department": "Pe",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "Pe",
+          "department": "Pe"
         },
         {
           "id": "res-0293",
@@ -22398,12 +22600,12 @@
           "phone": "+9647833288508",
           "spec": "Pe",
           "tag": "Pe",
-          "dept": "Pe",
-          "department": "Pe",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "Pe",
+          "department": "Pe"
         },
         {
           "id": "res-0294",
@@ -22411,12 +22613,12 @@
           "phone": "+9647741140314",
           "spec": "Pe",
           "tag": "Pe",
-          "dept": "Pe",
-          "department": "Pe",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "Pe",
+          "department": "Pe"
         },
         {
           "id": "res-0295",
@@ -22424,12 +22626,12 @@
           "phone": "+9647826978996",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0296",
@@ -22437,12 +22639,12 @@
           "phone": "+9647805990726",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0297",
@@ -22450,12 +22652,12 @@
           "phone": "+9647805972803",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0298",
@@ -22463,12 +22665,12 @@
           "phone": "+9647760650775",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0299",
@@ -22476,12 +22678,12 @@
           "phone": "+9647722744519",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0300",
@@ -22489,12 +22691,12 @@
           "phone": "+9647733617346",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0301",
@@ -22502,12 +22704,12 @@
           "phone": "+9647805826562",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0302",
@@ -22515,12 +22717,12 @@
           "phone": "+9647725597713",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0303",
@@ -22528,12 +22730,12 @@
           "phone": "+9647808794104",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0304",
@@ -22541,12 +22743,12 @@
           "phone": "+9647719192001",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0305",
@@ -22554,12 +22756,12 @@
           "phone": "+9647705281976",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0306",
@@ -22567,12 +22769,12 @@
           "phone": "+9647821082337",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0307",
@@ -22580,12 +22782,12 @@
           "phone": "+9647718324157",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0308",
@@ -22593,12 +22795,12 @@
           "phone": "+9647702032302",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0309",
@@ -22606,12 +22808,12 @@
           "phone": "+9647712669019",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0310",
@@ -22619,12 +22821,12 @@
           "phone": "+9647805855372",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0311",
@@ -22632,12 +22834,12 @@
           "phone": "+9647732320235",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0312",
@@ -22645,12 +22847,12 @@
           "phone": "+9647730185360",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0313",
@@ -22658,12 +22860,12 @@
           "phone": "+9647727530792",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0314",
@@ -22671,12 +22873,12 @@
           "phone": "+9647718358915",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0315",
@@ -22684,12 +22886,12 @@
           "phone": "+9647718273185",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0316",
@@ -22697,12 +22899,12 @@
           "phone": "+9647840828301",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0317",
@@ -22710,12 +22912,12 @@
           "phone": "+9647705667989",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0318",
@@ -22723,12 +22925,12 @@
           "phone": "+9647716189935",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0319",
@@ -22736,12 +22938,12 @@
           "phone": "+9647732188599",
           "spec": "NM",
           "tag": "NM",
-          "dept": "NM",
-          "department": "NM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "NM",
+          "department": "NM"
         },
         {
           "id": "res-0320",
@@ -22749,12 +22951,12 @@
           "phone": "+9647717560394",
           "spec": "NM",
           "tag": "NM",
-          "dept": "NM",
-          "department": "NM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "NM",
+          "department": "NM"
         },
         {
           "id": "res-0321",
@@ -22762,12 +22964,12 @@
           "phone": "+9647729309752",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0322",
@@ -22775,12 +22977,12 @@
           "phone": "+9647717578678",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0323",
@@ -22788,12 +22990,12 @@
           "phone": "+9647800037241",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0324",
@@ -22801,12 +23003,12 @@
           "phone": "+9647718466877",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0325",
@@ -22814,12 +23016,12 @@
           "phone": "+9647809743869",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0326",
@@ -22827,12 +23029,12 @@
           "phone": "+9647711938871",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0327",
@@ -22840,12 +23042,12 @@
           "phone": "+9647826994880",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0328",
@@ -22853,12 +23055,12 @@
           "phone": "+9647719744688",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0329",
@@ -22866,12 +23068,12 @@
           "phone": "+9647816667774",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0330",
@@ -22879,12 +23081,12 @@
           "phone": "+9647701608985",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0331",
@@ -22892,12 +23094,12 @@
           "phone": "+9647816424474",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0332",
@@ -22905,13 +23107,13 @@
           "phone": "+9647813977691",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra",
             "mawani"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0333",
@@ -22919,12 +23121,12 @@
           "phone": "+9647800303940",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0334",
@@ -22932,12 +23134,12 @@
           "phone": "+9647725447477",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0335",
@@ -22945,13 +23147,13 @@
           "phone": "+9647860606035",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra",
             "mawani"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0336",
@@ -22959,12 +23161,12 @@
           "phone": "+9647706921715",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0337",
@@ -22972,12 +23174,12 @@
           "phone": "+9647729975078",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0338",
@@ -22985,12 +23187,12 @@
           "phone": "+9647811352828",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0339",
@@ -22998,12 +23200,12 @@
           "phone": "+9647703272926",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0340",
@@ -23011,12 +23213,12 @@
           "phone": "+9647711208148",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0341",
@@ -23024,12 +23226,12 @@
           "phone": "+9647801082353",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0342",
@@ -23037,12 +23239,12 @@
           "phone": "+9647709006645",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0343",
@@ -23050,12 +23252,12 @@
           "phone": "+9647827728381",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0344",
@@ -23063,12 +23265,12 @@
           "phone": "+9647863746288",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0345",
@@ -23076,12 +23278,12 @@
           "phone": "+9647717806101",
           "spec": "N",
           "tag": "N",
-          "dept": "N",
-          "department": "N",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "N",
+          "department": "N"
         },
         {
           "id": "res-0346",
@@ -23089,12 +23291,12 @@
           "phone": "+9647705500241",
           "spec": "N",
           "tag": "N",
-          "dept": "N",
-          "department": "N",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "N",
+          "department": "N"
         },
         {
           "id": "res-0347",
@@ -23102,12 +23304,12 @@
           "phone": "+9647709048908",
           "spec": "N",
           "tag": "N",
-          "dept": "N",
-          "department": "N",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "N",
+          "department": "N"
         },
         {
           "id": "res-0348",
@@ -23115,12 +23317,12 @@
           "phone": "+9647731118479",
           "spec": "N",
           "tag": "N",
-          "dept": "N",
-          "department": "N",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "N",
+          "department": "N"
         },
         {
           "id": "res-0349",
@@ -23128,12 +23330,12 @@
           "phone": "+9647717804688",
           "spec": "N",
           "tag": "N",
-          "dept": "N",
-          "department": "N",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "N",
+          "department": "N"
         },
         {
           "id": "res-0350",
@@ -23141,12 +23343,12 @@
           "phone": "+9647729088109",
           "spec": "N",
           "tag": "N",
-          "dept": "N",
-          "department": "N",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "N",
+          "department": "N"
         },
         {
           "id": "res-0351",
@@ -23154,12 +23356,12 @@
           "phone": "+9647713253601",
           "spec": "N",
           "tag": "N",
-          "dept": "N",
-          "department": "N",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "N",
+          "department": "N"
         },
         {
           "id": "res-0352",
@@ -23167,12 +23369,12 @@
           "phone": "+9647733988464",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0353",
@@ -23180,12 +23382,12 @@
           "phone": "+9647739999363",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0354",
@@ -23193,12 +23395,12 @@
           "phone": "+9647725158934",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0355",
@@ -23206,12 +23408,12 @@
           "phone": "+9647816922397",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0356",
@@ -23219,12 +23421,12 @@
           "phone": "+9647723405240",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0357",
@@ -23232,12 +23434,12 @@
           "phone": "+9647714985674",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0358",
@@ -23245,12 +23447,12 @@
           "phone": "+9647707009908",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0359",
@@ -23258,12 +23460,12 @@
           "phone": "+9647731972744",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0360",
@@ -23271,12 +23473,12 @@
           "phone": "+9647709640919",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0361",
@@ -23284,12 +23486,12 @@
           "phone": "+9647722921447",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0362",
@@ -23297,12 +23499,12 @@
           "phone": "+9647717539972",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0363",
@@ -23310,12 +23512,12 @@
           "phone": "+9647716750774",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0364",
@@ -23323,12 +23525,12 @@
           "phone": "+9647819600025",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0365",
@@ -23336,12 +23538,12 @@
           "phone": "+9647814095288",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0366",
@@ -23349,12 +23551,12 @@
           "phone": "+9647707376328",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0367",
@@ -23362,12 +23564,12 @@
           "phone": "+9647721895042",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0368",
@@ -23375,12 +23577,12 @@
           "phone": "+9647746927069",
           "spec": "EM",
           "tag": "EM",
-          "dept": "EM",
-          "department": "EM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "EM",
+          "department": "EM"
         },
         {
           "id": "res-0369",
@@ -23388,12 +23590,12 @@
           "phone": "+9647718713995",
           "spec": "EM",
           "tag": "EM",
-          "dept": "EM",
-          "department": "EM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "EM",
+          "department": "EM"
         },
         {
           "id": "res-0370",
@@ -23401,12 +23603,12 @@
           "phone": "+9647712901906",
           "spec": "EM",
           "tag": "EM",
-          "dept": "EM",
-          "department": "EM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "EM",
+          "department": "EM"
         },
         {
           "id": "res-0371",
@@ -23414,12 +23616,12 @@
           "phone": "+9647709401868",
           "spec": "EM",
           "tag": "EM",
-          "dept": "EM",
-          "department": "EM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "EM",
+          "department": "EM"
         },
         {
           "id": "res-0372",
@@ -23427,12 +23629,12 @@
           "phone": "+9647703655514",
           "spec": "P",
           "tag": "P",
-          "dept": "P",
-          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "P",
+          "department": "P"
         },
         {
           "id": "res-0373",
@@ -23440,12 +23642,12 @@
           "phone": "+9647858887899",
           "spec": "P",
           "tag": "P",
-          "dept": "P",
-          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "P",
+          "department": "P"
         },
         {
           "id": "res-0374",
@@ -23453,12 +23655,12 @@
           "phone": "+9647832365659",
           "spec": "P",
           "tag": "P",
-          "dept": "P",
-          "department": "P",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "P",
+          "department": "P"
         },
         {
           "id": "res-0375",
@@ -23466,12 +23668,12 @@
           "phone": "+9647721497466",
           "spec": "FM",
           "tag": "FM",
-          "dept": "FM",
-          "department": "FM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "FM",
+          "department": "FM"
         },
         {
           "id": "res-0376",
@@ -23479,12 +23681,12 @@
           "phone": "+9647703296793",
           "spec": "N",
           "tag": "N",
-          "dept": "N",
-          "department": "N",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "N",
+          "department": "N"
         },
         {
           "id": "res-0377",
@@ -23492,12 +23694,12 @@
           "phone": "+9647717806124",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0378",
@@ -23505,12 +23707,12 @@
           "phone": "+9647806028076",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0379",
@@ -23518,12 +23720,12 @@
           "phone": "+9647811991975",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0380",
@@ -23531,12 +23733,12 @@
           "phone": "+9647706223309",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0381",
@@ -23544,12 +23746,12 @@
           "phone": "+9647726868449",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0382",
@@ -23557,12 +23759,12 @@
           "phone": "+9647733877369",
           "spec": "AO",
           "tag": "AO",
-          "dept": "AO",
-          "department": "AO",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "AO",
+          "department": "AO"
         },
         {
           "id": "res-0383",
@@ -23570,12 +23772,12 @@
           "phone": "+9647702841087",
           "spec": "AO",
           "tag": "AO",
-          "dept": "AO",
-          "department": "AO",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "AO",
+          "department": "AO"
         },
         {
           "id": "res-0384",
@@ -23583,12 +23785,12 @@
           "phone": "+9647703142928",
           "spec": "AO",
           "tag": "AO",
-          "dept": "AO",
-          "department": "AO",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "AO",
+          "department": "AO"
         },
         {
           "id": "res-0385",
@@ -23596,12 +23798,12 @@
           "phone": "+9647729560500",
           "spec": "AO",
           "tag": "AO",
-          "dept": "AO",
-          "department": "AO",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "AO",
+          "department": "AO"
         },
         {
           "id": "res-0386",
@@ -23609,12 +23811,12 @@
           "phone": "+9647735654940",
           "spec": "G",
           "tag": "G",
-          "dept": "G",
-          "department": "G",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "G",
+          "department": "G"
         },
         {
           "id": "res-0387",
@@ -23622,12 +23824,12 @@
           "phone": "+9647718688349",
           "spec": "G",
           "tag": "G",
-          "dept": "G",
-          "department": "G",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "G",
+          "department": "G"
         },
         {
           "id": "res-0388",
@@ -23635,12 +23837,12 @@
           "phone": "+9647705975254",
           "spec": "G",
           "tag": "G",
-          "dept": "G",
-          "department": "G",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "G",
+          "department": "G"
         },
         {
           "id": "res-0389",
@@ -23648,12 +23850,12 @@
           "phone": "+9647760688768",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0390",
@@ -23661,12 +23863,12 @@
           "phone": "+9647809020899",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0391",
@@ -23674,12 +23876,12 @@
           "phone": "+9647726300975",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0392",
@@ -23687,12 +23889,12 @@
           "phone": "+9647714935538",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0393",
@@ -23700,12 +23902,12 @@
           "phone": "+9647702958143",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0394",
@@ -23713,12 +23915,12 @@
           "phone": "+9647703347068",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0395",
@@ -23726,12 +23928,12 @@
           "phone": "+9647710799367",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0396",
@@ -23739,12 +23941,12 @@
           "phone": "+9647802637051",
           "spec": "Pe",
           "tag": "Pe",
-          "dept": "Pe",
-          "department": "Pe",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "Pe",
+          "department": "Pe"
         },
         {
           "id": "res-0397",
@@ -23752,12 +23954,12 @@
           "phone": "+9647827925226",
           "spec": "NM",
           "tag": "NM",
-          "dept": "NM",
-          "department": "NM",
           "active": true,
           "hospitals": [
             "basra"
-          ]
+          ],
+          "dept": "NM",
+          "department": "NM"
         }
       ],
       "schedule": [
@@ -32519,13 +32721,13 @@
           "phone": "+9647739244859",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "mawani"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0027",
@@ -32533,13 +32735,13 @@
           "phone": "+9647826655511",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "mawani"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0036",
@@ -32547,14 +32749,14 @@
           "phone": "+9647735237481",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "iraqi",
             "basra",
             "mawani"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0109",
@@ -32562,13 +32764,13 @@
           "phone": "+9647736024102",
           "spec": "RESERVE",
           "tag": "NS",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": true,
           "hospitals": [
             "iraqi",
             "mawani"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0160",
@@ -32576,13 +32778,13 @@
           "phone": "+9647805195075",
           "spec": "NS",
           "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi",
             "mawani"
-          ]
+          ],
+          "dept": "NS",
+          "department": "NS"
         },
         {
           "id": "res-0161",
@@ -32590,13 +32792,13 @@
           "phone": "+9647707334546",
           "spec": "NS",
           "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi",
             "mawani"
-          ]
+          ],
+          "dept": "NS",
+          "department": "NS"
         },
         {
           "id": "res-0332",
@@ -32604,13 +32806,13 @@
           "phone": "+9647813977691",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra",
             "mawani"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0335",
@@ -32618,13 +32820,13 @@
           "phone": "+9647860606035",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "basra",
             "mawani"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0398",
@@ -32632,12 +32834,12 @@
           "phone": "+9647732298185",
           "spec": "ENT",
           "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "ENT",
+          "department": "ENT"
         },
         {
           "id": "res-0399",
@@ -32645,12 +32847,12 @@
           "phone": "+9647702832550",
           "spec": "ENT",
           "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "ENT",
+          "department": "ENT"
         },
         {
           "id": "res-0400",
@@ -32658,12 +32860,12 @@
           "phone": "+9647816742060",
           "spec": "NS",
           "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "NS",
+          "department": "NS"
         },
         {
           "id": "res-0401",
@@ -32671,12 +32873,12 @@
           "phone": "+9647718362763",
           "spec": "NS",
           "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "NS",
+          "department": "NS"
         },
         {
           "id": "res-0402",
@@ -32684,12 +32886,12 @@
           "phone": "+9647812638342",
           "spec": "RESERVE",
           "tag": "NS",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0403",
@@ -32697,12 +32899,12 @@
           "phone": "+9647773726610",
           "spec": "RESERVE",
           "tag": "NS",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0404",
@@ -32710,12 +32912,12 @@
           "phone": "+9647706225649",
           "spec": "NS",
           "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "NS",
+          "department": "NS"
         },
         {
           "id": "res-0405",
@@ -32723,12 +32925,12 @@
           "phone": "+9647833301233",
           "spec": "RESERVE",
           "tag": "NS",
-          "dept": "RESERVE",
-          "department": "RESERVE",
           "active": false,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "RESERVE",
+          "department": "RESERVE"
         },
         {
           "id": "res-0406",
@@ -32736,12 +32938,12 @@
           "phone": "+9647719184448",
           "spec": "NS",
           "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "NS",
+          "department": "NS"
         },
         {
           "id": "res-0407",
@@ -32749,12 +32951,12 @@
           "phone": "+9647827088919",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0408",
@@ -32762,12 +32964,12 @@
           "phone": "+9647716858560",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0409",
@@ -32775,12 +32977,12 @@
           "phone": "+9647813856692",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0410",
@@ -32788,12 +32990,12 @@
           "phone": "+9647712689915",
           "spec": "US",
           "tag": "US",
-          "dept": "US",
-          "department": "US",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "US",
+          "department": "US"
         },
         {
           "id": "res-0411",
@@ -32801,12 +33003,12 @@
           "phone": "+9647729918341",
           "spec": "US",
           "tag": "US",
-          "dept": "US",
-          "department": "US",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "US",
+          "department": "US"
         },
         {
           "id": "res-0412",
@@ -32814,12 +33016,12 @@
           "phone": "+9647815628060",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0413",
@@ -32827,12 +33029,12 @@
           "phone": "+9647718090001",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0414",
@@ -32840,12 +33042,12 @@
           "phone": "+9647700052061",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0415",
@@ -32853,12 +33055,12 @@
           "phone": "+9647729218515",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0416",
@@ -32866,12 +33068,12 @@
           "phone": "+9647717806103",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0417",
@@ -32879,12 +33081,12 @@
           "phone": "+9647729281183",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0418",
@@ -32892,12 +33094,12 @@
           "phone": "+9647780477234",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0419",
@@ -32905,12 +33107,12 @@
           "phone": "+9647811487982",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0420",
@@ -32918,12 +33120,12 @@
           "phone": "+9647716127715",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0421",
@@ -32931,12 +33133,12 @@
           "phone": "+9647773837499",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0422",
@@ -32944,12 +33146,12 @@
           "phone": "+9647745460005",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0423",
@@ -32957,12 +33159,12 @@
           "phone": "+9647776228423",
           "spec": "A",
           "tag": "A",
-          "dept": "A",
-          "department": "A",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "A",
+          "department": "A"
         },
         {
           "id": "res-0424",
@@ -32970,12 +33172,12 @@
           "phone": "+9647722138029",
           "spec": "US",
           "tag": "US",
-          "dept": "US",
-          "department": "US",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "US",
+          "department": "US"
         },
         {
           "id": "res-0425",
@@ -32983,12 +33185,12 @@
           "phone": "+9647815701931",
           "spec": "GS",
           "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "GS",
+          "department": "GS"
         },
         {
           "id": "res-0426",
@@ -32996,12 +33198,12 @@
           "phone": "+9647838781799",
           "spec": "M",
           "tag": "M",
-          "dept": "M",
-          "department": "M",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "M",
+          "department": "M"
         },
         {
           "id": "res-0427",
@@ -33009,12 +33211,12 @@
           "phone": "+9647705535066",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0428",
@@ -33022,12 +33224,12 @@
           "phone": "+9647727567076",
           "spec": "O",
           "tag": "O",
-          "dept": "O",
-          "department": "O",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "O",
+          "department": "O"
         },
         {
           "id": "res-0429",
@@ -33035,12 +33237,12 @@
           "phone": "+9647714982924",
           "spec": "O",
           "tag": "O",
-          "dept": "O",
-          "department": "O",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "O",
+          "department": "O"
         },
         {
           "id": "res-0430",
@@ -33048,12 +33250,12 @@
           "phone": "+9647738265348",
           "spec": "Pe",
           "tag": "Pe",
-          "dept": "Pe",
-          "department": "Pe",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "Pe",
+          "department": "Pe"
         },
         {
           "id": "res-0431",
@@ -33061,12 +33263,12 @@
           "phone": "+9647833256993",
           "spec": "EM",
           "tag": "EM",
-          "dept": "EM",
-          "department": "EM",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "EM",
+          "department": "EM"
         },
         {
           "id": "res-0432",
@@ -33074,12 +33276,12 @@
           "phone": "+9647806557223",
           "spec": "EM",
           "tag": "EM",
-          "dept": "EM",
-          "department": "EM",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "EM",
+          "department": "EM"
         },
         {
           "id": "res-0433",
@@ -33087,12 +33289,12 @@
           "phone": "+9647811177229",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0434",
@@ -33100,12 +33302,12 @@
           "phone": "+9647735411114",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0435",
@@ -33113,12 +33315,12 @@
           "phone": "+9647730220070",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0436",
@@ -33126,12 +33328,12 @@
           "phone": "+9647804116604",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0437",
@@ -33139,12 +33341,12 @@
           "phone": "+9647726453404",
           "spec": "MF",
           "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "MF",
+          "department": "MF"
         },
         {
           "id": "res-0438",
@@ -33152,12 +33354,12 @@
           "phone": "+9647703214791",
           "spec": "AO",
           "tag": "AO",
-          "dept": "AO",
-          "department": "AO",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "AO",
+          "department": "AO"
         },
         {
           "id": "res-0439",
@@ -33165,12 +33367,12 @@
           "phone": "+9647704303025",
           "spec": "AO",
           "tag": "AO",
-          "dept": "AO",
-          "department": "AO",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "AO",
+          "department": "AO"
         },
         {
           "id": "res-0440",
@@ -33178,12 +33380,12 @@
           "phone": "+9647722772419",
           "spec": "AO",
           "tag": "AO",
-          "dept": "AO",
-          "department": "AO",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "AO",
+          "department": "AO"
         },
         {
           "id": "res-0441",
@@ -33191,12 +33393,12 @@
           "phone": "+9647718705644",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0442",
@@ -33204,12 +33406,12 @@
           "phone": "+9647705600920",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0443",
@@ -33217,12 +33419,12 @@
           "phone": "+9647703100531",
           "spec": "AO",
           "tag": "AO",
-          "dept": "AO",
-          "department": "AO",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "AO",
+          "department": "AO"
         },
         {
           "id": "res-0444",
@@ -33230,12 +33432,12 @@
           "phone": "+9647827903387",
           "spec": "R",
           "tag": "R",
-          "dept": "R",
-          "department": "R",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "R",
+          "department": "R"
         },
         {
           "id": "res-0445",
@@ -33243,12 +33445,12 @@
           "phone": "+9647723359625",
           "spec": "OP",
           "tag": "OP",
-          "dept": "OP",
-          "department": "OP",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "OP",
+          "department": "OP"
         },
         {
           "id": "res-0446",
@@ -33256,12 +33458,12 @@
           "phone": "+9647739468124",
           "spec": "OP",
           "tag": "OP",
-          "dept": "OP",
-          "department": "OP",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "OP",
+          "department": "OP"
         },
         {
           "id": "res-0447",
@@ -33269,12 +33471,12 @@
           "phone": "+9647705669930",
           "spec": "OP",
           "tag": "OP",
-          "dept": "OP",
-          "department": "OP",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "OP",
+          "department": "OP"
         },
         {
           "id": "res-0448",
@@ -33282,12 +33484,12 @@
           "phone": "+9647735575678",
           "spec": "G",
           "tag": "G",
-          "dept": "G",
-          "department": "G",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "G",
+          "department": "G"
         },
         {
           "id": "res-0449",
@@ -33295,12 +33497,12 @@
           "phone": "+9647817932865",
           "spec": "G",
           "tag": "G",
-          "dept": "G",
-          "department": "G",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "G",
+          "department": "G"
         },
         {
           "id": "res-0450",
@@ -33308,12 +33510,12 @@
           "phone": "+9647830760046",
           "spec": "G",
           "tag": "G",
-          "dept": "G",
-          "department": "G",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "G",
+          "department": "G"
         },
         {
           "id": "res-0451",
@@ -33321,12 +33523,12 @@
           "phone": "+9647713639189",
           "spec": "G",
           "tag": "G",
-          "dept": "G",
-          "department": "G",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "G",
+          "department": "G"
         },
         {
           "id": "res-0452",
@@ -33334,12 +33536,12 @@
           "phone": "+9647719794535",
           "spec": "G",
           "tag": "G",
-          "dept": "G",
-          "department": "G",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "G",
+          "department": "G"
         },
         {
           "id": "res-0453",
@@ -33347,12 +33549,12 @@
           "phone": "+9647722315771",
           "spec": "G",
           "tag": "G",
-          "dept": "G",
-          "department": "G",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "G",
+          "department": "G"
         },
         {
           "id": "res-0454",
@@ -33360,12 +33562,12 @@
           "phone": "+9647714055930",
           "spec": "G",
           "tag": "G",
-          "dept": "G",
-          "department": "G",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "G",
+          "department": "G"
         },
         {
           "id": "res-0455",
@@ -33373,12 +33575,12 @@
           "phone": "+9647719744688",
           "spec": "OR",
           "tag": "OR",
-          "dept": "OR",
-          "department": "OR",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "OR",
+          "department": "OR"
         },
         {
           "id": "res-0456",
@@ -33386,12 +33588,12 @@
           "phone": "+9647732153718",
           "spec": "Pe",
           "tag": "Pe",
-          "dept": "Pe",
-          "department": "Pe",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "Pe",
+          "department": "Pe"
         },
         {
           "id": "res-0457",
@@ -33399,12 +33601,12 @@
           "phone": "+9647851990446",
           "spec": "Pe",
           "tag": "Pe",
-          "dept": "Pe",
-          "department": "Pe",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "Pe",
+          "department": "Pe"
         },
         {
           "id": "res-0458",
@@ -33412,12 +33614,12 @@
           "phone": "+9647730300297",
           "spec": "G",
           "tag": "G",
-          "dept": "G",
-          "department": "G",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "G",
+          "department": "G"
         },
         {
           "id": "res-0459",
@@ -33425,12 +33627,12 @@
           "phone": "+9647732165560",
           "spec": "G",
           "tag": "G",
-          "dept": "G",
-          "department": "G",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "G",
+          "department": "G"
         },
         {
           "id": "res-0460",
@@ -33438,12 +33640,12 @@
           "phone": "+9647705674831",
           "spec": "AO",
           "tag": "AO",
-          "dept": "AO",
-          "department": "AO",
           "active": true,
           "hospitals": [
             "mawani"
-          ]
+          ],
+          "dept": "AO",
+          "department": "AO"
         }
       ],
       "schedule": [

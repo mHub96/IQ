@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-15T08:55:48.707Z",
+  "lastUpdated": "2026-09-15T08:56:57.531Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -37563,22 +37563,6 @@
           "dutySlot": 0
         }
       ]
-    },
-    "sayyab": {
-      "id": "sayyab",
-      "hospitalName": "Al-Sayyab Teaching Hospital",
-      "name_ar": "مستشفى السياب التعليمي",
-      "location": "Basra · Iraq",
-      "icon": "fa-hospital",
-      "color": "#0f766e",
-      "passwords": {
-        "owner": "MrjBth1996*",
-        "admin": "Admin1996*",
-        "user": "1234"
-      },
-      "specialties": [],
-      "names": [],
-      "schedule": []
     }
   },
   "residents": [

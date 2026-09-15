@@ -990,6 +990,16 @@
                 renderResidentsAccordion();
                 updateStatsBadges();
 
+                // Reactive UI updates on data changes
+                window.addEventListener('hub:data-changed', () => {
+                    currentHospital = Hub.getActiveHospital();
+                    renderGlobalSpecialtiesList();
+                    renderSpecialtiesList();
+                    renderResidentsAccordion();
+                    populateSpecialtyDropdowns();
+                    updateStatsBadges();
+                });
+
             } catch (err) {
                 console.error("Admin init error:", err);
                 showToast("خطأ في تحميل بيانات الإدارة", "error");
@@ -1961,8 +1971,9 @@
                 populateSpecialtyDropdowns();
                 updateStatsBadges();
             } catch (err) {
-                console.error(err);
+                console.error("Save global spec error:", err);
                 showToast(err.message || 'خطأ أثناء حفظ التخصص في المستودع', 'error');
+                renderGlobalSpecialtiesList();
             }
         }
 

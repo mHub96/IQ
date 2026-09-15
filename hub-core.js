@@ -21,13 +21,20 @@
     const GH_TOKEN = _p.join('');
 
     // Storage Keys
-    const CACHE_KEY = 'hospital_hub_database_v2';
+    const CACHE_KEY = 'hospital_hub_database_v3';
     const ACTIVE_HOSP_KEY = 'hospital_hub_active_id';
     const SESSION_ROLE_KEY = 'hospital_hub_session_role';
     const SESSION_TOKEN_KEY = 'hospital_hub_session_token';
     const SESSION_TIMESTAMP_KEY = 'hospital_hub_session_timestamp';
     const SESSION_REMEMBER_KEY = 'hospital_hub_session_remember';
     const THEME_KEY = 'hospital_hub_theme';
+
+    // Clear stale caches from older database iterations
+    try {
+        localStorage.removeItem('hospital_hub_database_v2');
+        localStorage.removeItem('hospital_hub_database');
+        localStorage.removeItem('hospital_hub_database_v1');
+    } catch(e) {}
 
     // In-memory Database State
     let db = null;
@@ -73,11 +80,13 @@
         { id: "RM", name_ar: "طب الامراض التنفسية", name_en: "Respiratory Medicine", icon: "🫁", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true }
     ];
 
-    // Canonical Specialty Aliases (e.g. F -> FM for Family Medicine)
+    // Canonical Specialty Aliases (e.g. F -> FM for Family Medicine, E -> EM for Emergency)
     const SPECIALTY_ALIASES = {
         'F': 'FM',
-        'DC': 'D',
+        'E': 'EM',
+        'IM': 'M',
         'DERM': 'Der',
+        'DC': 'D',
         'PAED': 'Pe',
         'PED': 'Pe',
         'CARDIO': 'H',
@@ -93,7 +102,10 @@
         'RESP': 'RM',
         'PULM': 'RM',
         'NEPHRO': 'N',
-        'ADMIN': 'AO'
+        'ADMIN': 'AO',
+        'EMERGENCY': 'EM',
+        'FAMILY': 'FM',
+        'FMED': 'FM'
     };
 
     function normalizeSpecialtyId(id) {
@@ -102,11 +114,131 @@
         const upper = trimmed.toUpperCase();
         if (SPECIALTY_ALIASES[trimmed]) return SPECIALTY_ALIASES[trimmed];
         if (SPECIALTY_ALIASES[upper]) return SPECIALTY_ALIASES[upper];
+
+        // Match common Arabic text names directly to canonical IDs
+        const cleanAr = trimmed.replace(/[\u064B-\u065F\u0670]/g, '')
+                               .replace(/[أإآ]/g, 'ا')
+                               .replace(/ة/g, 'ه')
+                               .replace(/\s+/g, '');
+        if (cleanAr === 'طبالاسره' || cleanAr === 'الاسره' || cleanAr === 'طباسره') return 'FM';
+        if (cleanAr === 'طبالطوارئ' || cleanAr === 'طوارئ' || cleanAr === 'طوارىء' || cleanAr === 'طبالطواريء') return 'EM';
+        if (cleanAr === 'الباطنيه' || cleanAr === 'باطنيه') return 'M';
+        if (cleanAr === 'الجلديه' || cleanAr === 'جلديه') return 'Der';
+        if (cleanAr === 'الوفيات' || cleanAr === 'شهاداتالوفيات') return 'D';
         
         // Exact match check against CANONICAL_SPECIALTIES (case-insensitive)
         const matched = CANONICAL_SPECIALTIES.find(s => s.id.toUpperCase() === upper);
         if (matched) return matched.id;
         return trimmed;
+    }
+
+    /**
+     * Complete Database Sanitization & Specialty Deduplication Engine
+     * Enforces that:
+     * - F & FM are merged strictly into FM (طب الأسرة).
+     * - E & EM are merged strictly into EM (طب الطوارئ).
+     * - IM is merged into M (الباطنية).
+     * - All hospital specialties originate strictly from globalSpecialties.
+     * - All residents and schedules use normalized canonical IDs.
+     */
+    function sanitizeAndMigrateDatabase(targetDb) {
+        if (!targetDb || typeof targetDb !== 'object') return targetDb;
+
+        // 1. Sanitize and Deduplicate globalSpecialties
+        if (!Array.isArray(targetDb.globalSpecialties) || targetDb.globalSpecialties.length === 0) {
+            targetDb.globalSpecialties = JSON.parse(JSON.stringify(CANONICAL_SPECIALTIES));
+        } else {
+            const cleanMap = new Map();
+            targetDb.globalSpecialties.forEach(s => {
+                const normId = normalizeSpecialtyId(s.id);
+                const canon = CANONICAL_SPECIALTIES.find(c => c.id === normId);
+                if (canon) {
+                    if (!cleanMap.has(normId)) {
+                        cleanMap.set(normId, {
+                            ...canon,
+                            ...s,
+                            id: normId,
+                            name_ar: canon.name_ar, // enforce authoritative Arabic name
+                            name_en: canon.name_en,
+                            icon: canon.icon
+                        });
+                    }
+                }
+            });
+            // Ensure all 29 canonical specialties are present
+            CANONICAL_SPECIALTIES.forEach(c => {
+                if (!cleanMap.has(c.id)) {
+                    cleanMap.set(c.id, JSON.parse(JSON.stringify(c)));
+                }
+            });
+            targetDb.globalSpecialties = Array.from(cleanMap.values());
+        }
+
+        // 2. Sanitize and Deduplicate Hospital Specialties
+        const validGlobalIds = new Set(targetDb.globalSpecialties.map(s => s.id));
+        if (targetDb.hospitals && typeof targetDb.hospitals === 'object') {
+            Object.keys(targetDb.hospitals).forEach(hid => {
+                const hosp = targetDb.hospitals[hid];
+                if (!hosp) return;
+                
+                const hospSpecMap = new Map();
+                (hosp.specialties || []).forEach(s => {
+                    const normId = normalizeSpecialtyId(s.id);
+                    if (!validGlobalIds.has(normId)) return; // remove rogue non-store specialties
+                    const globalDef = targetDb.globalSpecialties.find(g => g.id === normId);
+                    if (!hospSpecMap.has(normId)) {
+                        hospSpecMap.set(normId, {
+                            ...s,
+                            id: normId,
+                            name_ar: globalDef ? globalDef.name_ar : s.name_ar,
+                            name_en: globalDef ? globalDef.name_en : s.name_en,
+                            icon: globalDef ? globalDef.icon : (s.icon || '🏥')
+                        });
+                    }
+                });
+
+                // Ensure all canonical specialties exist in hospital if template clone
+                targetDb.globalSpecialties.forEach(g => {
+                    if (!hospSpecMap.has(g.id)) {
+                        hospSpecMap.set(g.id, {
+                            id: g.id,
+                            name_ar: g.name_ar,
+                            name_en: g.name_en,
+                            icon: g.icon,
+                            color: '#0f766e',
+                            enabled: true
+                        });
+                    }
+                });
+
+                hosp.specialties = Array.from(hospSpecMap.values());
+
+                // Sanitize hospital resident names
+                (hosp.names || []).forEach(r => {
+                    r.spec = normalizeSpecialtyId(r.spec);
+                    r.tag = normalizeSpecialtyId(r.tag || r.spec);
+                    r.dept = normalizeSpecialtyId(r.dept || r.department || r.spec);
+                    r.department = r.dept;
+                });
+
+                // Sanitize hospital schedule
+                (hosp.schedule || []).forEach(slot => {
+                    if (slot.specCode) {
+                        slot.specCode = normalizeSpecialtyId(slot.specCode);
+                    }
+                });
+            });
+        }
+
+        // 3. Sanitize Master Residents
+        (targetDb.residents || []).forEach(r => {
+            r.spec = normalizeSpecialtyId(r.spec);
+            r.tag = normalizeSpecialtyId(r.tag || r.spec);
+            r.dept = normalizeSpecialtyId(r.dept || r.department || r.spec);
+            r.department = r.dept;
+        });
+
+        return targetDb;
     }
 
     // Default Fallback Database Structure
@@ -162,7 +294,7 @@
             const cachedStr = localStorage.getItem(CACHE_KEY);
             if (cachedStr && !db) {
                 try {
-                    db = JSON.parse(cachedStr);
+                    db = sanitizeAndMigrateDatabase(JSON.parse(cachedStr));
                 } catch (e) {
                     console.warn("Corrupt local database cache:", e);
                 }
@@ -181,10 +313,32 @@
                 if (res.ok) {
                     const jsonRes = await res.json();
                     fileSha = jsonRes.sha;
-                    const decodedStr = decodeURIComponent(escape(atob(jsonRes.content.replace(/\s/g, ''))));
-                    const remoteDb = JSON.parse(decodedStr);
+                    let remoteDb = null;
+                    if (jsonRes.content && jsonRes.content.trim()) {
+                        const decodedStr = decodeURIComponent(escape(atob(jsonRes.content.replace(/\s/g, ''))));
+                        remoteDb = JSON.parse(decodedStr);
+                    } else if (jsonRes.download_url) {
+                        // File > 1MB: GitHub does not include base64 content
+                        const dlRes = await fetch(jsonRes.download_url + (jsonRes.download_url.includes('?') ? '&' : '?') + 't=' + Date.now());
+                        if (dlRes.ok) {
+                            remoteDb = await dlRes.json();
+                        }
+                    } else if (jsonRes.git_url) {
+                        const blobRes = await fetch(jsonRes.git_url, {
+                            headers: {
+                                "Authorization": `token ${GH_TOKEN}`,
+                                "Accept": "application/vnd.github.v3+json"
+                            }
+                        });
+                        if (blobRes.ok) {
+                            const blobData = await blobRes.json();
+                            const decodedStr = decodeURIComponent(escape(atob(blobData.content.replace(/\s/g, ''))));
+                            remoteDb = JSON.parse(decodedStr);
+                        }
+                    }
+
                     if (remoteDb && remoteDb.hospitals) {
-                        db = remoteDb;
+                        db = sanitizeAndMigrateDatabase(remoteDb);
                         localStorage.setItem(CACHE_KEY, JSON.stringify(db));
                         isLoaded = true;
                         dispatchDataChanged();
@@ -204,7 +358,7 @@
                     if (localRes.ok) {
                         const localDb = await localRes.json();
                         if (localDb && localDb.hospitals) {
-                            db = localDb;
+                            db = sanitizeAndMigrateDatabase(localDb);
                             localStorage.setItem(CACHE_KEY, JSON.stringify(db));
                             isLoaded = true;
                             // Attempt to initialize GitHub with this local copy in the background
@@ -644,18 +798,28 @@
     // CENTRAL UNIFIED SPECIALTIES CATALOG
     // ============================================================
     function getGlobalSpecialties() {
+        let specs = null;
         if (db && Array.isArray(db.globalSpecialties) && db.globalSpecialties.length > 0) {
-            return db.globalSpecialties;
-        }
-        if (db) {
+            specs = db.globalSpecialties;
+        } else if (db) {
             const firstHosp = db.hospitals ? Object.values(db.hospitals)[0] : null;
             const source = (firstHosp && Array.isArray(firstHosp.specialties) && firstHosp.specialties.length > 0)
                 ? firstHosp.specialties
                 : CANONICAL_SPECIALTIES;
             db.globalSpecialties = JSON.parse(JSON.stringify(source));
-            return db.globalSpecialties;
+            specs = db.globalSpecialties;
+        } else {
+            specs = JSON.parse(JSON.stringify(CANONICAL_SPECIALTIES));
         }
-        return JSON.parse(JSON.stringify(CANONICAL_SPECIALTIES));
+
+        // Deduplicate by normalized canonical ID
+        const seen = new Set();
+        return specs.filter(s => {
+            const canonId = normalizeSpecialtyId(s.id);
+            if (seen.has(canonId)) return false;
+            seen.add(canonId);
+            return true;
+        });
     }
 
     async function saveGlobalSpecialties(specs) {

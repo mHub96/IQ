@@ -685,6 +685,26 @@
                 populateModalDropdowns();
                 refreshData();
 
+                // Reactive UI update on database changes
+                window.addEventListener('hub:data-changed', () => {
+                    const globalSpecs = (typeof Hub !== 'undefined' && Hub.getGlobalSpecialties) ? Hub.getGlobalSpecialties() : [];
+                    const specMap = new Map();
+                    globalSpecs.forEach(s => {
+                        const canonId = (typeof Hub !== 'undefined' && Hub.normalizeSpecialtyId) ? Hub.normalizeSpecialtyId(s.id) : s.id;
+                        if (!specMap.has(canonId)) {
+                            specMap.set(canonId, {
+                                ...s,
+                                id: canonId
+                            });
+                        }
+                    });
+                    allSpecialties = Array.from(specMap.values());
+                    populateSpecialtyFilter();
+                    renderHospitalFilterPills();
+                    populateModalDropdowns();
+                    refreshData();
+                });
+
             } catch (err) {
                 console.error("Error loading residents page:", err);
                 showToast("حدث خطأ أثناء تحميل دليل المقيمين", "error");

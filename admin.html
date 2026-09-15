@@ -1292,6 +1292,13 @@
 
             const formattedName = name.startsWith('د.') || name.startsWith('د ') ? name : `د. ${name}`;
 
+            // Close panel immediately on save
+            document.getElementById('new-res-name').value = '';
+            document.getElementById('new-res-phone').value = '';
+            const deptEl = document.getElementById('new-res-dept');
+            if (deptEl) delete deptEl.dataset.userModified;
+            toggleAddResidentPanel(false);
+
             try {
                 await Hub.addResident({
                     name: formattedName,
@@ -1303,12 +1310,6 @@
                     active: active,
                     hospitals: assignedHospitals
                 });
-
-                document.getElementById('new-res-name').value = '';
-                document.getElementById('new-res-phone').value = '';
-                const deptEl = document.getElementById('new-res-dept');
-                if (deptEl) delete deptEl.dataset.userModified;
-                toggleAddResidentPanel(false);
 
                 currentHospital = Hub.getActiveHospital();
                 renderResidentsAccordion();
@@ -1389,6 +1390,9 @@
 
             const oldName = currentHospital.names[idx].name;
 
+            // Close modal immediately on save
+            closeEditModal();
+
             try {
                 const targetIdOrName = resId || oldName;
                 await Hub.updateResident(targetIdOrName, {
@@ -1409,7 +1413,6 @@
                     });
                 }
 
-                closeEditModal();
                 currentHospital = Hub.getActiveHospital();
                 renderResidentsAccordion();
                 updateStatsBadges();
@@ -1732,10 +1735,12 @@
                 return;
             }
 
+            // Close modal immediately on save
+            closeAddHospitalSpecModal();
+
             try {
                 await Hub.addHospitalSpecialtyFromGlobal(currentHospital.id, specId, color);
                 currentHospital = Hub.getActiveHospital();
-                closeAddHospitalSpecModal();
                 renderSpecialtiesList();
                 renderResidentsAccordion();
                 populateSpecialtyDropdowns();
@@ -1923,6 +1928,9 @@
                 return;
             }
 
+            // Close modal immediately on save
+            closeGlobalSpecEditModal();
+
             try {
                 if (origId) {
                     await Hub.updateGlobalSpecialty(origId, {
@@ -1947,7 +1955,6 @@
                 }
 
                 currentHospital = Hub.getActiveHospital();
-                closeGlobalSpecEditModal();
                 renderGlobalSpecialtiesList();
                 renderSpecialtiesList();
                 renderResidentsAccordion();
@@ -2027,35 +2034,44 @@
                 return;
             }
 
-            currentHospital.name_ar = nameAr;
-            currentHospital.hospitalName = nameEn;
-            currentHospital.location = loc;
-
-            // Only update passwords if the logged-in role is OWNER!
+            let uPwd = '', aPwd = '', oPwd = '';
             if (Hub.auth.canEditPasswords()) {
-                const uPwd = document.getElementById('hosp-setting-user-pwd').value.trim();
-                const aPwd = document.getElementById('hosp-setting-admin-pwd').value.trim();
-                const oPwd = document.getElementById('hosp-setting-owner-pwd').value.trim();
+                uPwd = document.getElementById('hosp-setting-user-pwd').value.trim();
+                aPwd = document.getElementById('hosp-setting-admin-pwd').value.trim();
+                oPwd = document.getElementById('hosp-setting-owner-pwd').value.trim();
 
                 if (!uPwd || !aPwd || !oPwd) {
                     showToast('الرجاء إدخال جميع كلمات المرور', 'error');
                     return;
                 }
-
-                await Hub.updateHospitalPasswords(currentHospital.id, {
-                    owner: oPwd,
-                    admin: aPwd,
-                    user: uPwd
-                });
-            } else {
-                // Admin mode: update general hospital info only
-                await Hub.saveDatabase(`Update hospital settings: ${nameAr}`);
             }
 
+            currentHospital.name_ar = nameAr;
+            currentHospital.hospitalName = nameEn;
+            currentHospital.location = loc;
+
+            // Close modal immediately on save
             closeHospitalSettingsModal();
             document.getElementById('admin-hosp-title').textContent = nameAr;
             document.getElementById('admin-hosp-subtitle').textContent = loc;
-            showToast('تم تحديث إعدادات المستشفى بنجاح', 'success');
+
+            try {
+                // Only update passwords if the logged-in role is OWNER!
+                if (Hub.auth.canEditPasswords()) {
+                    await Hub.updateHospitalPasswords(currentHospital.id, {
+                        owner: oPwd,
+                        admin: aPwd,
+                        user: uPwd
+                    });
+                } else {
+                    // Admin mode: update general hospital info only
+                    await Hub.saveDatabase(`Update hospital settings: ${nameAr}`);
+                }
+                showToast('تم تحديث إعدادات المستشفى بنجاح', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'خطأ أثناء حفظ إعدادات المستشفى', 'error');
+            }
         }
 
         // ============================================================

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-15T04:08:11.738Z",
+  "lastUpdated": "2026-09-15T04:08:45.516Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -23,7 +23,7 @@
       "specialties": [
         {
           "id": "NS",
-          "name_ar": "ئلنيورو",
+          "name_ar": "جراحة الجملة العصبية",
           "name_en": "Neurosurgery",
           "icon": "🧠",
           "color": "#fea101",
@@ -20498,7 +20498,7 @@
       "specialties": [
         {
           "id": "NS",
-          "name_ar": "ئلنيورو",
+          "name_ar": "جراحة الجملة العصبية",
           "name_en": "Neurosurgery",
           "icon": "🧠",
           "color": "#fea101",
@@ -32369,7 +32369,7 @@
       "specialties": [
         {
           "id": "NS",
-          "name_ar": "ئلنيورو",
+          "name_ar": "جراحة الجملة العصبية",
           "name_en": "Neurosurgery",
           "icon": "🧠",
           "color": "#fea101",
@@ -43553,7 +43553,7 @@
   "globalSpecialties": [
     {
       "id": "NS",
-      "name_ar": "ئلنيورو",
+      "name_ar": "جراحة الجملة العصبية",
       "name_en": "Neurosurgery",
       "icon": "🧠",
       "parentSpec": null,

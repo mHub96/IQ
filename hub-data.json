@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-13T01:52:00Z",
+  "lastUpdated": "2026-09-15T03:45:57.149Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -23,7 +23,7 @@
       "specialties": [
         {
           "id": "NS",
-          "name_ar": "جراحة الجملة العصبية",
+          "name_ar": "النيورو الحبابين",
           "name_en": "Neurosurgery",
           "icon": "🧠",
           "color": "#fea101",
@@ -2286,10 +2286,9 @@
           "tag": "NS",
           "dept": "NS",
           "department": "NS",
-          "active": false,
+          "active": true,
           "hospitals": [
-            "iraqi",
-            "mawani"
+            "iraqi"
           ]
         },
         {
@@ -20498,7 +20497,7 @@
       "specialties": [
         {
           "id": "NS",
-          "name_ar": "جراحة الجملة العصبية",
+          "name_ar": "النيورو الحبابين",
           "name_en": "Neurosurgery",
           "icon": "🧠",
           "color": "#fea101",
@@ -32369,7 +32368,7 @@
       "specialties": [
         {
           "id": "NS",
-          "name_ar": "جراحة الجملة العصبية",
+          "name_ar": "النيورو الحبابين",
           "name_en": "Neurosurgery",
           "icon": "🧠",
           "color": "#fea101",
@@ -33471,20 +33470,6 @@
           "department": "O",
           "active": true,
           "hospitals": [
-            "mawani"
-          ]
-        },
-        {
-          "id": "res-0160",
-          "name": "د. محمد رياض جعفر",
-          "phone": "+9647805195075",
-          "spec": "NS",
-          "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
-          "active": false,
-          "hospitals": [
-            "iraqi",
             "mawani"
           ]
         },
@@ -42223,10 +42208,9 @@
       "tag": "NS",
       "dept": "NS",
       "department": "NS",
-      "active": false,
+      "active": true,
       "hospitals": [
-        "iraqi",
-        "mawani"
+        "iraqi"
       ]
     },
     {
@@ -43553,10 +43537,9 @@
   "globalSpecialties": [
     {
       "id": "NS",
-      "name_ar": "جراحة الجملة العصبية",
+      "name_ar": "النيورو الحبابين",
       "name_en": "Neurosurgery",
       "icon": "🧠",
-      "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
       "enabled": true

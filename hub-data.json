@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-15T04:33:07.692Z",
+  "lastUpdated": "2026-09-15T04:34:31.985Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -43,9 +43,9 @@
         },
         {
           "id": "GS",
-          "name_ar": "الجراحة العامة والمناظير المتقدمة",
-          "name_en": "الجراحة العامة والمناظير المتقدمة",
-          "icon": "🏥",
+          "name_ar": "الجراحة العامة",
+          "name_en": "General Surgery",
+          "icon": "🔪",
           "color": "#2ac200",
           "parentSpec": null,
           "acceptPool": [],
@@ -20518,9 +20518,9 @@
         },
         {
           "id": "GS",
-          "name_ar": "الجراحة العامة والمناظير المتقدمة",
-          "name_en": "الجراحة العامة والمناظير المتقدمة",
-          "icon": "🏥",
+          "name_ar": "الجراحة العامة",
+          "name_en": "General Surgery",
+          "icon": "🔪",
           "color": "#2ac200",
           "parentSpec": null,
           "acceptPool": [],
@@ -32389,9 +32389,9 @@
         },
         {
           "id": "GS",
-          "name_ar": "الجراحة العامة والمناظير المتقدمة",
-          "name_en": "الجراحة العامة والمناظير المتقدمة",
-          "icon": "🏥",
+          "name_ar": "الجراحة العامة",
+          "name_en": "General Surgery",
+          "icon": "🔪",
           "color": "#2ac200",
           "parentSpec": null,
           "acceptPool": [],
@@ -43573,9 +43573,9 @@
     },
     {
       "id": "GS",
-      "name_ar": "الجراحة العامة والمناظير المتقدمة",
-      "name_en": "الجراحة العامة والمناظير المتقدمة",
-      "icon": "🏥",
+      "name_ar": "الجراحة العامة",
+      "name_en": "General Surgery",
+      "icon": "🔪",
       "parentSpec": null,
       "acceptPool": [],
       "enabled": true

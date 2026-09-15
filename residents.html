@@ -666,16 +666,17 @@
                     adminActionsWrap.classList.add('hidden');
                 }
 
-                // Extract all specialties from Main Specialty Store (Central Catalog)
+                // Extract all specialties strictly from Main Specialty Store (Central Catalog)
                 const globalSpecs = (typeof Hub !== 'undefined' && Hub.getGlobalSpecialties) ? Hub.getGlobalSpecialties() : [];
                 const specMap = new Map();
-                globalSpecs.forEach(s => specMap.set(s.id, s));
-                allHospitals.forEach(h => {
-                    (h.specialties || []).forEach(s => {
-                        if (!specMap.has(s.id)) {
-                            specMap.set(s.id, s);
-                        }
-                    });
+                globalSpecs.forEach(s => {
+                    const canonId = (typeof Hub !== 'undefined' && Hub.normalizeSpecialtyId) ? Hub.normalizeSpecialtyId(s.id) : s.id;
+                    if (!specMap.has(canonId)) {
+                        specMap.set(canonId, {
+                            ...s,
+                            id: canonId
+                        });
+                    }
                 });
                 allSpecialties = Array.from(specMap.values());
 
@@ -692,8 +693,15 @@
 
         function populateSpecialtyFilter() {
             const select = document.getElementById('spec-filter');
+            const seen = new Set();
+            const uniqueSpecs = allSpecialties.filter(s => {
+                const canonId = (typeof Hub !== 'undefined' && Hub.normalizeSpecialtyId) ? Hub.normalizeSpecialtyId(s.id) : s.id;
+                if (seen.has(canonId)) return false;
+                seen.add(canonId);
+                return true;
+            });
             select.innerHTML = '<option value="all">جميع التخصصات الطبية</option>' + 
-                allSpecialties.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar}</option>`).join('');
+                uniqueSpecs.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar}</option>`).join('');
         }
 
         function renderHospitalFilterPills() {
@@ -760,9 +768,12 @@
                     }
                 }
 
-                // 2. Specialty Filter
+                // 2. Specialty Filter (Normalized)
                 if (selectedSpec !== 'all') {
-                    if (r.spec !== selectedSpec && r.tag !== selectedSpec) {
+                    const normSelected = (typeof Hub !== 'undefined' && Hub.normalizeSpecialtyId) ? Hub.normalizeSpecialtyId(selectedSpec) : selectedSpec;
+                    const rSpec = (typeof Hub !== 'undefined' && Hub.normalizeSpecialtyId) ? Hub.normalizeSpecialtyId(r.spec) : r.spec;
+                    const rTag = (typeof Hub !== 'undefined' && Hub.normalizeSpecialtyId) ? Hub.normalizeSpecialtyId(r.tag) : r.tag;
+                    if (rSpec !== normSelected && rTag !== normSelected) {
                         return false;
                     }
                 }
@@ -778,7 +789,8 @@
                 if (searchQuery) {
                     const matchName = (r.name || '').toLowerCase().includes(searchQuery);
                     const matchPhone = (r.phone || '').toLowerCase().includes(searchQuery);
-                    const specObj = allSpecialties.find(s => s.id === (r.tag || r.spec));
+                    const rSpecNorm = (typeof Hub !== 'undefined' && Hub.normalizeSpecialtyId) ? Hub.normalizeSpecialtyId(r.tag || r.spec) : (r.tag || r.spec);
+                    const specObj = allSpecialties.find(s => s.id === rSpecNorm);
                     const matchSpec = specObj ? specObj.name_ar.toLowerCase().includes(searchQuery) : false;
                     if (!matchName && !matchPhone && !matchSpec) return false;
                 }
@@ -804,12 +816,15 @@
             empty.classList.add('hidden');
 
             grid.innerHTML = residents.map(r => {
-                const specObj = allSpecialties.find(s => s.id === (r.tag || r.spec)) || { name_ar: r.spec, icon: '🏥', color: '#0f766e' };
+                const specId = (typeof Hub !== 'undefined' && Hub.normalizeSpecialtyId) ? Hub.normalizeSpecialtyId(r.tag || r.spec) : (r.tag || r.spec);
+                const specObj = allSpecialties.find(s => s.id === specId) || { name_ar: r.spec, icon: '🏥', color: '#0f766e' };
                 const isActive = r.active !== false && r.spec !== 'RESERVE';
                 const hasPhone = r.phone && r.phone.trim() && r.phone !== 'رقم غير متوفر';
                 const rawPhone = hasPhone ? r.phone.replace(/[^0-9+]/g, '') : '';
                 const doctorHospitals = (r.hospitals || []).map(hid => allHospitals.find(h => h.id === hid)).filter(Boolean);
                 const isMulti = doctorHospitals.length > 1;
+                const deptId = (typeof Hub !== 'undefined' && Hub.normalizeSpecialtyId) ? Hub.normalizeSpecialtyId(r.dept) : r.dept;
+                const deptObj = deptId ? allSpecialties.find(s => s.id === deptId) : null;
 
                 return `
                     <div class="doctor-card">
@@ -824,9 +839,9 @@
                                     <div class="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 mt-0.5 flex-wrap">
                                         <span>${specObj.icon || '🏥'}</span>
                                         <span class="font-bold">${specObj.name_ar}</span>
-                                        ${r.dept && r.dept !== (r.spec || r.tag) ? `
+                                        ${deptId && deptId !== specId ? `
                                             <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
-                                                <i class="fas fa-rotate ml-1"></i> تناوب في: ${(allSpecialties.find(s => s.id === r.dept) || {}).name_ar || r.dept}
+                                                <i class="fas fa-rotate ml-1"></i> تناوب في: ${deptObj ? deptObj.name_ar : r.dept}
                                             </span>
                                         ` : ''}
                                     </div>

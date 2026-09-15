@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-15T03:58:39.632Z",
+  "lastUpdated": "2026-09-13T01:52:00Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -2286,9 +2286,10 @@
           "tag": "NS",
           "dept": "NS",
           "department": "NS",
-          "active": true,
+          "active": false,
           "hospitals": [
-            "iraqi"
+            "iraqi",
+            "mawani"
           ]
         },
         {
@@ -33474,6 +33475,20 @@
           ]
         },
         {
+          "id": "res-0160",
+          "name": "د. محمد رياض جعفر",
+          "phone": "+9647805195075",
+          "spec": "NS",
+          "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
+          "active": false,
+          "hospitals": [
+            "iraqi",
+            "mawani"
+          ]
+        },
+        {
           "id": "res-0460",
           "name": "د. محمد عبد الحي",
           "phone": "+9647705674831",
@@ -42208,9 +42223,10 @@
       "tag": "NS",
       "dept": "NS",
       "department": "NS",
-      "active": true,
+      "active": false,
       "hospitals": [
-        "iraqi"
+        "iraqi",
+        "mawani"
       ]
     },
     {
@@ -43540,6 +43556,7 @@
       "name_ar": "جراحة الجملة العصبية",
       "name_en": "Neurosurgery",
       "icon": "🧠",
+      "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
       "enabled": true

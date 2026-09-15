@@ -955,7 +955,7 @@
             // Specialties
             const specSelect = document.getElementById('form-res-spec');
             const deptSelect = document.getElementById('form-res-dept');
-            const optsHtml = allSpecialties.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar} (${s.id})</option>`).join('');
+            const optsHtml = allSpecialties.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar}</option>`).join('');
             
             if (specSelect) specSelect.innerHTML = optsHtml;
             if (deptSelect) deptSelect.innerHTML = optsHtml;

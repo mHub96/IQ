@@ -144,31 +144,37 @@
     function sanitizeAndMigrateDatabase(targetDb) {
         if (!targetDb || typeof targetDb !== 'object') return targetDb;
 
-        // 1. Sanitize and Deduplicate globalSpecialties
+        // 1. Sanitize and Deduplicate globalSpecialties without destroying user modifications
         if (!Array.isArray(targetDb.globalSpecialties) || targetDb.globalSpecialties.length === 0) {
             targetDb.globalSpecialties = JSON.parse(JSON.stringify(CANONICAL_SPECIALTIES));
         } else {
             const cleanMap = new Map();
             targetDb.globalSpecialties.forEach(s => {
+                if (!s || !s.id) return;
                 const normId = normalizeSpecialtyId(s.id);
                 const canon = CANONICAL_SPECIALTIES.find(c => c.id === normId);
-                if (canon) {
-                    if (!cleanMap.has(normId)) {
-                        cleanMap.set(normId, {
-                            ...canon,
-                            ...s,
-                            id: normId,
-                            name_ar: canon.name_ar, // enforce authoritative Arabic name
-                            name_en: canon.name_en,
-                            icon: canon.icon
-                        });
+
+                if (!cleanMap.has(normId)) {
+                    // PRESERVE user's custom properties, only fallback to canon defaults if missing!
+                    cleanMap.set(normId, {
+                        id: normId,
+                        name_ar: s.name_ar || (canon ? canon.name_ar : normId),
+                        name_en: s.name_en || (canon ? canon.name_en : (s.name_ar || normId)),
+                        icon: s.icon || (canon ? canon.icon : '🏥'),
+                        color: s.color || (canon ? canon.color : '#0f766e'),
+                        parentSpec: s.parentSpec || (canon ? canon.parentSpec : null),
+                        acceptPool: Array.isArray(s.acceptPool) ? s.acceptPool : (canon && Array.isArray(canon.acceptPool) ? [...canon.acceptPool] : []),
+                        enabled: s.enabled !== false
+                    });
+                } else {
+                    // Deduplicating legacy entry (e.g. merging F into FM)
+                    const existing = cleanMap.get(normId);
+                    if (!existing.name_ar && s.name_ar) existing.name_ar = s.name_ar;
+                    if (!existing.name_en && s.name_en) existing.name_en = s.name_en;
+                    if (!existing.icon && s.icon) existing.icon = s.icon;
+                    if (Array.isArray(s.acceptPool) && s.acceptPool.length > 0) {
+                        existing.acceptPool = Array.from(new Set([...existing.acceptPool, ...s.acceptPool]));
                     }
-                }
-            });
-            // Ensure all 29 canonical specialties are present
-            CANONICAL_SPECIALTIES.forEach(c => {
-                if (!cleanMap.has(c.id)) {
-                    cleanMap.set(c.id, JSON.parse(JSON.stringify(c)));
                 }
             });
             targetDb.globalSpecialties = Array.from(cleanMap.values());
@@ -183,6 +189,7 @@
                 
                 const hospSpecMap = new Map();
                 (hosp.specialties || []).forEach(s => {
+                    if (!s || !s.id) return;
                     const normId = normalizeSpecialtyId(s.id);
                     if (!validGlobalIds.has(normId)) return; // remove rogue non-store specialties
                     const globalDef = targetDb.globalSpecialties.find(g => g.id === normId);
@@ -192,12 +199,14 @@
                             id: normId,
                             name_ar: globalDef ? globalDef.name_ar : s.name_ar,
                             name_en: globalDef ? globalDef.name_en : s.name_en,
-                            icon: globalDef ? globalDef.icon : (s.icon || '🏥')
+                            icon: globalDef ? globalDef.icon : (s.icon || '🏥'),
+                            parentSpec: globalDef ? globalDef.parentSpec : (s.parentSpec || null),
+                            acceptPool: globalDef && Array.isArray(globalDef.acceptPool) ? globalDef.acceptPool : (s.acceptPool || [])
                         });
                     }
                 });
 
-                // Ensure all canonical specialties exist in hospital if template clone
+                // Ensure all current global specialties exist in hospital
                 targetDb.globalSpecialties.forEach(g => {
                     if (!hospSpecMap.has(g.id)) {
                         hospSpecMap.set(g.id, {
@@ -205,7 +214,9 @@
                             name_ar: g.name_ar,
                             name_en: g.name_en,
                             icon: g.icon,
-                            color: '#0f766e',
+                            color: g.color || '#0f766e',
+                            parentSpec: g.parentSpec || null,
+                            acceptPool: Array.isArray(g.acceptPool) ? g.acceptPool : [],
                             enabled: true
                         });
                     }
@@ -219,6 +230,9 @@
                     r.tag = normalizeSpecialtyId(r.tag || r.spec);
                     r.dept = normalizeSpecialtyId(r.dept || r.department || r.spec);
                     r.department = r.dept;
+                    if (Array.isArray(r.specs)) {
+                        r.specs = r.specs.map(sp => normalizeSpecialtyId(sp));
+                    }
                 });
 
                 // Sanitize hospital schedule
@@ -236,6 +250,9 @@
             r.tag = normalizeSpecialtyId(r.tag || r.spec);
             r.dept = normalizeSpecialtyId(r.dept || r.department || r.spec);
             r.department = r.dept;
+            if (Array.isArray(r.specs)) {
+                r.specs = r.specs.map(sp => normalizeSpecialtyId(sp));
+            }
         });
 
         return targetDb;
@@ -314,7 +331,7 @@
                     const jsonRes = await res.json();
                     fileSha = jsonRes.sha;
                     let remoteDb = null;
-                    if (jsonRes.content && jsonRes.content.trim()) {
+                    if (typeof jsonRes.content === 'string' && jsonRes.content.trim()) {
                         const decodedStr = decodeURIComponent(escape(atob(jsonRes.content.replace(/\s/g, ''))));
                         remoteDb = JSON.parse(decodedStr);
                     } else if (jsonRes.download_url) {
@@ -389,36 +406,75 @@
         return loadPromise;
     }
 
+    async function refreshFileSha() {
+        try {
+            const url = `https://api.github.com/repos/${CONFIG.user}/${CONFIG.repo}/contents/${CONFIG.path}?t=${Date.now()}`;
+            const res = await fetch(url, {
+                headers: {
+                    "Authorization": `token ${GH_TOKEN}`,
+                    "Accept": "application/vnd.github.v3+json"
+                }
+            });
+            if (res.ok) {
+                const jsonRes = await res.json();
+                if (jsonRes && jsonRes.sha) {
+                    fileSha = jsonRes.sha;
+                    return fileSha;
+                }
+            }
+        } catch (e) {
+            console.warn("Could not refresh SHA:", e);
+        }
+        return fileSha;
+    }
+
     async function saveDatabase(commitMessage = "Hospital Hub Data Update 🏥") {
         if (!db) return false;
 
         db.lastUpdated = new Date().toISOString();
         const jsonString = JSON.stringify(db, null, 2);
 
-        // Instant local update
+        // Instant local update & reactive notification
         localStorage.setItem(CACHE_KEY, jsonString);
         dispatchDataChanged();
 
         try {
-            const body = {
-                message: commitMessage,
-                content: btoa(unescape(encodeURIComponent(jsonString)))
-            };
-
-            if (fileSha) {
-                body.sha = fileSha;
+            // Ensure we have a valid SHA before PUT
+            if (!fileSha) {
+                await refreshFileSha();
             }
 
-            const url = `https://api.github.com/repos/${CONFIG.user}/${CONFIG.repo}/contents/${CONFIG.path}`;
-            const res = await fetch(url, {
-                method: "PUT",
-                headers: {
-                    "Authorization": `token ${GH_TOKEN}`,
-                    "Content-Type": "application/json",
-                    "Accept": "application/vnd.github.v3+json"
-                },
-                body: JSON.stringify(body)
-            });
+            const sendPut = async (shaToUse) => {
+                const body = {
+                    message: commitMessage,
+                    content: btoa(unescape(encodeURIComponent(jsonString)))
+                };
+                if (shaToUse) {
+                    body.sha = shaToUse;
+                }
+
+                const url = `https://api.github.com/repos/${CONFIG.user}/${CONFIG.repo}/contents/${CONFIG.path}`;
+                return await fetch(url, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": `token ${GH_TOKEN}`,
+                        "Content-Type": "application/json",
+                        "Accept": "application/vnd.github.v3+json"
+                    },
+                    body: JSON.stringify(body)
+                });
+            };
+
+            let res = await sendPut(fileSha);
+
+            // If 409 (Conflict) or 422 (Missing SHA), refresh SHA from GitHub and automatically retry
+            if (res.status === 409 || res.status === 422) {
+                console.warn(`GitHub PUT returned ${res.status}. Refreshing SHA and retrying save...`);
+                await refreshFileSha();
+                if (fileSha) {
+                    res = await sendPut(fileSha);
+                }
+            }
 
             if (res.ok) {
                 const responseData = await res.json();
@@ -429,30 +485,11 @@
             } else {
                 const errText = await res.text();
                 console.error("GitHub save failed:", errText);
-                // If sha conflict, re-fetch sha
-                if (res.status === 409) {
-                    await refreshFileSha();
-                }
-                throw new Error(errText);
+                throw new Error("خطأ في مزامنة GitHub: " + errText);
             }
         } catch (err) {
             console.error("Save to GitHub error:", err);
             throw err;
-        }
-    }
-
-    async function refreshFileSha() {
-        try {
-            const url = `https://api.github.com/repos/${CONFIG.user}/${CONFIG.repo}/contents/${CONFIG.path}?t=${Date.now()}`;
-            const res = await fetch(url, {
-                headers: { "Authorization": `token ${GH_TOKEN}` }
-            });
-            if (res.ok) {
-                const jsonRes = await res.json();
-                fileSha = jsonRes.sha;
-            }
-        } catch (e) {
-            console.warn("Could not refresh SHA:", e);
         }
     }
 
@@ -931,6 +968,9 @@
                         if (n.tag === oldId) n.tag = newId;
                         if (n.dept === oldId) n.dept = newId;
                         if (n.department === oldId) n.department = newId;
+                        if (Array.isArray(n.specs)) {
+                            n.specs = n.specs.map(sp => sp === oldId ? newId : sp);
+                        }
                     });
                     (h.schedule || []).forEach(entry => {
                         if (entry.specCode === oldId) entry.specCode = newId;
@@ -944,6 +984,9 @@
                 if (r.tag === oldId) r.tag = newId;
                 if (r.dept === oldId) r.dept = newId;
                 if (r.department === oldId) r.department = newId;
+                if (Array.isArray(r.specs)) {
+                    r.specs = r.specs.map(sp => sp === oldId ? newId : sp);
+                }
             });
         }
 

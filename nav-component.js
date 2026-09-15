@@ -452,10 +452,8 @@
             return;
         }
 
-        if (btn) {
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-1"></i> جاري الحفظ والتطبيق...';
-        }
+        // Close modal immediately on save
+        closeAllPasswordsModalNav();
 
         try {
             await window.Hub.updateAllPasswords({
@@ -464,7 +462,6 @@
                 user: uVal
             }, scope);
 
-            closeAllPasswordsModalNav();
             if (typeof showToast === 'function') {
                 showToast('تم تحديث جميع كلمات المرور بنجاح 🔐', 'success');
             } else {
@@ -472,7 +469,11 @@
             }
         } catch (e) {
             console.error('Password update error:', e);
-            if (err) err.textContent = e.message || 'حدث خطأ أثناء حفظ كلمات المرور';
+            if (typeof showToast === 'function') {
+                showToast(e.message || 'حدث خطأ أثناء حفظ كلمات المرور', 'error');
+            } else if (err) {
+                err.textContent = e.message || 'حدث خطأ أثناء حفظ كلمات المرور';
+            }
         } finally {
             if (btn) {
                 btn.disabled = false;

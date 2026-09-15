@@ -2366,9 +2366,11 @@
 
         async function executeReset() {
             const range = document.querySelector('input[name="reset-range"]:checked')?.value || 'today';
+            // Close modal immediately
+            closeResetModal();
+
             try {
                 await Hub.resetStatistics(currentHospital.id, range);
-                closeResetModal();
                 showToast('تمت إعادة ضبط التفاعلات بنجاح', 'success');
                 renderRoster();
                 renderTrending();

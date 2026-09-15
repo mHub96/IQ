@@ -332,15 +332,12 @@
                     fileSha = jsonRes.sha;
                     let remoteDb = null;
                     if (typeof jsonRes.content === 'string' && jsonRes.content.trim()) {
-                        const decodedStr = decodeURIComponent(escape(atob(jsonRes.content.replace(/\s/g, ''))));
-                        remoteDb = JSON.parse(decodedStr);
-                    } else if (jsonRes.download_url) {
-                        // File > 1MB: GitHub does not include base64 content
-                        const dlRes = await fetch(jsonRes.download_url + (jsonRes.download_url.includes('?') ? '&' : '?') + 't=' + Date.now());
-                        if (dlRes.ok) {
-                            remoteDb = await dlRes.json();
-                        }
+                        const binaryStr = atob(jsonRes.content.replace(/\s/g, ''));
+                        const bytes = new Uint8Array(binaryStr.length);
+                        for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+                        remoteDb = JSON.parse(new TextDecoder('utf-8').decode(bytes));
                     } else if (jsonRes.git_url) {
+                        // Direct Git Data Blob API keyed by immutable commit SHA - 100% fresh, immune to Fastly CDN caching!
                         const blobRes = await fetch(jsonRes.git_url, {
                             headers: {
                                 "Authorization": `token ${GH_TOKEN}`,
@@ -349,12 +346,31 @@
                         });
                         if (blobRes.ok) {
                             const blobData = await blobRes.json();
-                            const decodedStr = decodeURIComponent(escape(atob(blobData.content.replace(/\s/g, ''))));
-                            remoteDb = JSON.parse(decodedStr);
+                            const binaryStr = atob(blobData.content.replace(/\s/g, ''));
+                            const bytes = new Uint8Array(binaryStr.length);
+                            for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+                            remoteDb = JSON.parse(new TextDecoder('utf-8').decode(bytes));
+                        }
+                    } else if (jsonRes.download_url) {
+                        // Fallback to download_url if git_url is unavailable
+                        const dlRes = await fetch(jsonRes.download_url + (jsonRes.download_url.includes('?') ? '&' : '?') + 't=' + Date.now());
+                        if (dlRes.ok) {
+                            remoteDb = await dlRes.json();
                         }
                     }
 
                     if (remoteDb && remoteDb.hospitals) {
+                        // Anti-reversion check: Protect recent local changes from any CDN/proxy lag
+                        const localUpdated = (db && db.lastUpdated) ? new Date(db.lastUpdated).getTime() : 0;
+                        const remoteUpdated = (remoteDb && remoteDb.lastUpdated) ? new Date(remoteDb.lastUpdated).getTime() : 0;
+
+                        if (localUpdated > remoteUpdated && (localUpdated - remoteUpdated < 600000)) {
+                            console.warn("Local database has newer changes than remote snapshot. Retaining local data and syncing to remote...");
+                            saveDatabase("Sync newer local changes to GitHub").catch(console.warn);
+                            isLoaded = true;
+                            return db;
+                        }
+
                         db = sanitizeAndMigrateDatabase(remoteDb);
                         localStorage.setItem(CACHE_KEY, JSON.stringify(db));
                         isLoaded = true;

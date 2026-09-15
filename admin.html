@@ -748,18 +748,13 @@
 
             <input type="hidden" id="global-spec-orig-id" />
 
-            <div id="global-spec-cascade-alert" style="display:none;" class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700 text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2 mb-3">
-                <i class="fas fa-triangle-exclamation text-amber-500 mt-0.5 text-base"></i>
-                <div>
-                    <strong>تحديث تسلسلي تلقائي:</strong> عند تغيير رمز التخصص (ID)، سيقوم النظام تلقائياً بتحديث كافة الأطباء المقيمين المسجلين عليه، وتحديث سجلات الخفارات في جميع المستشفيات دون فقدان أي بيانات.
-                </div>
-            </div>
+            <input type="hidden" id="global-spec-id" />
 
             <div class="space-y-3">
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1">رمز التخصص (ID)</label>
-                        <input type="text" id="global-spec-id" class="input-field font-mono font-bold uppercase" placeholder="مثال: ICU أو D" maxlength="10" />
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">اسم التخصص بالعربية</label>
+                        <input type="text" id="global-spec-name-ar" class="input-field" placeholder="مثال: جراحة العظام والكسور" required />
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1">الأيقونة (Emoji)</label>
@@ -767,15 +762,9 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1">الاسم بالعربية</label>
-                        <input type="text" id="global-spec-name-ar" class="input-field" placeholder="مثال: تخدير العناية المركزة" />
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1">الاسم بالإنجليزية</label>
-                        <input type="text" id="global-spec-name-en" class="input-field font-mono text-left" placeholder="مثال: ICU Anaesthesia" dir="ltr" />
-                    </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">الاسم بالإنجليزية (اختياري)</label>
+                    <input type="text" id="global-spec-name-en" class="input-field font-mono text-left" placeholder="مثال: Orthopaedic Surgery" dir="ltr" />
                 </div>
 
                 <div>
@@ -1023,20 +1012,20 @@
         function populateSpecialtyDropdowns() {
             // Main Specialty Store: Central canonical specialties catalog
             const globalSpecs = (typeof Hub !== 'undefined' && Hub.getGlobalSpecialties) ? Hub.getGlobalSpecialties() : [];
-            const globalHtml = globalSpecs.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar} (${s.id})</option>`).join('');
+            const globalHtml = globalSpecs.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar}</option>`).join('');
 
             // For departments: current hospital active specialties first, plus other global specialties
             const hospSpecs = (currentHospital?.specialties || []).filter(s => s.enabled !== false);
             let deptHtml = '';
             if (hospSpecs.length > 0) {
                 deptHtml += `<optgroup label="أقسام المستشفى (${currentHospital.name_ar || currentHospital.hospitalName})">` +
-                    hospSpecs.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar} (${s.id})</option>`).join('') +
+                    hospSpecs.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar}</option>`).join('') +
                     `</optgroup>`;
                 const hospSpecIds = new Set(hospSpecs.map(s => s.id));
                 const otherGlobal = globalSpecs.filter(s => !hospSpecIds.has(s.id));
                 if (otherGlobal.length > 0) {
                     deptHtml += `<optgroup label="باقي التخصصات الطبية (المستودع العام)">` +
-                        otherGlobal.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar} (${s.id})</option>`).join('') +
+                        otherGlobal.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar}</option>`).join('') +
                         `</optgroup>`;
                 }
             } else {
@@ -1110,7 +1099,6 @@
                             <div class="flex items-center gap-2 flex-wrap">
                                 <span class="text-xl">${spec.icon || '🏥'}</span>
                                 <span class="font-bold">${spec.name_ar}</span>
-                                <span class="text-xs text-slate-400 font-mono">(${spec.id})</span>
                                 ${!isEnabled ? '<span class="text-xs px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold">مخفي</span>' : ''}
                                 ${rotatingResidents.length > 0 ? `
                                     <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold" title="${rotatingResidents.length} أطباء متناوبون مكلفون بدوام هذا القسم">
@@ -1515,7 +1503,6 @@
                             <i class="fas fa-grip-vertical"></i>
                         </span>
                         <span class="text-xl w-7 text-center flex-shrink-0">${s.icon || '🏥'}</span>
-                        <span class="font-mono text-xs font-bold text-slate-400 w-10">${s.id}</span>
                         <span class="spec-name font-bold text-sm flex-1 truncate">${s.name_ar}</span>
 
                         <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${resCount > 0 ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300' : 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900'}">
@@ -1524,7 +1511,7 @@
 
                         ${s.parentSpec ? `
                             <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800" title="فئة فرعية من التخصص الأب">
-                                فرعي من: ${s.parentSpec}
+                                فرعي من: ${(specs.find(p => p.id === s.parentSpec)?.name_ar) || (Hub.getGlobalSpecialties ? Hub.getGlobalSpecialties().find(p => p.id === s.parentSpec)?.name_ar : s.parentSpec) || s.parentSpec}
                             </span>
                         ` : ''}
                         ${poolCount > 0 ? `
@@ -1809,14 +1796,13 @@
 
             container.innerHTML = filtered.map(s => {
                 const parentObj = s.parentSpec ? globalMap.get(s.parentSpec) : null;
-                const parentLabel = parentObj ? `${parentObj.name_ar} (${s.parentSpec})` : s.parentSpec;
+                const parentLabel = parentObj ? parentObj.name_ar : s.parentSpec;
                 const poolCount = Array.isArray(s.acceptPool) ? s.acceptPool.length : 0;
 
                 return `
                     <div class="specialty-item flex items-center justify-between gap-3 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/50">
                         <div class="flex items-center gap-2.5 flex-1 min-w-0">
                             <span class="text-xl w-8 text-center flex-shrink-0">${s.icon || '🏥'}</span>
-                            <span class="font-mono text-xs font-black px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex-shrink-0">${s.id}</span>
                             <div class="min-w-0 flex-1">
                                 <div class="font-bold text-xs text-slate-800 dark:text-white truncate">${s.name_ar}</div>
                                 <div class="text-[10px] text-slate-400 font-mono truncate" dir="ltr">${s.name_en || ''}</div>
@@ -1864,27 +1850,26 @@
 
             const titleEl = document.getElementById('global-spec-modal-title');
             const alertEl = document.getElementById('global-spec-cascade-alert');
+            if (alertEl) alertEl.style.display = 'none';
 
             if (target) {
-                titleEl.innerHTML = `<i class="fas fa-crown text-purple-600"></i> تعديل التخصص [${target.id}] في المستودع العام`;
-                alertEl.style.display = 'flex';
+                titleEl.innerHTML = `<i class="fas fa-crown text-purple-600"></i> تعديل التخصص "${target.name_ar}" في المستودع العام`;
             } else {
                 titleEl.innerHTML = `<i class="fas fa-crown text-purple-600"></i> إضافة تخصص عام جديد للمستودع`;
-                alertEl.style.display = 'none';
             }
 
-            // Populate Parent Specialty Dropdown
+            // Populate Parent Specialty Dropdown (no IDs displayed!)
             const parentSelect = document.getElementById('global-spec-parent');
             let parentHtml = '<option value="">-- تخصص رئيسي مستقل (بدون تخصص أب) --</option>';
             globals.forEach(g => {
                 if (!target || g.id !== target.id) {
                     const selected = (target && target.parentSpec === g.id) ? 'selected' : '';
-                    parentHtml += `<option value="${g.id}" ${selected}>${g.icon || '🏥'} ${g.name_ar} [${g.id}]</option>`;
+                    parentHtml += `<option value="${g.id}" ${selected}>${g.icon || '🏥'} ${g.name_ar}</option>`;
                 }
             });
             parentSelect.innerHTML = parentHtml;
 
-            // Populate Accept Pool Checkbox Grid
+            // Populate Accept Pool Checkbox Grid (no IDs displayed!)
             const poolGrid = document.getElementById('global-spec-pool-grid');
             const targetPool = (target && Array.isArray(target.acceptPool)) ? target.acceptPool : [];
             let poolHtml = '';
@@ -1895,7 +1880,6 @@
                         <label class="flex items-center gap-1.5 p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 hover:border-purple-400 cursor-pointer text-[11px] font-semibold select-none">
                             <input type="checkbox" value="${g.id}" ${checked} class="w-3.5 h-3.5 rounded accent-purple-600 global-pool-checkbox" />
                             <span class="truncate">${g.icon || '🏥'} ${g.name_ar}</span>
-                            <span class="font-mono text-[9px] text-slate-400">(${g.id})</span>
                         </label>
                     `;
                 }
@@ -1924,7 +1908,7 @@
             }
 
             const origId = document.getElementById('global-spec-orig-id').value;
-            const id = document.getElementById('global-spec-id').value.trim().toUpperCase();
+            let id = document.getElementById('global-spec-id').value.trim().toUpperCase();
             const nameAr = document.getElementById('global-spec-name-ar').value.trim();
             const nameEn = document.getElementById('global-spec-name-en').value.trim() || nameAr;
             const icon = document.getElementById('global-spec-icon').value.trim() || '🏥';
@@ -1933,9 +1917,14 @@
             const checkedBoxes = document.querySelectorAll('.global-pool-checkbox:checked');
             const acceptPool = Array.from(checkedBoxes).map(cb => cb.value);
 
-            if (!id || !nameAr) {
-                showToast('رمز التخصص واسم التخصص بالعربية حقول مطلوبة', 'error');
+            if (!nameAr) {
+                showToast('اسم التخصص بالعربية حقل مطلوب', 'error');
                 return;
+            }
+
+            if (!id) {
+                const cleanSlug = nameEn ? nameEn.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6).toUpperCase() : '';
+                id = cleanSlug || ('SPEC_' + Date.now().toString(36).toUpperCase());
             }
 
             // Close modal immediately on save
@@ -1982,7 +1971,7 @@
                 showToast('حذف التخصص من المستودع العام مخصص للمالك حصراً', 'error');
                 return;
             }
-            if (!confirm(`تحذير هام: هل أنت متأكد من حذف التخصص "${name}" [${specId}] نهائياً من المستودع العام ومن كافة المستشفيات؟`)) {
+            if (!confirm(`تحذير هام: هل أنت متأكد من حذف التخصص "${name}" نهائياً من المستودع العام ومن كافة المستشفيات؟`)) {
                 return;
             }
             try {

@@ -17,7 +17,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
-            background: #f0f4f8;
+            background: #d1d9e6;
             color: #1a2332;
             min-height: 100vh;
             display: flex;
@@ -25,6 +25,17 @@
             transition: background 0.3s, color 0.3s;
         }
 
+        
+        body.dark::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.08;
+            background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.25'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-size: 120px 120px;
+        }
         body.dark {
             background: #0b0e12;
             color: #e8edf5;
@@ -86,9 +97,10 @@
             max-width: 500px;
         }
         body.dark .app-card {
-            background: #141a24;
-            border-color: #2a3346;
-            box-shadow: 0 16px 45px rgba(0,0,0,0.5);
+            background: rgba(16, 22, 34, 0.84);
+            border-color: rgba(212, 175, 55, 0.16);
+            box-shadow: 0 16px 45px rgba(0,0,0,0.6);
+            backdrop-filter: blur(14px);
         }
 
         .app-card.card-success {
@@ -338,6 +350,17 @@
             opacity: 0.6;
         }
         body.dark .footer-credit { border-color: #2a3346; }
+    
+        button:active, .btn:active, .tab-btn:active {
+            transform: scale(0.97);
+            transition: transform 0.15s ease;
+        }
+        body.dark .btn-submit, body.dark .submit-btn, body.dark button[type="submit"] {
+            background: linear-gradient(135deg, #d4af37, #b8942e) !important;
+            color: #0b0e12 !important;
+            font-weight: 800 !important;
+            box-shadow: 0 4px 16px rgba(212, 175, 55, 0.25) !important;
+        }
     </style>
 </head>
 <body>

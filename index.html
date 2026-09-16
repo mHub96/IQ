@@ -1076,7 +1076,12 @@
                 if (res.role === 'owner') {
                     welcomeMsg = 'مرحباً بك! تم تسجيل الدخول بصلاحيات المالك الكاملة 👑';
                 } else if (res.role === 'admin') {
-                    welcomeMsg = 'مرحباً بك! تم تسجيل الدخول بصلاحيات مدير النظام 🛡️';
+                    const adminName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
+                    if (adminName && adminName !== 'جميع المستشفيات') {
+                        welcomeMsg = `مرحباً بك! تم تسجيل الدخول كمدير لـ (${adminName}) 🛡️`;
+                    } else {
+                        welcomeMsg = 'مرحباً بك! تم تسجيل الدخول بصلاحيات مدير النظام 🛡️';
+                    }
                 }
                 showToast(welcomeMsg, 'success');
                 renderHubDashboard();
@@ -1101,7 +1106,6 @@
             if (!currentDb || !currentDb.hospitals) return;
 
             const hospitals = Object.values(currentDb.hospitals);
-            const isAdmin = Hub.auth.isAdmin();
             const isOwner = Hub.auth.isOwner();
 
             // Toggle Add Hospital button based on role (Owner ONLY)
@@ -1142,6 +1146,7 @@
                 const color = h.color || '#0f766e';
                 const icon = h.icon || 'fa-hospital';
                 const location = h.location || 'العراق';
+                const isHospAdmin = Hub.auth.isAdmin(h.id);
 
                 return `
                     <div class="glass-card hospital-card" id="card-${h.id}">
@@ -1171,14 +1176,14 @@
                         </div>
 
                         <div>
-                            <div class="hosp-actions-grid ${!isAdmin ? 'user-layout' : ''}">
+                            <div class="hosp-actions-grid ${!isHospAdmin ? 'user-layout' : ''}">
                                 <a href="./Home.html?hospital=${h.id}" class="action-link primary" onclick="Hub.setActiveHospitalId('${h.id}')">
                                     <i class="fas fa-users-viewfinder"></i> <span>الخفراء اليوم</span>
                                 </a>
                                 <a href="./signup.html?hospital=${h.id}" class="action-link secondary">
                                     <i class="fas fa-pen-to-square"></i> <span>تسجيل خفر</span>
                                 </a>
-                                ${isAdmin ? `
+                                ${isHospAdmin ? `
                                 <a href="./scheduler.html?hospital=${h.id}" class="action-link secondary">
                                     <i class="fas fa-calendar-alt"></i> <span>مجدول الشهر</span>
                                 </a>

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-16T18:58:17.270Z",
+  "lastUpdated": "2026-09-16T18:58:34.832Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -2286,10 +2286,9 @@
           "tag": "NS",
           "dept": "NS",
           "department": "NS",
-          "active": false,
+          "active": true,
           "hospitals": [
-            "iraqi",
-            "mawani"
+            "iraqi"
           ]
         },
         {
@@ -33474,20 +33473,6 @@
           ]
         },
         {
-          "id": "res-0160",
-          "name": "د. محمد رياض جعفر",
-          "phone": "+9647805195075",
-          "spec": "NS",
-          "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
-          "active": false,
-          "hospitals": [
-            "iraqi",
-            "mawani"
-          ]
-        },
-        {
           "id": "res-0460",
           "name": "د. محمد عبد الحي",
           "phone": "+9647705674831",
@@ -42208,10 +42193,9 @@
       "tag": "NS",
       "dept": "NS",
       "department": "NS",
-      "active": false,
+      "active": true,
       "hospitals": [
-        "iraqi",
-        "mawani"
+        "iraqi"
       ]
     },
     {

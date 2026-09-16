@@ -27,6 +27,7 @@
     const SESSION_TOKEN_KEY = 'hospital_hub_session_token';
     const SESSION_TIMESTAMP_KEY = 'hospital_hub_session_timestamp';
     const SESSION_REMEMBER_KEY = 'hospital_hub_session_remember';
+    const SESSION_ADMIN_HOSPITALS_KEY = 'hospital_hub_session_admin_hospitals';
     const THEME_KEY = 'hospital_hub_theme';
 
     // Clear stale caches from older database iterations
@@ -672,10 +673,10 @@
 
         const pwdObj = { owner, admin, user };
 
-        // Always update global passwords
-        db.globalPasswords = { ...pwdObj };
-
         if (hospitalScope === 'all') {
+            // Update global passwords
+            db.globalPasswords = { ...pwdObj };
+
             // Update passwords across ALL hospitals in database
             if (db.hospitals) {
                 Object.keys(db.hospitals).forEach(hId => {
@@ -692,7 +693,7 @@
 
         // If the logged in owner's current password changed, keep session valid
         if (auth.isOwner()) {
-            auth.saveSession('owner', owner);
+            auth.saveSession('owner', owner, true, ['*']);
         }
 
         return pwdObj;
@@ -1493,59 +1494,87 @@
 
             // 1. Check global passwords first
             if (db?.globalPasswords?.owner && pwd === db.globalPasswords.owner) {
-                this.saveSession('owner', pwd);
-                return { success: true, role: 'owner' };
+                this.saveSession('owner', pwd, true, ['*']);
+                return { success: true, role: 'owner', adminHospitals: ['*'] };
             }
             if (db?.globalPasswords?.admin && pwd === db.globalPasswords.admin) {
-                this.saveSession('admin', pwd);
-                return { success: true, role: 'admin' };
+                this.saveSession('admin', pwd, true, ['*']);
+                return { success: true, role: 'admin', adminHospitals: ['*'] };
             }
             if (db?.globalPasswords?.user && pwd === db.globalPasswords.user) {
-                this.saveSession('user', pwd);
-                return { success: true, role: 'user' };
+                this.saveSession('user', pwd, true, []);
+                return { success: true, role: 'user', adminHospitals: [] };
             }
 
-            // 2. Check active hospital passwords
+            // 2. Check across registered hospitals for matching passwords
+            const matchingAdminHospitals = [];
+            const matchingOwnerHospitals = [];
+            let matchedUser = false;
+
+            if (db?.hospitals) {
+                for (const h of Object.values(db.hospitals)) {
+                    if (h.passwords?.owner && pwd === h.passwords.owner) {
+                        matchingOwnerHospitals.push(h.id);
+                    }
+                    if (h.passwords?.admin && pwd === h.passwords.admin) {
+                        matchingAdminHospitals.push(h.id);
+                    }
+                    if (h.passwords?.user && pwd === h.passwords.user) {
+                        matchedUser = true;
+                    }
+                }
+            }
+
+            if (matchingOwnerHospitals.length > 0) {
+                this.saveSession('owner', pwd, true, ['*']);
+                return { success: true, role: 'owner', adminHospitals: ['*'] };
+            }
+
+            if (matchingAdminHospitals.length > 0) {
+                this.saveSession('admin', pwd, true, matchingAdminHospitals);
+                return { success: true, role: 'admin', adminHospitals: matchingAdminHospitals };
+            }
+
+            if (matchedUser) {
+                this.saveSession('user', pwd, true, []);
+                return { success: true, role: 'user', adminHospitals: [] };
+            }
+
+            // 3. Fallback: Check active hospital passwords
             const currentHosp = getActiveHospital();
             const ownerPass = currentHosp?.passwords?.owner || "MrjBth1996*";
             const adminPass = currentHosp?.passwords?.admin || "Admin1996*";
             const userPass = currentHosp?.passwords?.user || "1234";
 
             if (pwd === ownerPass) {
-                this.saveSession('owner', pwd);
-                return { success: true, role: 'owner' };
+                this.saveSession('owner', pwd, true, ['*']);
+                return { success: true, role: 'owner', adminHospitals: ['*'] };
             } else if (pwd === adminPass) {
-                this.saveSession('admin', pwd);
-                return { success: true, role: 'admin' };
+                const hId = currentHosp ? currentHosp.id : '*';
+                this.saveSession('admin', pwd, true, [hId]);
+                return { success: true, role: 'admin', adminHospitals: [hId] };
             } else if (pwd === userPass) {
-                this.saveSession('user', pwd);
-                return { success: true, role: 'user' };
-            }
-
-            // 3. Check across all registered hospitals
-            if (db?.hospitals) {
-                for (const h of Object.values(db.hospitals)) {
-                    if (h.passwords?.owner && pwd === h.passwords.owner) {
-                        this.saveSession('owner', pwd);
-                        return { success: true, role: 'owner' };
-                    }
-                    if (h.passwords?.admin && pwd === h.passwords.admin) {
-                        this.saveSession('admin', pwd);
-                        return { success: true, role: 'admin' };
-                    }
-                    if (h.passwords?.user && pwd === h.passwords.user) {
-                        this.saveSession('user', pwd);
-                        return { success: true, role: 'user' };
-                    }
-                }
+                this.saveSession('user', pwd, true, []);
+                return { success: true, role: 'user', adminHospitals: [] };
             }
 
             return { success: false, error: 'كلمة المرور غير صحيحة' };
         },
 
-        saveSession(role, password, remember = true) {
+        saveSession(role, password, remember = true, adminHospitals = null) {
             localStorage.setItem(SESSION_ROLE_KEY, role);
             localStorage.setItem(SESSION_TIMESTAMP_KEY, Date.now().toString());
+
+            let hospList = adminHospitals;
+            if (hospList === null) {
+                if (role === 'owner') hospList = ['*'];
+                else if (role === 'admin') hospList = this.getAdminHospitalIds();
+                else hospList = [];
+            }
+            try {
+                localStorage.setItem(SESSION_ADMIN_HOSPITALS_KEY, JSON.stringify(hospList || []));
+            } catch(e) {}
+
             if (remember && password) {
                 localStorage.setItem(SESSION_TOKEN_KEY, btoa(password));
                 localStorage.setItem(SESSION_REMEMBER_KEY, 'true');
@@ -1553,7 +1582,7 @@
                 localStorage.removeItem(SESSION_TOKEN_KEY);
                 localStorage.removeItem(SESSION_REMEMBER_KEY);
             }
-            window.dispatchEvent(new CustomEvent('hub:auth-changed', { detail: { role } }));
+            window.dispatchEvent(new CustomEvent('hub:auth-changed', { detail: { role, adminHospitals: hospList } }));
         },
 
         checkSession() {
@@ -1574,6 +1603,30 @@
             return localStorage.getItem(SESSION_ROLE_KEY) || 'guest';
         },
 
+        getAdminHospitalIds() {
+            if (!this.checkSession()) return [];
+            if (this.isOwner()) return ['*'];
+            try {
+                const raw = localStorage.getItem(SESSION_ADMIN_HOSPITALS_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch(e) {
+                return [];
+            }
+        },
+
+        getAdminHospitalName() {
+            const ids = this.getAdminHospitalIds();
+            if (this.isOwner() || ids.includes('*')) return 'جميع المستشفيات';
+            if (ids.length === 1 && db?.hospitals?.[ids[0]]) {
+                return db.hospitals[ids[0]].name_ar || db.hospitals[ids[0]].hospitalName;
+            }
+            if (ids.length > 0) {
+                const names = ids.map(id => db?.hospitals?.[id]?.name_ar || id);
+                return names.join('، ');
+            }
+            return '';
+        },
+
         isLoggedIn() {
             return this.checkSession() && ['user', 'admin', 'owner'].includes(this.getRole());
         },
@@ -1586,9 +1639,21 @@
             return this.getRole() === 'owner';
         },
 
-        isAdmin() {
+        isAdmin(targetHospitalId = null) {
             const role = this.getRole();
-            return role === 'owner' || role === 'admin';
+            if (role === 'owner') return true;
+            if (role !== 'admin') return false;
+
+            const adminHospList = this.getAdminHospitalIds();
+            if (adminHospList.includes('*')) return true;
+
+            if (!targetHospitalId) {
+                const activeId = getActiveHospitalId();
+                if (activeId && adminHospList.includes(activeId)) return true;
+                return adminHospList.length > 0;
+            }
+
+            return adminHospList.includes(targetHospitalId);
         },
 
         canEditPasswords() {
@@ -1600,22 +1665,45 @@
             localStorage.removeItem(SESSION_TOKEN_KEY);
             localStorage.removeItem(SESSION_TIMESTAMP_KEY);
             localStorage.removeItem(SESSION_REMEMBER_KEY);
-            window.dispatchEvent(new CustomEvent('hub:auth-changed', { detail: { role: 'guest' } }));
+            localStorage.removeItem(SESSION_ADMIN_HOSPITALS_KEY);
+            window.dispatchEvent(new CustomEvent('hub:auth-changed', { detail: { role: 'guest', adminHospitals: [] } }));
         },
 
         upgradeRole(password) {
             const pwd = String(password || '').trim();
             const currentHosp = getActiveHospital();
             const ownerPass = currentHosp?.passwords?.owner || db?.globalPasswords?.owner || "MrjBth1996*";
-            const adminPass = currentHosp?.passwords?.admin || db?.globalPasswords?.admin || "Admin1996*";
+            const adminPass = currentHosp?.passwords?.admin;
 
             if (pwd === ownerPass) {
-                this.saveSession('owner', pwd);
-                return { success: true, role: 'owner' };
-            } else if (pwd === adminPass) {
-                this.saveSession('admin', pwd);
-                return { success: true, role: 'admin' };
+                this.saveSession('owner', pwd, true, ['*']);
+                return { success: true, role: 'owner', adminHospitals: ['*'] };
             }
+            
+            if (adminPass && pwd === adminPass) {
+                const hId = currentHosp ? currentHosp.id : '*';
+                this.saveSession('admin', pwd, true, [hId]);
+                return { success: true, role: 'admin', adminHospitals: [hId] };
+            }
+
+            if (db?.globalPasswords?.admin && pwd === db.globalPasswords.admin) {
+                this.saveSession('admin', pwd, true, ['*']);
+                return { success: true, role: 'admin', adminHospitals: ['*'] };
+            }
+
+            if (db?.hospitals) {
+                const matching = [];
+                for (const h of Object.values(db.hospitals)) {
+                    if (h.passwords?.admin && pwd === h.passwords.admin) {
+                        matching.push(h.id);
+                    }
+                }
+                if (matching.length > 0) {
+                    this.saveSession('admin', pwd, true, matching);
+                    return { success: true, role: 'admin', adminHospitals: matching };
+                }
+            }
+
             return { success: false, error: 'كلمة مرور غير صحيحة' };
         },
 

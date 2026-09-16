@@ -192,7 +192,21 @@
                 (hosp.specialties || []).forEach(s => {
                     if (!s || !s.id) return;
                     const normId = normalizeSpecialtyId(s.id);
-                    if (!validGlobalIds.has(normId)) return; // remove rogue non-store specialties
+                    if (!validGlobalIds.has(normId)) {
+                        // Register hospital custom specialty into global catalog
+                        const newGlobal = {
+                            id: normId,
+                            name_ar: s.name_ar || normId,
+                            name_en: s.name_en || s.name_ar || normId,
+                            icon: s.icon || '🏥',
+                            color: s.color || '#0f766e',
+                            parentSpec: s.parentSpec || null,
+                            acceptPool: Array.isArray(s.acceptPool) ? s.acceptPool : [],
+                            enabled: true
+                        };
+                        targetDb.globalSpecialties.push(newGlobal);
+                        validGlobalIds.add(normId);
+                    }
                     const globalDef = targetDb.globalSpecialties.find(g => g.id === normId);
                     if (!hospSpecMap.has(normId)) {
                         hospSpecMap.set(normId, {
@@ -203,22 +217,6 @@
                             icon: globalDef ? globalDef.icon : (s.icon || '🏥'),
                             parentSpec: globalDef ? globalDef.parentSpec : (s.parentSpec || null),
                             acceptPool: globalDef && Array.isArray(globalDef.acceptPool) ? globalDef.acceptPool : (s.acceptPool || [])
-                        });
-                    }
-                });
-
-                // Ensure all current global specialties exist in hospital
-                targetDb.globalSpecialties.forEach(g => {
-                    if (!hospSpecMap.has(g.id)) {
-                        hospSpecMap.set(g.id, {
-                            id: g.id,
-                            name_ar: g.name_ar,
-                            name_en: g.name_en,
-                            icon: g.icon,
-                            color: g.color || '#0f766e',
-                            parentSpec: g.parentSpec || null,
-                            acceptPool: Array.isArray(g.acceptPool) ? g.acceptPool : [],
-                            enabled: true
                         });
                     }
                 });
@@ -888,8 +886,8 @@
     }
 
     async function syncHospitalSpecialtiesWithGlobal(hospitalId) {
-        if (!auth.isAdmin()) {
-            throw new Error('غير مصرح لك بمزامنة التخصصات.');
+        if (!auth.isAdmin(hospitalId)) {
+            throw new Error('غير مصرح لك بمزامنة التخصصات لهذا المستشفى.');
         }
         const hosp = getHospital(hospitalId);
         if (!hosp) throw new Error('المستشفى غير موجود');
@@ -1125,9 +1123,78 @@
         return true;
     }
 
+    async function addHospitalSpecialty(hospitalId, specData) {
+        if (!auth.isAdmin(hospitalId)) {
+            throw new Error('غير مصرح لك بإضافة تخصص لهذا المستشفى.');
+        }
+        const hosp = getHospital(hospitalId);
+        if (!hosp) throw new Error('المستشفى غير موجود');
+
+        const nameAr = String(specData.name_ar || specData.name || '').trim();
+        if (!nameAr) throw new Error('اسم التخصص بالعربية مطلوب');
+
+        let specId = String(specData.id || '').trim().toUpperCase();
+        if (!specId) {
+            if (specData.name_en) {
+                specId = specData.name_en.trim().replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4);
+            }
+            if (!specId || specId.length < 2) {
+                specId = 'SP' + Math.floor(100 + Math.random() * 900);
+            }
+        }
+
+        if (!Array.isArray(db.globalSpecialties)) {
+            db.globalSpecialties = getGlobalSpecialties();
+        }
+
+        // Avoid collision with different specialty name
+        let baseId = specId;
+        let counter = 1;
+        while (db.globalSpecialties.some(s => s.id === specId && s.name_ar !== nameAr)) {
+            specId = baseId.slice(0, 3) + counter;
+            counter++;
+        }
+
+        let existingGlobal = db.globalSpecialties.find(s => s.id === specId || s.name_ar === nameAr);
+        if (!existingGlobal) {
+            existingGlobal = {
+                id: specId,
+                name_ar: nameAr,
+                name_en: specData.name_en ? specData.name_en.trim() : nameAr,
+                icon: specData.icon ? specData.icon.trim() : '🏥',
+                parentSpec: specData.parentSpec ? String(specData.parentSpec).trim().toUpperCase() : null,
+                acceptPool: Array.isArray(specData.acceptPool) ? specData.acceptPool : [],
+                enabled: true
+            };
+            db.globalSpecialties.push(existingGlobal);
+        }
+
+        const canonId = existingGlobal.id;
+        const color = specData.color || '#0f766e';
+
+        if (!Array.isArray(hosp.specialties)) hosp.specialties = [];
+        const existingInHosp = hosp.specialties.find(s => s.id === canonId);
+        if (existingInHosp) {
+            existingInHosp.enabled = true;
+            existingInHosp.color = color || existingInHosp.color || '#0f766e';
+            existingInHosp.name_ar = existingGlobal.name_ar;
+            existingInHosp.name_en = existingGlobal.name_en;
+            existingInHosp.icon = existingGlobal.icon;
+        } else {
+            hosp.specialties.push({
+                ...existingGlobal,
+                color: color,
+                enabled: true
+            });
+        }
+
+        await saveDatabase(`Add specialty ${canonId} (${nameAr}) to ${hosp.name_ar || hosp.hospitalName}`);
+        return existingInHosp || hosp.specialties[hosp.specialties.length - 1];
+    }
+
     async function addHospitalSpecialtyFromGlobal(hospitalId, specId, color = '#0f766e') {
-        if (!auth.isAdmin()) {
-            throw new Error('غير مصرح لك بإضافة تخصص للمستشفى.');
+        if (!auth.isAdmin(hospitalId)) {
+            throw new Error('غير مصرح لك بإضافة تخصص لهذا المستشفى.');
         }
         const hosp = getHospital(hospitalId);
         if (!hosp) throw new Error('المستشفى غير موجود');
@@ -1154,8 +1221,8 @@
     }
 
     async function updateHospitalSpecialty(hospitalId, specId, updates) {
-        if (!auth.isAdmin()) {
-            throw new Error('غير مصرح لك بتعديل التخصص في المستشفى.');
+        if (!auth.isAdmin(hospitalId)) {
+            throw new Error('غير مصرح لك بتعديل التخصص في هذا المستشفى.');
         }
         const hosp = getHospital(hospitalId);
         if (!hosp) throw new Error('المستشفى غير موجود');
@@ -1172,8 +1239,8 @@
     }
 
     async function deleteEmptyHospitalSpecialties(hospitalId) {
-        if (!auth.isAdmin()) {
-            throw new Error('غير مصرح لك بحذف التخصصات. يتطلب صلاحيات المدير.');
+        if (!auth.isAdmin(hospitalId)) {
+            throw new Error('غير مصرح لك بحذف التخصصات. يتطلب صلاحيات مدير هذا المستشفى.');
         }
         const hosp = getHospital(hospitalId);
         if (!hosp) throw new Error('المستشفى غير موجود');
@@ -1781,6 +1848,7 @@
         updateGlobalSpecialty,
         addGlobalSpecialty,
         deleteGlobalSpecialty,
+        addHospitalSpecialty,
         addHospitalSpecialtyFromGlobal,
         updateHospitalSpecialty,
         deleteEmptyHospitalSpecialties,

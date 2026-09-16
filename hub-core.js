@@ -1262,6 +1262,53 @@
         return { deletedCount, remainingCount: hosp.specialties.length };
     }
 
+    async function deleteHospitalSpecialty(hospitalId, specId) {
+        if (!auth.isAdmin(hospitalId)) {
+            throw new Error('غير مصرح لك بحذف التخصص من هذا المستشفى.');
+        }
+        const hosp = getHospital(hospitalId);
+        if (!hosp) throw new Error('المستشفى غير موجود');
+
+        // Remove from hospital specialties
+        const initialCount = (hosp.specialties || []).length;
+        hosp.specialties = (hosp.specialties || []).filter(s => s.id !== specId);
+        const wasRemoved = hosp.specialties.length < initialCount;
+
+        // Unlink residents assigned to this hospital and specialty
+        if (!Array.isArray(db.residents)) {
+            syncSharedResidentsFromHospitals();
+        }
+
+        let affectedResidentsCount = 0;
+        db.residents.forEach(r => {
+            const isThisSpec = (r.spec === specId || r.tag === specId || r.dept === specId || r.department === specId);
+            const isInThisHosp = Array.isArray(r.hospitals) && r.hospitals.includes(hospitalId);
+            if (isThisSpec && isInThisHosp) {
+                r.hospitals = r.hospitals.filter(hid => hid !== hospitalId);
+                affectedResidentsCount++;
+            }
+        });
+
+        // Clean up schedule entries for this specialty in this hospital
+        if (Array.isArray(hosp.schedule)) {
+            hosp.schedule = hosp.schedule.filter(slot => slot.specCode !== specId);
+        }
+
+        // Sync hospital local names with master residents
+        syncHospitalsWithSharedResidents();
+
+        const hospTitle = hosp.name_ar || hosp.hospitalName;
+        await saveDatabase(`حذف تخصص ${specId} من مستشفى ${hospTitle} (تحويل ${affectedResidentsCount} مقيم إلى غير منسوب لمستشفى)`);
+
+        return {
+            success: true,
+            specId,
+            wasRemoved,
+            affectedResidentsCount,
+            remainingSpecsCount: hosp.specialties.length
+        };
+    }
+
     function getEligibleResidentsForSpecialty(hospitalOrId, specId) {
         const hospital = (typeof hospitalOrId === 'string') ? getHospital(hospitalOrId) : hospitalOrId;
         if (!hospital || !Array.isArray(hospital.names)) return [];
@@ -1851,6 +1898,7 @@
         addHospitalSpecialty,
         addHospitalSpecialtyFromGlobal,
         updateHospitalSpecialty,
+        deleteHospitalSpecialty,
         deleteEmptyHospitalSpecialties,
         getEligibleResidentsForSpecialty,
         syncHospitalSpecialtiesWithGlobal,

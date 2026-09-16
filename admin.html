@@ -410,9 +410,6 @@
                     <button type="button" onclick="openSpecialtiesModal()" class="btn-ghost text-xs">
                         <i class="fas fa-tags"></i> إدارة التخصصات
                     </button>
-                    <button type="button" onclick="openAddHospitalSpecModal()" class="btn-ghost text-xs text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800/50">
-                        <i class="fas fa-plus text-teal-600 dark:text-amber-400"></i> إضافة تخصص
-                    </button>
                     <button type="button" onclick="openImportModal()" class="btn-ghost text-xs">
                         <i class="fas fa-file-import"></i> نسخ احتياطي / استيراد
                     </button>
@@ -1738,20 +1735,34 @@
         }
 
         async function removeHospitalSpecialty(specId, name) {
-            const inUse = (currentHospital.names || []).some(r => r.spec === specId || r.tag === specId);
-            if (inUse) {
-                showToast(`لا يمكن إزالة تخصص "${name}" لوجود أطباء مسجلين عليه في هذا المستشفى. يمكنك إخفاؤه بدلاً من ذلك.`, 'error');
-                return;
-            }
-            if (!confirm(`هل أنت متأكد من إزالة التخصص "${name}" من هذا المستشفى؟ (سيبقى التخصص محفوظاً في المستودع العام)`)) return;
+            const affectedResidents = (currentHospital.names || []).filter(r => 
+                r.spec === specId || r.tag === specId || r.dept === specId || r.department === specId
+            );
 
-            currentHospital.specialties = (currentHospital.specialties || []).filter(s => s.id !== specId);
-            renderSpecialtiesList();
-            renderResidentsAccordion();
-            populateSpecialtyDropdowns();
-            updateStatsBadges();
-            showToast(`تمت إزالة ${name} من المستشفى`, 'info');
-            await Hub.saveDatabase(`Remove specialty ${specId} from ${currentHospital.hospitalName}`);
+            let confirmMsg = `هل أنت متأكد من إزالة تخصص "${name}" من هذا المستشفى؟\n(سيبقى التخصص محفوظاً في المستودع العام ويمكنك إعادته لاحقاً).`;
+            if (affectedResidents.length > 0) {
+                confirmMsg = `تنبيه هام:\nيوجد (${affectedResidents.length}) طبيب مقيم مسجل على تخصص "${name}" في هذا المستشفى.\n\nعند إزالة التخصص، لن يتم حذف الأطباء نهائياً، بل سيتم نقلهم تلقائياً إلى فئة "غير منسوبين لمستشفى" في قاعدة بيانات المقيمين للحفاظ على سجلاتهم وتوزيعهم لاحقاً.\n\nهل تريد المتابعة وتأكيد الإزالة؟`;
+            }
+
+            if (!confirm(confirmMsg)) return;
+
+            try {
+                const res = await Hub.deleteHospitalSpecialty(currentHospital.id, specId);
+                currentHospital = Hub.getActiveHospital();
+                renderSpecialtiesList();
+                renderResidentsAccordion();
+                populateSpecialtyDropdowns();
+                updateStatsBadges();
+
+                if (res.affectedResidentsCount > 0) {
+                    showToast(`تمت إزالة ${name} ونقل ${res.affectedResidentsCount} مقيم إلى فئة "غير منسوب لمستشفى" بنجاح 📋`, 'success');
+                } else {
+                    showToast(`تمت إزالة ${name} من المستشفى`, 'info');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'خطأ أثناء إزالة التخصص', 'error');
+            }
         }
 
         async function syncWithGlobalSpecialties() {

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-16T21:08:24.506Z",
+  "lastUpdated": "2026-09-16T21:14:35.747Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -22,21 +22,21 @@
       },
       "specialties": [
         {
-          "id": "NS",
-          "name_ar": "جراحة الجملة العصبية",
-          "name_en": "Neurosurgery",
-          "icon": "🧠",
-          "color": "#fea101",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
           "id": "CT",
           "name_ar": "جراحة الصدر و الاوعية الدموية",
           "name_en": "Cardiothoracic Surgery",
           "icon": "🫀",
           "color": "#e05910",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "NS",
+          "name_ar": "جراحة الجملة العصبية",
+          "name_en": "Neurosurgery",
+          "icon": "🧠",
+          "color": "#fea101",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true

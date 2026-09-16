@@ -11,11 +11,11 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.55rem 1.25rem;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    background: rgba(255, 255, 255, 0.88);
-    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    padding: calc(0.55rem + env(safe-area-inset-top, 0px)) 1.25rem 0.55rem;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.92);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.85);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
     transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
@@ -612,8 +612,24 @@ body.dark .hub-password-eye-btn:hover {
 
 @media (max-width: 600px) {
     .hub-nav-bar {
-        padding: 0.45rem 0.75rem;
-    }
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: calc(0.55rem + env(safe-area-inset-top, 0px)) 1.25rem 0.55rem;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.92);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
+    direction: rtl;
+}
     .role-badge {
         padding: 0.35rem 0.65rem;
         font-size: 0.7rem;
@@ -646,3 +662,91 @@ body.dark .hub-password-eye-btn:hover {
     }
 }
 
+
+/* Tactile Active States for Buttons & Navigation */
+.hub-nav-link:active, .hub-nav-btn:active, .hospital-selector-btn:active, .role-badge:active, .hub-btn-logout:active {
+    transform: scale(0.96);
+    transition: transform 0.15s ease;
+}
+
+/* Universal Mobile Bottom App Dock */
+.hub-mobile-bottom-dock {
+    position: fixed;
+    bottom: max(10px, env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9998;
+    width: calc(100% - 24px);
+    max-width: 480px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(24px) saturate(190%);
+    -webkit-backdrop-filter: blur(24px) saturate(190%);
+    border-radius: 999px;
+    border: 1px solid rgba(226, 232, 240, 0.85);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 4px 8px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    direction: rtl;
+}
+
+body.dark .hub-mobile-bottom-dock {
+    background: rgba(14, 20, 32, 0.94);
+    border: 1px solid rgba(212, 175, 55, 0.18);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(212, 175, 55, 0.08);
+}
+
+@media (min-width: 769px) {
+    .hub-mobile-bottom-dock {
+        display: none !important;
+    }
+}
+
+.hub-mobile-bottom-dock .dock-tab-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    color: #64748b;
+    text-decoration: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.65rem;
+    font-weight: 700;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.dark .hub-mobile-bottom-dock .dock-tab-btn {
+    color: #94a3b8;
+}
+
+.hub-mobile-bottom-dock .dock-tab-btn i {
+    font-size: 1.05rem;
+}
+
+.hub-mobile-bottom-dock .dock-tab-btn.active {
+    color: #0f766e;
+    background: rgba(15, 118, 110, 0.1);
+}
+
+body.dark .hub-mobile-bottom-dock .dock-tab-btn.active {
+    color: #d4af37;
+    background: rgba(212, 175, 55, 0.15);
+}
+
+.hub-mobile-bottom-dock .dock-tab-btn:active {
+    transform: scale(0.92);
+}
+
+@media (max-width: 768px) {
+    body {
+        padding-bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+}

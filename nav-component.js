@@ -155,6 +155,32 @@
                 </div>
             </div>
 
+            ${activePageId !== 'hub' ? `
+            <!-- Universal Mobile Bottom App Dock -->
+            <nav class="hub-mobile-bottom-dock" id="hub-bottom-dock">
+                <a href="./Home.html${queryParam}" class="dock-tab-btn ${activePageId === 'roster' ? 'active' : ''}">
+                    <i class="fas fa-users-viewfinder"></i>
+                    <span>الخفراء</span>
+                </a>
+                <a href="./residents.html${queryParam}" class="dock-tab-btn ${activePageId === 'residents' ? 'active' : ''}">
+                    <i class="fas fa-address-book"></i>
+                    <span>المقيمين</span>
+                </a>
+                <a href="./scheduler.html${queryParam}" class="dock-tab-btn ${activePageId === 'scheduler' ? 'active' : ''}">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>المجدول</span>
+                </a>
+                <a href="./signup.html${queryParam}" class="dock-tab-btn ${activePageId === 'signup' ? 'active' : ''}">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>تسجيل خفر</span>
+                </a>
+                <a href="./index.html" class="dock-tab-btn">
+                    <i class="fas fa-hospital-alt"></i>
+                    <span>الرئيسية</span>
+                </a>
+            </nav>
+            ` : ''}
+
             <!-- Owner All Passwords Modal Dialog -->
             <div id="hub-passwords-modal" class="hub-modal-overlay">
                 <div class="hub-modal-card" style="max-width:440px; text-align:right; padding:22px;">

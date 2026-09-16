@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-15T04:34:31.985Z",
+  "lastUpdated": "2026-09-16T18:58:17.270Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -2302,8 +2302,7 @@
           "department": "NS",
           "active": false,
           "hospitals": [
-            "iraqi",
-            "mawani"
+            "iraqi"
           ]
         },
         {
@@ -33502,20 +33501,6 @@
           ]
         },
         {
-          "id": "res-0161",
-          "name": "د. محمد عبدالحسين محسن",
-          "phone": "+9647707334546",
-          "spec": "NS",
-          "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
-          "active": false,
-          "hospitals": [
-            "iraqi",
-            "mawani"
-          ]
-        },
-        {
           "id": "res-0412",
           "name": "د. محمد فاضل",
           "phone": "+9647815628060",
@@ -42278,8 +42263,7 @@
       "department": "NS",
       "active": false,
       "hospitals": [
-        "iraqi",
-        "mawani"
+        "iraqi"
       ]
     },
     {
@@ -43576,6 +43560,7 @@
       "name_ar": "الجراحة العامة",
       "name_en": "General Surgery",
       "icon": "🔪",
+      "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
       "enabled": true

@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>بوابة المستشفيات التعليمية · Hospital Main Hub 🇮🇶</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#0f766e" />
+    <title>بوابة المستشفيات التعليمية · Medical Hub App 🇮🇶</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -13,22 +17,42 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="./nav-component.css" />
+
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --sat: env(safe-area-inset-top, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
+            --sal: env(safe-area-inset-left, 0px);
+            --sar: env(safe-area-inset-right, 0px);
+            --primary-medical: #0f766e;
+            --primary-cyan: #06b6d4;
+            --ios-radius: 22px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
-            font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
+            font-family: 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             direction: rtl;
             text-align: right;
             min-height: 100vh;
-            background: #d1d9e6;
-            color: #1a2332;
-            transition: background 0.4s ease, color 0.4s ease;
+            background: #f0f4f9;
+            color: #1e293b;
+            transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
             overflow-x: hidden;
+            padding-top: calc(var(--sat) + 64px);
+            padding-bottom: calc(var(--sab) + 84px);
         }
 
+        /* OLED Night Mode */
         body.dark {
-            background: #0b0e12;
-            color: #e8edf5;
+            background: #070a0f;
+            color: #f1f5f9;
         }
 
         body.dark::before {
@@ -37,363 +61,669 @@
             inset: 0;
             z-index: 0;
             pointer-events: none;
-            opacity: 0.06;
-            background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.25'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            background-size: 120px 120px;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2314b8a6' fill-opacity='0.4'%3E%3Cpath d='M20 20v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM60 60v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: 80px 80px;
         }
 
-        .hub-container {
-            position: relative;
-            z-index: 1;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1.5rem 1.25rem 4rem;
+        /* iOS Frosted Header */
+        .ios-top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 999;
+            height: calc(var(--sat) + 64px);
+            padding-top: var(--sat);
+            padding-left: max(16px, var(--sal));
+            padding-right: max(16px, var(--sar));
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
         }
 
-        /* Glass Cards */
-        .glass-card {
-            border-radius: 1.5rem;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-            z-index: 1;
-        }
-        body:not(.dark) .glass-card {
-            background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(14px);
-            border: 1px solid rgba(255, 255, 255, 0.7);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-        }
-        body.dark .glass-card {
-            background: rgba(16, 22, 34, 0.84);
-            backdrop-filter: blur(14px);
-            border: 1px solid rgba(212, 175, 55, 0.12);
-            box-shadow: 0 10px 36px rgba(0, 0, 0, 0.6);
+        body.dark .ios-top-bar {
+            background: rgba(11, 16, 26, 0.85);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.4);
         }
 
-        /* Hero Header */
-        .hub-hero {
-            text-align: center;
-            padding: 2.2rem 1rem 1.8rem;
-            position: relative;
+        .ios-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
         }
 
-        .hub-symbol {
-            width: 5.5rem;
-            height: 5.5rem;
-            margin: 0 auto 1.2rem;
+        .brand-pill-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
             display: grid;
             place-items: center;
-            border-radius: 50%;
-            font-size: 2.2rem;
+            font-size: 1.15rem;
             color: #ffffff;
             background: linear-gradient(135deg, #0f766e, #0d9488);
-            box-shadow: 0 0 0 8px rgba(15, 118, 110, 0.12), 0 16px 32px rgba(15, 118, 110, 0.3);
-            transition: transform 0.4s ease, box-shadow 0.4s ease;
-        }
-        body.dark .hub-symbol {
-            background: linear-gradient(135deg, #d4af37, #b8942e);
-            color: #0b0e12;
-            box-shadow: 0 0 0 8px rgba(212, 175, 55, 0.12), 0 16px 32px rgba(212, 175, 55, 0.25);
-        }
-        .hub-symbol:hover {
-            transform: scale(1.05) rotate(5deg);
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.35);
+            position: relative;
         }
 
-        .hub-title {
-            font-family: 'Playfair Display', 'IBM Plex Sans Arabic', serif;
-            font-size: 2.6rem;
-            font-weight: 900;
-            line-height: 1.2;
-            color: #0f172a;
-            margin-bottom: 0.4rem;
+        body.dark .brand-pill-icon {
+            background: linear-gradient(135deg, #14b8a6, #0f766e);
+            box-shadow: 0 4px 16px rgba(20, 184, 166, 0.3);
         }
-        body.dark .hub-title {
+
+        .pulse-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            border: 2px solid white;
+            animation: ecgPulse 2s infinite;
+        }
+        body.dark .pulse-indicator {
+            border-color: #070a0f;
+        }
+
+        @keyframes ecgPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.6; }
+        }
+
+        .brand-text-block {
+            display: flex;
+            flex-direction: column;
+        }
+        .brand-title {
+            font-size: 1rem;
+            font-weight: 800;
+            line-height: 1.15;
+            color: #0f172a;
+        }
+        body.dark .brand-title {
             color: #f8fafc;
         }
+        .brand-sub {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #0f766e;
+            letter-spacing: 0.02em;
+        }
+        body.dark .brand-sub {
+            color: #2dd4bf;
+        }
 
-        .hub-subtitle {
+        .ios-top-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ios-icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            background: rgba(255, 255, 255, 0.9);
+            color: #475569;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        body.dark .ios-icon-btn {
+            background: rgba(30, 41, 59, 0.7);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+        }
+        .ios-icon-btn:active {
+            transform: scale(0.92);
+        }
+
+        .ios-role-pill {
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .ios-role-pill.owner {
+            background: #fef3c7;
+            color: #92400e;
+            border-color: #fde68a;
+        }
+        body.dark .ios-role-pill.owner {
+            background: rgba(245, 158, 11, 0.18);
+            color: #fbbf24;
+            border-color: rgba(245, 158, 11, 0.35);
+        }
+        .ios-role-pill.admin {
+            background: #ccfbf1;
+            color: #0f766e;
+            border-color: #99f6e4;
+        }
+        body.dark .ios-role-pill.admin {
+            background: rgba(20, 184, 166, 0.18);
+            color: #2dd4bf;
+            border-color: rgba(20, 184, 166, 0.35);
+        }
+        .ios-role-pill.user {
+            background: #e2e8f0;
+            color: #475569;
+            border-color: #cbd5e1;
+        }
+        body.dark .ios-role-pill.user {
+            background: rgba(255, 255, 255, 0.08);
+            color: #94a3b8;
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        /* Container */
+        .app-container {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 16px 14px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Live Activity Banner (Apple Health/iOS Live Activity style) */
+        .live-activity-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(240,253,250,0.85));
+            border-radius: var(--ios-radius);
+            padding: 16px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 28px rgba(15, 118, 110, 0.06), 0 2px 6px rgba(0, 0, 0, 0.02);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        body.dark .live-activity-card {
+            background: linear-gradient(135deg, rgba(16, 24, 38, 0.9), rgba(13, 20, 32, 0.85));
+            border: 1px solid rgba(20, 184, 166, 0.2);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55), 0 0 20px rgba(20, 184, 166, 0.08);
+        }
+
+        .live-status-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .live-pulse-badge {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: #ecfdf5;
+            color: #059669;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+            border: 1px solid #a7f3d0;
+        }
+        body.dark .live-pulse-badge {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .live-title-wrap h2 {
             font-size: 0.95rem;
+            font-weight: 800;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        body.dark .live-title-wrap h2 {
+            color: #f8fafc;
+        }
+        .live-title-wrap p {
+            font-size: 0.74rem;
             color: #64748b;
             font-weight: 600;
-            margin-bottom: 1.5rem;
         }
-        body.dark .hub-subtitle {
+        body.dark .live-title-wrap p {
             color: #94a3b8;
         }
 
-        /* Global Stats Bar */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2.5rem;
+        .live-clock-pill {
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(15, 118, 110, 0.08);
+            border: 1px solid rgba(15, 118, 110, 0.18);
+            color: #0f766e;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        .stat-item {
-            padding: 1.2rem;
-            border-radius: 1.2rem;
-            text-align: center;
+        body.dark .live-clock-pill {
+            background: rgba(20, 184, 166, 0.12);
+            border-color: rgba(20, 184, 166, 0.3);
+            color: #2dd4bf;
+        }
+
+        /* Search & iOS Segmented Filter */
+        .ios-filter-section {
+            margin-bottom: 18px;
             display: flex;
             flex-direction: column;
+            gap: 10px;
+        }
+
+        .ios-search-wrap {
+            position: relative;
+            width: 100%;
+        }
+
+        .ios-search-input {
+            width: 100%;
+            height: 44px;
+            border-radius: 14px;
+            border: 1px solid #cbd5e1;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0 42px 0 14px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #1e293b;
+            outline: none;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        body.dark .ios-search-input {
+            background: #111827;
+            border-color: #1f2937;
+            color: #f3f4f6;
+        }
+        .ios-search-input:focus {
+            border-color: #0f766e;
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+            background: #ffffff;
+        }
+        body.dark .ios-search-input:focus {
+            border-color: #14b8a6;
+            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+            background: #0f172a;
+        }
+
+        .ios-search-icon {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .ios-segmented-control {
+            display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 0.25rem;
+            background: rgba(226, 232, 240, 0.6);
+            padding: 3px;
+            border-radius: 13px;
+            gap: 3px;
+            overflow-x: auto;
+            scrollbar-width: none;
         }
-        .stat-val {
-            font-size: 1.9rem;
-            font-weight: 900;
-            font-family: 'JetBrains Mono', monospace;
-            color: #0f766e;
-            line-height: 1;
+        body.dark .ios-segmented-control {
+            background: rgba(30, 41, 59, 0.6);
         }
-        body.dark .stat-val {
-            color: #d4af37;
-        }
-        .stat-lbl {
+        .ios-segmented-control::-webkit-scrollbar { display: none; }
+
+        .ios-segment-btn {
+            flex: 1;
+            min-width: max-content;
+            padding: 7px 14px;
+            border-radius: 10px;
             font-size: 0.78rem;
             font-weight: 700;
             color: #64748b;
-        }
-        body.dark .stat-lbl {
-            color: #94a3b8;
-        }
-
-        /* Hospital Cards Grid */
-        .hospitals-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .hospital-card {
-            border-radius: 1.6rem;
-            padding: 1.6rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.94);
-            backdrop-filter: blur(14px);
-            border: 1px solid rgba(255, 255, 255, 0.85);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
-        }
-        body.dark .hospital-card {
-            background: rgba(16, 22, 34, 0.88);
-            backdrop-filter: blur(14px);
-            border: 1px solid rgba(212, 175, 55, 0.16);
-            box-shadow: 0 10px 36px rgba(0, 0, 0, 0.6);
-        }
-        .hospital-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.14);
-        }
-        body.dark .hospital-card:hover {
-            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.75), 0 0 20px rgba(212, 175, 55, 0.12);
-            border-color: rgba(212, 175, 55, 0.35);
-        }
-
-        .hosp-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.2rem;
-        }
-        .hosp-icon-circle {
-            width: 52px;
-            height: 52px;
-            border-radius: 1rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-            flex-shrink: 0;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+            gap: 5px;
+            white-space: nowrap;
+        }
+        body.dark .ios-segment-btn {
+            color: #94a3b8;
+        }
+        .ios-segment-btn.active {
+            background: #ffffff;
+            color: #0f766e;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        body.dark .ios-segment-btn.active {
+            background: #1e293b;
+            color: #2dd4bf;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
         }
 
-        .hosp-info h3 {
-            font-size: 1.25rem;
+        /* Owner Fast Actions Bar */
+        .owner-quick-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+        }
+        .owner-quick-bar::-webkit-scrollbar { display: none; }
+
+        .owner-chip-btn {
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 0.78rem;
             font-weight: 800;
-            line-height: 1.3;
-            color: #1e293b;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        body.dark .hosp-info h3 {
-            color: #f1f5f9;
+        .owner-chip-btn:active {
+            transform: scale(0.95);
         }
-        .hosp-info .hosp-loc {
-            font-size: 0.75rem;
-            font-weight: 600;
+
+        /* Hospital Cards (iOS App Widget Styling) */
+        .hospitals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+            gap: 16px;
+        }
+
+        .hosp-widget-card {
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--ios-radius);
+            padding: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+        }
+
+        body.dark .hosp-widget-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+        }
+
+        .hosp-widget-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 40px rgba(15, 118, 110, 0.1);
+        }
+        body.dark .hosp-widget-card:hover {
+            border-color: rgba(20, 184, 166, 0.3);
+            box-shadow: 0 16px 45px rgba(0, 0, 0, 0.7);
+        }
+
+        .widget-top-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .widget-squircle-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            display: grid;
+            place-items: center;
+            font-size: 1.4rem;
+            color: #ffffff;
+            flex-shrink: 0;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .hosp-widget-card:hover .widget-squircle-icon {
+            transform: scale(1.05) rotate(4deg);
+        }
+
+        .widget-title-area {
+            flex: 1;
+            min-width: 0;
+        }
+        .widget-hosp-name {
+            font-size: 1.18rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.25;
+            margin-bottom: 2px;
+        }
+        body.dark .widget-hosp-name {
+            color: #f8fafc;
+        }
+        .widget-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 0.72rem;
             color: #64748b;
+            font-weight: 600;
         }
-        body.dark .hosp-info .hosp-loc {
+        body.dark .widget-meta-row {
             color: #94a3b8;
         }
 
-        .hosp-metrics {
-            display: flex;
-            gap: 0.6rem;
-            margin-bottom: 1.4rem;
-            flex-wrap: wrap;
-        }
-        .metric-pill {
-            padding: 0.3rem 0.75rem;
+        .widget-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
             border-radius: 999px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+        body.dark .widget-status-badge {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        /* Metrics Chips */
+        .widget-metrics-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .metric-chip {
+            padding: 5px 10px;
+            border-radius: 10px;
             font-size: 0.72rem;
             font-weight: 700;
             display: inline-flex;
             align-items: center;
-            gap: 0.35rem;
-            background: rgba(0, 0, 0, 0.04);
+            gap: 5px;
+            background: rgba(0, 0, 0, 0.03);
             color: #475569;
+            border: 1px solid rgba(0, 0, 0, 0.05);
         }
-        body.dark .metric-pill {
-            background: rgba(255, 255, 255, 0.05);
+        body.dark .metric-chip {
+            background: rgba(255, 255, 255, 0.04);
             color: #cbd5e1;
+            border-color: rgba(255, 255, 255, 0.07);
         }
-        .metric-pill.highlight {
-            background: rgba(16, 185, 129, 0.12);
-            color: #059669;
+        .metric-chip.oncall-live {
+            background: rgba(15, 118, 110, 0.1);
+            color: #0f766e;
+            border-color: rgba(15, 118, 110, 0.25);
+            font-weight: 800;
         }
-        body.dark .metric-pill.highlight {
-            background: rgba(16, 185, 129, 0.18);
-            color: #34d399;
+        body.dark .metric-chip.oncall-live {
+            background: rgba(20, 184, 166, 0.15);
+            color: #2dd4bf;
+            border-color: rgba(20, 184, 166, 0.35);
         }
 
-        .hosp-actions-grid {
+        /* Action Buttons Grid */
+        .widget-actions-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0.6rem;
-            margin-top: auto;
+            gap: 7px;
         }
-        .hosp-actions-grid.user-layout {
+        .widget-actions-grid.user-layout {
             grid-template-columns: 1fr 1fr;
         }
-        .hosp-actions-grid.user-layout .action-link.primary {
+        .widget-actions-grid.user-layout .ios-btn.primary {
             grid-column: 1 / -1;
         }
 
-        .action-link {
-            padding: 0.7rem 0.9rem;
-            border-radius: 1rem;
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-decoration: none;
+        .ios-btn {
+            min-height: 46px;
+            padding: 0 12px;
+            border-radius: 14px;
+            font-size: 0.82rem;
+            font-weight: 800;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.45rem;
-            transition: all 0.2s ease;
-            text-align: center;
+            gap: 6px;
+            text-decoration: none;
             cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             border: 1px solid transparent;
+            text-align: center;
         }
-        .action-link.primary {
-            background: linear-gradient(135deg, #0f766e, #0d9488);
-            color: white;
-            box-shadow: 0 4px 14px rgba(15, 118, 110, 0.25);
-        }
-        body.dark .action-link.primary {
-            background: linear-gradient(135deg, #d4af37, #b8942e);
-            color: #0b0e12;
-            box-shadow: 0 4px 14px rgba(212, 175, 55, 0.2);
-        }
-        .action-link.primary:hover {
-            transform: translateY(-2px);
-            opacity: 0.95;
-        }
-        .action-link.secondary {
-            background: rgba(0, 0, 0, 0.04);
-            color: #334155;
-            border-color: rgba(0, 0, 0, 0.08);
-        }
-        body.dark .action-link.secondary {
-            background: rgba(255, 255, 255, 0.04);
-            color: #e2e8f0;
-            border-color: rgba(212, 175, 55, 0.12);
-        }
-        .action-link.secondary:hover {
-            background: rgba(0, 0, 0, 0.08);
-            transform: translateY(-2px);
-        }
-        body.dark .action-link.secondary:hover {
-            background: rgba(212, 175, 55, 0.1);
+        .ios-btn:active {
+            transform: scale(0.96);
         }
 
-        /* Add Hospital Card / Button */
-        .add-hosp-btn-wrap {
+        .ios-btn.primary {
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3);
+        }
+        body.dark .ios-btn.primary {
+            background: linear-gradient(135deg, #14b8a6, #0f766e);
+            color: #ffffff;
+            box-shadow: 0 4px 16px rgba(20, 184, 166, 0.35);
+        }
+
+        .ios-btn.secondary {
+            background: rgba(241, 245, 249, 0.9);
+            color: #334155;
+            border-color: #cbd5e1;
+        }
+        body.dark .ios-btn.secondary {
+            background: rgba(30, 41, 59, 0.7);
+            color: #e2e8f0;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .ios-btn.secondary:hover {
+            background: #e2e8f0;
+        }
+        body.dark .ios-btn.secondary:hover {
+            background: rgba(51, 65, 85, 0.8);
+        }
+
+        /* Floating Bottom Dock for iPhone (App Tab Bar) */
+        .ios-bottom-dock {
+            position: fixed;
+            bottom: max(10px, var(--sab));
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 998;
+            width: calc(100% - 24px);
+            max-width: 480px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(24px) saturate(190%);
+            -webkit-backdrop-filter: blur(24px) saturate(190%);
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
             display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 4px 10px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        body.dark .ios-bottom-dock {
+            background: rgba(15, 23, 42, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(20, 184, 166, 0.1);
+        }
+
+        .dock-tab-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
-            margin: 2.5rem 0 1rem;
-        }
-        .btn-add-hospital {
-            padding: 0.9rem 2rem;
+            gap: 3px;
+            padding: 6px 12px;
             border-radius: 999px;
-            font-size: 0.95rem;
-            font-weight: 800;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.6rem;
+            color: #64748b;
+            text-decoration: none;
+            background: transparent;
             border: none;
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            color: white;
-            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
-            transition: all 0.3s ease;
-        }
-        body.dark .btn-add-hospital {
-            background: linear-gradient(135deg, #d4af37, #b8942e);
-            color: #0b0e12;
-            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.25);
-        }
-        .btn-add-hospital:hover {
-            transform: translateY(-2px) scale(1.02);
-        }
-        .btn-edit-passwords {
-            padding: 0.9rem 2rem;
-            border-radius: 999px;
-            font-size: 0.95rem;
-            font-weight: 800;
             cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.6rem;
-            border: 1px solid rgba(217, 119, 6, 0.4);
-            background: linear-gradient(135deg, #d97706, #b45309);
-            color: white;
-            box-shadow: 0 8px 25px rgba(217, 119, 6, 0.3);
-            transition: all 0.3s ease;
+            font-size: 0.65rem;
+            font-weight: 700;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        body.dark .btn-edit-passwords {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: #0b0e12;
-            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.25);
+        body.dark .dock-tab-btn {
+            color: #94a3b8;
         }
-        .btn-edit-passwords:hover {
-            transform: translateY(-2px) scale(1.02);
+        .dock-tab-btn i {
+            font-size: 1.05rem;
         }
-        .btn-global-specialties {
-            padding: 0.9rem 2rem;
-            border-radius: 999px;
-            font-size: 0.95rem;
-            font-weight: 800;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.6rem;
-            border: 1px solid rgba(124, 58, 237, 0.4);
-            background: linear-gradient(135deg, #7c3aed, #9333ea);
-            color: white;
-            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.3);
-            transition: all 0.3s ease;
+        .dock-tab-btn.active {
+            color: #0f766e;
+            background: rgba(15, 118, 110, 0.1);
         }
-        body.dark .btn-global-specialties {
-            background: linear-gradient(135deg, #a855f7, #7c3aed);
-            color: white;
-            box-shadow: 0 8px 25px rgba(168, 85, 247, 0.25);
+        body.dark .dock-tab-btn.active {
+            color: #2dd4bf;
+            background: rgba(20, 184, 166, 0.15);
         }
-        .btn-global-specialties:hover {
-            transform: translateY(-2px) scale(1.02);
+        .dock-tab-btn:active {
+            transform: scale(0.92);
         }
 
         /* Lock Screen */
@@ -401,81 +731,86 @@
             position: fixed;
             inset: 0;
             z-index: 99999;
-            background: #f0f4f8;
+            background: rgba(240, 244, 249, 0.95);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            transition: opacity 0.4s;
+            transition: opacity 0.35s ease;
         }
         body.dark #lock-screen {
-            background: #0b0e12;
+            background: rgba(7, 10, 15, 0.95);
         }
         #lock-screen.hidden {
             display: none;
         }
+
         .lock-box {
-            background: white;
-            border-radius: 2rem;
-            padding: 2.5rem 2rem;
+            background: #ffffff;
+            border-radius: 28px;
+            padding: 32px 24px;
             width: 100%;
-            max-width: 400px;
+            max-width: 380px;
             text-align: center;
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e2e8f0;
+            box-shadow: 0 25px 65px rgba(0, 0, 0, 0.12);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         body.dark .lock-box {
-            background: #141a24;
-            border-color: rgba(212, 175, 55, 0.2);
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+            background: #111827;
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7);
         }
 
         /* Input & Form Styles */
         .hub-input {
             width: 100%;
-            padding: 0.8rem 1.1rem;
-            border-radius: 0.9rem;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
             border: 1.5px solid #cbd5e1;
-            background: rgba(248, 250, 252, 0.8);
-            font-size: 0.95rem;
+            background: rgba(248, 250, 252, 0.9);
+            font-size: 0.9rem;
             font-weight: 600;
             outline: none;
             transition: all 0.2s ease;
             font-family: inherit;
         }
         body.dark .hub-input {
-            background: #0f151e;
-            border-color: #2a3346;
-            color: #e8edf5;
+            background: #0f1520;
+            border-color: #1f2937;
+            color: #f1f5f9;
         }
         .hub-input:focus {
             border-color: #0f766e;
             box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
         }
         body.dark .hub-input:focus {
-            border-color: #d4af37;
-            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+            border-color: #14b8a6;
+            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
         }
 
-        /* Modal Overlay */
+        /* Modal Overlays */
         .modal-overlay {
             position: fixed;
             inset: 0;
             z-index: 99999;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(12px);
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             display: none;
             align-items: center;
             justify-content: center;
-            padding: 1.2rem;
+            padding: 16px;
         }
         .modal-overlay.active {
             display: flex;
         }
         .modal-card {
-            background: white;
-            border-radius: 2rem;
-            padding: 2rem;
+            background: #ffffff;
+            border-radius: 26px;
+            padding: 24px;
             width: 100%;
             max-width: 520px;
             max-height: 90vh;
@@ -485,9 +820,9 @@
             animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         body.dark .modal-card {
-            background: #141c2a;
-            border-color: rgba(212, 175, 55, 0.2);
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+            background: #111827;
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7);
         }
         @keyframes modalPop {
             from { opacity: 0; transform: scale(0.95) translateY(12px); }
@@ -497,7 +832,7 @@
         /* Toast Container */
         #toast-container {
             position: fixed;
-            top: 20px;
+            top: calc(var(--sat) + 16px);
             left: 50%;
             transform: translateX(-50%);
             z-index: 100000;
@@ -506,14 +841,14 @@
             gap: 8px;
             pointer-events: none;
             width: 90%;
-            max-width: 440px;
+            max-width: 420px;
         }
         .toast {
-            padding: 12px 20px;
-            border-radius: 1rem;
+            padding: 12px 18px;
+            border-radius: 14px;
             color: white;
             font-weight: 700;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -524,137 +859,16 @@
             pointer-events: auto;
         }
         .toast.show { transform: translateY(0); opacity: 1; }
-        .toast.success { background: #10b981; }
-        .toast.error { background: #ef4444; }
-        .toast.info { background: #3b82f6; }
-
-        /* Mobile Screen Layouts */
-        /* Hide Counters Dashboard on Phone/Mobile (User Request) */
-        @media (max-width: 850px), 
-               (max-device-width: 950px) and (pointer: coarse), 
-               (pointer: coarse) and (hover: none) and (max-width: 1024px) {
-            .stats-grid {
-                display: none !important;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .hub-container {
-                padding: 0 14px 2rem;
-            }
-
-            /* Hide Counters Dashboard on Mobile */
-            .stats-grid {
-                display: none !important;
-            }
-
-            .hub-hero {
-                padding: 1.5rem 0.5rem 1rem;
-            }
-            .hub-symbol {
-                width: 3.8rem;
-                height: 3.8rem;
-                font-size: 1.6rem;
-                margin-bottom: 0.75rem;
-            }
-            .hub-title {
-                font-size: clamp(1.6rem, 6vw, 2.1rem);
-                margin-bottom: 0.25rem;
-            }
-            .hub-subtitle {
-                font-size: 0.8rem;
-                margin-bottom: 0.75rem;
-                line-height: 1.4;
-            }
-            #live-time-display {
-                font-size: 0.72rem;
-                padding: 0.35rem 0.85rem;
-                border-radius: 999px;
-                background: rgba(15, 118, 110, 0.08);
-                display: inline-block;
-            }
-            body.dark #live-time-display {
-                background: rgba(212, 175, 55, 0.1);
-            }
-
-            /* Owner Actions Mobile */
-            .add-hosp-btn-wrap {
-                margin: 1.25rem 0 1rem;
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-            .btn-add-hospital, .btn-edit-passwords, .btn-global-specialties {
-                width: 100%;
-                justify-content: center;
-                padding: 0.75rem 1.25rem;
-                font-size: 0.85rem;
-                min-height: 46px;
-            }
-
-            /* Mobile Hospitals Grid & Cards */
-            .hospitals-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-                width: 100%;
-            }
-            .hospital-card {
-                padding: 1.15rem 1rem;
-                border-radius: 1.25rem;
-            }
-            .hosp-header {
-                gap: 0.75rem;
-                margin-bottom: 0.85rem;
-            }
-            .hosp-icon-circle {
-                width: 44px;
-                height: 44px;
-                font-size: 1.25rem;
-                border-radius: 0.85rem;
-            }
-            .hosp-info h3 {
-                font-size: 1.12rem;
-            }
-            .hosp-metrics {
-                gap: 0.4rem;
-                margin-bottom: 1rem;
-            }
-            .metric-pill {
-                font-size: 0.68rem;
-                padding: 0.25rem 0.6rem;
-            }
-
-            /* Mobile Actions Grid */
-            .hosp-actions-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 0.5rem;
-            }
-            .hosp-actions-grid .action-link.primary {
-                grid-column: 1 / -1;
-                font-size: 0.85rem;
-                padding: 0.8rem 1rem;
-                min-height: 46px;
-            }
-            .action-link {
-                padding: 0.7rem 0.5rem;
-                font-size: 0.76rem;
-                min-height: 44px;
-                border-radius: 0.85rem;
-            }
-
-            /* Mobile Lock Screen */
-            .lock-box {
-                padding: 2rem 1.25rem;
-                border-radius: 1.5rem;
-                max-width: 100%;
-            }
-        }
+        .toast.success { background: #059669; }
+        .toast.error { background: #dc2626; }
+        .toast.info { background: #2563eb; }
 
         .footer-credit {
             text-align: center;
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             color: #94a3b8;
-            margin-top: 3rem;
-            opacity: 0.6;
+            margin-top: 2rem;
+            opacity: 0.7;
         }
     </style>
 </head>
@@ -663,101 +877,160 @@
     <!-- Toast Notifications -->
     <div id="toast-container"></div>
 
-    <!-- LOCK SCREEN -->
+    <!-- LOCK SCREEN (iOS Passcode / Lock Experience) -->
     <div id="lock-screen">
         <div class="lock-box">
-            <div class="hub-symbol" style="width:4.5rem;height:4.5rem;font-size:1.8rem;margin-bottom:1rem;">
+            <div class="brand-pill-icon mx-auto mb-4" style="width: 58px; height: 58px; font-size: 1.6rem;">
                 <i class="fas fa-hospital-user"></i>
+                <span class="pulse-indicator"></span>
             </div>
-            <h2 style="font-size:1.4rem;font-weight:900;margin-bottom:4px;">🔐 بوابة المستشفيات التعليمية</h2>
-            <p style="font-size:0.85rem;color:#64748b;margin-bottom:18px;">أدخل كلمة المرور للدخول إلى النظام</p>
+            <h2 class="text-lg font-black text-slate-900 dark:text-white mb-1">🔐 بوابة المستشفيات التعليمية</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-5">منظومة الخفارات وإدارة الأطباء المقيمين</p>
             
-            <form id="lock-form" onsubmit="event.preventDefault(); handleHubLogin();" style="margin:0;padding:0;">
-                <div style="position:relative; width:100%;">
-                    <input type="password" id="password-input" class="hub-input text-center text-xl font-mono tracking-widest" placeholder="•••••" maxlength="25" autofocus style="padding-left:44px; padding-right:44px;" />
-                    <button type="button" onclick="togglePortalLockPwd()" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:#64748b; cursor:pointer; font-size:1.1rem; padding:6px; display:flex; align-items:center; justify-content:center; transition:color 0.2s;" aria-label="عرض أو إخفاء كلمة المرور" title="إظهار / إخفاء كلمة المرور">
+            <form id="lock-form" onsubmit="event.preventDefault(); handleHubLogin();" class="space-y-3">
+                <div class="relative w-full">
+                    <input type="password" id="password-input" class="hub-input text-center text-xl font-mono tracking-widest" placeholder="•••••" maxlength="30" autofocus style="padding-left:44px; padding-right:44px;" />
+                    <button type="button" onclick="togglePortalLockPwd()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm p-2" aria-label="عرض أو إخفاء كلمة المرور">
                         <i class="fas fa-eye" id="portal-lock-eye-icon"></i>
                     </button>
                 </div>
-                <button type="submit" id="login-btn" class="btn-add-hospital w-full justify-center mt-3">
-                    <i class="fas fa-arrow-left ml-2"></i> تسجيل الدخول
+                <button type="submit" id="login-btn" class="ios-btn primary w-full justify-center">
+                    <i class="fas fa-arrow-left ml-1"></i> دخول إلى النظام
                 </button>
             </form>
-            <p id="lock-error" style="color:#ef4444;font-size:0.8rem;min-height:22px;margin-top:8px;"></p>
+            <p id="lock-error" class="text-rose-500 text-xs mt-2 min-h-[20px]"></p>
             
-            <label style="display:inline-flex;align-items:center;gap:8px;font-size:0.8rem;color:#64748b;cursor:pointer;margin-top:10px;">
-                <input type="checkbox" id="remember-me" checked />
+            <label class="inline-flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 cursor-pointer mt-2">
+                <input type="checkbox" id="remember-me" checked class="w-4 h-4 accent-teal-600 rounded" />
                 تذكر تسجيل الدخول (7 أيام)
             </label>
-            <div class="footer-credit mt-4">All rights reserved for Dr. Mohammed Riyadh</div>
+            <div class="footer-credit mt-4">Dr. Mohammed Riyadh · Iraq</div>
         </div>
     </div>
 
-    <!-- Universal Navigation Component Container -->
-    <div id="universal-nav"></div>
-
-    <!-- MAIN HUB DASHBOARD -->
-    <main class="hub-container" id="hub-main-content">
-        <!-- Hero Header -->
-        <section class="hub-hero">
-            <div class="hub-symbol" aria-hidden="true">
+    <!-- iOS TOP NAVIGATION BAR -->
+    <header class="ios-top-bar">
+        <!-- Brand -->
+        <a href="./index.html" class="ios-brand" title="البوابة الرئيسية">
+            <div class="brand-pill-icon">
                 <i class="fas fa-hospital-alt"></i>
+                <span class="pulse-indicator"></span>
             </div>
-            <h1 class="hub-title">بوابة المستشفيات التعليمية</h1>
-            <p class="hub-subtitle">Hospital Main Hub · On-Call Roster & Resident Management System</p>
-            <div id="live-time-display" style="font-family:'JetBrains Mono',monospace;font-size:0.85rem;font-weight:700;color:#0f766e;" class="dark:text-amber-400">
-                ⏳ جاري تحميل البيانات...
+            <div class="brand-text-block">
+                <span class="brand-title">بوابة المستشفيات</span>
+                <span class="brand-sub">Iraqi Medical Hub</span>
+            </div>
+        </a>
+
+        <!-- Actions -->
+        <div class="ios-top-actions">
+            <!-- Theme Toggle -->
+            <button type="button" onclick="toggleThemeInstant()" class="ios-icon-btn" title="تبديل المظهر النهاري / الليلي" aria-label="Toggle Theme">
+                <i class="fas fa-moon" id="top-theme-icon"></i>
+            </button>
+
+            <!-- Role Badge -->
+            <div id="top-role-pill" class="ios-role-pill user" onclick="handleRoleBadgeClick()">
+                <i class="fas fa-user" id="top-role-icon"></i>
+                <span id="top-role-text">مستخدم</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hidden compatibility container for nav-component listeners -->
+    <div id="universal-nav" style="display: none;"></div>
+
+    <!-- MAIN APP CONTAINER -->
+    <main class="app-container" id="hub-main-content">
+
+        <!-- LIVE SHIFT & MEDICAL ACTIVITY CARD -->
+        <section class="live-activity-card">
+            <div class="live-status-left">
+                <div class="live-pulse-badge">
+                    <i class="fas fa-heart-pulse"></i>
+                </div>
+                <div class="live-title-wrap">
+                    <h2>
+                        <span>الخفارات الطبية نشطة</span>
+                        <span class="widget-status-badge"><i class="fas fa-circle text-[8px] animate-pulse"></i> مباشر</span>
+                    </h2>
+                    <p id="live-oncall-summary">جاري فحص جدول الأطباء الخفراء...</p>
+                </div>
+            </div>
+            <div class="live-clock-pill" id="live-time-display">
+                <i class="fas fa-clock"></i> <span>--:-- · --/--/----</span>
             </div>
         </section>
 
-        <!-- Global Stats Bar -->
-        <section class="stats-grid">
-            <div class="glass-card stat-item">
-                <span class="stat-val" id="stat-hospitals-count">0</span>
-                <span class="stat-lbl"><i class="fas fa-hospital ml-1"></i> المستشفيات المتاحة</span>
-            </div>
-            <div class="glass-card stat-item">
-                <span class="stat-val" id="stat-oncall-count">0</span>
-                <span class="stat-lbl"><i class="fas fa-user-check ml-1"></i> الخفراء في الخدمة الآن</span>
-            </div>
-            <div class="glass-card stat-item">
-                <span class="stat-val" id="stat-residents-count">0</span>
-                <span class="stat-lbl"><i class="fas fa-user-md ml-1"></i> إجمالي المقيمين المسجلين</span>
-            </div>
-            <div class="glass-card stat-item">
-                <span class="stat-val" id="stat-specialties-count">0</span>
-                <span class="stat-lbl"><i class="fas fa-stethoscope ml-1"></i> التخصصات الطبية</span>
-            </div>
-        </section>
-
-        <!-- Owner Action Buttons (Owner Only) -->
-        <div class="add-hosp-btn-wrap" id="add-hospital-container" style="display:none; gap: 1rem; flex-wrap: wrap;">
-            <button type="button" class="btn-add-hospital" onclick="openAddHospitalModal()">
-                <i class="fas fa-plus-circle"></i> إضافة مستشفى تعليمي جديد
+        <!-- OWNER ACTION BUTTONS (Owner Exclusive) -->
+        <section class="owner-quick-bar" id="add-hospital-container" style="display:none;">
+            <button type="button" class="owner-chip-btn text-white" style="background:linear-gradient(135deg,#0284c7,#0369a1);" onclick="openAddHospitalModal()">
+                <i class="fas fa-plus-circle"></i> إضافة مستشفى جديد
             </button>
-            <button type="button" class="btn-global-specialties" onclick="openGlobalSpecialtiesModal()">
-                <i class="fas fa-layer-group"></i> مستودع التخصصات العام 👑
+            <button type="button" class="owner-chip-btn text-white" style="background:linear-gradient(135deg,#7c3aed,#9333ea);" onclick="openGlobalSpecialtiesModal()">
+                <i class="fas fa-crown text-amber-300"></i> مستودع التخصصات العام 👑
             </button>
-            <button type="button" class="btn-edit-passwords" onclick="openAllPasswordsModalNav()">
+            <button type="button" class="owner-chip-btn text-white" style="background:linear-gradient(135deg,#d97706,#b45309);" onclick="openAllPasswordsModalNav()">
                 <i class="fas fa-key"></i> تعديل كلمات المرور
             </button>
-        </div>
+        </section>
 
-        <!-- Hospitals Cards Grid -->
+        <!-- SEARCH & SEGMENTED FILTER -->
+        <section class="ios-filter-section">
+            <div class="ios-search-wrap">
+                <i class="fas fa-search ios-search-icon"></i>
+                <input type="text" id="hosp-search-input" class="ios-search-input" placeholder="بحث عن مستشفى أو قسم..." oninput="onSearchInput(this.value)" />
+            </div>
+
+            <div class="ios-segmented-control" id="hosp-segmented-filter">
+                <button type="button" class="ios-segment-btn active" onclick="setHospFilter('all', this)">
+                    <i class="fas fa-layer-group"></i> <span>جميع المستشفيات</span>
+                </button>
+                <button type="button" class="ios-segment-btn" id="seg-btn-my-hosp" onclick="setHospFilter('my', this)" style="display:none;">
+                    <i class="fas fa-shield-halved"></i> <span>مستشفياتي الإدارية</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- HOSPITALS INTERACTIVE WIDGET GRID -->
         <section class="hospitals-grid" id="hospitals-list-grid">
             <!-- Rendered dynamically -->
         </section>
 
         <footer class="footer-credit">
-            All rights reserved for Dr. Mohammed Riyadh · Iraq
+            Hospital Main Hub Suite · Dr. Mohammed Riyadh · Iraq 🇮🇶
         </footer>
     </main>
 
-    <!-- ADD HOSPITAL MODAL (Admin Only) -->
+    <!-- FLOATING IOS BOTTOM DOCK (App Tab Bar) -->
+    <nav class="ios-bottom-dock">
+        <button type="button" class="dock-tab-btn active" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+            <i class="fas fa-hospital-alt"></i>
+            <span>المستشفيات</span>
+        </button>
+        <a href="./residents.html" class="dock-tab-btn">
+            <i class="fas fa-users-rectangle"></i>
+            <span>المقيمين</span>
+        </a>
+        <a href="./signup.html" class="dock-tab-btn">
+            <i class="fas fa-calendar-check"></i>
+            <span>تسجيل خفر</span>
+        </a>
+        <button type="button" class="dock-tab-btn" onclick="toggleThemeInstant()">
+            <i class="fas fa-circle-half-stroke"></i>
+            <span>المظهر</span>
+        </button>
+        <button type="button" class="dock-tab-btn" onclick="handleDockLockAction()">
+            <i class="fas fa-lock" id="dock-lock-icon"></i>
+            <span id="dock-lock-text">قفل</span>
+        </button>
+    </nav>
+
+    <!-- ADD HOSPITAL MODAL (Owner Only) -->
     <div id="add-hospital-modal" class="modal-overlay">
         <div class="modal-card">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-black flex items-center gap-2 text-slate-800 dark:text-white">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-lg font-black flex items-center gap-2 text-slate-800 dark:text-white">
                     <i class="fas fa-hospital-plus text-teal-600 dark:text-amber-400"></i> إضافة مستشفى تعليمي جديد
                 </h3>
                 <button type="button" onclick="closeAddHospitalModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
@@ -765,22 +1038,22 @@
                 </button>
             </div>
             <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
-                أدخل تفاصيل المستشفى الجديد. سيتم إنشاء البنية الكاملة تلقائياً مع خيارات التخصصات واللوحات.
+                أدخل بيانات المستشفى الجديد. سيتم إنشاء البنية وتخصيص كلمات المرور الخاصة به تلقائياً.
             </p>
 
             <form id="add-hospital-form" onsubmit="submitNewHospital(event)" class="space-y-3">
                 <div>
                     <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">اسم المستشفى بالعربية</label>
-                    <input type="text" id="new-hosp-name-ar" class="hub-input" placeholder="مثال: مستشفى الصدر التعليمي" required />
+                    <input type="text" id="new-hosp-name-ar" class="hub-input" placeholder="مثال: مستشفى البصرة التعليمي" required />
                 </div>
                 <div>
                     <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">اسم المستشفى بالإنجليزية</label>
-                    <input type="text" id="new-hosp-name-en" class="hub-input" placeholder="e.g. Al-Sadr Teaching Hospital" required />
+                    <input type="text" id="new-hosp-name-en" class="hub-input" placeholder="e.g. Basra Teaching Hospital" required />
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">المعرف البرمجي (Slug)</label>
-                        <input type="text" id="new-hosp-id" class="hub-input text-left font-mono text-sm" placeholder="alsadr" required />
+                        <input type="text" id="new-hosp-id" class="hub-input text-left font-mono text-sm" placeholder="basra" required />
                     </div>
                     <div>
                         <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">الموقع / المدينة</label>
@@ -821,14 +1094,14 @@
                 <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700">
                     <label class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
                         <input type="checkbox" id="new-hosp-clone-specs" checked class="w-4 h-4 accent-teal-600" />
-                        نسخ قائمة التخصصات الطبية الافتراضية (28 تخصص من المستشفى العراقي)
+                        نسخ قائمة التخصصات الطبية من المستودع العام
                     </label>
                 </div>
                 <div class="flex gap-3 pt-2">
-                    <button type="submit" id="submit-hosp-btn" class="flex-1 btn-add-hospital justify-center">
-                        <i class="fas fa-check-circle"></i> حفظ وإنشاء المستشفى
+                    <button type="submit" id="submit-hosp-btn" class="flex-1 ios-btn primary justify-center">
+                        <i class="fas fa-check-circle ml-1"></i> حفظ وإنشاء المستشفى
                     </button>
-                    <button type="button" onclick="closeAddHospitalModal()" class="px-5 py-3 rounded-full border border-slate-300 dark:border-slate-700 font-bold text-slate-600 dark:text-slate-300">
+                    <button type="button" onclick="closeAddHospitalModal()" class="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 font-bold text-xs text-slate-600 dark:text-slate-300">
                         إلغاء
                     </button>
                 </div>
@@ -836,16 +1109,16 @@
         </div>
     </div>
 
-    <!-- OWNER MAIN SPECIALTY STORE MODAL (GENERAL SPECIALTIES) -->
+    <!-- OWNER MAIN SPECIALTY STORE MODAL -->
     <div id="global-specialties-modal" class="modal-overlay">
-        <div class="modal-card" style="max-width: 760px;">
+        <div class="modal-card" style="max-width: 740px;">
             <div class="flex justify-between items-center mb-3">
                 <div class="flex items-center gap-2">
                     <span class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-950/60 flex items-center justify-center text-purple-600 dark:text-purple-400 text-base">
                         <i class="fas fa-crown"></i>
                     </span>
                     <div>
-                        <h3 class="text-xl font-black text-slate-800 dark:text-white">
+                        <h3 class="text-lg font-black text-slate-800 dark:text-white">
                             مستودع التخصصات العام (المتجر الرئيسي)
                         </h3>
                         <div class="text-xs text-purple-600 dark:text-purple-400 font-bold">صلاحيات المالك الحصرية · الدليل الموحد لجميع المستشفيات</div>
@@ -857,11 +1130,11 @@
             </div>
             
             <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">
-                المصدر المركزي الموحد لكافة المستشفيات. يمكنك هنا تعديل أسماء التخصصات، وضبط الفئات الفرعية (مثل العناية والعمليات كفروع للتخدير)، وتحديد مصادر سحب واستعارة الأطباء (Accept Pools).
+                المصدر المركزي الموحد لكافة المستشفيات. يمكنك تعديل أسماء التخصصات، وضبط الفئات الفرعية ومصادر سحب واستعارة الأطباء (Accept Pools).
             </p>
 
             <div class="flex flex-wrap gap-2 items-center justify-between mb-3">
-                <div class="relative flex-1 min-w-[220px]">
+                <div class="relative flex-1 min-w-[200px]">
                     <i class="fas fa-search absolute right-3 top-3 text-slate-400 text-xs"></i>
                     <input type="text" id="global-spec-search-input" oninput="renderGlobalSpecialtiesList()" placeholder="بحث عن تخصص بالاسم..." class="hub-input text-xs pr-8" />
                 </div>
@@ -881,7 +1154,7 @@
         </div>
     </div>
 
-    <!-- OWNER GLOBAL SPECIALTY ADD / EDIT DIALOG -->
+    <!-- OWNER GLOBAL SPECIALTY EDIT DIALOG -->
     <div id="global-spec-edit-modal" class="modal-overlay">
         <div class="modal-card" style="max-width: 620px;">
             <div class="flex justify-between items-center mb-3">
@@ -920,9 +1193,6 @@
                     <select id="global-spec-parent" class="hub-input text-xs">
                         <option value="">-- تخصص رئيسي مستقل (بدون تخصص أب) --</option>
                     </select>
-                    <p class="text-[11px] text-slate-500 mt-1">
-                        عند اختيار تخصص أب (مثل التخدير)، يصبح أطباء التخصص الأب مؤهلين تلقائياً لتغطية خفارات هذا التخصص في الجداول وبدائل الخفارة.
-                    </p>
                 </div>
 
                 <div>
@@ -931,27 +1201,18 @@
                             <i class="fas fa-users-viewfinder"></i> مصادر سحب واستعارة الأطباء (Accept Pool):
                         </label>
                         <div class="flex gap-1">
-                            <button type="button" onclick="selectAllGlobalPool()" class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                                تحديد الكل
-                            </button>
-                            <button type="button" onclick="clearAllGlobalPool()" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
-                                إلغاء التحديد
-                            </button>
+                            <button type="button" onclick="selectAllGlobalPool()" class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800">تحديد الكل</button>
+                            <button type="button" onclick="clearAllGlobalPool()" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">إلغاء التحديد</button>
                         </div>
                     </div>
-                    <p class="text-[11px] text-slate-500 mb-2">
-                        حدد التخصصات التي يمكن لهذا التخصص سحب أطباء منها لتغطية الخفارات (مثل شهادات الوفيات والمعاون الإداري):
-                    </p>
-                    <div id="global-spec-pool-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-44 overflow-y-auto p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40">
-                        <!-- Populated dynamically with checkboxes -->
-                    </div>
+                    <div id="global-spec-pool-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-44 overflow-y-auto p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40"></div>
                 </div>
 
                 <div class="flex gap-3 pt-3">
-                    <button type="button" onclick="saveGlobalSpecEdit()" class="flex-1 py-3 rounded-full font-bold text-white text-sm shadow-lg transition hover:opacity-95" style="background:linear-gradient(135deg,#7c3aed,#9333ea);">
+                    <button type="button" onclick="saveGlobalSpecEdit()" class="flex-1 py-2.5 rounded-xl font-bold text-white text-xs shadow-md transition hover:opacity-95" style="background:linear-gradient(135deg,#7c3aed,#9333ea);">
                         <i class="fas fa-check ml-1"></i> حفظ في المستودع العام
                     </button>
-                    <button type="button" onclick="closeGlobalSpecEditModal()" class="px-5 py-3 rounded-full border border-slate-300 dark:border-slate-700 font-bold text-slate-600 dark:text-slate-300">
+                    <button type="button" onclick="closeGlobalSpecEditModal()" class="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 font-bold text-xs text-slate-600 dark:text-slate-300">
                         إلغاء
                     </button>
                 </div>
@@ -964,21 +1225,22 @@
     <script src="./nav-component.js"></script>
     <script>
         // ============================================================
-        // HUB DASHBOARD CONTROLLER
+        // IPHONE MEDICAL HUB CONTROLLER
         // ============================================================
         let currentDb = null;
         let lastToastMsg = '';
         let lastToastTime = 0;
+        let currentHospFilter = 'all';
+        let searchQuery = '';
 
         function showToast(message, type = 'info', duration = 3000) {
             const now = Date.now();
-            if (message === lastToastMsg && now - lastToastTime < 1500) {
-                return; // Prevent duplicate toast
-            }
+            if (message === lastToastMsg && now - lastToastTime < 1500) return;
             lastToastMsg = message;
             lastToastTime = now;
 
             const container = document.getElementById('toast-container');
+            if (!container) return;
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
             const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
@@ -991,154 +1253,237 @@
             }, duration);
         }
 
-        function isPhoneDevice() {
-            const ua = navigator.userAgent || navigator.vendor || window.opera || '';
-            const phoneRegex = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i;
-            const isSmallScreen = window.innerWidth <= 850;
-            const isTouchPhone = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches && (window.screen.width <= 950 || window.innerWidth <= 950));
-            return phoneRegex.test(ua) || isSmallScreen || isTouchPhone;
-        }
-
-        function enforcePhoneCountersVisibility() {
-            const stats = document.querySelector('.stats-grid');
-            if (!stats) return;
-            if (isPhoneDevice()) {
-                stats.style.setProperty('display', 'none', 'important');
-                stats.setAttribute('aria-hidden', 'true');
-            } else {
-                stats.style.removeProperty('display');
-                stats.removeAttribute('aria-hidden');
-            }
-        }
-
         async function initHub() {
-            enforcePhoneCountersVisibility();
-
-            // Initialize Universal Navigation with active page 'hub'
-            initUniversalNav('hub');
-
-            // Check session
-            const pwdInput = document.getElementById('password-input');
-            if (Hub.auth.checkSession()) {
-                document.getElementById('lock-screen').classList.add('hidden');
-            } else {
-                document.getElementById('lock-screen').classList.remove('hidden');
-                if (pwdInput) pwdInput.focus();
-            }
-
             try {
+                // Initialize theme
+                const theme = Hub.getTheme();
+                document.body.classList.toggle('dark', theme === 'dark');
+                updateThemeToggleIcon(theme);
+
+                // Initialize auth & session
+                const isRemembered = localStorage.getItem('hospital_hub_session_remember') === 'true';
+                const token = localStorage.getItem('hospital_hub_session_token');
+                const timestamp = parseInt(localStorage.getItem('hospital_hub_session_timestamp') || '0', 10);
+                const role = Hub.auth.getRole();
+
+                let isExpired = false;
+                if (token && timestamp) {
+                    const expiry = isRemembered ? (7 * 24 * 60 * 60 * 1000) : (24 * 60 * 60 * 1000);
+                    if (Date.now() - timestamp > expiry) {
+                        isExpired = true;
+                    }
+                }
+
+                if (!token || isExpired || role === 'guest') {
+                    Hub.auth.logout();
+                    document.getElementById('lock-screen').classList.remove('hidden');
+                } else {
+                    document.getElementById('lock-screen').classList.add('hidden');
+                }
+
+                updateTopRoleBadge();
+
+                // Load database
                 currentDb = await Hub.loadDatabase();
+                updateLiveClock();
+                setInterval(updateLiveClock, 1000);
+
                 renderHubDashboard();
-                updateLiveTime();
-                setInterval(updateLiveTime, 1000);
-            } catch (e) {
-                console.error("Hub load error:", e);
-                showToast("تعذر تحميل البيانات من السيرفر", "error");
+            } catch (err) {
+                console.error("Hub Init Error:", err);
+                showToast("تعذر تحميل البيانات من السيرفر، جاري استخدام الذاكرة المحلية", "error");
             }
         }
 
         function togglePortalLockPwd() {
-            const input = document.getElementById('password-input');
-            const icon = document.getElementById('portal-lock-eye-icon');
-            if (!input || !icon) return;
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.className = 'fas fa-eye-slash';
-                icon.style.color = '#0f766e';
-            } else {
-                input.type = 'password';
-                icon.className = 'fas fa-eye';
-                icon.style.color = '';
+            const pwdInput = document.getElementById('password-input');
+            const eyeIcon = document.getElementById('portal-lock-eye-icon');
+            if (!pwdInput) return;
+            const isPassword = pwdInput.type === 'password';
+            pwdInput.type = isPassword ? 'text' : 'password';
+            if (eyeIcon) {
+                eyeIcon.className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
             }
         }
 
-        let isLoggingIn = false;
         function handleHubLogin() {
-            if (isLoggingIn) return;
-            isLoggingIn = true;
-            setTimeout(() => { isLoggingIn = false; }, 800);
+            const pwd = document.getElementById('password-input').value.trim();
+            const remember = document.getElementById('remember-me').checked;
+            const errorEl = document.getElementById('lock-error');
 
-            const input = document.getElementById('password-input');
-            const err = document.getElementById('lock-error');
-            const pwd = input.value.trim();
             if (!pwd) {
-                err.textContent = 'الرجاء إدخال كلمة المرور';
-                input.focus();
+                errorEl.textContent = 'الرجاء إدخال كلمة المرور';
                 return;
             }
 
-            err.textContent = '⏳ جاري التحقق...';
-            const res = Hub.auth.login(pwd);
-            if (res.success) {
-                err.textContent = '';
+            const success = Hub.auth.login(pwd, remember);
+            if (success) {
+                errorEl.textContent = '';
                 document.getElementById('lock-screen').classList.add('hidden');
-                let welcomeMsg = 'تم تسجيل الدخول بنجاح 👤';
-                if (res.role === 'owner') {
-                    welcomeMsg = 'مرحباً بك! تم تسجيل الدخول بصلاحيات المالك الكاملة 👑';
-                } else if (res.role === 'admin') {
-                    const adminName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
-                    if (adminName && adminName !== 'جميع المستشفيات') {
-                        welcomeMsg = `مرحباً بك! تم تسجيل الدخول كمدير لـ (${adminName}) 🛡️`;
-                    } else {
-                        welcomeMsg = 'مرحباً بك! تم تسجيل الدخول بصلاحيات مدير النظام 🛡️';
-                    }
-                }
-                showToast(welcomeMsg, 'success');
+                updateTopRoleBadge();
                 renderHubDashboard();
+
+                if (Hub.auth.isOwner()) {
+                    showToast('مرحباً بك! تم تسجيل الدخول كمالك للمنظومة 👑', 'success');
+                } else if (Hub.auth.isAdmin()) {
+                    const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
+                    showToast(`تم تسجيل الدخول كمدير لـ (${hName}) 🛡️`, 'success');
+                } else {
+                    showToast('تم تسجيل الدخول بنجاح 👨‍⚕️', 'success');
+                }
             } else {
-                err.textContent = '❌ كلمة المرور غير صحيحة';
-                input.value = '';
-                input.focus();
+                errorEl.textContent = 'كلمة المرور غير صحيحة، حاول مجدداً';
+                document.getElementById('password-input').value = '';
+                document.getElementById('password-input').focus();
             }
         }
 
-        function updateLiveTime() {
+        function handleDockLockAction() {
+            if (Hub.auth.isLoggedIn()) {
+                if (confirm('هل تريد قفل التطبيق وتسجيل الخروج؟')) {
+                    Hub.auth.logout();
+                    document.getElementById('lock-screen').classList.remove('hidden');
+                    updateTopRoleBadge();
+                    renderHubDashboard();
+                }
+            } else {
+                document.getElementById('lock-screen').classList.remove('hidden');
+            }
+        }
+
+        function updateTopRoleBadge() {
+            const role = Hub.auth.getRole();
+            const isOwner = Hub.auth.isOwner();
+            const isAdmin = Hub.auth.isAdmin();
+            const pill = document.getElementById('top-role-pill');
+            const icon = document.getElementById('top-role-icon');
+            const text = document.getElementById('top-role-text');
+            const dockText = document.getElementById('dock-lock-text');
+            const dockIcon = document.getElementById('dock-lock-icon');
+
+            if (!pill || !icon || !text) return;
+
+            if (isOwner) {
+                pill.className = 'ios-role-pill owner';
+                icon.className = 'fas fa-crown';
+                text.textContent = 'المالك 👑';
+            } else if (isAdmin) {
+                pill.className = 'ios-role-pill admin';
+                icon.className = 'fas fa-shield-halved';
+                const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : 'مدير';
+                text.textContent = hName.length > 16 ? 'مدير' : hName;
+            } else if (Hub.auth.isLoggedIn()) {
+                pill.className = 'ios-role-pill user';
+                icon.className = 'fas fa-user-check';
+                text.textContent = 'مستخدم';
+            } else {
+                pill.className = 'ios-role-pill user';
+                icon.className = 'fas fa-lock';
+                text.textContent = 'دخول';
+            }
+
+            if (dockText && dockIcon) {
+                if (Hub.auth.isLoggedIn()) {
+                    dockText.textContent = 'قفل';
+                    dockIcon.className = 'fas fa-lock';
+                } else {
+                    dockText.textContent = 'دخول';
+                    dockIcon.className = 'fas fa-arrow-right-to-bracket';
+                }
+            }
+        }
+
+        function toggleThemeInstant() {
+            const current = Hub.getTheme();
+            const next = current === 'dark' ? 'light' : 'dark';
+            Hub.setTheme(next);
+            document.body.classList.toggle('dark', next === 'dark');
+            updateThemeToggleIcon(next);
+        }
+
+        function updateThemeToggleIcon(theme) {
+            const topIcon = document.getElementById('top-theme-icon');
+            if (topIcon) {
+                topIcon.className = theme === 'dark' ? 'fas fa-sun text-amber-400' : 'fas fa-moon text-slate-600';
+            }
+        }
+
+        function updateLiveClock() {
             const el = document.getElementById('live-time-display');
             if (!el) return;
             const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
             const dateStr = Hub.getMedicalDate();
-            el.innerHTML = `⏰ ${timeStr} · ${dateStr}`;
+            el.innerHTML = `<i class="fas fa-clock"></i> <span>${timeStr} · ${dateStr}</span>`;
+        }
+
+        function onSearchInput(val) {
+            searchQuery = (val || '').trim().toLowerCase();
+            renderHubDashboard();
+        }
+
+        function setHospFilter(filter, btn) {
+            currentHospFilter = filter;
+            document.querySelectorAll('.ios-segment-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            renderHubDashboard();
         }
 
         function renderHubDashboard() {
-            enforcePhoneCountersVisibility();
             if (!currentDb || !currentDb.hospitals) return;
 
             const hospitals = Object.values(currentDb.hospitals);
             const isOwner = Hub.auth.isOwner();
+            const isAdmin = Hub.auth.isAdmin();
 
-            // Toggle Add Hospital button based on role (Owner ONLY)
+            // Toggle Owner Bar & Segment buttons
             const addBtnWrap = document.getElementById('add-hospital-container');
-            if (addBtnWrap) {
-                addBtnWrap.style.display = isOwner ? 'flex' : 'none';
+            if (addBtnWrap) addBtnWrap.style.display = isOwner ? 'flex' : 'none';
+
+            const myHospSeg = document.getElementById('seg-btn-my-hosp');
+            if (myHospSeg) myHospSeg.style.display = (isAdmin || isOwner) ? 'inline-flex' : 'none';
+
+            // Global Statistics & On-Call Summary
+            const today = Hub.getMedicalDate();
+            const totalOnCallNow = Hub.getTotalActiveOnCallCount ? Hub.getTotalActiveOnCallCount(today) : 0;
+            const summaryEl = document.getElementById('live-oncall-summary');
+            if (summaryEl) {
+                summaryEl.textContent = `${totalOnCallNow} طبيب خفير في الخدمة الآن عبر ${hospitals.length} مستشفيات تعليمية`;
             }
 
-            // Global Statistics Calculation
-            const today = Hub.getMedicalDate();
-            let totalResidents = 0;
-
-            hospitals.forEach(h => {
-                totalResidents += (h.names || []).length;
+            // Filter hospitals
+            let filtered = hospitals.filter(h => {
+                // Segment Filter
+                if (currentHospFilter === 'my') {
+                    if (!Hub.auth.isAdmin(h.id)) return false;
+                }
+                // Search Query
+                if (searchQuery) {
+                    const nameAr = (h.name_ar || '').toLowerCase();
+                    const nameEn = (h.hospitalName || '').toLowerCase();
+                    const loc = (h.location || '').toLowerCase();
+                    if (!nameAr.includes(searchQuery) && !nameEn.includes(searchQuery) && !loc.includes(searchQuery)) {
+                        return false;
+                    }
+                }
+                return true;
             });
-
-            const totalOnCallNow = Hub.getTotalActiveOnCallCount ? Hub.getTotalActiveOnCallCount(today) : 0;
-            const globalSpecsCount = (currentDb.globalSpecialties && currentDb.globalSpecialties.length) ? currentDb.globalSpecialties.length : 29;
-
-            const statHospEl = document.getElementById('stat-hospitals-count');
-            const statOnCallEl = document.getElementById('stat-oncall-count');
-            const statResEl = document.getElementById('stat-residents-count');
-            const statSpecEl = document.getElementById('stat-specialties-count');
-
-            if (statHospEl) statHospEl.textContent = hospitals.length;
-            if (statOnCallEl) statOnCallEl.textContent = totalOnCallNow;
-            if (statResEl) statResEl.textContent = totalResidents;
-            if (statSpecEl) statSpecEl.textContent = globalSpecsCount;
 
             const grid = document.getElementById('hospitals-list-grid');
             if (!grid) return;
 
-            grid.innerHTML = hospitals.map(h => {
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-12 text-center text-slate-400 glass-card">
+                        <i class="fas fa-hospital-slash text-4xl mb-3 text-slate-300 dark:text-slate-600"></i>
+                        <div class="font-bold text-base">لا توجد نتائج مطابقة لبحثك</div>
+                        <div class="text-xs mt-1">تأكد من كتابة الاسم بصورة صحيحة أو قم بإلغاء الفلتر.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(h => {
                 const totalRes = (h.names || []).length;
                 const activeRes = (h.names || []).filter(n => n.active !== false && n.spec !== 'RESERVE').length;
                 const specCount = (h.specialties || []).filter(s => s.enabled !== false).length;
@@ -1149,53 +1494,60 @@
                 const isHospAdmin = Hub.auth.isAdmin(h.id);
 
                 return `
-                    <div class="glass-card hospital-card" id="card-${h.id}">
+                    <div class="hosp-widget-card" id="card-${h.id}">
                         <div>
-                            <div class="hosp-header">
-                                <div class="hosp-icon-circle" style="background: ${color}; box-shadow: 0 6px 18px ${color}40;">
+                            <!-- Header / Banner -->
+                            <div class="widget-top-banner">
+                                <div class="widget-squircle-icon" style="background: ${color}; box-shadow: 0 8px 22px ${color}45;">
                                     <i class="fas ${icon}"></i>
                                 </div>
-                                <div class="hosp-info">
-                                    <h3>${h.name_ar || h.hospitalName}</h3>
-                                    <div class="text-xs text-slate-400 font-mono">${h.hospitalName || ''}</div>
-                                    <span class="hosp-loc"><i class="fas fa-location-dot ml-1"></i> ${location}</span>
+                                <div class="widget-title-area">
+                                    <h3 class="widget-hosp-name">${h.name_ar || h.hospitalName}</h3>
+                                    <div class="widget-meta-row">
+                                        <span class="font-mono opacity-80">${h.hospitalName || ''}</span>
+                                        <span>·</span>
+                                        <span><i class="fas fa-location-dot ml-0.5"></i> ${location}</span>
+                                        <span class="widget-status-badge">🟢 24/7 نشط</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="hosp-metrics">
-                                <span class="metric-pill highlight">
+                            <!-- Metrics Row -->
+                            <div class="widget-metrics-wrap">
+                                <span class="metric-chip oncall-live">
                                     <i class="fas fa-user-check"></i> ${onCallToday} في الخدمة الآن
                                 </span>
-                                <span class="metric-pill">
-                                    <i class="fas fa-users"></i> ${activeRes} مقيم نشط
+                                <span class="metric-chip">
+                                    <i class="fas fa-user-doctor"></i> ${activeRes} مقيم نشط
                                 </span>
-                                <span class="metric-pill">
+                                <span class="metric-chip">
                                     <i class="fas fa-stethoscope"></i> ${specCount} تخصص
                                 </span>
                             </div>
                         </div>
 
+                        <!-- Action Buttons -->
                         <div>
-                            <div class="hosp-actions-grid ${!isHospAdmin ? 'user-layout' : ''}">
-                                <a href="./Home.html?hospital=${h.id}" class="action-link primary" onclick="Hub.setActiveHospitalId('${h.id}')">
+                            <div class="widget-actions-grid ${!isHospAdmin ? 'user-layout' : ''}">
+                                <a href="./Home.html?hospital=${h.id}" class="ios-btn primary" onclick="Hub.setActiveHospitalId('${h.id}')">
                                     <i class="fas fa-users-viewfinder"></i> <span>الخفراء اليوم</span>
                                 </a>
-                                <a href="./signup.html?hospital=${h.id}" class="action-link secondary">
+                                <a href="./signup.html?hospital=${h.id}" class="ios-btn secondary">
                                     <i class="fas fa-pen-to-square"></i> <span>تسجيل خفر</span>
                                 </a>
                                 ${isHospAdmin ? `
-                                <a href="./scheduler.html?hospital=${h.id}" class="action-link secondary">
+                                <a href="./scheduler.html?hospital=${h.id}" class="ios-btn secondary">
                                     <i class="fas fa-calendar-alt"></i> <span>مجدول الشهر</span>
                                 </a>
-                                <a href="./admin.html?hospital=${h.id}" class="action-link secondary">
-                                    <i class="fas fa-cog"></i> <span>الإدارة</span>
+                                <a href="./admin.html?hospital=${h.id}" class="ios-btn secondary">
+                                    <i class="fas fa-sliders"></i> <span>الإدارة</span>
                                 </a>` : ''}
                             </div>
 
-                            ${Hub.auth.isOwner() ? `
-                                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:10px;border-top:1px solid rgba(128,128,128,0.1);font-size:0.75rem;">
-                                    <span style="color:#b45309;"><i class="fas fa-crown text-amber-500 ml-1"></i> تحكم المالك</span>
-                                    <button type="button" onclick="confirmDeleteHospital('${h.id}', '${h.name_ar || h.hospitalName}')" style="color:#ef4444;background:none;border:none;cursor:pointer;font-weight:700;">
+                            ${isOwner ? `
+                                <div class="flex justify-between items-center mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px]">
+                                    <span class="text-amber-600 dark:text-amber-400 font-bold"><i class="fas fa-crown ml-1"></i> المالك</span>
+                                    <button type="button" onclick="confirmDeleteHospital('${h.id}', '${h.name_ar || h.hospitalName}')" class="text-rose-500 font-bold hover:underline">
                                         <i class="fas fa-trash-alt ml-1"></i> حذف المستشفى
                                     </button>
                                 </div>
@@ -1213,7 +1565,6 @@
                 return;
             }
             document.getElementById('add-hospital-modal').classList.add('active');
-            document.getElementById('new-hosp-name-ar').focus();
         }
 
         function closeAddHospitalModal() {
@@ -1225,7 +1576,7 @@
             event.preventDefault();
             const btn = document.getElementById('submit-hosp-btn');
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري الإنشاء والرفع...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري الإنشاء...';
 
             const hospData = {
                 name_ar: document.getElementById('new-hosp-name-ar').value.trim(),
@@ -1243,14 +1594,14 @@
             try {
                 const newHosp = await Hub.addHospital(hospData);
                 closeAddHospitalModal();
-                showToast(`تم إنشاء مستشفى "${newHosp.name_ar}" بنجاح!`, 'success', 4000);
+                showToast(`تم إنشاء مستشفى "${newHosp.name_ar}" بنجاح! 🎉`, 'success', 4000);
                 renderHubDashboard();
             } catch (err) {
                 console.error(err);
                 showToast(err.message || 'فشل إنشاء المستشفى', 'error');
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-check-circle"></i> حفظ وإنشاء المستشفى';
+                btn.innerHTML = '<i class="fas fa-check-circle ml-1"></i> حفظ وإنشاء المستشفى';
             }
         }
 
@@ -1258,23 +1609,22 @@
             if (!confirm(`تحذير هام!\nهل أنت متأكد تماماً من حذف مستشفى "${hospName}" بجميع سجلاته ومقيميه؟\nلا يمكن التراجع عن هذا الإجراء.`)) {
                 return;
             }
-
             try {
                 await Hub.deleteHospital(hospId);
-                showToast(`تم حذف مستشفى "${hospName}"`, 'info');
+                showToast(`تم حذف مستشفى "${hospName}" بنجاح`, 'info');
                 renderHubDashboard();
             } catch (err) {
                 console.error(err);
-                showToast(err.message || 'فشل حذف المستشفى', 'error');
+                showToast(err.message || 'تعذر حذف المستشفى', 'error');
             }
         }
 
         // ============================================================
-        // OWNER MAIN SPECIALTY STORE CONTROLLER (INDEX PORTAL)
+        // OWNER CENTRAL SPECIALTY STORE CONTROLLER
         // ============================================================
         function openGlobalSpecialtiesModal() {
             if (!Hub.auth.isOwner()) {
-                showToast('هذه الميزة مخصصة للمالك (Owner) فقط', 'error');
+                showToast('هذه الميزة مخصصة للمالك فقط', 'error');
                 return;
             }
             renderGlobalSpecialtiesList();
@@ -1287,59 +1637,56 @@
 
         function renderGlobalSpecialtiesList() {
             const container = document.getElementById('global-specialties-items-container');
+            const search = (document.getElementById('global-spec-search-input')?.value || '').trim().toLowerCase();
+            const badge = document.getElementById('global-spec-count-badge');
             if (!container) return;
-            const searchInput = document.getElementById('global-spec-search-input');
-            const q = (searchInput?.value || '').trim().toLowerCase();
 
-            const globals = Hub.getGlobalSpecialties ? Hub.getGlobalSpecialties() : [];
-            const countBadge = document.getElementById('global-spec-count-badge');
-            if (countBadge) countBadge.textContent = `${globals.length} تخصص في المستودع العام`;
+            const specs = Hub.getGlobalSpecialties();
+            if (badge) badge.textContent = `${specs.length} تخصص في المستودع`;
 
-            const filtered = globals.filter(s => {
-                if (!q) return true;
-                return (s.name_ar && s.name_ar.toLowerCase().includes(q)) ||
-                       (s.name_en && s.name_en.toLowerCase().includes(q));
+            const filtered = specs.filter(s => {
+                if (!search) return true;
+                return (s.name_ar || '').toLowerCase().includes(search) || 
+                       (s.name_en || '').toLowerCase().includes(search) ||
+                       (s.id || '').toLowerCase().includes(search);
             });
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">لا توجد نتائج مطابقة للبحث "${q}"</div>`;
+                container.innerHTML = '<div class="text-center py-6 text-xs text-slate-400">لا توجد تخصصات مطابقة للبحث</div>';
                 return;
             }
 
-            const globalMap = new Map(globals.map(s => [s.id, s]));
-
             container.innerHTML = filtered.map(s => {
-                const parentObj = s.parentSpec ? globalMap.get(s.parentSpec) : null;
-                const parentLabel = parentObj ? parentObj.name_ar : s.parentSpec;
+                const parent = s.parentSpec ? specs.find(p => p.id === s.parentSpec) : null;
                 const poolCount = Array.isArray(s.acceptPool) ? s.acceptPool.length : 0;
 
                 return `
-                    <div class="specialty-item flex items-center justify-between gap-3 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/50">
-                        <div class="flex items-center gap-2.5 flex-1 min-w-0">
-                            <span class="text-xl w-8 text-center flex-shrink-0">${s.icon || '🏥'}</span>
+                    <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 hover:border-purple-300 dark:hover:border-purple-700 transition">
+                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                            <span class="text-xl flex-shrink-0">${s.icon || '🏥'}</span>
                             <div class="min-w-0 flex-1">
-                                <div class="font-bold text-xs text-slate-800 dark:text-white truncate">${s.name_ar}</div>
-                                <div class="text-[10px] text-slate-400 font-mono truncate" dir="ltr">${s.name_en || ''}</div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-bold text-xs text-slate-800 dark:text-slate-100">${s.name_ar}</span>
+                                    <span class="text-[10px] text-slate-400 font-mono">${s.name_en || ''}</span>
+                                    ${parent ? `
+                                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                            تابع لـ: ${parent.name_ar}
+                                        </span>
+                                    ` : ''}
+                                    ${poolCount > 0 ? `
+                                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                            يستعير من ${poolCount} قسم
+                                        </span>
+                                    ` : ''}
+                                </div>
                             </div>
                         </div>
-
-                        <div class="flex items-center gap-1.5 flex-wrap justify-end">
-                            ${s.parentSpec ? `
-                                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800" title="فئة فرعية من التخصص الأب">
-                                    <i class="fas fa-diagram-project ml-1"></i> فرعي من ${parentLabel}
-                                </span>
-                            ` : ''}
-                            ${poolCount > 0 ? `
-                                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800" title="يسحب أطباء من ${poolCount} تخصص">
-                                    <i class="fas fa-users-viewfinder ml-1"></i> يسحب من ${poolCount}
-                                </span>
-                            ` : ''}
-
-                            <button type="button" onclick="openGlobalSpecEditModal('${s.id}')" class="p-1 px-2.5 text-xs font-bold rounded-lg text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 border border-purple-200 dark:border-purple-800 flex items-center gap-1">
-                                <i class="fas fa-edit"></i> تعديل
+                        <div class="flex items-center gap-1">
+                            <button type="button" onclick="openGlobalSpecEditModal('${s.id}')" class="p-1.5 rounded-lg text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/60 text-xs" title="تعديل في المستودع العام">
+                                <i class="fas fa-pen"></i>
                             </button>
-                            <button type="button" onclick="deleteGlobalSpec('${s.id}', '${s.name_ar}')" class="p-1 px-2 text-xs rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 border border-red-200 dark:border-red-900/30" title="حذف التخصص من المستودع العام">
-                                <i class="fas fa-trash"></i>
+                            <button type="button" onclick="deleteGlobalSpec('${s.id}', '${s.name_ar}')" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/60 text-xs" title="حذف من المستودع العام">
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
                     </div>
@@ -1347,56 +1694,61 @@
             }).join('');
         }
 
-        function openGlobalSpecEditModal(specId) {
-            if (!Hub.auth.isOwner()) {
-                showToast('تعديل المستودع العام مخصص للمالك حصراً', 'error');
-                return;
-            }
-
-            const globals = Hub.getGlobalSpecialties ? Hub.getGlobalSpecialties() : [];
-            const target = specId ? globals.find(s => s.id === specId) : null;
-
-            document.getElementById('global-spec-orig-id').value = target ? target.id : '';
-            document.getElementById('global-spec-id').value = target ? target.id : '';
-            document.getElementById('global-spec-name-ar').value = target ? target.name_ar : '';
-            document.getElementById('global-spec-name-en').value = target ? (target.name_en || '') : '';
-            document.getElementById('global-spec-icon').value = target ? (target.icon || '🏥') : '🏥';
-
-            const titleEl = document.getElementById('global-spec-modal-title');
-
-            if (target) {
-                titleEl.innerHTML = `<i class="fas fa-crown text-purple-600"></i> تعديل التخصص "${target.name_ar}" في المستودع العام`;
-            } else {
-                titleEl.innerHTML = `<i class="fas fa-crown text-purple-600"></i> إضافة تخصص عام جديد للمستودع`;
-            }
-
-            // Populate Parent Specialty Dropdown (no IDs displayed!)
+        function openGlobalSpecEditModal(specId = null) {
+            const title = document.getElementById('global-spec-modal-title');
+            const origIdInput = document.getElementById('global-spec-orig-id');
+            const idInput = document.getElementById('global-spec-id');
+            const nameArInput = document.getElementById('global-spec-name-ar');
+            const nameEnInput = document.getElementById('global-spec-name-en');
+            const iconInput = document.getElementById('global-spec-icon');
             const parentSelect = document.getElementById('global-spec-parent');
-            let parentHtml = '<option value="">-- تخصص رئيسي مستقل (بدون تخصص أب) --</option>';
-            globals.forEach(g => {
-                if (!target || g.id !== target.id) {
-                    const selected = (target && target.parentSpec === g.id) ? 'selected' : '';
-                    parentHtml += `<option value="${g.id}" ${selected}>${g.icon || '🏥'} ${g.name_ar}</option>`;
-                }
-            });
-            parentSelect.innerHTML = parentHtml;
-
-            // Populate Accept Pool Checkbox Grid (no IDs displayed!)
             const poolGrid = document.getElementById('global-spec-pool-grid');
-            const targetPool = (target && Array.isArray(target.acceptPool)) ? target.acceptPool : [];
-            let poolHtml = '';
-            globals.forEach(g => {
-                if (!target || g.id !== target.id) {
-                    const checked = targetPool.includes(g.id) ? 'checked' : '';
-                    poolHtml += `
-                        <label class="flex items-center gap-1.5 p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 hover:border-purple-400 cursor-pointer text-[11px] font-semibold select-none">
-                            <input type="checkbox" value="${g.id}" ${checked} class="w-3.5 h-3.5 rounded accent-purple-600 global-pool-checkbox" />
-                            <span class="truncate">${g.icon || '🏥'} ${g.name_ar}</span>
+
+            const allSpecs = Hub.getGlobalSpecialties();
+
+            if (parentSelect) {
+                parentSelect.innerHTML = '<option value="">-- تخصص رئيسي مستقل (بدون تخصص أب) --</option>' +
+                    allSpecs.filter(s => s.id !== specId && !s.parentSpec).map(s => `
+                        <option value="${s.id}">${s.icon || '🏥'} ${s.name_ar}</option>
+                    `).join('');
+            }
+
+            let current = null;
+            if (specId) {
+                current = allSpecs.find(s => s.id === specId);
+            }
+
+            if (current) {
+                title.innerHTML = `<i class="fas fa-crown text-purple-600"></i> تعديل تخصص (${current.name_ar}) في المستودع العام`;
+                origIdInput.value = current.id;
+                idInput.value = current.id;
+                nameArInput.value = current.name_ar || '';
+                nameEnInput.value = current.name_en || '';
+                iconInput.value = current.icon || '🏥';
+                if (parentSelect) parentSelect.value = current.parentSpec || '';
+            } else {
+                title.innerHTML = `<i class="fas fa-plus text-purple-600"></i> إضافة تخصص عام جديد للمستودع`;
+                origIdInput.value = '';
+                idInput.value = '';
+                nameArInput.value = '';
+                nameEnInput.value = '';
+                iconInput.value = '🏥';
+                if (parentSelect) parentSelect.value = '';
+            }
+
+            // Populate pool checkboxes
+            if (poolGrid) {
+                const currentPool = new Set(Array.isArray(current?.acceptPool) ? current.acceptPool : []);
+                poolGrid.innerHTML = allSpecs.filter(s => s.id !== specId).map(s => {
+                    const checked = currentPool.has(s.id) ? 'checked' : '';
+                    return `
+                        <label class="flex items-center gap-1.5 text-[11px] p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+                            <input type="checkbox" name="global-pool-spec" value="${s.id}" ${checked} class="accent-blue-600 rounded" />
+                            <span>${s.icon || '🏥'} ${s.name_ar}</span>
                         </label>
                     `;
-                }
-            });
-            poolGrid.innerHTML = poolHtml;
+                }).join('');
+            }
 
             document.getElementById('global-spec-edit-modal').classList.add('active');
         }
@@ -1406,73 +1758,67 @@
         }
 
         function selectAllGlobalPool() {
-            document.querySelectorAll('.global-pool-checkbox').forEach(cb => cb.checked = true);
+            document.querySelectorAll('input[name="global-pool-spec"]').forEach(cb => cb.checked = true);
         }
 
         function clearAllGlobalPool() {
-            document.querySelectorAll('.global-pool-checkbox').forEach(cb => cb.checked = false);
+            document.querySelectorAll('input[name="global-pool-spec"]').forEach(cb => cb.checked = false);
         }
 
         async function saveGlobalSpecEdit() {
-            if (!Hub.auth.isOwner()) {
-                showToast('هذه العملية تتطلب صلاحيات المالك', 'error');
-                return;
-            }
-
             const origId = document.getElementById('global-spec-orig-id').value;
             let id = document.getElementById('global-spec-id').value.trim().toUpperCase();
             const nameAr = document.getElementById('global-spec-name-ar').value.trim();
-            const nameEn = document.getElementById('global-spec-name-en').value.trim() || nameAr;
+            const nameEn = document.getElementById('global-spec-name-en').value.trim();
             const icon = document.getElementById('global-spec-icon').value.trim() || '🏥';
             const parentSpec = document.getElementById('global-spec-parent').value || null;
 
-            const checkedBoxes = document.querySelectorAll('.global-pool-checkbox:checked');
-            const acceptPool = Array.from(checkedBoxes).map(cb => cb.value);
-
             if (!nameAr) {
-                showToast('اسم التخصص بالعربية حقل مطلوب', 'error');
+                showToast('اسم التخصص بالعربية مطلوب', 'error');
                 return;
             }
 
             if (!id) {
-                // Auto-generate clean unique ID for new specialty
-                const cleanSlug = nameEn ? nameEn.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6).toUpperCase() : '';
-                id = cleanSlug || ('SPEC_' + Date.now().toString(36).toUpperCase());
+                if (nameEn) id = nameEn.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4);
+                if (!id || id.length < 2) id = 'SP' + Math.floor(100 + Math.random() * 900);
             }
 
-            // Close modal IMMEDIATELY on save button click
+            const pool = [];
+            document.querySelectorAll('input[name="global-pool-spec"]:checked').forEach(cb => {
+                pool.push(cb.value);
+            });
+
             closeGlobalSpecEditModal();
 
             try {
                 if (origId) {
                     await Hub.updateGlobalSpecialty(origId, {
-                        id,
+                        id: id,
                         name_ar: nameAr,
                         name_en: nameEn,
-                        icon,
-                        parentSpec,
-                        acceptPool
+                        icon: icon,
+                        parentSpec: parentSpec,
+                        acceptPool: pool
                     });
                     showToast(`تم تحديث التخصص "${nameAr}" في المستودع العام بنجاح`, 'success');
                 } else {
                     await Hub.addGlobalSpecialty({
-                        id,
+                        id: id,
                         name_ar: nameAr,
                         name_en: nameEn,
-                        icon,
-                        parentSpec,
-                        acceptPool
+                        icon: icon,
+                        parentSpec: parentSpec,
+                        acceptPool: pool
                     });
-                    showToast(`تمت إضافة التخصص "${nameAr}" إلى المستودع العام بنجاح`, 'success');
+                    showToast(`تمت إضافة التخصص "${nameAr}" إلى المستودع العام بنجاح 🎉`, 'success');
                 }
 
                 currentDb = await Hub.loadDatabase(true);
                 renderGlobalSpecialtiesList();
                 renderHubDashboard();
             } catch (err) {
-                console.error("Save global spec error:", err);
-                showToast(err.message || 'خطأ أثناء حفظ التخصص في المستودع', 'error');
-                renderGlobalSpecialtiesList();
+                console.error(err);
+                showToast(err.message || 'خطأ أثناء حفظ التخصص في المستودع العام', 'error');
             }
         }
 
@@ -1497,13 +1843,14 @@
         }
 
         window.addEventListener('DOMContentLoaded', initHub);
-        window.addEventListener('resize', enforcePhoneCountersVisibility);
-        window.addEventListener('orientationchange', enforcePhoneCountersVisibility);
         window.addEventListener('hub:data-changed', (e) => {
             currentDb = e.detail.db;
+            renderHubDashboard();
+        });
+        window.addEventListener('hub:auth-changed', () => {
+            updateTopRoleBadge();
             renderHubDashboard();
         });
     </script>
 </body>
 </html>
-

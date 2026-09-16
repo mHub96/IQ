@@ -454,6 +454,9 @@
                 <span class="px-3 py-1.5 rounded-xl bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60" id="badge-multi-count">
                     <i class="fas fa-shuffle ml-1"></i> 0 تغطية متعددة
                 </span>
+                <span class="px-3 py-1.5 rounded-xl bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60" id="badge-unassigned-count" style="display:none;">
+                    <i class="fas fa-user-slash ml-1"></i> 0 غير منسوب لمستشفى
+                </span>
             </div>
         </div>
 
@@ -710,6 +713,7 @@
         function renderHospitalFilterPills() {
             const container = document.getElementById('hospital-filter-pills');
             const totalResidents = Hub.getResidents().length;
+            const unassignedCount = (Hub.getResidents().filter(r => !Array.isArray(r.hospitals) || r.hospitals.length === 0)).length;
 
             let html = `
                 <div class="filter-pill ${selectedHospitalId === 'all' ? 'active' : ''}" onclick="setHospitalFilter('all')">
@@ -730,12 +734,22 @@
                 `;
             });
 
+            if (unassignedCount > 0) {
+                html += `
+                    <div class="filter-pill ${selectedHospitalId === 'unassigned' ? 'active' : ''}" onclick="setHospitalFilter('unassigned')" style="${selectedHospitalId === 'unassigned' ? 'background:#ef4444;border-color:#dc2626;color:white;' : 'border-color:rgba(239,68,68,0.4);color:#ef4444;'}">
+                        <i class="fas fa-user-slash"></i>
+                        <span>غير منسوبين لمستشفى</span>
+                        <span class="text-[11px] font-mono opacity-80 mr-1 bg-black/10 dark:bg-white/10 px-1.5 py-0.2 rounded-full">${unassignedCount}</span>
+                    </div>
+                `;
+            }
+
             container.innerHTML = html;
         }
 
         function updateRoleUI() {
             const isOwner = Hub.auth.isOwner();
-            const isAdmin = Hub.auth.isAdmin(selectedHospitalId === 'all' ? null : selectedHospitalId);
+            const isAdmin = selectedHospitalId === 'unassigned' ? (isOwner || Hub.auth.isAdmin()) : Hub.auth.isAdmin(selectedHospitalId === 'all' ? null : selectedHospitalId);
             const roleIndicator = document.getElementById('role-indicator-badge');
             const adminActionsWrap = document.getElementById('admin-actions-wrap');
             if (!roleIndicator) return;
@@ -772,9 +786,15 @@
         function updateStats() {
             const total = allResidents.length;
             const multi = allResidents.filter(r => Array.isArray(r.hospitals) && r.hospitals.length > 1).length;
+            const unassigned = allResidents.filter(r => !Array.isArray(r.hospitals) || r.hospitals.length === 0).length;
 
             document.getElementById('badge-total-count').innerHTML = `<i class="fas fa-user-doctor ml-1"></i> ${total} طبيب مسجل`;
             document.getElementById('badge-multi-count').innerHTML = `<i class="fas fa-shuffle ml-1"></i> ${multi} تغطية متعددة`;
+            const unassignedBadge = document.getElementById('badge-unassigned-count');
+            if (unassignedBadge) {
+                unassignedBadge.innerHTML = `<i class="fas fa-user-slash ml-1"></i> ${unassigned} غير منسوب لمستشفى`;
+                unassignedBadge.style.display = unassigned > 0 ? 'inline-flex' : 'none';
+            }
         }
 
         function applyFilters() {
@@ -789,7 +809,11 @@
 
             let filtered = allResidents.filter(r => {
                 // 1. Hospital Filter
-                if (selectedHospitalId !== 'all') {
+                if (selectedHospitalId === 'unassigned') {
+                    if (Array.isArray(r.hospitals) && r.hospitals.length > 0) {
+                        return false;
+                    }
+                } else if (selectedHospitalId !== 'all') {
                     if (!Array.isArray(r.hospitals) || !r.hospitals.includes(selectedHospitalId)) {
                         return false;
                     }
@@ -894,6 +918,12 @@
                                         <span>${h.name_ar || h.hospitalName}</span>
                                     </span>
                                 `).join('')}
+                                ${doctorHospitals.length === 0 ? `
+                                    <span class="hosp-tag-badge bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300 dark:border-rose-800 font-bold">
+                                        <i class="fas fa-circle-exclamation"></i>
+                                        <span>غير منسوب لمستشفى</span>
+                                    </span>
+                                ` : ''}
                                 ${isMulti ? `
                                     <span class="hosp-tag-badge bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-800 font-black">
                                         <i class="fas fa-shuffle"></i>

@@ -1519,6 +1519,11 @@
             if (window.Hub) {
                 var activeHosp = window.Hub.getActiveHospital();
                 if (activeHosp) {
+                    if (!window.Hub.auth.isAdmin(activeHosp.id)) {
+                        alert('عذراً، جدول الخفارات الشهري متاح لمدراء هذا المستشفى والمالك فقط.');
+                        window.location.href = `./Home.html?hospital=${encodeURIComponent(activeHosp.id)}`;
+                        return;
+                    }
                     database = activeHosp;
                     database.names = (database.names || []).map(function(item) {
                         if (Array.isArray(item)) return { name: item[0], spec: item[1] || "NS", phone: "" };
@@ -1541,11 +1546,11 @@
         });
 
         window.onload = async function() {
-            // Guard: Scheduler is restricted to Admins and Owner only
+            // Guard: Scheduler is restricted to Admins of this hospital and Owner only
             if (window.Hub && window.Hub.auth) {
-                if (!window.Hub.auth.isAdmin()) {
-                    alert('عذراً، جدول الخفارات الشهري متاح لمدراء النظام والمالك فقط.');
-                    const hosp = window.Hub.getActiveHospitalId();
+                const hosp = window.Hub.getActiveHospitalId();
+                if (!window.Hub.auth.isAdmin(hosp)) {
+                    alert('عذراً، جدول الخفارات الشهري متاح لمدراء هذا المستشفى والمالك فقط.');
                     window.location.href = `./Home.html?hospital=${encodeURIComponent(hosp)}`;
                     return;
                 }

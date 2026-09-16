@@ -931,6 +931,13 @@
 
             try {
                 await Hub.loadDatabase();
+                const targetHid = Hub.getActiveHospitalId();
+                if (!Hub.auth.isAdmin(targetHid)) {
+                    alert('عذراً، لا تملك صلاحيات إدارة هذا المستشفى.');
+                    window.location.replace(`./Home.html?hospital=${encodeURIComponent(targetHid)}`);
+                    return;
+                }
+
                 currentHospital = Hub.getActiveHospital();
                 if (!currentHospital) {
                     showToast('المستشفى غير موجود', 'error');

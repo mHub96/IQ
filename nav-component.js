@@ -40,6 +40,7 @@
         // Role badge data
         const isOwner = window.Hub.auth.isOwner();
         const isLoggedIn = window.Hub.auth.isLoggedIn();
+        const isCurrentHospAdmin = window.Hub.auth.isAdmin(activeHospitalId);
         let badgeClass = 'guest';
         let badgeIcon = 'fa-sign-in-alt';
         let badgeText = 'تسجيل الدخول';
@@ -50,11 +51,12 @@
             badgeIcon = 'fa-crown';
             badgeText = '👑 المالك';
             badgeTitle = 'صلاحيات المالك الكاملة مفعلة';
-        } else if (isAdmin) {
+        } else if (role === 'admin' && isCurrentHospAdmin) {
+            const adminHospName = window.Hub.auth.getAdminHospitalName ? window.Hub.auth.getAdminHospitalName() : '';
             badgeClass = 'admin';
             badgeIcon = 'fa-shield-halved';
-            badgeText = '🛡️ مدير النظام';
-            badgeTitle = 'صلاحيات المدير مفعلة (اضغط للترقية إلى المالك)';
+            badgeText = (adminHospName && adminHospName !== 'جميع المستشفيات') ? `🛡️ مدير (${adminHospName})` : '🛡️ مدير النظام';
+            badgeTitle = 'صلاحيات المدير مفعلة لهذا المستشفى (اضغط للترقية إلى المالك)';
         } else if (isLoggedIn) {
             badgeClass = 'user';
             badgeIcon = 'fa-user';

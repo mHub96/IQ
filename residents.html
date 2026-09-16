@@ -646,25 +646,8 @@
                     selectedHospitalId = queryHosp;
                 }
 
-                // Check Role and adjust UI
-                const isAdmin = Hub.auth.isAdmin();
-                const isOwner = Hub.auth.isOwner();
-                const roleIndicator = document.getElementById('role-indicator-badge');
-                const adminActionsWrap = document.getElementById('admin-actions-wrap');
-
-                if (isOwner) {
-                    roleIndicator.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-300 dark:border-amber-700';
-                    roleIndicator.innerHTML = '<i class="fas fa-crown ml-1 text-amber-500"></i> وضع المالك (صلاحيات كاملة)';
-                    adminActionsWrap.classList.remove('hidden');
-                } else if (isAdmin) {
-                    roleIndicator.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300 border border-teal-300 dark:border-teal-700';
-                    roleIndicator.innerHTML = '<i class="fas fa-shield-halved ml-1 text-teal-600"></i> وضع المدير (إدارة المقيمين)';
-                    adminActionsWrap.classList.remove('hidden');
-                } else {
-                    roleIndicator.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300';
-                    roleIndicator.innerHTML = '<i class="fas fa-eye ml-1 text-slate-500"></i> دليل الهاتف (للعرض والاتصال فقط)';
-                    adminActionsWrap.classList.add('hidden');
-                }
+                // Update Role-based UI for active/selected hospital
+                updateRoleUI();
 
                 // Extract all specialties strictly from Main Specialty Store (Central Catalog)
                 const globalSpecs = (typeof Hub !== 'undefined' && Hub.getGlobalSpecialties) ? Hub.getGlobalSpecialties() : [];
@@ -750,8 +733,32 @@
             container.innerHTML = html;
         }
 
+        function updateRoleUI() {
+            const isOwner = Hub.auth.isOwner();
+            const isAdmin = Hub.auth.isAdmin(selectedHospitalId === 'all' ? null : selectedHospitalId);
+            const roleIndicator = document.getElementById('role-indicator-badge');
+            const adminActionsWrap = document.getElementById('admin-actions-wrap');
+            if (!roleIndicator) return;
+
+            if (isOwner) {
+                roleIndicator.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-300 dark:border-amber-700';
+                roleIndicator.innerHTML = '<i class="fas fa-crown ml-1 text-amber-500"></i> وضع المالك (صلاحيات كاملة)';
+                if (adminActionsWrap) adminActionsWrap.classList.remove('hidden');
+            } else if (isAdmin) {
+                const adminHospName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
+                roleIndicator.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300 border border-teal-300 dark:border-teal-700';
+                roleIndicator.innerHTML = `<i class="fas fa-shield-halved ml-1 text-teal-600"></i> وضع المدير (${adminHospName || 'إدارة المقيمين'})`;
+                if (adminActionsWrap) adminActionsWrap.classList.remove('hidden');
+            } else {
+                roleIndicator.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300';
+                roleIndicator.innerHTML = '<i class="fas fa-eye ml-1 text-slate-500"></i> دليل الهاتف (للعرض والاتصال فقط)';
+                if (adminActionsWrap) adminActionsWrap.classList.add('hidden');
+            }
+        }
+
         function setHospitalFilter(hid) {
             selectedHospitalId = hid;
+            updateRoleUI();
             renderHospitalFilterPills();
             applyFilters();
         }

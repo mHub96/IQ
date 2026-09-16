@@ -405,6 +405,18 @@
                 border-radius: 1.4rem !important;
             }
         }
+    
+        /* Native App Polishing */
+        * { -webkit-tap-highlight-color: transparent; }
+        button:active, .btn-gradient:active, .btn-ghost:active, .filter-pill:active {
+            transform: scale(0.97);
+            transition: transform 0.15s ease;
+        }
+        body {
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 30px);
+            -webkit-overflow-scrolling: touch;
+        }
     </style>
 </head>
 <body class="light" id="app-body">

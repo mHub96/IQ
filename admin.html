@@ -20,7 +20,7 @@
             direction: rtl;
             text-align: right;
             min-height: 100vh;
-            background: #f2f6fc;
+            background: #d1d9e6;
             color: #1a2332;
             transition: background 0.4s ease, color 0.4s ease;
             overflow-x: hidden;
@@ -372,6 +372,14 @@
                 padding: 1.25rem 1rem !important;
                 border-radius: 1.4rem !important;
             }
+        }
+    
+        button:active, .btn-gradient:active, .btn-ghost:active, .tab-btn:active {
+            transform: scale(0.97);
+            transition: transform 0.15s ease;
+        }
+        .main-container, main {
+            padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 30px);
         }
     </style>
 </head>

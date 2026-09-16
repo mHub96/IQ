@@ -41,7 +41,7 @@
             direction: rtl;
             text-align: right;
             min-height: 100vh;
-            background: #f0f4f9;
+            background: #d1d9e6;
             color: #1e293b;
             transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
             overflow-x: hidden;
@@ -51,7 +51,7 @@
 
         /* OLED Night Mode */
         body.dark {
-            background: #070a0f;
+            background: #0b0e12;
             color: #f1f5f9;
         }
 
@@ -61,9 +61,9 @@
             inset: 0;
             z-index: 0;
             pointer-events: none;
-            opacity: 0.04;
-            background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2314b8a6' fill-opacity='0.4'%3E%3Cpath d='M20 20v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM60 60v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z'/%3E%3C/g%3E%3C/svg%3E");
-            background-size: 80px 80px;
+            opacity: 0.08;
+            background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.25'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-size: 120px 120px;
         }
 
         /* iOS Frosted Header */
@@ -89,9 +89,9 @@
         }
 
         body.dark .ios-top-bar {
-            background: rgba(11, 16, 26, 0.85);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.4);
+            background: rgba(14, 20, 32, 0.92);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.6);
         }
 
         .ios-brand {
@@ -115,8 +115,9 @@
         }
 
         body.dark .brand-pill-icon {
-            background: linear-gradient(135deg, #14b8a6, #0f766e);
-            box-shadow: 0 4px 16px rgba(20, 184, 166, 0.3);
+            background: linear-gradient(135deg, #d4af37, #b8942e);
+            color: #0b0e12;
+            box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3);
         }
 
         .pulse-indicator {
@@ -131,7 +132,7 @@
             animation: ecgPulse 2s infinite;
         }
         body.dark .pulse-indicator {
-            border-color: #070a0f;
+            border-color: #0b0e12;
         }
 
         @keyframes ecgPulse {
@@ -159,7 +160,7 @@
             letter-spacing: 0.02em;
         }
         body.dark .brand-sub {
-            color: #2dd4bf;
+            color: #d4af37;
         }
 
         .ios-top-actions {
@@ -209,9 +210,9 @@
             border-color: #fde68a;
         }
         body.dark .ios-role-pill.owner {
-            background: rgba(245, 158, 11, 0.18);
-            color: #fbbf24;
-            border-color: rgba(245, 158, 11, 0.35);
+            background: rgba(212, 175, 55, 0.18);
+            color: #d4af37;
+            border-color: rgba(212, 175, 55, 0.35);
         }
         .ios-role-pill.admin {
             background: #ccfbf1;
@@ -219,9 +220,9 @@
             border-color: #99f6e4;
         }
         body.dark .ios-role-pill.admin {
-            background: rgba(20, 184, 166, 0.18);
+            background: rgba(15, 118, 110, 0.25);
             color: #2dd4bf;
-            border-color: rgba(20, 184, 166, 0.35);
+            border-color: rgba(45, 212, 191, 0.35);
         }
         .ios-role-pill.user {
             background: #e2e8f0;
@@ -261,9 +262,9 @@
         }
 
         body.dark .live-activity-card {
-            background: linear-gradient(135deg, rgba(16, 24, 38, 0.9), rgba(13, 20, 32, 0.85));
-            border: 1px solid rgba(20, 184, 166, 0.2);
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55), 0 0 20px rgba(20, 184, 166, 0.08);
+            background: linear-gradient(135deg, rgba(16, 22, 34, 0.92), rgba(20, 28, 44, 0.88));
+            border: 1px solid rgba(212, 175, 55, 0.18);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.06);
         }
 
         .live-status-left {
@@ -325,9 +326,9 @@
             gap: 6px;
         }
         body.dark .live-clock-pill {
-            background: rgba(20, 184, 166, 0.12);
-            border-color: rgba(20, 184, 166, 0.3);
-            color: #2dd4bf;
+            background: rgba(212, 175, 55, 0.12);
+            border-color: rgba(212, 175, 55, 0.3);
+            color: #d4af37;
         }
 
         /* Search & iOS Segmented Filter */
@@ -357,9 +358,9 @@
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         body.dark .ios-search-input {
-            background: #111827;
-            border-color: #1f2937;
-            color: #f3f4f6;
+            background: rgba(16, 22, 34, 0.92);
+            border-color: rgba(212, 175, 55, 0.18);
+            color: #f1f5f9;
         }
         .ios-search-input:focus {
             border-color: #0f766e;
@@ -367,9 +368,9 @@
             background: #ffffff;
         }
         body.dark .ios-search-input:focus {
-            border-color: #14b8a6;
-            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
-            background: #0f172a;
+            border-color: #d4af37;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+            background: #0f1523;
         }
 
         .ios-search-icon {
@@ -393,7 +394,8 @@
             scrollbar-width: none;
         }
         body.dark .ios-segmented-control {
-            background: rgba(30, 41, 59, 0.6);
+            background: rgba(16, 22, 34, 0.8);
+            border: 1px solid rgba(212, 175, 55, 0.12);
         }
         .ios-segmented-control::-webkit-scrollbar { display: none; }
 
@@ -424,9 +426,9 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
         body.dark .ios-segment-btn.active {
-            background: #1e293b;
-            color: #2dd4bf;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+            background: linear-gradient(135deg, #d4af37, #b8942e);
+            color: #0b0e12;
+            box-shadow: 0 2px 10px rgba(212, 175, 55, 0.25);
         }
 
         /* Owner Fast Actions Bar */
@@ -481,9 +483,9 @@
         }
 
         body.dark .hosp-widget-card {
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+            background: rgba(16, 22, 34, 0.84);
+            border: 1px solid rgba(212, 175, 55, 0.14);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
         }
 
         .hosp-widget-card:hover {
@@ -491,8 +493,8 @@
             box-shadow: 0 16px 40px rgba(15, 118, 110, 0.1);
         }
         body.dark .hosp-widget-card:hover {
-            border-color: rgba(20, 184, 166, 0.3);
-            box-shadow: 0 16px 45px rgba(0, 0, 0, 0.7);
+            border-color: rgba(212, 175, 55, 0.35);
+            box-shadow: 0 16px 45px rgba(0, 0, 0, 0.75), 0 0 20px rgba(212, 175, 55, 0.08);
         }
 
         .widget-top-banner {
@@ -596,9 +598,9 @@
             font-weight: 800;
         }
         body.dark .metric-chip.oncall-live {
-            background: rgba(20, 184, 166, 0.15);
-            color: #2dd4bf;
-            border-color: rgba(20, 184, 166, 0.35);
+            background: rgba(212, 175, 55, 0.15);
+            color: #d4af37;
+            border-color: rgba(212, 175, 55, 0.35);
         }
 
         /* Action Buttons Grid */
@@ -640,9 +642,9 @@
             box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3);
         }
         body.dark .ios-btn.primary {
-            background: linear-gradient(135deg, #14b8a6, #0f766e);
-            color: #ffffff;
-            box-shadow: 0 4px 16px rgba(20, 184, 166, 0.35);
+            background: linear-gradient(135deg, #d4af37, #b8942e);
+            color: #0b0e12;
+            box-shadow: 0 4px 16px rgba(212, 175, 55, 0.25);
         }
 
         .ios-btn.secondary {
@@ -651,7 +653,7 @@
             border-color: #cbd5e1;
         }
         body.dark .ios-btn.secondary {
-            background: rgba(30, 41, 59, 0.7);
+            background: rgba(255, 255, 255, 0.05);
             color: #e2e8f0;
             border-color: rgba(255, 255, 255, 0.1);
         }
@@ -659,7 +661,9 @@
             background: #e2e8f0;
         }
         body.dark .ios-btn.secondary:hover {
-            background: rgba(51, 65, 85, 0.8);
+            background: rgba(212, 175, 55, 0.12);
+            border-color: rgba(212, 175, 55, 0.35);
+            color: #d4af37;
         }
 
         /* Floating Bottom Dock for iPhone (App Tab Bar) */
@@ -686,9 +690,9 @@
         }
 
         body.dark .ios-bottom-dock {
-            background: rgba(15, 23, 42, 0.88);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(20, 184, 166, 0.1);
+            background: rgba(14, 20, 32, 0.94);
+            border: 1px solid rgba(212, 175, 55, 0.18);
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(212, 175, 55, 0.08);
         }
 
         .dock-tab-btn {
@@ -719,8 +723,8 @@
             background: rgba(15, 118, 110, 0.1);
         }
         body.dark .dock-tab-btn.active {
-            color: #2dd4bf;
-            background: rgba(20, 184, 166, 0.15);
+            color: #d4af37;
+            background: rgba(212, 175, 55, 0.15);
         }
         .dock-tab-btn:active {
             transform: scale(0.92);
@@ -731,7 +735,7 @@
             position: fixed;
             inset: 0;
             z-index: 99999;
-            background: rgba(240, 244, 249, 0.95);
+            background: rgba(209, 217, 230, 0.95);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
             display: flex;
@@ -741,7 +745,7 @@
             transition: opacity 0.35s ease;
         }
         body.dark #lock-screen {
-            background: rgba(7, 10, 15, 0.95);
+            background: rgba(11, 14, 18, 0.95);
         }
         #lock-screen.hidden {
             display: none;
@@ -759,9 +763,9 @@
             animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         body.dark .lock-box {
-            background: #111827;
-            border-color: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7);
+            background: #141c2a;
+            border-color: rgba(212, 175, 55, 0.2);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.8);
         }
 
         /* Input & Form Styles */
@@ -820,9 +824,9 @@
             animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         body.dark .modal-card {
-            background: #111827;
-            border-color: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7);
+            background: #141c2a;
+            border-color: rgba(212, 175, 55, 0.2);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.8);
         }
         @keyframes modalPop {
             from { opacity: 0; transform: scale(0.95) translateY(12px); }
@@ -1448,7 +1452,7 @@
             const totalOnCallNow = Hub.getTotalActiveOnCallCount ? Hub.getTotalActiveOnCallCount(today) : 0;
             const summaryEl = document.getElementById('live-oncall-summary');
             if (summaryEl) {
-                summaryEl.textContent = `${totalOnCallNow} طبيب خفير في الخدمة الآن عبر ${hospitals.length} مستشفيات تعليمية`;
+                summaryEl.textContent = `${totalOnCallNow} طبيب خفر في الخدمة الآن عبر ${hospitals.length} مستشفيات تعليمية`;
             }
 
             // Filter hospitals

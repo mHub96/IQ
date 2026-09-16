@@ -19,7 +19,7 @@
 
         :root {
             /* Light Theme (Default / Day Mode) */
-            --background-color: #f1f5f9;
+            --background-color: #d1d9e6;
             --card-background-color: #ffffff;
             --card-hover-background-color: #f8fafc;
             --border-subtle: #cbd5e1;
@@ -51,7 +51,7 @@
 
         body.dark {
             /* Dark Theme (Night Mode) */
-            --background-color: #0b0e13;
+            --background-color: #0b0e12;
             --card-background-color: #141a24;
             --card-hover-background-color: #1c2432;
             --border-subtle: rgba(255, 255, 255, 0.08);
@@ -76,6 +76,17 @@
             --custom-menu-bg: #1a2230;
             --custom-menu-item-color: #c8d4e3;
             --custom-menu-item-hover-bg: rgba(255, 255, 255, 0.08);
+        }
+
+        body.dark::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.08;
+            background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.25'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-size: 120px 120px;
         }
 
         body {

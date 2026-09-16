@@ -2513,7 +2513,7 @@
             // Admin Reset Button visibility based on dual password role
             const adminResetBtn = document.getElementById('admin-reset-btn');
             if (adminResetBtn) {
-                if (Hub.auth.isAdmin()) adminResetBtn.classList.remove('hidden');
+                if (Hub.auth.isAdmin(currentHospital?.id)) adminResetBtn.classList.remove('hidden');
                 else adminResetBtn.classList.add('hidden');
             }
         }

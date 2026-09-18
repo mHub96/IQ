@@ -453,6 +453,7 @@
                             db = sanitizeAndMigrateDatabase(localDb);
                             localStorage.setItem(CACHE_KEY, JSON.stringify(db));
                             isLoaded = true;
+                            dispatchDataChanged();
                             // Attempt to initialize GitHub with this local copy in the background
                             saveDatabase("Initial Hub Setup").catch(console.warn);
                             return db;
@@ -475,6 +476,7 @@
             }
 
             isLoaded = true;
+            dispatchDataChanged();
             return db;
         })();
 
@@ -1890,10 +1892,38 @@
     // AUTHENTICATION & MULTI-PASSWORD ROLE TRICK
     // ============================================================
     const auth = {
-        login(password) {
-            const pwd = String(password || '').trim();
+        login(roleOrPassword, optionalPassword) {
+            let targetRole = null;
+            let pwd = '';
+            if (optionalPassword !== undefined) {
+                targetRole = String(roleOrPassword || '').trim().toLowerCase();
+                pwd = String(optionalPassword || '').trim();
+            } else {
+                pwd = String(roleOrPassword || '').trim();
+            }
+
             if (!pwd) {
                 return { success: false, error: 'الرجاء إدخال كلمة المرور' };
+            }
+
+            // Explicit role: 'owner'
+            if (targetRole === 'owner') {
+                const currentHosp = getActiveHospital();
+                const ownerPass = currentHosp?.passwords?.owner || db?.globalPasswords?.owner || "MrjBth1996*";
+                let matchesOwner = (pwd === ownerPass) || (db?.globalPasswords?.owner && pwd === db.globalPasswords.owner);
+                if (!matchesOwner && db?.hospitals) {
+                    for (const h of Object.values(db.hospitals)) {
+                        if (h.passwords?.owner && pwd === h.passwords.owner) {
+                            matchesOwner = true;
+                            break;
+                        }
+                    }
+                }
+                if (matchesOwner) {
+                    this.saveSession('owner', pwd, true, ['*']);
+                    return { success: true, role: 'owner', adminHospitals: ['*'] };
+                }
+                return { success: false, error: 'كلمة مرور المالك غير صحيحة' };
             }
 
             // 1. Check global passwords first

@@ -1,50 +1,103 @@
 (() => {
   let deferredInstallPrompt = null;
+  let refreshing = false;
 
-  // Register the service worker WITHOUT a changing parameter
+  // Listen for controlling worker change and auto-refresh cleanly once
   if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return;
+      refreshing = true;
+      console.log('[PWA] Controller changed -> reloading to activate new version');
+      window.location.reload();
+    });
+
+    // Register service worker
     navigator.serviceWorker.register('./service-worker.js')
       .then(registration => {
-        console.log('Service Worker registered successfully');
+        console.log('[PWA] Service Worker registered with scope:', registration.scope);
 
-        // Check for updates on load (but only if there's actually a new version)
-        // This will not show the prompt unless the CACHE_VERSION changed.
+        // Immediate check on load
         registration.update();
 
-        // Listen for a new service worker installing
+        // Listen for updates
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing;
+          if (!newWorker) return;
           newWorker.addEventListener('statechange', () => {
-            // Only show the prompt if:
-            // 1. The new worker is installed (state === 'installed')
-            // 2. There was a previous controller (meaning this is an update, not a first install)
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              showUpdatePrompt();
+              showUpdatePrompt(newWorker);
             }
           });
         });
+
+        // Check for updates when user returns to the app from background (mobile PWA resumption)
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible' && navigator.onLine) {
+            registration.update().catch(err => console.warn('[PWA] Background update check failed:', err));
+          }
+        });
+
+        // Periodic background update check every 15 minutes
+        setInterval(() => {
+          if (navigator.onLine) {
+            registration.update().catch(err => console.warn('[PWA] Periodic update check failed:', err));
+          }
+        }, 15 * 60 * 1000);
       })
       .catch(error => {
-        console.warn('PWA service worker registration failed:', error);
+        console.warn('[PWA] Service Worker registration failed:', error);
       });
   }
 
-  // Show a friendly prompt to reload
-  function showUpdatePrompt() {
-    // Use a flag to avoid showing the toast more than once per session
+  // Show a friendly prompt or auto-activate
+  function showUpdatePrompt(newWorker) {
     if (window._updatePromptShown) return;
     window._updatePromptShown = true;
 
+    // Post skip waiting to new worker immediately so it activates
+    if (newWorker) {
+      newWorker.postMessage('SKIP_WAITING');
+    }
+
     if (typeof showToast === 'function') {
-      showToast('🔄 New version available. Reload to update.', 'info', 6000);
-    } else {
-      if (confirm('A new version of this app is available. Refresh now?')) {
-        window.location.reload();
-      }
+      showToast('🔄 تم تنزيل إصدار جديد من التطبيق! جاري التحديث...', 'info', 4000);
     }
   }
 
-  // ----- Install Button (unchanged) -----
+  // Manual Force App Update utility (exposed globally)
+  window.forceAppUpdate = async function() {
+    try {
+      if (typeof showToast === 'function') {
+        showToast('⏳ جاري مسح التخزين المؤقت وتحديث التطبيق...', 'info', 3000);
+      }
+      // 1. Delete all cache stores
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+      // 2. Unregister all service workers
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const reg of registrations) {
+          await reg.unregister();
+        }
+      }
+      // 3. Clear session caches if any
+      try {
+        localStorage.removeItem('hub_db_cache');
+      } catch (e) {}
+
+      // 4. Force hard reload with timestamp query to bust browser HTTP cache
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.set('_v', Date.now());
+      window.location.href = cleanUrl.href;
+    } catch (err) {
+      console.error('[PWA] Force update failed:', err);
+      window.location.reload(true);
+    }
+  };
+
+  // ----- Install Button -----
   function addInstallButton() {
     if (document.getElementById('pwa-install-button')) return;
     const button = document.createElement('button');
@@ -72,15 +125,15 @@
     deferredInstallPrompt = null;
     document.getElementById('pwa-install-button')?.remove();
     if (typeof showToast === 'function') {
-      showToast('✅ App installed successfully!', 'success');
+      showToast('✅ تم تثبيت التطبيق بنجاح!', 'success');
     }
   });
 
-  // On page load, check for updates (without forcing a re-install)
+  // On page load, trigger an update check
   window.addEventListener('load', () => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.ready.then(registration => {
-        registration.update(); // Safe – only checks if there's a new version on the server
+        registration.update();
       });
     }
   });

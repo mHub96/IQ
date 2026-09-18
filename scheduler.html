@@ -1346,6 +1346,16 @@
                 <h1 id="hospital-name">Teaching Hosp.</h1>
             </div>
             <div class="navigation-actions">
+                <!-- Scheduler Role Mode Selector (Residents vs Specialists) -->
+                <div class="view-selector" id="scheduler-mode-selector">
+                    <button type="button" class="view-button active" id="mode-residents-btn" onclick="switchSchedulerMode('residents')" title="جدول خفارات الأطباء المقيمين">
+                        <i class="fas fa-user-doctor"></i> المقيمين
+                    </button>
+                    <button type="button" class="view-button" id="mode-specialists-btn" onclick="switchSchedulerMode('specialists')" title="جدول خفارات الأطباء الاختصاصيين">
+                        <i class="fas fa-user-tie"></i> الاختصاصيين
+                    </button>
+                </div>
+
                 <!-- View Mode Selector -->
                 <div class="view-selector">
                     <button class="view-button active" data-view="all" onclick="switchView('all')">
@@ -1412,7 +1422,67 @@
         var githubTokenPart4 = "AmsjS";
         var githubToken = githubTokenPart1 + githubTokenPart2 + githubTokenPart3 + githubTokenPart4;
 
-        var database = { hospitalName: 'Iraqi Teaching Hospital', names: [], schedule: [], passwords: {}, specialties: [] };
+        var database = { hospitalName: 'Iraqi Teaching Hospital', names: [], schedule: [], specialistSchedule: [], passwords: {}, specialties: [] };
+        var schedulerMode = 'residents';
+
+        try {
+            var urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('type') === 'specialists' || urlParams.get('role') === 'specialists' || urlParams.get('mode') === 'specialists') {
+                schedulerMode = 'specialists';
+            }
+        } catch (e) {}
+
+        function getActiveSchedule() {
+            if (!database) return [];
+            if (schedulerMode === 'specialists') {
+                if (!Array.isArray(database.specialistSchedule)) {
+                    database.specialistSchedule = [];
+                }
+                return database.specialistSchedule;
+            }
+            if (!Array.isArray(database.schedule)) {
+                database.schedule = [];
+            }
+            return database.schedule;
+        }
+
+        function switchSchedulerMode(mode) {
+            if (mode !== 'residents' && mode !== 'specialists') mode = 'residents';
+            if (schedulerMode === mode) return;
+            schedulerMode = mode;
+
+            try {
+                var url = new URL(window.location.href);
+                url.searchParams.set('type', mode);
+                window.history.replaceState({}, '', url.toString());
+            } catch (e) {}
+
+            updateSchedulerModeButtons();
+            applyHospitalName();
+            updateNameLookup();
+            refreshView();
+
+            showToast(schedulerMode === 'specialists' ? '👔 تم الانتقال لجدول خفارات الاختصاصيين' : '🩺 تم الانتقال لجدول خفارات المقيمين', 'info', 1800);
+        }
+
+        function updateSchedulerModeButtons() {
+            var resBtn = document.getElementById('mode-residents-btn');
+            var specBtn = document.getElementById('mode-specialists-btn');
+            if (resBtn && specBtn) {
+                if (schedulerMode === 'specialists') {
+                    specBtn.classList.add('active');
+                    resBtn.classList.remove('active');
+                } else {
+                    resBtn.classList.add('active');
+                    specBtn.classList.remove('active');
+                }
+            }
+            var saveText = document.getElementById('save-btn-text');
+            if (saveText) {
+                saveText.textContent = schedulerMode === 'specialists' ? 'حفظ جدول الاختصاص' : 'حفظ الجدول';
+            }
+        }
+
         var fileSha = "";
         var nameData = {};
         var specialtyList = [];
@@ -1436,10 +1506,11 @@
         var timePickerOpen = false;
 
         function applyHospitalName() {
-            var hospitalName = String(database.hospitalName || 'Iraqi Teaching Hospital').trim() || 'Iraqi Teaching Hospital';
+            var rawName = String(database.name_ar || database.hospitalName || 'Teaching Hosp.').trim() || 'Teaching Hosp.';
             var hospitalNameElement = document.getElementById('hospital-name');
-            if (hospitalNameElement) hospitalNameElement.textContent = hospitalName;
-            document.title = hospitalName + ' · Scheduler 🇮🇶';
+            var modeBadge = schedulerMode === 'specialists' ? ' (خفارات الاختصاصيين)' : ' (خفارات المقيمين)';
+            if (hospitalNameElement) hospitalNameElement.textContent = rawName + modeBadge;
+            document.title = rawName + (schedulerMode === 'specialists' ? ' · خفارات الاختصاصيين 🇮🇶' : ' · خفارات المقيمين 🇮🇶');
         }
 
         function getDayTimeKey(date, specialtyCode) {
@@ -1535,10 +1606,13 @@
                         return;
                     }
                     database = activeHosp;
+                    if (!Array.isArray(database.schedule)) database.schedule = [];
+                    if (!Array.isArray(database.specialistSchedule)) database.specialistSchedule = [];
                     database.names = (database.names || []).map(function(item) {
                         if (Array.isArray(item)) return { name: item[0], spec: item[1] || "NS", phone: "" };
                         return item;
                     });
+                    updateSchedulerModeButtons();
                     applyHospitalName();
                     buildSpecialtyList();
                     updateNameLookup();
@@ -1699,6 +1773,8 @@
                     var activeHosp = window.Hub.getActiveHospital();
                     if (activeHosp) {
                         database = activeHosp;
+                        if (!Array.isArray(database.schedule)) database.schedule = [];
+                        if (!Array.isArray(database.specialistSchedule)) database.specialistSchedule = [];
                         database.names = (database.names || []).map(function(item) {
                             if (Array.isArray(item)) return { name: item[0], spec: item[1] || "NS", phone: "" };
                             return item;
@@ -1707,6 +1783,7 @@
                         buildSpecialtyList();
                     }
                 }
+                updateSchedulerModeButtons();
                 updateNameLookup();
                 refreshView();
             } catch (error) { console.error("Initialisation Error", error); }
@@ -1743,6 +1820,31 @@
 
         function updateNameLookup() {
             nameData = {};
+
+            if (schedulerMode === 'specialists') {
+                var hid = database.id || (window.Hub ? window.Hub.getActiveHospitalId() : null);
+                var allSpecialists = [];
+                if (window.Hub && typeof window.Hub.getSpecialists === 'function') {
+                    allSpecialists = window.Hub.getSpecialists(hid, null);
+                } else if (database.specialists) {
+                    allSpecialists = database.specialists || [];
+                }
+
+                specialtyList.forEach(function(specialty) {
+                    var specId = specialty.id;
+                    var matching = allSpecialists.filter(function(s) {
+                        var sCode = s.spec || s.specCode || s.specialty || '';
+                        if (sCode === specId) return true;
+                        if (window.Hub && typeof window.Hub.normalizeSpecialtyId === 'function') {
+                            return window.Hub.normalizeSpecialtyId(sCode) === window.Hub.normalizeSpecialtyId(specId);
+                        }
+                        return false;
+                    });
+                    nameData[specialty.id] = matching.map(function(s) { return s.name; });
+                });
+                return;
+            }
+
             var residents = database.names || [];
             specialtyList.forEach(function(specialty) {
                 if (window.Hub && typeof window.Hub.getEligibleResidentsForSpecialty === 'function') {
@@ -1992,7 +2094,7 @@
         // REDISTRIBUTION FUNCTIONS
         // ================================================================
         function redistributeDayTimes(date, specialtyCode, editedSlotIndex, useAuto) {
-            var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+            var entries = (getActiveSchedule()).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
             entries.sort(function(a, b) { return (a.dutySlot || 0) - (b.dutySlot || 0); });
             entries.forEach(function(entry, index) { entry.dutySlot = index; });
 
@@ -2184,7 +2286,7 @@
         }
 
         function getDaySlots(date, specialtyCode) {
-            var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+            var entries = (getActiveSchedule()).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
             return entries.map(function(entry, index) {
                 var dutyTime = entry.dutyTime || null;
                 var timeData = null;
@@ -2248,12 +2350,13 @@
                 }
                 
                 var totalResidents = nameData[specialty.id]?.length || 0;
+                var roleCountLabel = schedulerMode === 'specialists' ? 'أطباء اختصاص' : 'مقيمين';
                 
                 var html = `
                     <div class="track-header" style="border-bottom-color: ${specialtyColor};">
                         <span class="specialty-icon">${specialty.icon || '🏥'}</span>
                         <h2 style="color: ${specialtyColor};">${specialty.name_ar || specialty.name}</h2>
-                        <span class="specialty-count">${totalResidents} residents</span>
+                        <span class="specialty-count">${totalResidents} ${roleCountLabel}</span>
                         ${isSingleView ? `
                             <div class="track-navigation">
                                 <button onclick="event.stopPropagation(); navigateTrack(-1)">‹</button>
@@ -2272,7 +2375,7 @@
                     var isWeekend = (dateObject.getDay() === 5 || dateObject.getDay() === 6);
                     
                     var result = redistributeDayTimes(dateFull, specialty.id, null, isDayAutoRedistributionEnabled(dateFull, specialty.id));
-                    var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === dateFull && scheduleEntry.specCode === specialty.id; });
+                    var entries = (getActiveSchedule()).filter(function(scheduleEntry) { return scheduleEntry.date === dateFull && scheduleEntry.specCode === specialty.id; });
                     var numberOfSlots = entries.length;
                     var isSingleSlot = numberOfSlots === 1;
                     var hasGaps = result.hasGaps;
@@ -2409,9 +2512,9 @@
             
             closeTimePicker();
             
-            var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+            var entries = (getActiveSchedule()).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
             if (entries.length <= 1) {
-                showToast('⏰ Time is fixed to 24 hours (single resident)', 'info', 2000);
+                showToast(schedulerMode === 'specialists' ? '⏰ الوقت محدد بـ 24 ساعة (طبيب اختصاصي واحد)' : '⏰ Time is fixed to 24 hours (single resident)', 'info', 2000);
                 return;
             }
             
@@ -2577,7 +2680,7 @@
                 return;
             }
             
-            var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+            var entries = (getActiveSchedule()).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
             if (slotIndex >= entries.length) {
                 closeTimePicker();
                 return;
@@ -2586,11 +2689,11 @@
             var startClock = clockMinutes(startHours, startMinutes, startAmpm);
             var endClock = clockMinutes(endHours, endMinutes, endAmpm);
             if (slotIndex === 0 && startClock < DAY_START * 60) {
-                showToast('❌ The first resident cannot start before 08:00AM', 'error', 2500);
+                showToast(schedulerMode === 'specialists' ? '❌ لا يمكن للطبيب الأول البدء قبل 08:00 صباحاً' : '❌ The first resident cannot start before 08:00AM', 'error', 2500);
                 return;
             }
             if (slotIndex === entries.length - 1 && endClock > DAY_START * 60) {
-                showToast('❌ The last resident cannot end after 08:00AM', 'error', 2500);
+                showToast(schedulerMode === 'specialists' ? '❌ لا يمكن للطبيب الأخير الانتهاء بعد 08:00 صباحاً' : '❌ The last resident cannot end after 08:00AM', 'error', 2500);
                 return;
             }
 
@@ -2637,15 +2740,46 @@
             }
         }
 
+        function isNameValidForSpecialty(name, specialtyCode) {
+            if (!name || !name.trim()) return false;
+            var trimmed = name.trim();
+            var validNames = nameData[specialtyCode] || [];
+
+            if (schedulerMode === 'specialists') {
+                var cleanInput = trimmed.replace(/^د[\.\s]+/, '').trim().toLowerCase();
+                var inTrack = validNames.some(function(n) {
+                    var cleanN = n.replace(/^د[\.\s]+/, '').trim().toLowerCase();
+                    return cleanN === cleanInput || n.toLowerCase() === trimmed.toLowerCase();
+                });
+                if (inTrack) return true;
+
+                if (window.Hub && typeof window.Hub.getSpecialists === 'function') {
+                    var hid = database.id || window.Hub.getActiveHospitalId();
+                    var allSpecs = window.Hub.getSpecialists(hid, null);
+                    var inHospital = allSpecs.some(function(s) {
+                        var cleanS = (s.name || '').replace(/^د[\.\s]+/, '').trim().toLowerCase();
+                        return cleanS === cleanInput || (s.name || '').toLowerCase() === trimmed.toLowerCase();
+                    });
+                    if (inHospital) return true;
+                }
+
+                if (validNames.length === 0) return true;
+                return false;
+            }
+
+            return validNames.some(function(n) { return n.toLowerCase() === trimmed.toLowerCase(); });
+        }
+
         // ================================================================
         // ADD / DELETE SLOT
         // ================================================================
         function addSlot(date, specialtyCode) {
-            var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+            var scheduleArray = getActiveSchedule();
+            var entries = scheduleArray.filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
             var newIndex = entries.length;
 
             if (entries.length === 0) {
-                database.schedule.push({
+                scheduleArray.push({
                     date: date,
                     specCode: specialtyCode,
                     name: "",
@@ -2664,7 +2798,7 @@
                 dutyTime: "",
                 dutySlot: newIndex
             };
-            database.schedule.push(newEntry);
+            scheduleArray.push(newEntry);
             
             redistributeDayTimes(date, specialtyCode, null, isDayAutoRedistributionEnabled(date, specialtyCode));
             
@@ -2684,18 +2818,19 @@
                 }
             }, 150);
             
-            showToast('✅ New resident added - time redistributed', 'success', 2000);
+            showToast(schedulerMode === 'specialists' ? '✅ تم إضافة خفارة اختصاصي - تم توزيع الوقت' : '✅ New resident added - time redistributed', 'success', 2000);
         }
 
         function deleteSlot(date, specialtyCode, slotIndex) {
-            var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+            var scheduleArray = getActiveSchedule();
+            var entries = scheduleArray.filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
             if (slotIndex >= entries.length) return;
             
             var entryToRemove = entries[slotIndex];
-            var index = database.schedule.indexOf(entryToRemove);
-            if (index !== -1) database.schedule.splice(index, 1);
+            var index = scheduleArray.indexOf(entryToRemove);
+            if (index !== -1) scheduleArray.splice(index, 1);
             
-            var remaining = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+            var remaining = scheduleArray.filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
             remaining.forEach(function(entry, idx) { entry.dutySlot = idx; });
             
             if (remaining.length > 0) {
@@ -2708,7 +2843,7 @@
             pendingFocusUsed = false;
             
             refreshView();
-            showToast('🗑️ Resident deleted - time redistributed', 'info', 2000);
+            showToast(schedulerMode === 'specialists' ? '🗑️ تم حذف خفارة الاختصاصي - تم توزيع الوقت' : '🗑️ Resident deleted - time redistributed', 'info', 2000);
         }
 
         // ================================================================
@@ -2728,10 +2863,10 @@
                 var slotIndex = parseInt(input.dataset.slot) || 0;
                 
                 if (date && date.endsWith(month + '/' + year)) {
-                    var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+                    var entries = (getActiveSchedule()).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
                     if (slotIndex < entries.length) {
                         var entry = entries[slotIndex];
-                        var isValidName = nameData[specialtyCode]?.includes(entry.name) || false;
+                        var isValidName = isNameValidForSpecialty(entry.name, specialtyCode);
                         input.value = entry.name || '';
                         if (entry.name) {
                             if (!isValidName && entry.name.trim() !== '') {
@@ -2940,7 +3075,7 @@
                 menu.style.borderColor = specialtyColor;
                 var validNames = nameData[specialtyId] || [];
                 if (validNames.length === 0) {
-                    menu.innerHTML = '<div style="color:#5d6f83;font-size:0.55rem;text-align:center;padding:0.4rem;">No residents</div>';
+                    menu.innerHTML = '<div style="color:#5d6f83;font-size:0.55rem;text-align:center;padding:0.4rem;">' + (schedulerMode === 'specialists' ? 'لا يوجد أطباء اختصاص' : 'No residents') + '</div>';
                 } else {
                     menu.innerHTML = validNames.map(function(name) { 
                         return '<div onmousedown="selectName(\'' + uniqueId + '\', \'' + name + '\')">' + name + '</div>';
@@ -2986,8 +3121,7 @@
                     saveEntry(input);
                 } else if (input && input.value.trim() !== "") {
                     var specialtyCode = input.dataset.spec;
-                    var validNames = nameData[specialtyCode] || [];
-                    var isValid = validNames.some(function(name) { return name.toLowerCase() === input.value.trim().toLowerCase(); });
+                    var isValid = isNameValidForSpecialty(input.value.trim(), specialtyCode);
                     if (!isValid) {
                         input.classList.add('invalid-name');
                         input.classList.remove('prefilled', 'new-entry');
@@ -2999,7 +3133,7 @@
                                 var date = input.dataset.date;
                                 var specialtyCode = input.dataset.spec;
                                 var slotIndex = parseInt(input.dataset.slot) || 0;
-                                var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+                                var entries = (getActiveSchedule()).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
                                 if (slotIndex < entries.length && entries[slotIndex].name === input.value) {
                                     entries[slotIndex].name = '';
                                     refreshView();
@@ -3027,8 +3161,8 @@
             
             if (!name) return;
             
-            var validNames = nameData[specialtyCode] || [];
-            if (!validNames.some(function(n) { return n.toLowerCase() === name.toLowerCase(); })) {
+            var isValid = isNameValidForSpecialty(name, specialtyCode);
+            if (!isValid) {
                 input.classList.add('invalid-name');
                 input.classList.remove('prefilled', 'new-entry');
                 showToast('⚠️ "' + name + '" not found', 'error', 2000);
@@ -3036,7 +3170,7 @@
                     if (input && input.classList.contains('invalid-name')) {
                         input.value = '';
                         input.classList.remove('invalid-name');
-                        var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+                        var entries = (getActiveSchedule()).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
                         if (slotIndex < entries.length && entries[slotIndex].name === name) {
                             entries[slotIndex].name = '';
                             refreshView();
@@ -3046,7 +3180,8 @@
                 return;
             }
             
-            var entries = (database.schedule || []).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+            var scheduleArray = getActiveSchedule();
+            var entries = scheduleArray.filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
             if (slotIndex >= entries.length) {
                 var newEntry = {
                     date: date,
@@ -3056,7 +3191,7 @@
                     dutyTime: "",
                     dutySlot: slotIndex
                 };
-                database.schedule.push(newEntry);
+                scheduleArray.push(newEntry);
                 redistributeDayTimes(date, specialtyCode, null, isDayAutoRedistributionEnabled(date, specialtyCode));
             } else {
                 entries[slotIndex].name = name;
@@ -3092,10 +3227,17 @@
                 if (window.Hub) {
                     var activeHosp = window.Hub.getActiveHospital();
                     if (activeHosp) {
-                        activeHosp.schedule = database.schedule;
-                        await window.Hub.saveDatabase("Sync Schedule for " + (activeHosp.name_ar || activeHosp.hospitalName));
-                        if (button) button.innerHTML = '<i class="fas fa-check"></i> <span>تم الحفظ!</span>';
-                        showToast('✅ تم حفظ جدول الخفارات بنجاح في السيرفر', 'success');
+                        if (schedulerMode === 'specialists') {
+                            activeHosp.specialistSchedule = database.specialistSchedule || [];
+                            await window.Hub.saveDatabase("Sync Specialist Schedule for " + (activeHosp.name_ar || activeHosp.hospitalName));
+                            if (button) button.innerHTML = '<i class="fas fa-check"></i> <span>تم الحفظ!</span>';
+                            showToast('✅ تم حفظ جدول خفارات الاختصاصيين بنجاح في السيرفر', 'success');
+                        } else {
+                            activeHosp.schedule = database.schedule || [];
+                            await window.Hub.saveDatabase("Sync Schedule for " + (activeHosp.name_ar || activeHosp.hospitalName));
+                            if (button) button.innerHTML = '<i class="fas fa-check"></i> <span>تم الحفظ!</span>';
+                            showToast('✅ تم حفظ جدول خفارات المقيمين بنجاح في السيرفر', 'success');
+                        }
                     }
                 }
             } catch (error) { 
@@ -3106,7 +3248,8 @@
             setTimeout(function() { 
                 if (button) {
                     button.disabled = false;
-                    button.innerHTML = '<i class="fas fa-cloud-arrow-up"></i> <span id="save-btn-text">حفظ الجدول</span>'; 
+                    var label = schedulerMode === 'specialists' ? 'حفظ جدول الاختصاص' : 'حفظ الجدول';
+                    button.innerHTML = '<i class="fas fa-cloud-arrow-up"></i> <span id="save-btn-text">' + label + '</span>'; 
                 }
             }, 2200);
         }
@@ -3170,7 +3313,7 @@
             var popup = document.querySelector('.gap-fix-popup');
             if (popup) popup.remove();
 
-            var entries = (database.schedule || []).filter(function(scheduleEntry) {
+            var entries = (getActiveSchedule()).filter(function(scheduleEntry) {
                 return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode;
             });
             if (entries.length <= 1) return;
@@ -3195,6 +3338,8 @@
         // EXPOSE TO GLOBAL SCOPE
         // ================================================================
         window.switchView = switchView;
+        window.switchSchedulerMode = switchSchedulerMode;
+        window.getActiveSchedule = getActiveSchedule;
         window.navigateTrack = navigateTrack;
         window.addSlot = addSlot;
         window.deleteSlot = deleteSlot;

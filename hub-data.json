@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-18T17:34:46.714Z",
+  "lastUpdated": "2026-09-18T20:32:17.626Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -226,21 +226,21 @@
           "enabled": true
         },
         {
-          "id": "AO",
-          "name_ar": "المعاون الاداري",
-          "name_en": "Administrative Officer",
-          "icon": "🧑",
-          "color": "#0f766e",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
           "id": "ON",
           "name_ar": "طب الاورام",
           "name_en": "Oncology",
           "icon": "☢️",
           "color": "#84cc16",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "AO",
+          "name_ar": "المعاون الاداري",
+          "name_en": "Administrative Officer",
+          "icon": "🧑",
+          "color": "#0f766e",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true

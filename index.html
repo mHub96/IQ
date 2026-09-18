@@ -730,6 +730,13 @@
             transform: scale(0.92);
         }
 
+        @view-transition {
+            navigation: auto;
+        }
+        .ios-bottom-dock {
+            view-transition-name: hub-bottom-app-dock;
+        }
+
         /* Lock Screen */
         #lock-screen {
             position: fixed;
@@ -1012,6 +1019,10 @@
             <i class="fas fa-hospital-alt"></i>
             <span>المستشفيات</span>
         </button>
+        <a href="./specialists.html" class="dock-tab-btn">
+            <i class="fas fa-user-tie"></i>
+            <span>الاختصاص</span>
+        </a>
         <a href="./residents.html" class="dock-tab-btn">
             <i class="fas fa-users-rectangle"></i>
             <span>المقيمين</span>
@@ -1531,20 +1542,25 @@
                         </div>
 
                         <!-- Action Buttons -->
-                        <div>
-                            <div class="widget-actions-grid ${!isHospAdmin ? 'user-layout' : ''}">
+                            <div class="widget-actions-grid">
                                 <a href="./Home.html?hospital=${h.id}" class="ios-btn primary" onclick="Hub.setActiveHospitalId('${h.id}')">
                                     <i class="fas fa-users-viewfinder"></i> <span>الخفراء اليوم</span>
                                 </a>
+                                <a href="./schedule.html?hospital=${h.id}" class="ios-btn secondary" onclick="Hub.setActiveHospitalId('${h.id}')">
+                                    <i class="fas fa-calendar-week"></i> <span>جدول الخفارات</span>
+                                </a>
                                 <a href="./signup.html?hospital=${h.id}" class="ios-btn secondary">
-                                    <i class="fas fa-pen-to-square"></i> <span>تسجيل خفر</span>
+                                    <i class="fas fa-exchange-alt"></i> <span>تبديل خفر</span>
+                                </a>
+                                <a href="./specialists.html?hospital=${h.id}" class="ios-btn secondary">
+                                    <i class="fas fa-user-tie"></i> <span>أطباء الاختصاص</span>
                                 </a>
                                 ${isHospAdmin ? `
                                 <a href="./scheduler.html?hospital=${h.id}" class="ios-btn secondary">
                                     <i class="fas fa-calendar-alt"></i> <span>مجدول الشهر</span>
                                 </a>
                                 <a href="./admin.html?hospital=${h.id}" class="ios-btn secondary">
-                                    <i class="fas fa-sliders"></i> <span>الإدارة</span>
+                                    <i class="fas fa-sliders"></i> <span>إدارة المستشفى</span>
                                 </a>` : ''}
                             </div>
 

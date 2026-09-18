@@ -729,6 +729,246 @@
             color: #d4af37;
         }
 
+        /* ============================================================
+           COMPACT MOBILE TRANSPOSED MATRIX STYLES
+           ============================================================ */
+        .matrix-table.is-mobile-transposed {
+            min-width: max-content !important;
+            width: max-content !important;
+        }
+
+        /* 1. Mobile Corner TH (Frozen Top AND Right) */
+        .matrix-table th.mobile-corner-th {
+            position: sticky;
+            top: 0;
+            right: 0;
+            z-index: 50 !important;
+            width: 74px !important;
+            min-width: 74px !important;
+            max-width: 74px !important;
+            background: #e2e8f0 !important;
+            opacity: 1 !important;
+            padding: 8px 4px !important;
+            box-shadow: -3px 3px 8px rgba(0, 0, 0, 0.07);
+            background-clip: padding-box;
+            border-bottom: 2px solid #cbd5e1 !important;
+            border-left: 2px solid #0f766e !important;
+        }
+        body.dark .matrix-table th.mobile-corner-th {
+            background: #1a263c !important;
+            border-bottom-color: rgba(212, 175, 55, 0.3) !important;
+            border-left-color: #d4af37 !important;
+            box-shadow: -3px 3px 12px rgba(0, 0, 0, 0.7);
+        }
+
+        /* 2. Mobile Specialty Column Headers (Frozen Top) */
+        .matrix-table th.mobile-spec-th {
+            position: sticky;
+            top: 0;
+            z-index: 30 !important;
+            width: 135px;
+            min-width: 130px;
+            max-width: 150px;
+            padding: 7px 5px !important;
+            background: #f1f5f9 !important;
+            opacity: 1 !important;
+            border-bottom: 2px solid #cbd5e1 !important;
+            border-left: 1px solid #e2e8f0 !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            background-clip: padding-box;
+            vertical-align: middle;
+        }
+        body.dark .matrix-table th.mobile-spec-th {
+            background: #151e2e !important;
+            border-bottom-color: rgba(212, 175, 55, 0.25) !important;
+            border-left-color: rgba(255, 255, 255, 0.08) !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+        }
+
+        .mobile-spec-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+        }
+        .mobile-spec-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            font-size: 0.85rem;
+        }
+        .mobile-spec-name {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #1e293b;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+        }
+        body.dark .mobile-spec-name {
+            color: #f1f5f9;
+        }
+
+        /* 3. Mobile Day Column in Body (Frozen Right) */
+        .matrix-table td.mobile-day-td {
+            position: sticky;
+            right: 0;
+            z-index: 25 !important;
+            width: 74px !important;
+            min-width: 74px !important;
+            max-width: 74px !important;
+            background: #ffffff !important;
+            opacity: 1 !important;
+            border-left: 2.5px solid #0f766e !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            box-shadow: -3px 0 8px rgba(0, 0, 0, 0.05);
+            background-clip: padding-box;
+            padding: 5px 3px !important;
+            text-align: center;
+        }
+        body.dark .matrix-table td.mobile-day-td {
+            background: #121927 !important;
+            border-left-color: #d4af37 !important;
+            border-bottom-color: rgba(255, 255, 255, 0.07) !important;
+            box-shadow: -3px 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .mobile-day-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .mobile-day-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+        .mobile-day-name {
+            font-size: 0.65rem;
+            font-weight: 800;
+            margin-top: 1px;
+            line-height: 1;
+        }
+        .mobile-today-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #10b981;
+            position: absolute;
+            top: -2px;
+            right: 2px;
+            box-shadow: 0 0 6px #10b981;
+            animation: ecgPulse 2s infinite;
+        }
+
+        /* 4. Mobile Body Specialty Cells */
+        .matrix-table td.mobile-spec-cell {
+            width: 135px;
+            min-width: 130px;
+            max-width: 150px;
+            padding: 5px 4px !important;
+            border-left: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+            text-align: center;
+        }
+        body.dark .matrix-table td.mobile-spec-cell {
+            border-left-color: rgba(255, 255, 255, 0.06);
+            border-bottom-color: rgba(255, 255, 255, 0.07);
+        }
+
+        /* 5. Mobile Row Backgrounds (Today, Friday, Saturday) */
+        .mobile-day-row.is-today-row td {
+            background-color: #f0fdfa !important;
+        }
+        body.dark .mobile-day-row.is-today-row td {
+            background-color: #0d222b !important;
+        }
+        .mobile-day-row.is-today-row td.mobile-day-td {
+            background-color: #ccfbf1 !important;
+        }
+        body.dark .mobile-day-row.is-today-row td.mobile-day-td {
+            background-color: #142834 !important;
+        }
+
+        .mobile-day-row.is-friday-row:not(.is-today-row) td {
+            background-color: #fff8f8 !important;
+        }
+        body.dark .mobile-day-row.is-friday-row:not(.is-today-row) td {
+            background-color: #1a1216 !important;
+        }
+        .mobile-day-row.is-friday-row td.mobile-day-td {
+            background-color: #fee2e2 !important;
+        }
+        body.dark .mobile-day-row.is-friday-row td.mobile-day-td {
+            background-color: #24141c !important;
+        }
+
+        .mobile-day-row.is-saturday-row:not(.is-today-row) td {
+            background-color: #fffaf5 !important;
+        }
+        body.dark .mobile-day-row.is-saturday-row:not(.is-today-row) td {
+            background-color: #1a1512 !important;
+        }
+        .mobile-day-row.is-saturday-row td.mobile-day-td {
+            background-color: #ffedd5 !important;
+        }
+        body.dark .mobile-day-row.is-saturday-row td.mobile-day-td {
+            background-color: #241812 !important;
+        }
+
+        /* 6. Mobile Duty Chips (Compact & Clean) */
+        .doctor-duty-chip.mobile-chip {
+            padding: 3px 6px;
+            margin: 2px auto;
+            font-size: 0.72rem;
+            font-weight: 800;
+            border-radius: 8px;
+            max-width: 120px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+        .doctor-duty-chip.mobile-chip .duty-doctor-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 95px;
+        }
+        .doctor-duty-chip.mobile-chip .duty-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* 7. Row glow animation for jump to today */
+        @keyframes rowPulseHighlight {
+            0% { box-shadow: inset 0 0 0 2px #0f766e; }
+            50% { box-shadow: inset 0 0 16px rgba(15, 118, 110, 0.45); }
+            100% { box-shadow: inset 0 0 0 2px #0f766e; }
+        }
+        @keyframes rowPulseHighlightDark {
+            0% { box-shadow: inset 0 0 0 2px #d4af37; }
+            50% { box-shadow: inset 0 0 16px rgba(212, 175, 55, 0.45); }
+            100% { box-shadow: inset 0 0 0 2px #d4af37; }
+        }
+        .mobile-day-row.today-row-glow td {
+            animation: rowPulseHighlight 1.6s ease-in-out 2;
+        }
+        body.dark .mobile-day-row.today-row-glow td {
+            animation: rowPulseHighlightDark 1.6s ease-in-out 2;
+        }
+
         @media print {
             .no-print, .segmented-control, .pills-scroll, #universal-nav, .hub-mobile-bottom-dock, .ios-bottom-dock {
                 display: none !important;
@@ -831,13 +1071,19 @@
 
         <!-- Schedule View Container: Matrix Mode -->
         <section id="view-matrix-section" class="glass-card p-3 sm:p-4 mb-6">
-            <div class="flex items-center justify-between mb-3 px-1">
+            <div class="flex items-center justify-between mb-3 px-1 flex-wrap gap-2">
                 <div class="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-2">
                     <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                     <span id="matrix-stats-text">جاري تحميل جدول الشهر...</span>
                 </div>
-                <div class="text-[11px] text-slate-400 dark:text-slate-500 hidden sm:block">
-                    * يمكنك السحب أفقياً لاستعراض كافة أيام الشهر
+                <div class="flex items-center gap-2">
+                    <button type="button" id="matrix-layout-toggle-btn" onclick="toggleMatrixLayoutMode()" class="btn-ghost text-xs py-1 px-2.5 flex items-center gap-1.5 font-bold" title="تبديل اتجاه الجدول (أيام أفقية / رأسية)">
+                        <i class="fas fa-arrows-rotate" id="matrix-layout-icon"></i>
+                        <span id="matrix-layout-text">عرض الهاتف</span>
+                    </button>
+                    <div class="text-[11px] text-slate-400 dark:text-slate-500 hidden md:block" id="matrix-scroll-hint">
+                        * اسحب رأسياً لتصفح الأيام وأفقياً للتنقل بين التخصصات
+                    </div>
                 </div>
             </div>
 
@@ -1042,29 +1288,60 @@
         function scrollToToday(dayNum) {
             if (currentViewMode === 'matrix') {
                 const tableContainer = document.querySelector('.matrix-table-container');
-                const todayHeader = document.getElementById('today-header-col');
-                if (tableContainer && todayHeader) {
-                    const containerWidth = tableContainer.clientWidth;
-                    const headerOffset = todayHeader.offsetLeft;
-                    const headerWidth = todayHeader.offsetWidth;
-                    const scrollPos = headerOffset - (containerWidth / 2) + (headerWidth / 2);
-                    
-                    tableContainer.scrollTo({
-                        left: scrollPos,
-                        behavior: 'smooth'
-                    });
+                if (!tableContainer) return;
 
-                    // Trigger elegant focus halo animation on header
-                    todayHeader.classList.remove('today-elegant-active');
-                    void todayHeader.offsetWidth;
-                    todayHeader.classList.add('today-elegant-active');
+                if (isMobileLayout()) {
+                    // Mobile transposed view: Days are rows, scroll vertically
+                    const todayRow = document.getElementById('today-row') || document.getElementById(`day-row-${dayNum}`);
+                    if (todayRow) {
+                        const rowTop = todayRow.offsetTop;
+                        const containerHeight = tableContainer.clientHeight;
+                        const rowHeight = todayRow.clientHeight;
+                        const scrollPos = rowTop - (containerHeight / 2) + (rowHeight / 2);
 
-                    // Subtle, graceful column highlight
-                    document.querySelectorAll('.is-today-col').forEach(el => {
-                        el.classList.remove('today-col-glow');
-                        void el.offsetWidth;
-                        el.classList.add('today-col-glow');
-                    });
+                        tableContainer.scrollTo({
+                            top: Math.max(0, scrollPos),
+                            behavior: 'smooth'
+                        });
+
+                        // Trigger pulse glow on row and sticky day cell
+                        todayRow.classList.remove('today-row-glow');
+                        void todayRow.offsetWidth;
+                        todayRow.classList.add('today-row-glow');
+
+                        const dayCell = todayRow.querySelector('.mobile-day-td');
+                        if (dayCell) {
+                            dayCell.classList.remove('today-elegant-active');
+                            void dayCell.offsetWidth;
+                            dayCell.classList.add('today-elegant-active');
+                        }
+                    }
+                } else {
+                    // Desktop view: Days are header columns, scroll horizontally
+                    const todayHeader = document.getElementById('today-header-col');
+                    if (todayHeader) {
+                        const containerWidth = tableContainer.clientWidth;
+                        const headerOffset = todayHeader.offsetLeft;
+                        const headerWidth = todayHeader.offsetWidth;
+                        const scrollPos = headerOffset - (containerWidth / 2) + (headerWidth / 2);
+                        
+                        tableContainer.scrollTo({
+                            left: scrollPos,
+                            behavior: 'smooth'
+                        });
+
+                        // Trigger elegant focus halo animation on header
+                        todayHeader.classList.remove('today-elegant-active');
+                        void todayHeader.offsetWidth;
+                        todayHeader.classList.add('today-elegant-active');
+
+                        // Subtle, graceful column highlight
+                        document.querySelectorAll('.is-today-col').forEach(el => {
+                            el.classList.remove('today-col-glow');
+                            void el.offsetWidth;
+                            el.classList.add('today-col-glow');
+                        });
+                    }
                 }
             } else {
                 const todayCard = document.getElementById('today-single-card') || document.querySelector('.day-duty-card.today');
@@ -1143,15 +1420,54 @@
         }
 
         // ================================================================
-        // 1. MATRIX VIEW (All Specialties Table)
+        // 1. MATRIX VIEW (All Specialties Table - Responsive PC & Mobile)
         // ================================================================
+        let matrixLayoutMode = 'auto'; // 'auto' | 'mobile' | 'desktop'
+
+        function isMobileLayout() {
+            if (matrixLayoutMode === 'mobile') return true;
+            if (matrixLayoutMode === 'desktop') return false;
+            return window.innerWidth <= 768;
+        }
+
+        function toggleMatrixLayoutMode() {
+            const currentlyMobile = isMobileLayout();
+            matrixLayoutMode = currentlyMobile ? 'desktop' : 'mobile';
+            updateMatrixLayoutButton();
+            renderMatrixView();
+        }
+
+        function updateMatrixLayoutButton() {
+            const btn = document.getElementById('matrix-layout-toggle-btn');
+            const icon = document.getElementById('matrix-layout-icon');
+            const text = document.getElementById('matrix-layout-text');
+            const hint = document.getElementById('matrix-scroll-hint');
+            if (!btn || !text) return;
+
+            const isMob = isMobileLayout();
+            if (isMob) {
+                text.textContent = 'عرض الهاتف (رأسي)';
+                btn.className = 'btn-ghost text-xs py-1 px-2.5 flex items-center gap-1.5 text-teal-700 dark:text-amber-400 border-teal-500/40 dark:border-amber-400/40 font-bold';
+                if (icon) icon.className = 'fas fa-mobile-alt';
+                if (hint) hint.textContent = '* اسحب رأسياً لتصفح الأيام وأفقياً للتنقل بين التخصصات';
+            } else {
+                text.textContent = 'عرض الكمبيوتر (أفقي)';
+                btn.className = 'btn-ghost text-xs py-1 px-2.5 flex items-center gap-1.5 text-slate-600 dark:text-slate-300 font-bold';
+                if (icon) icon.className = 'fas fa-desktop';
+                if (hint) hint.textContent = '* يمكنك السحب أفقياً لاستعراض كافة أيام الشهر';
+            }
+        }
+
         function renderMatrixView() {
             if (!currentHospital) return;
 
+            const table = document.getElementById('schedule-matrix-table');
             const thead = document.getElementById('matrix-table-head');
             const tbody = document.getElementById('matrix-table-body');
             const statsText = document.getElementById('matrix-stats-text');
             if (!thead || !tbody) return;
+
+            updateMatrixLayoutButton();
 
             const daysCount = getDaysInMonth(currentYear, currentMonth);
             const todayStr = Hub.getMedicalDate();
@@ -1165,43 +1481,10 @@
                 statsText.textContent = `تم تسجيل ${monthEntries.length} ${roleLabel} عبر ${currentHospital.specialties?.length || 0} تخصص لشهر ${MONTH_NAMES_AR[currentMonth - 1]}`;
             }
 
-            // Build Header Row (Centered & Bold Day Numbers and Day Names)
-            let headHtml = `<tr>
-                <th class="sticky-col">
-                    <div class="header-specialty-title">
-                        <i class="fas fa-stethoscope ml-1 text-teal-600 dark:text-amber-400"></i>
-                        <span>التخصص الطبي</span>
-                    </div>
-                </th>`;
-
-            for (let d = 1; d <= daysCount; d++) {
-                const dateObj = new Date(currentYear, currentMonth - 1, d);
-                const dayName = DAY_NAMES_AR[dateObj.getDay()];
-                const dayOfWeek = dateObj.getDay();
-                const isFriday = dayOfWeek === 5;
-                const isSaturday = dayOfWeek === 6;
-                const isToday = isCurrentMonth && (d === todayD);
-
-                const colClasses = [
-                    isToday ? 'is-today-col' : '',
-                    isFriday ? 'is-friday-col' : '',
-                    isSaturday ? 'is-saturday-col' : ''
-                ].filter(Boolean).join(' ');
-
-                headHtml += `
-                    <th id="${isToday ? 'today-header-col' : `day-header-${d}`}" class="${colClasses}">
-                        <div class="day-number-text ${isToday ? 'text-teal-700 dark:text-amber-400' : ''}">${d}</div>
-                        <div class="day-name-text">${dayName}</div>
-                        ${isToday ? '<span class="today-header-badge"><i class="fas fa-bullseye ml-0.5 text-[9px]"></i> اليوم</span>' : ''}
-                    </th>
-                `;
-            }
-            headHtml += `</tr>`;
-            thead.innerHTML = headHtml;
-
             // Active Specialties
             let specs = (currentHospital.specialties || []).filter(s => s.enabled !== false);
             if (specs.length === 0) {
+                thead.innerHTML = '';
                 tbody.innerHTML = `<tr><td colspan="${daysCount + 1}" class="py-8 text-center text-slate-400">لا توجد تخصصات مضافة لهذا المستشفى</td></tr>`;
                 return;
             }
@@ -1219,49 +1502,129 @@
                 }
             });
 
-            // Build Body Rows (Specialties Centered & Bold with Colored Badges)
-            let bodyHtml = '';
-            specs.forEach(spec => {
-                const specColor = spec.color || '#0f766e';
-                bodyHtml += `<tr>`;
-                bodyHtml += `
-                    <td class="sticky-col">
-                        <div class="specialty-cell-badge">
-                            <span class="specialty-icon-chip" style="background: ${specColor}18; color: ${specColor}; border: 1.5px solid ${specColor}40;">
-                                ${spec.icon || '🏥'}
-                            </span>
-                            <span class="specialty-name-text">${(window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(spec.id) : (spec.name_ar || spec.id)}</span>
-                        </div>
-                    </td>
-                `;
+            const isMobile = isMobileLayout();
 
+            if (isMobile) {
+                // ============================================================
+                // MOBILE COMPACT TRANSPOSED VIEW:
+                // - Top Row (thead): Specialties (Frozen top: sticky; top: 0)
+                // - Right Column (tbody): Days of Month (Frozen right: sticky; right: 0)
+                // ============================================================
+                if (table) table.classList.add('is-mobile-transposed');
+
+                // Header row: Corner (اليوم) + Specialties
+                let headHtml = `<tr>
+                    <th class="sticky-col mobile-corner-th">
+                        <div class="flex flex-col items-center justify-center gap-0.5 text-teal-700 dark:text-amber-400 font-black text-[11px]">
+                            <i class="fas fa-calendar-day text-xs"></i>
+                            <span>اليوم</span>
+                        </div>
+                    </th>`;
+
+                specs.forEach(spec => {
+                    const specColor = spec.color || '#0f766e';
+                    const specName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(spec.id) : (spec.name_ar || spec.id);
+                    headHtml += `
+                        <th class="mobile-spec-th" style="--spec-color: ${specColor};">
+                            <div class="mobile-spec-header">
+                                <span class="mobile-spec-icon" style="background: ${specColor}18; color: ${specColor}; border: 1.5px solid ${specColor}40;">
+                                    ${spec.icon || '🏥'}
+                                </span>
+                                <span class="mobile-spec-name" title="${specName}">${specName}</span>
+                            </div>
+                        </th>
+                    `;
+                });
+                headHtml += `</tr>`;
+                thead.innerHTML = headHtml;
+
+                // Body rows: Each row is a Day (1..daysCount)
+                let bodyHtml = '';
                 for (let d = 1; d <= daysCount; d++) {
                     const dateObj = new Date(currentYear, currentMonth - 1, d);
+                    const dayName = DAY_NAMES_AR[dateObj.getDay()];
                     const dayOfWeek = dateObj.getDay();
                     const isFriday = dayOfWeek === 5;
                     const isSaturday = dayOfWeek === 6;
                     const isToday = isCurrentMonth && (d === todayD);
-                    const duties = scheduleMap[spec.id]?.[d] || [];
-                    
-                    let cellContent = '';
-                    if (duties.length > 0) {
-                        cellContent = duties.map(entry => {
-                            const name = (entry.name || '').trim();
-                            const isMatched = searchQuery && name.toLowerCase().includes(searchQuery);
-                            const highlightClass = isMatched ? 'matched-doctor-chip' : '';
-                            return `
-                                <span class="doctor-duty-chip ${highlightClass}" 
-                                      style="--spec-card-color: ${specColor};"
-                                      onclick="openDutyDetailModal('${spec.id}', '${spec.name_ar}', '${d}/${currentMonth}/${currentYear}', '${encodeURIComponent(JSON.stringify(entry))}')"
-                                      title="اضغط لعرض تفاصيل الخفر">
-                                    <span class="duty-dot" style="background: ${specColor};"></span>
-                                    <span class="duty-doctor-name">${name}</span>
-                                </span>
-                            `;
-                        }).join('');
-                    } else {
-                        cellContent = `<span class="empty-slot-dash">—</span>`;
-                    }
+
+                    const rowClasses = [
+                        isToday ? 'is-today-row' : '',
+                        isFriday ? 'is-friday-row' : '',
+                        isSaturday ? 'is-saturday-row' : ''
+                    ].filter(Boolean).join(' ');
+
+                    bodyHtml += `<tr id="${isToday ? 'today-row' : `day-row-${d}`}" class="mobile-day-row ${rowClasses}">`;
+
+                    // Frozen Right Cell: The Day
+                    bodyHtml += `
+                        <td class="sticky-col mobile-day-td ${isToday ? 'is-today-cell' : ''}">
+                            <div class="mobile-day-block">
+                                <span class="mobile-day-num ${isToday ? 'text-teal-700 dark:text-amber-400 font-black' : (isFriday ? 'text-rose-600 dark:text-rose-400 font-bold' : (isSaturday ? 'text-orange-600 dark:text-orange-400 font-bold' : 'text-slate-800 dark:text-white font-bold'))}">${d}</span>
+                                <span class="mobile-day-name ${isFriday ? 'text-rose-500' : (isSaturday ? 'text-orange-500' : 'text-slate-500 dark:text-slate-400')}">${dayName}</span>
+                                ${isToday ? '<span class="mobile-today-dot" title="اليوم"></span>' : ''}
+                            </div>
+                        </td>
+                    `;
+
+                    // Cells for each specialty on day d
+                    specs.forEach(spec => {
+                        const specColor = spec.color || '#0f766e';
+                        const specName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(spec.id) : (spec.name_ar || spec.id);
+                        const duties = scheduleMap[spec.id]?.[d] || [];
+                        let cellContent = '';
+
+                        if (duties.length > 0) {
+                            cellContent = duties.map(entry => {
+                                const name = (entry.name || '').trim();
+                                const isMatched = searchQuery && name.toLowerCase().includes(searchQuery);
+                                const highlightClass = isMatched ? 'matched-doctor-chip' : '';
+                                const safeEntry = encodeURIComponent(JSON.stringify(entry));
+                                return `
+                                    <span class="doctor-duty-chip mobile-chip ${highlightClass}" 
+                                          style="--spec-card-color: ${specColor};"
+                                          onclick="openDutyDetailModal('${spec.id}', '${specName}', '${d}/${currentMonth}/${currentYear}', '${safeEntry}')"
+                                          title="اضغط لعرض تفاصيل الخفر">
+                                        <span class="duty-dot" style="background: ${specColor};"></span>
+                                        <span class="duty-doctor-name">${name}</span>
+                                    </span>
+                                `;
+                            }).join('');
+                        } else {
+                            cellContent = `<span class="empty-slot-dash text-slate-300 dark:text-slate-700 font-bold">—</span>`;
+                        }
+
+                        bodyHtml += `<td class="mobile-spec-cell">${cellContent}</td>`;
+                    });
+
+                    bodyHtml += `</tr>`;
+                }
+                tbody.innerHTML = bodyHtml;
+
+            } else {
+                // ============================================================
+                // DESKTOP CLASSIC VIEW:
+                // - Top Row (thead): Days of Month (Frozen top: sticky; top: 0)
+                // - Right Column (tbody): Specialties (Frozen right: sticky; right: 0)
+                // ============================================================
+                if (table) table.classList.remove('is-mobile-transposed');
+
+                // Build Header Row (Centered & Bold Day Numbers and Day Names)
+                let headHtml = `<tr>
+                    <th class="sticky-col">
+                        <div class="header-specialty-title">
+                            <i class="fas fa-stethoscope ml-1 text-teal-600 dark:text-amber-400"></i>
+                            <span>التخصص الطبي</span>
+                        </div>
+                    </th>`;
+
+                for (let d = 1; d <= daysCount; d++) {
+                    const dateObj = new Date(currentYear, currentMonth - 1, d);
+                    const dayName = DAY_NAMES_AR[dateObj.getDay()];
+                    const dayOfWeek = dateObj.getDay();
+                    const isFriday = dayOfWeek === 5;
+                    const isSaturday = dayOfWeek === 6;
+                    const isToday = isCurrentMonth && (d === todayD);
 
                     const colClasses = [
                         isToday ? 'is-today-col' : '',
@@ -1269,13 +1632,78 @@
                         isSaturday ? 'is-saturday-col' : ''
                     ].filter(Boolean).join(' ');
 
-                    bodyHtml += `<td class="${colClasses}">${cellContent}</td>`;
+                    headHtml += `
+                        <th id="${isToday ? 'today-header-col' : `day-header-${d}`}" class="${colClasses}">
+                            <div class="day-number-text ${isToday ? 'text-teal-700 dark:text-amber-400' : ''}">${d}</div>
+                            <div class="day-name-text">${dayName}</div>
+                            ${isToday ? '<span class="today-header-badge"><i class="fas fa-bullseye ml-0.5 text-[9px]"></i> اليوم</span>' : ''}
+                        </th>
+                    `;
                 }
+                headHtml += `</tr>`;
+                thead.innerHTML = headHtml;
 
-                bodyHtml += `</tr>`;
-            });
+                // Build Body Rows (Specialties Centered & Bold with Colored Badges)
+                let bodyHtml = '';
+                specs.forEach(spec => {
+                    const specColor = spec.color || '#0f766e';
+                    const specName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(spec.id) : (spec.name_ar || spec.id);
 
-            tbody.innerHTML = bodyHtml;
+                    bodyHtml += `<tr>`;
+                    bodyHtml += `
+                        <td class="sticky-col">
+                            <div class="specialty-cell-badge">
+                                <span class="specialty-icon-chip" style="background: ${specColor}18; color: ${specColor}; border: 1.5px solid ${specColor}40;">
+                                    ${spec.icon || '🏥'}
+                                </span>
+                                <span class="specialty-name-text">${specName}</span>
+                            </div>
+                        </td>
+                    `;
+
+                    for (let d = 1; d <= daysCount; d++) {
+                        const dateObj = new Date(currentYear, currentMonth - 1, d);
+                        const dayOfWeek = dateObj.getDay();
+                        const isFriday = dayOfWeek === 5;
+                        const isSaturday = dayOfWeek === 6;
+                        const isToday = isCurrentMonth && (d === todayD);
+                        const duties = scheduleMap[spec.id]?.[d] || [];
+                        
+                        let cellContent = '';
+                        if (duties.length > 0) {
+                            cellContent = duties.map(entry => {
+                                const name = (entry.name || '').trim();
+                                const isMatched = searchQuery && name.toLowerCase().includes(searchQuery);
+                                const highlightClass = isMatched ? 'matched-doctor-chip' : '';
+                                const safeEntry = encodeURIComponent(JSON.stringify(entry));
+                                return `
+                                    <span class="doctor-duty-chip ${highlightClass}" 
+                                          style="--spec-card-color: ${specColor};"
+                                          onclick="openDutyDetailModal('${spec.id}', '${specName}', '${d}/${currentMonth}/${currentYear}', '${safeEntry}')"
+                                          title="اضغط لعرض تفاصيل الخفر">
+                                        <span class="duty-dot" style="background: ${specColor};"></span>
+                                        <span class="duty-doctor-name">${name}</span>
+                                    </span>
+                                `;
+                            }).join('');
+                        } else {
+                            cellContent = `<span class="empty-slot-dash">—</span>`;
+                        }
+
+                        const colClasses = [
+                            isToday ? 'is-today-col' : '',
+                            isFriday ? 'is-friday-col' : '',
+                            isSaturday ? 'is-saturday-col' : ''
+                        ].filter(Boolean).join(' ');
+
+                        bodyHtml += `<td class="${colClasses}">${cellContent}</td>`;
+                    }
+
+                    bodyHtml += `</tr>`;
+                });
+
+                tbody.innerHTML = bodyHtml;
+            }
         }
 
         // ================================================================
@@ -1412,6 +1840,16 @@
             const modal = document.getElementById('duty-detail-modal');
             if (modal) modal.classList.remove('active');
         }
+
+        let resizeTimer = null;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                if (currentViewMode === 'matrix' && matrixLayoutMode === 'auto') {
+                    renderMatrixView();
+                }
+            }, 180);
+        });
 
         window.addEventListener('DOMContentLoaded', initSchedule);
     </script>

@@ -1141,14 +1141,16 @@
 
             grid.innerHTML = pageResidents.map(r => {
                 const specId = (typeof Hub !== 'undefined' && Hub.normalizeSpecialtyId) ? Hub.normalizeSpecialtyId(r.tag || r.spec) : (r.tag || r.spec);
-                const specObj = allSpecialties.find(s => s.id === specId) || { name_ar: r.spec, icon: '🏥', color: '#0f766e' };
+                const resolvedSpecName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(r.tag || r.spec) : r.spec;
+                const specObj = allSpecialties.find(s => s.id === specId) || { name_ar: resolvedSpecName, icon: '🏥', color: '#0f766e' };
                 const isActive = r.active !== false && r.spec !== 'RESERVE';
                 const hasPhone = r.phone && r.phone.trim() && r.phone !== 'رقم غير متوفر';
                 const rawPhone = hasPhone ? r.phone.replace(/[^0-9+]/g, '') : '';
                 const doctorHospitals = (r.hospitals || []).map(hid => allHospitals.find(h => h.id === hid)).filter(Boolean);
                 const isMulti = doctorHospitals.length > 1;
                 const deptId = (typeof Hub !== 'undefined' && Hub.normalizeSpecialtyId) ? Hub.normalizeSpecialtyId(r.dept) : r.dept;
-                const deptObj = deptId ? allSpecialties.find(s => s.id === deptId) : null;
+                const resolvedDeptName = deptId ? ((window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(r.dept) : r.dept) : '';
+                const deptObj = deptId ? (allSpecialties.find(s => s.id === deptId) || { name_ar: resolvedDeptName }) : null;
 
                 return `
                     <div class="doctor-card">
@@ -1165,7 +1167,7 @@
                                         <span class="font-bold">${specObj.name_ar}</span>
                                         ${deptId && deptId !== specId ? `
                                             <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
-                                                <i class="fas fa-rotate ml-1"></i> تناوب في: ${deptObj ? deptObj.name_ar : r.dept}
+                                                <i class="fas fa-rotate ml-1"></i> تناوب في: ${deptObj ? deptObj.name_ar : resolvedDeptName}
                                             </span>
                                         ` : ''}
                                     </div>

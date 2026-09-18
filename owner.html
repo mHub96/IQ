@@ -411,9 +411,6 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <button type="button" onclick="refreshFromCloud()" class="btn-action bg-teal-500/15 hover:bg-teal-500/25 text-teal-700 dark:text-teal-400 border border-teal-500/30 text-xs font-bold" title="تحديث ومزامنة البيانات من السحابة">
-                    <i class="fas fa-sync-alt ml-1" id="sync-icon"></i> <span class="hidden sm:inline">تحديث السحابة</span>
-                </button>
                 <a href="./index.html" class="btn-action btn-neutral text-xs">
                     <i class="fas fa-hospital-alt ml-1"></i> البوابة الرئيسية
                 </a>
@@ -637,7 +634,7 @@
                 <p class="text-xs subtext-muted font-medium">تنزيل نسخة احتياطية كاملة من قاعدة البيانات، استيراد بيانات، أو المزامنة المباشرة مع GitHub.</p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="glass-card p-4 space-y-3">
                     <div class="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center text-lg">
                         <i class="fas fa-download"></i>
@@ -837,42 +834,14 @@
             }, duration);
         }
 
-        // Refresh database from GitHub Cloud
-        async function refreshFromCloud() {
-            const icon = document.getElementById('sync-icon');
-            if (icon) icon.classList.add('fa-spin');
-            try {
-                localStorage.removeItem('hospital_hub_database_v3');
-                await Hub.loadDatabase(true);
-                db = Hub.getDatabase();
-                renderAllOwnerData();
-                showToast('تم تحديث ومزامنة البيانات من السحابة بنجاح!', 'success');
-            } catch (e) {
-                showToast('خطأ أثناء التحديث من السحابة: ' + e.message, 'error');
-            } finally {
-                if (icon) icon.classList.remove('fa-spin');
-            }
-        }
-
         // Authentication Gate
         async function checkOwnerAuth() {
             try {
                 await Hub.loadDatabase();
-                db = Hub.getDatabase();
-
-                // If local database has 0 hospitals, force-fetch from GitHub
-                if (!db || !db.hospitals || Object.keys(db.hospitals).length === 0) {
-                    console.warn("Owner Panel: 0 hospitals detected, force-reloading from remote GitHub...");
-                    localStorage.removeItem('hospital_hub_database_v3');
-                    await Hub.loadDatabase(true);
-                    db = Hub.getDatabase();
-                }
             } catch (err) {
-                console.error("Error loading database:", err);
+                console.warn('Owner loadDatabase error:', err);
             }
-
-            // Pre-populate data views immediately
-            renderAllOwnerData();
+            db = Hub.getDatabase();
 
             if (!Hub.auth.isOwner()) {
                 document.getElementById('owner-auth-modal').classList.add('active');
@@ -887,19 +856,14 @@
         async function submitOwnerLogin(e) {
             e.preventDefault();
             const pwd = document.getElementById('owner-login-pwd').value.trim();
-            const res = Hub.auth.login('owner', pwd);
+            const res = Hub.auth.login(pwd);
             if (res && res.success && Hub.auth.isOwner()) {
                 document.getElementById('owner-auth-modal').classList.remove('active');
                 showToast('👑 مرحباً بك يا دكتور محمد في لوحة تحكم المالك', 'success');
-                if (!db || !db.hospitals || Object.keys(db.hospitals).length === 0) {
-                    await Hub.loadDatabase(true);
-                } else {
-                    await Hub.loadDatabase();
-                }
                 db = Hub.getDatabase();
                 renderAllOwnerData();
             } else {
-                showToast(res?.error || 'كلمة مرور المالك غير صحيحة', 'error');
+                showToast('كلمة مرور المالك غير صحيحة أو ليست بصلاحية المالك', 'error');
             }
         }
 
@@ -908,7 +872,7 @@
             window.location.href = './index.html';
         }
 
-        // Tabs Switching
+        // Tabs Switching with instant re-render
         function switchTab(tabId, btn) {
             const tabs = ['hospitals', 'specs', 'passwords', 'heroes', 'backups'];
             tabs.forEach(t => {
@@ -917,7 +881,20 @@
             });
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             if (btn) btn.classList.add('active');
+
+            if (tabId === 'hospitals') renderHospitalsTab();
+            else if (tabId === 'specs') renderGlobalSpecsTab();
+            else if (tabId === 'passwords') renderPasswordsTab();
+            else if (tabId === 'heroes') renderHeroesTab();
         }
+
+        // Reactive DB Updates Listener
+        window.addEventListener('hub:data-changed', (e) => {
+            db = e.detail?.db || Hub.getDatabase();
+            if (Hub.auth.isOwner()) {
+                renderAllOwnerData();
+            }
+        });
 
         // Theme Toggle & Synchronization
         function toggleTheme() {
@@ -935,6 +912,8 @@
         // Main Render
         function renderAllOwnerData() {
             db = Hub.getDatabase();
+            if (!db || !db.hospitals) return;
+
             renderKPIs();
             renderHospitalsTab();
             renderGlobalSpecsTab();
@@ -943,45 +922,27 @@
         }
 
         function renderKPIs() {
-            const hospitals = Object.values(db?.hospitals || {});
-            const specs = db?.globalSpecialties || [];
+            const hospitals = Object.values(db.hospitals || {});
+            const specs = db.globalSpecialties || [];
             let activeHeroes = 0;
             hospitals.forEach(h => {
                 if ((h.rotationHeroesUrl || '').trim()) activeHeroes++;
             });
 
-            const hospEl = document.getElementById('kpi-hospitals-count');
-            const specEl = document.getElementById('kpi-specs-count');
-            const heroEl = document.getElementById('kpi-heroes-count');
-            const oncallEl = document.getElementById('kpi-oncall-count');
-
-            if (hospEl) hospEl.textContent = hospitals.length;
-            if (specEl) specEl.textContent = specs.length;
-            if (heroEl) heroEl.textContent = `${activeHeroes} / ${hospitals.length}`;
+            document.getElementById('kpi-hospitals-count').textContent = hospitals.length;
+            document.getElementById('kpi-specs-count').textContent = specs.length;
+            document.getElementById('kpi-heroes-count').textContent = `${activeHeroes} / ${hospitals.length}`;
 
             const today = Hub.getMedicalDate();
             const totalOnCall = Hub.getTotalActiveOnCallCount ? Hub.getTotalActiveOnCallCount(today) : 0;
-            if (oncallEl) oncallEl.textContent = totalOnCall;
+            document.getElementById('kpi-oncall-count').textContent = totalOnCall;
         }
 
         // TAB 1: Hospitals
         function renderHospitalsTab() {
             const grid = document.getElementById('owner-hospitals-grid');
             if (!grid) return;
-            const hospitals = Object.values(db?.hospitals || {});
-
-            if (hospitals.length === 0) {
-                grid.innerHTML = `
-                    <div class="glass-card p-8 text-center text-slate-500 col-span-full">
-                        <i class="fas fa-hospital text-4xl mb-3 opacity-40"></i>
-                        <p class="font-bold text-sm mb-3">لا توجد مستشفيات مسجلة حالياً في الذاكرة</p>
-                        <button type="button" onclick="refreshFromCloud()" class="btn-action bg-teal-600 hover:bg-teal-700 text-white font-bold">
-                            <i class="fas fa-sync-alt ml-1"></i> تحديث ومزامنة من السحابة
-                        </button>
-                    </div>
-                `;
-                return;
-            }
+            const hospitals = Object.values(db.hospitals || {});
 
             grid.innerHTML = hospitals.map(h => {
                 const resCount = (h.names || []).length;
@@ -1042,22 +1003,8 @@
         function renderGlobalSpecsTab() {
             const tbody = document.getElementById('global-specs-table-body');
             if (!tbody) return;
-            const specs = db?.globalSpecialties || [];
+            const specs = db.globalSpecialties || [];
             document.getElementById('global-specs-badge').textContent = `${specs.length} تخصص`;
-
-            if (specs.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="p-8 text-center text-slate-500 font-bold">
-                            <p class="mb-2">لا توجد تخصصات مسجلة في المستودع العام</p>
-                            <button type="button" onclick="refreshFromCloud()" class="btn-action bg-purple-600 hover:bg-purple-700 text-white text-xs">
-                                <i class="fas fa-sync-alt ml-1"></i> استعادة التخصصات من السحابة
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
 
             tbody.innerHTML = specs.map(s => {
                 const isSurg = Hub.isSurgicalSpecialty(s.id);
@@ -1194,20 +1141,7 @@
         function renderHeroesTab() {
             const container = document.getElementById('heroes-links-list');
             if (!container) return;
-            const hospitals = Object.values(db?.hospitals || {});
-
-            if (hospitals.length === 0) {
-                container.innerHTML = `
-                    <div class="p-8 text-center text-slate-500 font-bold">
-                        <i class="fas fa-hospital text-3xl mb-2 opacity-40"></i>
-                        <p class="mb-2">لا توجد مستشفيات مسجلة حالياً</p>
-                        <button type="button" onclick="refreshFromCloud()" class="btn-action bg-sky-600 hover:bg-sky-700 text-white text-xs">
-                            <i class="fas fa-sync-alt ml-1"></i> استعادة المستشفيات من السحابة
-                        </button>
-                    </div>
-                `;
-                return;
-            }
+            const hospitals = Object.values(db.hospitals || {});
 
             container.innerHTML = hospitals.map(h => {
                 const currentUrl = (h.rotationHeroesUrl || '').trim();
@@ -1216,7 +1150,7 @@
                 return `
                     <div class="p-3.5 rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold shadow-sm shrink-0" style="background:${h.color || '#0f766e'}">
+                            <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold shadow-sm" style="background:${h.color || '#0f766e'}">
                                 <i class="fas ${h.icon || 'fa-hospital'}"></i>
                             </div>
                             <div>
@@ -1230,31 +1164,10 @@
                         <div class="flex items-center gap-2 flex-1 max-w-xl">
                             <input type="url" data-hero-hosp="${h.id}" class="input-box font-mono text-xs flex-1 hero-url-input" placeholder="https://... (اتركه فارغاً لإظهار شارة SOON)" value="${currentUrl}" dir="ltr" />
                             ${hasUrl ? `<a href="${currentUrl}" target="_blank" rel="noopener noreferrer" class="btn-action btn-neutral text-xs px-2.5 py-1.5" title="تجربة الرابط"><i class="fas fa-external-link-alt"></i></a>` : ''}
-                            <button type="button" onclick="saveSingleHeroLink('${h.id}')" class="btn-action bg-sky-500/15 hover:bg-sky-500/25 text-sky-700 dark:text-sky-400 border border-sky-500/30 text-xs px-2.5 py-1.5 font-bold" title="حفظ هذا الرابط">
-                                <i class="fas fa-save ml-1"></i> حفظ
-                            </button>
                         </div>
                     </div>
                 `;
             }).join('');
-        }
-
-        async function saveSingleHeroLink(hospId) {
-            const inp = document.querySelector(`.hero-url-input[data-hero-hosp="${hospId}"]`);
-            if (!inp) return;
-            const val = inp.value.trim();
-            if (!db || !db.hospitals || !db.hospitals[hospId]) return;
-
-            db.hospitals[hospId].rotationHeroesUrl = val;
-            try {
-                await Hub.saveDatabase(`Update Rotation Heroes link for ${db.hospitals[hospId].name_ar || hospId}`);
-                showToast(`تم حفظ رابط Rotation Heroes لمستشفى ${db.hospitals[hospId].name_ar || hospId} بنجاح!`, 'success');
-                db = Hub.getDatabase();
-                renderKPIs();
-                renderHeroesTab();
-            } catch (err) {
-                showToast(err.message || 'خطأ أثناء الحفظ', 'error');
-            }
         }
 
         async function saveAllHeroesLinks() {
@@ -1478,19 +1391,10 @@
             e.preventDefault();
             const mode = document.getElementById('modal-spec-mode').value;
             const code = document.getElementById('modal-spec-id').value.trim().toUpperCase();
-            const icon = document.getElementById('modal-spec-icon').value.trim() || '🏥';
+            const icon = document.getElementById('modal-spec-icon').value.trim();
             const nameAr = document.getElementById('modal-spec-name-ar').value.trim();
             const nameEn = document.getElementById('modal-spec-name-en').value.trim();
-            const color = document.getElementById('modal-spec-color').value || '#0f766e';
-
-            if (!code) {
-                showToast('يرجى إدخال رمز التخصص', 'error');
-                return;
-            }
-            if (!nameAr) {
-                showToast('يرجى إدخال اسم التخصص بالعربية', 'error');
-                return;
-            }
+            const color = document.getElementById('modal-spec-color').value;
 
             try {
                 if (mode === 'add') {
@@ -1513,8 +1417,8 @@
                     showToast('تم تحديث التخصص في المستودع العام بنجاح!', 'success');
                 }
                 closeSpecModal();
-                db = Hub.getDatabase();
-                renderAllOwnerData();
+                renderGlobalSpecsTab();
+                renderKPIs();
             } catch (err) {
                 showToast(err.message || 'خطأ أثناء الحفظ', 'error');
             }
@@ -1524,20 +1428,20 @@
             if (!confirm(`هل أنت متأكد من حذف التخصص (${specId}) من المستودع العام؟`)) return;
             try {
                 await Hub.deleteGlobalSpecialty(specId);
-                showToast('تم حذف التخصص من المستودع العام بنجاح!', 'success');
-                db = Hub.getDatabase();
-                renderAllOwnerData();
+                showToast('تم حذف التخصص من المستودع العام', 'success');
+                renderGlobalSpecsTab();
+                renderKPIs();
             } catch (err) {
-                showToast(err.message || 'خطأ في الحذف: ' + err.message, 'error');
+                showToast(err.message || 'خطأ في الحذف', 'error');
             }
         }
 
         async function syncGlobalCatalogToAllHospitals() {
             if (!confirm('هل تريد نشر وتعميم قائمة التخصصات العامة على جميع المستشفيات المسجلة الآن؟')) return;
             try {
-                const catalog = db?.globalSpecialties || [];
+                const catalog = db.globalSpecialties || [];
                 let count = 0;
-                Object.values(db?.hospitals || {}).forEach(h => {
+                Object.values(db.hospitals || {}).forEach(h => {
                     catalog.forEach(catSpec => {
                         if (!h.specialties) h.specialties = [];
                         const existing = h.specialties.find(s => s.id === catSpec.id);
@@ -1555,7 +1459,6 @@
 
                 await Hub.saveDatabase('Sync global specialties catalog to all hospitals');
                 showToast(`تم تعميم المستودع على ${count} مستشفيات بنجاح!`, 'success');
-                db = Hub.getDatabase();
                 renderAllOwnerData();
             } catch (err) {
                 showToast(err.message || 'خطأ أثناء التعميم', 'error');
@@ -1570,18 +1473,6 @@
 
         window.addEventListener('hub:theme-changed', (e) => {
             applyTheme(e.detail.theme);
-        });
-
-        window.addEventListener('hub:data-changed', (e) => {
-            db = (e.detail && e.detail.db) ? e.detail.db : Hub.getDatabase();
-            renderAllOwnerData();
-        });
-
-        window.addEventListener('hub:auth-changed', () => {
-            if (Hub.auth.isOwner()) {
-                document.getElementById('owner-auth-modal').classList.remove('active');
-                renderAllOwnerData();
-            }
         });
     </script>
 </body>

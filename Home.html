@@ -2383,7 +2383,7 @@
                     const ratio = item.totalVisits / maxVisits;
                     const heightPx = Math.max(ratio * maxHeight, 6);
                     const specObj = (currentHospital.specialties || []).find(s => s.id === item.specCode);
-                    const specName = specObj?.name_ar || item.specCode;
+                    const specName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(item.specCode, currentHospital.id) : (specObj?.name_ar || item.specCode);
                     const icon = specObj?.icon || "🏥";
 
                     html += `
@@ -2404,13 +2404,14 @@
                 html += '<div class="space-y-1.5 mt-2">';
                 others.forEach((item, idx) => {
                     const specObj = (currentHospital.specialties || []).find(s => s.id === item.specCode);
+                    const itemSpecName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(item.specCode, currentHospital.id) : (specObj?.name_ar || item.specCode);
                     html += `
                         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700">
                             <div class="flex items-center gap-3">
                                 <span class="font-mono font-bold text-xs w-6 text-slate-400">#${idx + 4}</span>
                                 <div>
                                     <div class="font-bold text-xs text-slate-800 dark:text-slate-200">${item.name}</div>
-                                    <div class="text-[0.65rem] text-slate-500">${specObj?.icon || '🏥'} ${specObj?.name_ar || item.specCode}</div>
+                                    <div class="text-[0.65rem] text-slate-500">${specObj?.icon || '🏥'} ${itemSpecName}</div>
                                 </div>
                             </div>
                             <span class="font-mono font-black text-amber-500 text-xs"><i class="fas fa-eye text-[0.65rem]"></i> ${item.totalVisits}</span>

@@ -669,7 +669,7 @@ body.dark .hub-password-eye-btn:hover {
     transition: transform 0.15s ease;
 }
 
-/* Universal Mobile Bottom App Dock */
+/* Universal Floating Bottom Navigation Dock (Standard across ALL pages and screen sizes) */
 .hub-mobile-bottom-dock, .ios-bottom-dock {
     position: fixed;
     bottom: max(10px, env(safe-area-inset-bottom, 0px));
@@ -677,7 +677,7 @@ body.dark .hub-password-eye-btn:hover {
     transform: translateX(-50%);
     z-index: 9998;
     width: calc(100% - 16px);
-    max-width: 540px;
+    max-width: 560px;
     height: 60px;
     background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(24px) saturate(190%);
@@ -697,12 +697,6 @@ body.dark .hub-mobile-bottom-dock, body.dark .ios-bottom-dock {
     background: rgba(14, 20, 32, 0.94);
     border: 1px solid rgba(212, 175, 55, 0.18);
     box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(212, 175, 55, 0.08);
-}
-
-@media (min-width: 769px) {
-    .hub-mobile-bottom-dock {
-        display: none !important;
-    }
 }
 
 .hub-mobile-bottom-dock .dock-tab-btn, .ios-bottom-dock .dock-tab-btn {
@@ -727,6 +721,16 @@ body.dark .hub-mobile-bottom-dock, body.dark .ios-bottom-dock {
 
 body.dark .hub-mobile-bottom-dock .dock-tab-btn, body.dark .ios-bottom-dock .dock-tab-btn {
     color: #94a3b8;
+}
+
+.hub-mobile-bottom-dock .dock-tab-btn:hover, .ios-bottom-dock .dock-tab-btn:hover {
+    color: #0f766e;
+    background: rgba(15, 118, 110, 0.06);
+}
+
+body.dark .hub-mobile-bottom-dock .dock-tab-btn:hover, body.dark .ios-bottom-dock .dock-tab-btn:hover {
+    color: #d4af37;
+    background: rgba(212, 175, 55, 0.08);
 }
 
 .hub-mobile-bottom-dock .dock-tab-btn i, .ios-bottom-dock .dock-tab-btn i {
@@ -754,10 +758,48 @@ body.dark .hub-mobile-bottom-dock .dock-tab-btn.active, body.dark .ios-bottom-do
     transform: scale(0.92);
 }
 
-@media (max-width: 768px) {
-    body {
-        padding-bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
+/* Ensure body has comfortable bottom clearance across all devices */
+body {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* 3D Tactile Sub-Page Flip Animation for Cards & Grids */
+@keyframes subpageFlipForward {
+    0% {
+        opacity: 0;
+        transform: perspective(1200px) rotateY(-14deg) translateX(25px) scale(0.98);
     }
+    60% {
+        transform: perspective(1200px) rotateY(2deg) translateX(-4px) scale(1.005);
+    }
+    100% {
+        opacity: 1;
+        transform: perspective(1200px) rotateY(0deg) translateX(0) scale(1);
+    }
+}
+
+@keyframes subpageFlipBackward {
+    0% {
+        opacity: 0;
+        transform: perspective(1200px) rotateY(14deg) translateX(-25px) scale(0.98);
+    }
+    60% {
+        transform: perspective(1200px) rotateY(-2deg) translateX(4px) scale(1.005);
+    }
+    100% {
+        opacity: 1;
+        transform: perspective(1200px) rotateY(0deg) translateX(0) scale(1);
+    }
+}
+
+.subpage-flipping-forward {
+    animation: subpageFlipForward 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transform-origin: center right;
+}
+
+.subpage-flipping-backward {
+    animation: subpageFlipBackward 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transform-origin: center left;
 }
 
 /* ============================================================

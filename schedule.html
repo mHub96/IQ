@@ -244,7 +244,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
             scrollbar-width: thin;
             -webkit-overflow-scrolling: touch;
-            overscroll-behavior: contain;
+            overscroll-behavior: auto;
         }
         @media (max-width: 640px) {
             .matrix-table-container {
@@ -743,12 +743,12 @@
             top: 0;
             right: 0;
             z-index: 50 !important;
-            width: 74px !important;
-            min-width: 74px !important;
-            max-width: 74px !important;
+            width: 52px !important;
+            min-width: 52px !important;
+            max-width: 52px !important;
             background: #e2e8f0 !important;
             opacity: 1 !important;
-            padding: 8px 4px !important;
+            padding: 6px 2px !important;
             box-shadow: -3px 3px 8px rgba(0, 0, 0, 0.07);
             background-clip: padding-box;
             border-bottom: 2px solid #cbd5e1 !important;
@@ -819,16 +819,16 @@
             position: sticky;
             right: 0;
             z-index: 25 !important;
-            width: 74px !important;
-            min-width: 74px !important;
-            max-width: 74px !important;
+            width: 52px !important;
+            min-width: 52px !important;
+            max-width: 52px !important;
             background: #ffffff !important;
             opacity: 1 !important;
             border-left: 2.5px solid #0f766e !important;
             border-bottom: 1px solid #e2e8f0 !important;
             box-shadow: -3px 0 8px rgba(0, 0, 0, 0.05);
             background-clip: padding-box;
-            padding: 5px 3px !important;
+            padding: 4px 2px !important;
             text-align: center;
         }
         body.dark .matrix-table td.mobile-day-td {
@@ -847,12 +847,12 @@
         }
         .mobile-day-num {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.95rem;
+            font-size: 0.88rem;
             font-weight: 900;
             line-height: 1.1;
         }
         .mobile-day-name {
-            font-size: 0.65rem;
+            font-size: 0.62rem;
             font-weight: 800;
             margin-top: 1px;
             line-height: 1;
@@ -996,9 +996,6 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <h1 class="text-xl sm:text-2xl font-black" id="hosp-display-name">جدول الخفارات الشهري</h1>
-                            <span class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-teal-50 dark:bg-teal-950/50 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-800">
-                                عرض الجداول الرسمية
-                            </span>
                         </div>
                         <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5" id="hosp-location-text">
                             استعراض جدول الأطباء الخفر لكافة التخصصات الطبية والجراحية
@@ -1007,7 +1004,7 @@
                 </div>
 
                 <!-- Month Navigation Controls -->
-                <div class="flex items-center gap-2 self-center md:self-auto no-print">
+                <div class="flex items-center gap-2 self-center md:self-auto no-print flex-wrap justify-center">
                     <button type="button" onclick="navigateMonth(1)" class="btn-ghost" title="الشهر القادم">
                         <i class="fas fa-chevron-right"></i>
                     </button>
@@ -1704,6 +1701,33 @@
 
                 tbody.innerHTML = bodyHtml;
             }
+
+            setupTableScrollChaining();
+        }
+
+        // ================================================================
+        // SMOOTH WHEEL SCROLL CHAINING TO PAGE
+        // When table hits top or bottom end, pass remaining scroll to window
+        // ================================================================
+        function setupTableScrollChaining() {
+            const containers = document.querySelectorAll('.matrix-table-container');
+            containers.forEach(container => {
+                if (container._scrollChainingInitialized) return;
+                container._scrollChainingInitialized = true;
+
+                container.addEventListener('wheel', (e) => {
+                    if (!e.deltaY) return;
+                    const atTop = container.scrollTop <= 0;
+                    const atBottom = Math.ceil(container.scrollTop + container.clientHeight) >= container.scrollHeight - 1;
+
+                    if ((e.deltaY < 0 && atTop) || (e.deltaY > 0 && atBottom)) {
+                        window.scrollBy({
+                            top: e.deltaY,
+                            behavior: 'auto'
+                        });
+                    }
+                }, { passive: true });
+            });
         }
 
         // ================================================================

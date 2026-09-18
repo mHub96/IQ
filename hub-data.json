@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-18T13:59:17.012Z",
+  "lastUpdated": "2026-09-18T13:59:19.108Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -43893,8 +43893,14 @@
       "notes": "",
       "active": true,
       "schedule": {
-        "clinicDays": [],
-        "theatreDays": []
+        "clinicDays": [
+          "sun",
+          "tue"
+        ],
+        "theatreDays": [
+          "wed"
+        ],
+        "updatedAt": "2026-09-18T13:59:19.108Z"
       }
     },
     {

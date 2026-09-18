@@ -1,15 +1,33 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" class="dark">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Executive Owner Panel · لوحة تحكم المالك 👑</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        };
+    </script>
+    <script>
+        // Immediate Theme Application to eliminate flash
+        (function() {
+            try {
+                const savedTheme = localStorage.getItem('hosp_hub_theme') || 'dark';
+                const isDark = savedTheme === 'dark';
+                document.documentElement.classList.toggle('dark', isDark);
+                document.documentElement.classList.toggle('light', !isDark);
+            } catch (e) {}
+        })();
+    </script>
+
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="stylesheet" href="./nav-component.css" />
-    <meta name="theme-color" content="#0b0e12" />
+    <meta name="theme-color" content="#090d14" />
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -18,72 +36,125 @@
             direction: rtl;
             text-align: right;
             min-height: 100vh;
-            transition: background 0.4s ease, color 0.3s ease;
+            transition: background 0.3s ease, color 0.3s ease;
             overflow-x: hidden;
         }
-        body.light { background: #f0f4f8; color: #0f172a; }
-        body.dark { background: #070a0e; color: #f8fafc; }
 
+        /* ------------------------------------------------------------- */
+        /* THEME BASE COLORS - HIGH CONTRAST & LEGIBILITY                */
+        /* ------------------------------------------------------------- */
+        html.light body,
+        body.light {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+        html.dark body,
+        body.dark {
+            background: #090d14;
+            color: #f8fafc;
+        }
+
+        /* Ambient subtle watermark in dark mode */
+        html.dark body::before,
+        body.dark::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23f59e0b' fill-rule='evenodd'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: 120px 120px;
+        }
+
+        /* ------------------------------------------------------------- */
+        /* CARDS & CONTAINERS                                            */
+        /* ------------------------------------------------------------- */
         .glass-card {
             border-radius: 1.25rem;
             transition: all 0.25s ease;
             position: relative;
         }
+        html.light .glass-card,
         body.light .glass-card {
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(226, 232, 240, 0.9);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
         }
+        html.dark .glass-card,
         body.dark .glass-card {
-            background: rgba(13, 18, 26, 0.85);
-            border: 1px solid rgba(245, 158, 11, 0.15);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            background: #0f172a;
+            border: 1.5px solid rgba(245, 158, 11, 0.22);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65);
         }
 
+        /* Gold highlight box */
         .gold-glow {
             box-shadow: 0 0 25px rgba(245, 158, 11, 0.25);
         }
 
+        /* ------------------------------------------------------------- */
+        /* NAVIGATION TABS                                               */
+        /* ------------------------------------------------------------- */
         .tab-btn {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.6rem 1.1rem;
+            padding: 0.65rem 1.15rem;
             border-radius: 0.85rem;
             font-size: 0.85rem;
             font-weight: 700;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             cursor: pointer;
-            border: 1px solid transparent;
+            border: 1.5px solid transparent;
             white-space: nowrap;
         }
+        html.light .tab-btn,
         body.light .tab-btn {
             background: #e2e8f0;
-            color: #475569;
+            color: #334155;
+            border-color: #cbd5e1;
         }
+        html.light .tab-btn:hover,
+        body.light .tab-btn:hover {
+            background: #cbd5e1;
+            color: #0f172a;
+        }
+        html.light .tab-btn.active,
         body.light .tab-btn.active {
             background: #0f766e;
             color: #ffffff;
-            box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3);
+            border-color: #0f766e;
+            box-shadow: 0 4px 14px rgba(15, 118, 110, 0.35);
         }
+        html.dark .tab-btn,
         body.dark .tab-btn {
-            background: rgba(255, 255, 255, 0.04);
+            background: #1e293b;
             color: #94a3b8;
-            border-color: rgba(255, 255, 255, 0.06);
+            border-color: #334155;
         }
+        html.dark .tab-btn:hover,
+        body.dark .tab-btn:hover {
+            background: #334155;
+            color: #ffffff;
+        }
+        html.dark .tab-btn.active,
         body.dark .tab-btn.active {
             background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: #070a0e;
+            color: #090d14;
             border-color: #f59e0b;
-            box-shadow: 0 4px 18px rgba(245, 158, 11, 0.4);
+            box-shadow: 0 4px 18px rgba(245, 158, 11, 0.45);
         }
 
+        /* ------------------------------------------------------------- */
+        /* BUTTONS                                                       */
+        /* ------------------------------------------------------------- */
         .btn-action {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 0.4rem;
-            padding: 0.5rem 1rem;
+            padding: 0.55rem 1rem;
             border-radius: 0.75rem;
             font-weight: 700;
             font-size: 0.8rem;
@@ -93,38 +164,139 @@
         .btn-action:hover {
             transform: translateY(-1px);
         }
+        html.light .btn-neutral,
+        body.light .btn-neutral {
+            background: #e2e8f0;
+            color: #1e293b;
+            border: 1px solid #cbd5e1;
+        }
+        html.light .btn-neutral:hover,
+        body.light .btn-neutral:hover {
+            background: #cbd5e1;
+            color: #0f172a;
+        }
+        html.dark .btn-neutral,
+        body.dark .btn-neutral {
+            background: #1e293b;
+            color: #f1f5f9;
+            border: 1px solid #334155;
+        }
+        html.dark .btn-neutral:hover,
+        body.dark .btn-neutral:hover {
+            background: #334155;
+            color: #ffffff;
+        }
 
+        /* ------------------------------------------------------------- */
+        /* FORM INPUTS                                                   */
+        /* ------------------------------------------------------------- */
         .input-box {
             width: 100%;
-            padding: 0.55rem 0.85rem;
+            padding: 0.6rem 0.9rem;
             border-radius: 0.75rem;
             font-size: 0.85rem;
+            font-weight: 600;
             transition: all 0.2s ease;
             outline: none;
         }
+        html.light .input-box,
         body.light .input-box {
             background: #ffffff;
-            border: 1.5px solid #cbd5e1;
+            border: 1.5px solid #94a3b8;
             color: #0f172a;
         }
+        html.light .input-box:focus,
         body.light .input-box:focus {
             border-color: #0f766e;
-            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.2);
         }
+        html.dark .input-box,
         body.dark .input-box {
-            background: #0d131a;
-            border: 1.5px solid #1e293b;
-            color: #f1f5f9;
+            background: #090d16;
+            border: 1.5px solid #334155;
+            color: #f8fafc;
         }
+        html.dark .input-box:focus,
         body.dark .input-box:focus {
             border-color: #f59e0b;
-            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
         }
 
+        /* Form Labels High Contrast */
+        html.light label,
+        body.light label {
+            color: #334155 !important;
+            font-weight: 700;
+        }
+        html.dark label,
+        body.dark label {
+            color: #cbd5e1 !important;
+            font-weight: 700;
+        }
+
+        /* Muted / Subtitle text helper */
+        html.light .subtext-muted,
+        body.light .subtext-muted {
+            color: #475569 !important;
+        }
+        html.dark .subtext-muted,
+        body.dark .subtext-muted {
+            color: #94a3b8 !important;
+        }
+
+        /* Header Bar Styling */
+        html.light .owner-header,
+        body.light .owner-header {
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid #cbd5e1;
+        }
+        html.dark .owner-header,
+        body.dark .owner-header {
+            background: rgba(9, 13, 20, 0.95);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* ------------------------------------------------------------- */
+        /* TABLES - HIGH CONTRAST                                        */
+        /* ------------------------------------------------------------- */
+        html.light table thead,
+        body.light table thead {
+            background: #e2e8f0;
+            color: #1e293b;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        html.dark table thead,
+        body.dark table thead {
+            background: #090d14;
+            color: #cbd5e1;
+            border-bottom: 2px solid #334155;
+        }
+        html.light table tbody tr,
+        body.light table tbody tr {
+            border-bottom: 1px solid #e2e8f0;
+            color: #0f172a;
+        }
+        html.light table tbody tr:hover,
+        body.light table tbody tr:hover {
+            background: #f8fafc;
+        }
+        html.dark table tbody tr,
+        body.dark table tbody tr {
+            border-bottom: 1px solid #1e293b;
+            color: #f1f5f9;
+        }
+        html.dark table tbody tr:hover,
+        body.dark table tbody tr:hover {
+            background: rgba(30, 41, 59, 0.45);
+        }
+
+        /* ------------------------------------------------------------- */
+        /* MODALS                                                        */
+        /* ------------------------------------------------------------- */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(15, 23, 42, 0.75);
             backdrop-filter: blur(8px);
             z-index: 9999;
             display: none;
@@ -143,6 +315,20 @@
             border-radius: 1.5rem;
             padding: 1.5rem;
             animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        html.light .modal-card,
+        body.light .modal-card {
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.2);
+            color: #0f172a;
+        }
+        html.dark .modal-card,
+        body.dark .modal-card {
+            background: #0f172a;
+            border: 1.5px solid rgba(245, 158, 11, 0.3);
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.85);
+            color: #f8fafc;
         }
         @keyframes modalPop {
             0% { opacity: 0; transform: scale(0.95); }
@@ -191,15 +377,15 @@
             <div class="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto mb-4 text-amber-500 text-3xl">
                 <i class="fas fa-crown"></i>
             </div>
-            <h2 class="text-xl font-black mb-1">منطقة المالك العليا (Executive Owner)</h2>
-            <p class="text-xs text-slate-400 mb-4">هذه الصفحة حصرية لمالك النظام. يرجى إدخال كلمة مرور المالك للمتابعة.</p>
+            <h2 class="text-xl font-black mb-1 text-slate-900 dark:text-white">منطقة المالك العليا (Executive Owner)</h2>
+            <p class="text-xs subtext-muted mb-4 font-medium">هذه الصفحة حصرية لمالك النظام. يرجى إدخال كلمة مرور المالك للمتابعة.</p>
             
             <form onsubmit="submitOwnerLogin(event)" class="space-y-3">
                 <input type="password" id="owner-login-pwd" class="input-box text-center font-mono text-base" placeholder="••••••••••••" autofocus required />
                 <button type="submit" class="btn-action w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-black py-2.5">
                     <i class="fas fa-unlock ml-1"></i> فك القفل والدخول
                 </button>
-                <a href="./index.html" class="block text-xs text-slate-500 hover:underline pt-2">
+                <a href="./index.html" class="block text-xs subtext-muted hover:underline pt-2 font-medium">
                     العودة إلى البوابة الرئيسية
                 </a>
             </form>
@@ -207,7 +393,7 @@
     </div>
 
     <!-- TOP HEADER -->
-    <header class="border-b border-slate-200 dark:border-slate-800/80 bg-white/70 dark:bg-slate-950/70 backdrop-blur-md sticky top-0 z-40">
+    <header class="owner-header backdrop-blur-md sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-3">
                 <a href="./index.html" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-400 flex items-center justify-center text-slate-950 font-black text-lg shadow-md hover:scale-105 transition-transform" title="العودة للبوابة الرئيسية">
@@ -215,26 +401,26 @@
                 </a>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h1 class="text-lg font-black tracking-tight flex items-center gap-1.5">
+                        <h1 class="text-lg font-black tracking-tight flex items-center gap-1.5 text-slate-900 dark:text-white">
                             لوحة القيادة العليا للمالك
-                            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">Owner Hub</span>
+                            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/40">Owner Hub</span>
                         </h1>
                     </div>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">إدارة المستشفيات والتخصصات وروابط النظام الموحد · Dr. Mohammed Riyadh</p>
+                    <p class="text-xs subtext-muted font-medium">إدارة المستشفيات والتخصصات وروابط النظام الموحد · Dr. Mohammed Riyadh</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-2">
-                <a href="./index.html" class="btn-action bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs">
+                <a href="./index.html" class="btn-action btn-neutral text-xs">
                     <i class="fas fa-hospital-alt ml-1"></i> البوابة الرئيسية
                 </a>
-                <button type="button" onclick="toggleTheme()" class="btn-action bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs" title="تبديل المظهر">
+                <button type="button" onclick="toggleTheme()" class="btn-action btn-neutral text-xs" title="تبديل المظهر">
                     <i class="fas fa-moon" id="theme-icon"></i>
                 </button>
-                <button type="button" onclick="window.forceAppUpdate()" class="btn-action bg-sky-500/10 hover:bg-sky-500/20 text-sky-500 border border-sky-500/30 text-xs" title="تحديث التطبيق الفوري ومسح التخزين المؤقت">
+                <button type="button" onclick="window.forceAppUpdate()" class="btn-action bg-sky-500/15 hover:bg-sky-500/25 text-sky-700 dark:text-sky-400 border border-sky-500/30 text-xs font-bold" title="تحديث التطبيق الفوري ومسح التخزين المؤقت">
                     <i class="fas fa-sync-alt ml-1"></i> تحديث PWA
                 </button>
-                <button type="button" onclick="logoutOwner()" class="btn-action bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 text-xs">
+                <button type="button" onclick="logoutOwner()" class="btn-action bg-red-500/15 hover:bg-red-500/25 text-red-700 dark:text-red-400 border border-red-500/30 text-xs font-bold">
                     <i class="fas fa-sign-out-alt ml-1"></i> خروج
                 </button>
             </div>
@@ -246,29 +432,29 @@
         <!-- KPI SUMMARY CARDS -->
         <section class="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div class="glass-card p-4">
-                <div class="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">المستشفيات المسجلة</div>
-                <div class="text-2xl font-black text-teal-600 dark:text-teal-400 flex items-center justify-between">
+                <div class="text-xs font-bold subtext-muted mb-1">المستشفيات المسجلة</div>
+                <div class="text-2xl font-black text-teal-700 dark:text-teal-400 flex items-center justify-between">
                     <span id="kpi-hospitals-count">0</span>
                     <i class="fas fa-hospital text-base opacity-40"></i>
                 </div>
             </div>
             <div class="glass-card p-4">
-                <div class="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">مستودع التخصصات العام</div>
-                <div class="text-2xl font-black text-purple-600 dark:text-purple-400 flex items-center justify-between">
+                <div class="text-xs font-bold subtext-muted mb-1">مستودع التخصصات العام</div>
+                <div class="text-2xl font-black text-purple-700 dark:text-purple-400 flex items-center justify-between">
                     <span id="kpi-specs-count">0</span>
                     <i class="fas fa-layer-group text-base opacity-40"></i>
                 </div>
             </div>
             <div class="glass-card p-4">
-                <div class="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">روابط Rotation Heroes</div>
-                <div class="text-2xl font-black text-amber-500 flex items-center justify-between">
+                <div class="text-xs font-bold subtext-muted mb-1">روابط Rotation Heroes</div>
+                <div class="text-2xl font-black text-amber-600 dark:text-amber-400 flex items-center justify-between">
                     <span id="kpi-heroes-count">0 / 0</span>
                     <i class="fas fa-user-md text-base opacity-40"></i>
                 </div>
             </div>
             <div class="glass-card p-4">
-                <div class="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">الأطباء الخفراء الآن</div>
-                <div class="text-2xl font-black text-emerald-500 flex items-center justify-between">
+                <div class="text-xs font-bold subtext-muted mb-1">الأطباء الخفراء الآن</div>
+                <div class="text-2xl font-black text-emerald-700 dark:text-emerald-400 flex items-center justify-between">
                     <span id="kpi-oncall-count">0</span>
                     <i class="fas fa-user-check text-base opacity-40"></i>
                 </div>
@@ -276,7 +462,7 @@
         </section>
 
         <!-- NAVIGATION TABS -->
-        <nav class="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-200 dark:border-slate-800">
+        <nav class="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-300 dark:border-slate-800">
             <button type="button" class="tab-btn active" onclick="switchTab('hospitals', this)">
                 <i class="fas fa-hospital-user text-teal-500"></i> إدارة المستشفيات
             </button>
@@ -300,10 +486,10 @@
         <section id="tab-pane-hospitals" class="space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                    <h2 class="text-lg font-black">المستشفيات المسجلة في HOSP HUB</h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">التحكم في بيانات المستشفيات التعليمية، إضافة مستشفى جديد، أو حذف مستشفى.</p>
+                    <h2 class="text-lg font-black text-slate-900 dark:text-white">المستشفيات المسجلة في HOSP HUB</h2>
+                    <p class="text-xs subtext-muted font-medium">التحكم في بيانات المستشفيات التعليمية، إضافة مستشفى جديد، أو حذف مستشفى.</p>
                 </div>
-                <button type="button" onclick="openAddHospitalModal()" class="btn-action bg-teal-600 hover:bg-teal-700 text-white shadow-md">
+                <button type="button" onclick="openAddHospitalModal()" class="btn-action bg-teal-600 hover:bg-teal-700 text-white shadow-md font-bold">
                     <i class="fas fa-plus-circle ml-1"></i> إضافة مستشفى جديد
                 </button>
             </div>
@@ -319,17 +505,17 @@
         <section id="tab-pane-specs" class="space-y-4" style="display:none;">
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                    <h2 class="text-lg font-black flex items-center gap-2">
+                    <h2 class="text-lg font-black flex items-center gap-2 text-slate-900 dark:text-white">
                         مستودع التخصصات العام 👑
-                        <span class="text-xs px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 font-bold" id="global-specs-badge">0 تخصص</span>
+                        <span class="text-xs px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 font-bold border border-purple-300 dark:border-purple-800/40" id="global-specs-badge">0 تخصص</span>
                     </h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">الدليل الموحد للتخصصات الطبية الذي تستنسخ منه كافة المستشفيات تخصصاتها المعتمدة.</p>
+                    <p class="text-xs subtext-muted font-medium">الدليل الموحد للتخصصات الطبية الذي تستنسخ منه كافة المستشفيات تخصصاتها المعتمدة.</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="button" onclick="openNewGlobalSpecModal()" class="btn-action bg-purple-600 hover:bg-purple-700 text-white shadow-md">
+                    <button type="button" onclick="openNewGlobalSpecModal()" class="btn-action bg-purple-600 hover:bg-purple-700 text-white shadow-md font-bold">
                         <i class="fas fa-plus ml-1"></i> إضافة تخصص عام جديد
                     </button>
-                    <button type="button" onclick="syncGlobalCatalogToAllHospitals()" class="btn-action bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-xs">
+                    <button type="button" onclick="syncGlobalCatalogToAllHospitals()" class="btn-action btn-neutral text-xs">
                         <i class="fas fa-arrows-rotate ml-1"></i> تعميم على جميع المستشفيات
                     </button>
                 </div>
@@ -338,7 +524,7 @@
             <div class="glass-card overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-right text-xs">
-                        <thead class="bg-slate-100 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 text-slate-500">
+                        <thead>
                             <tr>
                                 <th class="p-3">الرمز</th>
                                 <th class="p-3">الأيقونة واللون</th>
@@ -349,7 +535,7 @@
                                 <th class="p-3 text-center">إجراءات</th>
                             </tr>
                         </thead>
-                        <tbody id="global-specs-table-body" class="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tbody id="global-specs-table-body" class="divide-y divide-slate-200 dark:divide-slate-800">
                             <!-- Rendered dynamically -->
                         </tbody>
                     </table>
@@ -363,13 +549,13 @@
         <section id="tab-pane-passwords" class="space-y-4" style="display:none;">
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                    <h2 class="text-lg font-black flex items-center gap-2">
+                    <h2 class="text-lg font-black flex items-center gap-2 text-slate-900 dark:text-white">
                         إدارة كلمات المرور لجميع المستشفيات 🔑
                     </h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">تعديل كلمات مرور المستخدم والمدير والمالك لكل مستشفى بنقرة واحدة.</p>
+                    <p class="text-xs subtext-muted font-medium">تعديل كلمات مرور المستخدم والمدير والمالك لكل مستشفى بنقرة واحدة.</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="button" onclick="togglePasswordVisibility()" class="btn-action bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-xs" id="pwd-toggle-vis-btn">
+                    <button type="button" onclick="togglePasswordVisibility()" class="btn-action btn-neutral text-xs" id="pwd-toggle-vis-btn">
                         <i class="fas fa-eye ml-1"></i> إظهار كلمات المرور
                     </button>
                     <button type="button" onclick="saveAllPasswords()" class="btn-action bg-amber-500 hover:bg-amber-600 text-slate-950 font-black shadow-md">
@@ -379,21 +565,21 @@
             </div>
 
             <!-- Global Default Passwords Card -->
-            <div class="glass-card p-4 border-amber-500/30">
-                <h3 class="text-xs font-bold text-amber-500 mb-2 flex items-center gap-1.5">
+            <div class="glass-card p-4 border border-amber-500/40 dark:border-amber-500/30">
+                <h3 class="text-xs font-bold text-amber-700 dark:text-amber-400 mb-2 flex items-center gap-1.5">
                     <i class="fas fa-shield-alt"></i> كلمات المرور العامة الافتراضية للنظام (Global Fallback Passwords)
                 </h3>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-400 mb-1">مستخدم افتراضي (User)</label>
+                        <label class="block text-[11px] font-bold subtext-muted mb-1">مستخدم افتراضي (User)</label>
                         <input type="text" id="global-pwd-user" class="input-box font-mono text-center text-xs pwd-field" value="1234" />
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-400 mb-1">مدير افتراضي (Admin)</label>
+                        <label class="block text-[11px] font-bold subtext-muted mb-1">مدير افتراضي (Admin)</label>
                         <input type="text" id="global-pwd-admin" class="input-box font-mono text-center text-xs pwd-field" value="Admin1996*" />
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-400 mb-1">المالك (Owner Super Password)</label>
+                        <label class="block text-[11px] font-bold subtext-muted mb-1">المالك (Owner Super Password)</label>
                         <input type="text" id="global-pwd-owner" class="input-box font-mono text-center text-xs pwd-field" value="MrjBth1996*" />
                     </div>
                 </div>
@@ -402,7 +588,7 @@
             <div class="glass-card overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-right text-xs">
-                        <thead class="bg-slate-100 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 text-slate-500">
+                        <thead>
                             <tr>
                                 <th class="p-3">المستشفى</th>
                                 <th class="p-3 text-center">كلمة مرور المستخدم (User)</th>
@@ -411,7 +597,7 @@
                                 <th class="p-3 text-center">إجراءات</th>
                             </tr>
                         </thead>
-                        <tbody id="passwords-table-body" class="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tbody id="passwords-table-body" class="divide-y divide-slate-200 dark:divide-slate-800">
                             <!-- Rendered dynamically -->
                         </tbody>
                     </table>
@@ -425,12 +611,12 @@
         <section id="tab-pane-heroes" class="space-y-4" style="display:none;">
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                    <h2 class="text-lg font-black flex items-center gap-2">
+                    <h2 class="text-lg font-black flex items-center gap-2 text-slate-900 dark:text-white">
                         روابط منصة Rotation Heroes لجميع المستشفيات 🦸‍♂️
                     </h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">تحكم بالروابط الخارجية لكل مستشفى. إذا تُرك الرابط فارغاً، يظهر الزر في جدول الخفارات بشارة <strong>SOON</strong> معطلاً.</p>
+                    <p class="text-xs subtext-muted font-medium">تحكم بالروابط الخارجية لكل مستشفى. إذا تُرك الرابط فارغاً، يظهر الزر في جدول الخفارات بشارة <strong>SOON</strong> معطلاً.</p>
                 </div>
-                <button type="button" onclick="saveAllHeroesLinks()" class="btn-action bg-sky-600 hover:bg-sky-700 text-white shadow-md">
+                <button type="button" onclick="saveAllHeroesLinks()" class="btn-action bg-sky-600 hover:bg-sky-700 text-white shadow-md font-bold">
                     <i class="fas fa-save ml-1"></i> حفظ جميع الروابط
                 </button>
             </div>
@@ -447,40 +633,40 @@
         <!-- ============================================================ -->
         <section id="tab-pane-backups" class="space-y-4" style="display:none;">
             <div>
-                <h2 class="text-lg font-black">النسخ الاحتياطي والمزامنة السحابية 💾</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400">تنزيل نسخة احتياطية كاملة من قاعدة البيانات، استيراد بيانات، أو المزامنة المباشرة مع GitHub.</p>
+                <h2 class="text-lg font-black text-slate-900 dark:text-white">النسخ الاحتياطي والمزامنة السحابية 💾</h2>
+                <p class="text-xs subtext-muted font-medium">تنزيل نسخة احتياطية كاملة من قاعدة البيانات، استيراد بيانات، أو المزامنة المباشرة مع GitHub.</p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="glass-card p-4 space-y-3">
-                    <div class="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-500 flex items-center justify-center text-lg">
+                    <div class="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center text-lg">
                         <i class="fas fa-download"></i>
                     </div>
-                    <h3 class="font-bold text-sm">تنزيل نسخة احتياطية (JSON)</h3>
-                    <p class="text-xs text-slate-400">تصدير ملف قاعدة البيانات الموحدة الكاملة `hub-data.json` لجهازك.</p>
-                    <button type="button" onclick="exportBackupFile()" class="btn-action w-full bg-teal-600 hover:bg-teal-700 text-white">
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-white">تنزيل نسخة احتياطية (JSON)</h3>
+                    <p class="text-xs subtext-muted font-medium">تصدير ملف قاعدة البيانات الموحدة الكاملة `hub-data.json` لجهازك.</p>
+                    <button type="button" onclick="exportBackupFile()" class="btn-action w-full bg-teal-600 hover:bg-teal-700 text-white font-bold">
                         <i class="fas fa-file-export ml-1"></i> تنزيل الآن
                     </button>
                 </div>
 
                 <div class="glass-card p-4 space-y-3">
-                    <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-lg">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg">
                         <i class="fas fa-cloud-upload-alt"></i>
                     </div>
-                    <h3 class="font-bold text-sm">حفظ ومزامنة مع GitHub</h3>
-                    <p class="text-xs text-slate-400">رفع وحفظ أحدث التعديلات مباشرة في المستودع الرئيسي `mHub96/IQ`.</p>
-                    <button type="button" onclick="triggerGitHubSave()" class="btn-action w-full bg-purple-600 hover:bg-purple-700 text-white">
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-white">حفظ ومزامنة مع GitHub</h3>
+                    <p class="text-xs subtext-muted font-medium">رفع وحفظ أحدث التعديلات مباشرة في المستودع الرئيسي `mHub96/IQ`.</p>
+                    <button type="button" onclick="triggerGitHubSave()" class="btn-action w-full bg-purple-600 hover:bg-purple-700 text-white font-bold">
                         <i class="fas fa-cloud ml-1"></i> حفظ في السيرفر
                     </button>
                 </div>
 
                 <div class="glass-card p-4 space-y-3">
-                    <div class="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-500 flex items-center justify-center text-lg">
+                    <div class="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center text-lg">
                         <i class="fas fa-mobile-screen"></i>
                     </div>
-                    <h3 class="font-bold text-sm">تحديث التطبيق ومسح التخزين المؤقت</h3>
-                    <p class="text-xs text-slate-400">إلغاء تسجيل Service Worker القديم ومسح ذاكرة التخزين المؤقت للهواتف والأجهزة.</p>
-                    <button type="button" onclick="window.forceAppUpdate()" class="btn-action w-full bg-sky-600 hover:bg-sky-700 text-white">
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-white">تحديث التطبيق ومسح التخزين المؤقت</h3>
+                    <p class="text-xs subtext-muted font-medium">إلغاء تسجيل Service Worker القديم ومسح ذاكرة التخزين المؤقت للهواتف والأجهزة.</p>
+                    <button type="button" onclick="window.forceAppUpdate()" class="btn-action w-full bg-sky-600 hover:bg-sky-700 text-white font-bold">
                         <i class="fas fa-sync-alt ml-1"></i> مسح التخزين وتحديث PWA
                     </button>
                 </div>
@@ -488,16 +674,16 @@
 
             <!-- Import Section -->
             <div class="glass-card p-4 space-y-3">
-                <h3 class="font-bold text-sm flex items-center gap-2">
+                <h3 class="font-bold text-sm flex items-center gap-2 text-slate-900 dark:text-white">
                     <i class="fas fa-file-import text-amber-500"></i> استيراد قاعدة بيانات JSON
                 </h3>
-                <p class="text-xs text-slate-400">الصق محتوى ملف JSON هنا لاستبدال أو دمج قاعدة البيانات.</p>
+                <p class="text-xs subtext-muted font-medium">الصق محتوى ملف JSON هنا لاستبدال أو دمج قاعدة البيانات.</p>
                 <textarea id="import-json-area" rows="6" class="input-box font-mono text-xs" dir="ltr" placeholder='{"version": "2.2", "hospitals": {...}}'></textarea>
                 <div class="flex gap-2">
-                    <button type="button" onclick="executeImport('merge')" class="btn-action bg-teal-600 hover:bg-teal-700 text-white text-xs">
+                    <button type="button" onclick="executeImport('merge')" class="btn-action bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold">
                         <i class="fas fa-code-merge ml-1"></i> دمج مع البيانات الحالية
                     </button>
-                    <button type="button" onclick="executeImport('replace')" class="btn-action bg-red-600 hover:bg-red-700 text-white text-xs">
+                    <button type="button" onclick="executeImport('replace')" class="btn-action bg-red-600 hover:bg-red-700 text-white text-xs font-bold">
                         <i class="fas fa-arrows-rotate ml-1"></i> استبدال كامل للبيانات
                     </button>
                 </div>
@@ -510,10 +696,10 @@
     <div id="hosp-modal" class="modal-overlay">
         <div class="modal-card glass-card">
             <div class="flex justify-between items-center mb-3">
-                <h3 class="text-lg font-black flex items-center gap-2" id="hosp-modal-title">
+                <h3 class="text-lg font-black flex items-center gap-2 text-slate-900 dark:text-white" id="hosp-modal-title">
                     <i class="fas fa-hospital-plus text-teal-500"></i> إضافة مستشفى جديد
                 </h3>
-                <button type="button" onclick="closeHospModal()" class="text-slate-400 hover:text-white text-xl"><i class="fas fa-times"></i></button>
+                <button type="button" onclick="closeHospModal()" class="subtext-muted hover:text-slate-900 dark:hover:text-white text-xl"><i class="fas fa-times"></i></button>
             </div>
             
             <form onsubmit="submitHospModal(event)" class="space-y-3">
@@ -521,26 +707,26 @@
                 <input type="hidden" id="modal-hosp-id" value="" />
 
                 <div>
-                    <label class="block text-xs font-bold mb-1 text-slate-400">اسم المستشفى بالعربية</label>
+                    <label class="block text-xs font-bold mb-1">اسم المستشفى بالعربية</label>
                     <input type="text" id="modal-hosp-name-ar" class="input-box" placeholder="مستشفى البصرة التعليمي" required />
                 </div>
                 <div>
-                    <label class="block text-xs font-bold mb-1 text-slate-400">اسم المستشفى بالإنجليزية</label>
+                    <label class="block text-xs font-bold mb-1">اسم المستشفى بالإنجليزية</label>
                     <input type="text" id="modal-hosp-name-en" class="input-box" placeholder="Basra Teaching Hospital" required />
                 </div>
                 <div class="grid grid-cols-2 gap-2" id="modal-slug-row">
                     <div>
-                        <label class="block text-xs font-bold mb-1 text-slate-400">المعرف البرمجي (Slug)</label>
+                        <label class="block text-xs font-bold mb-1">المعرف البرمجي (Slug)</label>
                         <input type="text" id="modal-hosp-slug" class="input-box font-mono text-xs" placeholder="basra" required />
                     </div>
                     <div>
-                        <label class="block text-xs font-bold mb-1 text-slate-400">الموقع / المدينة</label>
+                        <label class="block text-xs font-bold mb-1">الموقع / المدينة</label>
                         <input type="text" id="modal-hosp-location" class="input-box text-xs" value="Basra · Iraq" />
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-xs font-bold mb-1 text-slate-400">الأيقونة</label>
+                        <label class="block text-xs font-bold mb-1">الأيقونة</label>
                         <select id="modal-hosp-icon" class="input-box text-xs">
                             <option value="fa-hospital">🏥 مستشفى (Hospital)</option>
                             <option value="fa-hospital-user">👨‍⚕️ مستشفى وأطباء (Hospital User)</option>
@@ -551,26 +737,26 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold mb-1 text-slate-400">لون الهوية</label>
+                        <label class="block text-xs font-bold mb-1">لون الهوية</label>
                         <input type="color" id="modal-hosp-color" value="#0f766e" class="input-box h-10 p-1 cursor-pointer" />
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold mb-1 text-slate-400">رابط Rotation Heroes للمستشفى</label>
+                    <label class="block text-xs font-bold mb-1">رابط Rotation Heroes للمستشفى</label>
                     <input type="url" id="modal-hosp-heroes-url" class="input-box font-mono text-xs" placeholder="https://... (اتركه فارغاً لشارة SOON)" dir="ltr" />
                 </div>
                 
                 <div class="grid grid-cols-3 gap-2" id="modal-hosp-passwords-wrap">
                     <div>
-                        <label class="block text-[11px] font-bold mb-1 text-slate-400">كلمة مرور المستخدم</label>
+                        <label class="block text-[11px] font-bold mb-1">كلمة مرور المستخدم</label>
                         <input type="text" id="modal-hosp-pwd-user" class="input-box font-mono text-center text-xs" value="1234" required />
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold mb-1 text-slate-400">كلمة مرور المدير</label>
+                        <label class="block text-[11px] font-bold mb-1">كلمة مرور المدير</label>
                         <input type="text" id="modal-hosp-pwd-admin" class="input-box font-mono text-center text-xs" value="Admin1996*" required />
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold mb-1 text-slate-400">كلمة مرور المالك</label>
+                        <label class="block text-[11px] font-bold mb-1">كلمة مرور المالك</label>
                         <input type="text" id="modal-hosp-pwd-owner" class="input-box font-mono text-center text-xs" value="MrjBth1996*" required />
                     </div>
                 </div>
@@ -579,7 +765,7 @@
                     <button type="submit" class="btn-action flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold">
                         <i class="fas fa-save ml-1"></i> حفظ البيانات
                     </button>
-                    <button type="button" onclick="closeHospModal()" class="btn-action bg-slate-700 hover:bg-slate-600 text-white">إلغاء</button>
+                    <button type="button" onclick="closeHospModal()" class="btn-action btn-neutral">إلغاء</button>
                 </div>
             </form>
         </div>
@@ -589,10 +775,10 @@
     <div id="spec-modal" class="modal-overlay">
         <div class="modal-card glass-card">
             <div class="flex justify-between items-center mb-3">
-                <h3 class="text-lg font-black flex items-center gap-2" id="spec-modal-title">
+                <h3 class="text-lg font-black flex items-center gap-2 text-slate-900 dark:text-white" id="spec-modal-title">
                     <i class="fas fa-stethoscope text-purple-500"></i> تعديل التخصص العام
                 </h3>
-                <button type="button" onclick="closeSpecModal()" class="text-slate-400 hover:text-white text-xl"><i class="fas fa-times"></i></button>
+                <button type="button" onclick="closeSpecModal()" class="subtext-muted hover:text-slate-900 dark:hover:text-white text-xl"><i class="fas fa-times"></i></button>
             </div>
 
             <form onsubmit="submitSpecModal(event)" class="space-y-3">
@@ -601,29 +787,29 @@
 
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-xs font-bold mb-1 text-slate-400">رمز التخصص (Code)</label>
+                        <label class="block text-xs font-bold mb-1">رمز التخصص (Code)</label>
                         <input type="text" id="modal-spec-id" class="input-box font-mono text-xs uppercase" placeholder="GS" required />
                     </div>
                     <div>
-                        <label class="block text-xs font-bold mb-1 text-slate-400">الأيقونة (Emoji)</label>
+                        <label class="block text-xs font-bold mb-1">الأيقونة (Emoji)</label>
                         <input type="text" id="modal-spec-icon" class="input-box text-center text-base" value="🏥" required />
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold mb-1 text-slate-400">اسم التخصص بالعربية</label>
+                    <label class="block text-xs font-bold mb-1">اسم التخصص بالعربية</label>
                     <input type="text" id="modal-spec-name-ar" class="input-box" placeholder="الجراحة العامة" required />
                 </div>
                 <div>
-                    <label class="block text-xs font-bold mb-1 text-slate-400">اسم التخصص بالإنجليزية</label>
+                    <label class="block text-xs font-bold mb-1">اسم التخصص بالإنجليزية</label>
                     <input type="text" id="modal-spec-name-en" class="input-box" placeholder="General Surgery" required />
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-xs font-bold mb-1 text-slate-400">لون التخصص</label>
+                        <label class="block text-xs font-bold mb-1">لون التخصص</label>
                         <input type="color" id="modal-spec-color" value="#0f766e" class="input-box h-10 p-1 cursor-pointer" />
                     </div>
                     <div>
-                        <label class="block text-xs font-bold mb-1 text-slate-400">التصنيف</label>
+                        <label class="block text-xs font-bold mb-1">التصنيف</label>
                         <select id="modal-spec-surgical" class="input-box text-xs">
                             <option value="medical">🩺 باطني / عام (Medical)</option>
                             <option value="surgical">🔪 جراحي (Surgical)</option>
@@ -635,7 +821,7 @@
                     <button type="submit" class="btn-action flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold">
                         <i class="fas fa-save ml-1"></i> حفظ التخصص في المستودع
                     </button>
-                    <button type="button" onclick="closeSpecModal()" class="btn-action bg-slate-700 hover:bg-slate-600 text-white">إلغاء</button>
+                    <button type="button" onclick="closeSpecModal()" class="btn-action btn-neutral">إلغاء</button>
                 </div>
             </form>
         </div>
@@ -706,15 +892,17 @@
             if (btn) btn.classList.add('active');
         }
 
-        // Theme Toggle
+        // Theme Toggle & Synchronization
         function toggleTheme() {
             const next = Hub.toggleTheme();
             applyTheme(next);
         }
         function applyTheme(theme) {
-            document.body.className = theme;
+            Hub.applyThemeToDOM(theme);
             const icon = document.getElementById('theme-icon');
-            if (icon) icon.className = theme === 'dark' ? 'fas fa-sun text-amber-400' : 'fas fa-moon text-slate-600';
+            if (icon) {
+                icon.className = theme === 'dark' ? 'fas fa-sun text-amber-400' : 'fas fa-moon text-slate-700';
+            }
         }
 
         // Main Render
@@ -767,36 +955,36 @@
                                         <i class="fas ${h.icon || 'fa-hospital'}"></i>
                                     </div>
                                     <div>
-                                        <h3 class="font-bold text-sm leading-snug">${h.name_ar || h.hospitalName}</h3>
-                                        <div class="text-[11px] text-slate-400 font-mono">${h.id} · ${h.location || 'Basra · Iraq'}</div>
+                                        <h3 class="font-bold text-sm leading-snug text-slate-900 dark:text-white">${h.name_ar || h.hospitalName}</h3>
+                                        <div class="text-[11px] subtext-muted font-mono font-medium">${h.id} · ${h.location || 'Basra · Iraq'}</div>
                                     </div>
                                 </div>
-                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${hasHeroes ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}">
+                                <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full ${hasHeroes ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/50' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-700/50'}">
                                     ${hasHeroes ? 'Heroes مفعل' : 'Heroes قريباً'}
                                 </span>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-2 my-3 py-2 border-y border-slate-100 dark:border-slate-800 text-xs">
-                                <div><span class="text-slate-400">الأطباء:</span> <strong>${resCount}</strong></div>
-                                <div><span class="text-slate-400">التخصصات:</span> <strong>${specCount}</strong></div>
+                            <div class="grid grid-cols-2 gap-2 my-3 py-2 border-y border-slate-200 dark:border-slate-800 text-xs">
+                                <div><span class="subtext-muted">الأطباء:</span> <strong class="text-slate-900 dark:text-white">${resCount}</strong></div>
+                                <div><span class="subtext-muted">التخصصات:</span> <strong class="text-slate-900 dark:text-white">${specCount}</strong></div>
                             </div>
                         </div>
 
                         <div class="space-y-2 pt-2">
                             <div class="flex gap-2">
-                                <a href="./Home.html?hospital=${h.id}" class="btn-action flex-1 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-xs text-center">
+                                <a href="./Home.html?hospital=${h.id}" class="btn-action flex-1 btn-neutral text-xs text-center">
                                     <i class="fas fa-eye ml-1"></i> جدول الخفارات
                                 </a>
-                                <a href="./admin.html?hospital=${h.id}" class="btn-action flex-1 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-xs text-center">
+                                <a href="./admin.html?hospital=${h.id}" class="btn-action flex-1 btn-neutral text-xs text-center">
                                     <i class="fas fa-sliders ml-1"></i> إدارة المستشفى
                                 </a>
                             </div>
                             <div class="flex gap-2">
-                                <button type="button" onclick="openEditHospitalModal('${h.id}')" class="btn-action flex-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/20 text-xs">
+                                <button type="button" onclick="openEditHospitalModal('${h.id}')" class="btn-action flex-1 bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs font-bold">
                                     <i class="fas fa-edit ml-1"></i> تعديل
                                 </button>
                                 ${h.id !== 'iraqi' ? `
-                                <button type="button" onclick="confirmDeleteHospital('${h.id}')" class="btn-action bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 text-xs px-3" title="حذف المستشفى">
+                                <button type="button" onclick="confirmDeleteHospital('${h.id}')" class="btn-action bg-red-500/15 hover:bg-red-500/25 text-red-700 dark:text-red-400 border border-red-500/30 text-xs px-3 font-bold" title="حذف المستشفى">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                                 ` : ''}
@@ -817,31 +1005,31 @@
             tbody.innerHTML = specs.map(s => {
                 const isSurg = Hub.isSurgicalSpecialty(s.id);
                 return `
-                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                        <td class="p-3 font-mono font-bold text-teal-600 dark:text-amber-400">${s.id}</td>
+                    <tr class="transition-colors">
+                        <td class="p-3 font-mono font-bold text-teal-700 dark:text-amber-400">${s.id}</td>
                         <td class="p-3">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-white font-bold" style="background:${s.color || '#0f766e'}">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-white font-bold shadow-sm" style="background:${s.color || '#0f766e'}">
                                 <span>${s.icon || '🏥'}</span>
                             </span>
                         </td>
-                        <td class="p-3 font-bold text-sm">${s.name_ar || s.id}</td>
-                        <td class="p-3 text-slate-400">${s.name_en || s.id}</td>
+                        <td class="p-3 font-bold text-sm text-slate-900 dark:text-white">${s.name_ar || s.id}</td>
+                        <td class="p-3 subtext-muted font-medium">${s.name_en || s.id}</td>
                         <td class="p-3">
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isSurg ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'}">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isSurg ? 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300 border border-red-300 dark:border-red-800/40' : 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-300 dark:border-blue-800/40'}">
                                 ${isSurg ? '🔪 جراحي' : '🩺 باطني'}
                             </span>
                         </td>
                         <td class="p-3">
-                            <span class="text-xs ${s.enabled !== false ? 'text-emerald-500' : 'text-slate-400'} font-bold">
+                            <span class="text-xs font-bold ${s.enabled !== false ? 'text-emerald-600 dark:text-emerald-400' : 'subtext-muted'}">
                                 ${s.enabled !== false ? 'نشط' : 'معطل'}
                             </span>
                         </td>
                         <td class="p-3 text-center">
                             <div class="inline-flex gap-1.5">
-                                <button type="button" onclick="openEditGlobalSpecModal('${s.id}')" class="btn-action bg-amber-500/10 text-amber-500 px-2 py-1 text-xs" title="تعديل">
+                                <button type="button" onclick="openEditGlobalSpecModal('${s.id}')" class="btn-action bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 border border-amber-500/30 px-2 py-1 text-xs font-bold" title="تعديل">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button type="button" onclick="deleteGlobalSpec('${s.id}')" class="btn-action bg-red-500/10 text-red-500 px-2 py-1 text-xs" title="حذف">
+                                <button type="button" onclick="deleteGlobalSpec('${s.id}')" class="btn-action bg-red-500/15 hover:bg-red-500/25 text-red-700 dark:text-red-400 border border-red-500/30 px-2 py-1 text-xs font-bold" title="حذف">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </div>
@@ -866,12 +1054,12 @@
             tbody.innerHTML = hospitals.map(h => {
                 const pwds = h.passwords || {};
                 return `
-                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                    <tr>
                         <td class="p-3">
                             <div class="flex items-center gap-2">
                                 <span>${h.icon ? '🏥' : '🏢'}</span>
-                                <span class="font-bold text-sm">${h.name_ar || h.hospitalName}</span>
-                                <span class="text-slate-400 font-mono text-[11px]">(${h.id})</span>
+                                <span class="font-bold text-sm text-slate-900 dark:text-white">${h.name_ar || h.hospitalName}</span>
+                                <span class="subtext-muted font-mono text-[11px] font-medium">(${h.id})</span>
                             </div>
                         </td>
                         <td class="p-3 text-center">
@@ -884,7 +1072,7 @@
                             <input type="password" data-hosp="${h.id}" data-role="owner" class="input-box text-center font-mono text-xs w-36 pwd-field inline-block" value="${pwds.owner || 'MrjBth1996*'}" />
                         </td>
                         <td class="p-3 text-center">
-                            <button type="button" onclick="saveSingleHospitalPassword('${h.id}')" class="btn-action bg-amber-500/10 text-amber-500 border border-amber-500/20 text-xs px-2.5 py-1">
+                            <button type="button" onclick="saveSingleHospitalPassword('${h.id}')" class="btn-action bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs px-2.5 py-1 font-bold">
                                 <i class="fas fa-save ml-1"></i> حفظ
                             </button>
                         </td>
@@ -956,22 +1144,22 @@
                 const hasUrl = Boolean(currentUrl);
 
                 return `
-                    <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div class="p-3.5 rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold" style="background:${h.color || '#0f766e'}">
+                            <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold shadow-sm" style="background:${h.color || '#0f766e'}">
                                 <i class="fas ${h.icon || 'fa-hospital'}"></i>
                             </div>
                             <div>
-                                <span class="font-bold text-sm block">${h.name_ar || h.hospitalName}</span>
-                                <span class="text-xs text-slate-400 font-mono">${h.id}</span>
+                                <span class="font-bold text-sm block text-slate-900 dark:text-white">${h.name_ar || h.hospitalName}</span>
+                                <span class="text-xs subtext-muted font-mono font-medium">${h.id}</span>
                             </div>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${hasUrl ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300'}">
+                            <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full ${hasUrl ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/50' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-700/50'}">
                                 ${hasUrl ? 'مفعل (Active)' : 'معطل (SOON)'}
                             </span>
                         </div>
                         <div class="flex items-center gap-2 flex-1 max-w-xl">
                             <input type="url" data-hero-hosp="${h.id}" class="input-box font-mono text-xs flex-1 hero-url-input" placeholder="https://... (اتركه فارغاً لإظهار شارة SOON)" value="${currentUrl}" dir="ltr" />
-                            ${hasUrl ? `<a href="${currentUrl}" target="_blank" rel="noopener noreferrer" class="btn-action bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-xs px-2.5 py-1.5" title="تجربة الرابط"><i class="fas fa-external-link-alt"></i></a>` : ''}
+                            ${hasUrl ? `<a href="${currentUrl}" target="_blank" rel="noopener noreferrer" class="btn-action btn-neutral text-xs px-2.5 py-1.5" title="تجربة الرابط"><i class="fas fa-external-link-alt"></i></a>` : ''}
                         </div>
                     </div>
                 `;
@@ -1273,10 +1461,14 @@
             }
         }
 
-        // Init on page load
+        // Init on page load & listen for theme change
         window.addEventListener('DOMContentLoaded', async () => {
             applyTheme(Hub.getTheme());
             await checkOwnerAuth();
+        });
+
+        window.addEventListener('hub:theme-changed', (e) => {
+            applyTheme(e.detail.theme);
         });
     </script>
 </body>

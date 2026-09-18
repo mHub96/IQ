@@ -199,137 +199,449 @@
             font-weight: 800;
         }
 
-        /* Matrix Table Styling */
+        /* Action Button: Today Jump */
+        .btn-today-action {
+            border-radius: 1rem;
+            padding: 0.5rem 1rem;
+            font-weight: 800;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            background: linear-gradient(135deg, rgba(15, 118, 110, 0.12), rgba(13, 148, 136, 0.22));
+            border: 1.5px solid #0f766e;
+            color: #0f766e;
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.15);
+        }
+        body.dark .btn-today-action {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.16), rgba(212, 175, 55, 0.28));
+            border-color: #d4af37;
+            color: #d4af37;
+            box-shadow: 0 4px 14px rgba(212, 175, 55, 0.2);
+        }
+        .btn-today-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(15, 118, 110, 0.25);
+        }
+        body.dark .btn-today-action:hover {
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35);
+        }
+        .btn-today-action:active {
+            transform: scale(0.95);
+        }
+
+        /* Matrix Table Container & Styling */
         .matrix-table-container {
             overflow-x: auto;
-            border-radius: 1.25rem;
-            border: 1px solid #e2e8f0;
+            border-radius: 1.5rem;
+            border: 1.5px solid rgba(226, 232, 240, 0.95);
             background: #ffffff;
             position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            scrollbar-width: thin;
         }
         body.dark .matrix-table-container {
-            background: #101622;
-            border-color: rgba(212, 175, 55, 0.15);
+            background: #0f1520;
+            border-color: rgba(212, 175, 55, 0.18);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
         }
         .matrix-table {
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            min-width: 900px;
-            font-size: 0.78rem;
+            min-width: 1100px;
+            font-size: 0.8rem;
         }
         .matrix-table th, .matrix-table td {
-            padding: 8px 10px;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 10px 8px;
+            border-bottom: 1.5px solid #e2e8f0;
             border-left: 1px solid #e2e8f0;
             text-align: center;
+            vertical-align: middle;
         }
         body.dark .matrix-table th, body.dark .matrix-table td {
-            border-color: rgba(212, 175, 55, 0.1);
+            border-bottom-color: rgba(255, 255, 255, 0.07);
+            border-left-color: rgba(255, 255, 255, 0.06);
         }
+
+        /* Header Row */
         .matrix-table th {
-            background: #f8fafc;
-            color: #475569;
-            font-weight: 800;
+            background: linear-gradient(180deg, #f8fafc 0%, #edf2f7 100%);
             position: sticky;
             top: 0;
             z-index: 10;
+            padding: 12px 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
         }
         body.dark .matrix-table th {
-            background: #141c2a;
-            color: #e2e8f0;
+            background: linear-gradient(180deg, #182234 0%, #121927 100%);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
         }
-        /* Sticky First Column: Specialty */
+
+        /* Day Numbers & Names */
+        .day-number-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            font-weight: 900;
+            text-align: center;
+            line-height: 1.1;
+            color: #0f172a;
+        }
+        body.dark .day-number-text {
+            color: #f1f5f9;
+        }
+        .day-name-text {
+            font-size: 0.74rem;
+            font-weight: 800;
+            text-align: center;
+            margin-top: 3px;
+            color: #64748b;
+        }
+        body.dark .day-name-text {
+            color: #94a3b8;
+        }
+
+        /* Weekend Highlighting: Friday (الجمعة) & Saturday (السبت) */
+        .is-friday-col .day-number-text, .is-friday-col .day-name-text {
+            color: #e11d48 !important; /* Rose Red */
+        }
+        body.dark .is-friday-col .day-number-text, body.dark .is-friday-col .day-name-text {
+            color: #fb7185 !important;
+        }
+        .is-saturday-col .day-number-text, .is-saturday-col .day-name-text {
+            color: #ea580c !important; /* Warm Amber / Orange */
+        }
+        body.dark .is-saturday-col .day-number-text, body.dark .is-saturday-col .day-name-text {
+            color: #f97316 !important;
+        }
+        .matrix-table td.is-friday-col, .matrix-table td.is-saturday-col {
+            background: rgba(225, 29, 72, 0.025);
+        }
+        body.dark .matrix-table td.is-friday-col, body.dark .matrix-table td.is-saturday-col {
+            background: rgba(251, 113, 133, 0.035);
+        }
+
+        /* Sticky First Column: Specialty (Centered & Bold) */
         .matrix-table .sticky-col {
             position: sticky;
             right: 0;
-            background: #f8fafc;
             z-index: 15;
-            text-align: right;
-            font-weight: 800;
-            min-width: 150px;
-            border-right: 2px solid #0f766e;
+            text-align: center !important;
+            min-width: 175px;
+            max-width: 200px;
+            background: #ffffff;
+            border-left: 2px solid #0f766e;
+            box-shadow: -4px 0 14px rgba(0, 0, 0, 0.05);
         }
         body.dark .matrix-table .sticky-col {
-            background: #141c2a;
-            border-right-color: #d4af37;
+            background: #121927;
+            border-left-color: #d4af37;
+            box-shadow: -4px 0 18px rgba(0, 0, 0, 0.5);
         }
         .matrix-table th.sticky-col {
             z-index: 25;
+            background: linear-gradient(180deg, #edf2f7 0%, #e2e8f0 100%);
+        }
+        body.dark .matrix-table th.sticky-col {
+            background: linear-gradient(180deg, #1c263a 0%, #151e2e 100%);
         }
 
-        /* Today Column Highlight */
-        .is-today-col {
-            background: rgba(15, 118, 110, 0.06) !important;
-            font-weight: 800;
+        .header-specialty-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            font-weight: 900;
+            font-size: 0.9rem;
+            color: #0f766e;
+            text-align: center;
         }
-        body.dark .is-today-col {
-            background: rgba(212, 175, 55, 0.08) !important;
-        }
-        .today-header-badge {
-            display: inline-block;
-            padding: 1px 6px;
-            border-radius: 999px;
-            font-size: 0.65rem;
-            background: #10b981;
-            color: white;
-            margin-top: 2px;
+        body.dark .header-specialty-title {
+            color: #d4af37;
         }
 
-        /* Doctor Duty Chip */
+        .specialty-cell-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 4px;
+            text-align: center;
+            width: 100%;
+        }
+        .specialty-icon-chip {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .specialty-cell-badge:hover .specialty-icon-chip {
+            transform: scale(1.1) rotate(4deg);
+        }
+        .specialty-name-text {
+            font-weight: 900;
+            font-size: 0.85rem;
+            line-height: 1.35;
+            text-align: center;
+            color: #0f172a;
+            max-width: 160px;
+            word-wrap: break-word;
+        }
+        body.dark .specialty-name-text {
+            color: #f8fafc;
+        }
+
+        /* Zebra Striping for Readability */
+        .matrix-table tbody tr:nth-child(even) td:not(.is-today-col):not(.sticky-col) {
+            background: rgba(15, 118, 110, 0.015);
+        }
+        body.dark .matrix-table tbody tr:nth-child(even) td:not(.is-today-col):not(.sticky-col) {
+            background: rgba(255, 255, 255, 0.015);
+        }
+        .matrix-table tbody tr:hover td:not(.is-today-col) {
+            background: rgba(15, 118, 110, 0.04) !important;
+        }
+        body.dark .matrix-table tbody tr:hover td:not(.is-today-col) {
+            background: rgba(212, 175, 55, 0.05) !important;
+        }
+
+        /* Doctor Duty Chip with Vibrancy & Polish */
         .doctor-duty-chip {
-            padding: 4px 7px;
-            border-radius: 8px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            background: #f1f5f9;
-            color: #1e293b;
-            border: 1px solid #cbd5e1;
-            margin: 2px 0;
-            display: block;
+            padding: 6px 9px;
+            border-radius: 12px;
+            font-size: 0.76rem;
+            font-weight: 800;
+            background: #ffffff;
+            color: #0f172a;
+            border: 1.5px solid #cbd5e1;
+            margin: 4px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
             cursor: pointer;
-            transition: all 0.15s ease;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
         }
         body.dark .doctor-duty-chip {
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(212, 175, 55, 0.2);
-            color: #f1f5f9;
+            background: #182233;
+            border-color: rgba(255, 255, 255, 0.12);
+            color: #f8fafc;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
         }
         .doctor-duty-chip:hover {
-            transform: scale(1.03);
-            border-color: #0f766e;
+            transform: translateY(-2px) scale(1.03);
+            border-color: var(--spec-card-color, #0f766e);
+            box-shadow: 0 8px 20px rgba(15, 118, 110, 0.2);
         }
         body.dark .doctor-duty-chip:hover {
             border-color: #d4af37;
-            background: rgba(212, 175, 55, 0.15);
+            box-shadow: 0 8px 24px rgba(212, 175, 55, 0.35);
+        }
+        .doctor-duty-chip.matched-doctor-chip {
+            background: linear-gradient(135deg, #fef08a, #facc15) !important;
+            color: #0f172a !important;
+            border-color: #eab308 !important;
+            font-weight: 900 !important;
+            box-shadow: 0 4px 14px rgba(234, 179, 8, 0.4) !important;
+        }
+        body.dark .doctor-duty-chip.matched-doctor-chip {
+            background: linear-gradient(135deg, #d4af37, #b8942e) !important;
+            color: #0b0e12 !important;
+            border-color: #f59e0b !important;
+        }
+        .duty-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: 0 0 6px currentColor;
+        }
+        .duty-doctor-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .empty-slot-dash {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            font-weight: bold;
+        }
+        body.dark .empty-slot-dash {
+            color: #334155;
         }
 
-        /* Single Specialty Day Card */
+        /* Today Column Spotlight */
+        .is-today-col {
+            background: linear-gradient(180deg, rgba(15, 118, 110, 0.14) 0%, rgba(15, 118, 110, 0.04) 100%) !important;
+            border-left: 2px solid #0f766e !important;
+            border-right: 2px solid #0f766e !important;
+            position: relative;
+        }
+        body.dark .is-today-col {
+            background: linear-gradient(180deg, rgba(212, 175, 55, 0.18) 0%, rgba(212, 175, 55, 0.05) 100%) !important;
+            border-left: 2px solid #d4af37 !important;
+            border-right: 2px solid #d4af37 !important;
+        }
+        th.is-today-col {
+            border-top: 3px solid #0f766e !important;
+            background: #e6fffa !important;
+        }
+        body.dark th.is-today-col {
+            border-top: 3px solid #d4af37 !important;
+            background: #1e2a3c !important;
+        }
+        .today-header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 7px;
+            border-radius: 999px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            color: #ffffff;
+            margin-top: 3px;
+            box-shadow: 0 2px 8px rgba(15, 118, 110, 0.35);
+        }
+        body.dark .today-header-badge {
+            background: linear-gradient(135deg, #d4af37, #b8942e);
+            color: #0b0e12;
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.35);
+        }
+
+        /* Today Attention Glow Animation */
+        @keyframes todaySpotlightPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(15, 118, 110, 0.9);
+                filter: brightness(1);
+            }
+            35% {
+                box-shadow: 0 0 35px 12px rgba(15, 118, 110, 0.65);
+                filter: brightness(1.4);
+            }
+            70% {
+                box-shadow: 0 0 20px 6px rgba(15, 118, 110, 0.35);
+                filter: brightness(1.2);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(15, 118, 110, 0);
+                filter: brightness(1);
+            }
+        }
+        body.dark @keyframes todaySpotlightPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.9);
+                filter: brightness(1);
+            }
+            35% {
+                box-shadow: 0 0 35px 12px rgba(212, 175, 55, 0.7);
+                filter: brightness(1.4);
+            }
+            70% {
+                box-shadow: 0 0 20px 6px rgba(212, 175, 55, 0.4);
+                filter: brightness(1.2);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+                filter: brightness(1);
+            }
+        }
+        .today-attention-flash {
+            animation: todaySpotlightPulse 0.9s cubic-bezier(0.16, 1, 0.3, 1) 2;
+            z-index: 30 !important;
+        }
+
+        /* Beacon Pointer Tag */
+        .today-beacon-pointer {
+            position: absolute;
+            top: -36px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            color: white;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 999px;
+            white-space: nowrap;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            pointer-events: none;
+            animation: bouncePointer 1.1s infinite;
+        }
+        body.dark .today-beacon-pointer {
+            background: linear-gradient(135deg, #d4af37, #b8942e);
+            color: #0b0e12;
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+        }
+        .today-beacon-pointer::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px 5px 0;
+            border-style: solid;
+            border-color: #0d9488 transparent transparent;
+        }
+        body.dark .today-beacon-pointer::after {
+            border-color: #d4af37 transparent transparent;
+        }
+        @keyframes bouncePointer {
+            0%, 100% { transform: translate(-50%, 0); }
+            50% { transform: translate(-50%, -6px); }
+        }
+
+        /* Single Specialty Day Card Styling */
         .day-duty-card {
             padding: 14px 16px;
-            border-radius: 16px;
-            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            border: 1.5px solid #e2e8f0;
             background: #ffffff;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
-            transition: all 0.2s ease;
+            gap: 14px;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
         }
         body.dark .day-duty-card {
-            background: rgba(16, 22, 34, 0.85);
-            border-color: rgba(212, 175, 55, 0.14);
+            background: rgba(16, 22, 34, 0.88);
+            border-color: rgba(212, 175, 55, 0.16);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+        }
+        .day-duty-card:hover {
+            transform: translateY(-2px);
+            border-color: #0f766e;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+        }
+        body.dark .day-duty-card:hover {
+            border-color: #d4af37;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
         }
         .day-duty-card.today {
             border-color: #0f766e;
-            box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.2);
+            background: linear-gradient(135deg, rgba(15, 118, 110, 0.06), #ffffff);
+            box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.25);
         }
         body.dark .day-duty-card.today {
             border-color: #d4af37;
-            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25);
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(16, 22, 34, 0.95));
+            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
         }
 
         /* Contact Pill */
@@ -400,8 +712,9 @@
                     <button type="button" onclick="navigateMonth(-1)" class="btn-ghost" title="الشهر السابق">
                         <i class="fas fa-chevron-left"></i>
                     </button>
-                    <button type="button" onclick="jumpToCurrentMonth()" class="btn-ghost text-xs font-bold" title="العودة للشهر الحالي">
-                        اليوم
+                    <button type="button" id="btn-jump-today" onclick="jumpToCurrentMonth()" class="btn-today-action" title="تحديد والتركيز على خفارات اليوم">
+                        <i class="fas fa-location-crosshairs"></i>
+                        <span>اليوم</span>
                     </button>
                 </div>
             </div>
@@ -530,7 +843,9 @@
             // Set current medical date
             const todayStr = Hub.getMedicalDate(); // DD/MM/YYYY
             const parts = todayStr.split('/');
+            let todayDayNum = null;
             if (parts.length === 3) {
+                todayDayNum = parseInt(parts[0], 10);
                 currentMonth = parseInt(parts[1], 10);
                 currentYear = parseInt(parts[2], 10);
             }
@@ -540,6 +855,13 @@
             renderMonthControls();
             renderSpecialtyPills();
             renderSchedule();
+
+            // Auto-focus and scroll to today on initial load
+            if (todayDayNum) {
+                setTimeout(() => {
+                    scrollToToday(todayDayNum);
+                }, 350);
+            }
 
             // Event listeners
             window.addEventListener('hub:hospital-switched', () => {
@@ -588,10 +910,72 @@
             const todayStr = Hub.getMedicalDate();
             const parts = todayStr.split('/');
             if (parts.length === 3) {
-                currentMonth = parseInt(parts[1], 10);
-                currentYear = parseInt(parts[2], 10);
+                const targetD = parseInt(parts[0], 10);
+                const targetM = parseInt(parts[1], 10);
+                const targetY = parseInt(parts[2], 10);
+
+                const monthChanged = (currentMonth !== targetM || currentYear !== targetY);
+                currentMonth = targetM;
+                currentYear = targetY;
+
                 renderMonthControls();
                 renderSchedule();
+
+                setTimeout(() => {
+                    scrollToToday(targetD);
+                }, monthChanged ? 150 : 30);
+            }
+        }
+
+        function scrollToToday(dayNum) {
+            if (currentViewMode === 'matrix') {
+                const tableContainer = document.querySelector('.matrix-table-container');
+                const todayHeader = document.getElementById('today-header-col');
+                if (tableContainer && todayHeader) {
+                    const containerWidth = tableContainer.clientWidth;
+                    const headerOffset = todayHeader.offsetLeft;
+                    const headerWidth = todayHeader.offsetWidth;
+                    const scrollPos = headerOffset - (containerWidth / 2) + (headerWidth / 2);
+                    
+                    tableContainer.scrollTo({
+                        left: scrollPos,
+                        behavior: 'smooth'
+                    });
+
+                    // Trigger attention pulse animation on header and cells
+                    todayHeader.classList.remove('today-attention-flash');
+                    void todayHeader.offsetWidth;
+                    todayHeader.classList.add('today-attention-flash');
+
+                    document.querySelectorAll('.is-today-col').forEach(el => {
+                        el.classList.remove('today-attention-flash');
+                        void el.offsetWidth;
+                        el.classList.add('today-attention-flash');
+                    });
+
+                    // Floating beacon pointer badge
+                    let beacon = document.getElementById('today-beacon');
+                    if (!beacon) {
+                        beacon = document.createElement('div');
+                        beacon.id = 'today-beacon';
+                        beacon.className = 'today-beacon-pointer';
+                        todayHeader.appendChild(beacon);
+                    }
+                    beacon.innerHTML = `<i class="fas fa-arrow-down text-xs"></i> <span>اليوم ${dayNum}</span>`;
+                    beacon.style.display = 'flex';
+
+                    setTimeout(() => {
+                        if (beacon) beacon.style.display = 'none';
+                    }, 4000);
+                }
+            } else {
+                const todayCard = document.querySelector('.day-duty-card.today');
+                if (todayCard) {
+                    todayCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    todayCard.classList.remove('today-attention-flash');
+                    void todayCard.offsetWidth;
+                    todayCard.classList.add('today-attention-flash');
+                }
             }
         }
 
@@ -682,19 +1066,34 @@
                 statsText.textContent = `تم تسجيل ${monthEntries.length} خفارة عبر ${currentHospital.specialties?.length || 0} تخصص لشهر ${MONTH_NAMES_AR[currentMonth - 1]}`;
             }
 
-            // Build Header Row
-            let headHtml = `<tr><th class="sticky-col">التخصص الطبي</th>`;
+            // Build Header Row (Centered & Bold Day Numbers and Day Names)
+            let headHtml = `<tr>
+                <th class="sticky-col">
+                    <div class="header-specialty-title">
+                        <i class="fas fa-stethoscope ml-1 text-teal-600 dark:text-amber-400"></i>
+                        <span>التخصص الطبي</span>
+                    </div>
+                </th>`;
+
             for (let d = 1; d <= daysCount; d++) {
                 const dateObj = new Date(currentYear, currentMonth - 1, d);
                 const dayName = DAY_NAMES_AR[dateObj.getDay()];
+                const dayOfWeek = dateObj.getDay();
+                const isFriday = dayOfWeek === 5;
+                const isSaturday = dayOfWeek === 6;
                 const isToday = isCurrentMonth && (d === todayD);
-                const isWeekend = dateObj.getDay() === 5; // Friday
+
+                const colClasses = [
+                    isToday ? 'is-today-col' : '',
+                    isFriday ? 'is-friday-col' : '',
+                    isSaturday ? 'is-saturday-col' : ''
+                ].filter(Boolean).join(' ');
 
                 headHtml += `
-                    <th class="${isToday ? 'is-today-col' : ''} ${isWeekend ? 'text-amber-600 dark:text-amber-400' : ''}">
-                        <div class="font-mono text-xs">${d}</div>
-                        <div class="text-[10px] font-normal opacity-75">${dayName}</div>
-                        ${isToday ? '<span class="today-header-badge">اليوم</span>' : ''}
+                    <th id="${isToday ? 'today-header-col' : `day-header-${d}`}" class="${colClasses}">
+                        <div class="day-number-text ${isToday ? 'text-teal-700 dark:text-amber-400' : ''}">${d}</div>
+                        <div class="day-name-text">${dayName}</div>
+                        ${isToday ? '<span class="today-header-badge"><i class="fas fa-bullseye ml-0.5 text-[9px]"></i> اليوم</span>' : ''}
                     </th>
                 `;
             }
@@ -721,20 +1120,27 @@
                 }
             });
 
-            // Build Body Rows
+            // Build Body Rows (Specialties Centered & Bold with Colored Badges)
             let bodyHtml = '';
             specs.forEach(spec => {
+                const specColor = spec.color || '#0f766e';
                 bodyHtml += `<tr>`;
                 bodyHtml += `
                     <td class="sticky-col">
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-sm">${spec.icon || '🏥'}</span>
-                            <span class="font-bold text-slate-800 dark:text-white truncate">${spec.name_ar}</span>
+                        <div class="specialty-cell-badge">
+                            <span class="specialty-icon-chip" style="background: ${specColor}18; color: ${specColor}; border: 1.5px solid ${specColor}40;">
+                                ${spec.icon || '🏥'}
+                            </span>
+                            <span class="specialty-name-text">${spec.name_ar}</span>
                         </div>
                     </td>
                 `;
 
                 for (let d = 1; d <= daysCount; d++) {
+                    const dateObj = new Date(currentYear, currentMonth - 1, d);
+                    const dayOfWeek = dateObj.getDay();
+                    const isFriday = dayOfWeek === 5;
+                    const isSaturday = dayOfWeek === 6;
                     const isToday = isCurrentMonth && (d === todayD);
                     const duties = scheduleMap[spec.id]?.[d] || [];
                     
@@ -743,20 +1149,28 @@
                         cellContent = duties.map(entry => {
                             const name = (entry.name || '').trim();
                             const isMatched = searchQuery && name.toLowerCase().includes(searchQuery);
-                            const highlightClass = isMatched ? 'bg-amber-300 dark:bg-amber-600 text-slate-950 font-black' : '';
+                            const highlightClass = isMatched ? 'matched-doctor-chip' : '';
                             return `
                                 <span class="doctor-duty-chip ${highlightClass}" 
+                                      style="--spec-card-color: ${specColor};"
                                       onclick="openDutyDetailModal('${spec.id}', '${spec.name_ar}', '${d}/${currentMonth}/${currentYear}', '${encodeURIComponent(JSON.stringify(entry))}')"
                                       title="اضغط لعرض تفاصيل الخفر">
-                                    ${name}
+                                    <span class="duty-dot" style="background: ${specColor};"></span>
+                                    <span class="duty-doctor-name">${name}</span>
                                 </span>
                             `;
                         }).join('');
                     } else {
-                        cellContent = `<span class="text-slate-300 dark:text-slate-700 text-[10px]">—</span>`;
+                        cellContent = `<span class="empty-slot-dash">—</span>`;
                     }
 
-                    bodyHtml += `<td class="${isToday ? 'is-today-col' : ''}">${cellContent}</td>`;
+                    const colClasses = [
+                        isToday ? 'is-today-col' : '',
+                        isFriday ? 'is-friday-col' : '',
+                        isSaturday ? 'is-saturday-col' : ''
+                    ].filter(Boolean).join(' ');
+
+                    bodyHtml += `<td class="${colClasses}">${cellContent}</td>`;
                 }
 
                 bodyHtml += `</tr>`;
@@ -798,16 +1212,23 @@
                 const dateStr = `${String(d).padStart(2, '0')}/${String(currentMonth).padStart(2, '0')}/${currentYear}`;
                 const dateObj = new Date(currentYear, currentMonth - 1, d);
                 const dayName = DAY_NAMES_AR[dateObj.getDay()];
+                const dayOfWeek = dateObj.getDay();
+                const isFriday = dayOfWeek === 5;
+                const isSaturday = dayOfWeek === 6;
                 const isToday = isCurrentMonth && (d === todayD);
 
                 const duties = specEntries.filter(e => e.date === dateStr);
 
+                const weekendClass = isFriday ? 'border-rose-200 dark:border-rose-900/40 bg-rose-50/20 dark:bg-rose-950/10' : (isSaturday ? 'border-orange-200 dark:border-orange-900/40 bg-orange-50/20 dark:bg-orange-950/10' : '');
+                const dayNumberColor = isToday ? 'text-teal-700 dark:text-amber-400' : (isFriday ? 'text-rose-600 dark:text-rose-400' : (isSaturday ? 'text-orange-600 dark:text-orange-400' : 'text-slate-800 dark:text-white'));
+                const dayNameColor = isFriday ? 'text-rose-500' : (isSaturday ? 'text-orange-500' : 'text-slate-500 dark:text-slate-400');
+
                 html += `
-                    <div class="day-duty-card ${isToday ? 'today' : ''}">
+                    <div id="${isToday ? 'today-single-card' : `day-card-${d}`}" class="day-duty-card ${isToday ? 'today' : ''} ${weekendClass}">
                         <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex flex-col items-center justify-center flex-shrink-0 font-mono">
-                                <span class="text-sm font-black text-slate-800 dark:text-white leading-tight">${d}</span>
-                                <span class="text-[9px] text-slate-500">${dayName}</span>
+                            <div class="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800/80 flex flex-col items-center justify-center flex-shrink-0 font-mono shadow-sm">
+                                <span class="text-sm font-black ${dayNumberColor} leading-tight">${d}</span>
+                                <span class="text-[9px] font-bold ${dayNameColor}">${dayName}</span>
                             </div>
                             <div class="min-w-0">
                                 ${duties.length > 0 ? duties.map(entry => {
@@ -823,7 +1244,7 @@
                                                     <a href="tel:${phone}" class="phone-btn">
                                                         <i class="fas fa-phone-alt"></i> ${phone}
                                                     </a>
-                                                    <a href="https://wa.me/${phone.replace(/[^0-9]/g, '')}" target="_blank" class="text-emerald-500 text-xs">
+                                                    <a href="https://wa.me/${phone.replace(/[^0-9]/g, '')}" target="_blank" class="text-emerald-500 text-xs hover:scale-110 transition">
                                                         <i class="fab fa-whatsapp"></i>
                                                     </a>
                                                 </div>
@@ -831,12 +1252,12 @@
                                         </div>
                                     `;
                                 }).join('') : `
-                                    <span class="text-xs text-slate-400 italic">لا يوجد خفر مسجل</span>
+                                    <span class="text-xs text-slate-400 italic font-semibold">لا يوجد خفر مسجل</span>
                                 `}
                             </div>
                         </div>
 
-                        ${isToday ? '<span class="today-header-badge self-start">اليوم</span>' : ''}
+                        ${isToday ? '<span class="today-header-badge self-start"><i class="fas fa-bullseye ml-0.5 text-[9px]"></i> اليوم</span>' : ''}
                     </div>
                 `;
             }
@@ -896,3 +1317,4 @@
     </script>
 </body>
 </html>
+

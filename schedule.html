@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>جدول الخفارات الشهري · Monthly Duty Schedule 🇮🇶</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="./nav-component.css" />
+
+    <style>
+        :root {
+            --sat: env(safe-area-inset-top, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
+            direction: rtl;
+            text-align: right;
+            min-height: 100vh;
+            background: #d1d9e6;
+            color: #1a2332;
+            transition: background 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+            padding-bottom: calc(var(--sab) + 85px);
+        }
+
+        body.dark {
+            background: #0b0e12;
+            color: #e8edf5;
+        }
+
+        body.dark::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.08;
+            background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.25'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-size: 120px 120px;
+        }
+
+        .glass-card {
+            border-radius: 1.5rem;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        body:not(.dark) .glass-card {
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark .glass-card {
+            background: rgba(16, 22, 34, 0.84);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(212, 175, 55, 0.14);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+        }
+
+        .btn-gradient {
+            border: none;
+            font-weight: 800;
+            padding: 0.65rem 1.3rem;
+            border-radius: 1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            color: white;
+            box-shadow: 0 6px 20px rgba(15, 118, 110, 0.25);
+            font-size: 0.84rem;
+        }
+        body.dark .btn-gradient {
+            background: linear-gradient(135deg, #d4af37, #b8942e);
+            color: #0b0e12;
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
+        }
+        .btn-gradient:active { transform: scale(0.96); }
+
+        .btn-ghost {
+            border-radius: 1rem;
+            padding: 0.6rem 1.1rem;
+            font-weight: 700;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 1px solid #cbd5e1;
+            background: rgba(255, 255, 255, 0.8);
+            color: #475569;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        body.dark .btn-ghost {
+            border-color: rgba(212, 175, 55, 0.2);
+            background: rgba(255, 255, 255, 0.04);
+            color: #e2e8f0;
+        }
+        .btn-ghost:hover { background: rgba(0, 0, 0, 0.05); }
+        body.dark .btn-ghost:hover { background: rgba(212, 175, 55, 0.1); }
+        .btn-ghost:active { transform: scale(0.96); }
+
+        /* Segmented View Switcher */
+        .segmented-control {
+            display: inline-flex;
+            background: rgba(226, 232, 240, 0.7);
+            padding: 4px;
+            border-radius: 14px;
+            gap: 4px;
+        }
+        body.dark .segmented-control {
+            background: rgba(16, 22, 34, 0.9);
+            border: 1px solid rgba(212, 175, 55, 0.14);
+        }
+        .segmented-btn {
+            padding: 7px 16px;
+            border-radius: 11px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: #64748b;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        body.dark .segmented-btn { color: #94a3b8; }
+        .segmented-btn.active {
+            background: #ffffff;
+            color: #0f766e;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        body.dark .segmented-btn.active {
+            background: linear-gradient(135deg, #d4af37, #b8942e);
+            color: #0b0e12;
+            box-shadow: 0 2px 10px rgba(212, 175, 55, 0.25);
+        }
+
+        /* Specialty Pills Row */
+        .pills-scroll {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: thin;
+        }
+        .spec-pill {
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            border: 1px solid #cbd5e1;
+            background: rgba(255, 255, 255, 0.8);
+            color: #475569;
+            transition: all 0.2s ease;
+        }
+        body.dark .spec-pill {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(212, 175, 55, 0.16);
+            color: #cbd5e1;
+        }
+        .spec-pill.active {
+            background: #0f766e;
+            color: white;
+            border-color: #0f766e;
+        }
+        body.dark .spec-pill.active {
+            background: #d4af37;
+            color: #0b0e12;
+            border-color: #d4af37;
+            font-weight: 800;
+        }
+
+        /* Matrix Table Styling */
+        .matrix-table-container {
+            overflow-x: auto;
+            border-radius: 1.25rem;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            position: relative;
+        }
+        body.dark .matrix-table-container {
+            background: #101622;
+            border-color: rgba(212, 175, 55, 0.15);
+        }
+        .matrix-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 900px;
+            font-size: 0.78rem;
+        }
+        .matrix-table th, .matrix-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            border-left: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        body.dark .matrix-table th, body.dark .matrix-table td {
+            border-color: rgba(212, 175, 55, 0.1);
+        }
+        .matrix-table th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 800;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        body.dark .matrix-table th {
+            background: #141c2a;
+            color: #e2e8f0;
+        }
+        /* Sticky First Column: Specialty */
+        .matrix-table .sticky-col {
+            position: sticky;
+            right: 0;
+            background: #f8fafc;
+            z-index: 15;
+            text-align: right;
+            font-weight: 800;
+            min-width: 150px;
+            border-right: 2px solid #0f766e;
+        }
+        body.dark .matrix-table .sticky-col {
+            background: #141c2a;
+            border-right-color: #d4af37;
+        }
+        .matrix-table th.sticky-col {
+            z-index: 25;
+        }
+
+        /* Today Column Highlight */
+        .is-today-col {
+            background: rgba(15, 118, 110, 0.06) !important;
+            font-weight: 800;
+        }
+        body.dark .is-today-col {
+            background: rgba(212, 175, 55, 0.08) !important;
+        }
+        .today-header-badge {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 999px;
+            font-size: 0.65rem;
+            background: #10b981;
+            color: white;
+            margin-top: 2px;
+        }
+
+        /* Doctor Duty Chip */
+        .doctor-duty-chip {
+            padding: 4px 7px;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            background: #f1f5f9;
+            color: #1e293b;
+            border: 1px solid #cbd5e1;
+            margin: 2px 0;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        body.dark .doctor-duty-chip {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(212, 175, 55, 0.2);
+            color: #f1f5f9;
+        }
+        .doctor-duty-chip:hover {
+            transform: scale(1.03);
+            border-color: #0f766e;
+        }
+        body.dark .doctor-duty-chip:hover {
+            border-color: #d4af37;
+            background: rgba(212, 175, 55, 0.15);
+        }
+
+        /* Single Specialty Day Card */
+        .day-duty-card {
+            padding: 14px 16px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            transition: all 0.2s ease;
+        }
+        body.dark .day-duty-card {
+            background: rgba(16, 22, 34, 0.85);
+            border-color: rgba(212, 175, 55, 0.14);
+        }
+        .day-duty-card.today {
+            border-color: #0f766e;
+            box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.2);
+        }
+        body.dark .day-duty-card.today {
+            border-color: #d4af37;
+            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25);
+        }
+
+        /* Contact Pill */
+        .phone-btn {
+            font-family: 'JetBrains Mono', monospace;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: rgba(15, 118, 110, 0.1);
+            color: #0f766e;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        body.dark .phone-btn {
+            background: rgba(212, 175, 55, 0.15);
+            color: #d4af37;
+        }
+
+        @media print {
+            .no-print, .segmented-control, .pills-scroll, #universal-nav, .hub-mobile-bottom-dock, .ios-bottom-dock {
+                display: none !important;
+            }
+            body { background: white !important; color: black !important; padding: 0 !important; }
+            .matrix-table-container { border: 1px solid #000; }
+        }
+    </style>
+</head>
+<body class="light">
+
+    <!-- Universal Navigation Bar Container -->
+    <div id="universal-nav"></div>
+
+    <!-- Main Schedule Container -->
+    <main class="max-w-7xl mx-auto px-3 sm:px-6 pt-5 pb-10" id="schedule-main-content">
+
+        <!-- Top Header & Hospital Identity -->
+        <div class="glass-card p-4 sm:p-6 mb-5">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-teal-600 dark:bg-amber-500 text-white dark:text-slate-950 flex items-center justify-center text-2xl shadow-lg shadow-teal-700/20 dark:shadow-amber-500/20 flex-shrink-0">
+                        <i class="fas fa-calendar-days"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-xl sm:text-2xl font-black" id="hosp-display-name">جدول الخفارات الشهري</h1>
+                            <span class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-teal-50 dark:bg-teal-950/50 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-800">
+                                عرض الجداول الرسمية
+                            </span>
+                        </div>
+                        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5" id="hosp-location-text">
+                            استعراض جدول الأطباء الخفر لكافة التخصصات الطبية والجراحية
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Month Navigation Controls -->
+                <div class="flex items-center gap-2 self-center md:self-auto no-print">
+                    <button type="button" onclick="navigateMonth(1)" class="btn-ghost" title="الشهر القادم">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <div class="px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-extrabold text-sm sm:text-base text-slate-800 dark:text-white shadow-sm flex items-center gap-2 min-w-[170px] justify-center">
+                        <i class="fas fa-calendar-day text-teal-600 dark:text-amber-400"></i>
+                        <span id="current-month-display">أيلول 2026</span>
+                    </div>
+                    <button type="button" onclick="navigateMonth(-1)" class="btn-ghost" title="الشهر السابق">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button type="button" onclick="jumpToCurrentMonth()" class="btn-ghost text-xs font-bold" title="العودة للشهر الحالي">
+                        اليوم
+                    </button>
+                </div>
+            </div>
+
+            <!-- View Modes & Live Filter Toolbar -->
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mt-5 pt-4 border-t border-slate-200 dark:border-slate-800/80 no-print">
+                <!-- Mode Switcher -->
+                <div class="segmented-control">
+                    <button type="button" id="btn-mode-matrix" class="segmented-btn active" onclick="setViewMode('matrix')">
+                        <i class="fas fa-table-cells"></i> <span>الجدول الشامل (كافة التخصصات)</span>
+                    </button>
+                    <button type="button" id="btn-mode-single" class="segmented-btn" onclick="setViewMode('single')">
+                        <i class="fas fa-stethoscope"></i> <span>تخصص محدد</span>
+                    </button>
+                </div>
+
+                <!-- Search Input & Print -->
+                <div class="flex items-center gap-2 flex-1 max-w-md">
+                    <div class="relative flex-1">
+                        <input type="text" id="doctor-search-input" oninput="handleDoctorSearch(this.value)" placeholder="بحث عن اسم طبيب في الجدول..." 
+                               class="w-full px-3 py-2 pr-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 text-xs sm:text-sm font-semibold text-slate-800 dark:text-white outline-none focus:border-teal-600 dark:focus:border-amber-400 transition" />
+                        <i class="fas fa-search absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    </div>
+                    <button type="button" onclick="window.print()" class="btn-ghost" title="طباعة الجدول">
+                        <i class="fas fa-print"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Single Specialty Selector Pills (Shown when in Single Mode) -->
+            <div id="single-spec-pills-container" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 no-print hidden">
+                <div class="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">اختر التخصص الطبي لعرض جدول خفاراته:</div>
+                <div class="pills-scroll" id="spec-pills-list"></div>
+            </div>
+        </div>
+
+        <!-- Schedule View Container: Matrix Mode -->
+        <section id="view-matrix-section" class="glass-card p-3 sm:p-4 mb-6">
+            <div class="flex items-center justify-between mb-3 px-1">
+                <div class="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    <span id="matrix-stats-text">جاري تحميل جدول الشهر...</span>
+                </div>
+                <div class="text-[11px] text-slate-400 dark:text-slate-500 hidden sm:block">
+                    * يمكنك السحب أفقياً لاستعراض كافة أيام الشهر
+                </div>
+            </div>
+
+            <div class="matrix-table-container">
+                <table class="matrix-table" id="schedule-matrix-table">
+                    <thead id="matrix-table-head"></thead>
+                    <tbody id="matrix-table-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Schedule View Container: Single Specialty Mode -->
+        <section id="view-single-section" class="glass-card p-4 sm:p-6 mb-6 hidden">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-200 dark:border-slate-800">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl" id="single-spec-icon">🔪</span>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white" id="single-spec-title">جدول الجراحة العامة</h2>
+                        <span class="text-xs text-slate-500 dark:text-slate-400" id="single-spec-sub">الشهر الحالي</span>
+                    </div>
+                </div>
+                <span class="text-xs font-bold px-3 py-1 rounded-full bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-800" id="single-spec-duties-count">
+                    0 خفارة مسجلة
+                </span>
+            </div>
+
+            <!-- List of Days for this Specialty -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" id="single-spec-days-grid"></div>
+        </section>
+
+        <!-- Quick Detail Modal -->
+        <div id="duty-detail-modal" class="hub-modal-overlay">
+            <div class="hub-modal-card" style="max-width:380px; text-align:right; padding:22px;">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fas fa-stethoscope text-teal-600 dark:text-amber-400"></i> تفاصيل الخفر
+                    </h3>
+                    <button type="button" onclick="closeDutyDetailModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+                <div id="modal-duty-body" class="space-y-3 text-xs sm:text-sm"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Scripts -->
+    <script src="./hub-core.js"></script>
+    <script src="./nav-component.js"></script>
+
+    <script>
+        let currentYear = 2026;
+        let currentMonth = 9; // 1-indexed (September)
+        let currentHospital = null;
+        let currentViewMode = 'matrix'; // 'matrix' | 'single'
+        let selectedSpecialtyId = null;
+        let searchQuery = '';
+
+        const MONTH_NAMES_AR = [
+            'كانون الثاني / يناير', 'شباط / فبراير', 'آذار / مارس', 'نيسان / أبريل',
+            'أيار / مايو', 'حزيران / يونيو', 'تموز / يوليو', 'آب / أغسطس',
+            'أيلول / سبتمبر', 'تشرين الأول / أكتوبر', 'تشرين الثاني / نوفمبر', 'كانون الأول / ديسمبر'
+        ];
+
+        const DAY_NAMES_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+
+        async function initSchedule() {
+            if (!Hub.auth.isLoggedIn()) {
+                window.location.href = './index.html';
+                return;
+            }
+
+            // Universal Nav
+            if (window.initUniversalNav) {
+                window.initUniversalNav('schedule');
+            }
+
+            await Hub.loadDatabase();
+
+            // Set current medical date
+            const todayStr = Hub.getMedicalDate(); // DD/MM/YYYY
+            const parts = todayStr.split('/');
+            if (parts.length === 3) {
+                currentMonth = parseInt(parts[1], 10);
+                currentYear = parseInt(parts[2], 10);
+            }
+
+            currentHospital = Hub.getActiveHospital();
+            renderHospitalInfo();
+            renderMonthControls();
+            renderSpecialtyPills();
+            renderSchedule();
+
+            // Event listeners
+            window.addEventListener('hub:hospital-switched', () => {
+                currentHospital = Hub.getActiveHospital();
+                renderHospitalInfo();
+                renderSpecialtyPills();
+                renderSchedule();
+            });
+
+            window.addEventListener('hub:data-changed', () => {
+                currentHospital = Hub.getActiveHospital();
+                renderSchedule();
+            });
+        }
+
+        function renderHospitalInfo() {
+            if (!currentHospital) return;
+            const nameEl = document.getElementById('hosp-display-name');
+            const locEl = document.getElementById('hosp-location-text');
+            if (nameEl) nameEl.textContent = `جدول خفارات ${currentHospital.name_ar || currentHospital.hospitalName}`;
+            if (locEl) locEl.textContent = `${currentHospital.location || 'العراق'} · جدول الأطباء الخفر المعتمد`;
+            document.title = `${currentHospital.name_ar || currentHospital.hospitalName} · جدول الخفارات الشهري`;
+        }
+
+        function renderMonthControls() {
+            const display = document.getElementById('current-month-display');
+            if (display) {
+                display.textContent = `${MONTH_NAMES_AR[currentMonth - 1]} ${currentYear}`;
+            }
+        }
+
+        function navigateMonth(delta) {
+            currentMonth += delta;
+            if (currentMonth > 12) {
+                currentMonth = 1;
+                currentYear++;
+            } else if (currentMonth < 1) {
+                currentMonth = 12;
+                currentYear--;
+            }
+            renderMonthControls();
+            renderSchedule();
+        }
+
+        function jumpToCurrentMonth() {
+            const todayStr = Hub.getMedicalDate();
+            const parts = todayStr.split('/');
+            if (parts.length === 3) {
+                currentMonth = parseInt(parts[1], 10);
+                currentYear = parseInt(parts[2], 10);
+                renderMonthControls();
+                renderSchedule();
+            }
+        }
+
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            const btnMatrix = document.getElementById('btn-mode-matrix');
+            const btnSingle = document.getElementById('btn-mode-single');
+            const secMatrix = document.getElementById('view-matrix-section');
+            const secSingle = document.getElementById('view-single-section');
+            const pillsContainer = document.getElementById('single-spec-pills-container');
+
+            if (mode === 'matrix') {
+                btnMatrix.classList.add('active');
+                btnSingle.classList.remove('active');
+                secMatrix.classList.remove('hidden');
+                secSingle.classList.add('hidden');
+                pillsContainer.classList.add('hidden');
+            } else {
+                btnSingle.classList.add('active');
+                btnMatrix.classList.remove('active');
+                secSingle.classList.remove('hidden');
+                secMatrix.classList.add('hidden');
+                pillsContainer.classList.remove('hidden');
+            }
+            renderSchedule();
+        }
+
+        function renderSpecialtyPills() {
+            const container = document.getElementById('spec-pills-list');
+            if (!container || !currentHospital) return;
+
+            const specs = (currentHospital.specialties || []).filter(s => s.enabled !== false);
+            if (!selectedSpecialtyId && specs.length > 0) {
+                selectedSpecialtyId = specs[0].id;
+            }
+
+            container.innerHTML = specs.map(s => `
+                <button type="button" class="spec-pill ${s.id === selectedSpecialtyId ? 'active' : ''}" 
+                        onclick="selectSpecialty('${s.id}')">
+                    <span>${s.icon || '🏥'}</span>
+                    <span>${s.name_ar}</span>
+                </button>
+            `).join('');
+        }
+
+        function selectSpecialty(specId) {
+            selectedSpecialtyId = specId;
+            renderSpecialtyPills();
+            renderSingleSpecialtyView();
+        }
+
+        function handleDoctorSearch(query) {
+            searchQuery = (query || '').trim().toLowerCase();
+            renderSchedule();
+        }
+
+        function getDaysInMonth(year, month) {
+            return new Date(year, month, 0).getDate();
+        }
+
+        function renderSchedule() {
+            if (currentViewMode === 'matrix') {
+                renderMatrixView();
+            } else {
+                renderSingleSpecialtyView();
+            }
+        }
+
+        // ================================================================
+        // 1. MATRIX VIEW (All Specialties Table)
+        // ================================================================
+        function renderMatrixView() {
+            if (!currentHospital) return;
+
+            const thead = document.getElementById('matrix-table-head');
+            const tbody = document.getElementById('matrix-table-body');
+            const statsText = document.getElementById('matrix-stats-text');
+            if (!thead || !tbody) return;
+
+            const daysCount = getDaysInMonth(currentYear, currentMonth);
+            const todayStr = Hub.getMedicalDate();
+            const [todayD, todayM, todayY] = todayStr.split('/').map(Number);
+            const isCurrentMonth = (todayM === currentMonth && todayY === currentYear);
+
+            // Month Schedule Data
+            const monthEntries = Hub.getHospitalMonthSchedule(currentHospital.id, currentYear, currentMonth);
+            if (statsText) {
+                statsText.textContent = `تم تسجيل ${monthEntries.length} خفارة عبر ${currentHospital.specialties?.length || 0} تخصص لشهر ${MONTH_NAMES_AR[currentMonth - 1]}`;
+            }
+
+            // Build Header Row
+            let headHtml = `<tr><th class="sticky-col">التخصص الطبي</th>`;
+            for (let d = 1; d <= daysCount; d++) {
+                const dateObj = new Date(currentYear, currentMonth - 1, d);
+                const dayName = DAY_NAMES_AR[dateObj.getDay()];
+                const isToday = isCurrentMonth && (d === todayD);
+                const isWeekend = dateObj.getDay() === 5; // Friday
+
+                headHtml += `
+                    <th class="${isToday ? 'is-today-col' : ''} ${isWeekend ? 'text-amber-600 dark:text-amber-400' : ''}">
+                        <div class="font-mono text-xs">${d}</div>
+                        <div class="text-[10px] font-normal opacity-75">${dayName}</div>
+                        ${isToday ? '<span class="today-header-badge">اليوم</span>' : ''}
+                    </th>
+                `;
+            }
+            headHtml += `</tr>`;
+            thead.innerHTML = headHtml;
+
+            // Active Specialties
+            let specs = (currentHospital.specialties || []).filter(s => s.enabled !== false);
+            if (specs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${daysCount + 1}" class="py-8 text-center text-slate-400">لا توجد تخصصات مضافة لهذا المستشفى</td></tr>`;
+                return;
+            }
+
+            // Map entries by specCode -> day -> list of doctor names
+            const scheduleMap = {};
+            monthEntries.forEach(entry => {
+                const parts = (entry.date || '').split('/');
+                if (parts.length === 3) {
+                    const d = parseInt(parts[0], 10);
+                    const sCode = entry.specCode || entry.spec;
+                    if (!scheduleMap[sCode]) scheduleMap[sCode] = {};
+                    if (!scheduleMap[sCode][d]) scheduleMap[sCode][d] = [];
+                    scheduleMap[sCode][d].push(entry);
+                }
+            });
+
+            // Build Body Rows
+            let bodyHtml = '';
+            specs.forEach(spec => {
+                bodyHtml += `<tr>`;
+                bodyHtml += `
+                    <td class="sticky-col">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-sm">${spec.icon || '🏥'}</span>
+                            <span class="font-bold text-slate-800 dark:text-white truncate">${spec.name_ar}</span>
+                        </div>
+                    </td>
+                `;
+
+                for (let d = 1; d <= daysCount; d++) {
+                    const isToday = isCurrentMonth && (d === todayD);
+                    const duties = scheduleMap[spec.id]?.[d] || [];
+                    
+                    let cellContent = '';
+                    if (duties.length > 0) {
+                        cellContent = duties.map(entry => {
+                            const name = (entry.name || '').trim();
+                            const isMatched = searchQuery && name.toLowerCase().includes(searchQuery);
+                            const highlightClass = isMatched ? 'bg-amber-300 dark:bg-amber-600 text-slate-950 font-black' : '';
+                            return `
+                                <span class="doctor-duty-chip ${highlightClass}" 
+                                      onclick="openDutyDetailModal('${spec.id}', '${spec.name_ar}', '${d}/${currentMonth}/${currentYear}', '${encodeURIComponent(JSON.stringify(entry))}')"
+                                      title="اضغط لعرض تفاصيل الخفر">
+                                    ${name}
+                                </span>
+                            `;
+                        }).join('');
+                    } else {
+                        cellContent = `<span class="text-slate-300 dark:text-slate-700 text-[10px]">—</span>`;
+                    }
+
+                    bodyHtml += `<td class="${isToday ? 'is-today-col' : ''}">${cellContent}</td>`;
+                }
+
+                bodyHtml += `</tr>`;
+            });
+
+            tbody.innerHTML = bodyHtml;
+        }
+
+        // ================================================================
+        // 2. SINGLE SPECIALTY VIEW
+        // ================================================================
+        function renderSingleSpecialtyView() {
+            if (!currentHospital) return;
+
+            const spec = (currentHospital.specialties || []).find(s => s.id === selectedSpecialtyId);
+            if (!spec) return;
+
+            document.getElementById('single-spec-icon').textContent = spec.icon || '🏥';
+            document.getElementById('single-spec-title').textContent = `جدول ${spec.name_ar}`;
+            document.getElementById('single-spec-sub').textContent = `${MONTH_NAMES_AR[currentMonth - 1]} ${currentYear} · ${currentHospital.name_ar || currentHospital.hospitalName}`;
+
+            const daysCount = getDaysInMonth(currentYear, currentMonth);
+            const todayStr = Hub.getMedicalDate();
+            const [todayD, todayM, todayY] = todayStr.split('/').map(Number);
+            const isCurrentMonth = (todayM === currentMonth && todayY === currentYear);
+
+            // Month Schedule Data
+            const monthEntries = Hub.getHospitalMonthSchedule(currentHospital.id, currentYear, currentMonth);
+            const specEntries = monthEntries.filter(e => (e.specCode || e.spec) === spec.id);
+
+            const countBadge = document.getElementById('single-spec-duties-count');
+            if (countBadge) countBadge.textContent = `${specEntries.length} خفارة مسجلة`;
+
+            const grid = document.getElementById('single-spec-days-grid');
+            if (!grid) return;
+
+            let html = '';
+            for (let d = 1; d <= daysCount; d++) {
+                const dateStr = `${String(d).padStart(2, '0')}/${String(currentMonth).padStart(2, '0')}/${currentYear}`;
+                const dateObj = new Date(currentYear, currentMonth - 1, d);
+                const dayName = DAY_NAMES_AR[dateObj.getDay()];
+                const isToday = isCurrentMonth && (d === todayD);
+
+                const duties = specEntries.filter(e => e.date === dateStr);
+
+                html += `
+                    <div class="day-duty-card ${isToday ? 'today' : ''}">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex flex-col items-center justify-center flex-shrink-0 font-mono">
+                                <span class="text-sm font-black text-slate-800 dark:text-white leading-tight">${d}</span>
+                                <span class="text-[9px] text-slate-500">${dayName}</span>
+                            </div>
+                            <div class="min-w-0">
+                                ${duties.length > 0 ? duties.map(entry => {
+                                    const resident = Hub.getResident(entry.name);
+                                    const phone = resident?.phone || '';
+                                    return `
+                                        <div class="mb-1 last:mb-0">
+                                            <div class="font-black text-xs sm:text-sm text-slate-800 dark:text-white truncate">
+                                                ${entry.name}
+                                            </div>
+                                            ${phone && phone !== 'رقم غير متوفر' ? `
+                                                <div class="mt-1 flex items-center gap-2">
+                                                    <a href="tel:${phone}" class="phone-btn">
+                                                        <i class="fas fa-phone-alt"></i> ${phone}
+                                                    </a>
+                                                    <a href="https://wa.me/${phone.replace(/[^0-9]/g, '')}" target="_blank" class="text-emerald-500 text-xs">
+                                                        <i class="fab fa-whatsapp"></i>
+                                                    </a>
+                                                </div>
+                                            ` : '<span class="text-[10px] text-slate-400">الرقم غير متوفر</span>'}
+                                        </div>
+                                    `;
+                                }).join('') : `
+                                    <span class="text-xs text-slate-400 italic">لا يوجد خفر مسجل</span>
+                                `}
+                            </div>
+                        </div>
+
+                        ${isToday ? '<span class="today-header-badge self-start">اليوم</span>' : ''}
+                    </div>
+                `;
+            }
+
+            grid.innerHTML = html;
+        }
+
+        // ================================================================
+        // MODAL DETAIL POPUP
+        // ================================================================
+        function openDutyDetailModal(specId, specName, dateStr, encodedEntry) {
+            const entry = JSON.parse(decodeURIComponent(encodedEntry));
+            const resident = Hub.getResident(entry.name);
+            const phone = resident?.phone || '';
+            const modal = document.getElementById('duty-detail-modal');
+            const body = document.getElementById('modal-duty-body');
+
+            if (!modal || !body) return;
+
+            body.innerHTML = `
+                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                    <div class="text-[11px] text-slate-400 font-bold mb-1">الطبيب الخفر</div>
+                    <div class="text-base font-black text-slate-900 dark:text-white mb-1">${entry.name}</div>
+                    <div class="text-xs text-teal-600 dark:text-amber-400 font-semibold">${specName}</div>
+                </div>
+
+                <div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 text-xs">
+                    <span class="text-slate-500">تاريخ الخفارة:</span>
+                    <span class="font-mono font-bold text-slate-800 dark:text-white">${dateStr}</span>
+                </div>
+
+                ${phone && phone !== 'رقم غير متوفر' ? `
+                    <div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 text-xs">
+                        <span class="text-slate-500">رقم الهاتف:</span>
+                        <a href="tel:${phone}" class="phone-btn font-mono font-bold">${phone}</a>
+                    </div>
+                    <div class="flex gap-2 mt-3">
+                        <a href="tel:${phone}" class="btn-gradient flex-1 text-center justify-center">
+                            <i class="fas fa-phone ml-1"></i> اتصال هاتفي
+                        </a>
+                        <a href="https://wa.me/${phone.replace(/[^0-9]/g, '')}" target="_blank" class="btn-ghost flex items-center justify-center px-4 text-emerald-600 border-emerald-300">
+                            <i class="fab fa-whatsapp text-lg"></i>
+                        </a>
+                    </div>
+                ` : '<div class="text-xs text-slate-400 text-center py-1">رقم الهاتف غير متوفر في دليل المقيمين</div>'}
+            `;
+
+            modal.classList.add('active');
+        }
+
+        function closeDutyDetailModal() {
+            const modal = document.getElementById('duty-detail-modal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        window.addEventListener('DOMContentLoaded', initSchedule);
+    </script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-18T11:13:36.255Z",
+  "lastUpdated": "2026-09-18T13:59:17.012Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -43879,6 +43879,24 @@
     }
   ],
   "specialists": [
+    {
+      "id": "test_spec_999",
+      "name": "د. اختصاصي فحص",
+      "title": "استشاري",
+      "spec": "GS",
+      "specName": "الجراحة العامة",
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "clinic": "",
+      "notes": "",
+      "active": true,
+      "schedule": {
+        "clinicDays": [],
+        "theatreDays": []
+      }
+    },
     {
       "id": "spec-doc-0001",
       "name": "د. علاء حسين الخفاجي",

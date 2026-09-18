@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-18T21:18:12.565Z",
+  "lastUpdated": "2026-09-18T21:45:39.009Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -768,20 +768,6 @@
           "hospitals": [
             "basra",
             "iraqi"
-          ]
-        },
-        {
-          "id": "res-0109",
-          "name": "د. اياد يعرب",
-          "phone": "+9647736024102",
-          "spec": "NS",
-          "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
-          "active": false,
-          "hospitals": [
-            "iraqi",
-            "mawani"
           ]
         },
         {
@@ -32775,7 +32761,6 @@
           "department": "NS",
           "active": false,
           "hospitals": [
-            "iraqi",
             "mawani"
           ]
         },
@@ -38327,7 +38312,6 @@
       "department": "NS",
       "active": false,
       "hospitals": [
-        "iraqi",
         "mawani"
       ]
     },

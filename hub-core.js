@@ -717,11 +717,7 @@
             admin: newPasswords.admin || db.hospitals[id].passwords?.admin || 'Admin1996*',
             user: newPasswords.user || db.hospitals[id].passwords?.user || '1234'
         };
-        // Keep global passwords synchronized with active/primary hospital
-        if (id === 'iraqi' || id === getActiveHospitalId()) {
-            db.globalPasswords = { ...db.hospitals[id].passwords };
-        }
-        await saveDatabase(`Update passwords for hospital: ${db.hospitals[id].hospitalName}`);
+        await saveDatabase(`Update passwords for hospital: ${db.hospitals[id].name_ar || db.hospitals[id].hospitalName}`);
         return db.hospitals[id].passwords;
     }
 
@@ -741,17 +737,20 @@
         const pwdObj = { owner, admin, user };
 
         if (hospitalScope === 'all') {
-            // Update global passwords
+            // Update global passwords (General User, General Admin for all hospitals, Owner)
             db.globalPasswords = { ...pwdObj };
 
-            // Update passwords across ALL hospitals in database
+            // Ensure any hospital missing passwords gets initialized, but do NOT wipe out existing distinct hospital passwords
             if (db.hospitals) {
                 Object.keys(db.hospitals).forEach(hId => {
-                    db.hospitals[hId].passwords = { ...pwdObj };
+                    if (!db.hospitals[hId].passwords) {
+                        db.hospitals[hId].passwords = { ...pwdObj };
+                    }
                 });
             }
-            await saveDatabase('تحديث كلمات المرور لجميع المستشفيات والمنظومة العامة بواسطة المالك');
+            await saveDatabase('تحديث كلمات المرور العامة للمنظومة (المستخدم العام، المدير العام، المالك)');
         } else if (db.hospitals && db.hospitals[hospitalScope]) {
+            // Update passwords strictly for the selected hospital only
             db.hospitals[hospitalScope].passwords = { ...pwdObj };
             await saveDatabase(`تحديث كلمات المرور لمستشفى ${db.hospitals[hospitalScope].name_ar || db.hospitals[hospitalScope].hospitalName}`);
         } else {

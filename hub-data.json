@@ -1,8 +1,8 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-18T20:34:45.289Z",
+  "lastUpdated": "2026-09-18T21:09:58.162Z",
   "globalPasswords": {
-    "owner": "Mrj1996*",
+    "owner": "MrjBth1996*",
     "admin": "Admin1996*",
     "user": "1234"
   },
@@ -16,8 +16,8 @@
       "icon": "fa-hospital",
       "color": "#0f766e",
       "passwords": {
-        "owner": "Mrj1996*",
-        "admin": "Admin1996*",
+        "owner": "MrjBth1996*",
+        "admin": "IraqiAdmin1996*",
         "user": "1234"
       },
       "specialties": [
@@ -226,21 +226,21 @@
           "enabled": true
         },
         {
-          "id": "ON",
-          "name_ar": "طب الاورام",
-          "name_en": "Oncology",
-          "icon": "☢️",
-          "color": "#84cc16",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
           "id": "AO",
           "name_ar": "المعاون الاداري",
           "name_en": "Administrative Officer",
           "icon": "🧑",
           "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "ON",
+          "name_ar": "طب الاورام",
+          "name_en": "Oncology",
+          "icon": "☢️",
+          "color": "#84cc16",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true
@@ -20496,8 +20496,8 @@
       "icon": "fa-hospital-user",
       "color": "#1e40af",
       "passwords": {
-        "owner": "Mrj1996*",
-        "admin": "Admin1996*",
+        "owner": "MrjBth1996*",
+        "admin": "BasraAdmin1996*",
         "user": "1234"
       },
       "specialties": [
@@ -32341,8 +32341,8 @@
       "icon": "fa-anchor",
       "color": "#b45309",
       "passwords": {
-        "owner": "Mrj1996*",
-        "admin": "Admin1996*",
+        "owner": "MrjBth1996*",
+        "admin": "MawaniAdmin1996*",
         "user": "1234"
       },
       "specialties": [

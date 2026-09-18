@@ -361,8 +361,8 @@
                         <!-- Normal User Password -->
                         <div>
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                                <label style="font-size:0.78rem; font-weight:700; color:#334155;">كلمة مرور المستخدم العادي</label>
-                                <span style="font-size:0.68rem; color:#64748b;">(تصفح، تبديل، دليل المقيمين)</span>
+                                <label id="hub-pwd-user-label" style="font-size:0.78rem; font-weight:700; color:#334155;">كلمة مرور المستخدم العادي</label>
+                                <span id="hub-pwd-user-hint" style="font-size:0.68rem; color:#64748b;">(تصفح، تبديل، دليل المقيمين)</span>
                             </div>
                             <div style="position:relative;">
                                 <input type="text" id="hub-pwd-user" placeholder="1234" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #cbd5e1; font-family:monospace; font-size:0.95rem; text-align:center; color:#1e293b; background:#ffffff;" />
@@ -373,8 +373,8 @@
                         <!-- Admin Password -->
                         <div>
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                                <label style="font-size:0.78rem; font-weight:700; color:#334155;">كلمة مرور المدير / المشرف</label>
-                                <span style="font-size:0.68rem; color:#64748b;">(إدارة المقيمين، المجدول)</span>
+                                <label id="hub-pwd-admin-label" style="font-size:0.78rem; font-weight:700; color:#334155;">كلمة مرور المدير / المشرف</label>
+                                <span id="hub-pwd-admin-hint" style="font-size:0.68rem; color:#64748b;">(إدارة المقيمين، المجدول)</span>
                             </div>
                             <div style="position:relative;">
                                 <input type="text" id="hub-pwd-admin" placeholder="Admin1996*" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #cbd5e1; font-family:monospace; font-size:0.95rem; text-align:center; color:#1e293b; background:#ffffff;" />
@@ -385,8 +385,8 @@
                         <!-- Owner Password -->
                         <div>
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                                <label style="font-size:0.78rem; font-weight:700; color:#b45309;">كلمة مرور المالك</label>
-                                <span style="font-size:0.68rem; color:#b45309; font-weight:700;">(كامل الصلاحيات + كلمات المرور)</span>
+                                <label id="hub-pwd-owner-label" style="font-size:0.78rem; font-weight:700; color:#b45309;">كلمة مرور المالك</label>
+                                <span id="hub-pwd-owner-hint" style="font-size:0.68rem; color:#b45309; font-weight:700;">(كامل الصلاحيات + كلمات المرور)</span>
                             </div>
                             <div style="position:relative;">
                                 <input type="text" id="hub-pwd-owner" placeholder="MrjBth1996*" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:2px solid rgba(217,119,6,0.5); font-family:monospace; font-size:0.95rem; text-align:center; background:#fffbeb; color:#1e293b;" />
@@ -801,8 +801,8 @@
                     <!-- Normal User Password -->
                     <div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                            <label style="font-size:0.78rem; font-weight:700; color:#334155;">كلمة مرور المستخدم العادي</label>
-                            <span style="font-size:0.68rem; color:#64748b;">(تصفح، تبديل، دليل المقيمين)</span>
+                            <label id="hub-pwd-user-label" style="font-size:0.78rem; font-weight:700; color:#334155;">كلمة مرور المستخدم العادي</label>
+                            <span id="hub-pwd-user-hint" style="font-size:0.68rem; color:#64748b;">(تصفح، تبديل، دليل المقيمين)</span>
                         </div>
                         <div style="position:relative;">
                             <input type="text" id="hub-pwd-user" placeholder="1234" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #cbd5e1; font-family:monospace; font-size:0.95rem; text-align:center; color:#1e293b; background:#ffffff;" />
@@ -813,8 +813,8 @@
                     <!-- Admin Password -->
                     <div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                            <label style="font-size:0.78rem; font-weight:700; color:#334155;">كلمة مرور المدير / المشرف</label>
-                            <span style="font-size:0.68rem; color:#64748b;">(إدارة المقيمين، المجدول)</span>
+                            <label id="hub-pwd-admin-label" style="font-size:0.78rem; font-weight:700; color:#334155;">كلمة مرور المدير / المشرف</label>
+                            <span id="hub-pwd-admin-hint" style="font-size:0.68rem; color:#64748b;">(إدارة المقيمين، المجدول)</span>
                         </div>
                         <div style="position:relative;">
                             <input type="text" id="hub-pwd-admin" placeholder="Admin1996*" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #cbd5e1; font-family:monospace; font-size:0.95rem; text-align:center; color:#1e293b; background:#ffffff;" />
@@ -825,8 +825,8 @@
                     <!-- Owner Password -->
                     <div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                            <label style="font-size:0.78rem; font-weight:700; color:#b45309;">كلمة مرور المالك</label>
-                            <span style="font-size:0.68rem; color:#b45309; font-weight:700;">(كامل الصلاحيات + كلمات المرور)</span>
+                            <label id="hub-pwd-owner-label" style="font-size:0.78rem; font-weight:700; color:#b45309;">كلمة مرور المالك</label>
+                            <span id="hub-pwd-owner-hint" style="font-size:0.68rem; color:#b45309; font-weight:700;">(كامل الصلاحيات + كلمات المرور)</span>
                         </div>
                         <div style="position:relative;">
                             <input type="text" id="hub-pwd-owner" placeholder="MrjBth1996*" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:2px solid rgba(217,119,6,0.5); font-family:monospace; font-size:0.95rem; text-align:center; background:#fffbeb; color:#1e293b;" />
@@ -859,7 +859,7 @@
         setTimeout(() => input.classList.remove('pwd-pulse-active'), 600);
     }
 
-    window.openAllPasswordsModalNav = function() {
+    window.openAllPasswordsModalNav = async function() {
         if (!window.Hub) return;
         if (!window.Hub.auth.isOwner()) {
             alert('عذراً، هذه الخاصية حصرية للمالك (Owner) فقط.');
@@ -869,13 +869,21 @@
         const modal = ensurePasswordsModalDom();
         if (!modal) return;
 
-        const db = (window.Hub.getDatabase ? window.Hub.getDatabase() : null) || 
-                   (typeof currentDb !== 'undefined' ? currentDb : null) ||
-                   (window.currentDb || null);
+        let db = (window.Hub.getDatabase ? window.Hub.getDatabase() : null) || 
+                 (typeof currentDb !== 'undefined' ? currentDb : null) ||
+                 (window.currentDb || null);
+
+        if (!db || !db.hospitals || Object.keys(db.hospitals).length === 0) {
+            try {
+                db = await window.Hub.loadDatabase();
+            } catch (e) {
+                console.warn("Could not load db for passwords modal:", e);
+            }
+        }
 
         document.querySelectorAll('#hub-pwd-scope-select').forEach(scopeSelect => {
             if (db && db.hospitals) {
-                scopeSelect.innerHTML = '<option value="all">🌐 جميع المستشفيات والمنظومة بالكامل (تحديث شامل)</option>';
+                scopeSelect.innerHTML = '<option value="all">🌐 المنظومة العامة (المستخدم العام، المدير العام لكافة المستشفيات، المالك)</option>';
                 Object.values(db.hospitals).forEach(h => {
                     const opt = document.createElement('option');
                     opt.value = h.id;
@@ -923,17 +931,23 @@
         let uVal = '1234';
         let aVal = 'Admin1996*';
         let oVal = 'MrjBth1996*';
-        let scopeName = 'جميع المستشفيات والمنظومة بالكامل (تحديث شامل)';
-        let isGlobal = true;
+        let scopeName = 'المنظومة العامة وجميع المستشفيات';
+        const isGlobal = (scope === 'all');
 
-        if (scope === 'all') {
+        let uLabel = 'كلمة مرور المستخدم العام';
+        let uHint = '(صلاحية التصفح لجميع المستشفيات)';
+        let aLabel = 'كلمة مرور المدير العام (كافة المستشفيات)';
+        let aHint = '(إدارة كافة المستشفيات في نفس الوقت)';
+        let oLabel = 'كلمة مرور المالك (المنظومة بالكامل)';
+        let oHint = '(كامل الصلاحيات + تعديل كلمات المرور)';
+        let btnText = '<i class="fas fa-check-circle ml-1"></i> حفظ كلمات المرور العامة';
+
+        if (isGlobal) {
             uVal = db?.globalPasswords?.user || '1234';
             aVal = db?.globalPasswords?.admin || 'Admin1996*';
             oVal = db?.globalPasswords?.owner || 'MrjBth1996*';
-            scopeName = 'جميع المستشفيات والمنظومة بالكامل';
-            isGlobal = true;
+            scopeName = 'المنظومة العامة وجميع المستشفيات';
         } else {
-            isGlobal = false;
             let h = null;
             if (db && db.hospitals) {
                 h = db.hospitals[scope] || Object.values(db.hospitals).find(x => x.id === scope || x.hospitalName === scope);
@@ -950,6 +964,14 @@
             } else {
                 scopeName = scope;
             }
+
+            uLabel = `كلمة مرور مستخدم ${scopeName}`;
+            uHint = `(صلاحية تصفح ${scopeName} فقط)`;
+            aLabel = `كلمة مرور مدير ${scopeName}`;
+            aHint = `(إدارة مقيمي وجدول ${scopeName} فقط)`;
+            oLabel = 'كلمة مرور المالك';
+            oHint = '(صلاحية المالك العامة)';
+            btnText = `<i class="fas fa-check-circle ml-1"></i> حفظ كلمات مرور ${scopeName}`;
         }
 
         // 4. Update inputs across all instances in DOM
@@ -975,19 +997,32 @@
             triggerInputPulse(input);
         });
 
-        // 5. Update scope badge text
+        // 5. Update labels and hints dynamically
+        document.querySelectorAll('#hub-pwd-user-label').forEach(el => el.textContent = uLabel);
+        document.querySelectorAll('#hub-pwd-user-hint').forEach(el => el.textContent = uHint);
+        document.querySelectorAll('#hub-pwd-admin-label').forEach(el => el.textContent = aLabel);
+        document.querySelectorAll('#hub-pwd-admin-hint').forEach(el => el.textContent = aHint);
+        document.querySelectorAll('#hub-pwd-owner-label').forEach(el => el.textContent = oLabel);
+        document.querySelectorAll('#hub-pwd-owner-hint').forEach(el => el.textContent = oHint);
+
+        // 6. Update save button labels
+        document.querySelectorAll('#hub-save-passwords-btn').forEach(btn => {
+            btn.innerHTML = btnText;
+        });
+
+        // 7. Update scope badge text and style
         document.querySelectorAll('#hub-pwd-scope-badge').forEach(badge => {
             const textEl = badge.querySelector('#hub-pwd-scope-text') || badge;
             if (isGlobal) {
                 badge.style.color = '#0f766e';
                 badge.style.background = 'rgba(15,118,110,0.08)';
-                badge.style.borderColor = 'rgba(15,118,110,0.2)';
-                textEl.innerHTML = `<i class="fas fa-globe ml-1"></i> يتم تطبيق التعديل على <strong>المنظومة العامة وجميع المستشفيات</strong>`;
+                badge.style.borderColor = 'rgba(15,118,110,0.25)';
+                textEl.innerHTML = `<i class="fas fa-globe ml-1"></i> تعديل كلمات المرور <strong>العامة للمنظومة ولكافة المستشفيات</strong>`;
             } else {
                 badge.style.color = '#b45309';
                 badge.style.background = 'rgba(217,119,6,0.08)';
                 badge.style.borderColor = 'rgba(217,119,6,0.25)';
-                textEl.innerHTML = `<i class="fas fa-hospital ml-1"></i> جاري تعديل كلمات مرور: <strong>${scopeName}</strong>`;
+                textEl.innerHTML = `<i class="fas fa-hospital ml-1"></i> جاري تعديل كلمات مرور: <strong>${scopeName}</strong> (خاص بهذا المستشفى فقط)`;
             }
         });
     }
@@ -1008,6 +1043,17 @@
             return;
         }
 
+        const db = window.Hub.getDatabase ? window.Hub.getDatabase() : null;
+        let scopeName = 'المنظومة العامة';
+        if (scope !== 'all' && db?.hospitals?.[scope]) {
+            scopeName = db.hospitals[scope].name_ar || db.hospitals[scope].hospitalName || scope;
+        }
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-1"></i> جاري الحفظ...';
+        }
+
         // Close modal immediately on save
         closeAllPasswordsModalNav();
 
@@ -1018,10 +1064,14 @@
                 user: uVal
             }, scope);
 
+            const msg = (scope === 'all')
+                ? 'تم تحديث كلمات المرور العامة للمنظومة بنجاح 🔐'
+                : `تم تحديث كلمات مرور ${scopeName} بنجاح 🔐`;
+
             if (typeof showToast === 'function') {
-                showToast('تم تحديث جميع كلمات المرور بنجاح 🔐', 'success');
+                showToast(msg, 'success');
             } else {
-                alert('تم تحديث جميع كلمات المرور بنجاح 🔐');
+                alert(msg);
             }
         } catch (e) {
             console.error('Password update error:', e);

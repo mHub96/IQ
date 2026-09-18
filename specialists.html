@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>أطباء الاختصاص والاستشاريين · Specialists & Consultants 🇮🇶</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="./nav-component.css" />
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
+            direction: rtl;
+            text-align: right;
+            min-height: 100vh;
+            background: #d1d9e6;
+            color: #0f172a;
+            transition: background 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+            padding-bottom: calc(env(safe-area-inset-bottom, 16px) + 75px);
+        }
+
+        body.dark {
+            background: #0b0e12;
+            color: #e8edf5;
+        }
+
+        body.dark::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.08;
+            background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.25'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-size: 120px 120px;
+        }
+
+        .glass-card {
+            border-radius: 1.5rem;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+        body:not(.dark) .glass-card {
+            background: rgba(255, 255, 255, 0.93);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+        body.dark .glass-card {
+            background: rgba(16, 22, 34, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(212, 175, 55, 0.14);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+        }
+
+        .btn-gradient {
+            border: none;
+            font-weight: 700;
+            padding: 0.7rem 1.4rem;
+            border-radius: 1.1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            color: white;
+            box-shadow: 0 6px 20px rgba(15, 118, 110, 0.25);
+            font-size: 0.85rem;
+        }
+        body.dark .btn-gradient {
+            background: linear-gradient(135deg, #d4af37, #b8942e);
+            color: #0b0e12;
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
+        }
+        .btn-gradient:hover { transform: translateY(-2px); }
+
+        .btn-ghost {
+            border-radius: 1.1rem;
+            padding: 0.6rem 1.2rem;
+            font-weight: 700;
+            font-size: 0.82rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 1.5px solid #cbd5e1;
+            background: transparent;
+            color: #475569;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        body.dark .btn-ghost {
+            border-color: rgba(212, 175, 55, 0.2);
+            color: #e2e8f0;
+        }
+        .btn-ghost:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        body.dark .btn-ghost:hover {
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .input-field {
+            border-radius: 1rem;
+            padding: 0.75rem 1.1rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            width: 100%;
+            border: 1.5px solid #cbd5e1;
+            background: rgba(255, 255, 255, 0.95);
+            color: #1a2332;
+            outline: none;
+            font-size: 0.9rem;
+        }
+        body.dark .input-field {
+            background: rgba(10, 14, 24, 0.95);
+            border-color: #2a3346;
+            color: #f0f3f8;
+        }
+        .input-field:focus {
+            border-color: #0f766e;
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+        }
+        body.dark .input-field:focus {
+            border-color: #d4af37;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+        }
+
+        /* Filter Pills */
+        .filter-pills-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.4rem;
+            scrollbar-width: thin;
+        }
+        .filter-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.55rem 1.1rem;
+            border-radius: 9999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1.5px solid #e2e8f0;
+            background: rgba(255, 255, 255, 0.8);
+            color: #475569;
+            white-space: nowrap;
+            user-select: none;
+        }
+        body.dark .filter-pill {
+            background: rgba(18, 24, 38, 0.8);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+        }
+        .filter-pill:hover {
+            border-color: #0f766e;
+            transform: translateY(-1px);
+        }
+        body.dark .filter-pill:hover {
+            border-color: #d4af37;
+        }
+        .filter-pill.active {
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3);
+        }
+        body.dark .filter-pill.active {
+            background: linear-gradient(135deg, #d4af37, #b8942e);
+            color: #0b0e12;
+            border-color: transparent;
+            box-shadow: 0 4px 14px rgba(212, 175, 55, 0.25);
+        }
+
+        /* Specialist Cards */
+        .specialist-card {
+            border-radius: 1.35rem;
+            padding: 1.35rem;
+            transition: all 0.25s ease;
+            border: 1.5px solid #e2e8f0;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+        }
+        body.dark .specialist-card {
+            background: rgba(16, 22, 34, 0.85);
+            border-color: rgba(212, 175, 55, 0.14);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        .specialist-card:hover {
+            transform: translateY(-3px);
+            border-color: #0f766e;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+        }
+        body.dark .specialist-card:hover {
+            border-color: #d4af37;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+        }
+
+        .doctor-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+            background: rgba(15, 118, 110, 0.1);
+            color: #0f766e;
+            border: 1.5px solid rgba(15, 118, 110, 0.2);
+        }
+        body.dark .doctor-avatar {
+            background: rgba(212, 175, 55, 0.12);
+            color: #d4af37;
+            border-color: rgba(212, 175, 55, 0.3);
+        }
+
+        .title-badge {
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 0.2rem 0.6rem;
+            border-radius: 0.5rem;
+            background: rgba(124, 58, 237, 0.1);
+            color: #7c3aed;
+            border: 1px solid rgba(124, 58, 237, 0.25);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        body.dark .title-badge {
+            background: rgba(168, 85, 247, 0.15);
+            color: #c084fc;
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+
+        .spec-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.22rem 0.65rem;
+            border-radius: 0.55rem;
+            background: rgba(15, 118, 110, 0.08);
+            color: #0f766e;
+            border: 1px solid rgba(15, 118, 110, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        body.dark .spec-badge {
+            background: rgba(212, 175, 55, 0.1);
+            color: #d4af37;
+            border-color: rgba(212, 175, 55, 0.25);
+        }
+
+        .hosp-tag {
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.45rem;
+            background: rgba(0, 0, 0, 0.04);
+            color: #475569;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        body.dark .hosp-tag {
+            background: rgba(255, 255, 255, 0.05);
+            color: #cbd5e1;
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .phone-btn {
+            font-family: 'JetBrains Mono', monospace;
+            direction: ltr;
+            text-align: left;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: #0f766e;
+            background: rgba(15, 118, 110, 0.08);
+            padding: 0.4rem 0.75rem;
+            border-radius: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+        body.dark .phone-btn {
+            color: #d4af37;
+            background: rgba(212, 175, 55, 0.1);
+        }
+        .phone-btn:hover {
+            background: rgba(15, 118, 110, 0.18);
+            transform: scale(1.02);
+        }
+        body.dark .phone-btn:hover {
+            background: rgba(212, 175, 55, 0.2);
+        }
+
+        .whatsapp-btn {
+            color: #059669;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 0.4rem 0.75rem;
+            border-radius: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+            transition: all 0.15s ease;
+        }
+        .whatsapp-btn:hover {
+            background: rgba(16, 185, 129, 0.2);
+            transform: scale(1.02);
+        }
+
+        /* Table View */
+        .specialists-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 1.25rem;
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+            background: #ffffff;
+        }
+        body.dark .specialists-table-wrap {
+            background: rgba(16, 22, 34, 0.88);
+            border-color: rgba(212, 175, 55, 0.15);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+        .specialists-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: right;
+        }
+        .specialists-table th {
+            padding: 0.85rem 1.1rem;
+            background: rgba(241, 245, 249, 0.8);
+            font-weight: 800;
+            color: #475569;
+            border-bottom: 1.5px solid #cbd5e1;
+            white-space: nowrap;
+        }
+        body.dark .specialists-table th {
+            background: rgba(11, 15, 24, 0.9);
+            color: #d4af37;
+            border-bottom-color: rgba(212, 175, 55, 0.25);
+        }
+        .specialists-table td {
+            padding: 0.85rem 1.1rem;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+            vertical-align: middle;
+        }
+        body.dark .specialists-table td {
+            border-bottom-color: rgba(255, 255, 255, 0.05);
+        }
+        .specialists-table tr:hover td {
+            background: rgba(15, 118, 110, 0.03);
+        }
+        body.dark .specialists-table tr:hover td {
+            background: rgba(212, 175, 55, 0.04);
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            padding: 1.25rem;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-card {
+            max-width: 540px;
+            width: 100%;
+            border-radius: 2rem;
+            padding: 2rem;
+            background: #ffffff;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        body.dark .modal-card {
+            background: #141c2a;
+            border: 1px solid rgba(212, 175, 55, 0.18);
+        }
+
+        #toast-container {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+            width: 90%;
+            max-width: 440px;
+        }
+        .toast {
+            padding: 12px 20px;
+            border-radius: 1rem;
+            color: white;
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            pointer-events: auto;
+            animation: fadeIn .3s ease;
+        }
+        .toast.success { background: #10b981; }
+        .toast.error { background: #ef4444; }
+
+        @media (max-width: 768px) {
+            main {
+                padding-left: 10px !important;
+                padding-right: 10px !important;
+            }
+            .filter-pills-bar {
+                gap: 0.4rem;
+                padding-bottom: 0.6rem;
+            }
+            .specialist-card {
+                padding: 1rem 1.1rem;
+                border-radius: 1.15rem;
+            }
+            .modal-card {
+                max-width: calc(100vw - 20px) !important;
+                padding: 1.25rem 1rem !important;
+            }
+        }
+    </style>
+</head>
+<body class="light" id="app-body">
+
+    <!-- Universal Navigation Bar -->
+    <div id="universal-nav"></div>
+
+    <div id="toast-container"></div>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 relative z-10">
+        
+        <!-- Header Banner -->
+        <div class="glass-card p-6 mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-mono font-bold text-teal-600 dark:text-amber-400 uppercase tracking-widest">
+                            Specialists & Consultants Registry 🇮🇶
+                        </span>
+                        <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                            متاح لجميع المستخدمين
+                        </span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-black mt-1">أطباء الاختصاص والاستشاريين</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                        دليل متكامل وموحد لأطباء البورد والاستشاريين والاختصاص عبر مختلف المستشفيات مع بيانات التواصل والعيادات
+                    </p>
+                </div>
+
+                <!-- Admin / Owner Actions (Hidden for regular users) -->
+                <div id="admin-actions-wrap" class="flex items-center gap-2 hidden">
+                    <button type="button" onclick="openAddSpecialistModal()" class="btn-gradient">
+                        <i class="fas fa-user-plus"></i>
+                        <span>إضافة طبيب اختصاص</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats & Quick Metrics Bar -->
+            <div class="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 text-xs font-bold">
+                <span class="px-3 py-1.5 rounded-xl bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-200 dark:border-purple-900/60" id="badge-total-count">
+                    <i class="fas fa-user-tie ml-1"></i> 0 طبيب مسجل
+                </span>
+                <span class="px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60" id="badge-visible-count">
+                    <i class="fas fa-filter ml-1"></i> 0 مطابق للتصفية
+                </span>
+                <span class="px-3 py-1.5 rounded-xl bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60" id="badge-consultants-count">
+                    <i class="fas fa-award ml-1"></i> 0 استشاري وبورد
+                </span>
+            </div>
+        </div>
+
+        <!-- Filter Bar & Search Controls -->
+        <div class="glass-card p-5 mb-6">
+            <!-- Hospital Filter Pills -->
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
+                    <i class="fas fa-hospital ml-1"></i> فرز حسب المستشفى التعليمي:
+                </label>
+                <div class="filter-pills-bar" id="hospital-filter-pills">
+                    <!-- Dynamic Hospital Pills -->
+                </div>
+            </div>
+
+            <!-- Search, Specialty Dropdown & View Switch -->
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                <div class="sm:col-span-5 relative">
+                    <input type="text" id="search-input" class="input-field pl-10 pr-10" placeholder="ابحث بالاسم أو التخصص أو مكان العيادة أو الهاتف..." oninput="applyFilters()" />
+                    <i class="fas fa-search absolute right-3.5 top-3.5 text-slate-400 text-sm"></i>
+                    <button type="button" id="clear-search-btn" onclick="clearSearch()" class="absolute left-3 top-3 text-slate-400 hover:text-slate-600 hidden text-sm">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                </div>
+
+                <div class="sm:col-span-3">
+                    <select id="spec-filter" class="input-field" onchange="applyFilters()">
+                        <option value="all">جميع التخصصات الطبية</option>
+                    </select>
+                </div>
+
+                <div class="sm:col-span-2">
+                    <select id="title-filter" class="input-field" onchange="applyFilters()">
+                        <option value="all">جميع الرتب والدرجات</option>
+                        <option value="consultant">استشاري</option>
+                        <option value="specialist">أخصائي</option>
+                        <option value="board">بورد / دكتوراه</option>
+                    </select>
+                </div>
+
+                <!-- View Mode Toggle (Cards vs Table) -->
+                <div class="sm:col-span-2 flex items-center justify-end gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <button type="button" id="view-mode-cards-btn" onclick="setViewMode('cards')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 bg-white dark:bg-slate-700 shadow-sm text-teal-700 dark:text-amber-400">
+                        <i class="fas fa-grip"></i> <span>بطاقات</span>
+                    </button>
+                    <button type="button" id="view-mode-table-btn" onclick="setViewMode('table')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">
+                        <i class="fas fa-table-list"></i> <span>جدول</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Specialists Dynamic Content (Cards or Table) -->
+        <div id="specialists-container" class="mb-8">
+            <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="glass-card p-12 text-center hidden mb-8">
+            <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 text-2xl">
+                <i class="fas fa-user-slash"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-700 dark:text-slate-300 mb-1">لم يتم العثور على أطباء اختصاص</h3>
+            <p class="text-xs text-slate-400 max-w-sm mx-auto mb-4">جرب تعديل عبارة البحث أو اختيار مستشفى أو تخصص آخر</p>
+            <button type="button" onclick="resetAllFilters()" class="btn-ghost text-xs">
+                <i class="fas fa-rotate-left"></i> إعادة تعيين الفلاتر
+            </button>
+        </div>
+
+    </main>
+
+    <!-- ADD / EDIT SPECIALIST MODAL (Admin & Owner Only) -->
+    <div id="specialist-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-black flex items-center gap-2" id="modal-title">
+                    <i class="fas fa-user-tie text-teal-600 dark:text-amber-400"></i>
+                    <span>إضافة طبيب اختصاص جديد</span>
+                </h3>
+                <button type="button" onclick="closeSpecialistModal()" class="text-slate-400 hover:text-slate-600 text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="specialist-form" onsubmit="handleSpecialistSubmit(event)" class="space-y-4">
+                <input type="hidden" id="form-spec-id" />
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">اسم الطبيب الكامل</label>
+                    <input type="text" id="form-spec-name" class="input-field" placeholder="مثال: د. علي عبد الحسين" required />
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">اللقب العلمي / الدرجة</label>
+                        <input type="text" id="form-spec-title" class="input-field" placeholder="مثال: استشاري / بورد" required />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">التخصص الطبي</label>
+                        <select id="form-spec-code" class="input-field" required></select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">رقم الهاتف (للتواصل السريع وواتساب)</label>
+                    <input type="text" id="form-spec-phone" class="input-field font-mono text-left" placeholder="07801234567" dir="ltr" />
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">مكان العيادة الخاصة / الاستشارية</label>
+                    <input type="text" id="form-spec-clinic" class="input-field" placeholder="مثال: البصرة - العشار - مجاور صيدلية المركز" />
+                </div>
+
+                <!-- Hospital Assignments Checkboxes -->
+                <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 space-y-2">
+                    <label class="block text-xs font-black text-slate-700 dark:text-slate-200">
+                        <i class="fas fa-hospital ml-1 text-teal-600 dark:text-amber-400"></i>
+                        المستشفيات التابع لها الطبيب:
+                    </label>
+                    <div id="form-hospitals-checkboxes" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-36 overflow-y-auto pr-1">
+                        <!-- Checkboxes rendered dynamically -->
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">ملاحظات إضافية / المهام</label>
+                    <input type="text" id="form-spec-notes" class="input-field" placeholder="مثال: رئيس قسم الجراحة / مناظير متقدمة" />
+                </div>
+
+                <div class="flex items-center justify-between pt-1">
+                    <label class="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer">
+                        <input type="checkbox" id="form-spec-active" checked class="w-4 h-4 accent-teal-600" />
+                        <span>الطبيب في الخدمة الفعلية (نشط)</span>
+                    </label>
+                </div>
+
+                <div class="flex gap-3 pt-3">
+                    <button type="submit" id="form-submit-btn" class="flex-1 btn-gradient">
+                        <i class="fas fa-check"></i>
+                        <span id="submit-btn-text">حفظ بيانات الطبيب</span>
+                    </button>
+                    <button type="button" onclick="closeSpecialistModal()" class="btn-ghost">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="./hub-core.js"></script>
+    <script src="./nav-component.js"></script>
+    <script>
+        let currentSpecialists = [];
+        let filteredSpecialists = [];
+        let activeHospFilter = 'all';
+        let currentViewMode = localStorage.getItem('specialists_view_mode') || 'cards';
+
+        async function initPage() {
+            await Hub.loadDatabase();
+            initUniversalNav('specialists');
+
+            // Set hospital from query param if available
+            const urlParams = new URLSearchParams(window.location.search);
+            const hospParam = urlParams.get('hospital');
+            if (hospParam) {
+                activeHospFilter = hospParam;
+            }
+
+            renderHospitalFilterPills();
+            populateSpecialtyFilter();
+            checkAdminPermissions();
+            refreshSpecialistsData();
+        }
+
+        function checkAdminPermissions() {
+            const isAdmin = Hub.auth.isAdmin();
+            const isOwner = Hub.auth.isOwner();
+            const adminActionsWrap = document.getElementById('admin-actions-wrap');
+            if (adminActionsWrap) {
+                if (isAdmin || isOwner) {
+                    adminActionsWrap.classList.remove('hidden');
+                } else {
+                    adminActionsWrap.classList.add('hidden');
+                }
+            }
+        }
+
+        function renderHospitalFilterPills() {
+            const container = document.getElementById('hospital-filter-pills');
+            if (!container) return;
+
+            const hospitals = Hub.getHospitals();
+            let html = `
+                <button type="button" class="filter-pill ${activeHospFilter === 'all' ? 'active' : ''}" onclick="setHospitalFilter('all')">
+                    <i class="fas fa-globe"></i>
+                    <span>جميع المستشفيات</span>
+                </button>
+            `;
+
+            hospitals.forEach(h => {
+                const isActive = activeHospFilter === h.id;
+                html += `
+                    <button type="button" class="filter-pill ${isActive ? 'active' : ''}" onclick="setHospitalFilter('${h.id}')">
+                        <i class="fas ${h.icon || 'fa-hospital'}"></i>
+                        <span>${h.name_ar || h.hospitalName}</span>
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function populateSpecialtyFilter() {
+            const select = document.getElementById('spec-filter');
+            const formSelect = document.getElementById('form-spec-code');
+            if (!select) return;
+
+            const specs = Hub.specialties.getAll();
+            select.innerHTML = '<option value="all">جميع التخصصات الطبية</option>';
+            if (formSelect) formSelect.innerHTML = '<option value="">اختر التخصص...</option>';
+
+            specs.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.code;
+                opt.textContent = `${s.name_ar} (${s.code})`;
+                select.appendChild(opt);
+
+                if (formSelect) {
+                    const formOpt = document.createElement('option');
+                    formOpt.value = s.code;
+                    formOpt.textContent = s.name_ar;
+                    formSelect.appendChild(formOpt);
+                }
+            });
+        }
+
+        function setHospitalFilter(hospId) {
+            activeHospFilter = hospId;
+            renderHospitalFilterPills();
+            applyFilters();
+        }
+
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            localStorage.setItem('specialists_view_mode', mode);
+
+            const cardsBtn = document.getElementById('view-mode-cards-btn');
+            const tableBtn = document.getElementById('view-mode-table-btn');
+
+            if (mode === 'cards') {
+                cardsBtn.className = 'flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 bg-white dark:bg-slate-700 shadow-sm text-teal-700 dark:text-amber-400';
+                tableBtn.className = 'flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200';
+            } else {
+                tableBtn.className = 'flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 bg-white dark:bg-slate-700 shadow-sm text-teal-700 dark:text-amber-400';
+                cardsBtn.className = 'flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200';
+            }
+
+            renderSpecialists();
+        }
+
+        function refreshSpecialistsData() {
+            currentSpecialists = Hub.specialists.getAll();
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const query = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
+            const specVal = document.getElementById('spec-filter')?.value || 'all';
+            const titleVal = document.getElementById('title-filter')?.value || 'all';
+            const clearBtn = document.getElementById('clear-search-btn');
+
+            if (clearBtn) {
+                clearBtn.classList.toggle('hidden', query.length === 0);
+            }
+
+            filteredSpecialists = currentSpecialists.filter(doc => {
+                // Hospital Filter
+                if (activeHospFilter !== 'all') {
+                    if (!doc.hospitals || !doc.hospitals.includes(activeHospFilter)) {
+                        return false;
+                    }
+                }
+
+                // Specialty Filter
+                if (specVal !== 'all' && doc.spec !== specVal) {
+                    return false;
+                }
+
+                // Title Filter
+                if (titleVal !== 'all') {
+                    const titleText = (doc.title || '').toLowerCase();
+                    if (titleVal === 'consultant' && !titleText.includes('استشاري')) return false;
+                    if (titleVal === 'specialist' && !titleText.includes('أخصائي') && !titleText.includes('اخصائي')) return false;
+                    if (titleVal === 'board' && !titleText.includes('بورد') && !titleText.includes('دكتوراه')) return false;
+                }
+
+                // Search Query
+                if (query) {
+                    const name = (doc.name || '').toLowerCase();
+                    const title = (doc.title || '').toLowerCase();
+                    const specName = (doc.specName || '').toLowerCase();
+                    const clinic = (doc.clinic || '').toLowerCase();
+                    const phone = (doc.phone || '').toLowerCase();
+                    const notes = (doc.notes || '').toLowerCase();
+
+                    if (!name.includes(query) && !title.includes(query) && !specName.includes(query) && 
+                        !clinic.includes(query) && !phone.includes(query) && !notes.includes(query)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            updateBadges();
+            renderSpecialists();
+        }
+
+        function updateBadges() {
+            const totalBadge = document.getElementById('badge-total-count');
+            const visibleBadge = document.getElementById('badge-visible-count');
+            const consultantsBadge = document.getElementById('badge-consultants-count');
+
+            if (totalBadge) totalBadge.innerHTML = `<i class="fas fa-user-tie ml-1"></i> ${currentSpecialists.length} طبيب مسجل`;
+            if (visibleBadge) visibleBadge.innerHTML = `<i class="fas fa-filter ml-1"></i> ${filteredSpecialists.length} مطابق للتصفية`;
+            if (consultantsBadge) {
+                const count = currentSpecialists.filter(d => (d.title || '').includes('استشاري') || (d.title || '').includes('بورد')).length;
+                consultantsBadge.innerHTML = `<i class="fas fa-award ml-1"></i> ${count} استشاري وبورد`;
+            }
+        }
+
+        function clearSearch() {
+            const input = document.getElementById('search-input');
+            if (input) input.value = '';
+            applyFilters();
+        }
+
+        function resetAllFilters() {
+            const input = document.getElementById('search-input');
+            const spec = document.getElementById('spec-filter');
+            const title = document.getElementById('title-filter');
+            if (input) input.value = '';
+            if (spec) spec.value = 'all';
+            if (title) title.value = 'all';
+            activeHospFilter = 'all';
+            renderHospitalFilterPills();
+            applyFilters();
+        }
+
+        function renderSpecialists() {
+            const container = document.getElementById('specialists-container');
+            const emptyState = document.getElementById('empty-state');
+            if (!container) return;
+
+            if (filteredSpecialists.length === 0) {
+                container.innerHTML = '';
+                if (emptyState) emptyState.classList.remove('hidden');
+                return;
+            }
+
+            if (emptyState) emptyState.classList.add('hidden');
+
+            const isAdmin = Hub.auth.isAdmin();
+            const isOwner = Hub.auth.isOwner();
+            const canEdit = isAdmin || isOwner;
+
+            if (currentViewMode === 'table') {
+                renderTableView(container, canEdit);
+            } else {
+                renderCardsView(container, canEdit);
+            }
+        }
+
+        function renderCardsView(container, canEdit) {
+            const hospitalsMap = Hub.getHospitals().reduce((acc, h) => {
+                acc[h.id] = h.name_ar || h.hospitalName;
+                return acc;
+            }, {});
+
+            let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
+
+            filteredSpecialists.forEach(doc => {
+                const cleanPhone = (doc.phone || '').replace(/[^0-9]/g, '');
+                const waPhone = cleanPhone.startsWith('0') ? '964' + cleanPhone.substring(1) : cleanPhone;
+
+                const hospBadges = (doc.hospitals || []).map(hId => {
+                    const name = hospitalsMap[hId] || hId;
+                    return `<span class="hosp-tag"><i class="fas fa-hospital text-teal-600 dark:text-amber-400"></i> ${name}</span>`;
+                }).join(' ');
+
+                html += `
+                    <div class="specialist-card" id="specialist-card-${doc.id}">
+                        <div>
+                            <!-- Header -->
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="doctor-avatar">
+                                        <i class="fas fa-user-doctor"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-base font-black text-slate-800 dark:text-white leading-tight">${doc.name}</h3>
+                                        <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                                            <span class="title-badge"><i class="fas fa-medal text-[10px]"></i> ${doc.title || 'أخصائي'}</span>
+                                            <span class="spec-badge">${doc.specName || doc.spec}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                ${doc.active !== false ? 
+                                    '<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm" title="في الخدمة"></span>' : 
+                                    '<span class="w-2.5 h-2.5 rounded-full bg-slate-400" title="غير نشط"></span>'}
+                            </div>
+
+                            <!-- Hospitals Covered -->
+                            <div class="mb-3 flex flex-wrap gap-1">
+                                ${hospBadges || '<span class="text-xs text-slate-400">غير محدد</span>'}
+                            </div>
+
+                            <!-- Clinic Location & Notes -->
+                            ${doc.clinic ? `
+                            <div class="text-xs text-slate-600 dark:text-slate-300 mb-2 flex items-start gap-1.5">
+                                <i class="fas fa-location-dot text-rose-500 mt-0.5 flex-shrink-0"></i>
+                                <span>${doc.clinic}</span>
+                            </div>` : ''}
+
+                            ${doc.notes ? `
+                            <div class="text-xs text-slate-500 dark:text-slate-400 mb-3 p-2 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/80">
+                                <i class="fas fa-info-circle text-teal-600 dark:text-amber-400 ml-1"></i> ${doc.notes}
+                            </div>` : ''}
+                        </div>
+
+                        <!-- Actions & Contact -->
+                        <div class="pt-3 mt-1 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                ${doc.phone ? `
+                                    <a href="tel:${doc.phone}" class="phone-btn" title="اتصال هاتفي مباشر">
+                                        <i class="fas fa-phone-alt"></i>
+                                        <span>${doc.phone}</span>
+                                    </a>
+                                    <a href="https://wa.me/${waPhone}" target="_blank" rel="noopener" class="whatsapp-btn" title="مراسلة عبر واتساب">
+                                        <i class="fab fa-whatsapp text-sm"></i>
+                                    </a>
+                                ` : '<span class="text-xs text-slate-400 font-bold">لا يوجد رقم</span>'}
+                            </div>
+
+                            ${canEdit ? `
+                            <div class="flex items-center gap-1">
+                                <button type="button" onclick="openEditSpecialistModal('${doc.id}')" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-teal-600 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs" title="تعديل">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button type="button" onclick="confirmDeleteSpecialist('${doc.id}', '${doc.name}')" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs" title="حذف">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function renderTableView(container, canEdit) {
+            const hospitalsMap = Hub.getHospitals().reduce((acc, h) => {
+                acc[h.id] = h.name_ar || h.hospitalName;
+                return acc;
+            }, {});
+
+            let rowsHtml = '';
+            filteredSpecialists.forEach(doc => {
+                const cleanPhone = (doc.phone || '').replace(/[^0-9]/g, '');
+                const waPhone = cleanPhone.startsWith('0') ? '964' + cleanPhone.substring(1) : cleanPhone;
+
+                const hospTags = (doc.hospitals || []).map(hId => {
+                    const name = hospitalsMap[hId] || hId;
+                    return `<span class="hosp-tag">${name}</span>`;
+                }).join(' ');
+
+                rowsHtml += `
+                    <tr>
+                        <td>
+                            <div class="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                <span>${doc.name}</span>
+                                <span class="title-badge">${doc.title || 'أخصائي'}</span>
+                            </div>
+                            ${doc.notes ? `<div class="text-[11px] text-slate-400 mt-0.5">${doc.notes}</div>` : ''}
+                        </td>
+                        <td>
+                            <span class="spec-badge">${doc.specName || doc.spec}</span>
+                        </td>
+                        <td>
+                            <div class="flex flex-wrap gap-1">${hospTags || '—'}</div>
+                        </td>
+                        <td>
+                            ${doc.phone ? `
+                            <div class="flex items-center gap-2">
+                                <a href="tel:${doc.phone}" class="phone-btn text-xs py-1 px-2">
+                                    <i class="fas fa-phone-alt"></i> <span>${doc.phone}</span>
+                                </a>
+                                <a href="https://wa.me/${waPhone}" target="_blank" rel="noopener" class="whatsapp-btn text-xs py-1 px-2">
+                                    <i class="fab fa-whatsapp"></i>
+                                </a>
+                            </div>` : '<span class="text-xs text-slate-400">—</span>'}
+                        </td>
+                        <td>
+                            <div class="text-xs text-slate-600 dark:text-slate-300 max-w-xs truncate" title="${doc.clinic || ''}">
+                                ${doc.clinic ? `<i class="fas fa-location-dot text-rose-500 ml-1"></i> ${doc.clinic}` : '—'}
+                            </div>
+                        </td>
+                        <td>
+                            ${doc.active !== false ? 
+                                '<span class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-900/60">نشط</span>' : 
+                                '<span class="text-[11px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">احتياط</span>'}
+                        </td>
+                        ${canEdit ? `
+                        <td>
+                            <div class="flex items-center gap-1">
+                                <button type="button" onclick="openEditSpecialistModal('${doc.id}')" class="p-1.5 rounded-lg text-slate-500 hover:text-teal-600 dark:hover:text-amber-400 text-xs">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button type="button" onclick="confirmDeleteSpecialist('${doc.id}', '${doc.name}')" class="p-1.5 rounded-lg text-slate-500 hover:text-rose-500 text-xs">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </td>` : ''}
+                    </tr>
+                `;
+            });
+
+            container.innerHTML = `
+                <div class="specialists-table-wrap">
+                    <table class="specialists-table">
+                        <thead>
+                            <tr>
+                                <th>اسم الطبيب والرتبة</th>
+                                <th>التخصص</th>
+                                <th>المستشفيات</th>
+                                <th>الهاتف والتواصل</th>
+                                <th>العيادة والاستشارية</th>
+                                <th>الحالة</th>
+                                ${canEdit ? '<th>الإجراءات</th>' : ''}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // ================================================================
+        // MODALS & CRUD
+        // ================================================================
+        function openAddSpecialistModal() {
+            if (!Hub.auth.isAdmin() && !Hub.auth.isOwner()) {
+                showToast('عذراً، إضافة أطباء الاختصاص متاحة للمدير والمالك فقط', 'error');
+                return;
+            }
+
+            document.getElementById('modal-title').innerHTML = `
+                <i class="fas fa-user-plus text-teal-600 dark:text-amber-400"></i>
+                <span>إضافة طبيب اختصاص جديد</span>
+            `;
+            document.getElementById('submit-btn-text').textContent = 'حفظ بيانات الطبيب';
+            document.getElementById('specialist-form').reset();
+            document.getElementById('form-spec-id').value = '';
+            document.getElementById('form-spec-active').checked = true;
+
+            renderHospitalCheckboxes([]);
+            document.getElementById('specialist-modal').classList.add('active');
+        }
+
+        function openEditSpecialistModal(id) {
+            if (!Hub.auth.isAdmin() && !Hub.auth.isOwner()) {
+                showToast('عذراً، تعديل البيانات متاح للمدير والمالك فقط', 'error');
+                return;
+            }
+
+            const doc = Hub.specialists.getById(id);
+            if (!doc) {
+                showToast('لم يتم العثور على بيانات الطبيب', 'error');
+                return;
+            }
+
+            document.getElementById('modal-title').innerHTML = `
+                <i class="fas fa-user-pen text-teal-600 dark:text-amber-400"></i>
+                <span>تعديل بيانات الطبيب: ${doc.name}</span>
+            `;
+            document.getElementById('submit-btn-text').textContent = 'تحديث البيانات';
+
+            document.getElementById('form-spec-id').value = doc.id;
+            document.getElementById('form-spec-name').value = doc.name || '';
+            document.getElementById('form-spec-title').value = doc.title || 'استشاري / بورد';
+            document.getElementById('form-spec-code').value = doc.spec || '';
+            document.getElementById('form-spec-phone').value = doc.phone || '';
+            document.getElementById('form-spec-clinic').value = doc.clinic || '';
+            document.getElementById('form-spec-notes').value = doc.notes || '';
+            document.getElementById('form-spec-active').checked = doc.active !== false;
+
+            renderHospitalCheckboxes(doc.hospitals || []);
+            document.getElementById('specialist-modal').classList.add('active');
+        }
+
+        function closeSpecialistModal() {
+            document.getElementById('specialist-modal').classList.remove('active');
+            document.getElementById('specialist-form').reset();
+        }
+
+        function renderHospitalCheckboxes(selectedHospIds) {
+            const container = document.getElementById('form-hospitals-checkboxes');
+            if (!container) return;
+
+            const hospitals = Hub.getHospitals();
+            container.innerHTML = hospitals.map(h => {
+                const isChecked = selectedHospIds.includes(h.id);
+                return `
+                    <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold cursor-pointer">
+                        <input type="checkbox" name="form-hosp-cb" value="${h.id}" ${isChecked ? 'checked' : ''} class="w-4 h-4 accent-teal-600 rounded" />
+                        <span>${h.name_ar || h.hospitalName}</span>
+                    </label>
+                `;
+            }).join('');
+        }
+
+        async function handleSpecialistSubmit(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('form-submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري الحفظ...';
+
+            const id = document.getElementById('form-spec-id').value;
+            const specCode = document.getElementById('form-spec-code').value;
+            const specObj = Hub.specialties.getByCode(specCode);
+
+            const checkedHosps = Array.from(document.querySelectorAll('input[name="form-hosp-cb"]:checked')).map(cb => cb.value);
+
+            const specData = {
+                name: document.getElementById('form-spec-name').value.trim(),
+                title: document.getElementById('form-spec-title').value.trim(),
+                spec: specCode,
+                specName: specObj ? specObj.name_ar : specCode,
+                phone: document.getElementById('form-spec-phone').value.trim(),
+                clinic: document.getElementById('form-spec-clinic').value.trim(),
+                notes: document.getElementById('form-spec-notes').value.trim(),
+                hospitals: checkedHosps.length > 0 ? checkedHosps : [Hub.getActiveHospitalId()],
+                active: document.getElementById('form-spec-active').checked
+            };
+
+            if (id) specData.id = id;
+
+            try {
+                await Hub.specialists.save(specData);
+                closeSpecialistModal();
+                showToast(id ? 'تم تحديث بيانات الطبيب بنجاح ✅' : 'تم إضافة طبيب الاختصاص بنجاح ✅', 'success');
+                refreshSpecialistsData();
+            } catch (err) {
+                console.error('Error saving specialist:', err);
+                showToast(err.message || 'حدث خطأ أثناء حفظ البيانات', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-check"></i> <span id="submit-btn-text">حفظ بيانات الطبيب</span>';
+            }
+        }
+
+        async function confirmDeleteSpecialist(id, name) {
+            if (!confirm(`هل أنت متأكد من رغبتك في حذف الطبيب (${name}) من قاعدة بيانات أطباء الاختصاص؟`)) {
+                return;
+            }
+
+            try {
+                await Hub.specialists.delete(id);
+                showToast(`تم حذف الطبيب (${name}) بنجاح`, 'success');
+                refreshSpecialistsData();
+            } catch (err) {
+                console.error('Error deleting specialist:', err);
+                showToast(err.message || 'حدث خطأ أثناء الحذف', 'error');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            toast.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Initialize on DOM load
+        window.addEventListener('DOMContentLoaded', initPage);
+        window.addEventListener('hub:data-changed', refreshSpecialistsData);
+        window.addEventListener('hub:auth-changed', () => {
+            checkAdminPermissions();
+            renderSpecialists();
+        });
+    </script>
+</body>
+</html>

@@ -670,14 +670,14 @@ body.dark .hub-password-eye-btn:hover {
 }
 
 /* Universal Mobile Bottom App Dock */
-.hub-mobile-bottom-dock {
+.hub-mobile-bottom-dock, .ios-bottom-dock {
     position: fixed;
     bottom: max(10px, env(safe-area-inset-bottom, 0px));
     left: 50%;
     transform: translateX(-50%);
     z-index: 9998;
-    width: calc(100% - 24px);
-    max-width: 480px;
+    width: calc(100% - 16px);
+    max-width: 540px;
     height: 60px;
     background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(24px) saturate(190%);
@@ -688,12 +688,12 @@ body.dark .hub-password-eye-btn:hover {
     display: flex;
     align-items: center;
     justify-content: space-around;
-    padding: 4px 8px;
+    padding: 3px 6px;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     direction: rtl;
 }
 
-body.dark .hub-mobile-bottom-dock {
+body.dark .hub-mobile-bottom-dock, body.dark .ios-bottom-dock {
     background: rgba(14, 20, 32, 0.94);
     border: 1px solid rgba(212, 175, 55, 0.18);
     box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(212, 175, 55, 0.08);
@@ -705,43 +705,52 @@ body.dark .hub-mobile-bottom-dock {
     }
 }
 
-.hub-mobile-bottom-dock .dock-tab-btn {
+.hub-mobile-bottom-dock .dock-tab-btn, .ios-bottom-dock .dock-tab-btn {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
-    padding: 6px 10px;
+    gap: 2px;
+    padding: 4px 4px;
     border-radius: 999px;
     color: #64748b;
     text-decoration: none;
     background: transparent;
     border: none;
     cursor: pointer;
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     font-weight: 700;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    flex: 1;
+    min-width: 0;
 }
 
-body.dark .hub-mobile-bottom-dock .dock-tab-btn {
+body.dark .hub-mobile-bottom-dock .dock-tab-btn, body.dark .ios-bottom-dock .dock-tab-btn {
     color: #94a3b8;
 }
 
-.hub-mobile-bottom-dock .dock-tab-btn i {
-    font-size: 1.05rem;
+.hub-mobile-bottom-dock .dock-tab-btn i, .ios-bottom-dock .dock-tab-btn i {
+    font-size: 1rem;
 }
 
-.hub-mobile-bottom-dock .dock-tab-btn.active {
+.hub-mobile-bottom-dock .dock-tab-btn span, .ios-bottom-dock .dock-tab-btn span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.hub-mobile-bottom-dock .dock-tab-btn.active, .ios-bottom-dock .dock-tab-btn.active {
     color: #0f766e;
-    background: rgba(15, 118, 110, 0.1);
+    background: rgba(15, 118, 110, 0.12);
 }
 
-body.dark .hub-mobile-bottom-dock .dock-tab-btn.active {
+body.dark .hub-mobile-bottom-dock .dock-tab-btn.active, body.dark .ios-bottom-dock .dock-tab-btn.active {
     color: #d4af37;
     background: rgba(212, 175, 55, 0.15);
 }
 
-.hub-mobile-bottom-dock .dock-tab-btn:active {
+.hub-mobile-bottom-dock .dock-tab-btn:active, .ios-bottom-dock .dock-tab-btn:active {
     transform: scale(0.92);
 }
 

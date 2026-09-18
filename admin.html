@@ -165,6 +165,15 @@
         .spec-content.active { display: block; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 
+        @keyframes highlightSavePulse {
+            0% { background: rgba(16, 185, 129, 0.28); border-color: #10b981; transform: scale(1.015); box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
+            50% { background: rgba(16, 185, 129, 0.15); border-color: #10b981; }
+            100% { transform: scale(1); box-shadow: none; }
+        }
+        .highlight-save-pulse {
+            animation: highlightSavePulse 1.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
         .resident-card {
             border-radius: 1.1rem;
             padding: 0.75rem 1.2rem;
@@ -1217,7 +1226,7 @@
                     currentHospital = Hub.getActiveHospital();
                     renderGlobalSpecialtiesList();
                     renderSpecialtiesList();
-                    renderResidentsAccordion();
+                    renderResidentsAccordion({ preserveScroll: true });
                     populateSpecialtyDropdowns();
                     updateStatsBadges();
                 });
@@ -1302,9 +1311,23 @@
             document.getElementById('badge-specs-count').innerHTML = `<i class="fas fa-stethoscope ml-1"></i> ${specs} تخصص طبي`;
         }
 
-        function renderResidentsAccordion() {
+        window.openSpecBoxIds = window.openSpecBoxIds || new Set();
+
+        function renderResidentsAccordion(options = {}) {
             const container = document.getElementById('residents-accordion-list');
             if (!container || !currentHospital) return;
+
+            // Preserve scroll position
+            const prevScrollY = options.preserveScroll !== false ? window.scrollY : null;
+
+            // Preserve open accordion states from DOM
+            if (!window.openSpecBoxIds) window.openSpecBoxIds = new Set();
+            container.querySelectorAll('.spec-content.active').forEach(el => {
+                if (el.id) window.openSpecBoxIds.add(el.id);
+            });
+            if (options.forceOpenSpecId) {
+                window.openSpecBoxIds.add(`spec-box-${options.forceOpenSpecId}`);
+            }
 
             const specs = currentHospital.specialties || [];
             const names = currentHospital.names || [];
@@ -1325,10 +1348,12 @@
                 renderedCount++;
 
                 const isEnabled = spec.enabled !== false;
+                const boxId = `spec-box-${spec.id}`;
+                const isOpen = window.openSpecBoxIds.has(boxId);
 
                 return `
                     <div class="mb-2">
-                        <div class="spec-header" onclick="toggleAccordion('spec-box-${spec.id}')">
+                        <div class="spec-header" onclick="toggleAccordion('${boxId}')">
                             <div class="flex items-center gap-2 flex-wrap">
                                 <span class="text-xl">${spec.icon || '🏥'}</span>
                                 <span class="font-bold">${(window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(spec.id) : (spec.name_ar || spec.id)}</span>
@@ -1343,11 +1368,11 @@
                                 <span class="text-xs font-bold px-2.5 py-1 rounded-full ${totalCount > 0 ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' : 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900'}">
                                     ${totalCount} مقيم
                                 </span>
-                                <i class="fas fa-chevron-down text-xs text-slate-400"></i>
+                                <i class="fas ${isOpen ? 'fa-chevron-up' : 'fa-chevron-down'} text-xs text-slate-400"></i>
                             </div>
                         </div>
 
-                        <div id="spec-box-${spec.id}" class="spec-content">
+                        <div id="${boxId}" class="spec-content ${isOpen ? 'active' : ''}">
                             ${totalCount === 0 ? `
                                 <div class="text-center py-4 text-xs text-slate-400">لا يوجد مقيمين مسجلين في هذا التخصص حالياً (0 مقيم)</div>
                             ` : `
@@ -1384,6 +1409,26 @@
                     summaryEl.innerHTML = `<i class="fas fa-list-check ml-1 text-teal-600 dark:text-amber-400"></i> عرض جميع التخصصات (${specs.length} تخصص)`;
                 }
             }
+
+            // Restore scroll position
+            if (options.preserveScroll !== false && prevScrollY !== null) {
+                window.scrollTo({ top: prevScrollY, behavior: 'instant' });
+            }
+
+            // Highlight target card if requested
+            if (options.highlightResidentId || options.highlightResidentName) {
+                setTimeout(() => {
+                    const targetEl = (options.highlightResidentId ? document.getElementById(`resident-card-${options.highlightResidentId}`) : null) ||
+                                     (options.highlightResidentName ? document.querySelector(`[data-res-name="${options.highlightResidentName}"]`) : null);
+                    if (targetEl) {
+                        targetEl.classList.add('highlight-save-pulse');
+                        if (options.scrollIntoView) {
+                            targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
+                        setTimeout(() => targetEl.classList.remove('highlight-save-pulse'), 2500);
+                    }
+                }, 60);
+            }
         }
 
         function renderResidentCardItem(r, isGuestRotating) {
@@ -1397,9 +1442,10 @@
             const globalSpecs = (typeof Hub !== 'undefined' && Hub.getGlobalSpecialties) ? Hub.getGlobalSpecialties() : [];
             const originSpecObj = globalSpecs.find(s => s.id === rSpecId) || (currentHospital.specialties || []).find(s => s.id === rSpecId) || { name_ar: rSpecId };
             const deptSpecObj = globalSpecs.find(s => s.id === rDeptId) || (currentHospital.specialties || []).find(s => s.id === rDeptId) || { name_ar: rDeptId };
+            const cardDomId = r.id ? `resident-card-${r.id}` : `resident-card-idx-${realIdx}`;
 
             return `
-                <div class="resident-card ${isGuestRotating ? 'border-amber-200 dark:border-amber-800/40 bg-amber-50/20 dark:bg-amber-950/10' : ''}">
+                <div id="${cardDomId}" data-res-name="${r.name}" data-res-id="${r.id || ''}" class="resident-card ${isGuestRotating ? 'border-amber-200 dark:border-amber-800/40 bg-amber-50/20 dark:bg-amber-950/10' : ''}">
                     <div class="flex items-center gap-3 flex-1 min-w-0">
                         <span class="w-2.5 h-2.5 rounded-full flex-shrink-0 ${isActive ? 'bg-emerald-500' : 'bg-amber-500'}"></span>
                         <div class="min-w-0 flex-1">
@@ -1435,7 +1481,24 @@
 
         function toggleAccordion(id) {
             const el = document.getElementById(id);
-            if (el) el.classList.toggle('active');
+            if (!el) return;
+            el.classList.toggle('active');
+            if (!window.openSpecBoxIds) window.openSpecBoxIds = new Set();
+            const header = el.previousElementSibling;
+            const chevron = header ? header.querySelector('.fa-chevron-down, .fa-chevron-up') : null;
+            if (el.classList.contains('active')) {
+                window.openSpecBoxIds.add(id);
+                if (chevron) {
+                    chevron.classList.remove('fa-chevron-down');
+                    chevron.classList.add('fa-chevron-up');
+                }
+            } else {
+                window.openSpecBoxIds.delete(id);
+                if (chevron) {
+                    chevron.classList.remove('fa-chevron-up');
+                    chevron.classList.add('fa-chevron-down');
+                }
+            }
         }
 
         function toggleAddResidentPanel(forceOpen) {
@@ -1543,7 +1606,14 @@
                 });
 
                 currentHospital = Hub.getActiveHospital();
-                renderResidentsAccordion();
+                if (!window.openSpecBoxIds) window.openSpecBoxIds = new Set();
+                window.openSpecBoxIds.add(`spec-box-${spec}`);
+                renderResidentsAccordion({
+                    preserveScroll: true,
+                    forceOpenSpecId: spec,
+                    highlightResidentName: formattedName,
+                    scrollIntoView: true
+                });
                 updateStatsBadges();
                 showToast(`تمت إضافة ${formattedName} بنجاح`, 'success');
             } catch (err) {
@@ -1645,7 +1715,14 @@
                 }
 
                 currentHospital = Hub.getActiveHospital();
-                renderResidentsAccordion();
+                if (!window.openSpecBoxIds) window.openSpecBoxIds = new Set();
+                window.openSpecBoxIds.add(`spec-box-${spec}`);
+                renderResidentsAccordion({
+                    preserveScroll: true,
+                    forceOpenSpecId: spec,
+                    highlightResidentId: resId,
+                    highlightResidentName: name
+                });
                 updateStatsBadges();
                 showToast('تم حفظ تعديل المقيم بنجاح', 'success');
             } catch (err) {
@@ -1660,10 +1737,18 @@
             try {
                 const r = currentHospital.names[idx];
                 const resId = r ? (r.id || name) : name;
+                const specId = r ? (r.spec || r.tag) : null;
+                if (specId) {
+                    if (!window.openSpecBoxIds) window.openSpecBoxIds = new Set();
+                    window.openSpecBoxIds.add(`spec-box-${specId}`);
+                }
                 await Hub.deleteResident(resId);
 
                 currentHospital = Hub.getActiveHospital();
-                renderResidentsAccordion();
+                renderResidentsAccordion({
+                    preserveScroll: true,
+                    forceOpenSpecId: specId
+                });
                 updateStatsBadges();
                 showToast(`تم حذف ${name}`, 'info');
             } catch (err) {
@@ -1719,7 +1804,7 @@
             window.expandedSpecIds.add(moved.id);
 
             renderSpecialtiesList();
-            renderResidentsAccordion();
+            renderResidentsAccordion({ preserveScroll: true });
             populateSpecialtyDropdowns();
             showToast(`تم تغيير ترتيب تخصص: ${moved.name_ar}`, 'info');
             await Hub.saveDatabase(`Reorder specialty ${moved.name_ar} in ${currentHospital.hospitalName}`);
@@ -1727,6 +1812,10 @@
 
         function renderSpecialtiesList() {
             const container = document.getElementById('specialties-items-container');
+            if (!container) return;
+            const modalScrollParent = container.closest('.modal-card') || container.parentElement;
+            const savedScrollTop = modalScrollParent ? modalScrollParent.scrollTop : 0;
+
             const specs = currentHospital?.specialties || [];
             const names = currentHospital.names || [];
             const isOwner = Hub.auth.isOwner();
@@ -1892,6 +1981,10 @@
                     </div>
                 `;
             }).join('');
+
+            if (modalScrollParent && savedScrollTop > 0) {
+                modalScrollParent.scrollTop = savedScrollTop;
+            }
         }
 
         async function confirmDeleteAllEmptySpecialties() {
@@ -1919,7 +2012,7 @@
                 const res = await Hub.deleteEmptyHospitalSpecialties(currentHospital.id);
                 currentHospital = Hub.getActiveHospital();
                 renderSpecialtiesList();
-                renderResidentsAccordion();
+                renderResidentsAccordion({ preserveScroll: true });
                 populateSpecialtyDropdowns();
                 updateStatsBadges();
                 showToast(`تم حذف ${res.deletedCount} تخصص فارغ من المستشفى بنجاح`, 'success');
@@ -1936,7 +2029,7 @@
                 await Hub.updateHospitalSpecialty(currentHospital.id, specId, { color: newColor });
                 currentHospital = Hub.getActiveHospital();
                 renderSpecialtiesList();
-                renderResidentsAccordion();
+                renderResidentsAccordion({ preserveScroll: true });
                 showToast('تم تحديث لون التخصص في جدول الخفارات', 'success');
             } catch (err) {
                 console.error(err);
@@ -2008,7 +2101,7 @@
                 window.expandedSpecIds.add(specId);
                 s.enabled = checked;
                 renderSpecialtiesList();
-                renderResidentsAccordion();
+                renderResidentsAccordion({ preserveScroll: true });
                 populateSpecialtyDropdowns();
                 showToast(checked ? 'تم تفعيل التخصص في المستشفى' : 'تم إخفاء التخصص من المستشفى', 'info');
                 await Hub.saveDatabase(`Toggle specialty ${specId}: ${checked}`);
@@ -2031,7 +2124,7 @@
                 const res = await Hub.deleteHospitalSpecialty(currentHospital.id, specId);
                 currentHospital = Hub.getActiveHospital();
                 renderSpecialtiesList();
-                renderResidentsAccordion();
+                renderResidentsAccordion({ preserveScroll: true });
                 populateSpecialtyDropdowns();
                 updateStatsBadges();
 
@@ -2163,7 +2256,7 @@
                 });
                 currentHospital = Hub.getActiveHospital();
                 renderSpecialtiesList();
-                renderResidentsAccordion();
+                renderResidentsAccordion({ preserveScroll: true });
                 populateSpecialtyDropdowns();
                 updateStatsBadges();
                 showToast(`تمت إضافة تخصص "${nameAr}" للمستشفى بنجاح 🎉`, 'success');
@@ -2189,7 +2282,7 @@
                 await Hub.addHospitalSpecialtyFromGlobal(currentHospital.id, specId, color);
                 currentHospital = Hub.getActiveHospital();
                 renderSpecialtiesList();
-                renderResidentsAccordion();
+                renderResidentsAccordion({ preserveScroll: true });
                 populateSpecialtyDropdowns();
                 updateStatsBadges();
                 showToast('تمت إضافة التخصص للمستشفى بنجاح', 'success');

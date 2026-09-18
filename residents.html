@@ -258,6 +258,15 @@
             background: rgba(212, 175, 55, 0.2);
         }
 
+        @keyframes highlightSavePulse {
+            0% { background: rgba(16, 185, 129, 0.28); border-color: #10b981; transform: scale(1.015); box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
+            50% { background: rgba(16, 185, 129, 0.15); border-color: #10b981; }
+            100% { transform: scale(1); box-shadow: none; }
+        }
+        .highlight-save-pulse {
+            animation: highlightSavePulse 1.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
         /* Toggle Switch */
         .toggle-switch {
             position: relative;
@@ -843,12 +852,12 @@
                     populateSpecialtyFilter();
                     renderHospitalFilterPills();
                     populateModalDropdowns();
-                    refreshData();
+                    refreshData(true);
                 });
 
                 window.addEventListener('hub:auth-changed', () => {
                     updateRoleUI();
-                    refreshData();
+                    refreshData(true);
                 });
 
             } catch (err) {
@@ -859,6 +868,8 @@
 
         function populateSpecialtyFilter() {
             const select = document.getElementById('spec-filter');
+            if (!select) return;
+            const currentVal = select.value || selectedSpec || 'all';
             const seen = new Set();
             const uniqueSpecs = allSpecialties.filter(s => {
                 const canonId = (typeof Hub !== 'undefined' && Hub.normalizeSpecialtyId) ? Hub.normalizeSpecialtyId(s.id) : s.id;
@@ -868,6 +879,13 @@
             });
             select.innerHTML = '<option value="all">جميع التخصصات الطبية</option>' + 
                 uniqueSpecs.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar}</option>`).join('');
+
+            if (currentVal && Array.from(select.options).some(o => o.value === currentVal)) {
+                select.value = currentVal;
+            } else {
+                select.value = 'all';
+            }
+            selectedSpec = select.value;
         }
 
         function renderHospitalFilterPills() {
@@ -937,10 +955,14 @@
             applyFilters();
         }
 
-        function refreshData() {
+        function refreshData(preservePage = false) {
+            const prevScrollY = window.scrollY;
             allResidents = Hub.getResidents();
             updateStats();
-            applyFilters();
+            applyFilters(preservePage);
+            if (preservePage && typeof prevScrollY === 'number') {
+                window.scrollTo({ top: prevScrollY, behavior: 'instant' });
+            }
         }
 
         function updateStats() {
@@ -957,7 +979,7 @@
             }
         }
 
-        function applyFilters() {
+        function applyFilters(preservePage = false) {
             searchQuery = document.getElementById('search-input').value.trim().toLowerCase();
             selectedSpec = document.getElementById('spec-filter').value;
             selectedStatus = document.getElementById('status-filter').value;
@@ -1009,7 +1031,12 @@
                 return true;
             });
 
-            currentResPage = 1;
+            if (!preservePage) {
+                currentResPage = 1;
+            } else {
+                const totalPages = (resPageSize === 'all' || filtered.length === 0) ? 1 : Math.ceil(filtered.length / resPageSize);
+                if (currentResPage > totalPages) currentResPage = Math.max(1, totalPages);
+            }
             document.getElementById('badge-visible-count').innerHTML = `<i class="fas fa-filter ml-1"></i> ${filtered.length} ظاهر في البحث`;
             renderResidents(filtered);
             renderResPagination();
@@ -1153,7 +1180,7 @@
                 const deptObj = deptId ? (allSpecialties.find(s => s.id === deptId) || { name_ar: resolvedDeptName }) : null;
 
                 return `
-                    <div class="doctor-card">
+                    <div class="doctor-card" id="resident-card-${r.id}" data-resident-id="${r.id}" data-resident-name="${r.name}">
                         <div>
                             <!-- Header: Name & Status -->
                             <div class="flex items-start justify-between gap-2 mb-2">
@@ -1434,6 +1461,7 @@
             closeResidentModal();
 
             try {
+                let savedId = id;
                 if (id) {
                     // Update existing
                     await Hub.updateResident(id, {
@@ -1449,7 +1477,7 @@
                     showToast(`تم تحديث بيانات ${name} بنجاح`, 'success');
                 } else {
                     // Add new
-                    await Hub.addResident({
+                    const newRes = await Hub.addResident({
                         name: name,
                         phone: phone,
                         spec: spec,
@@ -1459,11 +1487,23 @@
                         active: active,
                         hospitals: assignedHospitals
                     });
+                    savedId = newRes?.id;
                     showToast(`تمت إضافة ${name} وتعيينه في المستشفيات المحددة`, 'success');
                 }
 
-                refreshData();
+                refreshData(true);
                 renderHospitalFilterPills();
+
+                if (savedId) {
+                    setTimeout(() => {
+                        const card = document.getElementById(`resident-card-${savedId}`);
+                        if (card) {
+                            card.classList.add('highlight-save-pulse');
+                            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            setTimeout(() => card.classList.remove('highlight-save-pulse'), 2500);
+                        }
+                    }, 80);
+                }
 
             } catch (err) {
                 console.error("Error saving resident:", err);
@@ -1487,7 +1527,7 @@
             try {
                 await Hub.deleteResident(id);
                 showToast(`تم حذف ${name} بنجاح`, 'info');
-                refreshData();
+                refreshData(true);
                 renderHospitalFilterPills();
             } catch (err) {
                 console.error("Error deleting resident:", err);

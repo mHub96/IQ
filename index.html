@@ -1931,6 +1931,7 @@
 
         function renderHubDashboard() {
             if (!currentDb || !currentDb.hospitals) return;
+            const prevScrollY = window.scrollY;
 
             const hospitals = Object.values(currentDb.hospitals);
             const isOwner = Hub.auth.isOwner();
@@ -2070,6 +2071,10 @@
                     </div>
                 `;
             }).join('');
+
+            if (typeof prevScrollY === 'number') {
+                window.scrollTo({ top: prevScrollY, behavior: 'instant' });
+            }
         }
 
         // ============================================================

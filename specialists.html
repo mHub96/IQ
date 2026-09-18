@@ -254,6 +254,15 @@
             border-color: rgba(168, 85, 247, 0.3);
         }
 
+        @keyframes highlightSavePulse {
+            0% { background: rgba(16, 185, 129, 0.28); border-color: #10b981; transform: scale(1.015); box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
+            50% { background: rgba(16, 185, 129, 0.15); border-color: #10b981; }
+            100% { transform: scale(1); box-shadow: none; }
+        }
+        .highlight-save-pulse {
+            animation: highlightSavePulse 1.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
         .spec-badge {
             font-size: 0.72rem;
             font-weight: 700;
@@ -1033,6 +1042,7 @@
             const select = document.getElementById('spec-filter');
             const formSelect = document.getElementById('form-spec-code');
             if (!select) return;
+            const currentVal = select.value || 'all';
 
             const specs = Hub.specialties.getAll();
             select.innerHTML = '<option value="all">جميع التخصصات الطبية</option>';
@@ -1051,6 +1061,12 @@
                     formSelect.appendChild(formOpt);
                 }
             });
+
+            if (currentVal && Array.from(select.options).some(o => o.value === currentVal)) {
+                select.value = currentVal;
+            } else {
+                select.value = 'all';
+            }
         }
 
         function renderFormDayCheckboxes(containerId, nameAttr, selectedDays = []) {
@@ -1090,12 +1106,16 @@
             renderPagination();
         }
 
-        function refreshSpecialistsData() {
+        function refreshSpecialistsData(preservePage = false) {
+            const prevScrollY = window.scrollY;
             currentSpecialists = Hub.specialists.getAll();
-            applyFilters();
+            applyFilters(preservePage);
+            if (preservePage && typeof prevScrollY === 'number') {
+                window.scrollTo({ top: prevScrollY, behavior: 'instant' });
+            }
         }
 
-        function applyFilters() {
+        function applyFilters(preservePage = false) {
             const query = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
             const specVal = document.getElementById('spec-filter')?.value || 'all';
             const titleVal = document.getElementById('title-filter')?.value || 'all';
@@ -1144,7 +1164,12 @@
                 return true;
             });
 
-            currentPage = 1;
+            if (!preservePage) {
+                currentPage = 1;
+            } else {
+                const totalPages = (pageSize === 'all' || filteredSpecialists.length === 0) ? 1 : Math.ceil(filteredSpecialists.length / pageSize);
+                if (currentPage > totalPages) currentPage = Math.max(1, totalPages);
+            }
             updateBadges();
             renderSpecialists();
             renderPagination();
@@ -1848,10 +1873,21 @@
             if (id) specData.id = id;
 
             try {
-                await Hub.specialists.save(specData);
+                const saved = await Hub.specialists.save(specData);
                 closeSpecialistModal();
                 showToast(id ? 'تم تحديث بيانات الطبيب بنجاح ✅' : 'تم إضافة طبيب الاختصاص بنجاح ✅', 'success');
-                refreshSpecialistsData();
+                refreshSpecialistsData(true);
+                const targetDocId = id || saved?.id;
+                if (targetDocId) {
+                    setTimeout(() => {
+                        const card = document.getElementById(`specialist-card-${targetDocId}`);
+                        if (card) {
+                            card.classList.add('highlight-save-pulse');
+                            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            setTimeout(() => card.classList.remove('highlight-save-pulse'), 2500);
+                        }
+                    }, 80);
+                }
             } catch (err) {
                 console.error('Error saving specialist:', err);
                 showToast(err.message || 'حدث خطأ أثناء حفظ البيانات', 'error');
@@ -1869,7 +1905,7 @@
             try {
                 await Hub.specialists.delete(id);
                 showToast(`تم حذف الطبيب (${name}) بنجاح`, 'success');
-                refreshSpecialistsData();
+                refreshSpecialistsData(true);
             } catch (err) {
                 console.error('Error deleting specialist:', err);
                 showToast(err.message || 'حدث خطأ أثناء الحذف', 'error');
@@ -1892,7 +1928,7 @@
 
         // Initialize on DOM load
         window.addEventListener('DOMContentLoaded', initPage);
-        window.addEventListener('hub:data-changed', refreshSpecialistsData);
+        window.addEventListener('hub:data-changed', () => refreshSpecialistsData(true));
         window.addEventListener('hub:auth-changed', () => {
             checkAdminPermissions();
             renderSpecialists();

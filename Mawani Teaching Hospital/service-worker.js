@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mawani-teaching-hospital-v2.2.0';
+const CACHE_NAME = 'mawani-teaching-hospital-v3.0.0';
 const APP_SHELL = [
   './',
   './Home.html',
@@ -25,8 +25,8 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
-  const isHtml = event.request.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname.endsWith('/') || url.pathname.endsWith('.json');
-  if (isHtml) {
+  const isNetworkFirst = event.request.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname.endsWith('/') || url.pathname.endsWith('.js') || url.pathname.endsWith('.json');
+  if (isNetworkFirst) {
     event.respondWith(
       fetch(event.request)
         .then(res => {
@@ -41,4 +41,10 @@ self.addEventListener('fetch', event => {
     return;
   }
   event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request)));
+});
+
+self.addEventListener('message', event => {
+  if (event.data === 'SKIP_WAITING' || (event.data && event.data.type === 'SKIP_WAITING')) {
+    self.skipWaiting();
+  }
 });

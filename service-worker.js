@@ -1,11 +1,12 @@
 // service-worker.js - Dynamic Network-First Strategy for Hospital Main Hub
-const CACHE_VERSION = 'v2.2.0';
+const CACHE_VERSION = 'v2.3.0';
 const CACHE_NAME = `hospital-hub-${CACHE_VERSION}`;
 
 const APP_SHELL = [
   './',
   './index.html',
   './Home.html',
+  './schedule.html',
   './signup.html',
   './admin.html',
   './owner.html',

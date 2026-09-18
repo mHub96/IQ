@@ -573,6 +573,8 @@
         .no-resident-card .label { font-size: 0.7rem; font-weight: 600; }
         
         .current-time-bubble {
+            direction: ltr !important;
+            text-align: left;
             font-size: 0.76rem;
             padding: 0.35rem 1.15rem;
             border-radius: 999px;
@@ -1150,7 +1152,7 @@
                 <p class="hospital-subtitle">On-Call Residents · Duty Roster</p>
             </div>
             <div class="hospital-meta flex justify-center items-center w-full max-w-[29rem] mt-2">
-                <div class="current-time-bubble">
+                <div class="current-time-bubble" dir="ltr">
                     <i class="fas fa-clock text-amber-500"></i>
                     <span>Current Time:</span>
                     <span id="current-time-display" class="font-mono font-bold"></span>

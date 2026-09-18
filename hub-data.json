@@ -1,8 +1,8 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-18T20:32:17.626Z",
+  "lastUpdated": "2026-09-18T20:34:45.289Z",
   "globalPasswords": {
-    "owner": "MrjBth1996*",
+    "owner": "Mrj1996*",
     "admin": "Admin1996*",
     "user": "1234"
   },
@@ -16,8 +16,8 @@
       "icon": "fa-hospital",
       "color": "#0f766e",
       "passwords": {
-        "owner": "MrjBth1996*",
-        "admin": "IraqiAdmin1996*",
+        "owner": "Mrj1996*",
+        "admin": "Admin1996*",
         "user": "1234"
       },
       "specialties": [
@@ -20496,8 +20496,8 @@
       "icon": "fa-hospital-user",
       "color": "#1e40af",
       "passwords": {
-        "owner": "MrjBth1996*",
-        "admin": "BasraAdmin1996*",
+        "owner": "Mrj1996*",
+        "admin": "Admin1996*",
         "user": "1234"
       },
       "specialties": [
@@ -32341,8 +32341,8 @@
       "icon": "fa-anchor",
       "color": "#b45309",
       "passwords": {
-        "owner": "MrjBth1996*",
-        "admin": "MawaniAdmin1996*",
+        "owner": "Mrj1996*",
+        "admin": "Admin1996*",
         "user": "1234"
       },
       "specialties": [

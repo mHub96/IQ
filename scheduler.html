@@ -1808,7 +1808,7 @@
                         id: specialty.id,
                         name: specialty.name_en || specialty.name_ar || specialty.id,
                         color: specialty.color || '#60a5fa',
-                        name_ar: (specialty.id === 'Pe' || specialty.name_ar === 'الاطفال') ? 'طب الأطفال' : (specialty.name_ar || (window.Hub && Hub.getSpecialtyName ? Hub.getSpecialtyName(specialty.id) : specialty.id)),
+                        name_ar: ((window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(specialty.id) : ((specialty.id === 'Pe' || specialty.name_ar === 'الاطفال') ? 'طب الأطفال' : (specialty.name_ar || specialty.id))),
                         icon: specialty.icon || '🏥'
                     };
                 });
@@ -2232,23 +2232,23 @@
             var TOLERANCE = 2;
             var ordered = slots.slice();
 
+            var roleSingular = schedulerMode === 'specialists' ? 'طبيب اختصاص' : 'طبيب مقيم';
+            var rolePlural = schedulerMode === 'specialists' ? 'أطباء الاختصاص' : 'الأطباء المقيمين';
+
             if (ordered[0].start > TOLERANCE) {
                 gaps.push({ start: 0, end: ordered[0].start });
-                messages.push('The duty starts late at ' + minutesToTimeString(ordered[0].start) + '.');
+                messages.push('تبدأ الخفارة متأخرة عند ' + minutesToTimeString(ordered[0].start) + '.');
             } else if (ordered[0].start < -TOLERANCE) {
-                messages.push('The first duty starts before 08:00AM.');
+                messages.push('تبدأ الخفارة الأولى قبل الساعة 08:00 صباحاً.');
             }
-
-            var roleSingular = schedulerMode === 'specialists' ? 'specialist' : 'resident';
-            var rolePlural = schedulerMode === 'specialists' ? 'specialists' : 'residents';
 
             for (var i = 0; i < ordered.length; i++) {
                 if (ordered[i].start < -TOLERANCE || ordered[i].end > TOTAL_MINUTES + TOLERANCE) {
-                    messages.push(`A ${roleSingular} duty lies outside the 08:00AM to 08:00AM main duty.`);
+                    messages.push(`خفارة ${roleSingular} تقع خارج نطاق الخفارة المعتمدة من 08:00 إلى 08:00.`);
                     break;
                 }
                 if (ordered[i].end <= ordered[i].start) {
-                    messages.push(`A ${roleSingular} has an invalid or zero-length duty.`);
+                    messages.push(`خفارة ${roleSingular} غير صالحة أو مدتها صفر.`);
                     break;
                 }
             }
@@ -2263,20 +2263,20 @@
             }
 
             if (gaps.length > 1) {
-                messages.push(gaps.length + ` gaps exist between ${rolePlural}.`);
+                messages.push(`توجد ${gaps.length} فراغات زمنية بين ${rolePlural}.`);
             } else if (gaps.length === 1 && messages.length === 0) {
-                messages.push(`A gap exists between ${rolePlural}.`);
+                messages.push(`يوجد فراغ زمني بين ${rolePlural}.`);
             }
             if (overlaps.length > 0) {
-                messages.push(overlaps.length + ` ${roleSingular} duties overlap.`);
+                messages.push(`يوجد تداخل في أوقات خفارات ${rolePlural}.`);
             }
 
             var lastEnd = ordered[ordered.length - 1].end;
             if (lastEnd < TOTAL_MINUTES - TOLERANCE) {
                 gaps.push({ start: lastEnd, end: TOTAL_MINUTES });
-                messages.push('The duty ends early at ' + minutesToTimeString(lastEnd) + '.');
+                messages.push('تنتهي الخفارة مبكراً عند ' + minutesToTimeString(lastEnd) + '.');
             } else if (lastEnd > TOTAL_MINUTES + TOLERANCE) {
-                messages.push('The last duty ends after 08:00AM.');
+                messages.push('تنتهي الخفارة الأخيرة بعد الساعة 08:00 صباحاً.');
             }
 
             return {
@@ -2330,8 +2330,8 @@
                     <div style="width:100%; display:flex; justify-content:center; align-items:center; height:100%;">
                         <div style="text-align:center; color: #5d6f83; padding: 2rem;">
                             <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
-                            <div style="font-weight: 700; font-size: 1.1rem; color: #9aa8b9;">No enabled specialties</div>
-                            <div style="font-size: 0.7rem; margin-top: 0.5rem; opacity: 0.5;">Please contact the administrator</div>
+                            <div style="font-weight: 700; font-size: 1.1rem; color: #9aa8b9;">لا توجد تخصصات طبية مفعلة</div>
+                            <div style="font-size: 0.7rem; margin-top: 0.5rem; opacity: 0.5;">يرجى مراجعة إدارة المستشفى لتفعيل الأقسام</div>
                         </div>
                     </div>
                 `;
@@ -2477,14 +2477,14 @@
                             }).join(', ') : '';
                             var issueText = timeIssues.length > 0 ? timeIssues.join(' ') : ('Gaps: ' + gapText);
                             html += `
-                                <div class="slot-tip error" id="tip-${uniqueId}" onclick="promptAutoFixGaps(event, '${dateFull}', '${specialty.id}')" title="Click to fix gaps automatically">
-                                    ⚠️ ${issueText} ${gapText ? 'Gaps: ' + gapText + '.' : ''} ${overlapText ? 'Overlap: ' + overlapText + '.' : ''} Click to review a fix.
+                                <div class="slot-tip error" id="tip-${uniqueId}" onclick="promptAutoFixGaps(event, '${dateFull}', '${specialty.id}')" title="اضغط لمعالجة الفراغات تلقائياً">
+                                    ⚠️ ${issueText} ${gapText ? 'فراغ: ' + gapText + '.' : ''} ${overlapText ? 'تداخل: ' + overlapText + '.' : ''} اضغط لمعالجة التوقيت.
                                 </div>
                             `;
                         } else if (numberOfSlots > 1 && !hasGaps) {
                             html += `
                                 <div class="slot-tip success" id="tip-${uniqueId}">
-                                    ✅ Time distributed evenly
+                                    ✅ تم توزيع الوقت بالتساوي
                                 </div>
                             `;
                         }
@@ -2492,8 +2492,8 @@
                     
                     html += `
                             </div>
-                            <button class="add-slot-button" onclick="addSlot('${dateFull}', '${specialty.id}')">
-                                <i class="fas fa-plus"></i> ${schedulerMode === 'specialists' ? 'Add Specialist' : 'Add Resident'}
+                            <button class="add-slot-button" onclick="addSlot('${dateFull}', '${specialty.id}')" title="${schedulerMode === 'specialists' ? 'إضافة خفارة طبيب اختصاص' : 'إضافة خفارة طبيب مقيم'}">
+                                <i class="fas fa-plus"></i> ${schedulerMode === 'specialists' ? 'إضافة اختصاصي' : 'إضافة مقيم'}
                             </button>
                         </div>
                     `;
@@ -2736,9 +2736,9 @@
                     var gapText2 = result.gaps.map(function(gap) { 
                         return minutesToTimeString(gap.start) + ' - ' + minutesToTimeString(gap.end);
                     }).join(', ');
-                    showToast('⚠️ Gaps detected: ' + gapText2, 'error', 3000);
+                    showToast('⚠️ تم رصد فراغات زمنية: ' + gapText2, 'error', 3000);
                 } else {
-                    showToast('✅ Time updated - no gaps', 'success', 1500);
+                    showToast('✅ تم تحديث الوقت - الجدول مكتمل دون فراغات', 'success', 1500);
                 }
             }
         }
@@ -2821,7 +2821,7 @@
                 }
             }, 150);
             
-            showToast(schedulerMode === 'specialists' ? '✅ تم إضافة خفارة اختصاصي - تم توزيع الوقت' : '✅ New resident added - time redistributed', 'success', 2000);
+            showToast(schedulerMode === 'specialists' ? '✅ تم إضافة خفارة اختصاصي - تم توزيع الوقت' : '✅ تم إضافة خفارة مقيم - تم توزيع الوقت', 'success', 2000);
         }
 
         function deleteSlot(date, specialtyCode, slotIndex) {
@@ -2846,7 +2846,7 @@
             pendingFocusUsed = false;
             
             refreshView();
-            showToast(schedulerMode === 'specialists' ? '🗑️ تم حذف خفارة الاختصاصي - تم توزيع الوقت' : '🗑️ Resident deleted - time redistributed', 'info', 2000);
+            showToast(schedulerMode === 'specialists' ? '🗑️ تم حذف خفارة الاختصاصي - تم توزيع الوقت' : '🗑️ تم حذف خفارة المقيم - تم توزيع الوقت', 'info', 2000);
         }
 
         // ================================================================
@@ -3299,10 +3299,10 @@
             var popup = document.createElement('div');
             popup.className = 'gap-fix-popup';
             popup.innerHTML = `
-                <p>Timing issues detected. Replace the manual times with an equal 24-hour distribution?</p>
+                <p>تم رصد خلل في توزيع الأوقات. هل ترغب في إعادة توزيع الوقت بالتساوي على مدار 24 ساعة؟</p>
                 <div class="gap-fix-popup-actions">
-                    <button class="gap-fix-cancel" onclick="this.closest('.gap-fix-popup').remove()">Cancel</button>
-                    <button class="gap-fix-confirm" onclick="fixDayGaps('${date}', '${specialtyCode}')">Fix gaps</button>
+                    <button class="gap-fix-cancel" onclick="this.closest('.gap-fix-popup').remove()">إلغاء</button>
+                    <button class="gap-fix-confirm" onclick="fixDayGaps('${date}', '${specialtyCode}')">معالجة الفراغات</button>
                 </div>
             `;
 

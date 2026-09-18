@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-18T16:43:18.693Z",
+  "lastUpdated": "2026-09-18T16:55:42.658Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -20453,7 +20453,40 @@
         }
       ],
       "rotationHeroesUrl": "https://khafarat-alsadr.netlify.app/",
-      "specialistSchedule": []
+      "specialistSchedule": [
+        {
+          "date": "02/10/2026",
+          "specCode": "CT",
+          "name": "د. كريم غازي المالكي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "GS",
+          "name": "د. علاء حسين الخفاجي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "ENT",
+          "name": "د. إياد كمال الهاشمي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "NS",
+          "name": "د. صفاء مجيد السعدون",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        }
+      ]
     },
     "basra": {
       "id": "basra",
@@ -43650,6 +43683,7 @@
       "name_ar": "المعاون الاداري",
       "name_en": "Administrative Officer",
       "icon": "🧑",
+      "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
       "enabled": true

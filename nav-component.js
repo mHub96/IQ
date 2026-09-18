@@ -575,80 +575,70 @@
         const isOwner = window.Hub.auth.isOwner();
         const isAdmin = window.Hub.auth.isAdmin();
 
-        // Check if already active at this level
-        if ((targetRole === 'owner' && isOwner) ||
-            (targetRole === 'admin' && isAdmin && !isOwner) ||
-            (targetRole === 'user' && !isAdmin && !isOwner)) {
+        // Determine current and target rank: owner = 3, admin = 2, user = 1
+        const currentRank = isOwner ? 3 : (isAdmin ? 2 : 1);
+        const targetRank = targetRole === 'owner' ? 3 : (targetRole === 'admin' ? 2 : 1);
+
+        // 1. Same level check
+        if (targetRank === currentRank) {
             showNavToast('أنت تعمل حالياً بهذا المستوى بالفعل', 'info');
             return;
         }
 
-        if (targetRole === 'user') {
-            // Instant switch to regular user
-            window.Hub.auth.saveSession('user', '', true, []);
-            if (typeof window.updateTopRoleBadge === 'function') window.updateTopRoleBadge();
-            if (typeof window.renderHubDashboard === 'function') window.renderHubDashboard();
-            closeRoleSwitcherModal();
-            showNavToast('تم التبديل بنجاح إلى: مستخدم عادي 👨‍⚕️', 'success');
-            return;
+        // 2. DESCENDING PRIVILEGE: NO PASSWORD REQUIRED!
+        if (targetRank < currentRank) {
+            if (targetRole === 'admin') {
+                // Owner descending to Admin (no password needed)
+                window.Hub.auth.saveSession('admin', '', true, ['*']);
+                if (typeof window.updateTopRoleBadge === 'function') window.updateTopRoleBadge();
+                if (typeof window.renderHubDashboard === 'function') window.renderHubDashboard();
+                closeRoleSwitcherModal();
+                showNavToast('تم التبديل بنجاح إلى: مدير مستشفى 🛡️', 'success');
+                return;
+            }
+            if (targetRole === 'user') {
+                // Owner or Admin descending to Regular User (no password needed)
+                window.Hub.auth.saveSession('user', '', true, []);
+                if (typeof window.updateTopRoleBadge === 'function') window.updateTopRoleBadge();
+                if (typeof window.renderHubDashboard === 'function') window.renderHubDashboard();
+                closeRoleSwitcherModal();
+                showNavToast('تم التبديل بنجاح إلى: مستخدم عادي 👨‍⚕️', 'success');
+                return;
+            }
         }
 
+        // 3. ASCENDING PRIVILEGE: PASSWORD IS A STRICT MUST!
+        // A regular user CANNOT become an Admin or an Owner without a password.
+        // An admin CANNOT become an Owner without a password.
         if (targetRole === 'admin') {
-            // Check cached passwords first
-            const cachedAdmin = sessionStorage.getItem('hub_cached_admin_pwd');
-            const cachedOwner = sessionStorage.getItem('hub_cached_owner_pwd');
-            const pwdToTry = cachedAdmin || cachedOwner;
-            if (pwdToTry) {
-                const res = window.Hub.auth.login(pwdToTry);
-                if (res.success && (res.role === 'admin' || res.role === 'owner')) {
-                    if (res.role === 'owner') {
-                        window.Hub.auth.saveSession('admin', pwdToTry, true, ['*']);
-                    }
-                    if (typeof window.updateTopRoleBadge === 'function') window.updateTopRoleBadge();
-                    if (typeof window.renderHubDashboard === 'function') window.renderHubDashboard();
-                    closeRoleSwitcherModal();
-                    showNavToast('تم التبديل بنجاح إلى: مدير مستشفى 🛡️', 'success');
-                    if (pendingAdminUrl) {
-                        const target = pendingAdminUrl;
-                        pendingAdminUrl = null;
-                        window.location.href = target;
-                    }
-                    return;
-                }
-            }
-            // Open inline password field
+            // User ascending to Admin: MUST enter Admin password!
             const adminBox = document.getElementById('admin-pwd-box');
             const ownerBox = document.getElementById('owner-pwd-box');
             if (adminBox) adminBox.classList.remove('hidden');
             if (ownerBox) ownerBox.classList.add('hidden');
-            setTimeout(() => document.getElementById('admin-level-pwd')?.focus(), 80);
+            const pwdInput = document.getElementById('admin-level-pwd');
+            const err = document.getElementById('admin-pwd-error');
+            if (err) err.textContent = '';
+            if (pwdInput) {
+                pwdInput.value = '';
+                setTimeout(() => pwdInput.focus(), 80);
+            }
             return;
         }
 
         if (targetRole === 'owner') {
-            // Check cached owner password
-            const cachedOwner = sessionStorage.getItem('hub_cached_owner_pwd');
-            if (cachedOwner) {
-                const res = window.Hub.auth.login(cachedOwner);
-                if (res.success && res.role === 'owner') {
-                    if (typeof window.updateTopRoleBadge === 'function') window.updateTopRoleBadge();
-                    if (typeof window.renderHubDashboard === 'function') window.renderHubDashboard();
-                    closeRoleSwitcherModal();
-                    showNavToast('تم التبديل بنجاح إلى: المالك 👑', 'success');
-                    if (pendingAdminUrl) {
-                        const target = pendingAdminUrl;
-                        pendingAdminUrl = null;
-                        window.location.href = target;
-                    }
-                    return;
-                }
-            }
-            // Open inline password field
+            // User or Admin ascending to Owner: MUST enter Owner password!
             const ownerBox = document.getElementById('owner-pwd-box');
             const adminBox = document.getElementById('admin-pwd-box');
             if (ownerBox) ownerBox.classList.remove('hidden');
             if (adminBox) adminBox.classList.add('hidden');
-            setTimeout(() => document.getElementById('owner-level-pwd')?.focus(), 80);
+            const pwdInput = document.getElementById('owner-level-pwd');
+            const err = document.getElementById('owner-pwd-error');
+            if (err) err.textContent = '';
+            if (pwdInput) {
+                pwdInput.value = '';
+                setTimeout(() => pwdInput.focus(), 80);
+            }
             return;
         }
     };
@@ -666,15 +656,16 @@
 
         const res = window.Hub.auth.login(pwd);
         if (res.success) {
+            // If ascending to owner, verified role MUST be owner
             if (targetRole === 'owner' && res.role !== 'owner') {
                 if (err) err.textContent = 'كلمة المرور المدخلة ليست كلمة مرور المالك!';
                 return;
             }
 
-            if (res.role === 'owner') {
-                sessionStorage.setItem('hub_cached_owner_pwd', pwd);
-            } else if (res.role === 'admin') {
-                sessionStorage.setItem('hub_cached_admin_pwd', pwd);
+            // If ascending to admin, verified role can be admin or owner
+            if (targetRole === 'admin' && res.role !== 'admin' && res.role !== 'owner') {
+                if (err) err.textContent = 'كلمة المرور غير صحيحة، حاول مجدداً';
+                return;
             }
 
             if (targetRole === 'admin' && res.role === 'owner') {

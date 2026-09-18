@@ -110,10 +110,10 @@
                     </span>
 
                     ${isOwner ? `
-                    <!-- Owner Edit Passwords Button -->
-                    <button type="button" class="hub-nav-btn owner-key-btn" onclick="openAllPasswordsModalNav()" aria-label="تعديل كلمات المرور" title="تعديل كلمات المرور (المالك)" style="color:#d97706; border-color:rgba(217,119,6,0.35); background:rgba(217,119,6,0.08);">
-                        <i class="fas fa-key"></i>
-                    </button>
+                    <!-- Owner Control Center Button -->
+                    <a href="./owner.html" class="hub-nav-btn owner-key-btn" aria-label="لوحة تحكم المالك" title="لوحة تحكم المالك 👑" style="color:#f59e0b; border-color:rgba(245,158,11,0.35); background:rgba(245,158,11,0.08); text-decoration:none;">
+                        <i class="fas fa-crown"></i>
+                    </a>
                     ` : ''}
 
                     <!-- Theme Toggle -->
@@ -197,6 +197,12 @@
                 <a href="./scheduler.html${queryParam}" class="dock-tab-btn ${activePageId === 'scheduler' ? 'active' : ''}" title="المجدول (صلاحيات الإدارة)">
                     <i class="fas fa-calendar-alt"></i>
                     <span>المجدول</span>
+                </a>
+                ` : ''}
+                ${isOwner ? `
+                <a href="./owner.html" class="dock-tab-btn ${activePageId === 'owner' ? 'active' : ''}" title="لوحة تحكم المالك 👑">
+                    <i class="fas fa-crown text-amber-500"></i>
+                    <span>المالك</span>
                 </a>
                 ` : ''}
             </nav>

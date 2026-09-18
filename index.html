@@ -465,6 +465,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
             gap: 16px;
+            align-items: start;
         }
 
         .hosp-widget-card {
@@ -477,7 +478,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: flex-start;
             position: relative;
             transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
         }
@@ -523,6 +524,7 @@
         .widget-title-area {
             flex: 1;
             min-width: 0;
+            min-height: 46px;
         }
         .widget-hosp-name {
             font-size: 1.18rem;
@@ -571,7 +573,8 @@
             align-items: center;
             gap: 6px;
             flex-wrap: wrap;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
+            min-height: 30px;
         }
 
         .metric-chip {
@@ -1613,7 +1616,6 @@
                                     </button>
                                 </div>
                             ` : ''}
-                        </div>
                     </div>
                 `;
             }).join('');

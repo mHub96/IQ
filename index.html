@@ -479,6 +479,7 @@
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
+            gap: 14px;
             position: relative;
             transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
         }
@@ -502,7 +503,8 @@
             display: flex;
             align-items: flex-start;
             gap: 12px;
-            margin-bottom: 14px;
+            margin-bottom: 0;
+            min-height: 52px;
         }
 
         .widget-squircle-icon {
@@ -524,7 +526,6 @@
         .widget-title-area {
             flex: 1;
             min-width: 0;
-            min-height: 46px;
         }
         .widget-hosp-name {
             font-size: 1.18rem;
@@ -573,8 +574,8 @@
             align-items: center;
             gap: 6px;
             flex-wrap: wrap;
-            margin-bottom: 14px;
-            min-height: 30px;
+            margin-bottom: 0;
+            min-height: 32px;
         }
 
         .metric-chip {
@@ -1549,7 +1550,7 @@
 
                 return `
                     <div class="hosp-widget-card" id="card-${h.id}">
-                        <div>
+                        <div class="flex flex-col gap-3">
                             <!-- Header / Banner -->
                             <div class="widget-top-banner">
                                 <div class="widget-squircle-icon" style="background: ${color}; box-shadow: 0 8px 22px ${color}45;">
@@ -1581,36 +1582,36 @@
                         </div>
 
                         <!-- Action Buttons -->
-                            <div class="widget-actions-grid">
-                                <a href="./Home.html?hospital=${h.id}" class="ios-btn primary" onclick="Hub.setActiveHospitalId('${h.id}')">
-                                    <i class="fas fa-users-viewfinder"></i> <span>الخفراء اليوم</span>
-                                </a>
-                                <a href="./schedule.html?hospital=${h.id}" class="ios-btn secondary" onclick="Hub.setActiveHospitalId('${h.id}')">
-                                    <i class="fas fa-calendar-week"></i> <span>جدول الخفارات</span>
-                                </a>
-                                <a href="./signup.html?hospital=${h.id}" class="ios-btn secondary">
-                                    <i class="fas fa-exchange-alt"></i> <span>تبديل خفر</span>
-                                </a>
-                                <a href="./specialists.html?hospital=${h.id}" class="ios-btn secondary">
-                                    <i class="fas fa-user-tie"></i> <span>أطباء الاختصاص</span>
-                                </a>
-                                ${isHospAdmin ? `
-                                <a href="./scheduler.html?hospital=${h.id}" class="ios-btn secondary">
-                                    <i class="fas fa-calendar-alt"></i> <span>مجدول الشهر</span>
-                                </a>
-                                <a href="./admin.html?hospital=${h.id}" class="ios-btn secondary">
-                                    <i class="fas fa-sliders"></i> <span>إدارة المستشفى</span>
-                                </a>` : ''}
-                            </div>
+                        <div class="widget-actions-grid">
+                            <a href="./Home.html?hospital=${h.id}" class="ios-btn primary" onclick="Hub.setActiveHospitalId('${h.id}')">
+                                <i class="fas fa-users-viewfinder"></i> <span>الخفراء اليوم</span>
+                            </a>
+                            <a href="./schedule.html?hospital=${h.id}" class="ios-btn secondary" onclick="Hub.setActiveHospitalId('${h.id}')">
+                                <i class="fas fa-calendar-week"></i> <span>جدول الخفارات</span>
+                            </a>
+                            <a href="./signup.html?hospital=${h.id}" class="ios-btn secondary">
+                                <i class="fas fa-exchange-alt"></i> <span>تبديل خفر</span>
+                            </a>
+                            <a href="./specialists.html?hospital=${h.id}" class="ios-btn secondary">
+                                <i class="fas fa-user-tie"></i> <span>أطباء الاختصاص</span>
+                            </a>
+                            ${isHospAdmin ? `
+                            <a href="./scheduler.html?hospital=${h.id}" class="ios-btn secondary">
+                                <i class="fas fa-calendar-alt"></i> <span>مجدول الشهر</span>
+                            </a>
+                            <a href="./admin.html?hospital=${h.id}" class="ios-btn secondary">
+                                <i class="fas fa-sliders"></i> <span>إدارة المستشفى</span>
+                            </a>` : ''}
+                        </div>
 
-                            ${isOwner ? `
-                                <div class="flex justify-between items-center mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px]">
-                                    <span class="text-amber-600 dark:text-amber-400 font-bold"><i class="fas fa-crown ml-1"></i> المالك</span>
-                                    <button type="button" onclick="confirmDeleteHospital('${h.id}', '${h.name_ar || h.hospitalName}')" class="text-rose-500 font-bold hover:underline">
-                                        <i class="fas fa-trash-alt ml-1"></i> حذف المستشفى
-                                    </button>
-                                </div>
-                            ` : ''}
+                        ${isOwner ? `
+                            <div class="flex justify-between items-center mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px]">
+                                <span class="text-amber-600 dark:text-amber-400 font-bold"><i class="fas fa-crown ml-1"></i> المالك</span>
+                                <button type="button" onclick="confirmDeleteHospital('${h.id}', '${h.name_ar || h.hospitalName}')" class="text-rose-500 font-bold hover:underline">
+                                    <i class="fas fa-trash-alt ml-1"></i> حذف المستشفى
+                                </button>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
             }).join('');

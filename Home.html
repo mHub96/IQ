@@ -298,6 +298,28 @@
             color: #f0f3f8;
         }
 
+        .current-time-bubble {
+            font-size: 0.76rem;
+            padding: 0.35rem 1.15rem;
+            border-radius: 999px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.15);
+            background: linear-gradient(135deg, rgba(254, 243, 199, 0.95), rgba(253, 230, 138, 0.95));
+            color: #78350f;
+            border: 1.5px solid #fde68a;
+        }
+        body.dark .current-time-bubble {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.18), rgba(184, 148, 46, 0.12));
+            color: #d4af37;
+            border-color: rgba(212, 175, 55, 0.35);
+            box-shadow: 0 2px 12px rgba(212, 175, 55, 0.2);
+        }
+
         .counter-badge {
             font-size: 0.68rem;
             padding: 0.3rem 0.9rem;
@@ -1247,19 +1269,18 @@
                 <h1 id="hospital-name" class="hospital-title">المستشفى التعليمي</h1>
                 <p class="hospital-subtitle">On-Call Residents · Duty Roster</p>
             </div>
-            <div class="hospital-meta flex justify-between items-center w-full max-w-[29rem] mt-2">
-                <span id="current-time-display" class="current-time-display text-sm opacity-50 font-mono"></span>
-                <p id="count-tag" class="counter-badge"><i class="fas fa-users mr-1"></i> جاري التحميل...</p>
+            <div class="hospital-meta flex justify-center items-center w-full max-w-[29rem] mt-2">
+                <div class="current-time-bubble">
+                    <i class="fas fa-clock text-amber-500"></i>
+                    <span>Current Time:</span>
+                    <span id="current-time-display" class="font-mono font-bold"></span>
+                </div>
             </div>
         </header>
 
-        <!-- Nav Row with All Hospitals, Rotation Heroes & Duty Exchange (Initially Locked) -->
+        <!-- Nav Row with Rotation Heroes (Initially Locked) -->
         <div class="nav-row">
-            <a href="./index.html" class="nav-btn"><i class="fas fa-hospital"></i><span>كافة المستشفيات</span></a>
-            <span class="sep"></span>
             <a href="https://khafarat-alsadr.netlify.app/" target="_blank" class="nav-btn locked" id="btn-rotation-heroes"><i class="fas fa-user-md"></i><span>Rotation Heroes</span></a>
-            <span class="sep"></span>
-            <a href="./signup.html" class="nav-btn locked" id="btn-duty-exchange"><i class="fas fa-exchange-alt"></i><span>Duty Exchange</span></a>
         </div>
 
         <!-- Trending Resident Panel -->

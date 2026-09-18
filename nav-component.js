@@ -9,6 +9,7 @@
     function initUniversalNav(activePageId = 'hub') {
         const navContainer = document.getElementById('universal-nav') || createNavContainer();
         renderNav(navContainer, activePageId);
+        setupSeamlessAppNavigation();
 
         // Listen for database changes or hospital switch
         window.addEventListener('hub:data-changed', () => renderNav(navContainer, activePageId));
@@ -77,10 +78,16 @@
                     </a>
                 </div>
 
-                <!-- Center: Universal Webpage Links (Ribbon cleaned: Admin and Today's Residents removed) -->
+                <!-- Center: Universal Webpage Links -->
                 <div class="hub-nav-center">
                     <a href="./index.html" class="hub-nav-link ${activePageId === 'hub' ? 'active' : ''}">
                         <i class="fas fa-th-large"></i> <span>البوابة الرئيسية</span>
+                    </a>
+                    <a href="./schedule.html${queryParam}" class="hub-nav-link ${activePageId === 'schedule' ? 'active' : ''}">
+                        <i class="fas fa-calendar-week"></i> <span>جدول الخفارات</span>
+                    </a>
+                    <a href="./specialists.html${queryParam}" class="hub-nav-link ${activePageId === 'specialists' ? 'active' : ''}">
+                        <i class="fas fa-user-tie"></i> <span>أطباء الاختصاص</span>
                     </a>
                     <a href="./residents.html${queryParam}" class="hub-nav-link ${activePageId === 'residents' ? 'active' : ''}">
                         <i class="fas fa-address-book"></i> <span>دليل المقيمين</span>
@@ -88,6 +95,10 @@
                     <a href="./signup.html${queryParam}" class="hub-nav-link ${activePageId === 'signup' ? 'active' : ''}">
                         <i class="fas fa-exchange-alt"></i> <span>تبديل الخفارات</span>
                     </a>
+                    ${(isAdmin || isOwner || isCurrentHospAdmin) ? `
+                    <a href="./scheduler.html${queryParam}" class="hub-nav-link ${activePageId === 'scheduler' ? 'active' : ''}">
+                        <i class="fas fa-calendar-alt"></i> <span>المجدول</span>
+                    </a>` : ''}
                 </div>
 
                 <!-- Right: Role, Theme, Logout & Mobile Toggle -->
@@ -162,18 +173,29 @@
                     <i class="fas fa-users-viewfinder"></i>
                     <span>الخفراء</span>
                 </a>
+                <a href="./schedule.html${queryParam}" class="dock-tab-btn ${activePageId === 'schedule' ? 'active' : ''}">
+                    <i class="fas fa-calendar-week"></i>
+                    <span>الجدول</span>
+                </a>
+                <a href="./specialists.html${queryParam}" class="dock-tab-btn ${activePageId === 'specialists' ? 'active' : ''}">
+                    <i class="fas fa-user-tie"></i>
+                    <span>الاختصاص</span>
+                </a>
                 <a href="./residents.html${queryParam}" class="dock-tab-btn ${activePageId === 'residents' ? 'active' : ''}">
                     <i class="fas fa-address-book"></i>
                     <span>المقيمين</span>
                 </a>
+                ${(isAdmin || isOwner || isCurrentHospAdmin) ? `
                 <a href="./scheduler.html${queryParam}" class="dock-tab-btn ${activePageId === 'scheduler' ? 'active' : ''}">
                     <i class="fas fa-calendar-alt"></i>
                     <span>المجدول</span>
                 </a>
+                ` : `
                 <a href="./signup.html${queryParam}" class="dock-tab-btn ${activePageId === 'signup' ? 'active' : ''}">
                     <i class="fas fa-calendar-check"></i>
-                    <span>تسجيل خفر</span>
+                    <span>تبديل</span>
                 </a>
+                `}
                 <a href="./index.html" class="dock-tab-btn">
                     <i class="fas fa-hospital-alt"></i>
                     <span>الرئيسية</span>
@@ -509,6 +531,79 @@
             }
         }
     };
+
+    // ============================================================
+    // SEAMLESS APP NAVIGATION & INSTANT PRE-RENDERING
+    // ============================================================
+    let isNavSetup = false;
+    function setupSeamlessAppNavigation() {
+        if (isNavSetup) return;
+        isNavSetup = true;
+
+        // 1. Ensure progress bar element exists
+        let progressEl = document.getElementById('hub-nav-progress');
+        if (!progressEl) {
+            progressEl = document.createElement('div');
+            progressEl.id = 'hub-nav-progress';
+            document.body.appendChild(progressEl);
+        }
+
+        // 2. Finish progress bar on page show / complete
+        const finishProgress = () => {
+            if (progressEl) {
+                progressEl.classList.remove('loading');
+                progressEl.classList.add('done');
+                setTimeout(() => {
+                    progressEl.classList.remove('done');
+                    progressEl.style.transform = 'scaleX(0)';
+                }, 350);
+            }
+        };
+
+        window.addEventListener('pageshow', finishProgress);
+
+        // 3. Smooth progress on internal page navigation links
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('a[href]');
+            if (!link) return;
+            const href = link.getAttribute('href');
+            if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('tel:') || href.startsWith('mailto:')) return;
+            if (link.target && link.target !== '_self') return;
+            if (link.hasAttribute('download')) return;
+
+            // Internal page navigation
+            if (href.includes('.html') || (!href.includes('://') && !href.startsWith('//'))) {
+                if (progressEl) {
+                    progressEl.style.transform = '';
+                    progressEl.classList.remove('done');
+                    progressEl.classList.add('loading');
+                }
+            }
+        }, { capture: true });
+
+        // 4. Speculation Rules for instant background pre-rendering
+        try {
+            if (HTMLScriptElement.supports && HTMLScriptElement.supports('speculationrules')) {
+                if (!document.querySelector('script[type="speculationrules"]')) {
+                    const specScript = document.createElement('script');
+                    specScript.type = 'speculationrules';
+                    specScript.textContent = JSON.stringify({
+                        prerender: [
+                            {
+                                where: {
+                                    href_matches: "/*"
+                                },
+                                eagerness: "moderate"
+                            }
+                        ]
+                    });
+                    document.head.appendChild(specScript);
+                }
+            }
+        } catch (e) {
+            // Silently fallback if speculation rules are not supported
+        }
+    }
 
     window.initUniversalNav = initUniversalNav;
 

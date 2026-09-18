@@ -787,14 +787,26 @@
 
             <!-- View Modes & Live Filter Toolbar -->
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mt-5 pt-4 border-t border-slate-200 dark:border-slate-800/80 no-print">
-                <!-- Mode Switcher -->
-                <div class="segmented-control">
-                    <button type="button" id="btn-mode-matrix" class="segmented-btn active" onclick="setViewMode('matrix')">
-                        <i class="fas fa-table-cells"></i> <span>الجدول الشامل (كافة التخصصات)</span>
-                    </button>
-                    <button type="button" id="btn-mode-single" class="segmented-btn" onclick="setViewMode('single')">
-                        <i class="fas fa-stethoscope"></i> <span>تخصص محدد</span>
-                    </button>
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- Schedule Role Switcher (Residents vs Specialists) -->
+                    <div class="segmented-control" id="schedule-role-selector">
+                        <button type="button" id="btn-role-residents" class="segmented-btn active" onclick="setScheduleRole('residents')" title="عرض جدول خفارات المقيمين">
+                            <i class="fas fa-user-doctor"></i> <span>المقيمين</span>
+                        </button>
+                        <button type="button" id="btn-role-specialists" class="segmented-btn" onclick="setScheduleRole('specialists')" title="عرض جدول خفارات الاختصاصيين">
+                            <i class="fas fa-user-tie"></i> <span>الاختصاصيين</span>
+                        </button>
+                    </div>
+
+                    <!-- Mode Switcher -->
+                    <div class="segmented-control">
+                        <button type="button" id="btn-mode-matrix" class="segmented-btn active" onclick="setViewMode('matrix')">
+                            <i class="fas fa-table-cells"></i> <span>الجدول الشامل</span>
+                        </button>
+                        <button type="button" id="btn-mode-single" class="segmented-btn" onclick="setViewMode('single')">
+                            <i class="fas fa-stethoscope"></i> <span>تخصص محدد</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Search Input & Print -->
@@ -882,6 +894,7 @@
         let currentMonth = 9; // 1-indexed (September)
         let currentHospital = null;
         let currentViewMode = 'matrix'; // 'matrix' | 'single'
+        let currentScheduleRole = 'residents'; // 'residents' | 'specialists'
         let selectedSpecialtyId = null;
         let searchQuery = '';
 
@@ -916,6 +929,12 @@
                 currentYear = parseInt(parts[2], 10);
             }
 
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('type') === 'specialists' || urlParams.get('role') === 'specialists') {
+                currentScheduleRole = 'specialists';
+            }
+            updateScheduleRoleButtons();
+
             currentHospital = Hub.getActiveHospital();
             renderHospitalInfo();
             renderMonthControls();
@@ -943,13 +962,40 @@
             });
         }
 
+        function setScheduleRole(role) {
+            currentScheduleRole = (role === 'specialists') ? 'specialists' : 'residents';
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.set('type', currentScheduleRole);
+                window.history.replaceState({}, '', url.toString());
+            } catch (e) {}
+            updateScheduleRoleButtons();
+            renderHospitalInfo();
+            renderSchedule();
+        }
+
+        function updateScheduleRoleButtons() {
+            const btnRes = document.getElementById('btn-role-residents');
+            const btnSpec = document.getElementById('btn-role-specialists');
+            if (btnRes && btnSpec) {
+                if (currentScheduleRole === 'specialists') {
+                    btnSpec.classList.add('active');
+                    btnRes.classList.remove('active');
+                } else {
+                    btnRes.classList.add('active');
+                    btnSpec.classList.remove('active');
+                }
+            }
+        }
+
         function renderHospitalInfo() {
             if (!currentHospital) return;
             const nameEl = document.getElementById('hosp-display-name');
             const locEl = document.getElementById('hosp-location-text');
-            if (nameEl) nameEl.textContent = `جدول خفارات ${currentHospital.name_ar || currentHospital.hospitalName}`;
-            if (locEl) locEl.textContent = `${currentHospital.location || 'العراق'} · جدول الأطباء الخفر المعتمد`;
-            document.title = `${currentHospital.name_ar || currentHospital.hospitalName} · جدول الخفارات الشهري`;
+            const roleLabel = currentScheduleRole === 'specialists' ? 'خفارات الاختصاصيين' : 'خفارات المقيمين';
+            if (nameEl) nameEl.textContent = `جدول ${roleLabel} · ${currentHospital.name_ar || currentHospital.hospitalName}`;
+            if (locEl) locEl.textContent = `${currentHospital.location || 'العراق'} · ${currentScheduleRole === 'specialists' ? 'جدول الأطباء الاختصاصيين المعتمد' : 'جدول الأطباء الخفر المقيمين المعتمد'}`;
+            document.title = `${currentHospital.name_ar || currentHospital.hospitalName} · جدول ${roleLabel}`;
         }
 
         function renderMonthControls() {
@@ -1113,9 +1159,10 @@
             const isCurrentMonth = (todayM === currentMonth && todayY === currentYear);
 
             // Month Schedule Data
-            const monthEntries = Hub.getHospitalMonthSchedule(currentHospital.id, currentYear, currentMonth);
+            const monthEntries = Hub.getHospitalMonthSchedule(currentHospital.id, currentYear, currentMonth, currentScheduleRole);
             if (statsText) {
-                statsText.textContent = `تم تسجيل ${monthEntries.length} خفارة عبر ${currentHospital.specialties?.length || 0} تخصص لشهر ${MONTH_NAMES_AR[currentMonth - 1]}`;
+                const roleLabel = currentScheduleRole === 'specialists' ? 'خفارة اختصاصي' : 'خفارة مقيم';
+                statsText.textContent = `تم تسجيل ${monthEntries.length} ${roleLabel} عبر ${currentHospital.specialties?.length || 0} تخصص لشهر ${MONTH_NAMES_AR[currentMonth - 1]}`;
             }
 
             // Build Header Row (Centered & Bold Day Numbers and Day Names)
@@ -1250,7 +1297,7 @@
             const isCurrentMonth = (todayM === currentMonth && todayY === currentYear);
 
             // Month Schedule Data
-            const monthEntries = Hub.getHospitalMonthSchedule(currentHospital.id, currentYear, currentMonth);
+            const monthEntries = Hub.getHospitalMonthSchedule(currentHospital.id, currentYear, currentMonth, currentScheduleRole);
             const specEntries = monthEntries.filter(e => (e.specCode || e.spec) === spec.id);
 
             const countBadge = document.getElementById('single-spec-duties-count');

@@ -479,7 +479,8 @@
             flex-direction: column;
             justify-content: space-between;
             position: relative;
-            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+            align-self: start;
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
         }
 
         body.dark .hosp-widget-card {
@@ -495,6 +496,15 @@
         body.dark .hosp-widget-card:hover {
             border-color: rgba(212, 175, 55, 0.35);
             box-shadow: 0 16px 45px rgba(0, 0, 0, 0.75), 0 0 20px rgba(212, 175, 55, 0.08);
+        }
+
+        .hosp-widget-card.is-expanded {
+            box-shadow: 0 18px 44px rgba(15, 118, 110, 0.14), 0 2px 6px rgba(0, 0, 0, 0.04);
+            border-color: rgba(15, 118, 110, 0.35);
+        }
+        body.dark .hosp-widget-card.is-expanded {
+            box-shadow: 0 18px 48px rgba(0, 0, 0, 0.85), 0 0 24px rgba(212, 175, 55, 0.12);
+            border-color: rgba(212, 175, 55, 0.45);
         }
 
         .widget-top-banner {
@@ -603,17 +613,96 @@
             border-color: rgba(212, 175, 55, 0.35);
         }
 
+        /* Primary Compact Action Bar (Centered Roster + Down Arrow) */
+        .hosp-primary-action-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .hosp-roster-btn {
+            flex: 1;
+            max-width: 250px;
+            min-height: 44px;
+        }
+
+        .hosp-expand-arrow-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(241, 245, 249, 0.95);
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            flex-shrink: 0;
+            outline: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+        body.dark .hosp-expand-arrow-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.12);
+            color: #94a3b8;
+        }
+        .hosp-expand-arrow-btn:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+            transform: translateY(-1px);
+        }
+        body.dark .hosp-expand-arrow-btn:hover {
+            background: rgba(212, 175, 55, 0.16);
+            border-color: rgba(212, 175, 55, 0.4);
+            color: #d4af37;
+        }
+        .hosp-expand-arrow-btn:active {
+            transform: scale(0.94);
+        }
+        .hosp-expand-arrow-btn i {
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .hosp-widget-card.is-expanded .hosp-expand-arrow-btn i {
+            transform: rotate(180deg);
+        }
+        .hosp-widget-card.is-expanded .hosp-expand-arrow-btn {
+            background: rgba(15, 118, 110, 0.12);
+            border-color: rgba(15, 118, 110, 0.35);
+            color: #0f766e;
+        }
+        body.dark .hosp-widget-card.is-expanded .hosp-expand-arrow-btn {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: rgba(212, 175, 55, 0.45);
+            color: #d4af37;
+        }
+
+        /* Expandable Options Drawer */
+        .hosp-expanded-options {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, margin-top 0.25s ease;
+            margin-top: 0;
+            width: 100%;
+        }
+        .hosp-widget-card.is-expanded .hosp-expanded-options {
+            max-height: 420px;
+            opacity: 1;
+            margin-top: 10px;
+        }
+
         /* Action Buttons Grid */
         .widget-actions-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 7px;
         }
-        .widget-actions-grid.user-layout {
-            grid-template-columns: 1fr 1fr;
-        }
-        .widget-actions-grid.user-layout .ios-btn.primary {
-            grid-column: 1 / -1;
+        .widget-actions-grid a:last-child:nth-child(odd) {
+            grid-column: span 2;
         }
 
         .ios-btn {
@@ -1894,6 +1983,7 @@
                 return;
             }
 
+            collapseAllHospitalCards();
             grid.innerHTML = filtered.map(h => {
                 const totalRes = (h.names || []).length;
                 const activeRes = (h.names || []).filter(n => n.active !== false && n.spec !== 'RESERVE').length;
@@ -1937,11 +2027,19 @@
                             </div>
                         </div>
 
-                        <!-- Action Buttons -->
+                        <!-- Compact Primary Action: Centered Roster Button + Down Arrow -->
+                        <div class="hosp-primary-action-wrap">
+                            <a href="./Home.html?hospital=${h.id}" class="ios-btn primary hosp-roster-btn" onclick="Hub.setActiveHospitalId('${h.id}')">
+                                <i class="fas fa-users-viewfinder"></i> <span>الخفراء اليوم</span>
+                            </a>
+                            <button type="button" class="hosp-expand-arrow-btn" onclick="toggleHospitalCardExpand('${h.id}', event)" aria-label="عرض المزيد من الخيارات" title="المزيد من الخيارات" aria-expanded="false">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                        </div>
+
+                        <!-- Expandable Options (Drawer) -->
+                        <div class="hosp-expanded-options" id="hosp-options-${h.id}">
                             <div class="widget-actions-grid">
-                                <a href="./Home.html?hospital=${h.id}" class="ios-btn primary" onclick="Hub.setActiveHospitalId('${h.id}')">
-                                    <i class="fas fa-users-viewfinder"></i> <span>الخفراء اليوم</span>
-                                </a>
                                 <a href="./schedule.html?hospital=${h.id}" class="ios-btn secondary" onclick="Hub.setActiveHospitalId('${h.id}')">
                                     <i class="fas fa-calendar-week"></i> <span>جدول الخفارات</span>
                                 </a>
@@ -1973,6 +2071,73 @@
                 `;
             }).join('');
         }
+
+        // ============================================================
+        // COMPACT CARD EXPAND / COLLAPSE CONTROLLER
+        // ============================================================
+        let currentlyExpandedHospId = null;
+
+        function toggleHospitalCardExpand(hospId, event) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+
+            const targetCard = document.getElementById(`card-${hospId}`);
+            if (!targetCard) return;
+
+            const isAlreadyExpanded = (currentlyExpandedHospId === hospId);
+
+            // Collapse any currently expanded card
+            collapseAllHospitalCards();
+
+            if (!isAlreadyExpanded) {
+                targetCard.classList.add('is-expanded');
+                const arrowBtn = targetCard.querySelector('.hosp-expand-arrow-btn');
+                if (arrowBtn) arrowBtn.setAttribute('aria-expanded', 'true');
+                currentlyExpandedHospId = hospId;
+            }
+        }
+
+        function collapseAllHospitalCards() {
+            if (!currentlyExpandedHospId) return;
+            const cards = document.querySelectorAll('.hosp-widget-card.is-expanded');
+            cards.forEach(c => {
+                c.classList.remove('is-expanded');
+                const arrowBtn = c.querySelector('.hosp-expand-arrow-btn');
+                if (arrowBtn) arrowBtn.setAttribute('aria-expanded', 'false');
+            });
+            currentlyExpandedHospId = null;
+        }
+
+        // Collapse card when it loses focus (clicking outside or on another card)
+        document.addEventListener('click', (e) => {
+            if (!currentlyExpandedHospId) return;
+            const expandedCard = document.getElementById(`card-${currentlyExpandedHospId}`);
+            if (!expandedCard) {
+                currentlyExpandedHospId = null;
+                return;
+            }
+            if (!expandedCard.contains(e.target)) {
+                collapseAllHospitalCards();
+            }
+        });
+
+        // Collapse on focus movement outside expanded card
+        document.addEventListener('focusin', (e) => {
+            if (!currentlyExpandedHospId) return;
+            const expandedCard = document.getElementById(`card-${currentlyExpandedHospId}`);
+            if (expandedCard && !expandedCard.contains(e.target)) {
+                collapseAllHospitalCards();
+            }
+        });
+
+        // Collapse on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && currentlyExpandedHospId) {
+                collapseAllHospitalCards();
+            }
+        });
 
         // Add Hospital Modal
         function openAddHospitalModal() {

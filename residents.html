@@ -357,6 +357,110 @@
         }
         .toast.success { background: #10b981; }
         .toast.error { background: #ef4444; }
+
+        /* Pagination & Page Size Selectors */
+        .page-size-btn {
+            padding: 0.35rem 0.75rem;
+            border-radius: 0.65rem;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: #64748b;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .page-size-btn:hover {
+            color: #0f766e;
+        }
+        body.dark .page-size-btn:hover {
+            color: #d4af37;
+        }
+        .page-size-btn.active {
+            background: #ffffff;
+            color: #0f766e;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        body.dark .page-size-btn.active {
+            background: #1e293b;
+            color: #d4af37;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .pagination-nav-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.85rem;
+            font-weight: 700;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1.5px solid #cbd5e1;
+            background: rgba(255,255,255,0.9);
+            color: #334155;
+        }
+        body.dark .pagination-nav-btn {
+            border-color: rgba(212,175,55,0.22);
+            background: rgba(16,22,34,0.85);
+            color: #cbd5e1;
+        }
+        .pagination-nav-btn:hover:not(:disabled) {
+            background: #f1f5f9;
+            color: #0f766e;
+            transform: translateY(-1px);
+        }
+        body.dark .pagination-nav-btn:hover:not(:disabled) {
+            background: rgba(212,175,55,0.12);
+            color: #d4af37;
+        }
+        .pagination-nav-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .pagination-page-pill {
+            min-width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.8rem;
+            font-weight: 800;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1.5px solid #e2e8f0;
+            background: rgba(255,255,255,0.95);
+            color: #475569;
+        }
+        body.dark .pagination-page-pill {
+            border-color: rgba(212,175,55,0.18);
+            background: rgba(16,22,34,0.9);
+            color: #94a3b8;
+        }
+        .pagination-page-pill:hover {
+            border-color: #0f766e;
+            color: #0f766e;
+        }
+        body.dark .pagination-page-pill:hover {
+            border-color: #d4af37;
+            color: #d4af37;
+        }
+        .pagination-page-pill.active {
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            color: #ffffff;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+        }
+        body.dark .pagination-page-pill.active {
+            background: linear-gradient(135deg, #d4af37, #b8942e);
+            color: #0b0e12;
+            box-shadow: 0 4px 14px rgba(212, 175, 55, 0.25);
+        }
+
         /* Mobile Screen Layouts */
         @media (max-width: 768px) {
             main {
@@ -510,8 +614,33 @@
             </div>
         </div>
 
+        <!-- Pagination Toolbar (Items Per Page & Range Indicator) -->
+        <div class="glass-card p-3 mb-4 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-500 dark:text-slate-400">
+                    <i class="fas fa-layer-group ml-1 text-teal-600 dark:text-amber-400"></i> عدد المقيمين في الصفحة:
+                </span>
+                <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/90 p-1 rounded-xl border border-slate-200 dark:border-slate-700" id="res-page-size-selector">
+                    <button type="button" onclick="setResPageSize(10)" class="page-size-btn active" data-size="10">10</button>
+                    <button type="button" onclick="setResPageSize(20)" class="page-size-btn" data-size="20">20</button>
+                    <button type="button" onclick="setResPageSize(50)" class="page-size-btn" data-size="50">50</button>
+                    <button type="button" onclick="setResPageSize(100)" class="page-size-btn" data-size="100">100</button>
+                    <button type="button" onclick="setResPageSize('all')" class="page-size-btn" data-size="all">الكل</button>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 font-bold text-slate-600 dark:text-slate-300" id="res-pagination-summary">
+                <span>جاري الحساب...</span>
+            </div>
+        </div>
+
         <!-- Residents Grid -->
-        <div id="residents-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <div id="residents-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+            <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Pagination Controls Footer -->
+        <div id="res-pagination-controls" class="glass-card p-3 mb-8 flex flex-wrap items-center justify-center gap-2">
             <!-- Rendered dynamically -->
         </div>
 
@@ -632,6 +761,14 @@
         let searchQuery = '';
         let selectedSpec = 'all';
         let selectedStatus = 'all';
+        let filteredResidents = [];
+        let currentResPage = 1;
+        let resPageSize = (() => {
+            const saved = localStorage.getItem('residents_page_size');
+            if (saved === 'all') return 'all';
+            const num = parseInt(saved);
+            return (num && [10, 20, 50, 100].includes(num)) ? num : 10;
+        })();
 
         function showToast(message, type = 'info', duration = 3000) {
             const container = document.getElementById('toast-container');
@@ -681,6 +818,12 @@
                 populateSpecialtyFilter();
                 renderHospitalFilterPills();
                 populateModalDropdowns();
+
+                // Initialize pagination selector
+                document.querySelectorAll('#res-page-size-selector .page-size-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.size == String(resPageSize));
+                });
+
                 refreshData();
 
                 // Reactive UI update on database changes
@@ -700,6 +843,11 @@
                     populateSpecialtyFilter();
                     renderHospitalFilterPills();
                     populateModalDropdowns();
+                    refreshData();
+                });
+
+                window.addEventListener('hub:auth-changed', () => {
+                    updateRoleUI();
                     refreshData();
                 });
 
@@ -861,16 +1009,123 @@
                 return true;
             });
 
+            currentResPage = 1;
             document.getElementById('badge-visible-count').innerHTML = `<i class="fas fa-filter ml-1"></i> ${filtered.length} ظاهر في البحث`;
             renderResidents(filtered);
+            renderResPagination();
         }
 
-        function renderResidents(residents) {
+        // ================================================================
+        // PAGINATION & TILE SLICING
+        // ================================================================
+        function setResPageSize(size) {
+            resPageSize = size;
+            localStorage.setItem('residents_page_size', size);
+            document.querySelectorAll('#res-page-size-selector .page-size-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.size == String(size));
+            });
+            currentResPage = 1;
+            renderResidents();
+            renderResPagination();
+        }
+
+        function goToResPage(page) {
+            const total = filteredResidents.length;
+            const totalPages = resPageSize === 'all' ? 1 : Math.ceil(total / resPageSize) || 1;
+            if (page < 1 || page > totalPages) return;
+
+            const grid = document.getElementById('residents-grid');
+            if (grid) {
+                const animClass = page >= currentResPage ? 'subpage-flipping-forward' : 'subpage-flipping-backward';
+                grid.classList.remove('subpage-flipping-forward', 'subpage-flipping-backward');
+                void grid.offsetWidth; // Force reflow
+                grid.classList.add(animClass);
+                setTimeout(() => {
+                    grid.classList.remove('subpage-flipping-forward', 'subpage-flipping-backward');
+                }, 360);
+
+                const rect = grid.getBoundingClientRect();
+                if (rect.top < 60) {
+                    window.scrollTo({ top: window.scrollY + rect.top - 80, behavior: 'smooth' });
+                }
+            }
+
+            currentResPage = page;
+            renderResidents();
+            renderResPagination();
+        }
+
+        function renderResPagination() {
+            const controls = document.getElementById('res-pagination-controls');
+            const summary = document.getElementById('res-pagination-summary');
+            const total = filteredResidents.length;
+
+            if (total === 0) {
+                if (controls) controls.innerHTML = '';
+                if (summary) summary.innerHTML = '<span>لا توجد نتائج</span>';
+                return;
+            }
+
+            if (resPageSize === 'all') {
+                if (summary) summary.innerHTML = `<span>عرض جميع المقيمين (${total} طبيب)</span>`;
+                if (controls) controls.innerHTML = '';
+                return;
+            }
+
+            const totalPages = Math.ceil(total / resPageSize) || 1;
+            const start = (currentResPage - 1) * resPageSize + 1;
+            const end = Math.min(currentResPage * resPageSize, total);
+
+            if (summary) {
+                summary.innerHTML = `
+                    <span>عرض <strong class="text-teal-700 dark:text-amber-400">${start} - ${end}</strong> من أصل <strong>${total}</strong> مقيم</span>
+                    <span class="text-slate-400">· صفحة ${currentResPage} من ${totalPages}</span>
+                `;
+            }
+
+            if (!controls) return;
+            if (totalPages <= 1) {
+                controls.innerHTML = '';
+                return;
+            }
+
+            let pillsHtml = '';
+            for (let i = 1; i <= totalPages; i++) {
+                if (totalPages > 7) {
+                    if (i > 2 && i < totalPages - 1 && Math.abs(i - currentResPage) > 1) {
+                        if (i === 3 || i === totalPages - 2) {
+                            pillsHtml += `<span class="px-1 text-slate-400">...</span>`;
+                        }
+                        continue;
+                    }
+                }
+                pillsHtml += `
+                    <button type="button" onclick="goToResPage(${i})" class="pagination-page-pill ${i === currentResPage ? 'active' : ''}">
+                        ${i}
+                    </button>
+                `;
+            }
+
+            controls.innerHTML = `
+                <button type="button" onclick="goToResPage(${currentResPage - 1})" class="pagination-nav-btn" ${currentResPage === 1 ? 'disabled' : ''}>
+                    <i class="fas fa-chevron-right text-xs"></i> <span>السابق</span>
+                </button>
+                <div class="flex items-center gap-1.5 overflow-x-auto py-1">
+                    ${pillsHtml}
+                </div>
+                <button type="button" onclick="goToResPage(${currentResPage + 1})" class="pagination-nav-btn" ${currentResPage === totalPages ? 'disabled' : ''}>
+                    <span>التالي</span> <i class="fas fa-chevron-left text-xs"></i>
+                </button>
+            `;
+        }
+
+        function renderResidents(residents = null) {
+            if (residents) filteredResidents = residents;
             const grid = document.getElementById('residents-grid');
             const empty = document.getElementById('empty-state');
             const isAdmin = Hub.auth.isAdmin();
 
-            if (residents.length === 0) {
+            if (filteredResidents.length === 0) {
                 grid.innerHTML = '';
                 empty.classList.remove('hidden');
                 return;
@@ -878,7 +1133,13 @@
 
             empty.classList.add('hidden');
 
-            grid.innerHTML = residents.map(r => {
+            let pageResidents = filteredResidents;
+            if (resPageSize !== 'all') {
+                const start = (currentResPage - 1) * resPageSize;
+                pageResidents = filteredResidents.slice(start, start + resPageSize);
+            }
+
+            grid.innerHTML = pageResidents.map(r => {
                 const specId = (typeof Hub !== 'undefined' && Hub.normalizeSpecialtyId) ? Hub.normalizeSpecialtyId(r.tag || r.spec) : (r.tag || r.spec);
                 const specObj = allSpecialties.find(s => s.id === specId) || { name_ar: r.spec, icon: '🏥', color: '#0f766e' };
                 const isActive = r.active !== false && r.spec !== 'RESERVE';

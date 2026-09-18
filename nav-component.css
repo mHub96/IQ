@@ -419,13 +419,15 @@ body.dark .hub-mobile-toggle {
     color: #e2e8f0;
 }
 
-/* Upgrade Modal */
-.hub-modal-overlay {
+/* Upgrade & Role Switcher Modal */
+.hub-modal-overlay,
+.modal-overlay {
     position: fixed;
     inset: 0;
     z-index: 99999;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(12px);
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     display: none;
     align-items: center;
     justify-content: center;
@@ -433,31 +435,67 @@ body.dark .hub-mobile-toggle {
     direction: rtl;
 }
 
-.hub-modal-overlay.active {
+.hub-modal-overlay.active,
+.modal-overlay.active {
     display: flex;
 }
 
-.hub-modal-card {
+.hub-modal-card,
+.modal-card {
     background: #ffffff;
     border-radius: 1.8rem;
-    padding: 2rem;
+    padding: 1.75rem;
     width: 100%;
-    max-width: 380px;
+    max-width: 440px;
+    max-height: 90vh;
+    overflow-y: auto;
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
     border: 1px solid #e2e8f0;
-    text-align: center;
+    text-align: right;
     animation: hubModalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    direction: rtl;
+    box-sizing: border-box;
 }
 
-body.dark .hub-modal-card {
+body.dark .hub-modal-card,
+body.dark .modal-card {
     background: #141c2a;
     border-color: rgba(212, 175, 55, 0.2);
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+    color: #f8fafc;
 }
 
 @keyframes hubModalIn {
     from { opacity: 0; transform: scale(0.95) translateY(12px); }
     to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.hub-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    border: 1.5px solid #cbd5e1;
+    background: rgba(248, 250, 252, 0.9);
+    font-size: 0.9rem;
+    font-weight: 600;
+    outline: none;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    box-sizing: border-box;
+    text-align: right;
+}
+body.dark .hub-input {
+    background: #0f1520;
+    border-color: #1f2937;
+    color: #f1f5f9;
+}
+.hub-input:focus {
+    border-color: #0f766e;
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+}
+body.dark .hub-input:focus {
+    border-color: #14b8a6;
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
 }
 
 /* Password Input & Eye Toggle in Upgrade Modal */

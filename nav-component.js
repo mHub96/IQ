@@ -169,37 +169,36 @@
             ${activePageId !== 'hub' ? `
             <!-- Universal Mobile Bottom App Dock -->
             <nav class="hub-mobile-bottom-dock" id="hub-bottom-dock">
-                <a href="./Home.html${queryParam}" class="dock-tab-btn ${activePageId === 'roster' ? 'active' : ''}">
-                    <i class="fas fa-users-viewfinder"></i>
-                    <span>الخفراء</span>
-                </a>
-                <a href="./schedule.html${queryParam}" class="dock-tab-btn ${activePageId === 'schedule' ? 'active' : ''}">
-                    <i class="fas fa-calendar-week"></i>
-                    <span>الجدول</span>
-                </a>
-                <a href="./specialists.html${queryParam}" class="dock-tab-btn ${activePageId === 'specialists' ? 'active' : ''}">
-                    <i class="fas fa-user-tie"></i>
-                    <span>الاختصاص</span>
-                </a>
-                <a href="./residents.html${queryParam}" class="dock-tab-btn ${activePageId === 'residents' ? 'active' : ''}">
-                    <i class="fas fa-address-book"></i>
-                    <span>المقيمين</span>
-                </a>
-                ${(isAdmin || isOwner || isCurrentHospAdmin) ? `
-                <a href="./scheduler.html${queryParam}" class="dock-tab-btn ${activePageId === 'scheduler' ? 'active' : ''}">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span>المجدول</span>
-                </a>
-                ` : `
-                <a href="./signup.html${queryParam}" class="dock-tab-btn ${activePageId === 'signup' ? 'active' : ''}">
-                    <i class="fas fa-calendar-check"></i>
-                    <span>تبديل</span>
-                </a>
-                `}
-                <a href="./index.html" class="dock-tab-btn">
+                <a href="./index.html" class="dock-tab-btn ${activePageId === 'hub' ? 'active' : ''}" title="البوابة الرئيسية">
                     <i class="fas fa-hospital-alt"></i>
                     <span>الرئيسية</span>
                 </a>
+                <a href="./Home.html${queryParam}" class="dock-tab-btn ${activePageId === 'roster' ? 'active' : ''}" title="خفراء اليوم">
+                    <i class="fas fa-users-viewfinder"></i>
+                    <span>الخفراء</span>
+                </a>
+                <a href="./schedule.html${queryParam}" class="dock-tab-btn ${activePageId === 'schedule' ? 'active' : ''}" title="جدول الخفارات الشهري">
+                    <i class="fas fa-calendar-week"></i>
+                    <span>الجدول</span>
+                </a>
+                <a href="./specialists.html${queryParam}" class="dock-tab-btn ${activePageId === 'specialists' ? 'active' : ''}" title="أطباء الاختصاص">
+                    <i class="fas fa-user-tie"></i>
+                    <span>الاختصاص</span>
+                </a>
+                <a href="./residents.html${queryParam}" class="dock-tab-btn ${activePageId === 'residents' ? 'active' : ''}" title="دليل المقيمين">
+                    <i class="fas fa-address-book"></i>
+                    <span>المقيمين</span>
+                </a>
+                <a href="./signup.html${queryParam}" class="dock-tab-btn ${activePageId === 'signup' ? 'active' : ''}" title="تبديل الخفارات">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>تبديل</span>
+                </a>
+                ${(isAdmin || isOwner || isCurrentHospAdmin) ? `
+                <a href="./scheduler.html${queryParam}" class="dock-tab-btn ${activePageId === 'scheduler' ? 'active' : ''}" title="المجدول (صلاحيات الإدارة)">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>المجدول</span>
+                </a>
+                ` : ''}
             </nav>
             ` : ''}
 

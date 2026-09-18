@@ -445,6 +445,216 @@
         .toast.success { background: #10b981; }
         .toast.error { background: #ef4444; }
 
+        /* Pagination and Page Size Selectors */
+        .page-size-btn {
+            padding: 0.35rem 0.75rem;
+            border-radius: 0.65rem;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: #64748b;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .page-size-btn:hover {
+            color: #0f766e;
+        }
+        body.dark .page-size-btn:hover {
+            color: #d4af37;
+        }
+        .page-size-btn.active {
+            background: #ffffff;
+            color: #0f766e;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        body.dark .page-size-btn.active {
+            background: #1e293b;
+            color: #d4af37;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .pagination-nav-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.85rem;
+            font-weight: 700;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1.5px solid #cbd5e1;
+            background: rgba(255,255,255,0.9);
+            color: #334155;
+        }
+        body.dark .pagination-nav-btn {
+            border-color: rgba(212,175,55,0.22);
+            background: rgba(16,22,34,0.85);
+            color: #cbd5e1;
+        }
+        .pagination-nav-btn:hover:not(:disabled) {
+            background: #f1f5f9;
+            color: #0f766e;
+            transform: translateY(-1px);
+        }
+        body.dark .pagination-nav-btn:hover:not(:disabled) {
+            background: rgba(212,175,55,0.12);
+            color: #d4af37;
+        }
+        .pagination-nav-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .pagination-page-pill {
+            min-width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.8rem;
+            font-weight: 800;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1.5px solid #e2e8f0;
+            background: rgba(255,255,255,0.95);
+            color: #475569;
+        }
+        body.dark .pagination-page-pill {
+            border-color: rgba(212,175,55,0.18);
+            background: rgba(16,22,34,0.9);
+            color: #94a3b8;
+        }
+        .pagination-page-pill:hover {
+            border-color: #0f766e;
+            color: #0f766e;
+        }
+        body.dark .pagination-page-pill:hover {
+            border-color: #d4af37;
+            color: #d4af37;
+        }
+        .pagination-page-pill.active {
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            color: #ffffff;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+        }
+        body.dark .pagination-page-pill.active {
+            background: linear-gradient(135deg, #d4af37, #b8942e);
+            color: #0b0e12;
+            box-shadow: 0 4px 14px rgba(212, 175, 55, 0.25);
+        }
+
+        /* Schedule Badges & Action Buttons */
+        .schedule-btn {
+            padding: 0.4rem 0.75rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            border: 1px solid rgba(15, 118, 110, 0.25);
+            background: rgba(15, 118, 110, 0.08);
+            color: #0f766e;
+        }
+        body.dark .schedule-btn {
+            border-color: rgba(212, 175, 55, 0.3);
+            background: rgba(212, 175, 55, 0.1);
+            color: #d4af37;
+        }
+        .schedule-btn:hover {
+            transform: scale(1.02);
+            background: rgba(15, 118, 110, 0.15);
+        }
+        body.dark .schedule-btn:hover {
+            background: rgba(212, 175, 55, 0.18);
+        }
+
+        .schedule-badge-clinic {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 0.55rem;
+            font-size: 0.7rem;
+            font-weight: 800;
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+        body.dark .schedule-badge-clinic {
+            background: rgba(30, 58, 138, 0.3);
+            color: #93c5fd;
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .schedule-badge-oncall {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 0.55rem;
+            font-size: 0.7rem;
+            font-weight: 800;
+            background: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+        body.dark .schedule-badge-oncall {
+            background: rgba(120, 53, 15, 0.3);
+            color: #fcd34d;
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .schedule-badge-theatre {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 0.55rem;
+            font-size: 0.7rem;
+            font-weight: 800;
+            background: #fce7f3;
+            color: #be185d;
+            border: 1px solid #fbcfe8;
+        }
+        body.dark .schedule-badge-theatre {
+            background: rgba(131, 24, 67, 0.3);
+            color: #f472b6;
+            border-color: rgba(236, 72, 153, 0.3);
+        }
+
+        .day-toggle-cb {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.65rem;
+            border-radius: 0.65rem;
+            border: 1px solid #cbd5e1;
+            background: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 700;
+            transition: all 0.15s ease;
+        }
+        body.dark .day-toggle-cb {
+            background: rgba(15, 23, 42, 0.6);
+            border-color: rgba(212, 175, 55, 0.2);
+            color: #cbd5e1;
+        }
+        .day-toggle-cb:hover {
+            border-color: #0f766e;
+        }
+        body.dark .day-toggle-cb:hover {
+            border-color: #d4af37;
+        }
+
         @media (max-width: 768px) {
             main {
                 padding-left: 10px !important;
@@ -564,8 +774,33 @@
             </div>
         </div>
 
+        <!-- Pagination Toolbar (Items Per Page & Range Indicator) -->
+        <div class="glass-card p-3 mb-4 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-500 dark:text-slate-400">
+                    <i class="fas fa-layer-group ml-1 text-teal-600 dark:text-amber-400"></i> عدد الأطباء في الصفحة:
+                </span>
+                <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/90 p-1 rounded-xl border border-slate-200 dark:border-slate-700" id="page-size-selector">
+                    <button type="button" onclick="setPageSize(6)" class="page-size-btn" data-size="6">6</button>
+                    <button type="button" onclick="setPageSize(12)" class="page-size-btn active" data-size="12">12</button>
+                    <button type="button" onclick="setPageSize(24)" class="page-size-btn" data-size="24">24</button>
+                    <button type="button" onclick="setPageSize(48)" class="page-size-btn" data-size="48">48</button>
+                    <button type="button" onclick="setPageSize('all')" class="page-size-btn" data-size="all">الكل</button>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 font-bold text-slate-600 dark:text-slate-300" id="pagination-summary">
+                <span>جاري الحساب...</span>
+            </div>
+        </div>
+
         <!-- Specialists Dynamic Content (Cards or Table) -->
-        <div id="specialists-container" class="mb-8">
+        <div id="specialists-container" class="mb-6">
+            <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Pagination Controls Footer -->
+        <div id="pagination-controls" class="glass-card p-3 mb-8 flex flex-wrap items-center justify-center gap-2">
             <!-- Rendered dynamically -->
         </div>
 
@@ -636,6 +871,51 @@
                     </div>
                 </div>
 
+                <!-- Schedule Section (جدول الخفارات والدوام) -->
+                <div class="p-3.5 rounded-xl border border-teal-200 dark:border-amber-900/40 bg-teal-50/30 dark:bg-amber-950/10 space-y-3">
+                    <div class="flex items-center justify-between border-b border-teal-100 dark:border-amber-900/30 pb-2">
+                        <label class="block text-xs font-black text-teal-800 dark:text-amber-300">
+                            <i class="fas fa-calendar-check ml-1"></i> جدول الخفارات والعيادة الاستشارية:
+                        </label>
+                        <span class="text-[11px] text-slate-500">اختياري</span>
+                    </div>
+
+                    <!-- Consultation Days -->
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5">
+                            🏥 أيام العيادة الاستشارية:
+                        </label>
+                        <div class="grid grid-cols-4 sm:grid-cols-7 gap-1.5" id="form-clinic-days-wrap">
+                            <!-- Rendered dynamically or static -->
+                        </div>
+                    </div>
+
+                    <!-- On-Call Duty Days -->
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5">
+                            📞 أيام خفارة الاستدعاء (On-Call):
+                        </label>
+                        <div class="grid grid-cols-4 sm:grid-cols-7 gap-1.5" id="form-oncall-days-wrap">
+                            <!-- Rendered dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Operation Theatre Days -->
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5">
+                            🔪 أيام صالة العمليات:
+                        </label>
+                        <div class="grid grid-cols-4 sm:grid-cols-7 gap-1.5" id="form-theatre-days-wrap">
+                            <!-- Rendered dynamically -->
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1">ساعات وأوقات التواجد الاستشاري</label>
+                        <input type="text" id="form-spec-times" class="input-field text-xs" placeholder="مثال: 8:30 ص - 1:00 م" />
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">ملاحظات إضافية / المهام</label>
                     <input type="text" id="form-spec-notes" class="input-field" placeholder="مثال: رئيس قسم الجراحة / مناظير متقدمة" />
@@ -659,6 +939,25 @@
         </div>
     </div>
 
+    <!-- SPECIALIST SCHEDULE MODAL (Viewer for all users & Editor for Admin/Owner) -->
+    <div id="specialist-schedule-modal" class="modal-overlay">
+        <div class="modal-card max-w-xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg sm:text-xl font-black flex items-center gap-2">
+                    <i class="fas fa-calendar-alt text-teal-600 dark:text-amber-400"></i>
+                    <span id="schedule-modal-title">جدول دوام وخفارات الطبيب</span>
+                </h3>
+                <button type="button" onclick="closeSpecialistScheduleModal()" class="text-slate-400 hover:text-slate-600 text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div id="schedule-modal-content" class="space-y-4">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="./hub-core.js"></script>
     <script src="./nav-component.js"></script>
@@ -667,6 +966,20 @@
         let filteredSpecialists = [];
         let activeHospFilter = 'all';
         let currentViewMode = localStorage.getItem('specialists_view_mode') || 'cards';
+
+        // Pagination state
+        let currentPage = 1;
+        let pageSize = localStorage.getItem('specialists_page_size') === 'all' ? 'all' : (parseInt(localStorage.getItem('specialists_page_size'), 10) || 12);
+
+        const WEEK_DAYS = [
+            { id: 'sat', name: 'السبت' },
+            { id: 'sun', name: 'الأحد' },
+            { id: 'mon', name: 'الاثنين' },
+            { id: 'tue', name: 'الثلاثاء' },
+            { id: 'wed', name: 'الأربعاء' },
+            { id: 'thu', name: 'الخميس' },
+            { id: 'fri', name: 'الجمعة' }
+        ];
 
         async function initPage() {
             await Hub.loadDatabase();
@@ -679,8 +992,17 @@
                 activeHospFilter = hospParam;
             }
 
+            // Sync page size selector active button
+            document.querySelectorAll('#page-size-selector .page-size-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.size == String(pageSize));
+            });
+
             renderHospitalFilterPills();
             populateSpecialtyFilter();
+            renderFormDayCheckboxes('form-clinic-days-wrap', 'form-clinic-day');
+            renderFormDayCheckboxes('form-oncall-days-wrap', 'form-oncall-day');
+            renderFormDayCheckboxes('form-theatre-days-wrap', 'form-theatre-day');
+
             checkAdminPermissions();
             refreshSpecialistsData();
         }
@@ -747,6 +1069,18 @@
             });
         }
 
+        function renderFormDayCheckboxes(containerId, nameAttr, selectedDays = []) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const set = new Set(selectedDays || []);
+            container.innerHTML = WEEK_DAYS.map(d => `
+                <label class="day-toggle-cb">
+                    <input type="checkbox" name="${nameAttr}" value="${d.name}" ${set.has(d.name) ? 'checked' : ''} class="w-3.5 h-3.5 accent-teal-600 rounded" />
+                    <span>${d.name}</span>
+                </label>
+            `).join('');
+        }
+
         function setHospitalFilter(hospId) {
             activeHospFilter = hospId;
             renderHospitalFilterPills();
@@ -769,6 +1103,7 @@
             }
 
             renderSpecialists();
+            renderPagination();
         }
 
         function refreshSpecialistsData() {
@@ -825,8 +1160,10 @@
                 return true;
             });
 
+            currentPage = 1;
             updateBadges();
             renderSpecialists();
+            renderPagination();
         }
 
         function updateBadges() {
@@ -860,6 +1197,112 @@
             applyFilters();
         }
 
+        // ================================================================
+        // PAGINATION & TILE SLICING
+        // ================================================================
+        function setPageSize(size) {
+            pageSize = size;
+            localStorage.setItem('specialists_page_size', size);
+            document.querySelectorAll('#page-size-selector .page-size-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.size == String(size));
+            });
+            currentPage = 1;
+            renderSpecialists();
+            renderPagination();
+        }
+
+        function goToPage(page) {
+            const totalPages = pageSize === 'all' ? 1 : Math.ceil(filteredSpecialists.length / pageSize) || 1;
+            if (page < 1 || page > totalPages) return;
+
+            const container = document.getElementById('specialists-container');
+            if (container) {
+                const animClass = page >= currentPage ? 'subpage-flipping-forward' : 'subpage-flipping-backward';
+                container.classList.remove('subpage-flipping-forward', 'subpage-flipping-backward');
+                void container.offsetWidth; // Force reflow
+                container.classList.add(animClass);
+                setTimeout(() => {
+                    container.classList.remove('subpage-flipping-forward', 'subpage-flipping-backward');
+                }, 360);
+
+                const rect = container.getBoundingClientRect();
+                if (rect.top < 60) {
+                    window.scrollTo({ top: window.scrollY + rect.top - 80, behavior: 'smooth' });
+                }
+            }
+
+            currentPage = page;
+            renderSpecialists();
+            renderPagination();
+        }
+
+        function renderPagination() {
+            const controls = document.getElementById('pagination-controls');
+            const summary = document.getElementById('pagination-summary');
+            const total = filteredSpecialists.length;
+
+            if (total === 0) {
+                if (controls) controls.innerHTML = '';
+                if (summary) summary.innerHTML = '<span>لا توجد نتائج</span>';
+                return;
+            }
+
+            if (pageSize === 'all') {
+                if (summary) summary.innerHTML = `<span>عرض جميع الأطباء (${total} طبيب)</span>`;
+                if (controls) controls.innerHTML = '';
+                return;
+            }
+
+            const totalPages = Math.ceil(total / pageSize) || 1;
+            const start = (currentPage - 1) * pageSize + 1;
+            const end = Math.min(currentPage * pageSize, total);
+
+            if (summary) {
+                summary.innerHTML = `
+                    <span>عرض <strong class="text-teal-700 dark:text-amber-400">${start} - ${end}</strong> من أصل <strong>${total}</strong> طبيب</span>
+                    <span class="text-slate-400">· صفحة ${currentPage} من ${totalPages}</span>
+                `;
+            }
+
+            if (!controls) return;
+            if (totalPages <= 1) {
+                controls.innerHTML = '';
+                return;
+            }
+
+            let pillsHtml = '';
+            for (let i = 1; i <= totalPages; i++) {
+                if (totalPages > 7) {
+                    if (i > 2 && i < totalPages - 1 && Math.abs(i - currentPage) > 1) {
+                        if (i === 3 || i === totalPages - 2) {
+                            pillsHtml += `<span class="px-1 text-slate-400">...</span>`;
+                        }
+                        continue;
+                    }
+                }
+                pillsHtml += `
+                    <button type="button" onclick="goToPage(${i})" class="pagination-page-pill ${i === currentPage ? 'active' : ''}">
+                        ${i}
+                    </button>
+                `;
+            }
+
+            controls.innerHTML = `
+                <button type="button" onclick="goToPage(${currentPage - 1})" class="pagination-nav-btn" ${currentPage === 1 ? 'disabled' : ''}>
+                    <i class="fas fa-chevron-right text-xs"></i> <span>السابق</span>
+                </button>
+                <div class="flex items-center gap-1.5 overflow-x-auto py-1">
+                    ${pillsHtml}
+                </div>
+                <button type="button" onclick="goToPage(${currentPage + 1})" class="pagination-nav-btn" ${currentPage === totalPages ? 'disabled' : ''}>
+                    <span>التالي</span> <i class="fas fa-chevron-left text-xs"></i>
+                </button>
+            `;
+        }
+
+        // ================================================================
+        // SPECIALISTS RENDERING
+        // ================================================================
         function renderSpecialists() {
             const container = document.getElementById('specialists-container');
             const emptyState = document.getElementById('empty-state');
@@ -877,14 +1320,21 @@
             const isOwner = Hub.auth.isOwner();
             const canEdit = isAdmin || isOwner;
 
+            // Slice page doctors
+            let pageDocs = filteredSpecialists;
+            if (pageSize !== 'all') {
+                const start = (currentPage - 1) * pageSize;
+                pageDocs = filteredSpecialists.slice(start, start + pageSize);
+            }
+
             if (currentViewMode === 'table') {
-                renderTableView(container, canEdit);
+                renderTableView(container, canEdit, pageDocs);
             } else {
-                renderCardsView(container, canEdit);
+                renderCardsView(container, canEdit, pageDocs);
             }
         }
 
-        function renderCardsView(container, canEdit) {
+        function renderCardsView(container, canEdit, docs) {
             const hospitalsMap = Hub.getHospitals().reduce((acc, h) => {
                 acc[h.id] = h.name_ar || h.hospitalName;
                 return acc;
@@ -892,7 +1342,7 @@
 
             let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
 
-            filteredSpecialists.forEach(doc => {
+            docs.forEach(doc => {
                 const cleanPhone = (doc.phone || '').replace(/[^0-9]/g, '');
                 const waPhone = cleanPhone.startsWith('0') ? '964' + cleanPhone.substring(1) : cleanPhone;
 
@@ -900,6 +1350,12 @@
                     const name = hospitalsMap[hId] || hId;
                     return `<span class="hosp-tag"><i class="fas fa-hospital text-teal-600 dark:text-amber-400"></i> ${name}</span>`;
                 }).join(' ');
+
+                // Schedule badges
+                const sched = doc.schedule || {};
+                const clinicDays = Array.isArray(sched.clinicDays) && sched.clinicDays.length > 0 ? sched.clinicDays : null;
+                const onCallDays = Array.isArray(sched.onCallDays) && sched.onCallDays.length > 0 ? sched.onCallDays : null;
+                const theatreDays = Array.isArray(sched.theatreDays) && sched.theatreDays.length > 0 ? sched.theatreDays : null;
 
                 html += `
                     <div class="specialist-card" id="specialist-card-${doc.id}">
@@ -924,8 +1380,32 @@
                             </div>
 
                             <!-- Hospitals Covered -->
-                            <div class="mb-3 flex flex-wrap gap-1">
+                            <div class="mb-2.5 flex flex-wrap gap-1">
                                 ${hospBadges || '<span class="text-xs text-slate-400">غير محدد</span>'}
+                            </div>
+
+                            <!-- Specialist Schedule Preview Chips -->
+                            <div class="mb-3 flex flex-wrap gap-1.5">
+                                ${clinicDays ? `
+                                    <span class="schedule-badge-clinic" title="أيام العيادة الاستشارية">
+                                        <i class="fas fa-stethoscope"></i> استشارية: ${clinicDays.join('، ')}
+                                    </span>
+                                ` : ''}
+                                ${onCallDays ? `
+                                    <span class="schedule-badge-oncall" title="أيام خفارة الاستدعاء">
+                                        <i class="fas fa-phone-volume"></i> خفارة: ${onCallDays.join('، ')}
+                                    </span>
+                                ` : ''}
+                                ${theatreDays ? `
+                                    <span class="schedule-badge-theatre" title="أيام العمليات">
+                                        <i class="fas fa-scissors"></i> عمليات: ${theatreDays.join('، ')}
+                                    </span>
+                                ` : ''}
+                                ${!clinicDays && !onCallDays && !theatreDays ? `
+                                    <span class="text-[10px] text-slate-400 font-bold bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded">
+                                        <i class="fas fa-calendar-times ml-1"></i> لم يحدد جدول بعد
+                                    </span>
+                                ` : ''}
                             </div>
 
                             <!-- Clinic Location & Notes -->
@@ -941,26 +1421,29 @@
                             </div>` : ''}
                         </div>
 
-                        <!-- Actions & Contact -->
-                        <div class="pt-3 mt-1 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
-                            <div class="flex items-center gap-2">
+                        <!-- Actions, Schedule & Contact -->
+                        <div class="pt-3 mt-1 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" onclick="openSpecialistScheduleModal('${doc.id}')" class="schedule-btn" title="عرض أو تعديل جدول الطبيب">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>${canEdit ? 'إدارة الجدول' : 'عرض الجدول'}</span>
+                                </button>
                                 ${doc.phone ? `
                                     <a href="tel:${doc.phone}" class="phone-btn" title="اتصال هاتفي مباشر">
                                         <i class="fas fa-phone-alt"></i>
-                                        <span>${doc.phone}</span>
                                     </a>
                                     <a href="https://wa.me/${waPhone}" target="_blank" rel="noopener" class="whatsapp-btn" title="مراسلة عبر واتساب">
-                                        <i class="fab fa-whatsapp text-sm"></i>
+                                        <i class="fab fa-whatsapp"></i>
                                     </a>
-                                ` : '<span class="text-xs text-slate-400 font-bold">لا يوجد رقم</span>'}
+                                ` : ''}
                             </div>
 
                             ${canEdit ? `
                             <div class="flex items-center gap-1">
-                                <button type="button" onclick="openEditSpecialistModal('${doc.id}')" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-teal-600 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs" title="تعديل">
+                                <button type="button" onclick="openEditSpecialistModal('${doc.id}')" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-teal-600 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs" title="تعديل البيانات">
                                     <i class="fas fa-pen"></i>
                                 </button>
-                                <button type="button" onclick="confirmDeleteSpecialist('${doc.id}', '${doc.name}')" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs" title="حذف">
+                                <button type="button" onclick="confirmDeleteSpecialist('${doc.id}', '${doc.name}')" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs" title="حذف الطبيب">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </div>` : ''}
@@ -973,14 +1456,14 @@
             container.innerHTML = html;
         }
 
-        function renderTableView(container, canEdit) {
+        function renderTableView(container, canEdit, docs) {
             const hospitalsMap = Hub.getHospitals().reduce((acc, h) => {
                 acc[h.id] = h.name_ar || h.hospitalName;
                 return acc;
             }, {});
 
             let rowsHtml = '';
-            filteredSpecialists.forEach(doc => {
+            docs.forEach(doc => {
                 const cleanPhone = (doc.phone || '').replace(/[^0-9]/g, '');
                 const waPhone = cleanPhone.startsWith('0') ? '964' + cleanPhone.substring(1) : cleanPhone;
 
@@ -988,6 +1471,10 @@
                     const name = hospitalsMap[hId] || hId;
                     return `<span class="hosp-tag">${name}</span>`;
                 }).join(' ');
+
+                const sched = doc.schedule || {};
+                const clinicDays = Array.isArray(sched.clinicDays) && sched.clinicDays.length > 0 ? sched.clinicDays.join('، ') : null;
+                const onCallDays = Array.isArray(sched.onCallDays) && sched.onCallDays.length > 0 ? sched.onCallDays.join('، ') : null;
 
                 rowsHtml += `
                     <tr>
@@ -1005,8 +1492,18 @@
                             <div class="flex flex-wrap gap-1">${hospTags || '—'}</div>
                         </td>
                         <td>
+                            <div class="flex flex-col gap-1 text-[11px]">
+                                ${clinicDays ? `<span class="text-blue-600 dark:text-blue-400 font-bold"><i class="fas fa-stethoscope ml-1"></i> ${clinicDays}</span>` : ''}
+                                ${onCallDays ? `<span class="text-amber-600 dark:text-amber-400 font-bold"><i class="fas fa-phone-volume ml-1"></i> ${onCallDays}</span>` : ''}
+                                ${!clinicDays && !onCallDays ? `<span class="text-slate-400">غير محدد</span>` : ''}
+                                <button type="button" onclick="openSpecialistScheduleModal('${doc.id}')" class="schedule-btn mt-1 text-[10px] py-0.5 px-1.5 self-start">
+                                    <i class="fas fa-calendar-alt"></i> ${canEdit ? 'تعديل الجدول' : 'عرض الجدول'}
+                                </button>
+                            </div>
+                        </td>
+                        <td>
                             ${doc.phone ? `
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-1.5">
                                 <a href="tel:${doc.phone}" class="phone-btn text-xs py-1 px-2">
                                     <i class="fas fa-phone-alt"></i> <span>${doc.phone}</span>
                                 </a>
@@ -1028,10 +1525,10 @@
                         ${canEdit ? `
                         <td>
                             <div class="flex items-center gap-1">
-                                <button type="button" onclick="openEditSpecialistModal('${doc.id}')" class="p-1.5 rounded-lg text-slate-500 hover:text-teal-600 dark:hover:text-amber-400 text-xs">
+                                <button type="button" onclick="openEditSpecialistModal('${doc.id}')" class="p-1.5 rounded-lg text-slate-500 hover:text-teal-600 dark:hover:text-amber-400 text-xs" title="تعديل">
                                     <i class="fas fa-pen"></i>
                                 </button>
-                                <button type="button" onclick="confirmDeleteSpecialist('${doc.id}', '${doc.name}')" class="p-1.5 rounded-lg text-slate-500 hover:text-rose-500 text-xs">
+                                <button type="button" onclick="confirmDeleteSpecialist('${doc.id}', '${doc.name}')" class="p-1.5 rounded-lg text-slate-500 hover:text-rose-500 text-xs" title="حذف">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </div>
@@ -1048,8 +1545,9 @@
                                 <th>اسم الطبيب والرتبة</th>
                                 <th>التخصص</th>
                                 <th>المستشفيات</th>
+                                <th>جدول الخفارة والاستشارية</th>
                                 <th>الهاتف والتواصل</th>
-                                <th>العيادة والاستشارية</th>
+                                <th>مكان العيادة</th>
                                 <th>الحالة</th>
                                 ${canEdit ? '<th>الإجراءات</th>' : ''}
                             </tr>
@@ -1060,6 +1558,222 @@
                     </table>
                 </div>
             `;
+        }
+
+        // ================================================================
+        // SPECIALIST SCHEDULE MODAL (VIEW / EDIT)
+        // ================================================================
+        function openSpecialistScheduleModal(docId) {
+            const doc = Hub.specialists.getById(docId);
+            if (!doc) {
+                showToast('لم يتم العثور على بيانات الطبيب', 'error');
+                return;
+            }
+
+            const isAdmin = Hub.auth.isAdmin();
+            const isOwner = Hub.auth.isOwner();
+            const canEdit = isAdmin || isOwner;
+
+            const sched = doc.schedule || {
+                clinicDays: [],
+                onCallDays: [],
+                theatreDays: [],
+                shiftTimes: '',
+                notes: ''
+            };
+
+            const modalTitle = document.getElementById('schedule-modal-title');
+            const content = document.getElementById('schedule-modal-content');
+            if (modalTitle) {
+                modalTitle.innerHTML = `
+                    <i class="fas fa-calendar-week text-teal-600 dark:text-amber-400"></i>
+                    <span>جدول دوام وخفارات: ${doc.name}</span>
+                `;
+            }
+
+            if (canEdit) {
+                // EDIT MODE FOR ADMIN & OWNER
+                content.innerHTML = `
+                    <form onsubmit="handleSpecialistScheduleSubmit(event, '${doc.id}')" class="space-y-4">
+                        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-xs flex items-center justify-between">
+                            <div>
+                                <div class="font-black text-slate-800 dark:text-white">${doc.name}</div>
+                                <div class="text-slate-500">${doc.title || 'أخصائي'} · ${doc.specName || doc.spec}</div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 dark:bg-amber-950/40 dark:text-amber-300 font-bold border border-teal-200 dark:border-amber-900/50">
+                                <i class="fas fa-user-shield ml-1"></i> وضع التعديل (إدارة)
+                            </span>
+                        </div>
+
+                        <!-- Clinic Days -->
+                        <div class="p-3 rounded-xl border border-blue-200 dark:border-blue-900/40 bg-blue-50/20 dark:bg-blue-950/10">
+                            <label class="block text-xs font-black text-blue-700 dark:text-blue-300 mb-2">
+                                <i class="fas fa-stethoscope ml-1"></i> أيام العيادة الاستشارية:
+                            </label>
+                            <div class="grid grid-cols-4 sm:grid-cols-7 gap-1.5" id="sched-edit-clinic-days">
+                                ${WEEK_DAYS.map(d => `
+                                    <label class="day-toggle-cb">
+                                        <input type="checkbox" name="sched-clinic-day" value="${d.name}" ${(sched.clinicDays || []).includes(d.name) ? 'checked' : ''} class="w-3.5 h-3.5 accent-blue-600 rounded" />
+                                        <span>${d.name}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- On-Call Days -->
+                        <div class="p-3 rounded-xl border border-amber-200 dark:border-amber-900/40 bg-amber-50/20 dark:bg-amber-950/10">
+                            <label class="block text-xs font-black text-amber-800 dark:text-amber-300 mb-2">
+                                <i class="fas fa-phone-volume ml-1"></i> أيام خفارة الاستدعاء (On-Call Specialist):
+                            </label>
+                            <div class="grid grid-cols-4 sm:grid-cols-7 gap-1.5" id="sched-edit-oncall-days">
+                                ${WEEK_DAYS.map(d => `
+                                    <label class="day-toggle-cb">
+                                        <input type="checkbox" name="sched-oncall-day" value="${d.name}" ${(sched.onCallDays || []).includes(d.name) ? 'checked' : ''} class="w-3.5 h-3.5 accent-amber-600 rounded" />
+                                        <span>${d.name}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Theatre Days -->
+                        <div class="p-3 rounded-xl border border-purple-200 dark:border-purple-900/40 bg-purple-50/20 dark:bg-purple-950/10">
+                            <label class="block text-xs font-black text-purple-800 dark:text-purple-300 mb-2">
+                                <i class="fas fa-scissors ml-1"></i> أيام صالة العمليات (Surgery):
+                            </label>
+                            <div class="grid grid-cols-4 sm:grid-cols-7 gap-1.5" id="sched-edit-theatre-days">
+                                ${WEEK_DAYS.map(d => `
+                                    <label class="day-toggle-cb">
+                                        <input type="checkbox" name="sched-theatre-day" value="${d.name}" ${(sched.theatreDays || []).includes(d.name) ? 'checked' : ''} class="w-3.5 h-3.5 accent-purple-600 rounded" />
+                                        <span>${d.name}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-1">أوقات وساعات الدوام</label>
+                                <input type="text" id="sched-edit-times" class="input-field text-xs" value="${sched.shiftTimes || ''}" placeholder="مثال: 8:30 ص - 1:00 م" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-1">تعليمات وتفاصيل الاستدعاء</label>
+                                <input type="text" id="sched-edit-notes" class="input-field text-xs" value="${sched.notes || ''}" placeholder="مثال: متواجد لحالات الطوارئ والإنعاش" />
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+                            <button type="submit" id="sched-save-btn" class="flex-1 btn-gradient">
+                                <i class="fas fa-save"></i> حفظ جدول الطبيب
+                            </button>
+                            <button type="button" onclick="closeSpecialistScheduleModal()" class="btn-ghost">إلغاء</button>
+                        </div>
+                    </form>
+                `;
+            } else {
+                // VIEW MODE FOR REGULAR USERS
+                const clinicDays = Array.isArray(sched.clinicDays) && sched.clinicDays.length > 0 ? sched.clinicDays : [];
+                const onCallDays = Array.isArray(sched.onCallDays) && sched.onCallDays.length > 0 ? sched.onCallDays : [];
+                const theatreDays = Array.isArray(sched.theatreDays) && sched.theatreDays.length > 0 ? sched.theatreDays : [];
+
+                content.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                            <div>
+                                <h4 class="text-base font-black text-slate-800 dark:text-white">${doc.name}</h4>
+                                <div class="text-xs text-slate-500 mt-0.5">${doc.title || 'أخصائي'} · ${doc.specName || doc.spec}</div>
+                            </div>
+                            ${doc.phone ? `
+                                <a href="tel:${doc.phone}" class="btn-gradient text-xs py-1.5 px-3">
+                                    <i class="fas fa-phone-alt ml-1"></i> اتصل الآن
+                                </a>
+                            ` : ''}
+                        </div>
+
+                        <!-- Weekly Roster Visual Matrix -->
+                        <div>
+                            <h5 class="text-xs font-black text-slate-700 dark:text-slate-300 mb-2">جدول التواجد الأسبوعي:</h5>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                                ${WEEK_DAYS.map(d => {
+                                    const isClinic = clinicDays.includes(d.name);
+                                    const isOnCall = onCallDays.includes(d.name);
+                                    const isTheatre = theatreDays.includes(d.name);
+                                    const hasAny = isClinic || isOnCall || isTheatre;
+
+                                    return `
+                                        <div class="p-2.5 rounded-xl border ${hasAny ? 'border-teal-300 dark:border-amber-800 bg-white dark:bg-slate-800 shadow-sm' : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 opacity-60'}">
+                                            <div class="font-black text-sm text-slate-800 dark:text-white mb-1.5">${d.name}</div>
+                                            <div class="space-y-1">
+                                                ${isClinic ? `<span class="block text-[10px] font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded"><i class="fas fa-stethoscope ml-0.5"></i> استشارية</span>` : ''}
+                                                ${isOnCall ? `<span class="block text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded"><i class="fas fa-phone-volume ml-0.5"></i> خفارة استدعاء</span>` : ''}
+                                                ${isTheatre ? `<span class="block text-[10px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-1.5 py-0.5 rounded"><i class="fas fa-scissors ml-0.5"></i> صالة عمليات</span>` : ''}
+                                                ${!hasAny ? `<span class="text-[10px] text-slate-400">عطلة / استراحة</span>` : ''}
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+
+                        ${sched.shiftTimes ? `
+                        <div class="p-3 rounded-xl bg-teal-50/40 dark:bg-amber-950/20 border border-teal-200 dark:border-amber-900/30 text-xs">
+                            <div class="font-bold text-teal-800 dark:text-amber-300 mb-0.5"><i class="fas fa-clock ml-1"></i> ساعات التواجد:</div>
+                            <div class="text-slate-600 dark:text-slate-300">${sched.shiftTimes}</div>
+                        </div>` : ''}
+
+                        ${sched.notes ? `
+                        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 text-xs">
+                            <div class="font-bold text-slate-700 dark:text-slate-300 mb-0.5"><i class="fas fa-info-circle ml-1"></i> ملاحظات الاستدعاء:</div>
+                            <div class="text-slate-500 dark:text-slate-400">${sched.notes}</div>
+                        </div>` : ''}
+
+                        <div class="pt-2 text-center">
+                            <button type="button" onclick="closeSpecialistScheduleModal()" class="btn-ghost text-xs">
+                                إغلاق النافذة
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('specialist-schedule-modal').classList.add('active');
+        }
+
+        function closeSpecialistScheduleModal() {
+            document.getElementById('specialist-schedule-modal').classList.remove('active');
+        }
+
+        async function handleSpecialistScheduleSubmit(e, docId) {
+            e.preventDefault();
+            const btn = document.getElementById('sched-save-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري حفظ الجدول...';
+
+            const clinicDays = Array.from(document.querySelectorAll('input[name="sched-clinic-day"]:checked')).map(cb => cb.value);
+            const onCallDays = Array.from(document.querySelectorAll('input[name="sched-oncall-day"]:checked')).map(cb => cb.value);
+            const theatreDays = Array.from(document.querySelectorAll('input[name="sched-theatre-day"]:checked')).map(cb => cb.value);
+            const shiftTimes = (document.getElementById('sched-edit-times')?.value || '').trim();
+            const notes = (document.getElementById('sched-edit-notes')?.value || '').trim();
+
+            const scheduleData = {
+                clinicDays,
+                onCallDays,
+                theatreDays,
+                shiftTimes,
+                notes
+            };
+
+            try {
+                await Hub.specialists.saveSchedule(docId, scheduleData);
+                closeSpecialistScheduleModal();
+                showToast('تم حفظ وتحديث جدول الطبيب بنجاح ✅', 'success');
+                refreshSpecialistsData();
+            } catch (err) {
+                console.error('Error saving specialist schedule:', err);
+                showToast(err.message || 'حدث خطأ أثناء حفظ الجدول', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> حفظ جدول الطبيب';
+            }
         }
 
         // ================================================================
@@ -1081,6 +1795,11 @@
             document.getElementById('form-spec-active').checked = true;
 
             renderHospitalCheckboxes([]);
+            renderFormDayCheckboxes('form-clinic-days-wrap', 'form-clinic-day', []);
+            renderFormDayCheckboxes('form-oncall-days-wrap', 'form-oncall-day', []);
+            renderFormDayCheckboxes('form-theatre-days-wrap', 'form-theatre-day', []);
+            document.getElementById('form-spec-times').value = '';
+
             document.getElementById('specialist-modal').classList.add('active');
         }
 
@@ -1112,6 +1831,13 @@
             document.getElementById('form-spec-active').checked = doc.active !== false;
 
             renderHospitalCheckboxes(doc.hospitals || []);
+
+            const sched = doc.schedule || {};
+            renderFormDayCheckboxes('form-clinic-days-wrap', 'form-clinic-day', sched.clinicDays || []);
+            renderFormDayCheckboxes('form-oncall-days-wrap', 'form-oncall-day', sched.onCallDays || []);
+            renderFormDayCheckboxes('form-theatre-days-wrap', 'form-theatre-day', sched.theatreDays || []);
+            document.getElementById('form-spec-times').value = sched.shiftTimes || '';
+
             document.getElementById('specialist-modal').classList.add('active');
         }
 
@@ -1148,6 +1874,12 @@
 
             const checkedHosps = Array.from(document.querySelectorAll('input[name="form-hosp-cb"]:checked')).map(cb => cb.value);
 
+            // Gather schedule from form
+            const clinicDays = Array.from(document.querySelectorAll('input[name="form-clinic-day"]:checked')).map(cb => cb.value);
+            const onCallDays = Array.from(document.querySelectorAll('input[name="form-oncall-day"]:checked')).map(cb => cb.value);
+            const theatreDays = Array.from(document.querySelectorAll('input[name="form-theatre-day"]:checked')).map(cb => cb.value);
+            const shiftTimes = (document.getElementById('form-spec-times')?.value || '').trim();
+
             const specData = {
                 name: document.getElementById('form-spec-name').value.trim(),
                 title: document.getElementById('form-spec-title').value.trim(),
@@ -1157,7 +1889,13 @@
                 clinic: document.getElementById('form-spec-clinic').value.trim(),
                 notes: document.getElementById('form-spec-notes').value.trim(),
                 hospitals: checkedHosps.length > 0 ? checkedHosps : [Hub.getActiveHospitalId()],
-                active: document.getElementById('form-spec-active').checked
+                active: document.getElementById('form-spec-active').checked,
+                schedule: {
+                    clinicDays,
+                    onCallDays,
+                    theatreDays,
+                    shiftTimes
+                }
             };
 
             if (id) specData.id = id;
@@ -1211,7 +1949,9 @@
         window.addEventListener('hub:auth-changed', () => {
             checkAdminPermissions();
             renderSpecialists();
+            renderPagination();
         });
     </script>
 </body>
 </html>
+

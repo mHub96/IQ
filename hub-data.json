@@ -20479,7 +20479,8 @@
           "timestamp": "09:53",
           "VisitCount": 0
         }
-      ]
+      ],
+      "rotationHeroesUrl": "https://khafarat-alsadr.netlify.app/"
     },
     "basra": {
       "id": "basra",
@@ -32350,7 +32351,8 @@
           "timestamp": "12:08",
           "VisitCount": 0
         }
-      ]
+      ],
+      "rotationHeroesUrl": ""
     },
     "mawani": {
       "id": "mawani",
@@ -37532,7 +37534,8 @@
           "dutyTime": "",
           "dutySlot": 0
         }
-      ]
+      ],
+      "rotationHeroesUrl": ""
     }
   },
   "residents": [

@@ -1597,6 +1597,118 @@
     }
 
     // ============================================================
+    // SPECIALISTS DIRECTORY & DATABASE (أطباء الاختصاص والاستشاريين)
+    // ============================================================
+    function getSpecialists(hospitalId = null, specCode = null) {
+        if (!db) return [];
+        let list = db.specialists;
+        if (!Array.isArray(list)) {
+            list = db.specialists = [];
+        }
+        if (hospitalId && hospitalId !== 'all') {
+            list = list.filter(s => Array.isArray(s.hospitals) && (s.hospitals.includes(hospitalId) || s.hospitals.includes('all')));
+        }
+        if (specCode && specCode !== 'all') {
+            list = list.filter(s => s.spec === specCode);
+        }
+        return list;
+    }
+
+    function getSpecialist(id) {
+        if (!db || !Array.isArray(db.specialists)) return null;
+        return db.specialists.find(s => s.id === id) || null;
+    }
+
+    async function saveSpecialist(specialistData) {
+        if (!auth.isAdmin()) {
+            throw new Error('غير مصرح لك بإدارة أطباء الاختصاص. يتطلب صلاحيات المدير أو المالك.');
+        }
+        if (!db) throw new Error('قاعدة البيانات غير محملة');
+        if (!Array.isArray(db.specialists)) db.specialists = [];
+
+        const name = (specialistData.name || '').trim();
+        if (!name) throw new Error('الرجاء إدخال اسم الطبيب الاختصاصي');
+        const formattedName = (name.startsWith('د.') || name.startsWith('د ')) ? name : `د. ${name}`;
+
+        let hospitals = Array.isArray(specialistData.hospitals) ? specialistData.hospitals : [];
+        if (hospitals.length === 0) {
+            hospitals = [specialistData.hospitalId || getActiveHospitalId()];
+        }
+
+        const spec = normalizeSpecialtyId(specialistData.spec || 'GS');
+        const globalSpecs = getGlobalSpecialties();
+        const gSpec = globalSpecs.find(s => s.id === spec);
+        const specName = specialistData.specName || (gSpec ? gSpec.name_ar : spec);
+
+        let specialist;
+        if (specialistData.id) {
+            specialist = db.specialists.find(s => s.id === specialistData.id);
+        }
+
+        if (specialist) {
+            specialist.name = formattedName;
+            specialist.title = (specialistData.title || 'أخصائي').trim();
+            specialist.spec = spec;
+            specialist.specName = specName;
+            specialist.hospitals = hospitals;
+            specialist.phone = (specialistData.phone || '').trim();
+            specialist.clinic = (specialistData.clinic || '').trim();
+            specialist.notes = (specialistData.notes || '').trim();
+            if (specialistData.active !== undefined) specialist.active = Boolean(specialistData.active);
+        } else {
+            specialist = {
+                id: 'spec-doc-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4),
+                name: formattedName,
+                title: (specialistData.title || 'أخصائي').trim(),
+                spec: spec,
+                specName: specName,
+                hospitals: hospitals,
+                phone: (specialistData.phone || '').trim(),
+                clinic: (specialistData.clinic || '').trim(),
+                notes: (specialistData.notes || '').trim(),
+                active: specialistData.active !== false
+            };
+            db.specialists.unshift(specialist);
+        }
+
+        await saveDatabase(`Save Specialist: ${formattedName}`);
+        return specialist;
+    }
+
+    async function deleteSpecialist(id) {
+        if (!auth.isAdmin()) {
+            throw new Error('غير مصرح لك بحذف الطبيب الاختصاصي. يتطلب صلاحيات المدير أو المالك.');
+        }
+        if (!db || !Array.isArray(db.specialists)) throw new Error('قاعدة البيانات غير محملة');
+        const idx = db.specialists.findIndex(s => s.id === id);
+        if (idx === -1) throw new Error('الطبيب الاختصاصي غير موجود');
+
+        const deleted = db.specialists.splice(idx, 1)[0];
+        await saveDatabase(`Delete Specialist: ${deleted.name}`);
+        return deleted;
+    }
+
+    // ============================================================
+    // MONTHLY SCHEDULE QUERY HELPER
+    // ============================================================
+    function getHospitalMonthSchedule(hospitalId, year, month) {
+        const hosp = getHospital(hospitalId);
+        if (!hosp || !Array.isArray(hosp.schedule)) return [];
+        const padMonth = String(month).padStart(2, '0');
+        const strYear = String(year);
+
+        return hosp.schedule.filter(entry => {
+            if (!entry.date) return false;
+            const norm = normalizeDateString(entry.date);
+            const parts = norm.split('/');
+            if (parts.length === 3) {
+                return parts[1] === padMonth && parts[2] === strYear;
+            }
+            return false;
+        });
+    }
+
+    // ============================================================
     // AUTHENTICATION & MULTI-PASSWORD ROLE TRICK
     // ============================================================
     const auth = {
@@ -1885,6 +1997,11 @@
         addResident,
         updateResident,
         deleteResident,
+        getSpecialists,
+        getSpecialist,
+        saveSpecialist,
+        deleteSpecialist,
+        getHospitalMonthSchedule,
         updateDuty,
         exchangeDuty,
         incrementVisitCount,

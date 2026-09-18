@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-18T05:35:21.917Z",
+  "lastUpdated": "2026-09-18T09:51:19.763Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -20479,7 +20479,8 @@
           "timestamp": "09:53",
           "VisitCount": 0
         }
-      ]
+      ],
+      "specialistSchedule": []
     },
     "basra": {
       "id": "basra",
@@ -32350,7 +32351,8 @@
           "timestamp": "12:08",
           "VisitCount": 0
         }
-      ]
+      ],
+      "specialistSchedule": []
     },
     "mawani": {
       "id": "mawani",
@@ -37528,6 +37530,40 @@
           "date": "30/09/2026",
           "specCode": "OP",
           "name": "د. آلاء إسماعيل",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        }
+      ],
+      "specialistSchedule": [
+        {
+          "date": "01/10/2026",
+          "specCode": "US",
+          "name": "د. وسام عادل الحبيب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "O",
+          "name": "د. زينب عبد الحسين العبادي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "Pe",
+          "name": "د. رنا كاظم الموسوي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "D",
+          "name": "د. مريم طارق العامري",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

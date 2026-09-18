@@ -846,7 +846,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1">التخصص الطبي</label>
-                        <select id="form-spec-code" class="input-field" required></select>
+                        <select id="form-spec-code" class="input-field" onchange="onSpecialistSpecChanged(this.value)" required></select>
                     </div>
                 </div>
 
@@ -871,13 +871,13 @@
                     </div>
                 </div>
 
-                <!-- Schedule Section (جدول الخفارات والدوام) -->
+                <!-- Schedule Section (أيام الاستشارية وأيام العمليات) -->
                 <div class="p-3.5 rounded-xl border border-teal-200 dark:border-amber-900/40 bg-teal-50/30 dark:bg-amber-950/10 space-y-3">
                     <div class="flex items-center justify-between border-b border-teal-100 dark:border-amber-900/30 pb-2">
                         <label class="block text-xs font-black text-teal-800 dark:text-amber-300">
-                            <i class="fas fa-calendar-check ml-1"></i> جدول الخفارات والعيادة الاستشارية:
+                            <i class="fas fa-calendar-check ml-1"></i> مواعيد العيادة الاستشارية والعمليات:
                         </label>
-                        <span class="text-[11px] text-slate-500">اختياري</span>
+                        <span class="text-[11px] text-slate-500">الخفارات تدار من المجدول</span>
                     </div>
 
                     <!-- Consultation Days -->
@@ -886,39 +886,24 @@
                             🏥 أيام العيادة الاستشارية:
                         </label>
                         <div class="grid grid-cols-4 sm:grid-cols-7 gap-1.5" id="form-clinic-days-wrap">
-                            <!-- Rendered dynamically or static -->
-                        </div>
-                    </div>
-
-                    <!-- On-Call Duty Days -->
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5">
-                            📞 أيام خفارة الاستدعاء (On-Call):
-                        </label>
-                        <div class="grid grid-cols-4 sm:grid-cols-7 gap-1.5" id="form-oncall-days-wrap">
                             <!-- Rendered dynamically -->
                         </div>
                     </div>
 
-                    <!-- Operation Theatre Days -->
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5">
-                            🔪 أيام صالة العمليات:
-                        </label>
+                    <!-- Operation Theatre Days (Enabled only for surgical branches) -->
+                    <div id="theatre-days-container" class="space-y-1.5 pt-1 border-t border-teal-100 dark:border-amber-900/20">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                                🔪 أيام صالة العمليات:
+                            </label>
+                            <span id="theatre-branch-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                                متاح للفروع الجراحية فقط
+                            </span>
+                        </div>
                         <div class="grid grid-cols-4 sm:grid-cols-7 gap-1.5" id="form-theatre-days-wrap">
                             <!-- Rendered dynamically -->
                         </div>
                     </div>
-
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-500 mb-1">ساعات وأوقات التواجد الاستشاري</label>
-                        <input type="text" id="form-spec-times" class="input-field text-xs" placeholder="مثال: 8:30 ص - 1:00 م" />
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">ملاحظات إضافية / المهام</label>
-                    <input type="text" id="form-spec-notes" class="input-field" placeholder="مثال: رئيس قسم الجراحة / مناظير متقدمة" />
                 </div>
 
                 <div class="flex items-center justify-between pt-1">
@@ -1000,7 +985,6 @@
             renderHospitalFilterPills();
             populateSpecialtyFilter();
             renderFormDayCheckboxes('form-clinic-days-wrap', 'form-clinic-day');
-            renderFormDayCheckboxes('form-oncall-days-wrap', 'form-oncall-day');
             renderFormDayCheckboxes('form-theatre-days-wrap', 'form-theatre-day');
 
             checkAdminPermissions();
@@ -1352,10 +1336,11 @@
                 }).join(' ');
 
                 // Schedule badges
+                // Schedule badges
+                const isSurg = window.Hub && window.Hub.isSurgicalSpecialty ? window.Hub.isSurgicalSpecialty(doc.spec) : false;
                 const sched = doc.schedule || {};
                 const clinicDays = Array.isArray(sched.clinicDays) && sched.clinicDays.length > 0 ? sched.clinicDays : null;
-                const onCallDays = Array.isArray(sched.onCallDays) && sched.onCallDays.length > 0 ? sched.onCallDays : null;
-                const theatreDays = Array.isArray(sched.theatreDays) && sched.theatreDays.length > 0 ? sched.theatreDays : null;
+                const theatreDays = isSurg && Array.isArray(sched.theatreDays) && sched.theatreDays.length > 0 ? sched.theatreDays : null;
 
                 html += `
                     <div class="specialist-card" id="specialist-card-${doc.id}">
@@ -1391,19 +1376,14 @@
                                         <i class="fas fa-stethoscope"></i> استشارية: ${clinicDays.join('، ')}
                                     </span>
                                 ` : ''}
-                                ${onCallDays ? `
-                                    <span class="schedule-badge-oncall" title="أيام خفارة الاستدعاء">
-                                        <i class="fas fa-phone-volume"></i> خفارة: ${onCallDays.join('، ')}
-                                    </span>
-                                ` : ''}
                                 ${theatreDays ? `
-                                    <span class="schedule-badge-theatre" title="أيام العمليات">
+                                    <span class="schedule-badge-theatre" title="أيام العمليات الجراحية">
                                         <i class="fas fa-scissors"></i> عمليات: ${theatreDays.join('، ')}
                                     </span>
                                 ` : ''}
-                                ${!clinicDays && !onCallDays && !theatreDays ? `
+                                ${!clinicDays && !theatreDays ? `
                                     <span class="text-[10px] text-slate-400 font-bold bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded">
-                                        <i class="fas fa-calendar-times ml-1"></i> لم يحدد جدول بعد
+                                        <i class="fas fa-calendar-times ml-1"></i> مواعيد العيادة والعمليات غير محددة
                                     </span>
                                 ` : ''}
                             </div>
@@ -1424,9 +1404,9 @@
                         <!-- Actions, Schedule & Contact -->
                         <div class="pt-3 mt-1 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
                             <div class="flex items-center gap-1.5">
-                                <button type="button" onclick="openSpecialistScheduleModal('${doc.id}')" class="schedule-btn" title="عرض أو تعديل جدول الطبيب">
-                                    <i class="fas fa-calendar-alt"></i>
-                                    <span>${canEdit ? 'إدارة الجدول' : 'عرض الجدول'}</span>
+                                <button type="button" onclick="openSpecialistDutiesModal('${doc.id}')" class="schedule-btn" title="عرض خفارات الطبيب المجدولة">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <span>خفارات الطبيب</span>
                                 </button>
                                 ${doc.phone ? `
                                     <a href="tel:${doc.phone}" class="phone-btn" title="اتصال هاتفي مباشر">
@@ -1472,9 +1452,10 @@
                     return `<span class="hosp-tag">${name}</span>`;
                 }).join(' ');
 
+                const isSurg = window.Hub && window.Hub.isSurgicalSpecialty ? window.Hub.isSurgicalSpecialty(doc.spec) : false;
                 const sched = doc.schedule || {};
                 const clinicDays = Array.isArray(sched.clinicDays) && sched.clinicDays.length > 0 ? sched.clinicDays.join('، ') : null;
-                const onCallDays = Array.isArray(sched.onCallDays) && sched.onCallDays.length > 0 ? sched.onCallDays.join('، ') : null;
+                const theatreDays = isSurg && Array.isArray(sched.theatreDays) && sched.theatreDays.length > 0 ? sched.theatreDays.join('، ') : null;
 
                 rowsHtml += `
                     <tr>
@@ -1493,11 +1474,11 @@
                         </td>
                         <td>
                             <div class="flex flex-col gap-1 text-[11px]">
-                                ${clinicDays ? `<span class="text-blue-600 dark:text-blue-400 font-bold"><i class="fas fa-stethoscope ml-1"></i> ${clinicDays}</span>` : ''}
-                                ${onCallDays ? `<span class="text-amber-600 dark:text-amber-400 font-bold"><i class="fas fa-phone-volume ml-1"></i> ${onCallDays}</span>` : ''}
-                                ${!clinicDays && !onCallDays ? `<span class="text-slate-400">غير محدد</span>` : ''}
-                                <button type="button" onclick="openSpecialistScheduleModal('${doc.id}')" class="schedule-btn mt-1 text-[10px] py-0.5 px-1.5 self-start">
-                                    <i class="fas fa-calendar-alt"></i> ${canEdit ? 'تعديل الجدول' : 'عرض الجدول'}
+                                ${clinicDays ? `<span class="text-blue-600 dark:text-blue-400 font-bold"><i class="fas fa-stethoscope ml-1"></i> استشارية: ${clinicDays}</span>` : ''}
+                                ${theatreDays ? `<span class="text-purple-600 dark:text-purple-400 font-bold"><i class="fas fa-scissors ml-1"></i> عمليات: ${theatreDays}</span>` : ''}
+                                ${!clinicDays && !theatreDays ? `<span class="text-slate-400">مواعيد غير محددة</span>` : ''}
+                                <button type="button" onclick="openSpecialistDutiesModal('${doc.id}')" class="schedule-btn mt-1 text-[10px] py-0.5 px-2 self-start">
+                                    <i class="fas fa-calendar-check"></i> خفارات الطبيب
                                 </button>
                             </div>
                         </td>
@@ -1561,174 +1542,137 @@
         }
 
         // ================================================================
-        // SPECIALIST SCHEDULE MODAL (VIEW / EDIT)
+        // SPECIALIST DUTIES VIEWER (FROM SCHEDULER)
         // ================================================================
-        function openSpecialistScheduleModal(docId) {
-            const doc = Hub.specialists.getById(docId);
+        function openSpecialistDutiesModal(docId) {
+            const doc = currentSpecialists.find(d => d.id === docId);
             if (!doc) {
                 showToast('لم يتم العثور على بيانات الطبيب', 'error');
                 return;
             }
 
-            const isAdmin = Hub.auth.isAdmin();
-            const isOwner = Hub.auth.isOwner();
-            const canEdit = isAdmin || isOwner;
+            const isSurg = window.Hub && window.Hub.isSurgicalSpecialty ? window.Hub.isSurgicalSpecialty(doc.spec) : false;
+            const sched = doc.schedule || {};
+            const cleanPhone = (doc.phone || '').replace(/[^0-9]/g, '');
+            const waPhone = cleanPhone.startsWith('0') ? '964' + cleanPhone.substring(1) : cleanPhone;
 
-            const sched = doc.schedule || {
-                clinicDays: [],
-                onCallDays: [],
-                theatreDays: [],
-                shiftTimes: '',
-                notes: ''
-            };
+            // Fetch duties from scheduler
+            const duties = window.Hub && window.Hub.getSpecialistDuties ? window.Hub.getSpecialistDuties(doc.name, activeHospFilter) : [];
 
             const modalTitle = document.getElementById('schedule-modal-title');
             const content = document.getElementById('schedule-modal-content');
             if (modalTitle) {
                 modalTitle.innerHTML = `
-                    <i class="fas fa-calendar-week text-teal-600 dark:text-amber-400"></i>
-                    <span>جدول دوام وخفارات: ${doc.name}</span>
+                    <i class="fas fa-calendar-check text-teal-600 dark:text-amber-400"></i>
+                    <span>خفارات الطبيب المجدولة</span>
                 `;
             }
 
-            if (canEdit) {
-                // EDIT MODE FOR ADMIN & OWNER
-                content.innerHTML = `
-                    <form onsubmit="handleSpecialistScheduleSubmit(event, '${doc.id}')" class="space-y-4">
-                        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-xs flex items-center justify-between">
-                            <div>
-                                <div class="font-black text-slate-800 dark:text-white">${doc.name}</div>
-                                <div class="text-slate-500">${doc.title || 'أخصائي'} · ${doc.specName || doc.spec}</div>
-                            </div>
-                            <span class="px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 dark:bg-amber-950/40 dark:text-amber-300 font-bold border border-teal-200 dark:border-amber-900/50">
-                                <i class="fas fa-user-shield ml-1"></i> وضع التعديل (إدارة)
-                            </span>
-                        </div>
-
-                        <!-- Clinic Days -->
-                        <div class="p-3 rounded-xl border border-blue-200 dark:border-blue-900/40 bg-blue-50/20 dark:bg-blue-950/10">
-                            <label class="block text-xs font-black text-blue-700 dark:text-blue-300 mb-2">
-                                <i class="fas fa-stethoscope ml-1"></i> أيام العيادة الاستشارية:
-                            </label>
-                            <div class="grid grid-cols-4 sm:grid-cols-7 gap-1.5" id="sched-edit-clinic-days">
-                                ${WEEK_DAYS.map(d => `
-                                    <label class="day-toggle-cb">
-                                        <input type="checkbox" name="sched-clinic-day" value="${d.name}" ${(sched.clinicDays || []).includes(d.name) ? 'checked' : ''} class="w-3.5 h-3.5 accent-blue-600 rounded" />
-                                        <span>${d.name}</span>
-                                    </label>
-                                `).join('')}
-                            </div>
-                        </div>
-
-                        <!-- On-Call Days -->
-                        <div class="p-3 rounded-xl border border-amber-200 dark:border-amber-900/40 bg-amber-50/20 dark:bg-amber-950/10">
-                            <label class="block text-xs font-black text-amber-800 dark:text-amber-300 mb-2">
-                                <i class="fas fa-phone-volume ml-1"></i> أيام خفارة الاستدعاء (On-Call Specialist):
-                            </label>
-                            <div class="grid grid-cols-4 sm:grid-cols-7 gap-1.5" id="sched-edit-oncall-days">
-                                ${WEEK_DAYS.map(d => `
-                                    <label class="day-toggle-cb">
-                                        <input type="checkbox" name="sched-oncall-day" value="${d.name}" ${(sched.onCallDays || []).includes(d.name) ? 'checked' : ''} class="w-3.5 h-3.5 accent-amber-600 rounded" />
-                                        <span>${d.name}</span>
-                                    </label>
-                                `).join('')}
-                            </div>
-                        </div>
-
-                        <!-- Theatre Days -->
-                        <div class="p-3 rounded-xl border border-purple-200 dark:border-purple-900/40 bg-purple-50/20 dark:bg-purple-950/10">
-                            <label class="block text-xs font-black text-purple-800 dark:text-purple-300 mb-2">
-                                <i class="fas fa-scissors ml-1"></i> أيام صالة العمليات (Surgery):
-                            </label>
-                            <div class="grid grid-cols-4 sm:grid-cols-7 gap-1.5" id="sched-edit-theatre-days">
-                                ${WEEK_DAYS.map(d => `
-                                    <label class="day-toggle-cb">
-                                        <input type="checkbox" name="sched-theatre-day" value="${d.name}" ${(sched.theatreDays || []).includes(d.name) ? 'checked' : ''} class="w-3.5 h-3.5 accent-purple-600 rounded" />
-                                        <span>${d.name}</span>
-                                    </label>
-                                `).join('')}
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 mb-1">أوقات وساعات الدوام</label>
-                                <input type="text" id="sched-edit-times" class="input-field text-xs" value="${sched.shiftTimes || ''}" placeholder="مثال: 8:30 ص - 1:00 م" />
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 mb-1">تعليمات وتفاصيل الاستدعاء</label>
-                                <input type="text" id="sched-edit-notes" class="input-field text-xs" value="${sched.notes || ''}" placeholder="مثال: متواجد لحالات الطوارئ والإنعاش" />
-                            </div>
-                        </div>
-
-                        <div class="flex gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-                            <button type="submit" id="sched-save-btn" class="flex-1 btn-gradient">
-                                <i class="fas fa-save"></i> حفظ جدول الطبيب
-                            </button>
-                            <button type="button" onclick="closeSpecialistScheduleModal()" class="btn-ghost">إلغاء</button>
-                        </div>
-                    </form>
-                `;
-            } else {
-                // VIEW MODE FOR REGULAR USERS
-                const clinicDays = Array.isArray(sched.clinicDays) && sched.clinicDays.length > 0 ? sched.clinicDays : [];
-                const onCallDays = Array.isArray(sched.onCallDays) && sched.onCallDays.length > 0 ? sched.onCallDays : [];
-                const theatreDays = Array.isArray(sched.theatreDays) && sched.theatreDays.length > 0 ? sched.theatreDays : [];
-
+            if (content) {
                 content.innerHTML = `
                     <div class="space-y-4">
+                        <!-- Doctor Profile Header Card -->
                         <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                             <div>
                                 <h4 class="text-base font-black text-slate-800 dark:text-white">${doc.name}</h4>
                                 <div class="text-xs text-slate-500 mt-0.5">${doc.title || 'أخصائي'} · ${doc.specName || doc.spec}</div>
+                                <div class="flex flex-wrap items-center gap-2 mt-2 text-xs">
+                                    ${sched.clinicDays && sched.clinicDays.length > 0 ? `
+                                        <span class="schedule-badge-clinic text-[11px]">
+                                            <i class="fas fa-stethoscope"></i> استشارية: ${sched.clinicDays.join('، ')}
+                                        </span>
+                                    ` : ''}
+                                    ${isSurg && sched.theatreDays && sched.theatreDays.length > 0 ? `
+                                        <span class="schedule-badge-theatre text-[11px]">
+                                            <i class="fas fa-scissors"></i> عمليات: ${sched.theatreDays.join('، ')}
+                                        </span>
+                                    ` : ''}
+                                </div>
                             </div>
-                            ${doc.phone ? `
-                                <a href="tel:${doc.phone}" class="btn-gradient text-xs py-1.5 px-3">
-                                    <i class="fas fa-phone-alt ml-1"></i> اتصل الآن
-                                </a>
-                            ` : ''}
+                            <div class="flex items-center gap-1.5">
+                                ${doc.phone ? `
+                                    <a href="tel:${doc.phone}" class="phone-btn" title="اتصال هاتفي">
+                                        <i class="fas fa-phone-alt"></i>
+                                    </a>
+                                    <a href="https://wa.me/${waPhone}" target="_blank" rel="noopener" class="whatsapp-btn" title="واتساب">
+                                        <i class="fab fa-whatsapp"></i>
+                                    </a>
+                                ` : ''}
+                            </div>
                         </div>
 
-                        <!-- Weekly Roster Visual Matrix -->
+                        <!-- Scheduled Duties List -->
                         <div>
-                            <h5 class="text-xs font-black text-slate-700 dark:text-slate-300 mb-2">جدول التواجد الأسبوعي:</h5>
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                                ${WEEK_DAYS.map(d => {
-                                    const isClinic = clinicDays.includes(d.name);
-                                    const isOnCall = onCallDays.includes(d.name);
-                                    const isTheatre = theatreDays.includes(d.name);
-                                    const hasAny = isClinic || isOnCall || isTheatre;
-
-                                    return `
-                                        <div class="p-2.5 rounded-xl border ${hasAny ? 'border-teal-300 dark:border-amber-800 bg-white dark:bg-slate-800 shadow-sm' : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 opacity-60'}">
-                                            <div class="font-black text-sm text-slate-800 dark:text-white mb-1.5">${d.name}</div>
-                                            <div class="space-y-1">
-                                                ${isClinic ? `<span class="block text-[10px] font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded"><i class="fas fa-stethoscope ml-0.5"></i> استشارية</span>` : ''}
-                                                ${isOnCall ? `<span class="block text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded"><i class="fas fa-phone-volume ml-0.5"></i> خفارة استدعاء</span>` : ''}
-                                                ${isTheatre ? `<span class="block text-[10px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-1.5 py-0.5 rounded"><i class="fas fa-scissors ml-0.5"></i> صالة عمليات</span>` : ''}
-                                                ${!hasAny ? `<span class="text-[10px] text-slate-400">عطلة / استراحة</span>` : ''}
-                                            </div>
-                                        </div>
-                                    `;
-                                }).join('')}
+                            <div class="flex items-center justify-between mb-2">
+                                <h5 class="text-xs font-black text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                    <i class="fas fa-clipboard-list text-teal-600 dark:text-amber-400"></i>
+                                    <span>الخفارات المعينة في جدول المستشفى (من المجدول):</span>
+                                </h5>
+                                <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 dark:bg-amber-950/40 dark:text-amber-300 border border-teal-200 dark:border-amber-900/50">
+                                    ${duties.length} خفارة مسجلة
+                                </span>
                             </div>
+
+                            ${duties.length > 0 ? `
+                                <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                                    ${duties.map(d => {
+                                        const dateParts = (d.date || '').split('-');
+                                        const dateObj = new Date(d.date + 'T00:00:00');
+                                        const dayName = !isNaN(dateObj) ? dateObj.toLocaleDateString('ar-IQ', { weekday: 'long' }) : '';
+                                        const slotNum = (parseInt(d.dutySlot) || 0) + 1;
+                                        return `
+                                            <div class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/90 shadow-sm flex items-center justify-between">
+                                                <div class="flex items-center gap-2.5">
+                                                    <div class="w-11 h-11 rounded-xl bg-teal-50 text-teal-700 dark:bg-amber-950/50 dark:text-amber-300 border border-teal-200 dark:border-amber-900/60 flex flex-col items-center justify-center font-bold leading-none">
+                                                        <span class="text-[10px] font-normal">${dayName}</span>
+                                                        <span class="text-sm font-black font-mono mt-0.5">${dateParts[2] || ''}</span>
+                                                    </div>
+                                                    <div>
+                                                        <div class="text-xs font-black text-slate-800 dark:text-white flex items-center gap-1.5">
+                                                            <span>${d.date}</span>
+                                                            <span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">${d.hospitalName || ''}</span>
+                                                        </div>
+                                                        <div class="text-[11px] text-slate-500 mt-0.5">
+                                                            <span>قسم ${d.specCode}</span> · <span>نوبة ${slotNum}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                ${d.dutyTime ? `
+                                                    <span class="text-xs font-mono font-bold px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-700/60 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+                                                        <i class="fas fa-clock text-teal-600 dark:text-amber-400 ml-1"></i>${d.dutyTime}
+                                                    </span>
+                                                ` : `
+                                                    <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-1 rounded-lg border border-emerald-200 dark:border-emerald-900/50">
+                                                        <i class="fas fa-check-circle ml-1"></i>خفارة استدعاء
+                                                    </span>
+                                                `}
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            ` : `
+                                <div class="p-6 text-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30">
+                                    <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 text-xl mx-auto mb-2">
+                                        <i class="fas fa-calendar-xmark"></i>
+                                    </div>
+                                    <h6 class="text-xs font-black text-slate-700 dark:text-slate-300">لا توجد خفارات مسجلة لهذا الطبيب في المجدول</h6>
+                                    <p class="text-[11px] text-slate-400 max-w-xs mx-auto mt-1">
+                                        يتم تعيين وجدولة خفارات أطباء الاختصاص عبر مجدول الخفارات المركزي
+                                    </p>
+                                </div>
+                            `}
                         </div>
 
-                        ${sched.shiftTimes ? `
-                        <div class="p-3 rounded-xl bg-teal-50/40 dark:bg-amber-950/20 border border-teal-200 dark:border-amber-900/30 text-xs">
-                            <div class="font-bold text-teal-800 dark:text-amber-300 mb-0.5"><i class="fas fa-clock ml-1"></i> ساعات التواجد:</div>
-                            <div class="text-slate-600 dark:text-slate-300">${sched.shiftTimes}</div>
-                        </div>` : ''}
-
-                        ${sched.notes ? `
-                        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 text-xs">
-                            <div class="font-bold text-slate-700 dark:text-slate-300 mb-0.5"><i class="fas fa-info-circle ml-1"></i> ملاحظات الاستدعاء:</div>
-                            <div class="text-slate-500 dark:text-slate-400">${sched.notes}</div>
-                        </div>` : ''}
-
-                        <div class="pt-2 text-center">
-                            <button type="button" onclick="closeSpecialistScheduleModal()" class="btn-ghost text-xs">
-                                إغلاق النافذة
+                        <!-- Footer -->
+                        <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                            ${(Hub.auth.isAdmin() || Hub.auth.isOwner()) ? `
+                                <a href="./scheduler.html?type=specialists${activeHospFilter !== 'all' ? '&hospital=' + activeHospFilter : ''}" class="btn-gradient text-xs py-2 px-3.5 flex items-center gap-1.5">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>فتح مجدول خفارات الاختصاصيين</span>
+                                </a>
+                            ` : '<div></div>'}
+                            <button type="button" onclick="closeSpecialistScheduleModal()" class="btn-ghost text-xs py-2 px-4">
+                                إغلاق
                             </button>
                         </div>
                     </div>
@@ -1738,41 +1682,32 @@
             document.getElementById('specialist-schedule-modal').classList.add('active');
         }
 
+        const openSpecialistScheduleModal = openSpecialistDutiesModal;
+
         function closeSpecialistScheduleModal() {
             document.getElementById('specialist-schedule-modal').classList.remove('active');
         }
 
-        async function handleSpecialistScheduleSubmit(e, docId) {
-            e.preventDefault();
-            const btn = document.getElementById('sched-save-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري حفظ الجدول...';
-
-            const clinicDays = Array.from(document.querySelectorAll('input[name="sched-clinic-day"]:checked')).map(cb => cb.value);
-            const onCallDays = Array.from(document.querySelectorAll('input[name="sched-oncall-day"]:checked')).map(cb => cb.value);
-            const theatreDays = Array.from(document.querySelectorAll('input[name="sched-theatre-day"]:checked')).map(cb => cb.value);
-            const shiftTimes = (document.getElementById('sched-edit-times')?.value || '').trim();
-            const notes = (document.getElementById('sched-edit-notes')?.value || '').trim();
-
-            const scheduleData = {
-                clinicDays,
-                onCallDays,
-                theatreDays,
-                shiftTimes,
-                notes
-            };
-
-            try {
-                await Hub.specialists.saveSchedule(docId, scheduleData);
-                closeSpecialistScheduleModal();
-                showToast('تم حفظ وتحديث جدول الطبيب بنجاح ✅', 'success');
-                refreshSpecialistsData();
-            } catch (err) {
-                console.error('Error saving specialist schedule:', err);
-                showToast(err.message || 'حدث خطأ أثناء حفظ الجدول', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-save"></i> حفظ جدول الطبيب';
+        function onSpecialistSpecChanged(specCode) {
+            const isSurg = window.Hub && window.Hub.isSurgicalSpecialty ? window.Hub.isSurgicalSpecialty(specCode) : false;
+            const theatreWrap = document.getElementById('theatre-days-container');
+            const theatreBadge = document.getElementById('theatre-branch-badge');
+            if (theatreWrap) {
+                if (isSurg) {
+                    theatreWrap.classList.remove('opacity-40', 'pointer-events-none');
+                    if (theatreBadge) {
+                        theatreBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300';
+                        theatreBadge.textContent = 'فرع جراحي (مفعّل)';
+                    }
+                } else {
+                    theatreWrap.classList.add('opacity-40', 'pointer-events-none');
+                    if (theatreBadge) {
+                        theatreBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400';
+                        theatreBadge.textContent = 'متاح للفروع الجراحية فقط';
+                    }
+                    // Uncheck any selected theatre day checkboxes
+                    document.querySelectorAll('input[name="form-theatre-day"]').forEach(cb => { cb.checked = false; });
+                }
             }
         }
 
@@ -1794,11 +1729,12 @@
             document.getElementById('form-spec-id').value = '';
             document.getElementById('form-spec-active').checked = true;
 
+            const initialSpec = document.getElementById('form-spec-code').value || 'GS';
+            onSpecialistSpecChanged(initialSpec);
+
             renderHospitalCheckboxes([]);
             renderFormDayCheckboxes('form-clinic-days-wrap', 'form-clinic-day', []);
-            renderFormDayCheckboxes('form-oncall-days-wrap', 'form-oncall-day', []);
             renderFormDayCheckboxes('form-theatre-days-wrap', 'form-theatre-day', []);
-            document.getElementById('form-spec-times').value = '';
 
             document.getElementById('specialist-modal').classList.add('active');
         }
@@ -1827,16 +1763,14 @@
             document.getElementById('form-spec-code').value = doc.spec || '';
             document.getElementById('form-spec-phone').value = doc.phone || '';
             document.getElementById('form-spec-clinic').value = doc.clinic || '';
-            document.getElementById('form-spec-notes').value = doc.notes || '';
             document.getElementById('form-spec-active').checked = doc.active !== false;
 
+            onSpecialistSpecChanged(doc.spec);
             renderHospitalCheckboxes(doc.hospitals || []);
 
             const sched = doc.schedule || {};
             renderFormDayCheckboxes('form-clinic-days-wrap', 'form-clinic-day', sched.clinicDays || []);
-            renderFormDayCheckboxes('form-oncall-days-wrap', 'form-oncall-day', sched.onCallDays || []);
             renderFormDayCheckboxes('form-theatre-days-wrap', 'form-theatre-day', sched.theatreDays || []);
-            document.getElementById('form-spec-times').value = sched.shiftTimes || '';
 
             document.getElementById('specialist-modal').classList.add('active');
         }
@@ -1874,11 +1808,10 @@
 
             const checkedHosps = Array.from(document.querySelectorAll('input[name="form-hosp-cb"]:checked')).map(cb => cb.value);
 
-            // Gather schedule from form
+            // Gather schedule from form: clinicDays and (if surgical) theatreDays
+            const isSurg = window.Hub && window.Hub.isSurgicalSpecialty ? window.Hub.isSurgicalSpecialty(specCode) : false;
             const clinicDays = Array.from(document.querySelectorAll('input[name="form-clinic-day"]:checked')).map(cb => cb.value);
-            const onCallDays = Array.from(document.querySelectorAll('input[name="form-oncall-day"]:checked')).map(cb => cb.value);
-            const theatreDays = Array.from(document.querySelectorAll('input[name="form-theatre-day"]:checked')).map(cb => cb.value);
-            const shiftTimes = (document.getElementById('form-spec-times')?.value || '').trim();
+            const theatreDays = isSurg ? Array.from(document.querySelectorAll('input[name="form-theatre-day"]:checked')).map(cb => cb.value) : [];
 
             const specData = {
                 name: document.getElementById('form-spec-name').value.trim(),
@@ -1887,14 +1820,11 @@
                 specName: specObj ? specObj.name_ar : specCode,
                 phone: document.getElementById('form-spec-phone').value.trim(),
                 clinic: document.getElementById('form-spec-clinic').value.trim(),
-                notes: document.getElementById('form-spec-notes').value.trim(),
                 hospitals: checkedHosps.length > 0 ? checkedHosps : [Hub.getActiveHospitalId()],
                 active: document.getElementById('form-spec-active').checked,
                 schedule: {
                     clinicDays,
-                    onCallDays,
-                    theatreDays,
-                    shiftTimes
+                    theatreDays
                 }
             };
 

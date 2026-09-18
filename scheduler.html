@@ -1808,7 +1808,7 @@
                         id: specialty.id,
                         name: specialty.name_en || specialty.name_ar || specialty.id,
                         color: specialty.color || '#60a5fa',
-                        name_ar: specialty.name_ar || specialty.id,
+                        name_ar: (specialty.id === 'Pe' || specialty.name_ar === 'الاطفال') ? 'طب الأطفال' : (specialty.name_ar || (window.Hub && Hub.getSpecialtyName ? Hub.getSpecialtyName(specialty.id) : specialty.id)),
                         icon: specialty.icon || '🏥'
                     };
                 });
@@ -2239,13 +2239,16 @@
                 messages.push('The first duty starts before 08:00AM.');
             }
 
+            var roleSingular = schedulerMode === 'specialists' ? 'specialist' : 'resident';
+            var rolePlural = schedulerMode === 'specialists' ? 'specialists' : 'residents';
+
             for (var i = 0; i < ordered.length; i++) {
                 if (ordered[i].start < -TOLERANCE || ordered[i].end > TOTAL_MINUTES + TOLERANCE) {
-                    messages.push('A resident duty lies outside the 08:00AM to 08:00AM main duty.');
+                    messages.push(`A ${roleSingular} duty lies outside the 08:00AM to 08:00AM main duty.`);
                     break;
                 }
                 if (ordered[i].end <= ordered[i].start) {
-                    messages.push('A resident has an invalid or zero-length duty.');
+                    messages.push(`A ${roleSingular} has an invalid or zero-length duty.`);
                     break;
                 }
             }
@@ -2260,12 +2263,12 @@
             }
 
             if (gaps.length > 1) {
-                messages.push(gaps.length + ' gaps exist between residents.');
+                messages.push(gaps.length + ` gaps exist between ${rolePlural}.`);
             } else if (gaps.length === 1 && messages.length === 0) {
-                messages.push('A gap exists between residents.');
+                messages.push(`A gap exists between ${rolePlural}.`);
             }
             if (overlaps.length > 0) {
-                messages.push(overlaps.length + ' resident duties overlap.');
+                messages.push(overlaps.length + ` ${roleSingular} duties overlap.`);
             }
 
             var lastEnd = ordered[ordered.length - 1].end;
@@ -2490,7 +2493,7 @@
                     html += `
                             </div>
                             <button class="add-slot-button" onclick="addSlot('${dateFull}', '${specialty.id}')">
-                                <i class="fas fa-plus"></i> Add Resident
+                                <i class="fas fa-plus"></i> ${schedulerMode === 'specialists' ? 'Add Specialist' : 'Add Resident'}
                             </button>
                         </div>
                     `;

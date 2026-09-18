@@ -319,7 +319,7 @@
 
     // Default Fallback Database Structure
     const defaultTemplate = {
-        version: "2.0",
+        version: "2.2",
         lastUpdated: new Date().toISOString(),
         globalPasswords: {
             owner: "MrjBth1996*",
@@ -329,7 +329,50 @@
         activeHospitalId: "iraqi",
         globalSpecialties: JSON.parse(JSON.stringify(CANONICAL_SPECIALTIES)),
         residents: [],
-        hospitals: {}
+        hospitals: {
+            "iraqi": {
+                id: "iraqi",
+                hospitalName: "Iraqi Teaching Hospital",
+                name_ar: "المستشفى العراقي التعليمي",
+                location: "Basra · Iraq",
+                color: "#0f766e",
+                icon: "fa-hospital",
+                rotationHeroesUrl: "https://khafarat-alsadr.netlify.app/",
+                passwords: { owner: "MrjBth1996*", admin: "IraqiAdmin1996*", user: "1234" },
+                specialties: JSON.parse(JSON.stringify(CANONICAL_SPECIALTIES)),
+                names: [],
+                schedule: [],
+                specialistSchedule: []
+            },
+            "basra": {
+                id: "basra",
+                hospitalName: "Basra Teaching Hospital",
+                name_ar: "مستشفى البصرة التعليمي",
+                location: "Basra · Iraq",
+                color: "#1e40af",
+                icon: "fa-hospital-user",
+                rotationHeroesUrl: "",
+                passwords: { owner: "MrjBth1996*", admin: "BasraAdmin1996*", user: "1234" },
+                specialties: JSON.parse(JSON.stringify(CANONICAL_SPECIALTIES)),
+                names: [],
+                schedule: [],
+                specialistSchedule: []
+            },
+            "mawani": {
+                id: "mawani",
+                hospitalName: "Mawani Teaching Hospital",
+                name_ar: "مستشفى الموانئ التعليمي",
+                location: "Basra · Iraq",
+                color: "#b45309",
+                icon: "fa-anchor",
+                rotationHeroesUrl: "",
+                passwords: { owner: "MrjBth1996*", admin: "MawaniAdmin1996*", user: "1234" },
+                specialties: JSON.parse(JSON.stringify(CANONICAL_SPECIALTIES)),
+                names: [],
+                schedule: [],
+                specialistSchedule: []
+            }
+        }
     };
 
     // Helper: Medical Date Format (Starts at 8:00 AM)
@@ -357,7 +400,7 @@
     // DATABASE LOADING & GITHUB SYNCHRONIZATION
     // ============================================================
     async function loadDatabase(forceRefresh = false) {
-        if (!forceRefresh && isLoaded && db) {
+        if (!forceRefresh && isLoaded && db && db.hospitals && Object.keys(db.hospitals).length > 0) {
             return db;
         }
 
@@ -370,92 +413,93 @@
             const cachedStr = localStorage.getItem(CACHE_KEY);
             if (cachedStr && !db) {
                 try {
-                    db = sanitizeAndMigrateDatabase(JSON.parse(cachedStr));
+                    const parsed = JSON.parse(cachedStr);
+                    if (parsed && parsed.hospitals && Object.keys(parsed.hospitals).length > 0) {
+                        db = sanitizeAndMigrateDatabase(parsed);
+                    } else {
+                        console.warn("Cached database in localStorage has 0 hospitals. Purging corrupted cache.");
+                        localStorage.removeItem(CACHE_KEY);
+                    }
                 } catch (e) {
                     console.warn("Corrupt local database cache:", e);
+                    localStorage.removeItem(CACHE_KEY);
                 }
             }
 
-            // 2. Fetch latest database from GitHub API
+            // 2. Fetch latest database from GitHub
             try {
                 const url = `https://api.github.com/repos/${CONFIG.user}/${CONFIG.repo}/contents/${CONFIG.path}?t=${Date.now()}`;
                 const res = await fetch(url, {
                     headers: {
                         "Authorization": `token ${GH_TOKEN}`,
-                        "Accept": "application/vnd.github.v3+json"
+                        "Accept": "application/vnd.github.v3.raw"
                     }
                 });
 
+                let remoteDb = null;
                 if (res.ok) {
-                    const jsonRes = await res.json();
-                    fileSha = jsonRes.sha;
-                    let remoteDb = null;
-                    if (typeof jsonRes.content === 'string' && jsonRes.content.trim()) {
-                        const binaryStr = atob(jsonRes.content.replace(/\s/g, ''));
-                        const bytes = new Uint8Array(binaryStr.length);
-                        for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
-                        remoteDb = JSON.parse(new TextDecoder('utf-8').decode(bytes));
-                    } else if (jsonRes.git_url) {
-                        // Direct Git Data Blob API keyed by immutable commit SHA - 100% fresh, immune to Fastly CDN caching!
-                        const blobRes = await fetch(jsonRes.git_url, {
-                            headers: {
-                                "Authorization": `token ${GH_TOKEN}`,
-                                "Accept": "application/vnd.github.v3+json"
-                            }
-                        });
-                        if (blobRes.ok) {
-                            const blobData = await blobRes.json();
-                            const binaryStr = atob(blobData.content.replace(/\s/g, ''));
-                            const bytes = new Uint8Array(binaryStr.length);
-                            for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
-                            remoteDb = JSON.parse(new TextDecoder('utf-8').decode(bytes));
-                        }
-                    } else if (jsonRes.download_url) {
-                        // Fallback to download_url if git_url is unavailable
-                        const dlRes = await fetch(jsonRes.download_url + (jsonRes.download_url.includes('?') ? '&' : '?') + 't=' + Date.now());
-                        if (dlRes.ok) {
-                            remoteDb = await dlRes.json();
-                        }
+                    const rawEtag = res.headers.get('etag');
+                    if (rawEtag) {
+                        fileSha = rawEtag.replace(/["W\/]/g, '');
                     }
+                    const text = await res.text();
+                    try {
+                        remoteDb = JSON.parse(text);
+                    } catch (parseErr) {
+                        console.warn("Error parsing raw GitHub API JSON:", parseErr);
+                    }
+                }
 
-                    if (remoteDb && remoteDb.hospitals) {
-                        // Anti-reversion check: Protect recent local changes from any CDN/proxy lag
-                        const localUpdated = (db && db.lastUpdated) ? new Date(db.lastUpdated).getTime() : 0;
-                        const remoteUpdated = (remoteDb && remoteDb.lastUpdated) ? new Date(remoteDb.lastUpdated).getTime() : 0;
-
-                        if (localUpdated > remoteUpdated && (localUpdated - remoteUpdated < 600000)) {
-                            console.warn("Local database has newer changes than remote snapshot. Retaining local data and syncing to remote...");
-                            saveDatabase("Sync newer local changes to GitHub").catch(console.warn);
-                            isLoaded = true;
-                            return db;
+                // Fallback: If raw API returned non-OK or failed to parse, try raw.githubusercontent.com
+                if (!remoteDb || !remoteDb.hospitals || Object.keys(remoteDb.hospitals).length === 0) {
+                    try {
+                        const rawUrl = `https://raw.githubusercontent.com/${CONFIG.user}/${CONFIG.repo}/main/${CONFIG.path}?t=${Date.now()}`;
+                        const rawRes = await fetch(rawUrl, {
+                            headers: { "Authorization": `token ${GH_TOKEN}` }
+                        });
+                        if (rawRes.ok) {
+                            remoteDb = await rawRes.json();
                         }
+                    } catch (rawErr) {
+                        console.warn("raw.githubusercontent.com fetch error:", rawErr);
+                    }
+                }
 
-                        db = sanitizeAndMigrateDatabase(remoteDb);
-                        localStorage.setItem(CACHE_KEY, JSON.stringify(db));
+                if (remoteDb && remoteDb.hospitals && Object.keys(remoteDb.hospitals).length > 0) {
+                    // Anti-reversion check: Protect recent local changes ONLY IF local data is valid and non-empty
+                    const localCount = Object.keys(db?.hospitals || {}).length;
+                    const remoteCount = Object.keys(remoteDb.hospitals).length;
+                    const localUpdated = (db && db.lastUpdated) ? new Date(db.lastUpdated).getTime() : 0;
+                    const remoteUpdated = (remoteDb && remoteDb.lastUpdated) ? new Date(remoteDb.lastUpdated).getTime() : 0;
+
+                    if (localCount >= remoteCount && localCount > 0 && localUpdated > remoteUpdated && (localUpdated - remoteUpdated < 600000)) {
+                        console.warn("Local database has newer changes than remote snapshot. Retaining local data and syncing to remote...");
+                        saveDatabase("Sync newer local changes to GitHub").catch(console.warn);
                         isLoaded = true;
-                        dispatchDataChanged();
                         return db;
                     }
-                } else if (res.status === 404) {
-                    console.info("Remote hub-data.json not found on GitHub. Initializing from local bundle...");
+
+                    db = sanitizeAndMigrateDatabase(remoteDb);
+                    localStorage.setItem(CACHE_KEY, JSON.stringify(db));
+                    isLoaded = true;
+                    dispatchDataChanged();
+                    return db;
                 }
             } catch (err) {
                 console.warn("GitHub API fetch error:", err);
             }
 
-            // 3. Fallback: Load local hub-data.json if remote failed
+            // 3. Fallback: Load local bundled hub-data.json if remote failed
             if (!db || !db.hospitals || Object.keys(db.hospitals).length === 0) {
                 try {
                     const localRes = await fetch('./hub-data.json?t=' + Date.now());
                     if (localRes.ok) {
                         const localDb = await localRes.json();
-                        if (localDb && localDb.hospitals) {
+                        if (localDb && localDb.hospitals && Object.keys(localDb.hospitals).length > 0) {
                             db = sanitizeAndMigrateDatabase(localDb);
                             localStorage.setItem(CACHE_KEY, JSON.stringify(db));
                             isLoaded = true;
                             dispatchDataChanged();
-                            // Attempt to initialize GitHub with this local copy in the background
-                            saveDatabase("Initial Hub Setup").catch(console.warn);
                             return db;
                         }
                     }
@@ -465,14 +509,13 @@
             }
 
             // 4. Final fallback to default template if all else fails
-            if (db) {
-                if (!Array.isArray(db.globalSpecialties) || db.globalSpecialties.length === 0) {
-                    const firstHosp = db.hospitals ? Object.values(db.hospitals)[0] : null;
-                    const source = (firstHosp && Array.isArray(firstHosp.specialties) && firstHosp.specialties.length > 0)
-                        ? firstHosp.specialties
-                        : CANONICAL_SPECIALTIES;
-                    db.globalSpecialties = JSON.parse(JSON.stringify(source));
-                }
+            if (!db || !db.hospitals || Object.keys(db.hospitals).length === 0) {
+                db = sanitizeAndMigrateDatabase(JSON.parse(JSON.stringify(defaultTemplate)));
+                localStorage.setItem(CACHE_KEY, JSON.stringify(db));
+            }
+
+            if (!Array.isArray(db.globalSpecialties) || db.globalSpecialties.length === 0) {
+                db.globalSpecialties = JSON.parse(JSON.stringify(CANONICAL_SPECIALTIES));
             }
 
             isLoaded = true;
@@ -522,9 +565,19 @@
             }
 
             const sendPut = async (shaToUse) => {
-                const base64Content = (typeof btoa !== 'undefined')
-                    ? btoa(unescape(encodeURIComponent(jsonString)))
-                    : ((typeof Buffer !== 'undefined') ? Buffer.from(jsonString, 'utf8').toString('base64') : '');
+                const base64Content = (function(str) {
+                    if (typeof Buffer !== 'undefined') {
+                        return Buffer.from(str, 'utf8').toString('base64');
+                    }
+                    const bytes = new TextEncoder().encode(str);
+                    let binary = '';
+                    const len = bytes.byteLength;
+                    const chunkSize = 0x8000;
+                    for (let i = 0; i < len; i += chunkSize) {
+                        binary += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + chunkSize, len)));
+                    }
+                    return btoa(binary);
+                })(jsonString);
                 const body = {
                     message: commitMessage,
                     content: base64Content
@@ -1059,13 +1112,19 @@
             throw new Error(`رمز التخصص "${newId}" مستخدم بالفعل.`);
         }
 
-        const nameAr = String(updatedData.name_ar || '').trim();
+        const existingSpec = db.globalSpecialties[idx];
+        const nameAr = String(updatedData.name_ar || existingSpec.name_ar || '').trim();
         if (!nameAr) throw new Error('اسم التخصص بالعربية مطلوب');
 
-        const nameEn = String(updatedData.name_en || updatedData.name_ar || '').trim();
-        const icon = String(updatedData.icon || '🏥').trim() || '🏥';
-        const parentSpec = updatedData.parentSpec ? String(updatedData.parentSpec).trim().toUpperCase() : null;
-        const acceptPool = Array.isArray(updatedData.acceptPool) ? updatedData.acceptPool : [];
+        const nameEn = String(updatedData.name_en || existingSpec.name_en || nameAr).trim();
+        const icon = String(updatedData.icon || existingSpec.icon || '🏥').trim() || '🏥';
+        const color = String(updatedData.color || existingSpec.color || '#0f766e').trim() || '#0f766e';
+        const parentSpec = (updatedData.parentSpec !== undefined)
+            ? (updatedData.parentSpec ? String(updatedData.parentSpec).trim().toUpperCase() : null)
+            : (existingSpec.parentSpec || null);
+        const acceptPool = Array.isArray(updatedData.acceptPool)
+            ? updatedData.acceptPool
+            : (Array.isArray(existingSpec.acceptPool) ? existingSpec.acceptPool : []);
 
         // Cascade rename if ID changed across all residents, schedules, and specialties
         if (newId !== oldId) {
@@ -1121,9 +1180,10 @@
             name_ar: nameAr,
             name_en: nameEn,
             icon: icon,
+            color: color,
             parentSpec: parentSpec,
             acceptPool: acceptPool,
-            enabled: db.globalSpecialties[idx].enabled !== false
+            enabled: existingSpec.enabled !== false
         };
 
         // Propagate updated metadata to all hospitals' matching specialty (preserving local color and enabled status)
@@ -1135,6 +1195,7 @@
                     hospSpec.name_ar = nameAr;
                     hospSpec.name_en = nameEn;
                     hospSpec.icon = icon;
+                    if (updatedData.color) hospSpec.color = color;
                     hospSpec.parentSpec = parentSpec;
                     hospSpec.acceptPool = acceptPool;
                 }
@@ -1158,6 +1219,7 @@
         const nameAr = String(specData.name_ar || '').trim();
         const nameEn = String(specData.name_en || specData.name_ar || '').trim();
         const icon = String(specData.icon || '🏥').trim() || '🏥';
+        const color = String(specData.color || '#0f766e').trim() || '#0f766e';
         const parentSpec = specData.parentSpec ? String(specData.parentSpec).trim().toUpperCase() : null;
         const acceptPool = Array.isArray(specData.acceptPool) ? specData.acceptPool : [];
 
@@ -1173,6 +1235,7 @@
             name_ar: nameAr,
             name_en: nameEn,
             icon,
+            color,
             parentSpec,
             acceptPool,
             enabled: true
@@ -1180,14 +1243,14 @@
 
         db.globalSpecialties.push(newSpec);
 
-        // Also add to all existing hospitals with default color #0f766e
+        // Also add to all existing hospitals with the chosen color
         if (db.hospitals) {
             Object.keys(db.hospitals).forEach(hid => {
                 const h = db.hospitals[hid];
                 if (Array.isArray(h.specialties) && !h.specialties.some(s => s.id === id)) {
                     h.specialties.push({
                         ...newSpec,
-                        color: '#0f766e',
+                        color: color,
                         enabled: true
                     });
                 }

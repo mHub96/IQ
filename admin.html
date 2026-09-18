@@ -905,7 +905,7 @@
                     <input type="text" id="hosp-setting-location" class="input-field" />
                 </div>
                 <!-- Rotation Heroes Link (Owner Only) -->
-                <div id="hosp-owner-heroes-container" class="p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30">
+                <div id="hosp-owner-heroes-container" style="display:none;" class="p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30">
                     <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1 flex items-center justify-between">
                         <span><i class="fas fa-user-md text-sky-600 dark:text-sky-400 ml-1"></i> رابط منصة Rotation Heroes</span>
                         <span id="hosp-heroes-badge" class="text-[10px] text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/40 px-2 py-0.5 rounded-full font-semibold">صلاحية المالك 👑</span>
@@ -914,7 +914,7 @@
                     <p class="text-[11px] text-slate-400 mt-1">إذا تُرك فارغاً، سيظهر زر Rotation Heroes في جدول الخفارات مع شارة "SOON" ويكون معطلاً.</p>
                 </div>
                 <!-- Passwords Section (Owner Only) -->
-                <div id="hosp-owner-passwords-container">
+                <div id="hosp-owner-passwords-container" style="display:none;">
                     <div class="p-3 mb-2 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
                         <i class="fas fa-crown text-amber-500 text-base"></i>
                         <span><strong>صلاحيات المالك:</strong> يمكنك تعديل كلمات المرور لجميع المستخدمين والمديرين ونفسك.</span>
@@ -935,11 +935,6 @@
                     </div>
                 </div>
 
-                <!-- Locked notice when logged in as Admin (not owner) -->
-                <div id="hosp-admin-passwords-locked" style="display:none;" class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2">
-                    <i class="fas fa-lock text-slate-400 text-base"></i>
-                    <span><strong>تعديل كلمات المرور مقفل:</strong> هذه الصلاحية حصرية للمالك (Owner) فقط. بصفتك مديراً، لا يمكنك عرض أو تعديل كلمات المرور.</span>
-                </div>
                 <div class="flex gap-3 pt-3">
                     <button type="button" onclick="saveHospitalSettings()" class="flex-1 btn-gradient">حفظ الإعدادات</button>
                     <button type="button" onclick="closeHospitalSettingsModal()" class="btn-ghost">إلغاء</button>
@@ -2198,25 +2193,21 @@
 
             const isOwner = Hub.auth.isOwner();
             const passContainer = document.getElementById('hosp-owner-passwords-container');
-            const passLocked = document.getElementById('hosp-admin-passwords-locked');
+            const heroesContainer = document.getElementById('hosp-owner-heroes-container');
             const heroesInput = document.getElementById('hosp-setting-heroes-url');
-            const heroesBadge = document.getElementById('hosp-heroes-badge');
 
+            if (heroesContainer) {
+                heroesContainer.style.display = isOwner ? 'block' : 'none';
+            }
             if (heroesInput) {
-                heroesInput.value = currentHospital.rotationHeroesUrl || '';
-                if (isOwner) {
-                    heroesInput.removeAttribute('disabled');
-                    if (heroesBadge) heroesBadge.textContent = 'صلاحية المالك 👑';
-                } else {
-                    heroesInput.setAttribute('disabled', 'true');
-                    if (heroesBadge) heroesBadge.textContent = 'للمالك فقط 🔒';
-                }
+                heroesInput.value = isOwner ? (currentHospital.rotationHeroesUrl || '') : '';
+            }
+
+            if (passContainer) {
+                passContainer.style.display = isOwner ? 'block' : 'none';
             }
 
             if (isOwner) {
-                if (passContainer) passContainer.style.display = 'block';
-                if (passLocked) passLocked.style.display = 'none';
-
                 const uInput = document.getElementById('hosp-setting-user-pwd');
                 const aInput = document.getElementById('hosp-setting-admin-pwd');
                 const oInput = document.getElementById('hosp-setting-owner-pwd');
@@ -2224,9 +2215,6 @@
                 if (uInput) uInput.value = currentHospital.passwords?.user || '1234';
                 if (aInput) aInput.value = currentHospital.passwords?.admin || 'Admin1996*';
                 if (oInput) oInput.value = currentHospital.passwords?.owner || 'MrjBth1996*';
-            } else {
-                if (passContainer) passContainer.style.display = 'none';
-                if (passLocked) passLocked.style.display = 'flex';
             }
 
             document.getElementById('hospital-settings-modal').classList.add('active');

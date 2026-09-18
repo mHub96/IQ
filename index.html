@@ -992,12 +992,9 @@
             <button type="button" class="owner-chip-btn text-white" style="background:linear-gradient(135deg,#0284c7,#0369a1);" onclick="openAddHospitalModal()">
                 <i class="fas fa-plus-circle"></i> إضافة مستشفى جديد
             </button>
-            <button type="button" class="owner-chip-btn text-white" style="background:linear-gradient(135deg,#7c3aed,#9333ea);" onclick="openGlobalSpecialtiesModal()">
-                <i class="fas fa-crown text-amber-300"></i> مستودع التخصصات العام 👑
-            </button>
-            <button type="button" class="owner-chip-btn text-white" style="background:linear-gradient(135deg,#d97706,#b45309);" onclick="openAllPasswordsModalNav()">
-                <i class="fas fa-key"></i> تعديل كلمات المرور
-            </button>
+            <a href="./owner.html" class="owner-chip-btn text-slate-950 font-black" style="background:linear-gradient(135deg,#fbbf24,#f59e0b); text-decoration:none;">
+                <i class="fas fa-crown"></i> لوحة تحكم المالك 👑
+            </a>
         </section>
 
         <!-- SEARCH & SEGMENTED FILTER -->
@@ -1023,7 +1020,12 @@
         </section>
 
         <footer class="footer-credit">
-            Hospital Main Hub Suite · Dr. Mohammed Riyadh · Iraq 🇮🇶
+            <div>Hospital Main Hub Suite · Dr. Mohammed Riyadh · Iraq 🇮🇶</div>
+            <div class="mt-2 flex items-center justify-center gap-2">
+                <button type="button" onclick="window.forceAppUpdate()" class="text-xs text-slate-500 dark:text-slate-400 hover:text-amber-500 transition-colors inline-flex items-center gap-1.5 py-1 px-3 rounded-full border border-slate-300 dark:border-slate-800 bg-slate-100 dark:bg-slate-900/60 cursor-pointer" title="تحديث التطبيق ومسح التخزين المؤقت">
+                    <i class="fas fa-sync-alt text-[10px]"></i> <span>تحديث التطبيق الفوري (PWA Refresh)</span>
+                </button>
+            </div>
         </footer>
     </main>
 

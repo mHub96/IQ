@@ -572,6 +572,28 @@
         .no-resident-card .icon { font-size: 2rem; margin-bottom: 0.3rem; }
         .no-resident-card .label { font-size: 0.7rem; font-weight: 600; }
         
+        .current-time-bubble {
+            font-size: 0.76rem;
+            padding: 0.35rem 1.15rem;
+            border-radius: 999px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.15);
+            background: linear-gradient(135deg, rgba(254, 243, 199, 0.95), rgba(253, 230, 138, 0.95));
+            color: #78350f;
+            border: 1.5px solid #fde68a;
+        }
+        body.dark .current-time-bubble {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.18), rgba(184, 148, 46, 0.12));
+            color: #d4af37;
+            border-color: rgba(212, 175, 55, 0.35);
+            box-shadow: 0 2px 12px rgba(212, 175, 55, 0.2);
+        }
+        
         .counter-badge {
             font-size: 0.65rem;
             padding: 0.3rem 0.9rem;
@@ -1127,11 +1149,12 @@
                 <h1 id="hospital-name" data-hospital-name class="hospital-title">Mawani Teaching Hospital</h1>
                 <p class="hospital-subtitle">On-Call Residents · Duty Roster</p>
             </div>
-            <div class="hospital-meta">
-                <span id="current-time-display" class="current-time-display"></span>
-                <p id="count-tag" class="counter-badge">
-                    <i class="fas fa-users mr-1"></i> جاري التحميل...
-                </p>
+            <div class="hospital-meta flex justify-center items-center w-full max-w-[29rem] mt-2">
+                <div class="current-time-bubble">
+                    <i class="fas fa-clock text-amber-500"></i>
+                    <span>Current Time:</span>
+                    <span id="current-time-display" class="font-mono font-bold"></span>
+                </div>
             </div>
         </header>
 
@@ -1903,12 +1926,14 @@
         function renderRoster() {
             const container = document.getElementById('roster-container');
             const currentTime = getCurrentTimeString();
-            document.getElementById('current-time-display').textContent = `⏰ الوقت الحالي: ${currentTime}`;
+            const timeEl = document.getElementById('current-time-display');
+            if (timeEl) timeEl.textContent = currentTime;
 
             const currentResidents = getAllCurrentResidents();
             const totalResidents = db.names.length;
             const activeCount = db.names.filter(n => n.spec !== "RESERVE").length;
-            document.getElementById('count-tag').innerHTML = `<i class="fas fa-users mr-1"></i> ${totalResidents} مسجل · ${activeCount} نشط · ${currentResidents.length} في الخدمة`;
+            const countTag = document.getElementById('count-tag');
+            if (countTag) countTag.innerHTML = `<i class="fas fa-users mr-1"></i> ${totalResidents} مسجل · ${activeCount} نشط · ${currentResidents.length} في الخدمة`;
 
             if (currentResidents.length === 0) {
                 container.innerHTML = `

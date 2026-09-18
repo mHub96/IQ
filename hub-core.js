@@ -1655,9 +1655,19 @@
             specialist.clinic = (specialistData.clinic || '').trim();
             specialist.notes = (specialistData.notes || '').trim();
             if (specialistData.active !== undefined) specialist.active = Boolean(specialistData.active);
+            if (specialistData.schedule !== undefined) {
+                specialist.schedule = {
+                    clinicDays: Array.isArray(specialistData.schedule?.clinicDays) ? specialistData.schedule.clinicDays : [],
+                    onCallDays: Array.isArray(specialistData.schedule?.onCallDays) ? specialistData.schedule.onCallDays : [],
+                    theatreDays: Array.isArray(specialistData.schedule?.theatreDays) ? specialistData.schedule.theatreDays : [],
+                    shiftTimes: (specialistData.schedule?.shiftTimes || '').trim(),
+                    dutyDates: Array.isArray(specialistData.schedule?.dutyDates) ? specialistData.schedule.dutyDates : [],
+                    notes: (specialistData.schedule?.notes || '').trim()
+                };
+            }
         } else {
             specialist = {
-                id: 'spec-doc-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4),
+                id: specialistData.id || ('spec-doc-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4)),
                 name: formattedName,
                 title: (specialistData.title || 'أخصائي').trim(),
                 spec: spec,
@@ -1666,12 +1676,42 @@
                 phone: (specialistData.phone || '').trim(),
                 clinic: (specialistData.clinic || '').trim(),
                 notes: (specialistData.notes || '').trim(),
-                active: specialistData.active !== false
+                active: specialistData.active !== false,
+                schedule: {
+                    clinicDays: Array.isArray(specialistData.schedule?.clinicDays) ? specialistData.schedule.clinicDays : [],
+                    onCallDays: Array.isArray(specialistData.schedule?.onCallDays) ? specialistData.schedule.onCallDays : [],
+                    theatreDays: Array.isArray(specialistData.schedule?.theatreDays) ? specialistData.schedule.theatreDays : [],
+                    shiftTimes: (specialistData.schedule?.shiftTimes || '').trim(),
+                    dutyDates: Array.isArray(specialistData.schedule?.dutyDates) ? specialistData.schedule.dutyDates : [],
+                    notes: (specialistData.schedule?.notes || '').trim()
+                }
             };
             db.specialists.unshift(specialist);
         }
 
         await saveDatabase(`Save Specialist: ${formattedName}`);
+        return specialist;
+    }
+
+    async function saveSpecialistSchedule(specialistId, scheduleData) {
+        if (!auth.isAdmin()) {
+            throw new Error('غير مصرح لك بتعديل جدول الطبيب الاختصاصي. يتطلب صلاحيات المدير أو المالك.');
+        }
+        if (!db || !Array.isArray(db.specialists)) throw new Error('قاعدة البيانات غير محملة');
+        const specialist = db.specialists.find(s => s.id === specialistId);
+        if (!specialist) throw new Error('الطبيب الاختصاصي غير موجود');
+
+        specialist.schedule = {
+            clinicDays: Array.isArray(scheduleData?.clinicDays) ? scheduleData.clinicDays : [],
+            onCallDays: Array.isArray(scheduleData?.onCallDays) ? scheduleData.onCallDays : [],
+            theatreDays: Array.isArray(scheduleData?.theatreDays) ? scheduleData.theatreDays : [],
+            shiftTimes: (scheduleData?.shiftTimes || '').trim(),
+            dutyDates: Array.isArray(scheduleData?.dutyDates) ? scheduleData.dutyDates : [],
+            notes: (scheduleData?.notes || '').trim(),
+            updatedAt: new Date().toISOString()
+        };
+
+        await saveDatabase(`Update Specialist Schedule: ${specialist.name}`);
         return specialist;
     }
 
@@ -2001,6 +2041,36 @@
         getSpecialist,
         saveSpecialist,
         deleteSpecialist,
+        saveSpecialistSchedule,
+        specialists: {
+            getAll: (hospitalId, specCode) => getSpecialists(hospitalId, specCode),
+            getById: (id) => getSpecialist(id),
+            save: (specialistData) => saveSpecialist(specialistData),
+            delete: (id) => deleteSpecialist(id),
+            saveSchedule: (specialistId, scheduleData) => saveSpecialistSchedule(specialistId, scheduleData)
+        },
+        specialties: {
+            getAll: () => getGlobalSpecialties().map(s => ({
+                code: s.id,
+                id: s.id,
+                name_ar: s.name_ar,
+                name_en: s.name_en || s.name_ar,
+                icon: s.icon || '🏥',
+                color: s.color || '#0f766e'
+            })),
+            getByCode: (code) => {
+                const norm = normalizeSpecialtyId(code);
+                const s = getGlobalSpecialties().find(sp => sp.id === norm);
+                return s ? {
+                    code: s.id,
+                    id: s.id,
+                    name_ar: s.name_ar,
+                    name_en: s.name_en || s.name_ar,
+                    icon: s.icon || '🏥',
+                    color: s.color || '#0f766e'
+                } : null;
+            }
+        },
         getHospitalMonthSchedule,
         updateDuty,
         exchangeDuty,

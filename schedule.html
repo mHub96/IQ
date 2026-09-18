@@ -724,166 +724,136 @@
             align-items: center;
             gap: 5px;
         }
-        body.dark .phone-btn {
-            background: rgba(212, 175, 55, 0.15);
-            color: #d4af37;
-        }
-
         /* ============================================================ */
-        /* MOBILE VIEWPORT REWORK (Phones <= 768px)                     */
-        /* Drastically shrinks side specialty column and top days row   */
-        /* to maximize duty schedule viewing area                        */
+        /* MOBILE PHONE VIEW REWORK (@media (max-width: 768px))         */
+        /* Ultra-compact header and side column for maximum phone space */
         /* ============================================================ */
         @media (max-width: 768px) {
-            body {
-                padding-bottom: calc(var(--sab) + 70px);
-            }
             #schedule-main-content {
-                padding-left: 6px !important;
-                padding-right: 6px !important;
-                padding-top: 8px !important;
+                padding-top: 0.5rem !important;
+                padding-bottom: 2.5rem !important;
+                padding-left: 0.35rem !important;
+                padding-right: 0.35rem !important;
             }
-            .matrix-table {
-                min-width: 780px !important;
-                font-size: 0.70rem !important;
+
+            .glass-card.p-4.sm\:p-6.mb-5 {
+                padding: 0.65rem 0.75rem !important;
+                margin-bottom: 0.5rem !important;
+                border-radius: 1rem !important;
             }
+
             .matrix-table-container {
-                max-height: calc(100dvh - 135px) !important;
-                min-height: 280px !important;
+                max-height: calc(100dvh - 165px) !important;
+                min-height: 320px !important;
                 border-radius: 0.85rem !important;
             }
-            .matrix-table th, .matrix-table td {
+
+            .matrix-table {
+                min-width: 900px !important;
+                font-size: 0.72rem !important;
+            }
+
+            /* 1. Side Specialty Column: Drastically shrink from 200px to ~84px */
+            .matrix-table td.sticky-col,
+            .matrix-table th.sticky-col {
+                min-width: 78px !important;
+                max-width: 90px !important;
+                width: 84px !important;
                 padding: 3px 2px !important;
             }
 
-            /* 1. Ultra-Compact Top Frozen Header Row */
-            .matrix-table thead th {
-                padding: 3px 1px !important;
-                height: 32px !important;
-                line-height: 1 !important;
-            }
-            .day-number-text {
-                font-size: 0.72rem !important;
-                line-height: 1 !important;
-                font-weight: 900 !important;
-            }
-            .day-name-text {
-                font-size: 0.54rem !important;
-                margin-top: 1px !important;
-                font-weight: 700 !important;
-            }
-            .today-header-badge {
-                display: none !important;
-            }
-
-            /* 2. Ultra-Compact Side Frozen Specialty Column (~75px) */
-            .matrix-table th.sticky-col,
-            .matrix-table td.sticky-col {
-                min-width: 72px !important;
-                max-width: 80px !important;
-                width: 76px !important;
-                padding: 3px 1px !important;
-                border-left-width: 2px !important;
-            }
             .header-specialty-title {
-                flex-direction: column !important;
-                gap: 1px !important;
-                font-size: 0.58rem !important;
-                line-height: 1.1 !important;
+                font-size: 0.68rem !important;
+                gap: 2px !important;
             }
             .header-specialty-title i {
-                font-size: 0.70rem !important;
+                font-size: 0.65rem !important;
             }
+
             .specialty-cell-badge {
                 padding: 2px 1px !important;
                 gap: 2px !important;
             }
+
             .specialty-icon-chip {
-                width: 24px !important;
-                height: 24px !important;
-                border-radius: 7px !important;
-                font-size: 0.80rem !important;
-                box-shadow: none !important;
-            }
-            .specialty-name-text {
-                font-size: 0.58rem !important;
-                line-height: 1.15 !important;
-                max-width: 70px !important;
-                font-weight: 800 !important;
-                display: -webkit-box !important;
-                -webkit-line-clamp: 2 !important;
-                -webkit-box-orient: vertical !important;
-                overflow: hidden !important;
-                text-overflow: ellipsis !important;
-                word-break: break-word !important;
-            }
-
-            /* 3. Days Data Columns in Body */
-            .matrix-table th:not(.sticky-col),
-            .matrix-table td:not(.sticky-col) {
-                min-width: 80px !important;
-                max-width: 95px !important;
-                padding: 2px 2px !important;
-            }
-
-            /* 4. Compact Doctor Duty Chips */
-            .doctor-duty-chip {
-                padding: 2.5px 4px !important;
-                font-size: 0.63rem !important;
-                margin: 1.5px 0 !important;
+                width: 22px !important;
+                height: 22px !important;
+                font-size: 0.78rem !important;
                 border-radius: 6px !important;
-                gap: 3px !important;
-            }
-            .duty-dot {
-                width: 4.5px !important;
-                height: 4.5px !important;
-            }
-            .duty-doctor-name {
-                max-width: 80px !important;
-                overflow: hidden !important;
-                text-overflow: ellipsis !important;
-                white-space: nowrap !important;
-            }
-            .empty-slot-dash {
-                font-size: 0.70rem !important;
-                opacity: 0.4 !important;
             }
 
-            /* 5. Compact Top Header Cards and Filter Controls */
-            .glass-card {
-                padding: 0.65rem !important;
-                margin-bottom: 0.65rem !important;
-                border-radius: 1rem !important;
+            .specialty-name-text {
+                font-size: 0.63rem !important;
+                font-weight: 800 !important;
+                line-height: 1.15 !important;
+                max-width: 78px !important;
             }
-            .glass-card .w-12.h-12 {
-                width: 36px !important;
-                height: 36px !important;
-                font-size: 1.1rem !important;
-                border-radius: 10px !important;
+
+            /* 2. Top Frozen Days Row: Drastically shrink to 32px height */
+            .matrix-table thead th {
+                padding: 3px 1px !important;
+                height: 32px !important;
             }
-            #hosp-display-name {
-                font-size: 1.05rem !important;
+
+            .day-number-text {
+                font-size: 0.76rem !important;
+                line-height: 1 !important;
             }
-            #hosp-location-text {
+
+            .day-name-text {
+                font-size: 0.55rem !important;
+                margin-top: 1px !important;
+                line-height: 1 !important;
+            }
+
+            .today-header-badge {
+                font-size: 0.5rem !important;
+                padding: 1px 3px !important;
+                margin-top: 1px !important;
+            }
+
+            /* 3. Duty Doctor Cells & Chips */
+            .matrix-table td {
+                padding: 3px 2px !important;
+                min-width: 66px !important;
+            }
+
+            .doctor-duty-chip {
                 font-size: 0.68rem !important;
+                padding: 2px 3px !important;
+                margin: 2px 0 !important;
+                min-height: 20px !important;
+                border-radius: 6px !important;
+                gap: 2px !important;
+                line-height: 1.1 !important;
             }
-            #current-month-display {
-                font-size: 0.80rem !important;
+
+            .duty-dot {
+                width: 5px !important;
+                height: 5px !important;
+            }
+
+            .duty-doctor-name {
+                font-size: 0.66rem !important;
+            }
+
+            /* 4. Filter Pills & Actions on Mobile */
+            .pills-scroll {
+                padding-bottom: 2px !important;
+                gap: 4px !important;
+            }
+            .spec-pill {
+                padding: 3px 9px !important;
+                font-size: 0.68rem !important;
             }
             .btn-today-action {
                 padding: 4px 8px !important;
-                font-size: 0.70rem !important;
-            }
-            .segmented-control {
-                padding: 2px !important;
+                font-size: 0.7rem !important;
+                border-radius: 0.65rem !important;
             }
             .segmented-btn {
                 padding: 4px 8px !important;
-                font-size: 0.68rem !important;
-            }
-            #doctor-search-input {
-                padding: 5px 26px 5px 8px !important;
-                font-size: 0.72rem !important;
+                font-size: 0.7rem !important;
             }
         }
 
@@ -1046,7 +1016,6 @@
     <!-- Scripts -->
     <script src="./hub-core.js"></script>
     <script src="./nav-component.js"></script>
-    <script src="./pwa.js"></script>
 
     <script>
         let currentYear = 2026;

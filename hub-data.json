@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-18T05:35:20.115Z",
+  "lastUpdated": "2026-09-18T05:35:21.917Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -43873,37 +43873,6 @@
     }
   ],
   "specialists": [
-    {
-      "id": "test_spec_999",
-      "name": "د. اختصاصي فحص",
-      "title": "استشاري",
-      "spec": "GS",
-      "specName": "الجراحة العامة",
-      "hospitals": [
-        "iraqi"
-      ],
-      "phone": "",
-      "clinic": "",
-      "notes": "",
-      "active": true,
-      "schedule": {
-        "clinicDays": [
-          "sun",
-          "tue"
-        ],
-        "onCallDays": [
-          "mon",
-          "thu"
-        ],
-        "theatreDays": [
-          "wed"
-        ],
-        "shiftTimes": "8:30 AM - 1:30 PM",
-        "dutyDates": [],
-        "notes": "الاستشارية الصباحية فقط",
-        "updatedAt": "2026-09-18T05:35:20.115Z"
-      }
-    },
     {
       "id": "spec-doc-mu6ixzgtxolp",
       "name": "د. اختصاصي فحص",

@@ -729,6 +729,164 @@
             color: #d4af37;
         }
 
+        /* ============================================================ */
+        /* MOBILE VIEWPORT REWORK (Phones <= 768px)                     */
+        /* Drastically shrinks side specialty column and top days row   */
+        /* to maximize duty schedule viewing area                        */
+        /* ============================================================ */
+        @media (max-width: 768px) {
+            body {
+                padding-bottom: calc(var(--sab) + 70px);
+            }
+            #schedule-main-content {
+                padding-left: 6px !important;
+                padding-right: 6px !important;
+                padding-top: 8px !important;
+            }
+            .matrix-table {
+                min-width: 780px !important;
+                font-size: 0.70rem !important;
+            }
+            .matrix-table-container {
+                max-height: calc(100dvh - 135px) !important;
+                min-height: 280px !important;
+                border-radius: 0.85rem !important;
+            }
+            .matrix-table th, .matrix-table td {
+                padding: 3px 2px !important;
+            }
+
+            /* 1. Ultra-Compact Top Frozen Header Row */
+            .matrix-table thead th {
+                padding: 3px 1px !important;
+                height: 32px !important;
+                line-height: 1 !important;
+            }
+            .day-number-text {
+                font-size: 0.72rem !important;
+                line-height: 1 !important;
+                font-weight: 900 !important;
+            }
+            .day-name-text {
+                font-size: 0.54rem !important;
+                margin-top: 1px !important;
+                font-weight: 700 !important;
+            }
+            .today-header-badge {
+                display: none !important;
+            }
+
+            /* 2. Ultra-Compact Side Frozen Specialty Column (~75px) */
+            .matrix-table th.sticky-col,
+            .matrix-table td.sticky-col {
+                min-width: 72px !important;
+                max-width: 80px !important;
+                width: 76px !important;
+                padding: 3px 1px !important;
+                border-left-width: 2px !important;
+            }
+            .header-specialty-title {
+                flex-direction: column !important;
+                gap: 1px !important;
+                font-size: 0.58rem !important;
+                line-height: 1.1 !important;
+            }
+            .header-specialty-title i {
+                font-size: 0.70rem !important;
+            }
+            .specialty-cell-badge {
+                padding: 2px 1px !important;
+                gap: 2px !important;
+            }
+            .specialty-icon-chip {
+                width: 24px !important;
+                height: 24px !important;
+                border-radius: 7px !important;
+                font-size: 0.80rem !important;
+                box-shadow: none !important;
+            }
+            .specialty-name-text {
+                font-size: 0.58rem !important;
+                line-height: 1.15 !important;
+                max-width: 70px !important;
+                font-weight: 800 !important;
+                display: -webkit-box !important;
+                -webkit-line-clamp: 2 !important;
+                -webkit-box-orient: vertical !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                word-break: break-word !important;
+            }
+
+            /* 3. Days Data Columns in Body */
+            .matrix-table th:not(.sticky-col),
+            .matrix-table td:not(.sticky-col) {
+                min-width: 80px !important;
+                max-width: 95px !important;
+                padding: 2px 2px !important;
+            }
+
+            /* 4. Compact Doctor Duty Chips */
+            .doctor-duty-chip {
+                padding: 2.5px 4px !important;
+                font-size: 0.63rem !important;
+                margin: 1.5px 0 !important;
+                border-radius: 6px !important;
+                gap: 3px !important;
+            }
+            .duty-dot {
+                width: 4.5px !important;
+                height: 4.5px !important;
+            }
+            .duty-doctor-name {
+                max-width: 80px !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                white-space: nowrap !important;
+            }
+            .empty-slot-dash {
+                font-size: 0.70rem !important;
+                opacity: 0.4 !important;
+            }
+
+            /* 5. Compact Top Header Cards and Filter Controls */
+            .glass-card {
+                padding: 0.65rem !important;
+                margin-bottom: 0.65rem !important;
+                border-radius: 1rem !important;
+            }
+            .glass-card .w-12.h-12 {
+                width: 36px !important;
+                height: 36px !important;
+                font-size: 1.1rem !important;
+                border-radius: 10px !important;
+            }
+            #hosp-display-name {
+                font-size: 1.05rem !important;
+            }
+            #hosp-location-text {
+                font-size: 0.68rem !important;
+            }
+            #current-month-display {
+                font-size: 0.80rem !important;
+            }
+            .btn-today-action {
+                padding: 4px 8px !important;
+                font-size: 0.70rem !important;
+            }
+            .segmented-control {
+                padding: 2px !important;
+            }
+            .segmented-btn {
+                padding: 4px 8px !important;
+                font-size: 0.68rem !important;
+            }
+            #doctor-search-input {
+                padding: 5px 26px 5px 8px !important;
+                font-size: 0.72rem !important;
+            }
+        }
+
         @media print {
             .no-print, .segmented-control, .pills-scroll, #universal-nav, .hub-mobile-bottom-dock, .ios-bottom-dock {
                 display: none !important;
@@ -888,6 +1046,7 @@
     <!-- Scripts -->
     <script src="./hub-core.js"></script>
     <script src="./nav-component.js"></script>
+    <script src="./pwa.js"></script>
 
     <script>
         let currentYear = 2026;

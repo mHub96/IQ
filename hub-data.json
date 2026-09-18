@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-18T10:06:22.402Z",
+  "lastUpdated": "2026-09-16T18:58:44.071Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -103,7 +103,7 @@
         },
         {
           "id": "Pe",
-          "name_ar": "الاطفال",
+          "name_ar": "طب الأطفال",
           "name_en": "Paediatrics",
           "icon": "👶",
           "color": "#3dff6e",
@@ -20479,8 +20479,7 @@
           "timestamp": "09:53",
           "VisitCount": 0
         }
-      ],
-      "specialistSchedule": []
+      ]
     },
     "basra": {
       "id": "basra",
@@ -20577,7 +20576,7 @@
         },
         {
           "id": "Pe",
-          "name_ar": "الاطفال",
+          "name_ar": "طب الأطفال",
           "name_en": "Paediatrics",
           "icon": "👶",
           "color": "#3dff6e",
@@ -32351,8 +32350,7 @@
           "timestamp": "12:08",
           "VisitCount": 0
         }
-      ],
-      "specialistSchedule": []
+      ]
     },
     "mawani": {
       "id": "mawani",
@@ -32449,7 +32447,7 @@
         },
         {
           "id": "Pe",
-          "name_ar": "الاطفال",
+          "name_ar": "طب الأطفال",
           "name_en": "Paediatrics",
           "icon": "👶",
           "color": "#3dff6e",
@@ -37530,40 +37528,6 @@
           "date": "30/09/2026",
           "specCode": "OP",
           "name": "د. آلاء إسماعيل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        }
-      ],
-      "specialistSchedule": [
-        {
-          "date": "01/10/2026",
-          "specCode": "US",
-          "name": "د. وسام عادل الحبيب",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "01/10/2026",
-          "specCode": "O",
-          "name": "د. زينب عبد الحسين العبادي",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "01/10/2026",
-          "specCode": "Pe",
-          "name": "د. رنا كاظم الموسوي",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "01/10/2026",
-          "specCode": "D",
-          "name": "د. مريم طارق العامري",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
@@ -43637,7 +43601,7 @@
     },
     {
       "id": "Pe",
-      "name_ar": "الاطفال",
+      "name_ar": "طب الأطفال",
       "name_en": "Paediatrics",
       "icon": "👶",
       "color": "#0f766e",
@@ -43909,28 +43873,6 @@
     }
   ],
   "specialists": [
-    {
-      "id": "spec-doc-mu6ixzgtxolp",
-      "name": "د. اختصاصي فحص",
-      "title": "استشاري",
-      "spec": "GS",
-      "specName": "الجراحة العامة",
-      "hospitals": [
-        "iraqi"
-      ],
-      "phone": "",
-      "clinic": "",
-      "notes": "",
-      "active": true,
-      "schedule": {
-        "clinicDays": [],
-        "onCallDays": [],
-        "theatreDays": [],
-        "shiftTimes": "",
-        "dutyDates": [],
-        "notes": ""
-      }
-    },
     {
       "id": "spec-doc-0001",
       "name": "د. علاء حسين الخفاجي",

@@ -1,10 +1,10 @@
 {
   "schemaVersion": "3.0",
-  "lastUpdated": "2026-09-18T19:45:54.375Z",
+  "lastUpdated": "2026-09-18T19:45:54.373Z",
   "globalPasswords": {
-    "owner": "MrjBth9999*",
-    "admin": "Admin9999*",
-    "user": "5555"
+    "owner": "MrjBth1996*",
+    "admin": "Admin1996*",
+    "user": "1234"
   },
   "hospitals": {
     "hosp-1": {
@@ -12,9 +12,9 @@
       "name_ar": "ÙØ³ØªØ´ÙÙ Ø§ÙÙØ±ÙÙÙ Ø§ÙØªØ¹ÙÙÙÙ",
       "hospitalName": "ÙØ³ØªØ´ÙÙ Ø§ÙÙØ±ÙÙÙ Ø§ÙØªØ¹ÙÙÙÙ",
       "passwords": {
-        "owner": "MrjBth9999*",
-        "admin": "Admin9999*",
-        "user": "5555"
+        "owner": "MrjBth1996*",
+        "admin": "Admin1996*",
+        "user": "1234"
       },
       "specialties": [],
       "specialistSchedule": [],
@@ -25,9 +25,9 @@
       "name_ar": "ÙØ³ØªØ´ÙÙ Ø§ÙÙØ±Ø§ÙØ© Ø§ÙØªØ¹ÙÙÙÙ",
       "hospitalName": "ÙØ³ØªØ´ÙÙ Ø§ÙÙØ±Ø§ÙØ© Ø§ÙØªØ¹ÙÙÙÙ",
       "passwords": {
-        "owner": "MrjBth9999*",
-        "admin": "Admin9999*",
-        "user": "5555"
+        "owner": "MrjBth1996*",
+        "admin": "Admin1996*",
+        "user": "1234"
       },
       "specialties": [],
       "specialistSchedule": [],

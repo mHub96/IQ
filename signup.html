@@ -537,14 +537,17 @@
 
                 // Hospital from URL or active hospital
                 const urlParams = new URLSearchParams(window.location.search);
-                const queryHosp = urlParams.get('hospital');
+                const queryHosp = urlParams.get('hospital') || urlParams.get('hosp');
                 let targetHid = Hub.getActiveHospitalId();
                 if (queryHosp && allHospitals.some(h => h.id === queryHosp)) {
                     targetHid = queryHosp;
+                } else if (!allHospitals.some(h => h.id === targetHid) && allHospitals.length > 0) {
+                    targetHid = allHospitals[0].id;
                 }
 
-                populateHospitalSelect(targetHid);
+                Hub.setActiveHospitalId(targetHid);
                 currentHospital = Hub.getHospital(targetHid);
+                populateHospitalSelect(targetHid);
 
                 // Initialize Date input with today's medical date
                 const dateInput = document.getElementById('exchange-date-input');
@@ -562,15 +565,26 @@
 
         function populateHospitalSelect(selectedId) {
             const select = document.getElementById('hosp-select');
+            if (!select) return;
             select.innerHTML = allHospitals.map(h => 
                 `<option value="${h.id}" ${h.id === selectedId ? 'selected' : ''}>${h.icon ? '🏥 ' : ''}${h.name_ar || h.hospitalName}</option>`
             ).join('');
+            select.value = selectedId;
         }
 
         function onHospitalChange() {
             const hospId = document.getElementById('hosp-select').value;
             currentHospital = Hub.getHospital(hospId);
             if (!currentHospital) return;
+
+            Hub.setActiveHospitalId(hospId);
+
+            // Update URL search param without full reload
+            if (window.history && window.history.replaceState) {
+                const url = new URL(window.location.href);
+                url.searchParams.set('hospital', hospId);
+                window.history.replaceState({}, '', url);
+            }
 
             // Reset downstream sections
             document.getElementById('date-group').style.display = 'none';
@@ -581,6 +595,16 @@
 
             populateSpecialties();
         }
+
+        // Keep dropdown synced if switched via universal navbar
+        window.addEventListener('hub:hospital-switched', (e) => {
+            const newHid = e.detail?.hospitalId;
+            const select = document.getElementById('hosp-select');
+            if (newHid && select && select.value !== newHid) {
+                select.value = newHid;
+                onHospitalChange();
+            }
+        });
 
         function populateSpecialties() {
             const select = document.getElementById('spec-select');

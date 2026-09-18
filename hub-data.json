@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-16T18:58:44.071Z",
+  "lastUpdated": "2026-09-18T11:13:02.474Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -20480,7 +20480,8 @@
           "VisitCount": 0
         }
       ],
-      "rotationHeroesUrl": "https://khafarat-alsadr.netlify.app/"
+      "rotationHeroesUrl": "https://khafarat-alsadr.netlify.app/",
+      "specialistSchedule": []
     },
     "basra": {
       "id": "basra",
@@ -32352,7 +32353,8 @@
           "VisitCount": 0
         }
       ],
-      "rotationHeroesUrl": ""
+      "rotationHeroesUrl": "",
+      "specialistSchedule": []
     },
     "mawani": {
       "id": "mawani",
@@ -32367,6 +32369,16 @@
         "user": "1234"
       },
       "specialties": [
+        {
+          "id": "GS",
+          "name_ar": "الجراحة العامة",
+          "name_en": "General Surgery",
+          "icon": "🔪",
+          "color": "#2ac200",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
         {
           "id": "NS",
           "name_ar": "جراحة الجملة العصبية",
@@ -32386,16 +32398,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "GS",
-          "name_ar": "الجراحة العامة",
-          "name_en": "General Surgery",
-          "icon": "🔪",
-          "color": "#2ac200",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
         },
         {
           "id": "OR",
@@ -37535,7 +37537,8 @@
           "dutySlot": 0
         }
       ],
-      "rotationHeroesUrl": ""
+      "rotationHeroesUrl": "",
+      "specialistSchedule": []
     }
   },
   "residents": [

@@ -1040,4 +1040,23 @@ html.dark .hub-role-input:focus {
     box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2) !important;
 }
 
+/* Password Modal Pulse Animation & Scope Badge */
+.pwd-pulse-active {
+    box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.45) !important;
+    background-color: #fef3c7 !important;
+    transition: all 0.25s ease !important;
+}
+body.dark .pwd-pulse-active,
+html.dark .pwd-pulse-active {
+    background-color: #451a03 !important;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.5) !important;
+}
 
+#hub-pwd-scope-badge {
+    transition: all 0.25s ease;
+}
+body.dark #hub-pwd-scope-badge {
+    color: #f59e0b !important;
+    background: rgba(245, 158, 11, 0.12) !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
+}

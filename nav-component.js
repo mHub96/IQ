@@ -322,6 +322,7 @@
             ` : ''}
 
             <!-- Owner All Passwords Modal Dialog -->
+            ${!document.getElementById('hub-passwords-modal') ? `
             <div id="hub-passwords-modal" class="hub-modal-overlay">
                 <div class="hub-modal-card" style="max-width:440px; text-align:right; padding:22px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -334,7 +335,7 @@
                                 <span style="font-size:0.75rem; color:#b45309; font-weight:700;"><i class="fas fa-crown text-amber-500 ml-1"></i> صلاحية المالك حصراً</span>
                             </div>
                         </div>
-                        <button type="button" onclick="closeAllPasswordsModalNav()" style="background:none; border:none; font-size:1.2rem; color:#94a3b8; cursor:pointer;">
+                        <button type="button" onclick="closeAllPasswordsModalNav()" style="background:none; border:none; font-size:1.2rem; color:#94a3b8; cursor:pointer;" aria-label="إغلاق">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -346,9 +347,13 @@
                     <!-- Scope Selection -->
                     <div style="margin-bottom:14px;">
                         <label style="display:block; font-size:0.75rem; font-weight:700; color:#475569; margin-bottom:4px;">نطاق تطبيق التعديل</label>
-                        <select id="hub-pwd-scope-select" onchange="onScopeChangePasswordsNav()" style="width:100%; padding:9px 12px; border-radius:10px; border:1px solid #cbd5e1; font-size:0.85rem; font-weight:600; background:#f8fafc; outline:none; color:#1e293b;">
+                        <select id="hub-pwd-scope-select" onchange="onScopeChangePasswordsNav(this.value, this)" style="width:100%; padding:9px 12px; border-radius:10px; border:1px solid #cbd5e1; font-size:0.85rem; font-weight:600; background:#f8fafc; outline:none; color:#1e293b;">
                             <option value="all">🌐 جميع المستشفيات والمنظومة بالكامل (تحديث شامل)</option>
                         </select>
+                        <div id="hub-pwd-scope-badge" style="display:flex; align-items:center; gap:6px; font-size:0.75rem; font-weight:700; color:#0f766e; background:rgba(15,118,110,0.08); border:1px solid rgba(15,118,110,0.2); border-radius:8px; padding:6px 10px; margin-top:6px;">
+                            <i class="fas fa-globe"></i>
+                            <span id="hub-pwd-scope-text">تطبيق التعديل على المنظومة بالكامل وجميع المستشفيات</span>
+                        </div>
                     </div>
 
                     <!-- Passwords Fields -->
@@ -402,6 +407,7 @@
                     </div>
                 </div>
             </div>
+            ` : ''}
         `;
     }
 
@@ -781,9 +787,13 @@
                 <!-- Scope Selection -->
                 <div style="margin-bottom:14px;">
                     <label style="display:block; font-size:0.75rem; font-weight:700; color:#475569; margin-bottom:4px;">نطاق تطبيق التعديل</label>
-                    <select id="hub-pwd-scope-select" onchange="onScopeChangePasswordsNav()" style="width:100%; padding:9px 12px; border-radius:10px; border:1px solid #cbd5e1; font-size:0.85rem; font-weight:600; background:#f8fafc; outline:none; color:#1e293b;">
+                    <select id="hub-pwd-scope-select" onchange="onScopeChangePasswordsNav(this.value, this)" style="width:100%; padding:9px 12px; border-radius:10px; border:1px solid #cbd5e1; font-size:0.85rem; font-weight:600; background:#f8fafc; outline:none; color:#1e293b;">
                         <option value="all">🌐 جميع المستشفيات والمنظومة بالكامل (تحديث شامل)</option>
                     </select>
+                    <div id="hub-pwd-scope-badge" style="display:flex; align-items:center; gap:6px; font-size:0.75rem; font-weight:700; color:#0f766e; background:rgba(15,118,110,0.08); border:1px solid rgba(15,118,110,0.2); border-radius:8px; padding:6px 10px; margin-top:6px;">
+                        <i class="fas fa-globe"></i>
+                        <span id="hub-pwd-scope-text">تطبيق التعديل على المنظومة بالكامل وجميع المستشفيات</span>
+                    </div>
                 </div>
 
                 <!-- Passwords Fields -->
@@ -841,6 +851,14 @@
         return div;
     }
 
+    function triggerInputPulse(input) {
+        if (!input) return;
+        input.classList.remove('pwd-pulse-active');
+        void input.offsetWidth;
+        input.classList.add('pwd-pulse-active');
+        setTimeout(() => input.classList.remove('pwd-pulse-active'), 600);
+    }
+
     window.openAllPasswordsModalNav = function() {
         if (!window.Hub) return;
         if (!window.Hub.auth.isOwner()) {
@@ -851,21 +869,24 @@
         const modal = ensurePasswordsModalDom();
         if (!modal) return;
 
-        const db = window.Hub.getDatabase ? window.Hub.getDatabase() : null;
-        const scopeSelect = document.getElementById('hub-pwd-scope-select');
+        const db = (window.Hub.getDatabase ? window.Hub.getDatabase() : null) || 
+                   (typeof currentDb !== 'undefined' ? currentDb : null) ||
+                   (window.currentDb || null);
 
-        if (scopeSelect && db && db.hospitals) {
-            scopeSelect.innerHTML = '<option value="all">🌐 جميع المستشفيات والمنظومة بالكامل (تحديث شامل)</option>';
-            Object.values(db.hospitals).forEach(h => {
-                const opt = document.createElement('option');
-                opt.value = h.id;
-                opt.textContent = `🏥 ${h.name_ar || h.hospitalName}`;
-                scopeSelect.appendChild(opt);
-            });
-            scopeSelect.value = 'all';
-        }
+        document.querySelectorAll('#hub-pwd-scope-select').forEach(scopeSelect => {
+            if (db && db.hospitals) {
+                scopeSelect.innerHTML = '<option value="all">🌐 جميع المستشفيات والمنظومة بالكامل (تحديث شامل)</option>';
+                Object.values(db.hospitals).forEach(h => {
+                    const opt = document.createElement('option');
+                    opt.value = h.id;
+                    opt.textContent = `🏥 ${h.name_ar || h.hospitalName}`;
+                    scopeSelect.appendChild(opt);
+                });
+                scopeSelect.value = 'all';
+            }
+        });
 
-        onScopeChangePasswordsNav();
+        onScopeChangePasswordsNav('all');
         const err = document.getElementById('hub-passwords-error');
         if (err) err.textContent = '';
         modal.classList.add('active');
@@ -876,35 +897,101 @@
         if (modal) modal.classList.remove('active');
     };
 
-    window.onScopeChangePasswordsNav = function() {
+    function onScopeChangePasswordsNav(scopeVal, triggerEl) {
         if (!window.Hub) return;
-        const scopeSelect = document.getElementById('hub-pwd-scope-select');
-        const scope = scopeSelect ? scopeSelect.value : 'all';
-        const db = window.Hub.getDatabase ? window.Hub.getDatabase() : null;
+
+        // 1. Resolve scope value
+        let scope = scopeVal;
+        if (!scope && triggerEl && triggerEl.value) {
+            scope = triggerEl.value;
+        }
+        if (!scope) {
+            const el = document.getElementById('hub-pwd-scope-select');
+            scope = el ? el.value : 'all';
+        }
+
+        // 2. Synchronize any other scope selects in DOM
+        document.querySelectorAll('#hub-pwd-scope-select').forEach(sel => {
+            if (sel.value !== scope) sel.value = scope;
+        });
+
+        // 3. Resolve database & hospital
+        const db = (window.Hub.getDatabase ? window.Hub.getDatabase() : null) || 
+                   (typeof currentDb !== 'undefined' ? currentDb : null) ||
+                   (window.currentDb || null);
 
         let uVal = '1234';
         let aVal = 'Admin1996*';
         let oVal = 'MrjBth1996*';
+        let scopeName = 'جميع المستشفيات والمنظومة بالكامل (تحديث شامل)';
+        let isGlobal = true;
 
         if (scope === 'all') {
             uVal = db?.globalPasswords?.user || '1234';
             aVal = db?.globalPasswords?.admin || 'Admin1996*';
             oVal = db?.globalPasswords?.owner || 'MrjBth1996*';
-        } else if (db?.hospitals && db.hospitals[scope]) {
-            const h = db.hospitals[scope];
-            uVal = h.passwords?.user || db?.globalPasswords?.user || '1234';
-            aVal = h.passwords?.admin || db?.globalPasswords?.admin || 'Admin1996*';
-            oVal = h.passwords?.owner || db?.globalPasswords?.owner || 'MrjBth1996*';
+            scopeName = 'جميع المستشفيات والمنظومة بالكامل';
+            isGlobal = true;
+        } else {
+            isGlobal = false;
+            let h = null;
+            if (db && db.hospitals) {
+                h = db.hospitals[scope] || Object.values(db.hospitals).find(x => x.id === scope || x.hospitalName === scope);
+            }
+            if (!h && window.Hub.getHospital) {
+                h = window.Hub.getHospital(scope);
+            }
+
+            if (h) {
+                scopeName = h.name_ar || h.hospitalName || scope;
+                uVal = h.passwords?.user || db?.globalPasswords?.user || '1234';
+                aVal = h.passwords?.admin || db?.globalPasswords?.admin || 'Admin1996*';
+                oVal = h.passwords?.owner || db?.globalPasswords?.owner || 'MrjBth1996*';
+            } else {
+                scopeName = scope;
+            }
         }
 
-        const uInput = document.getElementById('hub-pwd-user');
-        const aInput = document.getElementById('hub-pwd-admin');
-        const oInput = document.getElementById('hub-pwd-owner');
+        // 4. Update inputs across all instances in DOM
+        const userInputs = document.querySelectorAll('#hub-pwd-user');
+        const adminInputs = document.querySelectorAll('#hub-pwd-admin');
+        const ownerInputs = document.querySelectorAll('#hub-pwd-owner');
 
-        if (uInput) uInput.value = uVal;
-        if (aInput) aInput.value = aVal;
-        if (oInput) oInput.value = oVal;
-    };
+        userInputs.forEach(input => {
+            input.value = uVal;
+            input.placeholder = uVal;
+            triggerInputPulse(input);
+        });
+
+        adminInputs.forEach(input => {
+            input.value = aVal;
+            input.placeholder = aVal;
+            triggerInputPulse(input);
+        });
+
+        ownerInputs.forEach(input => {
+            input.value = oVal;
+            input.placeholder = oVal;
+            triggerInputPulse(input);
+        });
+
+        // 5. Update scope badge text
+        document.querySelectorAll('#hub-pwd-scope-badge').forEach(badge => {
+            const textEl = badge.querySelector('#hub-pwd-scope-text') || badge;
+            if (isGlobal) {
+                badge.style.color = '#0f766e';
+                badge.style.background = 'rgba(15,118,110,0.08)';
+                badge.style.borderColor = 'rgba(15,118,110,0.2)';
+                textEl.innerHTML = `<i class="fas fa-globe ml-1"></i> يتم تطبيق التعديل على <strong>المنظومة العامة وجميع المستشفيات</strong>`;
+            } else {
+                badge.style.color = '#b45309';
+                badge.style.background = 'rgba(217,119,6,0.08)';
+                badge.style.borderColor = 'rgba(217,119,6,0.25)';
+                textEl.innerHTML = `<i class="fas fa-hospital ml-1"></i> جاري تعديل كلمات مرور: <strong>${scopeName}</strong>`;
+            }
+        });
+    }
+    window.onScopeChangePasswordsNav = onScopeChangePasswordsNav;
 
     window.submitAllPasswordsNav = async function() {
         if (!window.Hub) return;

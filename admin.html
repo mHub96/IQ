@@ -205,24 +205,24 @@
             border-color: rgba(212, 175, 55, 0.15);
         }
 
-        /* Specialty Manager Items */
+        /* Specialty Bubble Cards (Hospital Specialty Management) */
         .specialty-item {
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 0.8rem;
-            border-radius: 0.9rem;
-            border: 1px solid rgba(212, 175, 55, 0.1);
-            background: rgba(255, 255, 255, 0.5);
-            margin-bottom: 0.4rem;
-            transition: all 0.2s ease;
+            flex-direction: column;
+            border-radius: 1rem;
+            margin-bottom: 0.6rem;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            border: 1.5px solid transparent;
         }
-        body.dark .specialty-item {
-            background: rgba(255, 255, 255, 0.02);
-            border-color: rgba(212, 175, 55, 0.08);
+        .specialty-item.disabled-spec {
+            opacity: 0.65;
+            filter: grayscale(0.2);
         }
-        .specialty-item.disabled-spec { opacity: 0.55; }
-        .specialty-item.disabled-spec .spec-name { text-decoration: line-through; }
+        .specialty-item.disabled-spec .spec-name {
+            text-decoration: line-through;
+            opacity: 0.8;
+        }
         .specialty-item.spec-dragging {
             opacity: 0.35;
             border: 2px dashed #0d9488 !important;
@@ -230,9 +230,8 @@
         }
         .specialty-item.spec-drag-over {
             border-color: #0d9488 !important;
-            background: rgba(13, 148, 136, 0.12) !important;
             transform: scale(1.02);
-            box-shadow: 0 4px 14px rgba(13, 148, 136, 0.2);
+            box-shadow: 0 6px 18px rgba(13, 148, 136, 0.2);
         }
         .specialty-item .drag-handle {
             cursor: grab;
@@ -241,6 +240,111 @@
         }
         .specialty-item .drag-handle:active {
             cursor: grabbing;
+        }
+
+        /* Bubble Header */
+        .spec-bubble-head {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.65rem 0.85rem;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.2s ease, filter 0.2s ease;
+        }
+        .spec-bubble-head:hover {
+            filter: brightness(0.97);
+        }
+        body.dark .spec-bubble-head:hover {
+            filter: brightness(1.08);
+        }
+
+        .spec-expand-arrow {
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            font-size: 0.8rem;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.05);
+            flex-shrink: 0;
+        }
+        body.dark .spec-expand-arrow {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .specialty-item.expanded .spec-expand-arrow {
+            transform: rotate(180deg);
+        }
+
+        /* Options Drawer */
+        .spec-options-drawer {
+            display: none;
+            padding: 0.75rem 0.85rem;
+            border-top: 1px dashed rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            animation: drawerSlideDown 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        body.dark .spec-options-drawer {
+            background: rgba(15, 23, 42, 0.45);
+            border-top-color: rgba(255, 255, 255, 0.1);
+        }
+        .specialty-item.expanded .spec-options-drawer {
+            display: block;
+        }
+
+        @keyframes drawerSlideDown {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Quick color swatches */
+        .color-swatch-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #ffffff;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+            transition: transform 0.15s ease;
+            display: inline-block;
+        }
+        body.dark .color-swatch-dot {
+            border-color: #1e293b;
+        }
+        .color-swatch-dot:hover, .color-swatch-dot:active {
+            transform: scale(1.22);
+        }
+
+        .spec-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            padding: 7px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: #ffffff;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            min-height: 38px;
+        }
+        body.dark .spec-action-btn {
+            background: #1e293b;
+            border-color: rgba(255, 255, 255, 0.12);
+            color: #f1f5f9;
+        }
+        .spec-action-btn:hover {
+            filter: brightness(0.96);
+        }
+        .spec-action-btn:active {
+            transform: scale(0.97);
         }
 
         /* Compact iOS Style Switch */
@@ -357,7 +461,15 @@
                 padding: 0.5rem 0.85rem;
             }
             .specialty-item {
-                padding: 0.65rem 0.8rem;
+                padding: 0 !important;
+                margin-bottom: 0.65rem !important;
+            }
+            .spec-bubble-head {
+                padding: 0.75rem 0.75rem !important;
+            }
+            .spec-action-btn {
+                min-height: 40px !important;
+                font-size: 0.76rem !important;
             }
             .drag-handle {
                 padding: 4px 8px;
@@ -645,7 +757,7 @@
                 </button>
             </div>
 
-            <div id="specialties-items-container" class="space-y-1 max-h-80 overflow-y-auto mb-4 p-1">
+            <div id="specialties-items-container" class="space-y-2 max-h-[65vh] overflow-y-auto mb-4 p-1">
                 <!-- Rendered dynamically -->
             </div>
 
@@ -1579,6 +1691,40 @@
             document.getElementById('specialties-modal').classList.remove('active');
         }
 
+        window.expandedSpecIds = window.expandedSpecIds || new Set();
+
+        function toggleSpecCard(id) {
+            if (!window.expandedSpecIds) window.expandedSpecIds = new Set();
+            if (window.expandedSpecIds.has(id)) {
+                window.expandedSpecIds.delete(id);
+            } else {
+                window.expandedSpecIds.add(id);
+            }
+            const card = document.getElementById(`spec-card-${id}`);
+            if (card) {
+                card.classList.toggle('expanded', window.expandedSpecIds.has(id));
+            }
+        }
+
+        async function moveHospitalSpecOrder(fromIdx, direction) {
+            const specs = currentHospital?.specialties;
+            if (!specs) return;
+            const toIdx = fromIdx + direction;
+            if (toIdx < 0 || toIdx >= specs.length) return;
+
+            const [moved] = specs.splice(fromIdx, 1);
+            specs.splice(toIdx, 0, moved);
+
+            if (!window.expandedSpecIds) window.expandedSpecIds = new Set();
+            window.expandedSpecIds.add(moved.id);
+
+            renderSpecialtiesList();
+            renderResidentsAccordion();
+            populateSpecialtyDropdowns();
+            showToast(`تم تغيير ترتيب تخصص: ${moved.name_ar}`, 'info');
+            await Hub.saveDatabase(`Reorder specialty ${moved.name_ar} in ${currentHospital.hospitalName}`);
+        }
+
         function renderSpecialtiesList() {
             const container = document.getElementById('specialties-items-container');
             const specs = currentHospital?.specialties || [];
@@ -1609,9 +1755,14 @@
                 const isEnabled = s.enabled !== false;
                 const poolCount = Array.isArray(s.acceptPool) ? s.acceptPool.length : 0;
                 const resCount = names.filter(n => n.spec === s.id || n.tag === s.id || n.dept === s.id || n.department === s.id).length;
+                const specColor = s.color || '#0f766e';
+                const parentName = s.parentSpec ? ((window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(s.parentSpec) : s.parentSpec) : null;
+                const isExpanded = window.expandedSpecIds && window.expandedSpecIds.has(s.id);
 
                 return `
-                    <div class="specialty-item ${!isEnabled ? 'disabled-spec' : ''}"
+                    <div id="spec-card-${s.id}"
+                         class="specialty-item ${!isEnabled ? 'disabled-spec' : ''} ${isExpanded ? 'expanded' : ''}"
+                         style="background: ${specColor}12; border-color: ${specColor}55;"
                          draggable="true"
                          data-index="${idx}"
                          ondragstart="handleSpecDragStart(event, ${idx})"
@@ -1620,49 +1771,124 @@
                          ondragleave="handleSpecDragLeave(event, ${idx})"
                          ondrop="handleSpecDrop(event, ${idx})"
                          ondragend="handleSpecDragEnd(event)">
-                        <span class="drag-handle text-slate-400 hover:text-teal-600 dark:hover:text-amber-400 p-1 text-base ml-1 cursor-grab" title="اسحب لتغيير ترتيب الظهور في الجدول">
-                            <i class="fas fa-grip-vertical"></i>
-                        </span>
-                        <span class="text-xl w-7 text-center flex-shrink-0">${s.icon || '🏥'}</span>
-                        <span class="spec-name font-bold text-sm flex-1 truncate">${s.name_ar}</span>
-
-                        <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${resCount > 0 ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300' : 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900'}">
-                            ${resCount} مقيم
-                        </span>
-
-                        ${s.parentSpec ? `
-                            <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800" title="فئة فرعية من التخصص الأب">
-                                فرعي من: ${(window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(s.parentSpec) : s.parentSpec}
+                        
+                        <!-- Colored Specialty Bubble (Tap anywhere to expand/collapse options) -->
+                        <div class="spec-bubble-head" onclick="toggleSpecCard('${s.id}')">
+                            <!-- Drag handle for desktop reordering -->
+                            <span class="drag-handle text-slate-400 hover:text-teal-600 dark:hover:text-amber-400 p-1 text-base cursor-grab" 
+                                  title="اسحب لتغيير ترتيب الظهور" 
+                                  onclick="event.stopPropagation()">
+                                <i class="fas fa-grip-vertical"></i>
                             </span>
-                        ` : ''}
-                        ${poolCount > 0 ? `
-                            <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800" title="يسحب أطباء من ${poolCount} تخصص">
-                                يسحب من ${poolCount}
+
+                            <!-- Specialty Icon in colored container -->
+                            <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-base shadow-sm" 
+                                 style="background: ${specColor}26; color: ${specColor}; border: 1px solid ${specColor}40;">
+                                ${s.icon || '🏥'}
+                            </div>
+
+                            <!-- Specialty Name & Badges -->
+                            <div class="flex-1 min-w-0 flex flex-wrap items-center gap-1.5">
+                                <span class="spec-name font-bold text-sm text-slate-800 dark:text-slate-100 truncate">${s.name_ar}</span>
+                                <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full" style="background: ${specColor}25; color: ${specColor};">
+                                    ${resCount} مقيم
+                                </span>
+                                ${parentName ? `
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                        فرعي: ${parentName}
+                                    </span>
+                                ` : ''}
+                                ${poolCount > 0 ? `
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                        يسحب: ${poolCount}
+                                    </span>
+                                ` : ''}
+                                ${!isEnabled ? `
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400">
+                                        مخفي
+                                    </span>
+                                ` : ''}
+                            </div>
+
+                            <!-- Expand Chevron Indicator -->
+                            <span class="spec-expand-arrow text-slate-400 dark:text-slate-400" title="انقر لعرض وتعديل خيارات هذا التخصص">
+                                <i class="fas fa-chevron-down"></i>
                             </span>
-                        ` : ''}
+                        </div>
 
-                        <!-- Hospital Display Color Picker -->
-                        <input type="color"
-                               value="${s.color || '#0f766e'}"
-                               onchange="changeHospitalSpecColor('${s.id}', this.value)"
-                               class="h-7 w-9 p-0.5 rounded-md border border-slate-300 dark:border-slate-700 cursor-pointer flex-shrink-0"
-                               title="تعديل لون عرض التخصص في جدول الخفارات" />
+                        <!-- Tap-to-Reveal Editing Options Drawer -->
+                        <div class="spec-options-drawer" onclick="event.stopPropagation()">
+                            <!-- Row 1: Color Customization (Picker + Presets) -->
+                            <div class="p-2.5 mb-2 rounded-xl bg-white/70 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 flex flex-wrap items-center justify-between gap-2">
+                                <span class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                    <i class="fas fa-palette text-sm" style="color: ${specColor};"></i> لون العرض في الجدول:
+                                </span>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <div class="flex items-center gap-1.5">
+                                        ${['#0f766e', '#10b981', '#2563eb', '#8b5cf6', '#d97706', '#ea580c', '#e11d48', '#475569'].map(c => `
+                                            <span class="color-swatch-dot" 
+                                                  style="background: ${c}; ${c.toLowerCase() === specColor.toLowerCase() ? 'outline: 2px solid #0f172a; outline-offset: 1px;' : ''}"
+                                                  title="${c}"
+                                                  onclick="changeHospitalSpecColor('${s.id}', '${c}')"></span>
+                                        `).join('')}
+                                    </div>
+                                    <label class="relative flex items-center justify-center cursor-pointer ml-1" title="اختر لوناً مخصصاً">
+                                        <input type="color" 
+                                               value="${specColor}"
+                                               onchange="changeHospitalSpecColor('${s.id}', this.value)"
+                                               class="opacity-0 absolute inset-0 w-full h-full cursor-pointer" />
+                                        <span class="p-1 px-2 text-[11px] font-bold rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 shadow-sm flex items-center gap-1">
+                                            <i class="fas fa-eye-dropper text-[10px]"></i> مخصص
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
 
-                        <!-- Show / Hide iOS Switch -->
-                        <label class="toggle-switch-compact ml-1" title="${isEnabled ? 'ظاهر في الجدول' : 'مخفي من الجدول'}">
-                            <input type="checkbox" ${isEnabled ? 'checked' : ''} onchange="toggleSpecEnabled('${s.id}', this.checked)" />
-                            <span class="toggle-slider-compact"></span>
-                        </label>
+                            <!-- Row 2: Visibility & Reordering -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                                <!-- Visibility Toggle -->
+                                <div class="p-2.5 rounded-xl bg-white/70 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between">
+                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                        <i class="fas ${isEnabled ? 'fa-eye text-teal-600 dark:text-amber-400' : 'fa-eye-slash text-slate-400'}"></i>
+                                        ${isEnabled ? 'ظاهر في جدول الخفارات' : 'مخفي من الجدول'}
+                                    </span>
+                                    <label class="toggle-switch-compact" title="${isEnabled ? 'ظاهر في الجدول' : 'مخفي من الجدول'}">
+                                        <input type="checkbox" ${isEnabled ? 'checked' : ''} onchange="toggleSpecEnabled('${s.id}', this.checked)" />
+                                        <span class="toggle-slider-compact"></span>
+                                    </label>
+                                </div>
 
-                        ${isOwner ? `
-                            <button type="button" onclick="openGlobalSpecEditModal('${s.id}')" class="p-1 px-2 text-xs rounded text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/30" title="تعديل في المستودع العام للمالك 👑">
-                                <i class="fas fa-crown"></i>
-                            </button>
-                        ` : ''}
+                                <!-- Mobile Reorder Buttons -->
+                                <div class="p-1.5 rounded-xl bg-white/70 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 flex items-center gap-1">
+                                    <button type="button" 
+                                            onclick="moveHospitalSpecOrder(${idx}, -1)" 
+                                            ${idx === 0 ? 'disabled' : ''} 
+                                            class="spec-action-btn flex-1 ${idx === 0 ? 'opacity-40 cursor-not-allowed' : ''}" 
+                                            title="تحريك للأعلى في الجدول">
+                                        <i class="fas fa-arrow-up text-teal-600 dark:text-amber-400"></i> للأعلى
+                                    </button>
+                                    <button type="button" 
+                                            onclick="moveHospitalSpecOrder(${idx}, 1)" 
+                                            ${idx === specs.length - 1 ? 'disabled' : ''} 
+                                            class="spec-action-btn flex-1 ${idx === specs.length - 1 ? 'opacity-40 cursor-not-allowed' : ''}" 
+                                            title="تحريك للأسفل في الجدول">
+                                        <i class="fas fa-arrow-down text-teal-600 dark:text-amber-400"></i> للأسفل
+                                    </button>
+                                </div>
+                            </div>
 
-                        <button type="button" onclick="removeHospitalSpecialty('${s.id}', '${s.name_ar}')" class="p-1 px-2 text-xs rounded text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30" title="إزالة من هذا المستشفى">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                            <!-- Row 3: Actions (Owner Edit & Delete) -->
+                            <div class="flex items-center justify-end gap-2 flex-wrap pt-1">
+                                ${isOwner ? `
+                                    <button type="button" onclick="openGlobalSpecEditModal('${s.id}')" class="spec-action-btn text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800 hover:bg-purple-100" title="تعديل في المستودع العام للمالك 👑">
+                                        <i class="fas fa-crown text-amber-500"></i> المستودع العام 👑
+                                    </button>
+                                ` : ''}
+                                <button type="button" onclick="removeHospitalSpecialty('${s.id}', '${s.name_ar}')" class="spec-action-btn text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900 hover:bg-rose-100" title="إزالة من هذا المستشفى">
+                                    <i class="fas fa-trash-alt"></i> إزالة من المستشفى
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -1705,6 +1931,8 @@
 
         async function changeHospitalSpecColor(specId, newColor) {
             try {
+                if (!window.expandedSpecIds) window.expandedSpecIds = new Set();
+                window.expandedSpecIds.add(specId);
                 await Hub.updateHospitalSpecialty(currentHospital.id, specId, { color: newColor });
                 currentHospital = Hub.getActiveHospital();
                 renderSpecialtiesList();
@@ -1756,6 +1984,9 @@
             specs.splice(targetIdx, 0, moved);
             draggedSpecIdx = null;
 
+            if (!window.expandedSpecIds) window.expandedSpecIds = new Set();
+            window.expandedSpecIds.add(moved.id);
+
             renderSpecialtiesList();
             renderResidentsAccordion();
             populateSpecialtyDropdowns();
@@ -1773,6 +2004,8 @@
         async function toggleSpecEnabled(specId, checked) {
             const s = (currentHospital?.specialties || []).find(x => x.id === specId);
             if (s) {
+                if (!window.expandedSpecIds) window.expandedSpecIds = new Set();
+                window.expandedSpecIds.add(specId);
                 s.enabled = checked;
                 renderSpecialtiesList();
                 renderResidentsAccordion();

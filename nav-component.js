@@ -163,41 +163,10 @@
                     </div>
 
                     <!-- Role Selection Options -->
+                    <!-- Role Selection Options -->
                     <div class="space-y-3" id="switcher-role-cards" style="display:flex; flex-direction:column; gap:10px;">
-                        <!-- 1. Owner Level Card -->
-                        <div class="border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 transition hover:border-amber-400 dark:hover:border-amber-500 cursor-pointer bg-white/80 dark:bg-slate-900/60 shadow-sm" id="card-role-owner" onclick="selectRoleLevel('owner')" style="padding:12px; border-radius:16px; border:1px solid rgba(226,232,240,0.8); cursor:pointer; background:rgba(255,255,255,0.7);">
-                            <div class="flex items-start justify-between gap-2" style="display:flex; align-items:flex-start; justify-content:space-between;">
-                                <div class="flex items-center gap-3" style="display:flex; align-items:center; gap:10px;">
-                                    <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg flex-shrink-0" style="width:38px; height:38px; border-radius:12px; background:rgba(245,158,11,0.15); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
-                                        👑
-                                    </div>
-                                    <div>
-                                        <div class="flex items-center gap-2" style="display:flex; align-items:center; gap:6px;">
-                                            <h4 class="text-xs font-black text-slate-800 dark:text-white" style="font-size:0.85rem; font-weight:800; margin:0;">المالك (Owner)</h4>
-                                            <span id="tag-active-owner" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 font-bold" style="font-size:0.68rem; padding:2px 8px; border-radius:999px; background:rgba(245,158,11,0.15); color:#b45309; font-weight:800;">نشط حالياً ✓</span>
-                                        </div>
-                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" style="font-size:0.72rem; color:#64748b; margin:2px 0 0;">تحكم كامل بالمنظومة، إدارة المستشفيات، وتعديل كلمات المرور</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Password input for owner if needed -->
-                            <div id="owner-pwd-box" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 hidden" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(226,232,240,0.8);" onclick="event.stopPropagation()">
-                                <div class="relative mb-2" style="position:relative; margin-bottom:8px;">
-                                    <input type="password" id="owner-level-pwd" class="hub-input text-xs w-full" placeholder="أدخل كلمة مرور المالك..." onkeydown="if(event.key==='Enter') confirmUpgradeToRole('owner')" />
-                                    <button type="button" onclick="toggleInputPwd('owner-level-pwd', 'owner-eye-icon')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#94a3b8;">
-                                        <i class="fas fa-eye" id="owner-eye-icon"></i>
-                                    </button>
-                                </div>
-                                <div class="flex gap-2" style="display:flex; gap:8px;">
-                                    <button type="button" onclick="confirmUpgradeToRole('owner')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 transition shadow-sm" style="flex:1; padding:8px 12px; border-radius:10px; border:none; background:#d97706; color:white; font-weight:700; cursor:pointer; font-size:0.78rem;">تأكيد التبديل لمالك</button>
-                                    <button type="button" onclick="cancelRoleInput('owner')" class="py-1.5 px-3 rounded-lg text-xs font-bold border border-slate-300 dark:border-slate-700 text-slate-500" style="padding:8px 12px; border-radius:10px; border:1px solid #cbd5e1; background:transparent; color:#64748b; font-weight:600; cursor:pointer; font-size:0.78rem;">إلغاء</button>
-                                </div>
-                                <p id="owner-pwd-error" class="text-[11px] text-rose-500 mt-1 min-h-[16px]" style="color:#ef4444; font-size:0.72rem; margin:4px 0 0; min-height:16px;"></p>
-                            </div>
-                        </div>
-
-                        <!-- 2. Admin Level Card -->
-                        <div class="border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 transition hover:border-teal-500 dark:hover:border-teal-400 cursor-pointer bg-white/80 dark:bg-slate-900/60 shadow-sm" id="card-role-admin" onclick="selectRoleLevel('admin')" style="padding:12px; border-radius:16px; border:1px solid rgba(226,232,240,0.8); cursor:pointer; background:rgba(255,255,255,0.7);">
+                        <!-- 1. Admin Level Card -->
+                        <div class="switcher-role-card" id="card-role-admin" onclick="selectRoleLevel('admin')">
                             <div class="flex items-start justify-between gap-2" style="display:flex; align-items:flex-start; justify-content:space-between;">
                                 <div class="flex items-center gap-3" style="display:flex; align-items:center; gap:10px;">
                                     <div class="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 flex items-center justify-center text-lg flex-shrink-0" style="width:38px; height:38px; border-radius:12px; background:rgba(15,118,110,0.15); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
@@ -205,17 +174,17 @@
                                     </div>
                                     <div>
                                         <div class="flex items-center gap-2" style="display:flex; align-items:center; gap:6px;">
-                                            <h4 class="text-xs font-black text-slate-800 dark:text-white" style="font-size:0.85rem; font-weight:800; margin:0;">مدير مستشفى (Admin)</h4>
+                                            <h4 class="role-title">مدير مستشفى (Admin)</h4>
                                             <span id="tag-active-admin" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-bold" style="font-size:0.68rem; padding:2px 8px; border-radius:999px; background:rgba(15,118,110,0.15); color:#0f766e; font-weight:800;">نشط حالياً ✓</span>
                                         </div>
-                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" style="font-size:0.72rem; color:#64748b; margin:2px 0 0;">إدارة وتعديل جداول الخفارات للمقيمين والاختصاصيين وتعديل الأطباء</p>
+                                        <p class="role-desc">إدارة وتعديل جداول الخفارات للمقيمين والاختصاصيين وتعديل الأطباء</p>
                                     </div>
                                 </div>
                             </div>
                             <!-- Password input for admin if needed -->
                             <div id="admin-pwd-box" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 hidden" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(226,232,240,0.8);" onclick="event.stopPropagation()">
                                 <div class="relative mb-2" style="position:relative; margin-bottom:8px;">
-                                    <input type="password" id="admin-level-pwd" class="hub-input text-xs w-full" placeholder="أدخل كلمة مرور الإدارة..." onkeydown="if(event.key==='Enter') confirmUpgradeToRole('admin')" />
+                                    <input type="password" id="admin-level-pwd" class="hub-role-input" placeholder="أدخل كلمة مرور الإدارة..." onkeydown="if(event.key==='Enter') confirmUpgradeToRole('admin')" />
                                     <button type="button" onclick="toggleInputPwd('admin-level-pwd', 'admin-eye-icon')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#94a3b8;">
                                         <i class="fas fa-eye" id="admin-eye-icon"></i>
                                     </button>
@@ -228,8 +197,8 @@
                             </div>
                         </div>
 
-                        <!-- 3. User Level Card -->
-                        <div class="border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 transition hover:border-blue-400 dark:hover:border-blue-500 cursor-pointer bg-white/80 dark:bg-slate-900/60 shadow-sm" id="card-role-user" onclick="selectRoleLevel('user')" style="padding:12px; border-radius:16px; border:1px solid rgba(226,232,240,0.8); cursor:pointer; background:rgba(255,255,255,0.7);">
+                        <!-- 2. User Level Card -->
+                        <div class="switcher-role-card" id="card-role-user" onclick="selectRoleLevel('user')">
                             <div class="flex items-start justify-between gap-2" style="display:flex; align-items:flex-start; justify-content:space-between;">
                                 <div class="flex items-center gap-3" style="display:flex; align-items:center; gap:10px;">
                                     <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center text-lg flex-shrink-0" style="width:38px; height:38px; border-radius:12px; background:rgba(100,116,139,0.15); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
@@ -237,10 +206,10 @@
                                     </div>
                                     <div>
                                         <div class="flex items-center gap-2" style="display:flex; align-items:center; gap:6px;">
-                                            <h4 class="text-xs font-black text-slate-800 dark:text-white" style="font-size:0.85rem; font-weight:800; margin:0;">مستخدم عادي (User)</h4>
+                                            <h4 class="role-title">مستخدم عادي (User)</h4>
                                             <span id="tag-active-user" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold" style="font-size:0.68rem; padding:2px 8px; border-radius:999px; background:rgba(100,116,139,0.15); color:#475569; font-weight:800;">نشط حالياً ✓</span>
                                         </div>
-                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" style="font-size:0.72rem; color:#64748b; margin:2px 0 0;">استعراض جداول الخفارات واليوميات والبحث عن الأطباء (وضع القراءة فقط)</p>
+                                        <p class="role-desc">استعراض جداول الخفارات واليوميات والبحث عن الأطباء (وضع القراءة فقط)</p>
                                     </div>
                                 </div>
                             </div>
@@ -248,12 +217,41 @@
                     </div>
 
                     <!-- Footer Quick Actions -->
-                    <div class="mt-5 pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between" style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding-top:12px; border-top:1px solid rgba(226,232,240,0.8);">
-                        <button type="button" onclick="handleDockLockAction(); closeRoleSwitcherModal();" class="text-xs font-bold text-rose-500 hover:text-rose-600 flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40" style="background:none; border:none; color:#ef4444; font-weight:700; font-size:0.78rem; cursor:pointer; display:flex; align-items:center; gap:6px;">
-                            <i class="fas fa-sign-out-alt"></i> قفل التطبيق وخروج
-                        </button>
-                        <button type="button" onclick="closeRoleSwitcherModal()" class="text-xs font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700" style="padding:6px 14px; border-radius:10px; border:1px solid #cbd5e1; background:transparent; color:#64748b; font-weight:700; font-size:0.78rem; cursor:pointer;">
+                    <div class="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end" style="margin-top:16px; padding-top:12px; border-top:1px solid rgba(148,163,184,0.2); display:flex; justify-content:flex-end;">
+                        <button type="button" onclick="closeRoleSwitcherModal()" class="px-4 py-2 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition" style="background:transparent; border:none; color:#64748b; font-weight:700; cursor:pointer; font-size:0.8rem;">
                             إغلاق
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Full-Screen Modal for Upgrade/Login Guard -->
+            <div id="universal-upgrade-modal" class="modal-overlay hub-modal-overlay" onclick="if(event.target===this) closeUpgradeModal()">
+                <div class="modal-card hub-modal-card max-w-sm w-full p-6 text-center" style="max-width:380px;text-align:center;">
+                    <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-2xl shadow-inner" 
+                         style="width:56px;height:56px;margin:0 auto 16px;border-radius:18px;background:rgba(217,119,6,0.15);display:flex;align-items:center;justify-content:center;color:#d97706;font-size:1.5rem;">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h3 class="text-lg font-black text-slate-800 dark:text-white mb-2" style="font-size:1.15rem;font-weight:800;margin-bottom:8px;">
+                        صلاحية مدير مستشفى مطلوبة
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed" style="font-size:0.82rem;color:#64748b;margin-bottom:20px;line-height:1.5;">
+                        للوصول إلى أداة المجدول وتعديل الجداول، يرجى إدخال كلمة مرور الإدارة لهذا المستشفى.
+                    </p>
+                    <div class="relative mb-3" style="position:relative;margin-bottom:12px;">
+                        <input type="password" id="upgrade-admin-pwd" class="hub-input text-center text-sm" placeholder="كلمة مرور الإدارة..." 
+                               onkeydown="if(event.key==='Enter') submitUpgradeAuth()"
+                               style="width:100%;padding:10px 14px;border-radius:12px;border:1px solid #cbd5e1;text-align:center;font-size:0.9rem;outline:none;" />
+                    </div>
+                    <div id="upgrade-pwd-error" class="text-xs text-rose-500 mb-3 min-h-[18px]" style="color:#ef4444;font-size:0.75rem;min-height:18px;margin-bottom:12px;"></div>
+                    <div class="flex gap-2" style="display:flex;gap:8px;">
+                        <button type="button" onclick="submitUpgradeAuth()" 
+                                style="flex:1;padding:10px;border-radius:12px;border:none;background:linear-gradient(135deg,#0f766e,#0d9488);color:white;font-weight:700;cursor:pointer;">
+                            تأكيد الدخول
+                        </button>
+                        <button type="button" onclick="closeUpgradeModal()" 
+                                style="padding:10px 16px;border-radius:12px;border:1px solid #cbd5e1;background:transparent;color:#64748b;font-weight:600;cursor:pointer;">
+                            إلغاء
                         </button>
                     </div>
                 </div>
@@ -297,10 +295,6 @@
                 <a href="./index.html" class="dock-tab-btn ${activePageId === 'hub' ? 'active' : ''}" title="البوابة الرئيسية">
                     <i class="fas fa-hospital-alt"></i>
                     <span>الرئيسية</span>
-                </a>
-                <a href="./Home.html${queryParam}" class="dock-tab-btn ${activePageId === 'roster' ? 'active' : ''}" title="خفراء اليوم">
-                    <i class="fas fa-users-viewfinder"></i>
-                    <span>الخفراء</span>
                 </a>
                 <a href="./schedule.html${queryParam}" class="dock-tab-btn ${activePageId === 'schedule' ? 'active' : ''}" title="جدول الخفارات الشهري">
                     <i class="fas fa-calendar-week"></i>
@@ -515,30 +509,25 @@
             hospBadgeEl.textContent = (isAdmin && !isOwner && window.Hub && window.Hub.auth.getAdminHospitalName) ? window.Hub.auth.getAdminHospitalName() : '';
         }
 
-        // 2. Active cards & tags
-        ['owner', 'admin', 'user'].forEach(r => {
+        // 2. Active cards & tags (Owner card removed from user switcher modal)
+        ['admin', 'user'].forEach(r => {
             const tag = document.getElementById(`tag-active-${r}`);
             const card = document.getElementById(`card-role-${r}`);
-            const isActive = (r === 'owner' && isOwner) || (r === 'admin' && isAdmin && !isOwner) || (r === 'user' && !isAdmin && !isOwner);
+            const isActive = (r === 'admin' && isAdmin && !isOwner) || (r === 'user' && !isAdmin && !isOwner);
             if (tag) {
                 if (isActive) tag.classList.remove('hidden');
                 else tag.classList.add('hidden');
             }
             if (card) {
                 if (isActive) {
-                    card.classList.add('ring-2', 'ring-teal-500', 'dark:ring-amber-400');
-                    card.style.borderColor = isOwner ? '#f59e0b' : '#0f766e';
-                    card.style.boxShadow = '0 0 0 2px ' + (isOwner ? '#f59e0b' : '#0f766e');
+                    card.classList.add('is-active-role');
                 } else {
-                    card.classList.remove('ring-2', 'ring-teal-500', 'dark:ring-amber-400');
-                    card.style.borderColor = '';
-                    card.style.boxShadow = '';
+                    card.classList.remove('is-active-role');
                 }
             }
         });
 
         // 3. Reset password boxes
-        cancelRoleInput('owner');
         cancelRoleInput('admin');
 
         modal.classList.add('active');
@@ -577,7 +566,7 @@
 
         // Determine current and target rank: owner = 3, admin = 2, user = 1
         const currentRank = isOwner ? 3 : (isAdmin ? 2 : 1);
-        const targetRank = targetRole === 'owner' ? 3 : (targetRole === 'admin' ? 2 : 1);
+        const targetRank = targetRole === 'admin' ? 2 : 1;
 
         // 1. Same level check
         if (targetRank === currentRank) {
@@ -608,32 +597,12 @@
         }
 
         // 3. ASCENDING PRIVILEGE: PASSWORD IS A STRICT MUST!
-        // A regular user CANNOT become an Admin or an Owner without a password.
-        // An admin CANNOT become an Owner without a password.
+        // A regular user CANNOT become an Admin without a password.
         if (targetRole === 'admin') {
-            // User ascending to Admin: MUST enter Admin password!
             const adminBox = document.getElementById('admin-pwd-box');
-            const ownerBox = document.getElementById('owner-pwd-box');
             if (adminBox) adminBox.classList.remove('hidden');
-            if (ownerBox) ownerBox.classList.add('hidden');
             const pwdInput = document.getElementById('admin-level-pwd');
             const err = document.getElementById('admin-pwd-error');
-            if (err) err.textContent = '';
-            if (pwdInput) {
-                pwdInput.value = '';
-                setTimeout(() => pwdInput.focus(), 80);
-            }
-            return;
-        }
-
-        if (targetRole === 'owner') {
-            // User or Admin ascending to Owner: MUST enter Owner password!
-            const ownerBox = document.getElementById('owner-pwd-box');
-            const adminBox = document.getElementById('admin-pwd-box');
-            if (ownerBox) ownerBox.classList.remove('hidden');
-            if (adminBox) adminBox.classList.add('hidden');
-            const pwdInput = document.getElementById('owner-level-pwd');
-            const err = document.getElementById('owner-pwd-error');
             if (err) err.textContent = '';
             if (pwdInput) {
                 pwdInput.value = '';
@@ -654,43 +623,42 @@
             return;
         }
 
-        const res = window.Hub.auth.login(pwd);
-        if (res.success) {
-            // If ascending to owner, verified role MUST be owner
-            if (targetRole === 'owner' && res.role !== 'owner') {
-                if (err) err.textContent = 'كلمة المرور المدخلة ليست كلمة مرور المالك!';
-                return;
-            }
-
-            // If ascending to admin, verified role can be admin or owner
-            if (targetRole === 'admin' && res.role !== 'admin' && res.role !== 'owner') {
-                if (err) err.textContent = 'كلمة المرور غير صحيحة، حاول مجدداً';
-                return;
-            }
-
-            if (targetRole === 'admin' && res.role === 'owner') {
-                window.Hub.auth.saveSession('admin', pwd, true, ['*']);
-            }
-
-            if (err) err.textContent = '';
-            if (typeof window.updateTopRoleBadge === 'function') window.updateTopRoleBadge();
-            if (typeof window.renderHubDashboard === 'function') window.renderHubDashboard();
-            closeRoleSwitcherModal();
-
-            const roleName = targetRole === 'owner' ? 'المالك 👑' : 'مدير مستشفى 🛡️';
-            showNavToast(`تم التبديل بنجاح إلى: ${roleName}`, 'success');
-
-            if (pendingAdminUrl) {
-                const target = pendingAdminUrl;
-                pendingAdminUrl = null;
-                window.location.href = target;
-            }
-        } else {
+        // Verify credentials without prematurely mutating current session
+        const verify = window.Hub.auth.verifyPassword ? window.Hub.auth.verifyPassword(pwd) : window.Hub.auth.login(pwd);
+        if (!verify.success) {
             if (err) err.textContent = 'كلمة المرور غير صحيحة، حاول مجدداً';
             if (input) {
                 input.value = '';
                 input.focus();
             }
+            return;
+        }
+
+        // Only admin upgrade can be requested from this modal
+        if (targetRole === 'admin' && verify.role !== 'admin' && verify.role !== 'owner') {
+            if (err) err.textContent = 'كلمة المرور غير صحيحة، حاول مجدداً';
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+            return;
+        }
+
+        const grantRole = (targetRole === 'admin' && verify.role === 'owner') ? 'admin' : verify.role;
+        const grantHospitals = (targetRole === 'admin' && verify.role === 'owner') ? ['*'] : (verify.adminHospitals || []);
+        window.Hub.auth.saveSession(grantRole, pwd, true, grantHospitals);
+
+        if (err) err.textContent = '';
+        if (typeof window.updateTopRoleBadge === 'function') window.updateTopRoleBadge();
+        if (typeof window.renderHubDashboard === 'function') window.renderHubDashboard();
+        closeRoleSwitcherModal();
+
+        showNavToast('تم التبديل بنجاح إلى: مدير مستشفى 🛡️', 'success');
+
+        if (pendingAdminUrl) {
+            const target = pendingAdminUrl;
+            pendingAdminUrl = null;
+            window.location.href = target;
         }
     };
 
@@ -782,6 +750,97 @@
     // ============================================================
     // OWNER ALL PASSWORDS MODAL HANDLERS
     // ============================================================
+    function ensurePasswordsModalDom() {
+        let modal = document.getElementById('hub-passwords-modal');
+        if (modal) return modal;
+
+        const div = document.createElement('div');
+        div.id = 'hub-passwords-modal';
+        div.className = 'hub-modal-overlay';
+        div.innerHTML = `
+            <div class="hub-modal-card" style="max-width:440px; text-align:right; padding:22px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="width:40px; height:40px; border-radius:12px; background:rgba(217,119,6,0.15); display:flex; align-items:center; justify-content:center; color:#d97706; font-size:1.2rem;">
+                            <i class="fas fa-key"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size:1.15rem; font-weight:800; margin:0; color:#1e293b;" class="dark:text-white">تعديل كلمات المرور</h3>
+                            <span style="font-size:0.75rem; color:#b45309; font-weight:700;"><i class="fas fa-crown text-amber-500 ml-1"></i> صلاحية المالك حصراً</span>
+                        </div>
+                    </div>
+                    <button type="button" onclick="closeAllPasswordsModalNav()" style="background:none; border:none; font-size:1.2rem; color:#94a3b8; cursor:pointer;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <p style="font-size:0.8rem; color:#64748b; margin-bottom:14px; line-height:1.5;">
+                    بصفتك المالك، يمكنك تعديل كلمات المرور لكافة المستويات وتطبيقها على كامل المنظومة أو مستشفى بعينه.
+                </p>
+
+                <!-- Scope Selection -->
+                <div style="margin-bottom:14px;">
+                    <label style="display:block; font-size:0.75rem; font-weight:700; color:#475569; margin-bottom:4px;">نطاق تطبيق التعديل</label>
+                    <select id="hub-pwd-scope-select" onchange="onScopeChangePasswordsNav()" style="width:100%; padding:9px 12px; border-radius:10px; border:1px solid #cbd5e1; font-size:0.85rem; font-weight:600; background:#f8fafc; outline:none; color:#1e293b;">
+                        <option value="all">🌐 جميع المستشفيات والمنظومة بالكامل (تحديث شامل)</option>
+                    </select>
+                </div>
+
+                <!-- Passwords Fields -->
+                <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
+                    <!-- Normal User Password -->
+                    <div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <label style="font-size:0.78rem; font-weight:700; color:#334155;">كلمة مرور المستخدم العادي</label>
+                            <span style="font-size:0.68rem; color:#64748b;">(تصفح، تبديل، دليل المقيمين)</span>
+                        </div>
+                        <div style="position:relative;">
+                            <input type="text" id="hub-pwd-user" placeholder="1234" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #cbd5e1; font-family:monospace; font-size:0.95rem; text-align:center; color:#1e293b; background:#ffffff;" />
+                            <i class="fas fa-user" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:0.85rem;"></i>
+                        </div>
+                    </div>
+
+                    <!-- Admin Password -->
+                    <div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <label style="font-size:0.78rem; font-weight:700; color:#334155;">كلمة مرور المدير / المشرف</label>
+                            <span style="font-size:0.68rem; color:#64748b;">(إدارة المقيمين، المجدول)</span>
+                        </div>
+                        <div style="position:relative;">
+                            <input type="text" id="hub-pwd-admin" placeholder="Admin1996*" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #cbd5e1; font-family:monospace; font-size:0.95rem; text-align:center; color:#1e293b; background:#ffffff;" />
+                            <i class="fas fa-shield-halved" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:0.85rem;"></i>
+                        </div>
+                    </div>
+
+                    <!-- Owner Password -->
+                    <div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <label style="font-size:0.78rem; font-weight:700; color:#b45309;">كلمة مرور المالك</label>
+                            <span style="font-size:0.68rem; color:#b45309; font-weight:700;">(كامل الصلاحيات + كلمات المرور)</span>
+                        </div>
+                        <div style="position:relative;">
+                            <input type="text" id="hub-pwd-owner" placeholder="MrjBth1996*" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:2px solid rgba(217,119,6,0.5); font-family:monospace; font-size:0.95rem; text-align:center; background:#fffbeb; color:#1e293b;" />
+                            <i class="fas fa-crown" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#d97706; font-size:0.85rem;"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <p id="hub-passwords-error" style="color:#ef4444; font-size:0.75rem; min-height:18px; margin-bottom:10px; text-align:center;"></p>
+
+                <div style="display:flex; gap:8px;">
+                    <button type="button" id="hub-save-passwords-btn" onclick="submitAllPasswordsNav()" style="flex:1; padding:11px; border-radius:12px; border:none; background:linear-gradient(135deg,#d97706,#b45309); color:white; font-weight:700; cursor:pointer; font-size:0.88rem; box-shadow:0 4px 14px rgba(217,119,6,0.3);">
+                        <i class="fas fa-check-circle ml-1"></i> حفظ وتطبيق كلمات المرور
+                    </button>
+                    <button type="button" onclick="closeAllPasswordsModalNav()" style="padding:11px 16px; border-radius:12px; border:1px solid #cbd5e1; background:transparent; color:#64748b; font-weight:600; cursor:pointer; font-size:0.88rem;">
+                        إلغاء
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(div);
+        return div;
+    }
+
     window.openAllPasswordsModalNav = function() {
         if (!window.Hub) return;
         if (!window.Hub.auth.isOwner()) {
@@ -789,7 +848,7 @@
             return;
         }
 
-        const modal = document.getElementById('hub-passwords-modal');
+        const modal = ensurePasswordsModalDom();
         if (!modal) return;
 
         const db = window.Hub.getDatabase ? window.Hub.getDatabase() : null;

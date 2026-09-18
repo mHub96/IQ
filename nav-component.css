@@ -903,3 +903,141 @@ body {
     transition: transform 0.1s ease, opacity 0.25s ease 0.12s;
 }
 
+/* ============================================================
+   HIGH-CONTRAST ROLE SWITCHER & PASSWORDS MODAL STYLES
+   ============================================================ */
+#role-switcher-modal.modal-overlay,
+#hub-passwords-modal.hub-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+#role-switcher-modal.modal-overlay.active,
+#hub-passwords-modal.hub-modal-overlay.active {
+    display: flex !important;
+}
+
+.hub-modal-card {
+    background: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 20px !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.18) !important;
+    color: #0f172a !important;
+    max-width: 440px;
+    width: 100%;
+    text-align: right;
+}
+body.dark .hub-modal-card,
+html.dark .hub-modal-card {
+    background: #131c2e !important;
+    border-color: rgba(212, 175, 55, 0.25) !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75) !important;
+    color: #f8fafc !important;
+}
+
+.hub-role-current-banner {
+    background: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 14px !important;
+    padding: 10px 14px !important;
+}
+body.dark .hub-role-current-banner,
+html.dark .hub-role-current-banner {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+.switcher-role-card {
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 16px !important;
+    padding: 12px 14px !important;
+    background: #ffffff !important;
+    cursor: pointer !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+}
+.switcher-role-card:hover {
+    border-color: #94a3b8 !important;
+    background: #f8fafc !important;
+    transform: translateY(-1px);
+}
+body.dark .switcher-role-card,
+html.dark .switcher-role-card {
+    background: #1e293b !important;
+    border: 1.5px solid #334155 !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+}
+body.dark .switcher-role-card:hover,
+html.dark .switcher-role-card:hover {
+    background: #243046 !important;
+    border-color: #475569 !important;
+}
+
+.switcher-role-card .role-title {
+    font-size: 0.88rem !important;
+    font-weight: 800 !important;
+    margin: 0 !important;
+    color: #0f172a !important;
+}
+body.dark .switcher-role-card .role-title,
+html.dark .switcher-role-card .role-title {
+    color: #ffffff !important;
+}
+
+.switcher-role-card .role-desc {
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+    margin: 3px 0 0 !important;
+    color: #475569 !important;
+}
+body.dark .switcher-role-card .role-desc,
+html.dark .switcher-role-card .role-desc {
+    color: #cbd5e1 !important;
+}
+
+.switcher-role-card.role-card-admin.is-active-role {
+    border-color: #0f766e !important;
+    box-shadow: 0 0 0 2px #0f766e, 0 4px 14px rgba(15, 118, 110, 0.25) !important;
+}
+.switcher-role-card.role-card-user.is-active-role {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px #3b82f6, 0 4px 14px rgba(59, 130, 246, 0.25) !important;
+}
+
+.hub-role-input {
+    width: 100% !important;
+    padding: 9px 12px !important;
+    border-radius: 10px !important;
+    border: 1.5px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    outline: none !important;
+    transition: all 0.2s ease !important;
+}
+.hub-role-input:focus {
+    border-color: #0f766e !important;
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15) !important;
+}
+body.dark .hub-role-input,
+html.dark .hub-role-input {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+body.dark .hub-role-input:focus,
+html.dark .hub-role-input:focus {
+    border-color: #d4af37 !important;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2) !important;
+}
+
+

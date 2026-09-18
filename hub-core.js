@@ -1933,7 +1933,7 @@
     // AUTHENTICATION & MULTI-PASSWORD ROLE TRICK
     // ============================================================
     const auth = {
-        login(password) {
+        verifyPassword(password) {
             const pwd = String(password || '').trim();
             if (!pwd) {
                 return { success: false, error: 'الرجاء إدخال كلمة المرور' };
@@ -1941,15 +1941,12 @@
 
             // 1. Check global passwords first
             if (db?.globalPasswords?.owner && pwd === db.globalPasswords.owner) {
-                this.saveSession('owner', pwd, true, ['*']);
                 return { success: true, role: 'owner', adminHospitals: ['*'] };
             }
             if (db?.globalPasswords?.admin && pwd === db.globalPasswords.admin) {
-                this.saveSession('admin', pwd, true, ['*']);
                 return { success: true, role: 'admin', adminHospitals: ['*'] };
             }
             if (db?.globalPasswords?.user && pwd === db.globalPasswords.user) {
-                this.saveSession('user', pwd, true, []);
                 return { success: true, role: 'user', adminHospitals: [] };
             }
 
@@ -1973,17 +1970,14 @@
             }
 
             if (matchingOwnerHospitals.length > 0) {
-                this.saveSession('owner', pwd, true, ['*']);
                 return { success: true, role: 'owner', adminHospitals: ['*'] };
             }
 
             if (matchingAdminHospitals.length > 0) {
-                this.saveSession('admin', pwd, true, matchingAdminHospitals);
                 return { success: true, role: 'admin', adminHospitals: matchingAdminHospitals };
             }
 
             if (matchedUser) {
-                this.saveSession('user', pwd, true, []);
                 return { success: true, role: 'user', adminHospitals: [] };
             }
 
@@ -1994,18 +1988,23 @@
             const userPass = currentHosp?.passwords?.user || "1234";
 
             if (pwd === ownerPass) {
-                this.saveSession('owner', pwd, true, ['*']);
                 return { success: true, role: 'owner', adminHospitals: ['*'] };
             } else if (pwd === adminPass) {
                 const hId = currentHosp ? currentHosp.id : '*';
-                this.saveSession('admin', pwd, true, [hId]);
                 return { success: true, role: 'admin', adminHospitals: [hId] };
             } else if (pwd === userPass) {
-                this.saveSession('user', pwd, true, []);
                 return { success: true, role: 'user', adminHospitals: [] };
             }
 
             return { success: false, error: 'كلمة المرور غير صحيحة' };
+        },
+
+        login(password, remember = true) {
+            const res = this.verifyPassword(password);
+            if (res.success) {
+                this.saveSession(res.role, password, remember, res.adminHospitals);
+            }
+            return res;
         },
 
         saveSession(role, password, remember = true, adminHospitals = null) {
@@ -2022,8 +2021,8 @@
                 localStorage.setItem(SESSION_ADMIN_HOSPITALS_KEY, JSON.stringify(hospList || []));
             } catch(e) {}
 
-            if (remember && password) {
-                localStorage.setItem(SESSION_TOKEN_KEY, btoa(password));
+            if (remember && (password || role === 'user')) {
+                localStorage.setItem(SESSION_TOKEN_KEY, btoa(password || 'user_session'));
                 localStorage.setItem(SESSION_REMEMBER_KEY, 'true');
             } else {
                 localStorage.removeItem(SESSION_TOKEN_KEY);

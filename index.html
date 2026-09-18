@@ -673,20 +673,21 @@
             left: 50%;
             transform: translateX(-50%);
             z-index: 998;
-            width: calc(100% - 24px);
-            max-width: 480px;
+            width: calc(100% - 16px);
+            max-width: 540px;
             height: 60px;
-            background: rgba(255, 255, 255, 0.88);
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(24px) saturate(190%);
             -webkit-backdrop-filter: blur(24px) saturate(190%);
             border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(226, 232, 240, 0.85);
             box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
             display: flex;
             align-items: center;
             justify-content: space-around;
-            padding: 4px 10px;
+            padding: 3px 6px;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            direction: rtl;
         }
 
         body.dark .ios-bottom-dock {
@@ -700,27 +701,35 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 3px;
-            padding: 6px 12px;
+            gap: 2px;
+            padding: 4px 4px;
             border-radius: 999px;
             color: #64748b;
             text-decoration: none;
             background: transparent;
             border: none;
             cursor: pointer;
-            font-size: 0.65rem;
+            font-size: 0.62rem;
             font-weight: 700;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            flex: 1;
+            min-width: 0;
         }
         body.dark .dock-tab-btn {
             color: #94a3b8;
         }
         .dock-tab-btn i {
-            font-size: 1.05rem;
+            font-size: 1rem;
+        }
+        .dock-tab-btn span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
         }
         .dock-tab-btn.active {
             color: #0f766e;
-            background: rgba(15, 118, 110, 0.1);
+            background: rgba(15, 118, 110, 0.12);
         }
         body.dark .dock-tab-btn.active {
             color: #d4af37;
@@ -945,6 +954,11 @@
                 <i class="fas fa-user" id="top-role-icon"></i>
                 <span id="top-role-text">مستخدم</span>
             </div>
+
+            <!-- Logout / Lock Button in Top Ribbon -->
+            <button type="button" onclick="handleDockLockAction()" class="ios-icon-btn text-rose-500 hover:text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/40" id="top-logout-btn" title="تسجيل الخروج والقفل" aria-label="تسجيل الخروج">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
         </div>
     </header>
 
@@ -1014,31 +1028,35 @@
     </main>
 
     <!-- FLOATING IOS BOTTOM DOCK (App Tab Bar) -->
-    <nav class="ios-bottom-dock">
-        <button type="button" class="dock-tab-btn active" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+    <nav class="ios-bottom-dock" id="hub-bottom-dock">
+        <a href="./index.html" class="dock-tab-btn active" onclick="window.scrollTo({top:0, behavior:'smooth'})" title="البوابة الرئيسية">
             <i class="fas fa-hospital-alt"></i>
-            <span>المستشفيات</span>
-        </button>
-        <a href="./specialists.html" class="dock-tab-btn">
+            <span>الرئيسية</span>
+        </a>
+        <a href="./Home.html" class="dock-tab-btn" id="dock-link-home" title="خفراء اليوم">
+            <i class="fas fa-users-viewfinder"></i>
+            <span>الخفراء</span>
+        </a>
+        <a href="./schedule.html" class="dock-tab-btn" id="dock-link-schedule" title="جدول الخفارات الشهري">
+            <i class="fas fa-calendar-week"></i>
+            <span>الجدول</span>
+        </a>
+        <a href="./specialists.html" class="dock-tab-btn" id="dock-link-specialists" title="أطباء الاختصاص">
             <i class="fas fa-user-tie"></i>
             <span>الاختصاص</span>
         </a>
-        <a href="./residents.html" class="dock-tab-btn">
-            <i class="fas fa-users-rectangle"></i>
+        <a href="./residents.html" class="dock-tab-btn" id="dock-link-residents" title="دليل المقيمين">
+            <i class="fas fa-address-book"></i>
             <span>المقيمين</span>
         </a>
-        <a href="./signup.html" class="dock-tab-btn">
+        <a href="./signup.html" class="dock-tab-btn" id="dock-link-signup" title="تبديل الخفارات">
             <i class="fas fa-calendar-check"></i>
-            <span>تسجيل خفر</span>
+            <span>تبديل</span>
         </a>
-        <button type="button" class="dock-tab-btn" onclick="toggleThemeInstant()">
-            <i class="fas fa-circle-half-stroke"></i>
-            <span>المظهر</span>
-        </button>
-        <button type="button" class="dock-tab-btn" onclick="handleDockLockAction()">
-            <i class="fas fa-lock" id="dock-lock-icon"></i>
-            <span id="dock-lock-text">قفل</span>
-        </button>
+        <a href="./scheduler.html" class="dock-tab-btn" id="dock-btn-scheduler" style="display: none;" title="المجدول (صلاحيات الإدارة)">
+            <i class="fas fa-calendar-alt"></i>
+            <span>المجدول</span>
+        </a>
     </nav>
 
     <!-- ADD HOSPITAL MODAL (Owner Only) -->
@@ -1397,14 +1415,35 @@
                 text.textContent = 'دخول';
             }
 
-            if (dockText && dockIcon) {
-                if (Hub.auth.isLoggedIn()) {
-                    dockText.textContent = 'قفل';
-                    dockIcon.className = 'fas fa-lock';
-                } else {
-                    dockText.textContent = 'دخول';
-                    dockIcon.className = 'fas fa-arrow-right-to-bracket';
-                }
+            // Toggle Admin Scheduler tab in bottom dock
+            const schedBtn = document.getElementById('dock-btn-scheduler');
+            if (schedBtn) {
+                schedBtn.style.display = (isAdmin || isOwner) ? 'flex' : 'none';
+            }
+
+            // Toggle top logout button visibility
+            const topLogoutBtn = document.getElementById('top-logout-btn');
+            if (topLogoutBtn) {
+                topLogoutBtn.style.display = Hub.auth.isLoggedIn() ? 'flex' : 'none';
+            }
+
+            updateDockLinks();
+        }
+
+        function updateDockLinks() {
+            const hospId = Hub.getActiveHospitalId ? Hub.getActiveHospitalId() : 'iraq';
+            const q = `?hospital=${encodeURIComponent(hospId)}`;
+            const links = {
+                'dock-link-home': `./Home.html${q}`,
+                'dock-link-schedule': `./schedule.html${q}`,
+                'dock-link-specialists': `./specialists.html${q}`,
+                'dock-link-residents': `./residents.html${q}`,
+                'dock-link-signup': `./signup.html${q}`,
+                'dock-btn-scheduler': `./scheduler.html${q}`
+            };
+            for (const [id, url] of Object.entries(links)) {
+                const el = document.getElementById(id);
+                if (el) el.href = url;
             }
         }
 

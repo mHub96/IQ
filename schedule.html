@@ -1114,7 +1114,7 @@
                 <button type="button" class="spec-pill ${s.id === selectedSpecialtyId ? 'active' : ''}" 
                         onclick="selectSpecialty('${s.id}')">
                     <span>${s.icon || '🏥'}</span>
-                    <span>${s.name_ar}</span>
+                    <span>${(window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(s.id) : (s.name_ar || s.id)}</span>
                 </button>
             `).join('');
         }
@@ -1230,7 +1230,7 @@
                             <span class="specialty-icon-chip" style="background: ${specColor}18; color: ${specColor}; border: 1.5px solid ${specColor}40;">
                                 ${spec.icon || '🏥'}
                             </span>
-                            <span class="specialty-name-text">${spec.name_ar}</span>
+                            <span class="specialty-name-text">${(window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(spec.id) : (spec.name_ar || spec.id)}</span>
                         </div>
                     </td>
                 `;
@@ -1288,7 +1288,8 @@
             if (!spec) return;
 
             document.getElementById('single-spec-icon').textContent = spec.icon || '🏥';
-            document.getElementById('single-spec-title').textContent = `جدول ${spec.name_ar}`;
+            const singleSpecName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(spec.id) : (spec.name_ar || spec.id);
+            document.getElementById('single-spec-title').textContent = `جدول ${singleSpecName}`;
             document.getElementById('single-spec-sub').textContent = `${MONTH_NAMES_AR[currentMonth - 1]} ${currentYear} · ${currentHospital.name_ar || currentHospital.hospitalName}`;
 
             const daysCount = getDaysInMonth(currentYear, currentMonth);

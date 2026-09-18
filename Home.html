@@ -1978,7 +1978,8 @@
                     }
 
                     const specObj = (currentHospital.specialties || []).find(s => s.id === specCode);
-                    const specName = specObj?.name_ar || specCode;
+                    const resolvedName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(specCode, currentHospital.id) : (specObj?.name_ar || specCode);
+                    const specName = (specObj?.name_ar === 'الاطفال' || specCode === 'Pe') ? 'طب الأطفال' : (specObj?.name_ar || resolvedName);
                     const specIcon = specObj?.icon || "🏥";
 
                     resultMap[key].specs.push({

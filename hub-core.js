@@ -134,6 +134,40 @@
     }
 
     /**
+     * Determines whether a specialty is in a surgical branch
+     * (General Surgery, Neurosurgery, Orthopaedics, Urosurgery, ENT, Maxillofacial, Ophthalmology, Gyn/Obs, etc.)
+     */
+    function isSurgicalSpecialty(specIdOrName) {
+        if (!specIdOrName) return false;
+        const normId = normalizeSpecialtyId(specIdOrName);
+        const surgicalCanonIds = [
+            'GS', // الجراحة العامة
+            'NS', // جراحة الجملة العصبية
+            'CT', // جراحة الصدر والاوعية الدموية
+            'OR', // الكسور
+            'US', // جراحة المسالك البولية
+            'ENT', // الأذن والأنف والحنجرة
+            'MF', // جراحة الوجه والفكين
+            'O', // العيون
+            'G', // النسائية والتوليد
+            'PS', // جراحة الأطفال / التجميل
+            'SURG', 'ORTHO', 'URO', 'OPHTH', 'GYN', 'OBS', 'PLASTIC'
+        ];
+        if (surgicalCanonIds.includes(normId)) return true;
+
+        const globalSpecs = Array.isArray(db?.globalSpecialties) ? db.globalSpecialties : CANONICAL_SPECIALTIES;
+        const found = globalSpecs.find(s => s.id === normId || s.name_ar === specIdOrName || s.name_en === specIdOrName);
+        const checkStr = ((found ? (found.name_ar + ' ' + found.name_en) : '') + ' ' + specIdOrName).toLowerCase();
+        
+        const surgicalKeywords = [
+            'جراح', 'surg', 'كسور', 'ortho', 'مسالك', 'uro', 'بولية',
+            'عيون', 'ophth', 'أنف', 'اذن', 'ent', 'نسائية', 'توليد',
+            'gyn', 'obs', 'فكين', 'maxillo', 'تجميل', 'plastic', 'أوعية', 'vascular'
+        ];
+        return surgicalKeywords.some(kw => checkStr.includes(kw));
+    }
+
+    /**
      * Complete Database Sanitization & Specialty Deduplication Engine
      * Enforces that:
      * - F & FM are merged strictly into FM (طب الأسرة).
@@ -240,6 +274,17 @@
                         slot.specCode = normalizeSpecialtyId(slot.specCode);
                     }
                 });
+
+                // Sanitize hospital specialist schedule
+                if (!Array.isArray(hosp.specialistSchedule)) {
+                    hosp.specialistSchedule = [];
+                } else {
+                    hosp.specialistSchedule.forEach(slot => {
+                        if (slot && slot.specCode) {
+                            slot.specCode = normalizeSpecialtyId(slot.specCode);
+                        }
+                    });
+                }
             });
         }
 
@@ -1658,11 +1703,7 @@
             if (specialistData.schedule !== undefined) {
                 specialist.schedule = {
                     clinicDays: Array.isArray(specialistData.schedule?.clinicDays) ? specialistData.schedule.clinicDays : [],
-                    onCallDays: Array.isArray(specialistData.schedule?.onCallDays) ? specialistData.schedule.onCallDays : [],
-                    theatreDays: Array.isArray(specialistData.schedule?.theatreDays) ? specialistData.schedule.theatreDays : [],
-                    shiftTimes: (specialistData.schedule?.shiftTimes || '').trim(),
-                    dutyDates: Array.isArray(specialistData.schedule?.dutyDates) ? specialistData.schedule.dutyDates : [],
-                    notes: (specialistData.schedule?.notes || '').trim()
+                    theatreDays: isSurgicalSpecialty(spec) && Array.isArray(specialistData.schedule?.theatreDays) ? specialistData.schedule.theatreDays : []
                 };
             }
         } else {
@@ -1679,11 +1720,7 @@
                 active: specialistData.active !== false,
                 schedule: {
                     clinicDays: Array.isArray(specialistData.schedule?.clinicDays) ? specialistData.schedule.clinicDays : [],
-                    onCallDays: Array.isArray(specialistData.schedule?.onCallDays) ? specialistData.schedule.onCallDays : [],
-                    theatreDays: Array.isArray(specialistData.schedule?.theatreDays) ? specialistData.schedule.theatreDays : [],
-                    shiftTimes: (specialistData.schedule?.shiftTimes || '').trim(),
-                    dutyDates: Array.isArray(specialistData.schedule?.dutyDates) ? specialistData.schedule.dutyDates : [],
-                    notes: (specialistData.schedule?.notes || '').trim()
+                    theatreDays: isSurgicalSpecialty(spec) && Array.isArray(specialistData.schedule?.theatreDays) ? specialistData.schedule.theatreDays : []
                 }
             };
             db.specialists.unshift(specialist);
@@ -1691,6 +1728,43 @@
 
         await saveDatabase(`Save Specialist: ${formattedName}`);
         return specialist;
+    }
+
+    function getSpecialistSchedule(hospitalId = null) {
+        if (!db) return [];
+        const hid = hospitalId || getActiveHospitalId();
+        const hosp = getHospital(hid);
+        if (!hosp) return [];
+        if (!Array.isArray(hosp.specialistSchedule)) {
+            hosp.specialistSchedule = [];
+        }
+        return hosp.specialistSchedule;
+    }
+
+    function getSpecialistDuties(specialistName, hospitalId = null) {
+        if (!specialistName) return [];
+        const cleanName = specialistName.replace(/^د[\.\s]+/, '').trim().toLowerCase();
+        const targetHids = (hospitalId && hospitalId !== 'all') ? [hospitalId] : (getHospitals() || []).map(h => h.id);
+        const duties = [];
+
+        targetHids.forEach(hid => {
+            const hosp = getHospital(hid);
+            if (!hosp || !Array.isArray(hosp.specialistSchedule)) return;
+            hosp.specialistSchedule.forEach(duty => {
+                const dutyName = (duty.name || '').replace(/^د[\.\s]+/, '').trim().toLowerCase();
+                if (dutyName === cleanName || (cleanName.length > 3 && dutyName.includes(cleanName)) || (dutyName.length > 3 && cleanName.includes(dutyName))) {
+                    duties.push({
+                        ...duty,
+                        hospitalId: hid,
+                        hospitalName: hosp.name_ar || hosp.hospitalName || hid
+                    });
+                }
+            });
+        });
+
+        // Sort chronologically by date
+        duties.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+        return duties;
     }
 
     async function saveSpecialistSchedule(specialistId, scheduleData) {
@@ -1701,13 +1775,10 @@
         const specialist = db.specialists.find(s => s.id === specialistId);
         if (!specialist) throw new Error('الطبيب الاختصاصي غير موجود');
 
+        const spec = specialist.spec || 'GS';
         specialist.schedule = {
             clinicDays: Array.isArray(scheduleData?.clinicDays) ? scheduleData.clinicDays : [],
-            onCallDays: Array.isArray(scheduleData?.onCallDays) ? scheduleData.onCallDays : [],
-            theatreDays: Array.isArray(scheduleData?.theatreDays) ? scheduleData.theatreDays : [],
-            shiftTimes: (scheduleData?.shiftTimes || '').trim(),
-            dutyDates: Array.isArray(scheduleData?.dutyDates) ? scheduleData.dutyDates : [],
-            notes: (scheduleData?.notes || '').trim(),
+            theatreDays: isSurgicalSpecialty(spec) && Array.isArray(scheduleData?.theatreDays) ? scheduleData.theatreDays : [],
             updatedAt: new Date().toISOString()
         };
 
@@ -1731,13 +1802,15 @@
     // ============================================================
     // MONTHLY SCHEDULE QUERY HELPER
     // ============================================================
-    function getHospitalMonthSchedule(hospitalId, year, month) {
+    function getHospitalMonthSchedule(hospitalId, year, month, scheduleType = 'residents') {
         const hosp = getHospital(hospitalId);
-        if (!hosp || !Array.isArray(hosp.schedule)) return [];
+        if (!hosp) return [];
+        const scheduleArray = scheduleType === 'specialists' ? hosp.specialistSchedule : hosp.schedule;
+        if (!Array.isArray(scheduleArray)) return [];
         const padMonth = String(month).padStart(2, '0');
         const strYear = String(year);
 
-        return hosp.schedule.filter(entry => {
+        return scheduleArray.filter(entry => {
             if (!entry.date) return false;
             const norm = normalizeDateString(entry.date);
             const parts = norm.split('/');
@@ -2042,12 +2115,17 @@
         saveSpecialist,
         deleteSpecialist,
         saveSpecialistSchedule,
+        getSpecialistSchedule,
+        getSpecialistDuties,
+        isSurgicalSpecialty,
         specialists: {
             getAll: (hospitalId, specCode) => getSpecialists(hospitalId, specCode),
             getById: (id) => getSpecialist(id),
             save: (specialistData) => saveSpecialist(specialistData),
             delete: (id) => deleteSpecialist(id),
-            saveSchedule: (specialistId, scheduleData) => saveSpecialistSchedule(specialistId, scheduleData)
+            saveSchedule: (specialistId, scheduleData) => saveSpecialistSchedule(specialistId, scheduleData),
+            getSchedule: (hospitalId) => getSpecialistSchedule(hospitalId),
+            getDuties: (specialistName, hospitalId) => getSpecialistDuties(specialistName, hospitalId)
         },
         specialties: {
             getAll: () => getGlobalSpecialties().map(s => ({

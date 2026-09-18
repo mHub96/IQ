@@ -945,8 +945,45 @@
 
     /**
      * Resolves specialty code into full Arabic specialty name.
-     * Guaranteed to never return raw code if mapping exists, and normalizes Pe to 'طب الأطفال'.
+     * Guaranteed to never return a raw Latin code if an Arabic counterpart exists.
+     * Normalizes Pe/PED/PAED strictly to 'طب الأطفال'.
      */
+    const CANONICAL_CODE_TO_ARABIC = {
+        'NS': 'جراحة الجملة العصبية',
+        'CT': 'جراحة الصدر والأوعية الدموية',
+        'GS': 'الجراحة العامة',
+        'OR': 'الكسور وجراحة العظام',
+        'US': 'جراحة المسالك البولية',
+        'ENT': 'الأذن والأنف والحنجرة',
+        'MF': 'جراحة الوجه والفكين',
+        'O': 'العيون',
+        'Pe': 'طب الأطفال',
+        'PED': 'طب الأطفال',
+        'PAED': 'طب الأطفال',
+        'M': 'الباطنية',
+        'IM': 'الباطنية',
+        'G': 'النسائية والتوليد',
+        'ICU': 'تخدير العناية المركزة',
+        'OP': 'تخدير العمليات',
+        'GA': 'تخدير صالة الولادة',
+        'A': 'التخدير والعناية المركزة',
+        'R': 'الأشعة والسونار',
+        'D': 'الوفيات',
+        'AO': 'المعاون الإداري',
+        'ON': 'طب الأورام',
+        'N': 'طب أمراض الكلى',
+        'NM': 'طب الجملة العصبية',
+        'P': 'الطب النفسي',
+        'Der': 'الجلدية',
+        'EM': 'طب الطوارئ',
+        'FM': 'طب الأسرة',
+        'F': 'طب الأسرة',
+        'GP': 'الممارسين العامين',
+        'H': 'طب أمراض القلب',
+        'PS': 'الجراحة التجميلية',
+        'RM': 'أمراض الجهاز التنفسي'
+    };
+
     function getSpecialtyName(specCode, hospitalId = null) {
         if (!specCode) return '';
         const normCode = normalizeSpecialtyId(specCode);
@@ -960,7 +997,7 @@
         const hid = hospitalId || getActiveHospitalId();
         if (hid && db?.hospitals?.[hid]?.specialties) {
             const sp = db.hospitals[hid].specialties.find(s => s.id === normCode || s.id === specCode);
-            if (sp && sp.name_ar) {
+            if (sp && sp.name_ar && !CANONICAL_CODE_TO_ARABIC[sp.name_ar]) {
                 return (sp.name_ar === 'الاطفال' || normCode === 'Pe') ? 'طب الأطفال' : sp.name_ar;
             }
         }
@@ -968,7 +1005,7 @@
         // 2. Check global specialties
         if (Array.isArray(db?.globalSpecialties)) {
             const sp = db.globalSpecialties.find(s => s.id === normCode || s.id === specCode);
-            if (sp && sp.name_ar) {
+            if (sp && sp.name_ar && !CANONICAL_CODE_TO_ARABIC[sp.name_ar]) {
                 return (sp.name_ar === 'الاطفال' || normCode === 'Pe') ? 'طب الأطفال' : sp.name_ar;
             }
         }
@@ -978,6 +1015,12 @@
         if (canon && canon.name_ar) {
             return (canon.name_ar === 'الاطفال' || normCode === 'Pe') ? 'طب الأطفال' : canon.name_ar;
         }
+
+        // 4. Check canonical dictionary mapping
+        const upper = String(normCode || specCode).trim().toUpperCase();
+        if (CANONICAL_CODE_TO_ARABIC[normCode]) return CANONICAL_CODE_TO_ARABIC[normCode];
+        if (CANONICAL_CODE_TO_ARABIC[specCode]) return CANONICAL_CODE_TO_ARABIC[specCode];
+        if (CANONICAL_CODE_TO_ARABIC[upper]) return CANONICAL_CODE_TO_ARABIC[upper];
 
         return specCode;
     }
@@ -1816,10 +1859,10 @@
             hosp.specialistSchedule.forEach(duty => {
                 const dutyName = (duty.name || '').replace(/^د[\.\s]+/, '').trim().toLowerCase();
                 if (dutyName === cleanName || (cleanName.length > 3 && dutyName.includes(cleanName)) || (dutyName.length > 3 && cleanName.includes(dutyName))) {
-                    const specName = getSpecialtyName(duty.specCode, hid);
+                    const resolvedSpecName = getSpecialtyName(duty.specCode || duty.spec, hid);
                     duties.push({
                         ...duty,
-                        specName: specName || duty.specCode,
+                        specName: resolvedSpecName,
                         hospitalId: hid,
                         hospitalName: hosp.name_ar || hosp.hospitalName || hid
                     });

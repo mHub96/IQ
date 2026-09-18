@@ -795,59 +795,79 @@
             font-weight: 900;
         }
 
-        /* Action Buttons */
+        /* --- Divider --- */
+        .roster-card .divider {
+            width: 50%;
+            height: 1px;
+            background: rgba(212, 175, 55, 0.06);
+            margin: 0.1rem auto;
+            border-radius: 10px;
+        }
+        body.light .roster-card .divider {
+            background: rgba(0, 0, 0, 0.06);
+        }
+
+        /* --- Action Buttons --- */
         .card-actions {
             display: flex;
-            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.2rem;
             justify-content: center;
-            gap: 0.75rem;
             width: 100%;
-            margin: 0.2rem auto 0 auto;
         }
         .roster-card .action-btn-sm {
-            padding: 0.45rem 1.25rem;
-            border-radius: 9999px;
+            padding: 0.4rem 1rem;
+            border-radius: 0.8rem;
             text-decoration: none;
             font-weight: 700;
-            font-size: 0.78rem;
+            font-size: 0.65rem;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            gap: 7px;
-            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            gap: 6px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: pointer;
-            flex: 0 0 auto;
-            min-width: 105px;
+            flex: 1;
+            max-width: 130px;
+            justify-content: center;
             border: 1px solid transparent;
             line-height: 1.2;
         }
         body.light .roster-card .action-btn-sm {
-            background: #ffffff;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-            border: 1px solid #cbd5e1;
+            background: rgba(255, 255, 255, 0.7);
+            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.04), -3px -3px 8px rgba(255, 255, 255, 0.7), 0 1px 0 rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         body.dark .roster-card .action-btn-sm {
-            background: rgba(15, 23, 42, 0.75);
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.35);
+            box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.5), -3px -3px 8px rgba(255, 255, 255, 0.02), 0 1px 0 rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.02);
         }
-        body.light .roster-card .action-btn-sm.call {
-            color: #0284c7 !important;
-            background: #f0f9ff;
-            border-color: #bae6fd;
+        .roster-card .action-btn-sm .btn-icon {
+            font-size: 0.75rem;
+        }
+        .roster-card .action-btn-sm.call {
+            color: #2563eb;
         }
         body.dark .roster-card .action-btn-sm.call {
-            color: #38bdf8 !important;
-            border-color: rgba(56, 189, 248, 0.25);
+            color: #60a5fa;
         }
-        body.light .roster-card .action-btn-sm.wa {
-            color: #16a34a !important;
-            background: #f0fdf4;
-            border-color: #bbf7d0;
+        .roster-card .action-btn-sm.call:hover {
+            background: rgba(37, 99, 235, 0.08);
+        }
+        body.dark .roster-card .action-btn-sm.call:hover {
+            background: rgba(96, 165, 250, 0.08);
+        }
+        .roster-card .action-btn-sm.wa {
+            color: #059669;
         }
         body.dark .roster-card .action-btn-sm.wa {
-            color: #4ade80 !important;
-            border-color: rgba(74, 222, 128, 0.25);
+            color: #34d399;
+        }
+        .roster-card .action-btn-sm.wa:hover {
+            background: rgba(5, 150, 105, 0.08);
+        }
+        body.dark .roster-card .action-btn-sm.wa:hover {
+            background: rgba(52, 211, 153, 0.08);
         }
         .roster-card .action-btn-sm.opacity-40 {
             opacity: 0.25;
@@ -1192,15 +1212,9 @@
                 font-size: 0.72rem;
                 padding: 0.22rem 0.6rem;
             }
-            .roster-card .action-btn-sm {
-                width: 44px;
-                height: 44px;
-                font-size: 1rem;
-                border-radius: 12px;
-            }
             .card-actions {
-                gap: 0.6rem;
-                margin-top: 0.4rem;
+                gap: 0.5rem;
+                margin-top: 0.2rem;
             }
             .modal-card {
                 max-width: calc(100vw - 24px) !important;
@@ -2194,15 +2208,16 @@
                                 <div class="specialty-bubbles">${specialtyBubbles}</div>
                                 <div class="resident-name">${resident.name}</div>
                                 <div class="resident-phone">${resident.phone}</div>
+                                <div class="divider"></div>
                                 <div class="card-actions">
                                     <a href="${isPhoneValid ? 'whatsapp://send?phone=' + phoneClean : '#'}" 
-                                       class="action-btn-sm wa ${!isPhoneValid ? 'opacity-40 pointer-events-none' : ''}"
-                                       onclick="${isPhoneValid ? `trackResidentContact('${resident.name}');` : ''}">
+                                       class="action-btn-sm wa ${!isPhoneValid ? 'opacity-40' : ''}"
+                                       onclick="${isPhoneValid ? `trackResidentContact('${resident.name}');` : 'event.preventDefault();'}">
                                         <i class="fab fa-whatsapp"></i> WhatsApp
                                     </a>
                                     <a href="${isPhoneValid ? 'tel:' + phoneClean : '#'}" 
-                                       class="action-btn-sm call ${!isPhoneValid ? 'opacity-40 pointer-events-none' : ''}"
-                                       onclick="${isPhoneValid ? `trackResidentContact('${resident.name}');` : ''}">
+                                       class="action-btn-sm call ${!isPhoneValid ? 'opacity-40' : ''}"
+                                       onclick="${isPhoneValid ? `trackResidentContact('${resident.name}');` : 'event.preventDefault();'}">
                                         <i class="fas fa-phone"></i> Call
                                     </a>
                                 </div>

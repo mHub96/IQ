@@ -1255,7 +1255,8 @@
         }
 
         function getSpecName(code) {
-            return specNames[code] || code;
+            if (code === 'Pe' || code === 'PED' || code === 'PAED') return 'طب الأطفال';
+            return (window.Hub && Hub.getSpecialtyName ? Hub.getSpecialtyName(code) : (specNames[code] || code));
         }
 
         function getSpecIcon(code) {
@@ -1557,7 +1558,8 @@
         }
 
         function getSpecNameForLeaderboard(code) {
-            return specNames[code] || code;
+            if (code === 'Pe' || code === 'PED' || code === 'PAED') return 'طب الأطفال';
+            return (window.Hub && Hub.getSpecialtyName ? Hub.getSpecialtyName(code) : (specNames[code] || code));
         }
 
         function getSpecIconForLeaderboard(code) {

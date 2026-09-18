@@ -2073,7 +2073,10 @@
             return Object.values(leaderboard).sort((a, b) => b.totalVisits - a.totalVisits);
         }
 
-        function getSpecNameForLeaderboard(code) { return specNames[code] || code; }
+        function getSpecNameForLeaderboard(code) {
+            if (code === 'Pe' || code === 'PED' || code === 'PAED') return 'طب الأطفال';
+            return (window.Hub && Hub.getSpecialtyName ? Hub.getSpecialtyName(code) : (specNames[code] || code));
+        }
 
         function getSpecIconForLeaderboard(code) { return specIcons[code] || "🏥"; }
 

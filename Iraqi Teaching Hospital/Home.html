@@ -425,6 +425,27 @@
             box-shadow: 0 0 20px rgba(251, 191, 36, 0.15);
             font-weight: 800;
         }
+
+        /* --- Divider --- */
+        .roster-card .divider {
+            width: 50%;
+            height: 1px;
+            background: rgba(212, 175, 55, 0.06);
+            margin: 0.1rem auto;
+            border-radius: 10px;
+        }
+        body.light .roster-card .divider {
+            background: rgba(0, 0, 0, 0.06);
+        }
+
+        /* --- Action Buttons --- */
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.2rem;
+            justify-content: center;
+            width: 100%;
+        }
         .roster-card .action-btn-sm {
             padding: 0.4rem 1rem;
             border-radius: 0.8rem;

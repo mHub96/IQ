@@ -291,6 +291,15 @@
                         }
                     });
                 }
+
+                // Ensure hospital Rotation Heroes URL is present
+                if (typeof hosp.rotationHeroesUrl !== 'string') {
+                    if (hid === 'iraqi') {
+                        hosp.rotationHeroesUrl = 'https://khafarat-alsadr.netlify.app/';
+                    } else {
+                        hosp.rotationHeroesUrl = '';
+                    }
+                }
             });
         }
 
@@ -649,6 +658,7 @@
             location: hospitalData.location || 'Basra · Iraq',
             icon: hospitalData.icon || 'fa-hospital',
             color: hospitalData.color || '#0f766e',
+            rotationHeroesUrl: (hospitalData.rotationHeroesUrl || '').trim(),
             passwords: {
                 owner: hospitalData.ownerPassword || 'MrjBth1996*',
                 admin: hospitalData.adminPassword || 'Admin1996*',
@@ -678,6 +688,11 @@
                 // Ignore password modifications from non-owners
                 delete updates.passwords;
             }
+        }
+
+        // Only OWNER can modify rotationHeroesUrl!
+        if (updates.rotationHeroesUrl !== undefined && !auth.isOwner()) {
+            delete updates.rotationHeroesUrl;
         }
 
         db.hospitals[id] = {

@@ -1355,7 +1355,7 @@
                                         <h3 class="text-base font-black text-slate-800 dark:text-white leading-tight">${doc.name}</h3>
                                         <div class="flex flex-wrap items-center gap-1.5 mt-1">
                                             <span class="title-badge"><i class="fas fa-medal text-[10px]"></i> ${doc.title || 'أخصائي'}</span>
-                                            <span class="spec-badge">${doc.specName || doc.spec}</span>
+                                            <span class="spec-badge">${doc.specName || (window.Hub && Hub.getSpecialtyName ? Hub.getSpecialtyName(doc.spec) : doc.spec)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1467,7 +1467,7 @@
                             ${doc.notes ? `<div class="text-[11px] text-slate-400 mt-0.5">${doc.notes}</div>` : ''}
                         </td>
                         <td>
-                            <span class="spec-badge">${doc.specName || doc.spec}</span>
+                            <span class="spec-badge">${doc.specName || (window.Hub && Hub.getSpecialtyName ? Hub.getSpecialtyName(doc.spec) : doc.spec)}</span>
                         </td>
                         <td>
                             <div class="flex flex-wrap gap-1">${hospTags || '—'}</div>
@@ -1575,7 +1575,7 @@
                         <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                             <div>
                                 <h4 class="text-base font-black text-slate-800 dark:text-white">${doc.name}</h4>
-                                <div class="text-xs text-slate-500 mt-0.5">${doc.title || 'أخصائي'} · ${doc.specName || doc.spec}</div>
+                                <div class="text-xs text-slate-500 mt-0.5">${doc.title || 'أخصائي'} · ${doc.specName || (window.Hub && Hub.getSpecialtyName ? Hub.getSpecialtyName(doc.spec) : doc.spec)}</div>
                                 <div class="flex flex-wrap items-center gap-2 mt-2 text-xs">
                                     ${sched.clinicDays && sched.clinicDays.length > 0 ? `
                                         <span class="schedule-badge-clinic text-[11px]">
@@ -1616,16 +1616,29 @@
                             ${duties.length > 0 ? `
                                 <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
                                     ${duties.map(d => {
-                                        const dateParts = (d.date || '').split('-');
-                                        const dateObj = new Date(d.date + 'T00:00:00');
-                                        const dayName = !isNaN(dateObj) ? dateObj.toLocaleDateString('ar-IQ', { weekday: 'long' }) : '';
+                                        let dayNum = '';
+                                        let dayName = '';
+                                        if (d.date) {
+                                            if (d.date.includes('-')) {
+                                                const parts = d.date.split('-');
+                                                dayNum = parts[2] || '';
+                                                const dt = new Date(d.date + 'T00:00:00');
+                                                if (!isNaN(dt)) dayName = dt.toLocaleDateString('ar-IQ', { weekday: 'long' });
+                                            } else if (d.date.includes('/')) {
+                                                const parts = d.date.split('/');
+                                                dayNum = parts[0] || '';
+                                                const dt = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+                                                if (!isNaN(dt)) dayName = dt.toLocaleDateString('ar-IQ', { weekday: 'long' });
+                                            }
+                                        }
                                         const slotNum = (parseInt(d.dutySlot) || 0) + 1;
+                                        const specName = d.specName || (window.Hub && Hub.getSpecialtyName ? Hub.getSpecialtyName(d.specCode, d.hospitalId) : d.specCode);
                                         return `
                                             <div class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/90 shadow-sm flex items-center justify-between">
                                                 <div class="flex items-center gap-2.5">
                                                     <div class="w-11 h-11 rounded-xl bg-teal-50 text-teal-700 dark:bg-amber-950/50 dark:text-amber-300 border border-teal-200 dark:border-amber-900/60 flex flex-col items-center justify-center font-bold leading-none">
                                                         <span class="text-[10px] font-normal">${dayName}</span>
-                                                        <span class="text-sm font-black font-mono mt-0.5">${dateParts[2] || ''}</span>
+                                                        <span class="text-sm font-black font-mono mt-0.5">${dayNum}</span>
                                                     </div>
                                                     <div>
                                                         <div class="text-xs font-black text-slate-800 dark:text-white flex items-center gap-1.5">
@@ -1633,7 +1646,7 @@
                                                             <span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">${d.hospitalName || ''}</span>
                                                         </div>
                                                         <div class="text-[11px] text-slate-500 mt-0.5">
-                                                            <span>قسم ${d.specCode}</span> · <span>نوبة ${slotNum}</span>
+                                                            <span>قسم ${specName} - خفارة ${slotNum}</span>
                                                         </div>
                                                     </div>
                                                 </div>

@@ -412,6 +412,9 @@
                     <button type="button" id="admin-owner-passwords-btn" onclick="openAllPasswordsModalNav()" class="btn-ghost text-xs" style="display:none; color:#d97706; border-color:rgba(217,119,6,0.4); background:rgba(217,119,6,0.08);">
                         <i class="fas fa-key text-amber-500"></i> تعديل كلمات المرور
                     </button>
+                    <button type="button" id="admin-owner-heroes-btn" onclick="openAllRotationHeroesModal()" class="btn-ghost text-xs" style="display:none; color:#0284c7; border-color:rgba(2,132,199,0.4); background:rgba(2,132,199,0.08);">
+                        <i class="fas fa-user-md text-sky-500"></i> روابط Rotation Heroes 👑
+                    </button>
                     <button type="button" onclick="openHospitalSettingsModal()" class="btn-ghost text-xs">
                         <i class="fas fa-sliders"></i> إعدادات المستشفى
                     </button>
@@ -907,6 +910,15 @@
                     <label class="block text-xs font-bold text-slate-500 mb-1">الموقع / المدينة</label>
                     <input type="text" id="hosp-setting-location" class="input-field" />
                 </div>
+                <!-- Rotation Heroes Link (Owner Only) -->
+                <div id="hosp-owner-heroes-container" class="p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30">
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1 flex items-center justify-between">
+                        <span><i class="fas fa-user-md text-sky-600 dark:text-sky-400 ml-1"></i> رابط منصة Rotation Heroes</span>
+                        <span id="hosp-heroes-badge" class="text-[10px] text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/40 px-2 py-0.5 rounded-full font-semibold">صلاحية المالك 👑</span>
+                    </label>
+                    <input type="url" id="hosp-setting-heroes-url" class="input-field font-mono text-xs" placeholder="https://... (اتركه فارغاً لإظهار شارة SOON)" dir="ltr" />
+                    <p class="text-[11px] text-slate-400 mt-1">إذا تُرك فارغاً، سيظهر زر Rotation Heroes في جدول الخفارات مع شارة "SOON" ويكون معطلاً.</p>
+                </div>
                 <!-- Passwords Section (Owner Only) -->
                 <div id="hosp-owner-passwords-container">
                     <div class="p-3 mb-2 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
@@ -967,6 +979,30 @@
                     <i class="fas fa-arrows-rotate"></i> استبدال كامل
                 </button>
                 <button type="button" onclick="closeImportModal()" class="btn-ghost text-xs">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALL ROTATION HEROES LINKS MODAL (OWNER ONLY) -->
+    <div id="all-heroes-modal" class="modal-overlay">
+        <div class="modal-card max-w-2xl">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-xl font-black flex items-center gap-2">
+                    <i class="fas fa-user-md text-sky-600 dark:text-sky-400"></i> إدارة روابط Rotation Heroes لجميع المستشفيات
+                </h3>
+                <button type="button" onclick="closeAllRotationHeroesModal()" class="text-slate-400 hover:text-slate-600 text-xl"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="text-xs text-slate-500 mb-3">يمكنك كمالك (Owner) تعيين أو تعديل رابط Rotation Heroes لكل مستشفى. إذا تُرك الرابط فارغاً، يظهر الزر في صفحة جدول الخفارات بشارة <strong>SOON</strong> ويكون معطلاً.</p>
+            
+            <div id="all-heroes-list" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                <!-- Populated dynamically via JS -->
+            </div>
+
+            <div class="flex gap-3 pt-4 mt-2 border-t border-slate-200 dark:border-slate-800">
+                <button type="button" onclick="saveAllRotationHeroesLinks()" class="flex-1 btn-gradient">
+                    <i class="fas fa-save ml-1"></i> حفظ جميع الروابط
+                </button>
+                <button type="button" onclick="closeAllRotationHeroesModal()" class="btn-ghost">إلغاء</button>
             </div>
         </div>
     </div>
@@ -1033,11 +1069,15 @@
                     }
                 }
 
-                // Show Owner Edit Passwords button only if isOwner
+                // Show Owner Edit Passwords & Rotation Heroes buttons only if isOwner
                 const isOwner = Hub.auth.isOwner();
                 const ownerPwdBtn = document.getElementById('admin-owner-passwords-btn');
                 if (ownerPwdBtn) {
-                    ownerPwdBtn.style.display = Hub.auth.isOwner() ? 'inline-flex' : 'none';
+                    ownerPwdBtn.style.display = isOwner ? 'inline-flex' : 'none';
+                }
+                const ownerHeroesBtn = document.getElementById('admin-owner-heroes-btn');
+                if (ownerHeroesBtn) {
+                    ownerHeroesBtn.style.display = isOwner ? 'inline-flex' : 'none';
                 }
                 const ownerStoreBtn = document.getElementById('admin-owner-store-btn');
                 if (ownerStoreBtn) {
@@ -2177,6 +2217,19 @@
             const isOwner = Hub.auth.isOwner();
             const passContainer = document.getElementById('hosp-owner-passwords-container');
             const passLocked = document.getElementById('hosp-admin-passwords-locked');
+            const heroesInput = document.getElementById('hosp-setting-heroes-url');
+            const heroesBadge = document.getElementById('hosp-heroes-badge');
+
+            if (heroesInput) {
+                heroesInput.value = currentHospital.rotationHeroesUrl || '';
+                if (isOwner) {
+                    heroesInput.removeAttribute('disabled');
+                    if (heroesBadge) heroesBadge.textContent = 'صلاحية المالك 👑';
+                } else {
+                    heroesInput.setAttribute('disabled', 'true');
+                    if (heroesBadge) heroesBadge.textContent = 'للمالك فقط 🔒';
+                }
+            }
 
             if (isOwner) {
                 if (passContainer) passContainer.style.display = 'block';
@@ -2223,6 +2276,11 @@
                 }
             }
 
+            if (Hub.auth.isOwner()) {
+                const heroesUrl = (document.getElementById('hosp-setting-heroes-url')?.value || '').trim();
+                currentHospital.rotationHeroesUrl = heroesUrl;
+            }
+
             currentHospital.name_ar = nameAr;
             currentHospital.hospitalName = nameEn;
             currentHospital.location = loc;
@@ -2248,6 +2306,76 @@
             } catch (err) {
                 console.error(err);
                 showToast(err.message || 'خطأ أثناء حفظ إعدادات المستشفى', 'error');
+            }
+        }
+
+        // ============================================================
+        // ALL HOSPITALS ROTATION HEROES LINKS (OWNER ONLY)
+        // ============================================================
+        function openAllRotationHeroesModal() {
+            if (!Hub.auth.isOwner()) {
+                showToast('هذه الميزة حصرية للمالك (Owner) فقط', 'error');
+                return;
+            }
+            const listEl = document.getElementById('all-heroes-list');
+            if (!listEl) return;
+
+            const hospitals = Hub.getHospitals();
+            listEl.innerHTML = hospitals.map(h => {
+                const currentUrl = (h.rotationHeroesUrl || '').trim();
+                const hasUrl = Boolean(currentUrl);
+                return `
+                    <div class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex flex-col gap-2">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2">
+                                <span class="text-base">${h.icon ? '🏥' : '🏢'}</span>
+                                <span class="font-bold text-sm text-slate-800 dark:text-slate-100">${h.name_ar || h.hospitalName}</span>
+                                <span class="text-xs text-slate-400 font-mono">(${h.id})</span>
+                            </div>
+                            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full ${hasUrl ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300'}">
+                                ${hasUrl ? '<i class="fas fa-check-circle ml-1"></i> مفعل' : '<i class="fas fa-clock ml-1"></i> معطل (SOON)'}
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="url" data-hosp-id="${h.id}" class="input-field font-mono text-xs flex-1 all-heroes-input" 
+                                placeholder="https://... (اتركه فارغاً لإظهار شارة SOON)" value="${currentUrl}" dir="ltr" />
+                            ${hasUrl ? `<a href="${currentUrl}" target="_blank" rel="noopener noreferrer" class="btn-ghost text-xs px-2.5 py-1.5" title="تجربة الرابط"><i class="fas fa-external-link-alt"></i></a>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('all-heroes-modal').classList.add('active');
+        }
+
+        function closeAllRotationHeroesModal() {
+            document.getElementById('all-heroes-modal').classList.remove('active');
+        }
+
+        async function saveAllRotationHeroesLinks() {
+            if (!Hub.auth.isOwner()) {
+                showToast('هذه الميزة حصرية للمالك (Owner) فقط', 'error');
+                return;
+            }
+            const inputs = document.querySelectorAll('.all-heroes-input');
+            let updatedCount = 0;
+            inputs.forEach(inp => {
+                const hid = inp.getAttribute('data-hosp-id');
+                const val = (inp.value || '').trim();
+                const hosp = Hub.getHospital(hid);
+                if (hosp) {
+                    hosp.rotationHeroesUrl = val;
+                    updatedCount++;
+                }
+            });
+
+            closeAllRotationHeroesModal();
+            try {
+                await Hub.saveDatabase('Update all hospitals Rotation Heroes links');
+                showToast(`تم حفظ روابط Rotation Heroes لـ ${updatedCount} مستشفى بنجاح!`, 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('خطأ أثناء حفظ الروابط: ' + (err.message || ''), 'error');
             }
         }
 

@@ -58,7 +58,7 @@
         { id: "ENT", name_ar: "الأذن و الأنف و الحنجرة", name_en: "ENT", icon: "👂", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
         { id: "MF", name_ar: "جراحة الوجه و الفكين", name_en: "MaxilloFacial Surgery", icon: "🦷", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
         { id: "O", name_ar: "العيون", name_en: "Ophthalmology", icon: "👁️", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
-        { id: "Pe", name_ar: "الاطفال", name_en: "Paediatrics", icon: "👶", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
+        { id: "Pe", name_ar: "طب الأطفال", name_en: "Paediatrics", icon: "👶", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
         { id: "M", name_ar: "الباطنية", name_en: "Internal Medicine", icon: "💊", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
         { id: "G", name_ar: "النسائية و التوليد", name_en: "Gynecology", icon: "🤰", color: "#0f766e", parentSpec: null, acceptPool: [], enabled: true },
         { id: "ICU", name_ar: "تخدير العناية المركزة", name_en: "ICU Anaesthesia", icon: "💉", color: "#0f766e", parentSpec: "A", acceptPool: ["A"], enabled: true },
@@ -189,11 +189,16 @@
                 const normId = normalizeSpecialtyId(s.id);
                 const canon = CANONICAL_SPECIALTIES.find(c => c.id === normId);
 
+                let nameAr = s.name_ar || (canon ? canon.name_ar : normId);
+                if (normId === 'Pe' && (nameAr === 'الاطفال' || !nameAr)) {
+                    nameAr = 'طب الأطفال';
+                }
+
                 if (!cleanMap.has(normId)) {
                     // PRESERVE user's custom properties, only fallback to canon defaults if missing!
                     cleanMap.set(normId, {
                         id: normId,
-                        name_ar: s.name_ar || (canon ? canon.name_ar : normId),
+                        name_ar: nameAr,
                         name_en: s.name_en || (canon ? canon.name_en : (s.name_ar || normId)),
                         icon: s.icon || (canon ? canon.icon : '🏥'),
                         color: s.color || (canon ? canon.color : '#0f766e'),
@@ -204,7 +209,8 @@
                 } else {
                     // Deduplicating legacy entry (e.g. merging F into FM)
                     const existing = cleanMap.get(normId);
-                    if (!existing.name_ar && s.name_ar) existing.name_ar = s.name_ar;
+                    if (normId === 'Pe') existing.name_ar = 'طب الأطفال';
+                    else if (!existing.name_ar && s.name_ar) existing.name_ar = s.name_ar;
                     if (!existing.name_en && s.name_en) existing.name_en = s.name_en;
                     if (!existing.icon && s.icon) existing.icon = s.icon;
                     if (Array.isArray(s.acceptPool) && s.acceptPool.length > 0) {
@@ -505,9 +511,12 @@
             }
 
             const sendPut = async (shaToUse) => {
+                const base64Content = (typeof btoa !== 'undefined')
+                    ? btoa(unescape(encodeURIComponent(jsonString)))
+                    : ((typeof Buffer !== 'undefined') ? Buffer.from(jsonString, 'utf8').toString('base64') : '');
                 const body = {
                     message: commitMessage,
-                    content: btoa(unescape(encodeURIComponent(jsonString)))
+                    content: base64Content
                 };
                 if (shaToUse) {
                     body.sha = shaToUse;
@@ -573,7 +582,7 @@
 
     function getActiveHospitalId() {
         // Priority: 1. URL parameter (?hospital=...) 2. LocalStorage 3. Default ('iraqi')
-        const urlParams = new URLSearchParams(window.location.search);
+        const urlParams = (typeof URLSearchParams !== 'undefined' && window.location) ? new URLSearchParams(window.location.search || '') : { get: () => null };
         const fromUrl = urlParams.get('hospital') || urlParams.get('hosp');
         if (fromUrl) {
             localStorage.setItem(ACTIVE_HOSP_KEY, fromUrl);
@@ -917,6 +926,45 @@
             seen.add(canonId);
             return true;
         });
+    }
+
+    /**
+     * Resolves specialty code into full Arabic specialty name.
+     * Guaranteed to never return raw code if mapping exists, and normalizes Pe to 'طب الأطفال'.
+     */
+    function getSpecialtyName(specCode, hospitalId = null) {
+        if (!specCode) return '';
+        const normCode = normalizeSpecialtyId(specCode);
+
+        // Explicit canonical rule: Paediatrics is always 'طب الأطفال'
+        if (normCode === 'Pe' || normCode === 'PAED' || normCode === 'PED') {
+            return 'طب الأطفال';
+        }
+
+        // 1. Check hospital specialties
+        const hid = hospitalId || getActiveHospitalId();
+        if (hid && db?.hospitals?.[hid]?.specialties) {
+            const sp = db.hospitals[hid].specialties.find(s => s.id === normCode || s.id === specCode);
+            if (sp && sp.name_ar) {
+                return (sp.name_ar === 'الاطفال' || normCode === 'Pe') ? 'طب الأطفال' : sp.name_ar;
+            }
+        }
+
+        // 2. Check global specialties
+        if (Array.isArray(db?.globalSpecialties)) {
+            const sp = db.globalSpecialties.find(s => s.id === normCode || s.id === specCode);
+            if (sp && sp.name_ar) {
+                return (sp.name_ar === 'الاطفال' || normCode === 'Pe') ? 'طب الأطفال' : sp.name_ar;
+            }
+        }
+
+        // 3. Check CANONICAL_SPECIALTIES
+        const canon = CANONICAL_SPECIALTIES.find(s => s.id === normCode || s.id === specCode);
+        if (canon && canon.name_ar) {
+            return (canon.name_ar === 'الاطفال' || normCode === 'Pe') ? 'طب الأطفال' : canon.name_ar;
+        }
+
+        return specCode;
     }
 
     async function saveGlobalSpecialties(specs) {
@@ -1753,8 +1801,10 @@
             hosp.specialistSchedule.forEach(duty => {
                 const dutyName = (duty.name || '').replace(/^د[\.\s]+/, '').trim().toLowerCase();
                 if (dutyName === cleanName || (cleanName.length > 3 && dutyName.includes(cleanName)) || (dutyName.length > 3 && cleanName.includes(dutyName))) {
+                    const specName = getSpecialtyName(duty.specCode, hid);
                     duties.push({
                         ...duty,
+                        specName: specName || duty.specCode,
                         hospitalId: hid,
                         hospitalName: hosp.name_ar || hosp.hospitalName || hid
                     });
@@ -2118,6 +2168,7 @@
         getSpecialistSchedule,
         getSpecialistDuties,
         isSurgicalSpecialty,
+        getSpecialtyName,
         specialists: {
             getAll: (hospitalId, specCode) => getSpecialists(hospitalId, specCode),
             getById: (id) => getSpecialist(id),
@@ -2147,7 +2198,8 @@
                     icon: s.icon || '🏥',
                     color: s.color || '#0f766e'
                 } : null;
-            }
+            },
+            getName: (code, hospitalId) => getSpecialtyName(code, hospitalId)
         },
         getHospitalMonthSchedule,
         updateDuty,

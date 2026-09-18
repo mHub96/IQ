@@ -950,7 +950,7 @@
             </button>
 
             <!-- Role Badge -->
-            <div id="top-role-pill" class="ios-role-pill user" onclick="handleRoleBadgeClick()">
+            <div id="top-role-pill" class="ios-role-pill user" onclick="openRoleSwitcherModal()" title="انقر لتبديل مستوى المستخدم">
                 <i class="fas fa-user" id="top-role-icon"></i>
                 <span id="top-role-text">مستخدم</span>
             </div>
@@ -1253,6 +1253,131 @@
         </div>
     </div>
 
+    <!-- ROLE SWITCHER MODAL (Switch User Level) -->
+    <div id="role-switcher-modal" class="modal-overlay">
+        <div class="modal-card max-w-md w-full p-5 sm:p-6 text-right relative">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-teal-500/15 dark:bg-amber-400/20 text-teal-700 dark:text-amber-400 flex items-center justify-center text-lg shadow-sm">
+                        <i class="fas fa-users-cog"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-slate-800 dark:text-white">تبديل مستوى المستخدم</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">اختر مستوى الصلاحية للعمل به داخل المنظومة</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeRoleSwitcherModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center transition" aria-label="إغلاق">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Current Role Indicator Banner -->
+            <div class="mb-4 p-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-500 dark:text-slate-400 font-bold">المستوى الحالي:</span>
+                    <span id="switcher-current-role-badge" class="px-2.5 py-1 rounded-full text-xs font-black bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-300">مستخدم</span>
+                </div>
+                <span id="switcher-hospital-badge" class="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[150px]"></span>
+            </div>
+
+            <!-- Role Selection Options -->
+            <div class="space-y-3" id="switcher-role-cards">
+                <!-- 1. Owner Level Card -->
+                <div class="border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 transition hover:border-amber-400 dark:hover:border-amber-500 cursor-pointer bg-white/80 dark:bg-slate-900/60 shadow-sm" id="card-role-owner" onclick="selectRoleLevel('owner')">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg flex-shrink-0">
+                                👑
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-xs font-black text-slate-800 dark:text-white">المالك (Owner)</h4>
+                                    <span id="tag-active-owner" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 font-bold">نشط حالياً ✓</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">تحكم كامل بالمنظومة، إدارة المستشفيات، وتعديل كلمات المرور</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Password input for owner if needed -->
+                    <div id="owner-pwd-box" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 hidden" onclick="event.stopPropagation()">
+                        <div class="relative mb-2">
+                            <input type="password" id="owner-level-pwd" class="hub-input text-xs w-full" placeholder="أدخل كلمة مرور المالك..." onkeydown="if(event.key==='Enter') confirmUpgradeToRole('owner')" />
+                            <button type="button" onclick="toggleInputPwd('owner-level-pwd', 'owner-eye-icon')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1">
+                                <i class="fas fa-eye" id="owner-eye-icon"></i>
+                            </button>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="confirmUpgradeToRole('owner')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 transition shadow-sm">تأكيد التبديل لمالك</button>
+                            <button type="button" onclick="cancelRoleInput('owner')" class="py-1.5 px-3 rounded-lg text-xs font-bold border border-slate-300 dark:border-slate-700 text-slate-500">إلغاء</button>
+                        </div>
+                        <p id="owner-pwd-error" class="text-[11px] text-rose-500 mt-1 min-h-[16px]"></p>
+                    </div>
+                </div>
+
+                <!-- 2. Admin Level Card -->
+                <div class="border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 transition hover:border-teal-500 dark:hover:border-teal-400 cursor-pointer bg-white/80 dark:bg-slate-900/60 shadow-sm" id="card-role-admin" onclick="selectRoleLevel('admin')">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 flex items-center justify-center text-lg flex-shrink-0">
+                                🛡️
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-xs font-black text-slate-800 dark:text-white">مدير مستشفى (Admin)</h4>
+                                    <span id="tag-active-admin" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-bold">نشط حالياً ✓</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">إدارة وتعديل جداول الخفارات للمقيمين والاختصاصيين وتعديل الأطباء</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Password input for admin if needed -->
+                    <div id="admin-pwd-box" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 hidden" onclick="event.stopPropagation()">
+                        <div class="relative mb-2">
+                            <input type="password" id="admin-level-pwd" class="hub-input text-xs w-full" placeholder="أدخل كلمة مرور الإدارة..." onkeydown="if(event.key==='Enter') confirmUpgradeToRole('admin')" />
+                            <button type="button" onclick="toggleInputPwd('admin-level-pwd', 'admin-eye-icon')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1">
+                                <i class="fas fa-eye" id="admin-eye-icon"></i>
+                            </button>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="confirmUpgradeToRole('admin')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 transition shadow-sm">تأكيد التبديل لمدير</button>
+                            <button type="button" onclick="cancelRoleInput('admin')" class="py-1.5 px-3 rounded-lg text-xs font-bold border border-slate-300 dark:border-slate-700 text-slate-500">إلغاء</button>
+                        </div>
+                        <p id="admin-pwd-error" class="text-[11px] text-rose-500 mt-1 min-h-[16px]"></p>
+                    </div>
+                </div>
+
+                <!-- 3. User Level Card -->
+                <div class="border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 transition hover:border-blue-400 dark:hover:border-blue-500 cursor-pointer bg-white/80 dark:bg-slate-900/60 shadow-sm" id="card-role-user" onclick="selectRoleLevel('user')">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center text-lg flex-shrink-0">
+                                👨‍⚕️
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-xs font-black text-slate-800 dark:text-white">مستخدم عادي (User)</h4>
+                                    <span id="tag-active-user" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold">نشط حالياً ✓</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">استعراض جداول الخفارات واليوميات والبحث عن الأطباء (وضع القراءة فقط)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Quick Actions -->
+            <div class="mt-5 pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <button type="button" onclick="handleDockLockAction(); closeRoleSwitcherModal();" class="text-xs font-bold text-rose-500 hover:text-rose-600 flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40">
+                    <i class="fas fa-sign-out-alt"></i> قفل التطبيق وخروج
+                </button>
+                <button type="button" onclick="closeRoleSwitcherModal()" class="text-xs font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="./hub-core.js"></script>
     <script src="./nav-component.js"></script>
@@ -1352,6 +1477,12 @@
             const success = Hub.auth.login(pwd, remember);
             if (success) {
                 errorEl.textContent = '';
+                if (Hub.auth.isOwner()) {
+                    sessionStorage.setItem('hub_cached_owner_pwd', pwd);
+                } else if (Hub.auth.isAdmin()) {
+                    sessionStorage.setItem('hub_cached_admin_pwd', pwd);
+                }
+
                 document.getElementById('lock-screen').classList.add('hidden');
                 updateTopRoleBadge();
                 renderHubDashboard();
@@ -1374,6 +1505,8 @@
         function handleDockLockAction() {
             if (Hub.auth.isLoggedIn()) {
                 if (confirm('هل تريد قفل التطبيق وتسجيل الخروج؟')) {
+                    sessionStorage.removeItem('hub_cached_owner_pwd');
+                    sessionStorage.removeItem('hub_cached_admin_pwd');
                     Hub.auth.logout();
                     document.getElementById('lock-screen').classList.remove('hidden');
                     updateTopRoleBadge();
@@ -1383,6 +1516,201 @@
                 document.getElementById('lock-screen').classList.remove('hidden');
             }
         }
+
+        // ============================================================
+        // USER LEVEL SWITCHER CONTROLLER
+        // ============================================================
+        function openRoleSwitcherModal() {
+            const modal = document.getElementById('role-switcher-modal');
+            if (!modal) return;
+
+            const isOwner = Hub.auth.isOwner();
+            const isAdmin = Hub.auth.isAdmin();
+
+            // 1. Current badge indicator
+            const badgeEl = document.getElementById('switcher-current-role-badge');
+            const hospBadgeEl = document.getElementById('switcher-hospital-badge');
+            if (badgeEl) {
+                if (isOwner) {
+                    badgeEl.className = 'px-2.5 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300';
+                    badgeEl.textContent = 'المالك 👑';
+                } else if (isAdmin) {
+                    badgeEl.className = 'px-2.5 py-1 rounded-full text-xs font-black bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-300';
+                    const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : 'مدير';
+                    badgeEl.textContent = `مدير (${hName.length > 14 ? 'المستشفى' : hName}) 🛡️`;
+                } else {
+                    badgeEl.className = 'px-2.5 py-1 rounded-full text-xs font-black bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200';
+                    badgeEl.textContent = 'مستخدم عادي 👨‍⚕️';
+                }
+            }
+            if (hospBadgeEl) {
+                hospBadgeEl.textContent = (isAdmin && !isOwner && Hub.auth.getAdminHospitalName) ? Hub.auth.getAdminHospitalName() : '';
+            }
+
+            // 2. Active cards & tags
+            ['owner', 'admin', 'user'].forEach(r => {
+                const tag = document.getElementById(`tag-active-${r}`);
+                const card = document.getElementById(`card-role-${r}`);
+                const isActive = (r === 'owner' && isOwner) || (r === 'admin' && isAdmin && !isOwner) || (r === 'user' && !isAdmin && !isOwner);
+                if (tag) {
+                    if (isActive) tag.classList.remove('hidden');
+                    else tag.classList.add('hidden');
+                }
+                if (card) {
+                    if (isActive) {
+                        card.classList.add('ring-2', 'ring-teal-500', 'dark:ring-amber-400');
+                    } else {
+                        card.classList.remove('ring-2', 'ring-teal-500', 'dark:ring-amber-400');
+                    }
+                }
+            });
+
+            // 3. Reset password boxes
+            cancelRoleInput('owner');
+            cancelRoleInput('admin');
+
+            modal.classList.add('active');
+        }
+
+        function closeRoleSwitcherModal() {
+            const modal = document.getElementById('role-switcher-modal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function cancelRoleInput(role) {
+            const box = document.getElementById(`${role}-pwd-box`);
+            const input = document.getElementById(`${role}-level-pwd`);
+            const err = document.getElementById(`${role}-pwd-error`);
+            if (box) box.classList.add('hidden');
+            if (input) input.value = '';
+            if (err) err.textContent = '';
+        }
+
+        function toggleInputPwd(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (!input) return;
+            const isPwd = input.type === 'password';
+            input.type = isPwd ? 'text' : 'password';
+            if (icon) {
+                icon.className = isPwd ? 'fas fa-eye-slash' : 'fas fa-eye';
+            }
+        }
+
+        function selectRoleLevel(targetRole) {
+            const isOwner = Hub.auth.isOwner();
+            const isAdmin = Hub.auth.isAdmin();
+
+            // Check if already active at this level
+            if ((targetRole === 'owner' && isOwner) ||
+                (targetRole === 'admin' && isAdmin && !isOwner) ||
+                (targetRole === 'user' && !isAdmin && !isOwner)) {
+                showToast('أنت تعمل حالياً بهذا المستوى بالفعل', 'info');
+                return;
+            }
+
+            if (targetRole === 'user') {
+                // Instant switch to regular user
+                Hub.auth.saveSession('user', '', true, []);
+                updateTopRoleBadge();
+                renderHubDashboard();
+                closeRoleSwitcherModal();
+                showToast('تم التبديل بنجاح إلى: مستخدم عادي 👨‍⚕️', 'success');
+                return;
+            }
+
+            if (targetRole === 'admin') {
+                // Check cached passwords first
+                const cachedAdmin = sessionStorage.getItem('hub_cached_admin_pwd');
+                const cachedOwner = sessionStorage.getItem('hub_cached_owner_pwd');
+                const pwdToTry = cachedAdmin || cachedOwner;
+                if (pwdToTry) {
+                    const res = Hub.auth.login(pwdToTry);
+                    if (res.success && (res.role === 'admin' || res.role === 'owner')) {
+                        if (res.role === 'owner') {
+                            Hub.auth.saveSession('admin', pwdToTry, true, ['*']);
+                        }
+                        updateTopRoleBadge();
+                        renderHubDashboard();
+                        closeRoleSwitcherModal();
+                        showToast('تم التبديل بنجاح إلى: مدير مستشفى 🛡️', 'success');
+                        return;
+                    }
+                }
+                // Open inline password field
+                document.getElementById('admin-pwd-box').classList.remove('hidden');
+                document.getElementById('owner-pwd-box').classList.add('hidden');
+                setTimeout(() => document.getElementById('admin-level-pwd')?.focus(), 80);
+                return;
+            }
+
+            if (targetRole === 'owner') {
+                // Check cached owner password
+                const cachedOwner = sessionStorage.getItem('hub_cached_owner_pwd');
+                if (cachedOwner) {
+                    const res = Hub.auth.login(cachedOwner);
+                    if (res.success && res.role === 'owner') {
+                        updateTopRoleBadge();
+                        renderHubDashboard();
+                        closeRoleSwitcherModal();
+                        showToast('تم التبديل بنجاح إلى: المالك 👑', 'success');
+                        return;
+                    }
+                }
+                // Open inline password field
+                document.getElementById('owner-pwd-box').classList.remove('hidden');
+                document.getElementById('admin-pwd-box').classList.add('hidden');
+                setTimeout(() => document.getElementById('owner-level-pwd')?.focus(), 80);
+                return;
+            }
+        }
+
+        function confirmUpgradeToRole(targetRole) {
+            const input = document.getElementById(`${targetRole}-level-pwd`);
+            const err = document.getElementById(`${targetRole}-pwd-error`);
+            const pwd = (input?.value || '').trim();
+
+            if (!pwd) {
+                if (err) err.textContent = 'يرجى إدخال كلمة المرور';
+                return;
+            }
+
+            const res = Hub.auth.login(pwd);
+            if (res.success) {
+                if (targetRole === 'owner' && res.role !== 'owner') {
+                    if (err) err.textContent = 'كلمة المرور المدخلة ليست كلمة مرور المالك!';
+                    return;
+                }
+
+                if (res.role === 'owner') {
+                    sessionStorage.setItem('hub_cached_owner_pwd', pwd);
+                } else if (res.role === 'admin') {
+                    sessionStorage.setItem('hub_cached_admin_pwd', pwd);
+                }
+
+                if (targetRole === 'admin' && res.role === 'owner') {
+                    Hub.auth.saveSession('admin', pwd, true, ['*']);
+                }
+
+                if (err) err.textContent = '';
+                updateTopRoleBadge();
+                renderHubDashboard();
+                closeRoleSwitcherModal();
+
+                const roleName = targetRole === 'owner' ? 'المالك 👑' : 'مدير مستشفى 🛡️';
+                showToast(`تم التبديل بنجاح إلى: ${roleName}`, 'success');
+            } else {
+                if (err) err.textContent = 'كلمة المرور غير صحيحة، حاول مجدداً';
+                if (input) {
+                    input.value = '';
+                    input.focus();
+                }
+            }
+        }
+
+        // Global aliases
+        window.openRoleSwitcherModal = openRoleSwitcherModal;
+        window.handleRoleBadgeClick = openRoleSwitcherModal;
 
         function updateTopRoleBadge() {
             const role = Hub.auth.getRole();

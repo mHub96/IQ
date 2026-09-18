@@ -1355,7 +1355,7 @@
                                         <h3 class="text-base font-black text-slate-800 dark:text-white leading-tight">${doc.name}</h3>
                                         <div class="flex flex-wrap items-center gap-1.5 mt-1">
                                             <span class="title-badge"><i class="fas fa-medal text-[10px]"></i> ${doc.title || 'أخصائي'}</span>
-                                            <span class="spec-badge">${doc.specName || (window.Hub && Hub.getSpecialtyName ? Hub.getSpecialtyName(doc.spec) : doc.spec)}</span>
+                                            <span class="spec-badge">${(window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(doc.spec) : (doc.specName || doc.spec)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1467,7 +1467,7 @@
                             ${doc.notes ? `<div class="text-[11px] text-slate-400 mt-0.5">${doc.notes}</div>` : ''}
                         </td>
                         <td>
-                            <span class="spec-badge">${doc.specName || (window.Hub && Hub.getSpecialtyName ? Hub.getSpecialtyName(doc.spec) : doc.spec)}</span>
+                            <span class="spec-badge">${(window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(doc.spec) : (doc.specName || doc.spec)}</span>
                         </td>
                         <td>
                             <div class="flex flex-wrap gap-1">${hospTags || '—'}</div>
@@ -1575,7 +1575,7 @@
                         <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                             <div>
                                 <h4 class="text-base font-black text-slate-800 dark:text-white">${doc.name}</h4>
-                                <div class="text-xs text-slate-500 mt-0.5">${doc.title || 'أخصائي'} · ${doc.specName || (window.Hub && Hub.getSpecialtyName ? Hub.getSpecialtyName(doc.spec) : doc.spec)}</div>
+                                <div class="text-xs text-slate-500 mt-0.5">${doc.title || 'أخصائي'} · ${(window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(doc.spec) : (doc.specName || doc.spec)}</div>
                                 <div class="flex flex-wrap items-center gap-2 mt-2 text-xs">
                                     ${sched.clinicDays && sched.clinicDays.length > 0 ? `
                                         <span class="schedule-badge-clinic text-[11px]">
@@ -1632,7 +1632,11 @@
                                             }
                                         }
                                         const slotNum = (parseInt(d.dutySlot) || 0) + 1;
-                                        const specName = d.specName || (window.Hub && Hub.getSpecialtyName ? Hub.getSpecialtyName(d.specCode, d.hospitalId) : d.specCode);
+                                        const rawCode = d.specCode || d.spec;
+                                        let specName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(rawCode, d.hospitalId) : (d.specName || rawCode);
+                                        if (!specName || specName === 'Pe' || specName === 'PED' || specName === 'PAED') {
+                                            specName = 'طب الأطفال';
+                                        }
                                         return `
                                             <div class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/90 shadow-sm flex items-center justify-between">
                                                 <div class="flex items-center gap-2.5">
@@ -1830,7 +1834,7 @@
                 name: document.getElementById('form-spec-name').value.trim(),
                 title: document.getElementById('form-spec-title').value.trim(),
                 spec: specCode,
-                specName: specObj ? specObj.name_ar : specCode,
+                specName: (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(specCode) : (specObj ? specObj.name_ar : specCode),
                 phone: document.getElementById('form-spec-phone').value.trim(),
                 clinic: document.getElementById('form-spec-clinic').value.trim(),
                 hospitals: checkedHosps.length > 0 ? checkedHosps : [Hub.getActiveHospitalId()],

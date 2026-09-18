@@ -1,5 +1,5 @@
 // service-worker.js - Dynamic Network-First Strategy for Hospital Main Hub
-const CACHE_VERSION = 'v2.4.0';
+const CACHE_VERSION = 'v3.0.0';
 const CACHE_NAME = `hospital-hub-${CACHE_VERSION}`;
 
 const APP_SHELL = [
@@ -11,6 +11,8 @@ const APP_SHELL = [
   './admin.html',
   './owner.html',
   './scheduler.html',
+  './specialists.html',
+  './residents.html',
   './s.html',
   './hub-core.js',
   './nav-component.js',
@@ -58,14 +60,15 @@ self.addEventListener('fetch', event => {
 
   const url = new URL(event.request.url);
 
-  // Network-First for HTML navigation and dynamic database (ensures phone always gets fresh commits)
-  const isHtmlOrData = event.request.mode === 'navigate' ||
-                       url.pathname.endsWith('.html') ||
-                       url.pathname.endsWith('/') ||
-                       url.pathname.includes('hub-data.json') ||
-                       url.pathname.endsWith('.json');
+  // Network-First for HTML, JSON, and core JS (ensures phone always gets fresh commits)
+  const isNetworkFirst = event.request.mode === 'navigate' ||
+                         url.pathname.endsWith('.html') ||
+                         url.pathname.endsWith('/') ||
+                         url.pathname.endsWith('.js') ||
+                         url.pathname.includes('hub-data.json') ||
+                         url.pathname.endsWith('.json');
 
-  if (isHtmlOrData) {
+  if (isNetworkFirst) {
     event.respondWith(
       fetch(event.request)
         .then(networkResponse => {
@@ -89,7 +92,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Stale-While-Revalidate for other static assets (css, js, fonts, images)
+  // Stale-While-Revalidate for other static assets (css, fonts, images)
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
       const fetchPromise = fetch(event.request)
@@ -111,10 +114,7 @@ self.addEventListener('fetch', event => {
 
 // Handle explicit messages from clients
 self.addEventListener('message', event => {
-  if (event.data === 'SKIP_WAITING') {
+  if (event.data === 'SKIP_WAITING' || (event.data && event.data.type === 'SKIP_WAITING')) {
     self.skipWaiting();
-  }
-  if (event.data === 'CLEAR_CACHE') {
-    caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))));
   }
 });

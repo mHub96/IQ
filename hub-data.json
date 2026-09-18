@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-18T05:35:18.337Z",
+  "lastUpdated": "2026-09-18T05:35:20.115Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -43887,12 +43887,21 @@
       "notes": "",
       "active": true,
       "schedule": {
-        "clinicDays": [],
-        "onCallDays": [],
-        "theatreDays": [],
-        "shiftTimes": "",
+        "clinicDays": [
+          "sun",
+          "tue"
+        ],
+        "onCallDays": [
+          "mon",
+          "thu"
+        ],
+        "theatreDays": [
+          "wed"
+        ],
+        "shiftTimes": "8:30 AM - 1:30 PM",
         "dutyDates": [],
-        "notes": ""
+        "notes": "الاستشارية الصباحية فقط",
+        "updatedAt": "2026-09-18T05:35:20.115Z"
       }
     },
     {

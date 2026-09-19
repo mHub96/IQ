@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-18T22:34:27.298Z",
+  "lastUpdated": "2026-09-19T12:27:21.363Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -28585,10 +28585,11 @@
         {
           "date": "19/09/2026",
           "specCode": "GS",
-          "name": "د. تحسين علي حلو",
+          "name": "د. علي حسين عبدالرضا",
           "VisitCount": 0,
           "dutySlot": 0,
-          "dutyTime": ""
+          "dutyTime": "",
+          "timestamp": "15:27"
         },
         {
           "date": "20/09/2026",

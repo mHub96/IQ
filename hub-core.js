@@ -715,6 +715,7 @@
         db.hospitals[id].passwords = {
             owner: newPasswords.owner || db.hospitals[id].passwords?.owner || 'MrjBth1996*',
             admin: newPasswords.admin || db.hospitals[id].passwords?.admin || 'Admin1996*',
+            anaesthesia: newPasswords.anaesthesia || db.hospitals[id].passwords?.anaesthesia || 'Icu1996*',
             user: newPasswords.user || db.hospitals[id].passwords?.user || '1234'
         };
         await saveDatabase(`Update passwords for hospital: ${db.hospitals[id].name_ar || db.hospitals[id].hospitalName}`);
@@ -728,16 +729,22 @@
 
         const owner = String(newPasswords?.owner || '').trim();
         const admin = String(newPasswords?.admin || '').trim();
+        const anaesthesia = String(newPasswords?.anaesthesia || '').trim();
         const user = String(newPasswords?.user || '').trim();
 
         if (!owner || !admin || !user) {
-            throw new Error('الرجاء إدخال جميع كلمات المرور (المالك، المدير، المستخدم).');
+            throw new Error('الرجاء إدخال جميع كلمات المرور المطلوبة.');
         }
 
-        const pwdObj = { owner, admin, user };
+        const pwdObj = {
+            owner,
+            admin,
+            anaesthesia: anaesthesia || (hospitalScope === 'all' ? (db?.globalPasswords?.anaesthesia || 'Icu1996*') : (db?.hospitals?.[hospitalScope]?.passwords?.anaesthesia || 'Icu1996*')),
+            user
+        };
 
         if (hospitalScope === 'all') {
-            // Update global passwords (General User, General Admin for all hospitals, Owner)
+            // Update global passwords (General User, Anaesthesia, General Admin for all hospitals, Owner)
             db.globalPasswords = { ...pwdObj };
 
             // Ensure any hospital missing passwords gets initialized, but do NOT wipe out existing distinct hospital passwords
@@ -748,7 +755,7 @@
                     }
                 });
             }
-            await saveDatabase('تحديث كلمات المرور العامة للمنظومة (المستخدم العام، المدير العام، المالك)');
+            await saveDatabase('تحديث كلمات المرور العامة للمنظومة (المستخدم العام، مقيم التخدير، المدير العام، المالك)');
         } else if (db.hospitals && db.hospitals[hospitalScope]) {
             // Update passwords strictly for the selected hospital only
             db.hospitals[hospitalScope].passwords = { ...pwdObj };
@@ -1929,6 +1936,83 @@
     }
 
     // ============================================================
+    // ICU BEDS & OCCUPANCY MANAGEMENT (إحصائيات وموقف أسرة العناية المركزة)
+    // ============================================================
+    function getICUStats(hospitalId) {
+        if (!db || !db.hospitals) return null;
+        const targetId = hospitalId || getActiveHospitalId();
+        const hosp = getHospital(targetId);
+        if (!hosp) return null;
+
+        const defaultStats = {
+            totalBeds: 12,
+            functionalBeds: 10,
+            occupiedBeds: 6,
+            availableBeds: 4,
+            notes: '',
+            lastUpdated: hosp.lastUpdated || new Date().toISOString(),
+            updatedBy: 'مقيم التخدير'
+        };
+
+        const icu = hosp.icu || defaultStats;
+        const total = Math.max(0, parseInt(icu.totalBeds ?? defaultStats.totalBeds, 10));
+        const functional = Math.max(0, Math.min(total, parseInt(icu.functionalBeds ?? defaultStats.functionalBeds, 10)));
+        const occupied = Math.max(0, Math.min(functional, parseInt(icu.occupiedBeds ?? defaultStats.occupiedBeds, 10)));
+        const available = Math.max(0, functional - occupied);
+        const isFull = (available <= 0);
+        const occupancyRate = functional > 0 ? Math.round((occupied / functional) * 100) : 0;
+
+        return {
+            hospitalId: hosp.id,
+            hospitalName: hosp.name_ar || hosp.hospitalName,
+            hospitalIcon: hosp.icon || 'fa-hospital',
+            hospitalColor: hosp.color || '#0f766e',
+            location: hosp.location || '',
+            totalBeds: total,
+            functionalBeds: functional,
+            occupiedBeds: occupied,
+            availableBeds: available,
+            isFull: isFull,
+            occupancyRate: occupancyRate,
+            notes: icu.notes || '',
+            lastUpdated: icu.lastUpdated || hosp.lastUpdated || '',
+            updatedBy: icu.updatedBy || ''
+        };
+    }
+
+    function getAllHospitalsICUStats() {
+        const hospitals = getHospitals();
+        return hospitals.map(h => getICUStats(h.id)).filter(Boolean);
+    }
+
+    async function updateICUStats(hospitalId, stats) {
+        if (!auth.canEditICU(hospitalId)) {
+            throw new Error('غير مصرح لك بتعديل موقف العناية المركزة لهذا المستشفى. يتطلب صلاحية مقيم التخدير لهذا المستشفى أو المالك.');
+        }
+        const hosp = getHospital(hospitalId);
+        if (!hosp) throw new Error('المستشفى غير موجود.');
+
+        const total = Math.max(0, parseInt(stats.totalBeds ?? 0, 10));
+        const functional = Math.max(0, Math.min(total, parseInt(stats.functionalBeds ?? 0, 10)));
+        const occupied = Math.max(0, Math.min(functional, parseInt(stats.occupiedBeds ?? 0, 10)));
+        const available = Math.max(0, functional - occupied);
+
+        hosp.icu = {
+            totalBeds: total,
+            functionalBeds: functional,
+            occupiedBeds: occupied,
+            availableBeds: available,
+            notes: String(stats.notes || '').trim(),
+            lastUpdated: new Date().toISOString(),
+            updatedBy: String(stats.updatedBy || (auth.isOwner() ? 'المالك' : 'مقيم التخدير والعناية')).trim()
+        };
+
+        const hospTitle = hosp.name_ar || hosp.hospitalName;
+        await saveDatabase(`تحديث موقف أسرة العناية المركزة لمستشفى ${hospTitle}: ${available} أسرة شاغرة من أصل ${functional} سرير وظيفي`);
+        return hosp.icu;
+    }
+
+    // ============================================================
     // AUTHENTICATION & MULTI-PASSWORD ROLE TRICK
     // ============================================================
     const auth = {
@@ -1945,6 +2029,9 @@
             if (db?.globalPasswords?.admin && pwd === db.globalPasswords.admin) {
                 return { success: true, role: 'admin', adminHospitals: ['*'] };
             }
+            if (db?.globalPasswords?.anaesthesia && pwd === db.globalPasswords.anaesthesia) {
+                return { success: true, role: 'anaesthesia', adminHospitals: ['*'] };
+            }
             if (db?.globalPasswords?.user && pwd === db.globalPasswords.user) {
                 return { success: true, role: 'user', adminHospitals: [] };
             }
@@ -1952,6 +2039,7 @@
             // 2. Check across registered hospitals for matching passwords
             const matchingAdminHospitals = [];
             const matchingOwnerHospitals = [];
+            const matchingAnaesthesiaHospitals = [];
             let matchedUser = false;
 
             if (db?.hospitals) {
@@ -1961,6 +2049,9 @@
                     }
                     if (h.passwords?.admin && pwd === h.passwords.admin) {
                         matchingAdminHospitals.push(h.id);
+                    }
+                    if (h.passwords?.anaesthesia && pwd === h.passwords.anaesthesia) {
+                        matchingAnaesthesiaHospitals.push(h.id);
                     }
                     if (h.passwords?.user && pwd === h.passwords.user) {
                         matchedUser = true;
@@ -1976,6 +2067,10 @@
                 return { success: true, role: 'admin', adminHospitals: matchingAdminHospitals };
             }
 
+            if (matchingAnaesthesiaHospitals.length > 0) {
+                return { success: true, role: 'anaesthesia', adminHospitals: matchingAnaesthesiaHospitals };
+            }
+
             if (matchedUser) {
                 return { success: true, role: 'user', adminHospitals: [] };
             }
@@ -1984,6 +2079,7 @@
             const currentHosp = getActiveHospital();
             const ownerPass = currentHosp?.passwords?.owner || "MrjBth1996*";
             const adminPass = currentHosp?.passwords?.admin || "Admin1996*";
+            const anaesthesiaPass = currentHosp?.passwords?.anaesthesia || "Icu1996*";
             const userPass = currentHosp?.passwords?.user || "1234";
 
             if (pwd === ownerPass) {
@@ -1991,6 +2087,9 @@
             } else if (pwd === adminPass) {
                 const hId = currentHosp ? currentHosp.id : '*';
                 return { success: true, role: 'admin', adminHospitals: [hId] };
+            } else if (pwd === anaesthesiaPass) {
+                const hId = currentHosp ? currentHosp.id : '*';
+                return { success: true, role: 'anaesthesia', adminHospitals: [hId] };
             } else if (pwd === userPass) {
                 return { success: true, role: 'user', adminHospitals: [] };
             }
@@ -2013,7 +2112,7 @@
             let hospList = adminHospitals;
             if (hospList === null) {
                 if (role === 'owner') hospList = ['*'];
-                else if (role === 'admin') hospList = this.getAdminHospitalIds();
+                else if (role === 'admin' || role === 'anaesthesia') hospList = this.getAdminHospitalIds();
                 else hospList = [];
             }
             try {
@@ -2040,7 +2139,7 @@
                 this.logout();
                 return false;
             }
-            return ['user', 'admin', 'owner'].includes(role);
+            return ['user', 'anaesthesia', 'admin', 'owner'].includes(role);
         },
 
         getRole() {
@@ -2073,21 +2172,57 @@
         },
 
         isLoggedIn() {
-            return this.checkSession() && ['user', 'admin', 'owner'].includes(this.getRole());
+            return this.checkSession() && ['user', 'anaesthesia', 'admin', 'owner'].includes(this.getRole());
         },
 
         isUser() {
-            return ['user', 'admin', 'owner'].includes(this.getRole());
+            return ['user', 'anaesthesia', 'admin', 'owner'].includes(this.getRole());
         },
 
         isOwner() {
             return this.getRole() === 'owner';
         },
 
+        isAnaesthesia(targetHospitalId = null) {
+            const role = this.getRole();
+            if (role === 'owner') return true;
+            if (role !== 'anaesthesia') return false;
+
+            const adminHospList = this.getAdminHospitalIds();
+            if (adminHospList.includes('*')) return true;
+
+            if (!targetHospitalId) {
+                const activeId = getActiveHospitalId();
+                if (activeId && adminHospList.includes(activeId)) return true;
+                return adminHospList.length > 0;
+            }
+
+            return adminHospList.includes(targetHospitalId);
+        },
+
         isAdmin(targetHospitalId = null) {
             const role = this.getRole();
             if (role === 'owner') return true;
+            // anaesthesia resident is NOT an admin! Admin cannot edit ICU, anaesthesia cannot edit general hospital admin
             if (role !== 'admin') return false;
+
+            const adminHospList = this.getAdminHospitalIds();
+            if (adminHospList.includes('*')) return true;
+
+            if (!targetHospitalId) {
+                const activeId = getActiveHospitalId();
+                if (activeId && adminHospList.includes(activeId)) return true;
+                return adminHospList.length > 0;
+            }
+
+            return adminHospList.includes(targetHospitalId);
+        },
+
+        canEditICU(targetHospitalId = null) {
+            const role = this.getRole();
+            if (role === 'owner') return true;
+            // Admin CANNOT edit ICU! Only anaesthesia resident and owner can
+            if (role !== 'anaesthesia') return false;
 
             const adminHospList = this.getAdminHospitalIds();
             if (adminHospList.includes('*')) return true;
@@ -2119,6 +2254,7 @@
             const currentHosp = getActiveHospital();
             const ownerPass = currentHosp?.passwords?.owner || db?.globalPasswords?.owner || "MrjBth1996*";
             const adminPass = currentHosp?.passwords?.admin;
+            const anaesthesiaPass = currentHosp?.passwords?.anaesthesia;
 
             if (pwd === ownerPass) {
                 this.saveSession('owner', pwd, true, ['*']);
@@ -2136,16 +2272,35 @@
                 return { success: true, role: 'admin', adminHospitals: ['*'] };
             }
 
+            if (anaesthesiaPass && pwd === anaesthesiaPass) {
+                const hId = currentHosp ? currentHosp.id : '*';
+                this.saveSession('anaesthesia', pwd, true, [hId]);
+                return { success: true, role: 'anaesthesia', adminHospitals: [hId] };
+            }
+
+            if (db?.globalPasswords?.anaesthesia && pwd === db.globalPasswords.anaesthesia) {
+                this.saveSession('anaesthesia', pwd, true, ['*']);
+                return { success: true, role: 'anaesthesia', adminHospitals: ['*'] };
+            }
+
             if (db?.hospitals) {
-                const matching = [];
+                const matchingAdmin = [];
+                const matchingAnaesthesia = [];
                 for (const h of Object.values(db.hospitals)) {
                     if (h.passwords?.admin && pwd === h.passwords.admin) {
-                        matching.push(h.id);
+                        matchingAdmin.push(h.id);
+                    }
+                    if (h.passwords?.anaesthesia && pwd === h.passwords.anaesthesia) {
+                        matchingAnaesthesia.push(h.id);
                     }
                 }
-                if (matching.length > 0) {
-                    this.saveSession('admin', pwd, true, matching);
-                    return { success: true, role: 'admin', adminHospitals: matching };
+                if (matchingAdmin.length > 0) {
+                    this.saveSession('admin', pwd, true, matchingAdmin);
+                    return { success: true, role: 'admin', adminHospitals: matchingAdmin };
+                }
+                if (matchingAnaesthesia.length > 0) {
+                    this.saveSession('anaesthesia', pwd, true, matchingAnaesthesia);
+                    return { success: true, role: 'anaesthesia', adminHospitals: matchingAnaesthesia };
                 }
             }
 
@@ -2277,6 +2432,10 @@
         syncHospitalSpecialtiesWithGlobal,
         getActiveOnCallResidentsCount,
         getTotalActiveOnCallCount,
+        getICUStats,
+        getAllHospitalsICUStats,
+        updateICUStats,
+        canEditICU: (hospId) => auth.canEditICU(hospId),
         auth,
         getMedicalDate,
         getCurrentMedicalMinutes,

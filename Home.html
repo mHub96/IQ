@@ -913,6 +913,234 @@
             color: #dc2626;
         }
 
+        /* Symmetrical ICU Available Beds Counter Badge (Right Side) */
+        .roster-card .card-icu-status {
+            position: absolute;
+            top: 1.1rem;
+            right: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.28rem 0.65rem;
+            border: 1px solid;
+            border-right: none;
+            border-radius: 100px 0 0 100px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            line-height: 1;
+            box-shadow: -5px 5px 14px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            z-index: 10;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            user-select: none;
+        }
+        .roster-card .card-icu-status:hover {
+            transform: scale(1.05);
+        }
+        /* Green when beds available */
+        .roster-card .card-icu-status.status-icu-avail {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: #10b981;
+        }
+        body.light .roster-card .card-icu-status.status-icu-avail {
+            background: #ecfdf5;
+            border-color: #a7f3d0;
+            color: #065f46;
+        }
+        /* Red when beds are full */
+        .roster-card .card-icu-status.status-icu-full {
+            background: rgba(239, 68, 68, 0.14);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #ef4444;
+            animation: icuStatusAlertPulse 1.8s infinite ease-in-out;
+        }
+        body.light .roster-card .card-icu-status.status-icu-full {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #b91c1c;
+        }
+
+        @keyframes icuStatusAlertPulse {
+            0%, 100% { box-shadow: -5px 5px 14px rgba(239, 68, 68, 0.15); }
+            50% { box-shadow: -5px 5px 22px rgba(239, 68, 68, 0.45); transform: scale(1.04); }
+        }
+
+        /* Full ICU Alarm Bell */
+        .icu-alarm-indicator {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #ef4444;
+            margin-left: 2px;
+            animation: icuBellShake 1.4s infinite ease-in-out;
+        }
+        @keyframes icuBellShake {
+            0%, 100% { transform: rotate(0deg); }
+            15% { transform: rotate(16deg); }
+            30% { transform: rotate(-16deg); }
+            45% { transform: rotate(10deg); }
+            60% { transform: rotate(-10deg); }
+            75% { transform: rotate(0deg); }
+        }
+
+        /* 3D Horizontal Card Flip Mechanics */
+        .roster-card-wrapper {
+            perspective: 1000px;
+        }
+        .roster-card.icu-flip-card {
+            transform-style: preserve-3d;
+            transition: transform 0.65s cubic-bezier(0.4, 0.2, 0.2, 1);
+            position: relative;
+            overflow: visible !important;
+        }
+        .roster-card.icu-flip-card.flipped {
+            transform: rotateY(180deg) !important;
+        }
+        .roster-card.icu-flip-card .card-face {
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 1.5rem;
+        }
+        .roster-card.icu-flip-card .card-front {
+            transform: rotateY(0deg);
+        }
+        .roster-card.icu-flip-card .card-back {
+            position: absolute;
+            inset: 0;
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 1.15rem 1.25rem 1.1rem;
+            z-index: 5;
+            background: inherit;
+            border-radius: 1.5rem;
+            box-shadow: inherit;
+        }
+        body.light .roster-card.icu-flip-card .card-back {
+            background: rgba(255, 255, 255, 0.98);
+            border: 1.5px solid rgba(200, 210, 220, 0.6);
+        }
+        body.dark .roster-card.icu-flip-card .card-back {
+            background: rgba(14, 20, 32, 0.98);
+            border: 1px solid rgba(212, 175, 55, 0.18);
+        }
+
+        .icu-back-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.4rem;
+            width: 100%;
+            margin: 0.35rem 0;
+        }
+        .icu-back-stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 0.2rem;
+            border-radius: 0.85rem;
+            background: rgba(100, 116, 139, 0.07);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+        }
+        body.light .icu-back-stat-item {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+        }
+        body.dark .icu-back-stat-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.07);
+        }
+        .icu-back-stat-item.avail {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.35);
+        }
+        .icu-back-stat-item.avail .icu-back-stat-num {
+            color: #10b981;
+        }
+        .icu-back-stat-item.full {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.35);
+        }
+        .icu-back-stat-item.full .icu-back-stat-num {
+            color: #ef4444;
+        }
+        .icu-back-stat-num {
+            font-size: 1.25rem;
+            font-weight: 900;
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.1;
+        }
+        .icu-back-stat-label {
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: #64748b;
+            margin-top: 0.15rem;
+            white-space: nowrap;
+        }
+        body.dark .icu-back-stat-label {
+            color: #94a3b8;
+        }
+        .icu-back-close-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 0.95rem;
+            cursor: pointer;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+        .icu-back-close-btn:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .icu-back-hub-btn {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.55rem 0.8rem;
+            border-radius: 0.85rem;
+            font-size: 0.76rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            color: #ffffff;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
+            transition: all 0.2s ease;
+        }
+        .icu-back-hub-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(15, 118, 110, 0.35);
+        }
+        .icu-back-edit-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            padding: 0.55rem 0.8rem;
+            border-radius: 0.85rem;
+            font-size: 0.76rem;
+            font-weight: 800;
+            border: 1px solid rgba(13, 148, 136, 0.4);
+            background: rgba(13, 148, 136, 0.1);
+            color: #0d9488;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        body.dark .icu-back-edit-btn {
+            color: #2dd4bf;
+            border-color: rgba(45, 212, 191, 0.35);
+            background: rgba(45, 212, 191, 0.08);
+        }
+        .icu-back-edit-btn:hover {
+            background: rgba(13, 148, 136, 0.2);
+        }
+
         /* Modal Overlays & Leaderboard 3D Podium Chart */
         .modal-overlay {
             background: rgba(0, 0, 0, 0.6);
@@ -1860,9 +2088,10 @@
         }
 
         // ================================================================
-        // 3D CARD TILT PHYSICS
+        // 3D CARD TILT PHYSICS & ICU CARD 3D FLIP MECHANICS
         // ================================================================
         function handleCardTilt(e, card) {
+            if (card.classList.contains('flipped')) return;
             const rect = card.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
@@ -1874,8 +2103,54 @@
         }
 
         function resetCardTilt(card) {
+            if (card.classList.contains('flipped')) return;
             card.style.transform = '';
         }
+
+        function toggleIcuCardFlip(e, el) {
+            if (e) {
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            const card = el.closest('.roster-card');
+            if (!card) return;
+
+            const isFlipped = card.classList.contains('flipped');
+            // Close any other open flipped cards first
+            document.querySelectorAll('.roster-card.flipped').forEach(c => {
+                if (c !== card) c.classList.remove('flipped');
+            });
+
+            if (isFlipped) {
+                card.classList.remove('flipped');
+            } else {
+                card.style.transform = '';
+                card.classList.add('flipped');
+            }
+        }
+
+        window.toggleIcuCardFlip = toggleIcuCardFlip;
+
+        window.openQuickIcuEdit = function(hospitalId) {
+            window.location.href = `./icu.html?hospital=${encodeURIComponent(hospitalId)}&edit=true`;
+        };
+
+        // Click outside or press Escape to flip back
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.roster-card.icu-flip-card')) {
+                document.querySelectorAll('.roster-card.icu-flip-card.flipped').forEach(card => {
+                    card.classList.remove('flipped');
+                });
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.roster-card.icu-flip-card.flipped').forEach(card => {
+                    card.classList.remove('flipped');
+                });
+            }
+        });
 
         // ================================================================
         // SPECIALTY BUBBLE NATURAL MEASUREMENT & SMOOTH FLIP
@@ -2173,6 +2448,71 @@
                 const phoneClean = resident.phone.replace(/[^0-9]/g, '');
 
                 const isMultiSpec = Array.isArray(resident.specs) && resident.specs.length > 1;
+                const isIcuResident = Array.isArray(resident.specs) && resident.specs.some(s => s.code === 'ICU' || s.code === 'A');
+
+                let icuCounterHtml = '';
+                let icuBackFaceHtml = '';
+                let cardFlipClass = '';
+
+                if (isIcuResident && currentHospital) {
+                    cardFlipClass = 'icu-flip-card';
+                    const icuStats = (window.Hub && Hub.getICUStats) ? Hub.getICUStats(currentHospital.id) : (currentHospital.icu || { totalBeds: 12, functionalBeds: 10, occupiedBeds: 7, availableBeds: 3 });
+                    const availableBeds = icuStats ? (icuStats.availableBeds !== undefined ? icuStats.availableBeds : Math.max(0, (icuStats.functionalBeds || 0) - (icuStats.occupiedBeds || 0))) : 0;
+                    const isFull = (availableBeds <= 0);
+                    const canEditICU = window.Hub && Hub.canEditICU ? Hub.canEditICU(currentHospital.id) : false;
+
+                    icuCounterHtml = `
+                        <button type="button" class="card-icu-status ${isFull ? 'status-icu-full' : 'status-icu-avail'}"
+                                onclick="toggleIcuCardFlip(event, this)"
+                                title="اضغط لمعاينة تفاصيل موقف أسرة العناية المركزة">
+                            ${isFull ? `<span class="icu-alarm-indicator" title="العناية ممتلئة بالكامل!"><i class="fas fa-bell"></i></span>` : ''}
+                            <i class="fas fa-bed"></i>
+                            <span>${isFull ? 'ممتلئ' : `${availableBeds} شاغر`}</span>
+                        </button>
+                    `;
+
+                    icuBackFaceHtml = `
+                        <div class="card-face card-back" onclick="event.stopPropagation()">
+                            <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:0.35rem;">
+                                <div style="display:flex; align-items:center; gap:0.4rem;">
+                                    <span style="font-size:1rem; color:#0f766e;" class="dark:text-amber-400"><i class="fas fa-procedures"></i></span>
+                                    <span style="font-size:0.85rem; font-weight:800; color:#0f172a;" class="dark:text-white">موقف أسرة العناية المركزة</span>
+                                </div>
+                                <button type="button" class="icu-back-close-btn" onclick="toggleIcuCardFlip(event, this)" title="إغلاق والعودة للخفارات">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="icu-back-stats-grid">
+                                <div class="icu-back-stat-item">
+                                    <div class="icu-back-stat-num">${icuStats.totalBeds}</div>
+                                    <div class="icu-back-stat-label">الأسرة الفعلية</div>
+                                </div>
+                                <div class="icu-back-stat-item">
+                                    <div class="icu-back-stat-num">${icuStats.functionalBeds}</div>
+                                    <div class="icu-back-stat-label">الصالح منها</div>
+                                </div>
+                                <div class="icu-back-stat-item">
+                                    <div class="icu-back-stat-num">${icuStats.occupiedBeds}</div>
+                                    <div class="icu-back-stat-label">المشغولة</div>
+                                </div>
+                                <div class="icu-back-stat-item ${isFull ? 'full' : 'avail'}">
+                                    <div class="icu-back-stat-num">${availableBeds}</div>
+                                    <div class="icu-back-stat-label">${isFull ? 'ممتلئة' : 'الشاغرة المتاحة'}</div>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:0.45rem; width:100%; margin-top:0.45rem;">
+                                <a href="./icu.html?hospital=${encodeURIComponent(currentHospital.id)}" class="icu-back-hub-btn" onclick="event.stopPropagation()">
+                                    <i class="fas fa-chart-pie ml-1"></i> صفحة موقف العناية
+                                </a>
+                                ${canEditICU ? `
+                                <button type="button" onclick="event.stopPropagation(); openQuickIcuEdit('${currentHospital.id}')" class="icu-back-edit-btn" title="تعديل أعداد الأسرة">
+                                    <i class="fas fa-edit"></i> تعديل
+                                </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
 
                 const specialtyBubbles = resident.specs.map(spec => {
                     let rem = spec.endMin - currentMin;
@@ -2199,13 +2539,14 @@
 
                 return `
                     <div class="${wrapperClasses}">
-                        <div class="roster-card" data-end-min="${resident.endMin}"
+                        <div class="roster-card ${cardFlipClass}" data-end-min="${resident.endMin}"
                              onmousemove="handleCardTilt(event, this)"
                              onmouseleave="resetCardTilt(this)">
-                            <div class="card-body">
+                            <div class="card-face card-front card-body">
                                 <span class="card-status ${isTrending ? 'status-trending' : ''}">
                                     <i class="fas fa-eye"></i> ${resident.visitCount}
                                 </span>
+                                ${icuCounterHtml}
                                 <div class="specialty-bubbles">${specialtyBubbles}</div>
                                 <div class="resident-name">${resident.name}</div>
                                 <div class="resident-phone">${resident.phone}</div>
@@ -2223,6 +2564,7 @@
                                     </a>
                                 </div>
                             </div>
+                            ${icuBackFaceHtml}
                         </div>
                     </div>
                 `;

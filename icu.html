@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <title>موقف أسرة العناية المركزة (ICU) · كافة المستشفيات 🇮🇶</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@600;700;800;900&family=Cairo:wght@700;800;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="./nav-component.css" />
+    <script src="./hub-core.js"></script>
+    <script src="./pwa.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            direction: rtl;
+            text-align: right;
+            min-height: 100vh;
+            padding: 0;
+            transition: background 0.5s ease, color 0.4s ease;
+            overflow-x: hidden;
+        }
+        body.light {
+            background: #eef2f6;
+            color: #1a2332;
+        }
+        body.dark {
+            background: #0b0e12;
+            color: #e8edf5;
+        }
+
+        body.dark::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.06;
+            background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2314b8a6' fill-opacity='0.25'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-size: 120px 120px;
+        }
+
+        .glass-card {
+            border-radius: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        body.light .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+        }
+        body.dark .glass-card {
+            background: rgba(16, 22, 34, 0.88);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Hospital ICU Card Glow Effects */
+        .icu-hosp-card {
+            border-radius: 1.5rem;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .icu-hosp-card:hover {
+            transform: translateY(-4px);
+        }
+
+        /* GREEN GLOW for Available Beds */
+        .icu-hosp-card.glow-green {
+            border: 2px solid #10b981 !important;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.15), 0 0 25px rgba(16, 185, 129, 0.25) !important;
+        }
+        body.light .icu-hosp-card.glow-green {
+            background: #ffffff;
+            box-shadow: 0 12px 32px rgba(16, 185, 129, 0.12), 0 0 20px rgba(16, 185, 129, 0.18) !important;
+        }
+        body.dark .icu-hosp-card.glow-green {
+            background: rgba(14, 23, 33, 0.95);
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6), 0 0 28px rgba(16, 185, 129, 0.28) !important;
+        }
+
+        /* RED GLOW for Full Beds */
+        .icu-hosp-card.glow-red {
+            border: 2px solid #ef4444 !important;
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.18), 0 0 28px rgba(239, 68, 68, 0.3) !important;
+        }
+        body.light .icu-hosp-card.glow-red {
+            background: #ffffff;
+            box-shadow: 0 12px 32px rgba(239, 68, 68, 0.14), 0 0 22px rgba(239, 68, 68, 0.22) !important;
+        }
+        body.dark .icu-hosp-card.glow-red {
+            background: rgba(26, 16, 22, 0.95);
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(239, 68, 68, 0.32) !important;
+        }
+
+        /* Pulse alarm bell animation */
+        .alarm-shake {
+            display: inline-block;
+            animation: bellRing 1.3s infinite ease-in-out;
+        }
+        @keyframes bellRing {
+            0%, 100% { transform: rotate(0deg); }
+            15% { transform: rotate(15deg); }
+            30% { transform: rotate(-15deg); }
+            45% { transform: rotate(10deg); }
+            60% { transform: rotate(-10deg); }
+            75% { transform: rotate(0deg); }
+        }
+
+        /* Filter Tab Buttons */
+        .filter-tab {
+            padding: 0.55rem 1.15rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            user-select: none;
+        }
+        body.light .filter-tab {
+            background: #ffffff;
+            color: #475569;
+            border-color: #e2e8f0;
+        }
+        body.dark .filter-tab {
+            background: rgba(255, 255, 255, 0.05);
+            color: #94a3b8;
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        .filter-tab.active {
+            background: linear-gradient(135deg, #0f766e, #0d9488) !important;
+            color: #ffffff !important;
+            border-color: transparent !important;
+            box-shadow: 0 4px 14px rgba(15, 118, 110, 0.35);
+        }
+
+        /* Modal Overlays */
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(14px);
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            padding: 1.25rem;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-card {
+            max-width: 480px;
+            width: 100%;
+            border-radius: 1.5rem;
+            transform: translateY(12px) scale(0.97);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .modal-overlay.active .modal-card {
+            transform: translateY(0) scale(1);
+        }
+
+        /* Live dot pulse */
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 10px #10b981;
+            display: inline-block;
+            animation: liveDotPulse 1.8s infinite ease-in-out;
+        }
+        @keyframes liveDotPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="light">
+
+    <!-- Universal Top Navigation Container -->
+    <div id="universal-nav"></div>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
+
+        <!-- Hero Header -->
+        <div class="glass-card p-6 sm:p-8 mb-8 text-center relative overflow-hidden">
+            <div class="flex flex-col items-center justify-center gap-3">
+                <div class="w-16 h-16 rounded-2xl bg-teal-500/15 text-teal-600 dark:text-teal-400 flex items-center justify-center text-3xl shadow-inner mb-1">
+                    <i class="fas fa-procedures"></i>
+                </div>
+                <div>
+                    <div class="flex items-center justify-center gap-2 mb-1">
+                        <h1 class="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white">
+                            موقف أسرة العناية المركزة (ICU)
+                        </h1>
+                        <span class="live-dot" title="مباشر ومحدث"></span>
+                    </div>
+                    <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto font-medium">
+                        متابعة حية وفورية لإشغال وطاقة أسرة العناية المركزة في جميع المستشفيات التعليمية
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-center gap-4 text-xs font-bold text-slate-500 dark:text-slate-400 mt-2">
+                    <span><i class="fas fa-clock text-teal-600 dark:text-teal-400 ml-1"></i> التحديث المباشر: <span id="last-refresh-time" class="font-mono">الآن</span></span>
+                    <span>•</span>
+                    <span><i class="fas fa-user-shield text-teal-600 dark:text-teal-400 ml-1"></i> صلاحية التعديل: <span class="text-teal-600 dark:text-teal-400">مقيم التخدير & المالك</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Executive KPI Counters Bar -->
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8" id="kpi-container">
+            <!-- 1. Total System Beds -->
+            <div class="glass-card p-4 text-center">
+                <div class="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">إجمالي الأسرة الكلية</div>
+                <div class="text-2xl sm:text-3xl font-black font-mono text-slate-800 dark:text-white" id="kpi-total-beds">0</div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">طاقة المنظومة</div>
+            </div>
+
+            <!-- 2. Functional Beds -->
+            <div class="glass-card p-4 text-center">
+                <div class="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">الأسرة الصالحة للعمل</div>
+                <div class="text-2xl sm:text-3xl font-black font-mono text-cyan-700 dark:text-cyan-400" id="kpi-functional-beds">0</div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">جاهزة للاستخدام</div>
+            </div>
+
+            <!-- 3. Occupied Beds -->
+            <div class="glass-card p-4 text-center">
+                <div class="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">الأسرة المشغولة</div>
+                <div class="text-2xl sm:text-3xl font-black font-mono text-amber-600 dark:text-amber-400" id="kpi-occupied-beds">0</div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">حالات منومة</div>
+            </div>
+
+            <!-- 4. Available Beds -->
+            <div class="glass-card p-4 text-center border-2 border-emerald-500/30">
+                <div class="text-xs font-bold text-emerald-700 dark:text-emerald-400 mb-1">الشاغرة المتاحة</div>
+                <div class="text-2xl sm:text-3xl font-black font-mono text-emerald-600 dark:text-emerald-400" id="kpi-available-beds">0</div>
+                <div class="text-[11px] text-emerald-700 dark:text-emerald-300 font-bold mt-1">متاحة للاستقبال</div>
+            </div>
+
+            <!-- 5. System Occupancy Rate -->
+            <div class="glass-card p-4 text-center col-span-2 lg:col-span-1">
+                <div class="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">نسبة الإشغال الكلية</div>
+                <div class="text-2xl sm:text-3xl font-black font-mono text-teal-600 dark:text-teal-400" id="kpi-occupancy-rate">0%</div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">من الأسرة الصالحة</div>
+            </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="glass-card p-4 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <!-- Filter Tabs -->
+            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <button type="button" class="filter-tab active" data-filter="all" onclick="setIcuFilter('all', this)">
+                    <i class="fas fa-th-large"></i>
+                    <span>جميع المستشفيات (<span id="count-all">0</span>)</span>
+                </button>
+                <button type="button" class="filter-tab" data-filter="available" onclick="setIcuFilter('available', this)">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+                    <span>يتوفر أسرة شاغرة (<span id="count-avail">0</span>)</span>
+                </button>
+                <button type="button" class="filter-tab" data-filter="full" onclick="setIcuFilter('full', this)">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>
+                    <span>ممتلئة بالكامل (<span id="count-full">0</span>)</span>
+                </button>
+            </div>
+
+            <!-- Search Box -->
+            <div class="relative w-full sm:w-72">
+                <input type="text" id="icu-search-input" oninput="handleIcuSearch(this.value)" placeholder="ابحث عن مستشفى أو مدينة..."
+                       class="w-full py-2.5 pr-10 pl-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-white outline-none focus:border-teal-500 transition shadow-sm" />
+                <i class="fas fa-search absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            </div>
+        </div>
+
+        <!-- Hospital ICU Cards Grid -->
+        <div id="hospitals-icu-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Rendered dynamically by renderIcuDashboard() -->
+        </div>
+
+    </main>
+
+    <!-- EDIT ICU STATS MODAL -->
+    <div id="edit-icu-modal" class="modal-overlay" onclick="if(event.target===this) closeIcuModal()">
+        <div class="glass-card modal-card p-6 text-right relative">
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-700 mb-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-teal-500/15 text-teal-600 dark:text-teal-400 flex items-center justify-center text-lg">
+                        <i class="fas fa-procedures"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-slate-800 dark:text-white" id="modal-hosp-name">تعديل موقف العناية</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-bold" id="modal-hosp-location">تحديث طاقة وإشغال الأسرة</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeIcuModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Form -->
+            <form id="icu-edit-form" onsubmit="submitIcuEdit(event)" class="space-y-4">
+                <input type="hidden" id="edit-hospital-id" />
+
+                <!-- 1. Total Beds -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                        <i class="fas fa-bed text-teal-600 ml-1"></i> العدد الفعلي للأسرة (الأسرة الكلية)
+                    </label>
+                    <input type="number" id="input-total-beds" min="0" required oninput="recalcAvailableBeds()"
+                           class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-mono text-center font-bold text-base outline-none focus:border-teal-500 transition" />
+                </div>
+
+                <!-- 2. Functional Beds -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                        <i class="fas fa-check-circle text-cyan-600 ml-1"></i> عدد الأسرة الصالحة للعمل (الوظيفية)
+                    </label>
+                    <input type="number" id="input-functional-beds" min="0" required oninput="recalcAvailableBeds()"
+                           class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-mono text-center font-bold text-base outline-none focus:border-teal-500 transition" />
+                </div>
+
+                <!-- 3. Occupied Beds -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                        <i class="fas fa-user-injured text-amber-500 ml-1"></i> عدد الأسرة المشغولة حالياً
+                    </label>
+                    <input type="number" id="input-occupied-beds" min="0" required oninput="recalcAvailableBeds()"
+                           class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-mono text-center font-bold text-base outline-none focus:border-teal-500 transition" />
+                </div>
+
+                <!-- 4. Available Beds (Auto Calculated) -->
+                <div class="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                <i class="fas fa-calculator text-teal-600 ml-1"></i> الأسرة الصالحة الشاغرة (محسوبة تلقائياً)
+                            </span>
+                            <span class="text-[11px] text-slate-500 dark:text-slate-400">الصالح للعمل - المشغول</span>
+                        </div>
+                        <div class="text-2xl font-black font-mono" id="display-available-beds">0</div>
+                    </div>
+                </div>
+
+                <!-- 5. Doctor / Updater Name -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                        <i class="fas fa-user-md text-teal-600 ml-1"></i> القائم بالتحديث (اسم مقيم التخدير)
+                    </label>
+                    <input type="text" id="input-updated-by" placeholder="د. ..."
+                           class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm outline-none focus:border-teal-500 transition" />
+                </div>
+
+                <!-- 6. Notes -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                        <i class="fas fa-comment-medical text-teal-600 ml-1"></i> ملاحظات إضافية (أدوية التخدير، أجهزة التنفس...)
+                    </label>
+                    <textarea id="input-notes" rows="2" placeholder="ملاحظات حول جهوزية العناية..."
+                              class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm outline-none focus:border-teal-500 transition resize-none"></textarea>
+                </div>
+
+                <p id="modal-error-msg" class="text-xs text-rose-500 min-h-[16px] text-center font-bold"></p>
+
+                <!-- Actions -->
+                <div class="flex gap-2 pt-2">
+                    <button type="submit" id="modal-submit-btn"
+                            class="flex-1 py-2.5 px-4 rounded-xl font-bold text-white bg-teal-600 hover:bg-teal-700 transition shadow-md text-sm">
+                        <i class="fas fa-save ml-1"></i> حفظ وتحديث الموقف
+                    </button>
+                    <button type="button" onclick="closeIcuModal()"
+                            class="py-2.5 px-4 rounded-xl font-bold border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm">
+                        إلغاء
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script Application Logic -->
+    <script src="./nav-component.js"></script>
+    <script>
+        'use strict';
+
+        let activeFilter = 'all';
+        let searchQuery = '';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Apply saved theme immediately
+            if (window.Hub) {
+                const currentTheme = window.Hub.getTheme();
+                document.body.className = currentTheme;
+            }
+
+            // Initialize Universal Navigation with active page 'icu'
+            if (typeof window.initUniversalNav === 'function') {
+                window.initUniversalNav('icu');
+            }
+
+            // Load Hub database if needed
+            if (window.Hub && !window.Hub.getDatabase()) {
+                try {
+                    await window.Hub.loadDatabase();
+                } catch (e) {
+                    console.error("Database load error:", e);
+                }
+            }
+
+            renderIcuDashboard();
+
+            // Check if URL specifies a hospital to edit (e.g. ?hospital=iraqi&edit=true)
+            checkUrlEditTrigger();
+
+            // Reactive updates when database or hospital changes
+            window.addEventListener('hub:data-changed', () => renderIcuDashboard());
+            window.addEventListener('hub:auth-changed', () => renderIcuDashboard());
+            window.addEventListener('hub:theme-changed', (e) => {
+                document.body.className = e.detail.theme;
+            });
+        });
+
+        function checkUrlEditTrigger() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const hospId = urlParams.get('hospital');
+            const shouldEdit = urlParams.get('edit') === 'true';
+            if (hospId && shouldEdit) {
+                setTimeout(() => openIcuModal(hospId), 250);
+            }
+        }
+
+        function setIcuFilter(filter, btn) {
+            activeFilter = filter;
+            document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            renderIcuDashboard();
+        }
+
+        function handleIcuSearch(val) {
+            searchQuery = (val || '').trim().toLowerCase();
+            renderIcuDashboard();
+        }
+
+        function renderIcuDashboard() {
+            if (!window.Hub) return;
+            const grid = document.getElementById('hospitals-icu-grid');
+            if (!grid) return;
+
+            const allHospitals = window.Hub.getHospitals();
+            const icuStatsList = allHospitals.map(h => window.Hub.getICUStats(h.id)).filter(Boolean);
+
+            // 1. Calculate KPI totals across all hospitals
+            let totalBeds = 0;
+            let functionalBeds = 0;
+            let occupiedBeds = 0;
+            let availableBeds = 0;
+            let countAvail = 0;
+            let countFull = 0;
+
+            icuStatsList.forEach(stat => {
+                totalBeds += stat.totalBeds;
+                functionalBeds += stat.functionalBeds;
+                occupiedBeds += stat.occupiedBeds;
+                availableBeds += stat.availableBeds;
+                if (stat.availableBeds > 0) countAvail++;
+                else countFull++;
+            });
+
+            const overallOccupancy = functionalBeds > 0 ? Math.round((occupiedBeds / functionalBeds) * 100) : 0;
+
+            // Update KPI DOM
+            const kpiTotal = document.getElementById('kpi-total-beds');
+            const kpiFunc = document.getElementById('kpi-functional-beds');
+            const kpiOcc = document.getElementById('kpi-occupied-beds');
+            const kpiAvail = document.getElementById('kpi-available-beds');
+            const kpiRate = document.getElementById('kpi-occupancy-rate');
+            const countAllEl = document.getElementById('count-all');
+            const countAvailEl = document.getElementById('count-avail');
+            const countFullEl = document.getElementById('count-full');
+            const refreshTimeEl = document.getElementById('last-refresh-time');
+
+            if (kpiTotal) kpiTotal.textContent = totalBeds;
+            if (kpiFunc) kpiFunc.textContent = functionalBeds;
+            if (kpiOcc) kpiOcc.textContent = occupiedBeds;
+            if (kpiAvail) kpiAvail.textContent = availableBeds;
+            if (kpiRate) kpiRate.textContent = `${overallOccupancy}%`;
+            if (countAllEl) countAllEl.textContent = icuStatsList.length;
+            if (countAvailEl) countAvailEl.textContent = countAvail;
+            if (countFullEl) countFullEl.textContent = countFull;
+            if (refreshTimeEl) {
+                const d = new Date();
+                refreshTimeEl.textContent = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+            }
+
+            // 2. Filter list
+            const filtered = icuStatsList.filter(stat => {
+                if (activeFilter === 'available' && stat.availableBeds <= 0) return false;
+                if (activeFilter === 'full' && stat.availableBeds > 0) return false;
+                if (searchQuery) {
+                    const matchName = (stat.hospitalName || '').toLowerCase().includes(searchQuery);
+                    const matchLoc = (stat.location || '').toLowerCase().includes(searchQuery);
+                    const matchNotes = (stat.notes || '').toLowerCase().includes(searchQuery);
+                    if (!matchName && !matchLoc && !matchNotes) return false;
+                }
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-16 glass-card text-slate-500 dark:text-slate-400">
+                        <i class="fas fa-search text-3xl mb-3 opacity-40"></i>
+                        <p class="font-bold text-base">لا توجد مستشفيات مطابقة للفلتر المحدد</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // 3. Render Cards
+            grid.innerHTML = filtered.map(stat => {
+                const isFull = (stat.availableBeds <= 0);
+                const glowClass = isFull ? 'glow-red' : 'glow-green';
+                const canEdit = window.Hub.canEditICU(stat.hospitalId);
+
+                // Progress color
+                let progressColor = '#10b981'; // green
+                if (stat.occupancyRate >= 95) progressColor = '#ef4444'; // red
+                else if (stat.occupancyRate >= 75) progressColor = '#f59e0b'; // amber
+
+                // Format timestamp
+                let formattedDate = 'غير محدد';
+                if (stat.lastUpdated) {
+                    try {
+                        const d = new Date(stat.lastUpdated);
+                        formattedDate = d.toLocaleDateString('ar-IQ', {
+                            day: 'numeric',
+                            month: 'numeric',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    } catch(e) {
+                        formattedDate = stat.lastUpdated;
+                    }
+                }
+
+                return `
+                    <div class="icu-hosp-card ${glowClass} p-6">
+                        <div>
+                            <!-- Header -->
+                            <div class="flex items-start justify-between gap-3 mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-md flex-shrink-0"
+                                         style="background:${stat.hospitalColor || '#0f766e'}; color:#ffffff;">
+                                        <i class="fas ${stat.hospitalIcon || 'fa-hospital'}"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="text-base sm:text-lg font-black text-slate-800 dark:text-white leading-tight">
+                                            ${stat.hospitalName}
+                                        </h2>
+                                        <p class="text-xs font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+                                            <i class="fas fa-map-marker-alt text-teal-600 ml-1"></i> ${stat.location || 'العراق'}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Status Badge -->
+                                ${isFull ? `
+                                <div class="px-3 py-1 rounded-full text-xs font-black bg-rose-100 text-rose-700 dark:bg-rose-950/70 dark:text-rose-400 border border-rose-300 dark:border-rose-800 flex items-center gap-1.5 shadow-sm">
+                                    <i class="fas fa-bell alarm-shake"></i>
+                                    <span>ممتلئ بالكامل</span>
+                                </div>
+                                ` : `
+                                <div class="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1.5 shadow-sm">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>${stat.availableBeds} سرير شاغر</span>
+                                </div>
+                                `}
+                            </div>
+
+                            <!-- Occupancy Bar -->
+                            <div class="mb-4">
+                                <div class="flex justify-between text-xs font-bold mb-1">
+                                    <span class="text-slate-500 dark:text-slate-400">نسبة الإشغال:</span>
+                                    <span class="font-mono font-black" style="color:${progressColor};">${stat.occupancyRate}%</span>
+                                </div>
+                                <div class="w-full h-2.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                                    <div class="h-full rounded-full transition-all duration-500"
+                                         style="width: ${Math.min(100, stat.occupancyRate)}%; background: ${progressColor};"></div>
+                                </div>
+                            </div>
+
+                            <!-- 4 Key Numbers Grid -->
+                            <div class="grid grid-cols-4 gap-2 mb-4 text-center">
+                                <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
+                                    <div class="text-xs font-bold text-slate-500 dark:text-slate-400">الكلية</div>
+                                    <div class="text-lg font-mono font-black text-slate-800 dark:text-white mt-0.5">${stat.totalBeds}</div>
+                                </div>
+                                <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
+                                    <div class="text-xs font-bold text-slate-500 dark:text-slate-400">الصالح</div>
+                                    <div class="text-lg font-mono font-black text-cyan-600 dark:text-cyan-400 mt-0.5">${stat.functionalBeds}</div>
+                                </div>
+                                <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
+                                    <div class="text-xs font-bold text-slate-500 dark:text-slate-400">المشغول</div>
+                                    <div class="text-lg font-mono font-black text-amber-600 dark:text-amber-400 mt-0.5">${stat.occupiedBeds}</div>
+                                </div>
+                                <div class="p-2.5 rounded-xl border ${isFull ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-600 dark:text-rose-400' : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400'}">
+                                    <div class="text-xs font-black">الشاغرة</div>
+                                    <div class="text-lg font-mono font-black mt-0.5">${stat.availableBeds}</div>
+                                </div>
+                            </div>
+
+                            <!-- Notes / Updater Info -->
+                            ${stat.notes ? `
+                            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/40 mb-3 text-xs text-slate-600 dark:text-slate-300">
+                                <i class="fas fa-info-circle text-teal-600 ml-1"></i> ${stat.notes}
+                            </div>
+                            ` : ''}
+
+                            <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-bold mb-4">
+                                <span><i class="fas fa-history ml-1"></i> ${formattedDate}</span>
+                                <span><i class="fas fa-user-md ml-1"></i> ${stat.updatedBy || 'مقيم التخدير'}</span>
+                            </div>
+                        </div>
+
+                        <!-- Card Bottom Actions -->
+                        <div class="flex gap-2 pt-3 border-t border-slate-200/80 dark:border-slate-700/80">
+                            <a href="./Home.html?hospital=${encodeURIComponent(stat.hospitalId)}"
+                               class="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs text-center transition flex items-center justify-center gap-1.5 shadow-sm">
+                                <i class="fas fa-clipboard-list text-teal-600"></i>
+                                <span>جدول الخفارات</span>
+                            </a>
+
+                            ${canEdit ? `
+                            <button type="button" onclick="openIcuModal('${stat.hospitalId}')"
+                                    class="py-2 px-4 rounded-xl font-bold text-xs text-white bg-teal-600 hover:bg-teal-700 transition shadow-sm flex items-center justify-center gap-1.5">
+                                <i class="fas fa-edit"></i>
+                                <span>تعديل الموقف</span>
+                            </button>
+                            ` : `
+                            <button type="button" disabled title="يتطلب صلاحية مقيم التخدير لهذا المستشفى أو المالك"
+                                    class="py-2 px-3 rounded-xl font-bold text-xs bg-slate-200/60 dark:bg-slate-800/50 text-slate-400 cursor-not-allowed flex items-center justify-center gap-1">
+                                <i class="fas fa-lock"></i>
+                                <span>تعديل محمي</span>
+                            </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Modal Operations
+        function openIcuModal(hospitalId) {
+            if (!window.Hub) return;
+            const hosp = window.Hub.getHospital(hospitalId);
+            if (!hosp) return;
+
+            if (!window.Hub.canEditICU(hospitalId)) {
+                alert('غير مصرح لك بتعديل موقف العناية لهذا المستشفى. يتطلب صلاحية مقيم التخدير الخاص بالمستشفى أو المالك.');
+                return;
+            }
+
+            const stat = window.Hub.getICUStats(hospitalId);
+            document.getElementById('edit-hospital-id').value = hospitalId;
+            document.getElementById('modal-hosp-name').textContent = `تعديل موقف العناية - ${stat.hospitalName}`;
+            document.getElementById('modal-hosp-location').textContent = stat.location || 'العراق';
+
+            document.getElementById('input-total-beds').value = stat.totalBeds;
+            document.getElementById('input-functional-beds').value = stat.functionalBeds;
+            document.getElementById('input-occupied-beds').value = stat.occupiedBeds;
+            document.getElementById('input-updated-by').value = stat.updatedBy || '';
+            document.getElementById('input-notes').value = stat.notes || '';
+            document.getElementById('modal-error-msg').textContent = '';
+
+            recalcAvailableBeds();
+
+            const modal = document.getElementById('edit-icu-modal');
+            if (modal) modal.classList.add('active');
+        }
+        window.openIcuModal = openIcuModal;
+
+        function closeIcuModal() {
+            const modal = document.getElementById('edit-icu-modal');
+            if (modal) modal.classList.remove('active');
+        }
+        window.closeIcuModal = closeIcuModal;
+
+        function recalcAvailableBeds() {
+            const total = parseInt(document.getElementById('input-total-beds')?.value || 0, 10);
+            const functional = parseInt(document.getElementById('input-functional-beds')?.value || 0, 10);
+            const occupied = parseInt(document.getElementById('input-occupied-beds')?.value || 0, 10);
+            const displayEl = document.getElementById('display-available-beds');
+            const errEl = document.getElementById('modal-error-msg');
+
+            let err = '';
+            if (functional > total) {
+                err = 'تنبيه: عدد الأسرة الصالحة لا يمكن أن يتجاوز الأسرة الكلية';
+            } else if (occupied > functional) {
+                err = 'تنبيه: عدد الأسرة المشغولة لا يمكن أن يتجاوز الأسرة الصالحة للعمل';
+            }
+            if (errEl) errEl.textContent = err;
+
+            const avail = Math.max(0, functional - occupied);
+            if (displayEl) {
+                displayEl.textContent = avail;
+                if (avail > 0) {
+                    displayEl.className = 'text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400';
+                } else {
+                    displayEl.className = 'text-2xl font-black font-mono text-rose-600 dark:text-rose-400';
+                }
+            }
+        }
+        window.recalcAvailableBeds = recalcAvailableBeds;
+
+        async function submitIcuEdit(e) {
+            e.preventDefault();
+            if (!window.Hub) return;
+
+            const hospitalId = document.getElementById('edit-hospital-id')?.value;
+            const total = parseInt(document.getElementById('input-total-beds')?.value || 0, 10);
+            const functional = parseInt(document.getElementById('input-functional-beds')?.value || 0, 10);
+            const occupied = parseInt(document.getElementById('input-occupied-beds')?.value || 0, 10);
+            const updatedBy = (document.getElementById('input-updated-by')?.value || '').trim();
+            const notes = (document.getElementById('input-notes')?.value || '').trim();
+            const btn = document.getElementById('modal-submit-btn');
+            const errEl = document.getElementById('modal-error-msg');
+
+            if (functional > total) {
+                if (errEl) errEl.textContent = 'خطأ: عدد الأسرة الصالحة لا يمكن أن يتجاوز العدد الكلي';
+                return;
+            }
+            if (occupied > functional) {
+                if (errEl) errEl.textContent = 'خطأ: عدد الأسرة المشغولة لا يمكن أن يتجاوز الأسرة الصالحة';
+                return;
+            }
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-1"></i> جاري الحفظ...';
+            }
+
+            try {
+                await window.Hub.updateICUStats(hospitalId, {
+                    totalBeds: total,
+                    functionalBeds: functional,
+                    occupiedBeds: occupied,
+                    updatedBy: updatedBy,
+                    notes: notes
+                });
+
+                closeIcuModal();
+                renderIcuDashboard();
+
+                if (typeof showToast === 'function') {
+                    showToast('تم تحديث موقف العناية المركزة بنجاح 🏥', 'success');
+                } else {
+                    alert('تم تحديث موقف العناية المركزة بنجاح 🏥');
+                }
+            } catch (err) {
+                console.error("Save ICU stats error:", err);
+                if (errEl) errEl.textContent = err.message || 'حدث خطأ أثناء حفظ البيانات';
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-save ml-1"></i> حفظ وتحديث الموقف';
+                }
+            }
+        }
+        window.submitIcuEdit = submitIcuEdit;
+    </script>
+</body>
+</html>

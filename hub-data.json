@@ -1,10 +1,11 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-19T14:50:27.466Z",
+  "lastUpdated": "2026-09-18T21:09:58.162Z",
   "globalPasswords": {
-    "owner": "Mrj!",
+    "owner": "MrjBth1996*",
     "admin": "Admin1996*",
-    "user": "1234"
+    "user": "1234",
+    "anaesthesia": "Icu1996*"
   },
   "activeHospitalId": "iraqi",
   "hospitals": {
@@ -17,8 +18,9 @@
       "color": "#0f766e",
       "passwords": {
         "owner": "MrjBth1996*",
-        "admin": "Iraqi*",
-        "user": "1234"
+        "admin": "IraqiAdmin1996*",
+        "user": "1234",
+        "anaesthesia": "Icu1996*"
       },
       "specialties": [
         {
@@ -515,7 +517,7 @@
           "tag": "NS",
           "dept": "NS",
           "department": "NS",
-          "active": false,
+          "active": true,
           "hospitals": [
             "iraqi"
           ]
@@ -768,6 +770,20 @@
           "hospitals": [
             "basra",
             "iraqi"
+          ]
+        },
+        {
+          "id": "res-0109",
+          "name": "د. اياد يعرب",
+          "phone": "+9647736024102",
+          "spec": "NS",
+          "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
+          "active": false,
+          "hospitals": [
+            "iraqi",
+            "mawani"
           ]
         },
         {
@@ -1642,6 +1658,19 @@
           ]
         },
         {
+          "id": "res-0156",
+          "name": "د. عبدالرحمن صفاء",
+          "phone": "+9647841917643",
+          "spec": "NS",
+          "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
+          "active": false,
+          "hospitals": [
+            "iraqi"
+          ]
+        },
+        {
           "id": "res-0183",
           "name": "د. عبدالرحمن صفاء صالح",
           "phone": "+9647841917643",
@@ -1649,7 +1678,7 @@
           "tag": "NS",
           "dept": "NS",
           "department": "NS",
-          "active": false,
+          "active": true,
           "hospitals": [
             "iraqi"
           ]
@@ -1827,6 +1856,19 @@
           ]
         },
         {
+          "id": "res-0157",
+          "name": "د. علي عارف",
+          "phone": "+9647700342391",
+          "spec": "NS",
+          "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
+          "active": false,
+          "hospitals": [
+            "iraqi"
+          ]
+        },
+        {
           "id": "res-0111",
           "name": "د. علي عبد ماضي",
           "phone": "+9647719007077",
@@ -1873,7 +1915,7 @@
           "tag": "NS",
           "dept": "NS",
           "department": "NS",
-          "active": false,
+          "active": true,
           "hospitals": [
             "iraqi"
           ]
@@ -2126,7 +2168,7 @@
           "tag": "NS",
           "dept": "NS",
           "department": "NS",
-          "active": false,
+          "active": true,
           "hospitals": [
             "iraqi"
           ]
@@ -2198,6 +2240,19 @@
           ]
         },
         {
+          "id": "res-0115",
+          "name": "د. محمد راضي خضر",
+          "phone": "+9647739407174",
+          "spec": "NS",
+          "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
+          "active": false,
+          "hospitals": [
+            "iraqi"
+          ]
+        },
+        {
           "id": "res-0160",
           "name": "د. محمد رياض جعفر",
           "phone": "+9647805195075",
@@ -2218,7 +2273,7 @@
           "tag": "NS",
           "dept": "NS",
           "department": "NS",
-          "active": true,
+          "active": false,
           "hospitals": [
             "iraqi"
           ]
@@ -20433,7 +20488,16 @@
           "dutyTime": "",
           "dutySlot": 0
         }
-      ]
+      ],
+      "icu": {
+        "totalBeds": 14,
+        "functionalBeds": 12,
+        "occupiedBeds": 9,
+        "availableBeds": 3,
+        "notes": "حالة الاستقرار جيدة وتتوفر أدوية التخدير والمستهلكات بالكامل",
+        "lastUpdated": "2026-09-19T23:38:31.483Z",
+        "updatedBy": "د. علي - مقيم التخدير"
+      }
     },
     "basra": {
       "id": "basra",
@@ -20444,8 +20508,9 @@
       "color": "#1e40af",
       "passwords": {
         "owner": "MrjBth1996*",
-        "admin": "Basra!",
-        "user": "1234"
+        "admin": "BasraAdmin1996*",
+        "user": "1234",
+        "anaesthesia": "Icu1996*"
       },
       "specialties": [
         {
@@ -28585,11 +28650,10 @@
         {
           "date": "19/09/2026",
           "specCode": "GS",
-          "name": "د. علي حسين عبدالرضا",
+          "name": "د. تحسين علي حلو",
           "VisitCount": 0,
           "dutySlot": 0,
-          "dutyTime": "",
-          "timestamp": "15:27"
+          "dutyTime": ""
         },
         {
           "date": "20/09/2026",
@@ -32279,7 +32343,16 @@
         }
       ],
       "rotationHeroesUrl": "",
-      "specialistSchedule": []
+      "specialistSchedule": [],
+      "icu": {
+        "totalBeds": 16,
+        "functionalBeds": 14,
+        "occupiedBeds": 14,
+        "availableBeds": 0,
+        "notes": "العناية المركزة ممتلئة بالكامل حالياً - لا توجد أسرة شاغرة",
+        "lastUpdated": "2026-09-19T23:38:31.489Z",
+        "updatedBy": "د. حسين - مقيم التخدير"
+      }
     },
     "mawani": {
       "id": "mawani",
@@ -32290,8 +32363,9 @@
       "color": "#b45309",
       "passwords": {
         "owner": "MrjBth1996*",
-        "admin": "Mawani$",
-        "user": "1234"
+        "admin": "MawaniAdmin1996*",
+        "user": "1234",
+        "anaesthesia": "Icu1996*"
       },
       "specialties": [
         {
@@ -32723,6 +32797,7 @@
           "department": "NS",
           "active": false,
           "hospitals": [
+            "iraqi",
             "mawani"
           ]
         },
@@ -33148,19 +33223,6 @@
           ]
         },
         {
-          "id": "res-0156",
-          "name": "د. عبدالرحمن صفاء",
-          "phone": "+9647841917643",
-          "spec": "NS",
-          "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
-          "active": false,
-          "hospitals": [
-            "mawani"
-          ]
-        },
-        {
           "id": "res-0408",
           "name": "د. عبدالهادي باقر",
           "phone": "+9647716858560",
@@ -33182,19 +33244,6 @@
           "dept": "NS",
           "department": "NS",
           "active": true,
-          "hospitals": [
-            "mawani"
-          ]
-        },
-        {
-          "id": "res-0157",
-          "name": "د. علي عارف",
-          "phone": "+9647700342391",
-          "spec": "NS",
-          "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
-          "active": false,
           "hospitals": [
             "mawani"
           ]
@@ -33394,19 +33443,6 @@
           "dept": "O",
           "department": "O",
           "active": true,
-          "hospitals": [
-            "mawani"
-          ]
-        },
-        {
-          "id": "res-0115",
-          "name": "د. محمد راضي خضر",
-          "phone": "+9647739407174",
-          "spec": "NS",
-          "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
-          "active": false,
           "hospitals": [
             "mawani"
           ]
@@ -37473,7 +37509,16 @@
         }
       ],
       "rotationHeroesUrl": "",
-      "specialistSchedule": []
+      "specialistSchedule": [],
+      "icu": {
+        "totalBeds": 10,
+        "functionalBeds": 8,
+        "occupiedBeds": 5,
+        "availableBeds": 3,
+        "notes": "3 أسرة جاهزة ومجهزة بأجهزة التنفس الاصطناعي لاستقبال المرضى",
+        "lastUpdated": "2026-09-19T23:38:31.489Z",
+        "updatedBy": "د. كرار - مقيم التخدير"
+      }
     }
   },
   "residents": [
@@ -37762,7 +37807,7 @@
       "tag": "NS",
       "dept": "NS",
       "department": "NS",
-      "active": false,
+      "active": true,
       "hospitals": [
         "iraqi"
       ]
@@ -38313,6 +38358,7 @@
       "department": "NS",
       "active": false,
       "hospitals": [
+        "iraqi",
         "mawani"
       ]
     },
@@ -40758,7 +40804,7 @@
       "department": "NS",
       "active": false,
       "hospitals": [
-        "mawani"
+        "iraqi"
       ]
     },
     {
@@ -40769,7 +40815,7 @@
       "tag": "NS",
       "dept": "NS",
       "department": "NS",
-      "active": false,
+      "active": true,
       "hospitals": [
         "iraqi"
       ]
@@ -41125,7 +41171,7 @@
       "department": "NS",
       "active": false,
       "hospitals": [
-        "mawani"
+        "iraqi"
       ]
     },
     {
@@ -41358,7 +41404,7 @@
       "tag": "NS",
       "dept": "NS",
       "department": "NS",
-      "active": false,
+      "active": true,
       "hospitals": [
         "iraqi"
       ]
@@ -41910,7 +41956,7 @@
       "tag": "NS",
       "dept": "NS",
       "department": "NS",
-      "active": false,
+      "active": true,
       "hospitals": [
         "iraqi"
       ]
@@ -42109,7 +42155,7 @@
       "department": "NS",
       "active": false,
       "hospitals": [
-        "mawani"
+        "iraqi"
       ]
     },
     {
@@ -42185,7 +42231,7 @@
       "tag": "NS",
       "dept": "NS",
       "department": "NS",
-      "active": true,
+      "active": false,
       "hospitals": [
         "iraqi"
       ]

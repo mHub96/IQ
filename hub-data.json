@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-20T02:18:01.815Z",
+  "lastUpdated": "2026-09-20T12:52:28.491Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -23912,7 +23912,7 @@
           "tag": "Pe",
           "dept": "Pe",
           "department": "Pe",
-          "active": true,
+          "active": false,
           "hospitals": [
             "basra"
           ]
@@ -43422,7 +43422,7 @@
       "tag": "Pe",
       "dept": "Pe",
       "department": "Pe",
-      "active": true,
+      "active": false,
       "hospitals": [
         "basra"
       ]

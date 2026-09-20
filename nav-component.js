@@ -447,6 +447,18 @@
                             </div>
                         </div>
 
+                        <!-- Anaesthesia Resident Password -->
+                        <div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                <label id="hub-pwd-anaesthesia-label" style="font-size:0.78rem; font-weight:700; color:#0f766e;">كلمة مرور مقيم التخدير (العناية)</label>
+                                <span id="hub-pwd-anaesthesia-hint" style="font-size:0.68rem; color:#64748b;">(تعديل موقف أسرة العناية المركزة)</span>
+                            </div>
+                            <div style="position:relative;">
+                                <input type="text" id="hub-pwd-anaesthesia" placeholder="Icu1996*" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #cbd5e1; font-family:monospace; font-size:0.95rem; text-align:center; color:#1e293b; background:#ffffff;" />
+                                <i class="fas fa-syringe" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#0f766e; font-size:0.85rem;"></i>
+                            </div>
+                        </div>
+
                         <!-- Admin Password -->
                         <div>
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">

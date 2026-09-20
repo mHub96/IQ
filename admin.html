@@ -1046,17 +1046,21 @@
                         <i class="fas fa-crown text-amber-500 text-base"></i>
                         <span><strong>صلاحيات المالك:</strong> يمكنك تعديل كلمات المرور لجميع المستخدمين والمديرين ونفسك.</span>
                     </div>
-                    <div class="grid grid-cols-3 gap-2">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 mb-1">كلمة مرور المستخدم</label>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">المستخدم العادي</label>
                             <input type="text" id="hosp-setting-user-pwd" class="input-field text-center font-mono" />
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 mb-1">كلمة مرور المدير</label>
+                            <label class="block text-xs font-bold text-teal-600 dark:text-teal-400 mb-1">مقيم التخدير (العناية)</label>
+                            <input type="text" id="hosp-setting-anaesthesia-pwd" class="input-field text-center font-mono" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">المدير / المشرف</label>
                             <input type="text" id="hosp-setting-admin-pwd" class="input-field text-center font-mono" />
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 mb-1">كلمة مرور المالك</label>
+                            <label class="block text-xs font-bold text-amber-600 dark:text-amber-400 mb-1">المالك</label>
                             <input type="text" id="hosp-setting-owner-pwd" class="input-field text-center font-mono" />
                         </div>
                     </div>
@@ -2562,10 +2566,12 @@
                 if (passLocked) passLocked.style.display = 'none';
 
                 const uInput = document.getElementById('hosp-setting-user-pwd');
+                const icuInput = document.getElementById('hosp-setting-anaesthesia-pwd');
                 const aInput = document.getElementById('hosp-setting-admin-pwd');
                 const oInput = document.getElementById('hosp-setting-owner-pwd');
 
                 if (uInput) uInput.value = currentHospital.passwords?.user || '1234';
+                if (icuInput) icuInput.value = currentHospital.passwords?.anaesthesia || 'Icu1996*';
                 if (aInput) aInput.value = currentHospital.passwords?.admin || 'Admin1996*';
                 if (oInput) oInput.value = currentHospital.passwords?.owner || 'MrjBth1996*';
             } else {
@@ -2590,9 +2596,10 @@
                 return;
             }
 
-            let uPwd = '', aPwd = '', oPwd = '';
+            let uPwd = '', icuPwd = '', aPwd = '', oPwd = '';
             if (Hub.auth.canEditPasswords()) {
                 uPwd = document.getElementById('hosp-setting-user-pwd').value.trim();
+                icuPwd = (document.getElementById('hosp-setting-anaesthesia-pwd')?.value || '').trim();
                 aPwd = document.getElementById('hosp-setting-admin-pwd').value.trim();
                 oPwd = document.getElementById('hosp-setting-owner-pwd').value.trim();
 
@@ -2622,6 +2629,7 @@
                     await Hub.updateHospitalPasswords(currentHospital.id, {
                         owner: oPwd,
                         admin: aPwd,
+                        anaesthesia: icuPwd || currentHospital.passwords?.anaesthesia || 'Icu1996*',
                         user: uPwd
                     });
                 } else {

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-20T01:42:46.982Z",
+  "lastUpdated": "2026-09-20T01:56:04.890Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -37519,6 +37519,33 @@
         "lastUpdated": "2026-09-19T23:38:31.489Z",
         "updatedBy": "د. كرار - مقيم التخدير"
       }
+    },
+    "sayyab": {
+      "id": "sayyab",
+      "hospitalName": "Al-Sayyab Teaching Hospital",
+      "name_ar": "مستشفى السياب التعليمي",
+      "location": "Basra · Iraq",
+      "icon": "fa-hospital",
+      "color": "#0f766e",
+      "rotationHeroesUrl": "",
+      "passwords": {
+        "owner": "Mrj!",
+        "admin": "Admin1996*",
+        "anaesthesia": "ICU",
+        "user": "1234"
+      },
+      "icu": {
+        "totalBeds": 12,
+        "functionalBeds": 10,
+        "occupiedBeds": 6,
+        "availableBeds": 4,
+        "notes": "",
+        "lastUpdated": "2026-09-20T01:56:04.890Z",
+        "updatedBy": "مقيم التخدير"
+      },
+      "specialties": [],
+      "names": [],
+      "schedule": []
     }
   },
   "residents": [

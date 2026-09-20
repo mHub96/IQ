@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-20T00:34:48.382Z",
+  "lastUpdated": "2026-09-20T00:35:06.428Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20507,10 +20507,10 @@
       "icon": "fa-hospital-user",
       "color": "#1e40af",
       "passwords": {
-        "owner": "MrjBth1996*",
-        "admin": "BasraAdmin1996*",
-        "user": "1234",
-        "anaesthesia": "BasraIcu1996*"
+        "owner": "Mrj!",
+        "admin": "Basra!",
+        "anaesthesia": "ICU!",
+        "user": "1234"
       },
       "specialties": [
         {

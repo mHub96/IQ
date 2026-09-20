@@ -1016,14 +1016,23 @@ html.dark .switcher-role-card .role-desc {
     color: #cbd5e1 !important;
 }
 
+.switcher-role-card.role-card-owner.is-active-role {
+    border-color: #d97706 !important;
+    box-shadow: 0 0 0 2px #d97706, 0 4px 14px rgba(217, 119, 6, 0.25) !important;
+}
 .switcher-role-card.role-card-admin.is-active-role {
     border-color: #0f766e !important;
     box-shadow: 0 0 0 2px #0f766e, 0 4px 14px rgba(15, 118, 110, 0.25) !important;
+}
+.switcher-role-card.role-card-anaesthesia.is-active-role {
+    border-color: #0d9488 !important;
+    box-shadow: 0 0 0 2px #0d9488, 0 4px 14px rgba(13, 148, 136, 0.25) !important;
 }
 .switcher-role-card.role-card-user.is-active-role {
     border-color: #3b82f6 !important;
     box-shadow: 0 0 0 2px #3b82f6, 0 4px 14px rgba(59, 130, 246, 0.25) !important;
 }
+
 
 .hub-role-input {
     width: 100% !important;

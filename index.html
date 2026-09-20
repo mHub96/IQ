@@ -252,6 +252,17 @@
             border-color: #0284c7;
             background: rgba(14, 165, 233, 0.04);
         }
+        .switcher-role-card.role-card-owner {
+            border-color: rgba(217, 119, 6, 0.25);
+        }
+        .switcher-role-card.role-card-owner:hover {
+            border-color: #d97706;
+            background: rgba(217, 119, 6, 0.05);
+        }
+        .switcher-role-card.role-card-owner.is-active-role {
+            border-color: #d97706 !important;
+            background: rgba(217, 119, 6, 0.08) !important;
+        }
 
         .live-icu-pill {
             padding: 6px 14px;
@@ -1562,6 +1573,38 @@
 
             <!-- Role Selection Options -->
             <div class="space-y-3" id="switcher-role-cards" style="display:flex; flex-direction:column; gap:10px;">
+                <!-- 0. Owner Level Card -->
+                <div class="switcher-role-card role-card-owner" id="card-role-owner" onclick="selectRoleLevel('owner')">
+                    <div class="flex items-start justify-between gap-2" style="display:flex; align-items:flex-start; justify-content:space-between;">
+                        <div class="flex items-center gap-3" style="display:flex; align-items:center; gap:10px;">
+                            <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center text-lg flex-shrink-0" style="width:38px; height:38px; border-radius:12px; background:rgba(217,119,6,0.15); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
+                                👑
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2" style="display:flex; align-items:center; gap:6px;">
+                                    <h4 class="role-title">مالك المنظومة (Owner)</h4>
+                                    <span id="tag-active-owner" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 font-bold" style="font-size:0.68rem; padding:2px 8px; border-radius:999px; background:rgba(217,119,6,0.15); color:#d97706; font-weight:800;">نشط حالياً ✓</span>
+                                </div>
+                                <p class="role-desc">صلاحيات كاملة على كافة المستشفيات والجداول والموقف وإدارة كلمات المرور</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Password input for owner if needed -->
+                    <div id="owner-pwd-box" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 hidden" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(226,232,240,0.8);" onclick="event.stopPropagation()">
+                        <div class="relative mb-2" style="position:relative; margin-bottom:8px;">
+                            <input type="password" id="owner-level-pwd" class="hub-role-input" placeholder="أدخل كلمة مرور المالك..." onkeydown="if(event.key==='Enter') confirmUpgradeToRole('owner')" />
+                            <button type="button" onclick="toggleInputPwd('owner-level-pwd', 'owner-eye-icon')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#94a3b8;">
+                                <i class="fas fa-eye" id="owner-eye-icon"></i>
+                            </button>
+                        </div>
+                        <div class="flex gap-2" style="display:flex; gap:8px;">
+                            <button type="button" onclick="confirmUpgradeToRole('owner')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 transition shadow-sm" style="flex:1; padding:8px 12px; border-radius:10px; border:none; background:#d97706; color:white; font-weight:700; cursor:pointer; font-size:0.78rem;">تأكيد الدخول كمالك</button>
+                            <button type="button" onclick="cancelRoleInput('owner')" class="py-1.5 px-3 rounded-lg text-xs font-bold border border-slate-300 dark:border-slate-700 text-slate-500" style="padding:8px 12px; border-radius:10px; border:1px solid #cbd5e1; background:transparent; color:#64748b; font-weight:600; cursor:pointer; font-size:0.78rem;">إلغاء</button>
+                        </div>
+                        <p id="owner-pwd-error" class="text-[11px] text-rose-500 mt-1 min-h-[16px]" style="color:#ef4444; font-size:0.72rem; margin:4px 0 0; min-height:16px;"></p>
+                    </div>
+                </div>
+
                 <!-- 1. Admin Level Card -->
                 <div class="switcher-role-card role-card-admin" id="card-role-admin" onclick="selectRoleLevel('admin')">
                     <div class="flex items-start justify-between gap-2" style="display:flex; align-items:flex-start; justify-content:space-between;">
@@ -1698,19 +1741,7 @@
                 updateThemeToggleIcon(theme);
 
                 // Initialize auth & session
-                const isRemembered = localStorage.getItem('hospital_hub_session_remember') === 'true';
-                const timestamp = parseInt(localStorage.getItem('hospital_hub_session_timestamp') || '0', 10);
-                const role = Hub.auth.getRole();
-
-                let isExpired = false;
-                if (timestamp) {
-                    const expiry = isRemembered ? (7 * 24 * 60 * 60 * 1000) : (24 * 60 * 60 * 1000);
-                    if (Date.now() - timestamp > expiry) {
-                        isExpired = true;
-                    }
-                }
-
-                if (!Hub.auth.checkSession() || isExpired || role === 'guest') {
+                if (!Hub.auth.checkSession()) {
                     Hub.auth.logout();
                     document.getElementById('lock-screen').classList.remove('hidden');
                 } else {
@@ -1752,13 +1783,15 @@
                 return;
             }
 
-            const success = Hub.auth.login(pwd, remember);
-            if (success) {
+            const res = Hub.auth.login(pwd, remember);
+            if (res && res.success) {
                 errorEl.textContent = '';
                 if (Hub.auth.isOwner()) {
                     sessionStorage.setItem('hub_cached_owner_pwd', pwd);
                 } else if (Hub.auth.isAdmin()) {
                     sessionStorage.setItem('hub_cached_admin_pwd', pwd);
+                } else if (Hub.auth.getRole() === 'anaesthesia') {
+                    sessionStorage.setItem('hub_cached_anaesthesia_pwd', pwd);
                 }
 
                 document.getElementById('lock-screen').classList.add('hidden');
@@ -1769,12 +1802,15 @@
                     showToast('مرحباً بك! تم تسجيل الدخول كمالك للمنظومة 👑', 'success');
                 } else if (Hub.auth.isAdmin()) {
                     const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
-                    showToast(`تم تسجيل الدخول كمدير لـ (${hName}) 🛡️`, 'success');
+                    showToast(`تم تسجيل الدخول كمدير لـ (${hName || 'المستشفى'}) 🛡️`, 'success');
+                } else if (Hub.auth.getRole() === 'anaesthesia') {
+                    const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
+                    showToast(`تم تسجيل الدخول كمقيم تخدير لـ (${hName || 'العناية'}) 💉`, 'success');
                 } else {
-                    showToast('تم تسجيل الدخول بنجاح 👨‍⚕️', 'success');
+                    showToast('تم تسجيل الدخول بنجاح كمستخدم عادي 👨‍⚕️', 'success');
                 }
             } else {
-                errorEl.textContent = 'كلمة المرور غير صحيحة، حاول مجدداً';
+                errorEl.textContent = res?.error || 'كلمة المرور غير صحيحة، حاول مجدداً';
                 document.getElementById('password-input').value = '';
                 document.getElementById('password-input').focus();
             }
@@ -1830,11 +1866,12 @@
                 hospBadgeEl.textContent = ((isAdmin || role === 'anaesthesia') && !isOwner && Hub.auth.getAdminHospitalName) ? Hub.auth.getAdminHospitalName() : '';
             }
 
-            // 2. Active cards & tags (Owner removed from selection)
-            ['admin', 'anaesthesia', 'user'].forEach(r => {
+            // 2. Active cards & tags
+            ['owner', 'admin', 'anaesthesia', 'user'].forEach(r => {
                 const tag = document.getElementById(`tag-active-${r}`);
                 const card = document.getElementById(`card-role-${r}`);
-                const isActive = (r === 'admin' && isAdmin && !isOwner) ||
+                const isActive = (r === 'owner' && isOwner) ||
+                                 (r === 'admin' && isAdmin && !isOwner) ||
                                  (r === 'anaesthesia' && role === 'anaesthesia' && !isOwner) ||
                                  (r === 'user' && !isAdmin && role !== 'anaesthesia' && !isOwner);
                 if (tag) {
@@ -1846,6 +1883,7 @@
             });
 
             // 3. Reset password boxes
+            cancelRoleInput('owner');
             cancelRoleInput('admin');
             cancelRoleInput('anaesthesia');
 
@@ -1884,7 +1922,7 @@
 
             // Determine current and target rank: owner = 4, admin = 3, anaesthesia = 2, user = 1
             const currentRank = isOwner ? 4 : (isAdmin ? 3 : (role === 'anaesthesia' ? 2 : 1));
-            const targetRank = targetRole === 'admin' ? 3 : (targetRole === 'anaesthesia' ? 2 : 1);
+            const targetRank = targetRole === 'owner' ? 4 : (targetRole === 'admin' ? 3 : (targetRole === 'anaesthesia' ? 2 : 1));
 
             // 1. Same level check
             if (targetRank === currentRank) {
@@ -1925,9 +1963,10 @@
             }
 
             // 3. ASCENDING PRIVILEGE: PASSWORD IS A STRICT MUST!
-            if (targetRole === 'admin' || targetRole === 'anaesthesia') {
-                const otherRole = targetRole === 'admin' ? 'anaesthesia' : 'admin';
-                cancelRoleInput(otherRole);
+            if (targetRole === 'owner' || targetRole === 'admin' || targetRole === 'anaesthesia') {
+                ['owner', 'admin', 'anaesthesia'].forEach(r => {
+                    if (r !== targetRole) cancelRoleInput(r);
+                });
 
                 const targetBox = document.getElementById(`${targetRole}-pwd-box`);
                 if (targetBox) targetBox.classList.remove('hidden');
@@ -1952,10 +1991,19 @@
                 return;
             }
 
-            // Verify credentials without prematurely mutating current session
-            const res = Hub.auth.verifyPassword ? Hub.auth.verifyPassword(pwd) : Hub.auth.login(pwd);
+            // Verify credentials with role hint
+            const res = Hub.auth.verifyPassword(pwd, targetRole);
             if (!res.success) {
                 if (err) err.textContent = 'كلمة المرور غير صحيحة، حاول مجدداً';
+                if (input) {
+                    input.value = '';
+                    input.focus();
+                }
+                return;
+            }
+
+            if (targetRole === 'owner' && res.role !== 'owner') {
+                if (err) err.textContent = 'كلمة المرور غير صحيحة لصلاحية المالك';
                 if (input) {
                     input.value = '';
                     input.focus();
@@ -1981,16 +2029,26 @@
                 return;
             }
 
-            const grantRole = (res.role === 'owner' ? targetRole : res.role);
-            const grantHospitals = (res.role === 'owner' ? ['*'] : (res.adminHospitals || []));
+            let grantRole = targetRole;
+            let grantHospitals = res.adminHospitals || ['*'];
+            if (res.role === 'owner') {
+                grantRole = targetRole === 'owner' ? 'owner' : targetRole;
+                grantHospitals = ['*'];
+            }
+
             Hub.auth.saveSession(grantRole, pwd, true, grantHospitals);
 
             if (err) err.textContent = '';
             updateTopRoleBadge();
             renderHubDashboard();
             closeRoleSwitcherModal();
-            const roleTitle = targetRole === 'admin' ? 'مدير مستشفى 🛡️' : 'مقيم تخدير (العناية) 💉';
-            showToast(`تم التبديل بنجاح إلى: ${roleTitle}`, 'success');
+            const titles = {
+                owner: 'مالك المنظومة 👑',
+                admin: 'مدير مستشفى 🛡️',
+                anaesthesia: 'مقيم تخدير (العناية) 💉',
+                user: 'مستخدم عادي 👨‍⚕️'
+            };
+            showToast(`تم التبديل بنجاح إلى: ${titles[grantRole] || grantRole}`, 'success');
         }
 
         // Global aliases

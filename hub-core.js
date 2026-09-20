@@ -324,6 +324,7 @@
         globalPasswords: {
             owner: "MrjBth1996*",
             admin: "Admin1996*",
+            anaesthesia: "Icu1996*",
             user: "1234"
         },
         activeHospitalId: "iraqi",
@@ -331,6 +332,16 @@
         residents: [],
         hospitals: {}
     };
+
+    // Synchronously initialize in-memory db from local cache for instant zero-latency auth & rendering
+    try {
+        const initialCachedStr = localStorage.getItem(CACHE_KEY);
+        if (initialCachedStr) {
+            db = sanitizeAndMigrateDatabase(JSON.parse(initialCachedStr));
+        }
+    } catch (e) {
+        console.warn("Initial local cache parse warning:", e);
+    }
 
     // Helper: Medical Date Format (Starts at 8:00 AM)
     function getMedicalDate() {
@@ -2026,23 +2037,38 @@
     // AUTHENTICATION & MULTI-PASSWORD ROLE TRICK
     // ============================================================
     const auth = {
-        verifyPassword(password) {
+        verifyPassword(password, roleHint = null) {
             const pwd = String(password || '').trim();
             if (!pwd) {
                 return { success: false, error: 'الرجاء إدخال كلمة المرور' };
             }
 
+            // Ensure db is loaded from cache if in-memory db is not yet populated
+            if (!db) {
+                try {
+                    const cachedStr = localStorage.getItem(CACHE_KEY);
+                    if (cachedStr) {
+                        db = sanitizeAndMigrateDatabase(JSON.parse(cachedStr));
+                    }
+                } catch(e) {}
+            }
+
             // 1. Check global passwords first
-            if (db?.globalPasswords?.owner && pwd === db.globalPasswords.owner) {
+            const globalOwner = db?.globalPasswords?.owner || "MrjBth1996*";
+            const globalAdmin = db?.globalPasswords?.admin || "Admin1996*";
+            const globalAnaesthesia = db?.globalPasswords?.anaesthesia || "Icu1996*";
+            const globalUser = db?.globalPasswords?.user || "1234";
+
+            if (pwd === globalOwner) {
                 return { success: true, role: 'owner', adminHospitals: ['*'] };
             }
-            if (db?.globalPasswords?.admin && pwd === db.globalPasswords.admin) {
+            if (pwd === globalAdmin) {
                 return { success: true, role: 'admin', adminHospitals: ['*'] };
             }
-            if (db?.globalPasswords?.anaesthesia && pwd === db.globalPasswords.anaesthesia) {
+            if (pwd === globalAnaesthesia) {
                 return { success: true, role: 'anaesthesia', adminHospitals: ['*'] };
             }
-            if (db?.globalPasswords?.user && pwd === db.globalPasswords.user) {
+            if (pwd === globalUser) {
                 return { success: true, role: 'user', adminHospitals: [] };
             }
 
@@ -2052,20 +2078,24 @@
             const matchingAnaesthesiaHospitals = [];
             let matchedUser = false;
 
-            if (db?.hospitals) {
-                for (const h of Object.values(db.hospitals)) {
-                    if (h.passwords?.owner && pwd === h.passwords.owner) {
-                        matchingOwnerHospitals.push(h.id);
-                    }
-                    if (h.passwords?.admin && pwd === h.passwords.admin) {
-                        matchingAdminHospitals.push(h.id);
-                    }
-                    if (h.passwords?.anaesthesia && pwd === h.passwords.anaesthesia) {
-                        matchingAnaesthesiaHospitals.push(h.id);
-                    }
-                    if (h.passwords?.user && pwd === h.passwords.user) {
-                        matchedUser = true;
-                    }
+            const hospitalsPool = db?.hospitals ? Object.values(db.hospitals) : [
+                { id: 'iraqi', passwords: { owner: "MrjBth1996*", admin: "IraqiAdmin1996*", anaesthesia: "Icu1996*", user: "1234" } },
+                { id: 'basra', passwords: { owner: "MrjBth1996*", admin: "BasraAdmin1996*", anaesthesia: "Icu1996*", user: "1234" } },
+                { id: 'mawani', passwords: { owner: "MrjBth1996*", admin: "MawaniAdmin1996*", anaesthesia: "Icu1996*", user: "1234" } }
+            ];
+
+            for (const h of hospitalsPool) {
+                if (h.passwords?.owner && pwd === h.passwords.owner) {
+                    matchingOwnerHospitals.push(h.id);
+                }
+                if (h.passwords?.admin && pwd === h.passwords.admin) {
+                    matchingAdminHospitals.push(h.id);
+                }
+                if (h.passwords?.anaesthesia && pwd === h.passwords.anaesthesia) {
+                    matchingAnaesthesiaHospitals.push(h.id);
+                }
+                if (h.passwords?.user && pwd === h.passwords.user) {
+                    matchedUser = true;
                 }
             }
 
@@ -2087,10 +2117,10 @@
 
             // 3. Fallback: Check active hospital passwords
             const currentHosp = getActiveHospital();
-            const ownerPass = currentHosp?.passwords?.owner || "MrjBth1996*";
-            const adminPass = currentHosp?.passwords?.admin || "Admin1996*";
-            const anaesthesiaPass = currentHosp?.passwords?.anaesthesia || "Icu1996*";
-            const userPass = currentHosp?.passwords?.user || "1234";
+            const ownerPass = currentHosp?.passwords?.owner || globalOwner;
+            const adminPass = currentHosp?.passwords?.admin || globalAdmin;
+            const anaesthesiaPass = currentHosp?.passwords?.anaesthesia || globalAnaesthesia;
+            const userPass = currentHosp?.passwords?.user || globalUser;
 
             if (pwd === ownerPass) {
                 return { success: true, role: 'owner', adminHospitals: ['*'] };
@@ -2107,31 +2137,51 @@
             return { success: false, error: 'كلمة المرور غير صحيحة' };
         },
 
-        login(password, remember = true) {
-            const res = this.verifyPassword(password);
+        login(arg1, arg2, arg3) {
+            let roleHint = null;
+            let pwd = '';
+            let remember = true;
+
+            if (typeof arg1 === 'string' && ['owner', 'admin', 'anaesthesia', 'user'].includes(arg1.toLowerCase()) && typeof arg2 === 'string') {
+                roleHint = arg1.toLowerCase();
+                pwd = arg2.trim();
+                if (typeof arg3 === 'boolean') remember = arg3;
+            } else {
+                pwd = String(arg1 || '').trim();
+                if (typeof arg2 === 'boolean') remember = arg2;
+                else if (typeof arg3 === 'boolean') remember = arg3;
+            }
+
+            const res = this.verifyPassword(pwd, roleHint);
             if (res.success) {
-                this.saveSession(res.role, password, remember, res.adminHospitals);
+                const effectiveRole = (roleHint && res.role === 'owner') ? roleHint : res.role;
+                const effectiveHospitals = (res.role === 'owner') ? ['*'] : (res.adminHospitals || []);
+                this.saveSession(effectiveRole, pwd, remember, effectiveHospitals);
             }
             return res;
         },
 
-        saveSession(role, password, remember = true, adminHospitals = null) {
+        saveSession(role, password = '', remember = true, adminHospitals = null) {
             localStorage.setItem(SESSION_ROLE_KEY, role);
             localStorage.setItem(SESSION_TIMESTAMP_KEY, Date.now().toString());
 
             let hospList = adminHospitals;
-            if (hospList === null) {
+            if (hospList === null || hospList === undefined) {
                 if (role === 'owner') hospList = ['*'];
-                else if (role === 'admin' || role === 'anaesthesia') hospList = this.getAdminHospitalIds();
-                else hospList = [];
+                else if (role === 'admin' || role === 'anaesthesia') {
+                    const currentStored = this.getAdminHospitalIds();
+                    hospList = currentStored.length > 0 ? currentStored : ['*'];
+                } else hospList = [];
             }
             try {
                 localStorage.setItem(SESSION_ADMIN_HOSPITALS_KEY, JSON.stringify(hospList || []));
             } catch(e) {}
 
-            if (remember && (password || role === 'user')) {
-                localStorage.setItem(SESSION_TOKEN_KEY, btoa(password || 'user_session'));
+            if (remember) {
                 localStorage.setItem(SESSION_REMEMBER_KEY, 'true');
+                try {
+                    localStorage.setItem(SESSION_TOKEN_KEY, btoa(password || (role + '_session')));
+                } catch(e) {}
             } else {
                 localStorage.removeItem(SESSION_TOKEN_KEY);
                 localStorage.removeItem(SESSION_REMEMBER_KEY);
@@ -2142,10 +2192,12 @@
         checkSession() {
             const role = localStorage.getItem(SESSION_ROLE_KEY);
             const ts = Number(localStorage.getItem(SESSION_TIMESTAMP_KEY));
-            if (!role || !ts) return false;
+            if (!role || !ts || isNaN(ts)) return false;
 
-            // 7-day expiration
-            if (Date.now() - ts > 7 * 24 * 60 * 60 * 1000) {
+            const isRemembered = localStorage.getItem(SESSION_REMEMBER_KEY) === 'true';
+            const maxAge = isRemembered ? (7 * 24 * 60 * 60 * 1000) : (24 * 60 * 60 * 1000);
+
+            if (Date.now() - ts > maxAge) {
                 this.logout();
                 return false;
             }

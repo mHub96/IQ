@@ -1,11 +1,11 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-18T21:09:58.162Z",
+  "lastUpdated": "2026-09-20T00:34:00.867Z",
   "globalPasswords": {
-    "owner": "MrjBth1996*",
+    "owner": "Mrj!",
     "admin": "Admin1996*",
-    "user": "1234",
-    "anaesthesia": "Icu1996*"
+    "anaesthesia": "Icu1996*",
+    "user": "1234"
   },
   "activeHospitalId": "iraqi",
   "hospitals": {

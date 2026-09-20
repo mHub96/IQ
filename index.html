@@ -1944,11 +1944,15 @@
                 }
                 if (targetRole === 'anaesthesia') {
                     // Owner or Admin descending to Anaesthesia Resident (no password needed)
-                    Hub.auth.saveSession('anaesthesia', '', true, targetHosp.length > 0 ? targetHosp : ['*']);
+                    const activeHosp = Hub.getActiveHospitalId ? Hub.getActiveHospitalId() : 'iraqi';
+                    const targetHosp = Hub.auth.getAdminHospitalIds ? Hub.auth.getAdminHospitalIds() : [];
+                    const chosenHosp = (targetHosp.length > 0 && !targetHosp.includes('*')) ? targetHosp : [activeHosp];
+                    Hub.auth.saveSession('anaesthesia', '', true, chosenHosp);
                     updateTopRoleBadge();
                     renderHubDashboard();
                     closeRoleSwitcherModal();
-                    showToast('تم التبديل بنجاح إلى: مقيم تخدير (العناية) 💉', 'success');
+                    const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
+                    showToast(`تم التبديل بنجاح إلى: مقيم تخدير (${hName || 'العناية'}) 💉`, 'success');
                     return;
                 }
                 if (targetRole === 'user') {
@@ -2029,11 +2033,18 @@
                 return;
             }
 
+            const currentActive = Hub.getActiveHospitalId ? Hub.getActiveHospitalId() : 'iraqi';
             let grantRole = targetRole;
-            let grantHospitals = res.adminHospitals || ['*'];
+            let grantHospitals = [];
             if (res.role === 'owner') {
                 grantRole = targetRole === 'owner' ? 'owner' : targetRole;
-                grantHospitals = ['*'];
+                grantHospitals = (grantRole === 'owner') ? ['*'] : [currentActive];
+            } else if (grantRole === 'anaesthesia') {
+                grantHospitals = (res.adminHospitals && res.adminHospitals.length > 0 && !res.adminHospitals.includes('*'))
+                    ? res.adminHospitals
+                    : [currentActive];
+            } else {
+                grantHospitals = res.adminHospitals || [];
             }
 
             Hub.auth.saveSession(grantRole, pwd, true, grantHospitals);
@@ -2042,10 +2053,11 @@
             updateTopRoleBadge();
             renderHubDashboard();
             closeRoleSwitcherModal();
+            const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
             const titles = {
                 owner: 'مالك المنظومة 👑',
-                admin: 'مدير مستشفى 🛡️',
-                anaesthesia: 'مقيم تخدير (العناية) 💉',
+                admin: `مدير مستشفى (${hName || 'المستشفى'}) 🛡️`,
+                anaesthesia: `مقيم تخدير (${hName || 'العناية'}) 💉`,
                 user: 'مستخدم عادي 👨‍⚕️'
             };
             showToast(`تم التبديل بنجاح إلى: ${titles[grantRole] || grantRole}`, 'success');

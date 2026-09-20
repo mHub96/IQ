@@ -1589,6 +1589,40 @@
         return list.find(r => r.id === idOrName || r.name === idOrName) || null;
     }
 
+    function getAnaesthesiaResidents(hospitalId = null) {
+        const targetHosp = hospitalId || getActiveHospitalId() || 'iraqi';
+        const uniqueNames = new Set();
+
+        const allResidents = getResidents(targetHosp);
+        allResidents.forEach(r => {
+            const spec = r.spec || '';
+            const dept = r.dept || r.department || '';
+            const isAnaesth = ['A', 'ICU', 'OP', 'GA'].includes(spec) ||
+                              ['A', 'ICU', 'OP', 'GA'].includes(dept) ||
+                              spec.includes('تخدير') ||
+                              dept.includes('تخدير');
+            if (isAnaesth && r.name && r.name.trim()) {
+                uniqueNames.add(r.name.trim());
+            }
+        });
+
+        if (db?.hospitals?.[targetHosp]?.names) {
+            db.hospitals[targetHosp].names.forEach(n => {
+                const spec = n.spec || '';
+                const dept = n.dept || n.department || '';
+                const isAnaesth = ['A', 'ICU', 'OP', 'GA'].includes(spec) ||
+                                  ['A', 'ICU', 'OP', 'GA'].includes(dept) ||
+                                  spec.includes('تخدير') ||
+                                  dept.includes('تخدير');
+                if (isAnaesth && n.name && n.name.trim()) {
+                    uniqueNames.add(n.name.trim());
+                }
+            });
+        }
+
+        return Array.from(uniqueNames).sort((a, b) => a.localeCompare(b, 'ar'));
+    }
+
     function syncSharedResidentsFromHospitals() {
         if (!db || !db.hospitals) return [];
         const map = new Map();
@@ -2066,7 +2100,8 @@
                 return { success: true, role: 'admin', adminHospitals: ['*'] };
             }
             if (pwd === globalAnaesthesia) {
-                return { success: true, role: 'anaesthesia', adminHospitals: ['*'] };
+                const activeHId = getActiveHospitalId() || 'iraqi';
+                return { success: true, role: 'anaesthesia', adminHospitals: [activeHId] };
             }
             if (pwd === globalUser) {
                 return { success: true, role: 'user', adminHospitals: [] };
@@ -2079,9 +2114,9 @@
             let matchedUser = false;
 
             const hospitalsPool = db?.hospitals ? Object.values(db.hospitals) : [
-                { id: 'iraqi', passwords: { owner: "MrjBth1996*", admin: "IraqiAdmin1996*", anaesthesia: "Icu1996*", user: "1234" } },
-                { id: 'basra', passwords: { owner: "MrjBth1996*", admin: "BasraAdmin1996*", anaesthesia: "Icu1996*", user: "1234" } },
-                { id: 'mawani', passwords: { owner: "MrjBth1996*", admin: "MawaniAdmin1996*", anaesthesia: "Icu1996*", user: "1234" } }
+                { id: 'iraqi', passwords: { owner: "MrjBth1996*", admin: "IraqiAdmin1996*", anaesthesia: "IraqiIcu1996*", user: "1234" } },
+                { id: 'basra', passwords: { owner: "MrjBth1996*", admin: "BasraAdmin1996*", anaesthesia: "BasraIcu1996*", user: "1234" } },
+                { id: 'mawani', passwords: { owner: "MrjBth1996*", admin: "MawaniAdmin1996*", anaesthesia: "MawaniIcu1996*", user: "1234" } }
             ];
 
             for (const h of hospitalsPool) {
@@ -2128,7 +2163,7 @@
                 const hId = currentHosp ? currentHosp.id : '*';
                 return { success: true, role: 'admin', adminHospitals: [hId] };
             } else if (pwd === anaesthesiaPass) {
-                const hId = currentHosp ? currentHosp.id : '*';
+                const hId = currentHosp ? currentHosp.id : (getActiveHospitalId() || 'iraqi');
                 return { success: true, role: 'anaesthesia', adminHospitals: [hId] };
             } else if (pwd === userPass) {
                 return { success: true, role: 'user', adminHospitals: [] };
@@ -2283,19 +2318,14 @@
         canEditICU(targetHospitalId = null) {
             const role = this.getRole();
             if (role === 'owner') return true;
-            // Admin CANNOT edit ICU! Only anaesthesia resident and owner can
+            // Admin and regular users CANNOT edit ICU! Only the anaesthesia resident of the respective hospital can edit
             if (role !== 'anaesthesia') return false;
 
+            const target = targetHospitalId || getActiveHospitalId();
+            if (!target) return false;
+
             const adminHospList = this.getAdminHospitalIds();
-            if (adminHospList.includes('*')) return true;
-
-            if (!targetHospitalId) {
-                const activeId = getActiveHospitalId();
-                if (activeId && adminHospList.includes(activeId)) return true;
-                return adminHospList.length > 0;
-            }
-
-            return adminHospList.includes(targetHospitalId);
+            return adminHospList.includes(target);
         },
 
         canEditPasswords() {
@@ -2430,6 +2460,7 @@
         deleteHospital,
         getResidents,
         getResident,
+        getAnaesthesiaResidents,
         addResident,
         updateResident,
         deleteResident,

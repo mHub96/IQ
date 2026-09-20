@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-20T00:16:46.579Z",
+  "lastUpdated": "2026-09-18T21:09:58.162Z",
   "globalPasswords": {
     "owner": "MrjBth1996*",
     "admin": "Admin1996*",
@@ -17,10 +17,10 @@
       "icon": "fa-hospital",
       "color": "#0f766e",
       "passwords": {
-        "owner": "Mrj!",
-        "admin": "Iraiq*",
-        "anaesthesia": "ICU*",
-        "user": "1234"
+        "owner": "MrjBth1996*",
+        "admin": "IraqiAdmin1996*",
+        "user": "1234",
+        "anaesthesia": "IraqiIcu1996*"
       },
       "specialties": [
         {
@@ -20507,10 +20507,10 @@
       "icon": "fa-hospital-user",
       "color": "#1e40af",
       "passwords": {
-        "owner": "Mrj!",
-        "admin": "Basra!",
-        "anaesthesia": "ICU!",
-        "user": "1234"
+        "owner": "MrjBth1996*",
+        "admin": "BasraAdmin1996*",
+        "user": "1234",
+        "anaesthesia": "BasraIcu1996*"
       },
       "specialties": [
         {
@@ -32362,10 +32362,10 @@
       "icon": "fa-anchor",
       "color": "#b45309",
       "passwords": {
-        "owner": "Mrj!",
-        "admin": "Mawani$",
-        "anaesthesia": "ICU$",
-        "user": "1234"
+        "owner": "MrjBth1996*",
+        "admin": "MawaniAdmin1996*",
+        "user": "1234",
+        "anaesthesia": "MawaniIcu1996*"
       },
       "specialties": [
         {

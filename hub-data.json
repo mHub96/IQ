@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-20T01:39:47.731Z",
+  "lastUpdated": "2026-09-20T01:42:46.982Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20508,7 +20508,7 @@
       "color": "#1e40af",
       "passwords": {
         "owner": "Mrj!",
-        "admin": "Basra!",
+        "admin": "Basra",
         "anaesthesia": "ICU",
         "user": "1234"
       },
@@ -32350,8 +32350,8 @@
         "occupiedBeds": 14,
         "availableBeds": 0,
         "notes": "العناية المركزة ممتلئة بالكامل حالياً - لا توجد أسرة شاغرة",
-        "lastUpdated": "2026-09-20T01:39:47.731Z",
-        "updatedBy": "د. فاطمة عباس"
+        "lastUpdated": "2026-09-19T23:38:31.489Z",
+        "updatedBy": "د. حسين - مقيم التخدير"
       }
     },
     "mawani": {

@@ -174,8 +174,8 @@
                     <!-- Role Selection Options -->
                     <!-- Role Selection Options -->
                     <div class="space-y-3" id="switcher-role-cards" style="display:flex; flex-direction:column; gap:10px;">
-                        <!-- 0. Owner Level Card -->
-                        <div class="switcher-role-card role-card-owner" id="card-role-owner" onclick="selectRoleLevel('owner')">
+                        <!-- 0. Owner Level Card (Hidden from switcher panel) -->
+                        <div class="switcher-role-card role-card-owner" id="card-role-owner" onclick="selectRoleLevel('owner')" style="display:none !important;">
                             <div class="flex items-start justify-between gap-2" style="display:flex; align-items:flex-start; justify-content:space-between;">
                                 <div class="flex items-center gap-3" style="display:flex; align-items:center; gap:10px;">
                                     <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center text-lg flex-shrink-0" style="width:38px; height:38px; border-radius:12px; background:rgba(217,119,6,0.15); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">

@@ -1016,6 +1016,11 @@ html.dark .switcher-role-card .role-desc {
     color: #cbd5e1 !important;
 }
 
+#card-role-owner,
+.switcher-role-card.role-card-owner {
+    display: none !important;
+}
+
 .switcher-role-card.role-card-owner.is-active-role {
     border-color: #d97706 !important;
     box-shadow: 0 0 0 2px #d97706, 0 4px 14px rgba(217, 119, 6, 0.25) !important;

@@ -979,12 +979,20 @@
             document.getElementById('input-total-beds').value = stat.totalBeds;
             document.getElementById('input-functional-beds').value = stat.functionalBeds;
             document.getElementById('input-occupied-beds').value = stat.occupiedBeds;
-            document.getElementById('input-updated-by').value = stat.updatedBy || '';
+            // Resolve current on-duty ICU resident from schedule for this hospital
+            const currentIcuResident = (window.Hub && window.Hub.getCurrentIcuResident)
+                ? window.Hub.getCurrentIcuResident(hospitalId)
+                : null;
+            const defaultDoctorName = currentIcuResident || stat.updatedBy || '';
+            document.getElementById('input-updated-by').value = defaultDoctorName;
             document.getElementById('input-notes').value = stat.notes || '';
             document.getElementById('modal-error-msg').textContent = '';
 
             // Load anaesthesia residents exclusively for this hospital
             currentHospitalAnaesthesiaResidents = (window.Hub.getAnaesthesiaResidents ? window.Hub.getAnaesthesiaResidents(hospitalId) : []);
+            if (currentIcuResident && !currentHospitalAnaesthesiaResidents.includes(currentIcuResident)) {
+                currentHospitalAnaesthesiaResidents.unshift(currentIcuResident);
+            }
             const countBadge = document.getElementById('icu-doctor-count-badge');
             if (countBadge) {
                 countBadge.textContent = currentHospitalAnaesthesiaResidents.length > 0

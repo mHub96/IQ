@@ -1623,6 +1623,94 @@
         return Array.from(uniqueNames).sort((a, b) => a.localeCompare(b, 'ar'));
     }
 
+    function getCurrentIcuResident(hospitalId = null, targetDate = null) {
+        const targetHospId = hospitalId || getActiveHospitalId() || 'iraqi';
+        const hosp = getHospital(targetHospId);
+        if (!hosp || !Array.isArray(hosp.schedule)) return null;
+
+        const date = normalizeDateString(targetDate || getMedicalDate());
+        const currentMin = getCurrentMedicalMinutes();
+
+        // 1. Look for explicit ICU specialty entries for target date
+        let entries = hosp.schedule.filter(s => {
+            const d = normalizeDateString(s.date);
+            const code = String(s.specCode || '').toUpperCase();
+            return (d === date) && (code === 'ICU');
+        });
+
+        // 2. Fallback to general Anaesthesia codes if no 'ICU' entry found for target date
+        if (entries.length === 0) {
+            entries = hosp.schedule.filter(s => {
+                const d = normalizeDateString(s.date);
+                const code = String(s.specCode || '').toUpperCase();
+                return (d === date) && (code === 'AO' || code === 'A' || code === 'OP' || code === 'GA');
+            });
+        }
+
+        // 3. Fallback to any entry whose specialty name or department contains تخدير / عناية
+        if (entries.length === 0) {
+            entries = hosp.schedule.filter(s => {
+                const d = normalizeDateString(s.date);
+                if (d !== date) return false;
+                const specName = getSpecialtyName(s.specCode, targetHospId) || '';
+                return specName.includes('تخدير') || specName.includes('عناية');
+            });
+        }
+
+        entries = entries.filter(e => {
+            const n = String(e.name || '').trim();
+            return n && !n.includes('بدون خفر') && !n.includes('بدون خفارة');
+        });
+
+        if (entries.length === 0) return null;
+        if (entries.length === 1) return String(entries[0].name).trim();
+
+        // 4. Multi-slot or shift duty resolution
+        const TOTAL_MINUTES = 24 * 60;
+        function parseTimeStr(str) {
+            const match = String(str || '').match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+            if (!match) return null;
+            let hrs = parseInt(match[1], 10);
+            const mins = parseInt(match[2], 10);
+            const ampm = match[3].toUpperCase();
+            if (ampm === 'PM' && hrs !== 12) hrs += 12;
+            if (ampm === 'AM' && hrs === 12) hrs = 0;
+            let total = hrs * 60 + mins;
+            if (total < 8 * 60) total += 24 * 60;
+            return total - (8 * 60);
+        }
+
+        function parseDutyTimeRange(str) {
+            if (!str || !str.includes(' - ')) return null;
+            const parts = str.split(' - ');
+            const start = parseTimeStr(parts[0].trim());
+            const end = parseTimeStr(parts[1].trim());
+            if (start === null || end === null) return null;
+            return { start, end };
+        }
+
+        for (let i = 0; i < entries.length; i++) {
+            const entry = entries[i];
+            let timeData = parseDutyTimeRange(entry.dutyTime);
+            if (!timeData) {
+                const slotIdx = (typeof entry.dutySlot === 'number') ? entry.dutySlot : i;
+                const slotDuration = TOTAL_MINUTES / entries.length;
+                timeData = { start: slotIdx * slotDuration, end: (slotIdx + 1) * slotDuration };
+            }
+            if (timeData) {
+                const { start, end } = timeData;
+                if (end <= start) {
+                    if (currentMin >= start || currentMin < end) return String(entry.name).trim();
+                } else {
+                    if (currentMin >= start && currentMin < end) return String(entry.name).trim();
+                }
+            }
+        }
+
+        return String(entries[0].name).trim();
+    }
+
+
     function syncSharedResidentsFromHospitals() {
         if (!db || !db.hospitals) return [];
         const map = new Map();
@@ -2461,6 +2549,7 @@
         getResidents,
         getResident,
         getAnaesthesiaResidents,
+        getCurrentIcuResident,
         addResident,
         updateResident,
         deleteResident,

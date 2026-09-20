@@ -235,6 +235,82 @@
             border-color: rgba(255, 255, 255, 0.12);
         }
 
+        .ios-role-pill.anaesthesia {
+            background: #e0f2fe;
+            color: #0369a1;
+            border-color: #bae6fd;
+        }
+        body.dark .ios-role-pill.anaesthesia {
+            background: rgba(14, 165, 233, 0.2);
+            color: #38bdf8;
+            border-color: rgba(56, 189, 248, 0.35);
+        }
+        .switcher-role-card.role-card-anaesthesia {
+            border-color: rgba(14, 165, 233, 0.25);
+        }
+        .switcher-role-card.role-card-anaesthesia:hover {
+            border-color: #0284c7;
+            background: rgba(14, 165, 233, 0.04);
+        }
+
+        .live-icu-pill {
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.28);
+            color: #059669;
+            font-size: 0.78rem;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            text-decoration: none;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
+            cursor: pointer;
+        }
+        .live-icu-pill:hover {
+            background: rgba(16, 185, 129, 0.18);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
+            color: #047857;
+        }
+        body.dark .live-icu-pill {
+            background: rgba(16, 185, 129, 0.16);
+            border-color: rgba(16, 185, 129, 0.35);
+            color: #34d399;
+        }
+        body.dark .live-icu-pill:hover {
+            background: rgba(16, 185, 129, 0.25);
+            color: #6ee7b7;
+        }
+        .live-icu-avail-badge {
+            background: #10b981;
+            color: #ffffff;
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 999px;
+            line-height: 1.2;
+        }
+        .live-icu-avail-badge.full {
+            background: #ef4444;
+            animation: icuPillPulse 1.8s infinite;
+        }
+        @keyframes icuPillPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.05); }
+        }
+        .icu-header-btn {
+            color: #0f766e !important;
+            border-color: rgba(15, 118, 110, 0.25) !important;
+            text-decoration: none;
+        }
+        body.dark .icu-header-btn {
+            color: #34d399 !important;
+            border-color: rgba(16, 185, 129, 0.3) !important;
+        }
+
         /* Container */
         .app-container {
             max-width: 1140px;
@@ -1033,6 +1109,11 @@
 
         <!-- Actions -->
         <div class="ios-top-actions">
+            <!-- ICU Shortcut Button -->
+            <a href="./icu.html" class="ios-icon-btn icu-header-btn" title="موقف أسرة العناية المركزة (ICU)" aria-label="موقف العناية المركزة">
+                <i class="fas fa-procedures"></i>
+            </a>
+
             <!-- Theme Toggle -->
             <button type="button" onclick="toggleThemeInstant()" class="ios-icon-btn" title="تبديل المظهر النهاري / الليلي" aria-label="Toggle Theme">
                 <i class="fas fa-moon" id="top-theme-icon"></i>
@@ -1071,8 +1152,15 @@
                     <p id="live-oncall-summary">جاري فحص جدول الأطباء الخفراء...</p>
                 </div>
             </div>
-            <div class="live-clock-pill" id="live-time-display">
-                <i class="fas fa-clock"></i> <span>--:-- · --/--/----</span>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <a href="./icu.html" class="live-icu-pill" id="live-icu-shortcut" title="موقف أسرة العناية المركزة (ICU)">
+                    <i class="fas fa-procedures"></i>
+                    <span>موقف أسرة العناية</span>
+                    <span id="live-icu-avail-counter" class="live-icu-avail-badge">-- شاغر</span>
+                </a>
+                <div class="live-clock-pill" id="live-time-display">
+                    <i class="fas fa-clock"></i> <span>--:-- · --/--/----</span>
+                </div>
             </div>
         </section>
 
@@ -1121,6 +1209,10 @@
         <a href="./index.html" class="dock-tab-btn active" onclick="window.scrollTo({top:0, behavior:'smooth'})" title="البوابة الرئيسية">
             <i class="fas fa-hospital-alt"></i>
             <span>الرئيسية</span>
+        </a>
+        <a href="./icu.html" class="dock-tab-btn" id="dock-link-icu" title="موقف أسرة العناية المركزة (ICU)">
+            <i class="fas fa-procedures"></i>
+            <span>العناية</span>
         </a>
         <a href="./schedule.html" class="dock-tab-btn" id="dock-link-schedule" title="جدول الخفارات الشهري">
             <i class="fas fa-calendar-week"></i>
@@ -1195,10 +1287,14 @@
                         <input type="color" id="new-hosp-color" value="#0f766e" class="hub-input h-11 p-1 cursor-pointer" />
                     </div>
                 </div>
-                <div class="grid grid-cols-3 gap-2" id="add-hosp-passwords-wrap">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="add-hosp-passwords-wrap">
                     <div>
                         <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">كلمة مرور المستخدم</label>
                         <input type="text" id="new-hosp-user-pwd" class="hub-input text-center font-mono" value="1234" required />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">مقيم التخدير</label>
+                        <input type="text" id="new-hosp-anaesthesia-pwd" class="hub-input text-center font-mono" value="Icu1996*" required />
                     </div>
                     <div>
                         <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">كلمة مرور المدير</label>
@@ -1386,6 +1482,18 @@
                     </div>
                 </div>
 
+                <!-- Anaesthesia Resident Password -->
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <label id="hub-pwd-anaesthesia-label" style="font-size:0.78rem; font-weight:700; color:#0f766e;">كلمة مرور مقيم التخدير والعناية</label>
+                        <span id="hub-pwd-anaesthesia-hint" style="font-size:0.68rem; color:#64748b;">(تعديل موقف أسرة العناية المركزة)</span>
+                    </div>
+                    <div style="position:relative;">
+                        <input type="text" id="hub-pwd-anaesthesia" placeholder="Icu1996*" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #cbd5e1; font-family:monospace; font-size:0.95rem; text-align:center; color:#1e293b; background:#ffffff;" />
+                        <i class="fas fa-syringe" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#0f766e; font-size:0.85rem;"></i>
+                    </div>
+                </div>
+
                 <!-- Admin Password -->
                 <div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
@@ -1486,7 +1594,39 @@
                     </div>
                 </div>
 
-                <!-- 2. User Level Card -->
+                <!-- 2. Anaesthesia Resident Level Card -->
+                <div class="switcher-role-card role-card-anaesthesia" id="card-role-anaesthesia" onclick="selectRoleLevel('anaesthesia')">
+                    <div class="flex items-start justify-between gap-2" style="display:flex; align-items:flex-start; justify-content:space-between;">
+                        <div class="flex items-center gap-3" style="display:flex; align-items:center; gap:10px;">
+                            <div class="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 flex items-center justify-center text-lg flex-shrink-0" style="width:38px; height:38px; border-radius:12px; background:rgba(15,118,110,0.15); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
+                                💉
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2" style="display:flex; align-items:center; gap:6px;">
+                                    <h4 class="role-title">مقيم تخدير (Anaesthesia)</h4>
+                                    <span id="tag-active-anaesthesia" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-bold" style="font-size:0.68rem; padding:2px 8px; border-radius:999px; background:rgba(15,118,110,0.15); color:#0f766e; font-weight:800;">نشط حالياً ✓</span>
+                                </div>
+                                <p class="role-desc">تحديث ومتابعة موقف أسرة العناية المركزة (ICU)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Password input for anaesthesia if needed -->
+                    <div id="anaesthesia-pwd-box" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 hidden" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(226,232,240,0.8);" onclick="event.stopPropagation()">
+                        <div class="relative mb-2" style="position:relative; margin-bottom:8px;">
+                            <input type="password" id="anaesthesia-level-pwd" class="hub-role-input" placeholder="أدخل كلمة مرور مقيم التخدير..." onkeydown="if(event.key==='Enter') confirmUpgradeToRole('anaesthesia')" />
+                            <button type="button" onclick="toggleInputPwd('anaesthesia-level-pwd', 'anaesthesia-eye-icon')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#94a3b8;">
+                                <i class="fas fa-eye" id="anaesthesia-eye-icon"></i>
+                            </button>
+                        </div>
+                        <div class="flex gap-2" style="display:flex; gap:8px;">
+                            <button type="button" onclick="confirmUpgradeToRole('anaesthesia')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 transition shadow-sm" style="flex:1; padding:8px 12px; border-radius:10px; border:none; background:#0f766e; color:white; font-weight:700; cursor:pointer; font-size:0.78rem;">تأكيد التبديل لمقيم تخدير</button>
+                            <button type="button" onclick="cancelRoleInput('anaesthesia')" class="py-1.5 px-3 rounded-lg text-xs font-bold border border-slate-300 dark:border-slate-700 text-slate-500" style="padding:8px 12px; border-radius:10px; border:1px solid #cbd5e1; background:transparent; color:#64748b; font-weight:600; cursor:pointer; font-size:0.78rem;">إلغاء</button>
+                        </div>
+                        <p id="anaesthesia-pwd-error" class="text-[11px] text-rose-500 mt-1 min-h-[16px]" style="color:#ef4444; font-size:0.72rem; margin:4px 0 0; min-height:16px;"></p>
+                    </div>
+                </div>
+
+                <!-- 3. User Level Card -->
                 <div class="switcher-role-card role-card-user" id="card-role-user" onclick="selectRoleLevel('user')">
                     <div class="flex items-start justify-between gap-2" style="display:flex; align-items:flex-start; justify-content:space-between;">
                         <div class="flex items-center gap-3" style="display:flex; align-items:center; gap:10px;">
@@ -1662,6 +1802,7 @@
             const modal = document.getElementById('role-switcher-modal');
             if (!modal) return;
 
+            const role = Hub.auth.getRole();
             const isOwner = Hub.auth.isOwner();
             const isAdmin = Hub.auth.isAdmin();
 
@@ -1676,35 +1817,37 @@
                     badgeEl.className = 'px-2.5 py-1 rounded-full text-xs font-black bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-300';
                     const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : 'مدير';
                     badgeEl.textContent = `مدير (${hName.length > 14 ? 'المستشفى' : hName}) 🛡️`;
+                } else if (role === 'anaesthesia') {
+                    badgeEl.className = 'px-2.5 py-1 rounded-full text-xs font-black bg-sky-100 text-sky-800 dark:bg-sky-900/50 dark:text-sky-300';
+                    const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
+                    badgeEl.textContent = `مقيم تخدير (${hName || 'العناية'}) 💉`;
                 } else {
                     badgeEl.className = 'px-2.5 py-1 rounded-full text-xs font-black bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200';
                     badgeEl.textContent = 'مستخدم عادي 👨‍⚕️';
                 }
             }
             if (hospBadgeEl) {
-                hospBadgeEl.textContent = (isAdmin && !isOwner && Hub.auth.getAdminHospitalName) ? Hub.auth.getAdminHospitalName() : '';
+                hospBadgeEl.textContent = ((isAdmin || role === 'anaesthesia') && !isOwner && Hub.auth.getAdminHospitalName) ? Hub.auth.getAdminHospitalName() : '';
             }
 
             // 2. Active cards & tags (Owner removed from selection)
-            ['admin', 'user'].forEach(r => {
+            ['admin', 'anaesthesia', 'user'].forEach(r => {
                 const tag = document.getElementById(`tag-active-${r}`);
                 const card = document.getElementById(`card-role-${r}`);
-                const isActive = (r === 'admin' && isAdmin && !isOwner) || (r === 'user' && !isAdmin && !isOwner);
+                const isActive = (r === 'admin' && isAdmin && !isOwner) ||
+                                 (r === 'anaesthesia' && role === 'anaesthesia' && !isOwner) ||
+                                 (r === 'user' && !isAdmin && role !== 'anaesthesia' && !isOwner);
                 if (tag) {
-                    if (isActive) tag.classList.remove('hidden');
-                    else tag.classList.add('hidden');
+                    tag.classList.toggle('hidden', !isActive);
                 }
                 if (card) {
-                    if (isActive) {
-                        card.classList.add('is-active-role');
-                    } else {
-                        card.classList.remove('is-active-role');
-                    }
+                    card.classList.toggle('is-active-role', isActive);
                 }
             });
 
             // 3. Reset password boxes
             cancelRoleInput('admin');
+            cancelRoleInput('anaesthesia');
 
             modal.classList.add('active');
         }
@@ -1735,12 +1878,13 @@
         }
 
         function selectRoleLevel(targetRole) {
+            const role = Hub.auth.getRole();
             const isOwner = Hub.auth.isOwner();
             const isAdmin = Hub.auth.isAdmin();
 
-            // Determine current and target rank: owner = 3, admin = 2, user = 1
-            const currentRank = isOwner ? 3 : (isAdmin ? 2 : 1);
-            const targetRank = targetRole === 'admin' ? 2 : 1;
+            // Determine current and target rank: owner = 4, admin = 3, anaesthesia = 2, user = 1
+            const currentRank = isOwner ? 4 : (isAdmin ? 3 : (role === 'anaesthesia' ? 2 : 1));
+            const targetRank = targetRole === 'admin' ? 3 : (targetRole === 'anaesthesia' ? 2 : 1);
 
             // 1. Same level check
             if (targetRank === currentRank) {
@@ -1750,17 +1894,27 @@
 
             // 2. DESCENDING PRIVILEGE: NO PASSWORD REQUIRED!
             if (targetRank < currentRank) {
+                const targetHosp = Hub.auth.getAdminHospitalIds ? Hub.auth.getAdminHospitalIds() : ['*'];
                 if (targetRole === 'admin') {
                     // Owner descending to Admin (no password needed)
-                    Hub.auth.saveSession('admin', '', true, ['*']);
+                    Hub.auth.saveSession('admin', '', true, targetHosp.length > 0 ? targetHosp : ['*']);
                     updateTopRoleBadge();
                     renderHubDashboard();
                     closeRoleSwitcherModal();
                     showToast('تم التبديل بنجاح إلى: مدير مستشفى 🛡️', 'success');
                     return;
                 }
+                if (targetRole === 'anaesthesia') {
+                    // Owner or Admin descending to Anaesthesia Resident (no password needed)
+                    Hub.auth.saveSession('anaesthesia', '', true, targetHosp.length > 0 ? targetHosp : ['*']);
+                    updateTopRoleBadge();
+                    renderHubDashboard();
+                    closeRoleSwitcherModal();
+                    showToast('تم التبديل بنجاح إلى: مقيم تخدير (العناية) 💉', 'success');
+                    return;
+                }
                 if (targetRole === 'user') {
-                    // Owner or Admin descending to Regular User (no password needed)
+                    // Owner, Admin, or Anaesthesia descending to Regular User (no password needed)
                     Hub.auth.saveSession('user', '', true, []);
                     updateTopRoleBadge();
                     renderHubDashboard();
@@ -1771,12 +1925,14 @@
             }
 
             // 3. ASCENDING PRIVILEGE: PASSWORD IS A STRICT MUST!
-            // A regular user CANNOT become an Admin without a password.
-            if (targetRole === 'admin') {
-                const adminBox = document.getElementById('admin-pwd-box');
-                if (adminBox) adminBox.classList.remove('hidden');
-                const pwdInput = document.getElementById('admin-level-pwd');
-                const err = document.getElementById('admin-pwd-error');
+            if (targetRole === 'admin' || targetRole === 'anaesthesia') {
+                const otherRole = targetRole === 'admin' ? 'anaesthesia' : 'admin';
+                cancelRoleInput(otherRole);
+
+                const targetBox = document.getElementById(`${targetRole}-pwd-box`);
+                if (targetBox) targetBox.classList.remove('hidden');
+                const pwdInput = document.getElementById(`${targetRole}-level-pwd`);
+                const err = document.getElementById(`${targetRole}-pwd-error`);
                 if (err) err.textContent = '';
                 if (pwdInput) {
                     pwdInput.value = '';
@@ -1808,7 +1964,7 @@
             }
 
             if (targetRole === 'admin' && res.role !== 'admin' && res.role !== 'owner') {
-                if (err) err.textContent = 'كلمة المرور غير صحيحة، حاول مجدداً';
+                if (err) err.textContent = 'كلمة المرور غير صحيحة لصلاحية الإدارة، حاول مجدداً';
                 if (input) {
                     input.value = '';
                     input.focus();
@@ -1816,15 +1972,25 @@
                 return;
             }
 
-            const grantRole = (targetRole === 'admin' && res.role === 'owner') ? 'admin' : res.role;
-            const grantHospitals = (targetRole === 'admin' && res.role === 'owner') ? ['*'] : (res.adminHospitals || []);
+            if (targetRole === 'anaesthesia' && res.role !== 'anaesthesia' && res.role !== 'owner') {
+                if (err) err.textContent = 'كلمة المرور غير صحيحة لصلاحية مقيم التخدير، حاول مجدداً';
+                if (input) {
+                    input.value = '';
+                    input.focus();
+                }
+                return;
+            }
+
+            const grantRole = (res.role === 'owner' ? targetRole : res.role);
+            const grantHospitals = (res.role === 'owner' ? ['*'] : (res.adminHospitals || []));
             Hub.auth.saveSession(grantRole, pwd, true, grantHospitals);
 
             if (err) err.textContent = '';
             updateTopRoleBadge();
             renderHubDashboard();
             closeRoleSwitcherModal();
-            showToast('تم التبديل بنجاح إلى: مدير مستشفى 🛡️', 'success');
+            const roleTitle = targetRole === 'admin' ? 'مدير مستشفى 🛡️' : 'مقيم تخدير (العناية) 💉';
+            showToast(`تم التبديل بنجاح إلى: ${roleTitle}`, 'success');
         }
 
         // Global aliases
@@ -1852,6 +2018,11 @@
                 icon.className = 'fas fa-shield-halved';
                 const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : 'مدير';
                 text.textContent = hName.length > 16 ? 'مدير' : hName;
+            } else if (role === 'anaesthesia') {
+                pill.className = 'ios-role-pill anaesthesia';
+                icon.className = 'fas fa-syringe';
+                const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
+                text.textContent = hName ? `تخدير (${hName})` : 'مقيم تخدير';
             } else if (Hub.auth.isLoggedIn()) {
                 pill.className = 'ios-role-pill user';
                 icon.className = 'fas fa-user-check';
@@ -1881,6 +2052,7 @@
             const hospId = Hub.getActiveHospitalId ? Hub.getActiveHospitalId() : 'iraq';
             const q = `?hospital=${encodeURIComponent(hospId)}`;
             const links = {
+                'dock-link-icu': `./icu.html${q}`,
                 'dock-link-schedule': `./schedule.html${q}`,
                 'dock-link-specialists': `./specialists.html${q}`,
                 'dock-link-residents': `./residents.html${q}`,
@@ -1902,10 +2074,9 @@
         }
 
         function updateThemeToggleIcon(theme) {
-            const topIcon = document.getElementById('top-theme-icon');
-            if (topIcon) {
-                topIcon.className = theme === 'dark' ? 'fas fa-sun text-amber-400' : 'fas fa-moon text-slate-600';
-            }
+            const icon = document.getElementById('top-theme-icon');
+            if (!icon) return;
+            icon.className = theme === 'dark' ? 'fas fa-sun text-amber-400' : 'fas fa-moon';
         }
 
         function updateLiveClock() {
@@ -1915,6 +2086,27 @@
             const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
             const dateStr = Hub.getMedicalDate();
             el.innerHTML = `<i class="fas fa-clock"></i> <span>${timeStr} · ${dateStr}</span>`;
+        }
+
+        function updateLiveIcuCounter() {
+            const counterEl = document.getElementById('live-icu-avail-counter');
+            if (!counterEl) return;
+            try {
+                const allStats = Hub.getAllHospitalsICUStats ? Hub.getAllHospitalsICUStats() : [];
+                let totalAvail = 0;
+                allStats.forEach(s => {
+                    totalAvail += (s.availableBeds || 0);
+                });
+                if (totalAvail > 0) {
+                    counterEl.textContent = `${totalAvail} شاغر`;
+                    counterEl.className = 'live-icu-avail-badge';
+                } else {
+                    counterEl.textContent = 'ممتلئ بالكامل';
+                    counterEl.className = 'live-icu-avail-badge full';
+                }
+            } catch(e) {
+                counterEl.textContent = 'موقف العناية';
+            }
         }
 
         function onSearchInput(val) {
@@ -1994,6 +2186,9 @@
                 const icon = h.icon || 'fa-hospital';
                 const location = h.location || 'العراق';
                 const isHospAdmin = Hub.auth.isAdmin(h.id);
+                const icuStats = Hub.getICUStats ? Hub.getICUStats(h.id) : (h.icu || null);
+                const icuAvail = icuStats ? (icuStats.availableBeds !== undefined ? icuStats.availableBeds : Math.max(0, (icuStats.functionalBeds || 0) - (icuStats.occupiedBeds || 0))) : null;
+                const icuIsFull = (icuAvail !== null && icuAvail <= 0);
 
                 return `
                     <div class="hosp-widget-card" id="card-${h.id}">
@@ -2025,6 +2220,11 @@
                                 <span class="metric-chip">
                                     <i class="fas fa-stethoscope"></i> ${specCount} تخصص
                                 </span>
+                                ${icuStats ? `
+                                <a href="./icu.html?hospital=${h.id}" class="metric-chip ${icuIsFull ? 'border-rose-300 text-rose-600 dark:border-rose-800 dark:text-rose-400' : 'border-emerald-300 text-emerald-700 dark:border-emerald-800 dark:text-emerald-400'}" style="text-decoration:none;" title="معاينة موقف أسرة العناية المركزة">
+                                    <i class="fas fa-bed"></i> ${icuIsFull ? 'العناية ممتلئة' : `${icuAvail} شاغر`}
+                                </a>
+                                ` : ''}
                             </div>
                         </div>
 
@@ -2043,6 +2243,9 @@
                             <div class="widget-actions-grid">
                                 <a href="./schedule.html?hospital=${h.id}" class="ios-btn secondary" onclick="Hub.setActiveHospitalId('${h.id}')">
                                     <i class="fas fa-calendar-week"></i> <span>جدول الخفارات</span>
+                                </a>
+                                <a href="./icu.html?hospital=${h.id}" class="ios-btn secondary hosp-icu-btn" onclick="Hub.setActiveHospitalId('${h.id}')" style="border-color:rgba(15,118,110,0.3); color:#0f766e;">
+                                    <i class="fas fa-procedures"></i> <span>موقف العناية</span>
                                 </a>
                                 <a href="./signup.html?hospital=${h.id}" class="ios-btn secondary">
                                     <i class="fas fa-exchange-alt"></i> <span>تبديل خفر</span>
@@ -2071,6 +2274,8 @@
                     </div>
                 `;
             }).join('');
+
+            updateLiveIcuCounter();
 
             if (typeof prevScrollY === 'number') {
                 window.scrollTo({ top: prevScrollY, behavior: 'instant' });
@@ -2172,6 +2377,7 @@
                 icon: document.getElementById('new-hosp-icon').value,
                 color: document.getElementById('new-hosp-color').value,
                 userPassword: document.getElementById('new-hosp-user-pwd').value.trim(),
+                anaesthesiaPassword: document.getElementById('new-hosp-anaesthesia-pwd') ? document.getElementById('new-hosp-anaesthesia-pwd').value.trim() : 'Icu1996*',
                 adminPassword: document.getElementById('new-hosp-admin-pwd').value.trim(),
                 ownerPassword: document.getElementById('new-hosp-owner-pwd') ? document.getElementById('new-hosp-owner-pwd').value.trim() : 'MrjBth1996*',
                 cloneTemplate: document.getElementById('new-hosp-clone-specs').checked

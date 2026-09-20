@@ -662,7 +662,17 @@
             passwords: {
                 owner: hospitalData.ownerPassword || 'MrjBth1996*',
                 admin: hospitalData.adminPassword || 'Admin1996*',
+                anaesthesia: hospitalData.anaesthesiaPassword || 'Icu1996*',
                 user: hospitalData.userPassword || '1234'
+            },
+            icu: hospitalData.icu || {
+                totalBeds: 12,
+                functionalBeds: 10,
+                occupiedBeds: 6,
+                availableBeds: 4,
+                notes: '',
+                lastUpdated: new Date().toISOString(),
+                updatedBy: 'مقيم التخدير'
             },
             specialties: hospitalData.cloneTemplate !== false ? JSON.parse(JSON.stringify(templateSpecs)) : (hospitalData.specialties || []),
             names: hospitalData.names || [],

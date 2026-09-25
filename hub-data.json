@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-20T12:52:28.491Z",
+  "lastUpdated": "2026-09-25T01:25:59.318Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -19334,10 +19334,11 @@
         {
           "date": "25/09/2026",
           "specCode": "NS",
-          "name": "د. محمد عبدالحسين محسن",
+          "name": "د. اسعد حسن فرحان",
           "VisitCount": 0,
           "dutyTime": "",
-          "dutySlot": 0
+          "dutySlot": 0,
+          "timestamp": "04:25"
         },
         {
           "date": "26/09/2026",

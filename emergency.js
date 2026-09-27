@@ -172,6 +172,28 @@
         return false;
     }
 
+    /**
+     * Determines whether to show current month or next month based on Day 18 rule:
+     * - If day < 18: current month
+     * - If day >= 18: next month (preparing the next month's schedule)
+     */
+    function getDefaultPeriodByDay18Rule(customDate) {
+        const now = customDate || new Date();
+        const curDay = now.getDate();
+        const curMonth = now.getMonth() + 1; // 1-12
+        const curYear = now.getFullYear();
+
+        if (curDay < 18) {
+            return { month: curMonth, year: curYear };
+        } else {
+            if (curMonth === 12) {
+                return { month: 1, year: curYear + 1 };
+            } else {
+                return { month: curMonth + 1, year: curYear };
+            }
+        }
+    }
+
     // =========================================================================
     // INITIALIZATION & STATE PERSISTENCE
     // =========================================================================
@@ -190,13 +212,26 @@
             }
         }
 
+        // Enforce: Always display ER schedule first on initial load
+        state.activeTab = 'er';
+
+        // Enforce: Day 18 rule for initial schedule month/year on launch
+        // If today is earlier than 18th of current month -> current month
+        // If today is 18th or later -> next month (preparing schedule for next month)
+        const initialPeriod = getDefaultPeriodByDay18Rule();
+        state.month = initialPeriod.month;
+        state.year = initialPeriod.year;
+        const monthNames = [
+            'كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران',
+            'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'
+        ];
+        state.monthYear = `${monthNames[state.month - 1]} ${state.year}`;
+
         // 2. Fallback to DEFAULT_EMERGENCY_DATA if residents or schedules empty
         if (!state.residents || state.residents.length === 0) {
             if (window.DEFAULT_EMERGENCY_DATA && window.DEFAULT_EMERGENCY_DATA.residents) {
                 state.residents = JSON.parse(JSON.stringify(window.DEFAULT_EMERGENCY_DATA.residents));
-                state.schedules = JSON.parse(JSON.stringify(window.DEFAULT_EMERGENCY_DATA.schedules));
                 state.hospitalName = window.DEFAULT_EMERGENCY_DATA.hospitalName || state.hospitalName;
-                state.monthYear = window.DEFAULT_EMERGENCY_DATA.monthYear || state.monthYear;
                 state.orderNumber = window.DEFAULT_EMERGENCY_DATA.orderNumber || state.orderNumber;
                 state.orderDate = window.DEFAULT_EMERGENCY_DATA.orderDate || state.orderDate;
                 state.headOfResidents = window.DEFAULT_EMERGENCY_DATA.headOfResidents || state.headOfResidents;
@@ -205,6 +240,9 @@
                 state.rsEndDate = window.DEFAULT_EMERGENCY_DATA.rsEndDate || state.rsEndDate;
             }
         }
+
+        // Load the schedule for the determined month from store
+        loadMonthScheduleFromStore(state.hospitalId, state.year, state.month);
 
         // 3. Try to fetch emergency-db.json asynchronously if fresh
         try {
@@ -2057,15 +2095,15 @@
             <!-- Filter Bar -->
             ${renderScheduleFilterBar('er', shifts)}
 
-            <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="overflow-x-auto rounded-2xl border border-slate-300 dark:border-slate-700 shadow-sm">
                 <table class="w-full text-right border-collapse text-xs">
                     <thead>
-                        <tr class="bg-slate-100/80 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
-                            <th class="py-3 px-3 w-12 text-center font-bold">#</th>
-                            <th class="py-3 px-3 w-28 font-bold">اليوم والتاريخ</th>
+                        <tr class="bg-slate-900 text-white dark:bg-black dark:text-white border-b-2 border-slate-800 text-xs font-black select-none">
+                            <th class="py-3 px-3 w-12 text-center font-bold border-l border-slate-800">#</th>
+                            <th class="py-3 px-3 w-32 font-bold border-l border-slate-800">اليوم والتاريخ</th>
                             ${shifts.map(s => `
-                                <th onclick="quickFilterByShift('${s.key}')" class="py-3 px-3 font-bold cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition select-none ${state.scheduleShiftFilter !== 'all' && state.scheduleShiftFilter !== s.key ? 'opacity-40' : ''}" title="انقر لتصفية الجدول بهذه الوجبة">
-                                    <div class="flex items-center gap-1.5">
+                                <th onclick="quickFilterByShift('${s.key}')" class="py-3 px-3 font-bold cursor-pointer hover:bg-slate-800 transition select-none border-l border-slate-800 ${state.scheduleShiftFilter !== 'all' && state.scheduleShiftFilter !== s.key ? 'opacity-40' : ''}" title="انقر لتصفية الجدول بهذه الوجبة">
+                                    <div class="flex items-center gap-1.5 text-white">
                                         <i class="fas ${s.icon} ${s.color}"></i>
                                         <span>${s.label}</span>
                                     </div>
@@ -2073,7 +2111,7 @@
                             `).join('')}
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
         `;
 
         if (filteredDays.length === 0) {
@@ -2088,11 +2126,14 @@
             filteredDays.forEach(day => {
                 const isWeekend = day.dayName === 'الجمعة' || day.dayName === 'السبت';
                 html += `
-                    <tr data-day="${day.dayNumber}" data-dayname="${day.dayName}" data-date="${day.date}" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition ${isWeekend ? 'bg-amber-50/30 dark:bg-amber-950/10' : ''}">
-                        <td class="py-2.5 px-3 text-center font-mono font-bold text-slate-500">${day.dayNumber}</td>
-                        <td class="py-2.5 px-3 whitespace-nowrap">
-                            <div class="font-bold text-slate-800 dark:text-slate-100">${day.dayName}</div>
-                            <div class="text-[11px] font-mono text-slate-400">${day.date}</div>
+                    <tr data-day="${day.dayNumber}" data-dayname="${day.dayName}" data-date="${day.date}" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition border-b border-slate-200 dark:border-slate-800/80 ${isWeekend ? 'bg-[#5ea37d]/15 dark:bg-[#5ea37d]/20 border-r-4 border-r-[#5ea37d]' : ''}">
+                        <td class="py-2.5 px-3 text-center font-mono font-bold text-slate-600 dark:text-slate-400 border-l border-slate-200 dark:border-slate-800">${day.dayNumber}</td>
+                        <td class="py-2.5 px-3 whitespace-nowrap border-l border-slate-200 dark:border-slate-800">
+                            <div class="flex items-center gap-1.5 font-bold ${isWeekend ? 'text-[#2e5d42] dark:text-[#88d4aa]' : 'text-slate-800 dark:text-slate-100'}">
+                                <span>${day.dayName}</span>
+                                ${isWeekend ? '<span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#5ea37d] text-white">عطلة</span>' : ''}
+                            </div>
+                            <div class="text-[11px] font-mono font-bold ${isWeekend ? 'text-[#3b7353] dark:text-[#72c798]' : 'text-slate-500 dark:text-slate-400'}">${formatArabicDateNumbers(day.date)}</div>
                         </td>
                         ${shifts.map(s => renderShiftCellHTML('er', day.dayNumber, day.date, s.key, day[s.key])).join('')}
                     </tr>
@@ -2146,26 +2187,29 @@
             <!-- Filter Bar -->
             ${renderScheduleFilterBar('con', null)}
 
-            <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm max-w-3xl">
+            <div class="overflow-x-auto rounded-2xl border border-slate-300 dark:border-slate-700 shadow-sm max-w-3xl">
                 <table class="w-full text-right border-collapse text-xs">
                     <thead>
-                        <tr class="bg-slate-100/80 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
-                            <th class="py-3 px-3 w-14 text-center font-bold">#</th>
-                            <th class="py-3 px-3 w-36 font-bold">اليوم والتاريخ</th>
+                        <tr class="bg-slate-900 text-white dark:bg-black dark:text-white border-b-2 border-slate-800 text-xs font-black select-none">
+                            <th class="py-3 px-3 w-14 text-center font-bold border-l border-slate-800">#</th>
+                            <th class="py-3 px-3 w-36 font-bold border-l border-slate-800">اليوم والتاريخ</th>
                             <th class="py-3 px-3 font-bold">طبيب الاستشارية الخافرة</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
         `;
 
         filteredDays.forEach(day => {
             const isWeekend = day.dayName === 'الجمعة' || day.dayName === 'السبت';
             html += `
-                <tr data-day="${day.dayNumber}" data-dayname="${day.dayName}" data-date="${day.date}" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition ${isWeekend ? 'bg-amber-50/30 dark:bg-amber-950/10' : ''}">
-                    <td class="py-2.5 px-3 text-center font-mono font-bold text-slate-500">${day.dayNumber}</td>
-                    <td class="py-2.5 px-3 whitespace-nowrap">
-                        <div class="font-bold text-slate-800 dark:text-slate-100">${day.dayName}</div>
-                        <div class="text-[11px] font-mono text-slate-400">${day.date}</div>
+                <tr data-day="${day.dayNumber}" data-dayname="${day.dayName}" data-date="${day.date}" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition border-b border-slate-200 dark:border-slate-800/80 ${isWeekend ? 'bg-[#5ea37d]/15 dark:bg-[#5ea37d]/20 border-r-4 border-r-[#5ea37d]' : ''}">
+                    <td class="py-2.5 px-3 text-center font-mono font-bold text-slate-600 dark:text-slate-400 border-l border-slate-200 dark:border-slate-800">${day.dayNumber}</td>
+                    <td class="py-2.5 px-3 whitespace-nowrap border-l border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center gap-1.5 font-bold ${isWeekend ? 'text-[#2e5d42] dark:text-[#88d4aa]' : 'text-slate-800 dark:text-slate-100'}">
+                            <span>${day.dayName}</span>
+                            ${isWeekend ? '<span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#5ea37d] text-white">عطلة</span>' : ''}
+                        </div>
+                        <div class="text-[11px] font-mono font-bold ${isWeekend ? 'text-[#3b7353] dark:text-[#72c798]' : 'text-slate-500 dark:text-slate-400'}">${formatArabicDateNumbers(day.date)}</div>
                     </td>
                     ${renderShiftCellHTML('con', day.dayNumber, day.date, 'doctor', day.doctor)}
                 </tr>
@@ -2219,17 +2263,17 @@
             <!-- Filter Bar -->
             ${renderScheduleFilterBar('dc', null)}
 
-            <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm max-w-4xl">
+            <div class="overflow-x-auto rounded-2xl border border-slate-300 dark:border-slate-700 shadow-sm max-w-4xl">
                 <table class="w-full text-right border-collapse text-xs">
                     <thead>
-                        <tr class="bg-slate-100/80 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
-                            <th class="py-3 px-3 w-14 text-center font-bold">#</th>
-                            <th class="py-3 px-3 w-36 font-bold">اليوم والتاريخ</th>
-                            <th class="py-3 px-3 font-bold">طبيب شهادات الوفاة</th>
-                            <th class="py-3 px-3 w-64 font-bold text-slate-500">حالة الخفارة في المستشفى</th>
+                        <tr class="bg-slate-900 text-white dark:bg-black dark:text-white border-b-2 border-slate-800 text-xs font-black select-none">
+                            <th class="py-3 px-3 w-14 text-center font-bold border-l border-slate-800">#</th>
+                            <th class="py-3 px-3 w-36 font-bold border-l border-slate-800">اليوم والتاريخ</th>
+                            <th class="py-3 px-3 font-bold border-l border-slate-800">طبيب شهادات الوفاة</th>
+                            <th class="py-3 px-3 w-64 font-bold text-slate-300">حالة الخفارة في المستشفى</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
         `;
 
         filteredDays.forEach(day => {
@@ -2238,14 +2282,17 @@
             const hasHospDuty = hospDuties.length > 0;
 
             html += `
-                <tr data-day="${day.dayNumber}" data-dayname="${day.dayName}" data-date="${day.date}" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition ${isWeekend ? 'bg-amber-50/30 dark:bg-amber-950/10' : ''}">
-                    <td class="py-2.5 px-3 text-center font-mono font-bold text-slate-500">${day.dayNumber}</td>
-                    <td class="py-2.5 px-3 whitespace-nowrap">
-                        <div class="font-bold text-slate-800 dark:text-slate-100">${day.dayName}</div>
-                        <div class="text-[11px] font-mono text-slate-400">${day.date}</div>
+                <tr data-day="${day.dayNumber}" data-dayname="${day.dayName}" data-date="${day.date}" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition border-b border-slate-200 dark:border-slate-800/80 ${isWeekend ? 'bg-[#5ea37d]/15 dark:bg-[#5ea37d]/20 border-r-4 border-r-[#5ea37d]' : ''}">
+                    <td class="py-2.5 px-3 text-center font-mono font-bold text-slate-600 dark:text-slate-400 border-l border-slate-200 dark:border-slate-800">${day.dayNumber}</td>
+                    <td class="py-2.5 px-3 whitespace-nowrap border-l border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center gap-1.5 font-bold ${isWeekend ? 'text-[#2e5d42] dark:text-[#88d4aa]' : 'text-slate-800 dark:text-slate-100'}">
+                            <span>${day.dayName}</span>
+                            ${isWeekend ? '<span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#5ea37d] text-white">عطلة</span>' : ''}
+                        </div>
+                        <div class="text-[11px] font-mono font-bold ${isWeekend ? 'text-[#3b7353] dark:text-[#72c798]' : 'text-slate-500 dark:text-slate-400'}">${formatArabicDateNumbers(day.date)}</div>
                     </td>
                     ${renderShiftCellHTML('dc', day.dayNumber, day.date, 'doctor', day.doctor)}
-                    <td class="py-2.5 px-3 text-slate-500">
+                    <td class="py-2.5 px-3 text-slate-500 border-l border-slate-200 dark:border-slate-800">
                         ${hasHospDuty ? `
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
                                 <i class="fas fa-circle-check text-emerald-500"></i>
@@ -2314,15 +2361,15 @@
             <!-- Filter Bar -->
             ${renderScheduleFilterBar('rs', shifts)}
 
-            <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="overflow-x-auto rounded-2xl border border-slate-300 dark:border-slate-700 shadow-sm">
                 <table class="w-full text-right border-collapse text-xs">
                     <thead>
-                        <tr class="bg-amber-100/60 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-900/60 text-slate-800 dark:text-slate-200">
-                            <th class="py-3 px-3 w-12 text-center font-bold">#</th>
-                            <th class="py-3 px-3 w-28 font-bold">اليوم والتاريخ</th>
+                        <tr class="bg-slate-900 text-white dark:bg-black dark:text-white border-b-2 border-slate-800 text-xs font-black select-none">
+                            <th class="py-3 px-3 w-12 text-center font-bold border-l border-slate-800">#</th>
+                            <th class="py-3 px-3 w-32 font-bold border-l border-slate-800">اليوم والتاريخ</th>
                             ${shifts.map(s => `
-                                <th onclick="quickFilterByShift('${s.key}')" class="py-3 px-3 font-bold cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition select-none ${state.scheduleShiftFilter !== 'all' && state.scheduleShiftFilter !== s.key ? 'opacity-40' : ''}" title="انقر لتصفية الجدول بهذه الوجبة">
-                                    <div class="flex items-center gap-1.5">
+                                <th onclick="quickFilterByShift('${s.key}')" class="py-3 px-3 font-bold cursor-pointer hover:bg-slate-800 transition select-none border-l border-slate-800 ${state.scheduleShiftFilter !== 'all' && state.scheduleShiftFilter !== s.key ? 'opacity-40' : ''}" title="انقر لتصفية الجدول بهذه الوجبة">
+                                    <div class="flex items-center gap-1.5 text-white">
                                         <i class="fas ${s.icon} ${s.color}"></i>
                                         <span>${s.label}</span>
                                     </div>
@@ -2330,28 +2377,33 @@
                             `).join('')}
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
         `;
 
         const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
         const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || getDaysInMonth(state.year, state.month);
 
         filteredDays.forEach(day => {
+            const isWeekend = day.dayName === 'الجمعة' || day.dayName === 'السبت';
             const inRsPeriod = day.dayNumber >= startDay && day.dayNumber <= endDay;
             const hasNames = shifts.some(s => day[s.key] && day[s.key].trim());
+            const weekendClass = isWeekend ? 'bg-[#5ea37d]/15 dark:bg-[#5ea37d]/20 border-r-4 border-r-[#5ea37d]' : '';
             const rowClass = inRsPeriod 
-                ? (hasNames ? 'bg-amber-50/50 dark:bg-amber-950/20 font-medium' : 'bg-slate-50/30 dark:bg-slate-800/20') 
+                ? (weekendClass || (hasNames ? 'bg-amber-50/50 dark:bg-amber-950/20 font-medium' : 'bg-slate-50/30 dark:bg-slate-800/20')) 
                 : 'opacity-40 bg-slate-50/10';
 
             html += `
-                <tr data-day="${day.dayNumber}" data-dayname="${day.dayName}" data-date="${day.date}" class="hover:bg-amber-50/80 dark:hover:bg-amber-950/40 transition ${rowClass}">
-                    <td class="py-2.5 px-3 text-center font-mono font-bold text-slate-500">
+                <tr data-day="${day.dayNumber}" data-dayname="${day.dayName}" data-date="${day.date}" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition border-b border-slate-200 dark:border-slate-800/80 ${rowClass}">
+                    <td class="py-2.5 px-3 text-center font-mono font-bold text-slate-600 dark:text-slate-400 border-l border-slate-200 dark:border-slate-800">
                         ${day.dayNumber}
                         ${inRsPeriod ? '<span class="block w-1.5 h-1.5 rounded-full bg-amber-500 mx-auto mt-0.5"></span>' : ''}
                     </td>
-                    <td class="py-2.5 px-3 whitespace-nowrap">
-                        <div class="font-bold text-slate-800 dark:text-slate-100">${day.dayName}</div>
-                        <div class="text-[11px] font-mono text-slate-400">${day.date}</div>
+                    <td class="py-2.5 px-3 whitespace-nowrap border-l border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center gap-1.5 font-bold ${isWeekend ? 'text-[#2e5d42] dark:text-[#88d4aa]' : 'text-slate-800 dark:text-slate-100'}">
+                            <span>${day.dayName}</span>
+                            ${isWeekend ? '<span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#5ea37d] text-white">عطلة</span>' : ''}
+                        </div>
+                        <div class="text-[11px] font-mono font-bold ${isWeekend ? 'text-[#3b7353] dark:text-[#72c798]' : 'text-slate-500 dark:text-slate-400'}">${formatArabicDateNumbers(day.date)}</div>
                     </td>
                     ${shifts.map(s => renderShiftCellHTML('rs', day.dayNumber, day.date, s.key, day[s.key])).join('')}
                 </tr>
@@ -2412,15 +2464,15 @@
             <!-- Filter Bar -->
             ${renderScheduleFilterBar('rs', wards)}
 
-            <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="overflow-x-auto rounded-2xl border border-slate-300 dark:border-slate-700 shadow-sm">
                 <table class="w-full text-right border-collapse text-xs">
                     <thead>
-                        <tr class="bg-amber-100/60 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-900/60 text-slate-800 dark:text-slate-200">
-                            <th class="py-3 px-3 w-12 text-center font-bold">#</th>
-                            <th class="py-3 px-3 w-28 font-bold">اليوم والتاريخ</th>
+                        <tr class="bg-slate-900 text-white dark:bg-black dark:text-white border-b-2 border-slate-800 text-xs font-black select-none">
+                            <th class="py-3 px-3 w-12 text-center font-bold border-l border-slate-800">#</th>
+                            <th class="py-3 px-3 w-32 font-bold border-l border-slate-800">اليوم والتاريخ</th>
                             ${wards.map(w => `
-                                <th class="py-3 px-3 font-bold ${state.scheduleShiftFilter !== 'all' && state.scheduleShiftFilter !== w.key ? 'opacity-40' : ''}">
-                                    <div class="flex items-center gap-1.5">
+                                <th class="py-3 px-3 font-bold border-l border-slate-800 ${state.scheduleShiftFilter !== 'all' && state.scheduleShiftFilter !== w.key ? 'opacity-40' : ''}">
+                                    <div class="flex items-center gap-1.5 text-white">
                                         <i class="fas ${w.icon} ${w.color}"></i>
                                         <span>${w.label}</span>
                                     </div>
@@ -2428,28 +2480,33 @@
                             `).join('')}
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
         `;
 
         const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
         const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || getDaysInMonth(state.year, state.month);
 
         filteredDays.forEach(day => {
+            const isWeekend = day.dayName === 'الجمعة' || day.dayName === 'السبت';
             const inRsPeriod = day.dayNumber >= startDay && day.dayNumber <= endDay;
             const hasNames = wards.some(w => day[w.key] && day[w.key].trim());
+            const weekendClass = isWeekend ? 'bg-[#5ea37d]/15 dark:bg-[#5ea37d]/20 border-r-4 border-r-[#5ea37d]' : '';
             const rowClass = inRsPeriod 
-                ? (hasNames ? 'bg-amber-50/50 dark:bg-amber-950/20 font-medium' : 'bg-slate-50/30 dark:bg-slate-800/20') 
+                ? (weekendClass || (hasNames ? 'bg-amber-50/50 dark:bg-amber-950/20 font-medium' : 'bg-slate-50/30 dark:bg-slate-800/20')) 
                 : 'opacity-40 bg-slate-50/10';
 
             html += `
-                <tr data-day="${day.dayNumber}" data-dayname="${day.dayName}" data-date="${day.date}" class="hover:bg-amber-50/80 dark:hover:bg-amber-950/40 transition ${rowClass}">
-                    <td class="py-2.5 px-3 text-center font-mono font-bold text-slate-500">
+                <tr data-day="${day.dayNumber}" data-dayname="${day.dayName}" data-date="${day.date}" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition border-b border-slate-200 dark:border-slate-800/80 ${rowClass}">
+                    <td class="py-2.5 px-3 text-center font-mono font-bold text-slate-600 dark:text-slate-400 border-l border-slate-200 dark:border-slate-800">
                         ${day.dayNumber}
                         ${inRsPeriod ? '<span class="block w-1.5 h-1.5 rounded-full bg-amber-500 mx-auto mt-0.5"></span>' : ''}
                     </td>
-                    <td class="py-2.5 px-3 whitespace-nowrap">
-                        <div class="font-bold text-slate-800 dark:text-slate-100">${day.dayName}</div>
-                        <div class="text-[11px] font-mono text-slate-400">${day.date}</div>
+                    <td class="py-2.5 px-3 whitespace-nowrap border-l border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center gap-1.5 font-bold ${isWeekend ? 'text-[#2e5d42] dark:text-[#88d4aa]' : 'text-slate-800 dark:text-slate-100'}">
+                            <span>${day.dayName}</span>
+                            ${isWeekend ? '<span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#5ea37d] text-white">عطلة</span>' : ''}
+                        </div>
+                        <div class="text-[11px] font-mono font-bold ${isWeekend ? 'text-[#3b7353] dark:text-[#72c798]' : 'text-slate-500 dark:text-slate-400'}">${formatArabicDateNumbers(day.date)}</div>
                     </td>
                     ${wards.map(w => renderShiftCellHTML('rs', day.dayNumber, day.date, w.key, day[w.key])).join('')}
                 </tr>
@@ -2472,11 +2529,14 @@
     function renderShiftCellHTML(tableType, dayNumber, dateStr, slotKey, assignedDoctor) {
         if (!assignedDoctor || !assignedDoctor.trim()) {
             return `
-                <td class="py-2 px-3" data-slot="${slotKey}" data-doc="" data-conflict="false" data-outside-pref="false">
+                <td class="py-2 px-3 bg-rose-50/50 dark:bg-rose-950/20 border-l border-slate-200 dark:border-slate-800" data-slot="${slotKey}" data-doc="" data-conflict="false" data-outside-pref="false">
                     <button type="button" onclick="openDoctorPicker('${tableType}', ${dayNumber}, '${slotKey}', '${slotKey}')" 
-                        class="w-full text-right py-1.5 px-2.5 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 hover:border-rose-400 dark:hover:border-rose-600 text-slate-400 hover:text-rose-600 text-[11px] transition flex items-center justify-between group">
-                        <span>+ تعيين خافر</span>
-                        <i class="fas fa-plus text-[10px] opacity-0 group-hover:opacity-100 transition"></i>
+                        class="w-full text-right py-1.5 px-2.5 rounded-xl border border-dashed border-rose-300 dark:border-rose-700/80 bg-rose-50/80 dark:bg-rose-900/20 hover:border-rose-500 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-600 dark:text-rose-400 font-bold text-[11px] transition flex items-center justify-between group shadow-xs">
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                            <span>شاغر (تعيين)</span>
+                        </span>
+                        <i class="fas fa-plus text-[10px] text-rose-500 group-hover:scale-125 transition-transform"></i>
                     </button>
                 </td>
             `;
@@ -2522,7 +2582,7 @@
         const highlightClasses = isHighlight ? ' bg-amber-300 dark:bg-amber-500/40 text-amber-950 dark:text-amber-100 ring-2 ring-amber-500 shadow-xs px-1.5 py-0.5 rounded-md font-black' : '';
 
         return `
-            <td class="py-2 px-3" data-slot="${slotKey}" data-doc="${escapeForInline(assignedDoctor)}" data-conflict="${conflictInfo.hasConflict ? 'true' : 'false'}" data-outside-pref="${hasPrefOverride ? 'true' : 'false'}">
+            <td class="py-2 px-3 border-l border-slate-200 dark:border-slate-800" data-slot="${slotKey}" data-doc="${escapeForInline(assignedDoctor)}" data-conflict="${conflictInfo.hasConflict ? 'true' : 'false'}" data-outside-pref="${hasPrefOverride ? 'true' : 'false'}">
                 <div class="flex items-center justify-between group py-1 px-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 hover:border-slate-400 transition">
                     <div class="flex items-center truncate cursor-pointer flex-1" onclick="openDoctorPicker('${tableType}', ${dayNumber}, '${slotKey}', '${slotKey}')">
                         <span class="doc-name-span font-bold text-slate-800 dark:text-slate-100 truncate${highlightClasses}">${assignedDoctor}</span>
@@ -4668,6 +4728,64 @@
     // 10. OFFICIAL MINISTERIAL PRINTING LAYOUT (FITS STRICTLY ON A SINGLE A4 PAGE)
     // =========================================================================
 
+    function countIncompleteScheduleSlots(sheetKey) {
+        let emptyCount = 0;
+        let totalSlots = 0;
+
+        if (sheetKey === 'er') {
+            const slots = ['morning', 'afternoon', 'preNight', 'lateNight'];
+            (state.schedules.er || []).forEach(day => {
+                slots.forEach(s => {
+                    totalSlots++;
+                    if (!day[s] || !day[s].trim()) emptyCount++;
+                });
+            });
+        } else if (sheetKey === 'con') {
+            (state.schedules.con || []).forEach(day => {
+                totalSlots++;
+                if (!day.doctor || !day.doctor.trim()) emptyCount++;
+            });
+        } else if (sheetKey === 'dc') {
+            (state.schedules.dc || []).forEach(day => {
+                totalSlots++;
+                if (!day.doctor || !day.doctor.trim()) emptyCount++;
+            });
+        } else if (sheetKey === 'rs_er') {
+            const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
+            const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || getDaysInMonth(state.year, state.month);
+            const slots = ['er_morning', 'er_afternoon', 'er_preNight', 'er_lateNight'];
+            (state.schedules.rs || []).forEach(day => {
+                if (day.dayNumber >= startDay && day.dayNumber <= endDay) {
+                    slots.forEach(s => {
+                        totalSlots++;
+                        if (!day[s] || !day[s].trim()) emptyCount++;
+                    });
+                }
+            });
+        } else if (sheetKey === 'rs_wards') {
+            const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
+            const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || getDaysInMonth(state.year, state.month);
+            const slots = ['ward_private', 'ward_floor4', 'ward_floor5'];
+            (state.schedules.rs || []).forEach(day => {
+                if (day.dayNumber >= startDay && day.dayNumber <= endDay) {
+                    slots.forEach(s => {
+                        totalSlots++;
+                        if (!day[s] || !day[s].trim()) emptyCount++;
+                    });
+                }
+            });
+        } else if (sheetKey === 'rs') {
+            const erIncomplete = countIncompleteScheduleSlots('rs_er');
+            const wardsIncomplete = countIncompleteScheduleSlots('rs_wards');
+            return {
+                emptyCount: erIncomplete.emptyCount + wardsIncomplete.emptyCount,
+                totalSlots: erIncomplete.totalSlots + wardsIncomplete.totalSlots
+            };
+        }
+
+        return { emptyCount, totalSlots };
+    }
+
     function prepareOfficialPrint(targetSheet) {
         const printContainer = document.getElementById('official-print-area');
         if (!printContainer) return;
@@ -4680,8 +4798,17 @@
             rs_wards: 'في إضراب ردهات الإسناد (RS)'
         };
 
-        const activeSheet = targetSheet || state.activeTab;
+        const activeSheet = targetSheet || (state.activeTab === 'rs' ? 'rs_er' : (state.activeTab || 'er'));
         const targetTitle = sheetNames[activeSheet] || 'في الطوارئ';
+
+        // Check for incomplete schedule and notify user before proceeding to print
+        const incompleteInfo = countIncompleteScheduleSlots(activeSheet);
+        if (incompleteInfo.emptyCount > 0) {
+            const proceed = window.confirm(`⚠️ تنبيه: جدول خفارات ${targetTitle} غير مكتمل!\n\nيوجد (${incompleteInfo.emptyCount}) خفارة شاغرة غير معينة من إجمالي (${incompleteInfo.totalSlots}) خفارة.\n\nهل ترغب بالاستمرار والطباعة على أية حال؟`);
+            if (!proceed) {
+                return;
+            }
+        }
 
         const opts = state.printOptions || PRINT_THEME_PRESETS.official;
         const thStyle = `background-color: ${opts.headerBg} !important; color: ${opts.headerText} !important; border: 1px solid ${opts.borderColor} !important; font-weight: 900; padding: 2.5px 3.5px !important; text-align: center;`;
@@ -4880,15 +5007,17 @@
                 </div>
 
                 <!-- 6. SIGNATURES (MATCHING PDF: HEAD OF RESIDENTS RIGHT, HOSPITAL DIRECTOR LEFT) -->
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 10px; font-size: 8.5pt;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 8px; font-size: 8.5pt;">
                     <!-- Head of Residents (Right) -->
                     <div style="width: 45%; text-align: center;">
+                        <div style="height: 52px; min-height: 50px;"></div>
                         <div style="font-weight: bold; font-size: 9pt;">${state.headOfResidents || 'د. محمد راضي خضر'}</div>
                         <div style="font-weight: bold; font-size: 8pt; margin-top: 1px;">رئيس الأطباء المقيمين</div>
                     </div>
 
                     <!-- Hospital Director (Left) -->
                     <div style="width: 45%; text-align: center;">
+                        <div style="height: 52px; min-height: 50px;"></div>
                         <div style="font-size: 7.5pt; font-weight: bold;">الطبيب الاخصائي</div>
                         <div style="font-weight: bold; font-size: 9pt;">${state.headOfHospital || 'د. علي عبد معن'}</div>
                         <div style="font-weight: bold; font-size: 8pt; margin-top: 1px;">مدير ${state.hospitalName}</div>
@@ -5195,13 +5324,17 @@
         handleSaveNewResident,
         prepareOfficialPrint,
         exportFullScheduleToExcel,
-        resetEmergencyToDefaults
+        resetEmergencyToDefaults,
+        getDefaultPeriodByDay18Rule,
+        countIncompleteScheduleSlots
     };
 
     // Global direct aliases for inline HTML attributes
     window.switchTab = switchTab;
     window.exportFullScheduleToExcel = exportFullScheduleToExcel;
     window.resetEmergencyToDefaults = resetEmergencyToDefaults;
+    window.getDefaultPeriodByDay18Rule = getDefaultPeriodByDay18Rule;
+    window.countIncompleteScheduleSlots = countIncompleteScheduleSlots;
     window.openDoctorPicker = openDoctorPicker;
     window.closeDoctorPickerModal = closeDoctorPickerModal;
     window.filterPickerList = filterPickerList;

@@ -992,6 +992,31 @@
         applyScheduleLiveFilter('');
     }
 
+    
+    // Backward compatibility aliases
+    function onScheduleSearchInput(type, val) {
+        applyScheduleLiveFilter(val);
+    }
+    function onScheduleShiftFilterChange(type, val) {
+        onScheduleShiftFilter(val);
+    }
+    function onScheduleDayFilterChange(type, val) {
+        onScheduleDayFilter(val);
+    }
+    function onScheduleStatusFilterChange(type, val) {
+        if (val === 'empty_only') {
+            state.scheduleEmptyOnly = true;
+            state.scheduleConflictOnly = false;
+        } else if (val === 'conflict_only') {
+            state.scheduleEmptyOnly = false;
+            state.scheduleConflictOnly = true;
+        } else {
+            state.scheduleEmptyOnly = false;
+            state.scheduleConflictOnly = false;
+        }
+        applyScheduleLiveFilter(state.scheduleSearchQuery);
+    }
+
     function resetScheduleFilters(type) {
         state.scheduleSearchQuery = '';
         state.scheduleDoctorFilter = '';
@@ -1125,6 +1150,61 @@
     }
 
     // =========================================================================
+    
+    // =========================================================================
+    // FILTER ROW HELPER
+    // =========================================================================
+
+    function filterDayRow(day, type, shiftKeys) {
+        if (!day) return false;
+        const cleanQ = normalizeArabic(state.scheduleSearchQuery || '').toLowerCase();
+
+        // 1. Day of week filter
+        const isWeekend = day.dayName === 'الجمعة' || day.dayName === 'السبت';
+        if (state.scheduleDayFilter === 'weekend' && !isWeekend) return false;
+        if (state.scheduleDayFilter === 'weekday' && isWeekend) return false;
+
+        // 2. Doctor selector filter
+        if (state.scheduleDoctorFilter) {
+            const cleanDoc = normalizeArabic(state.scheduleDoctorFilter).toLowerCase();
+            const hasDoctor = (shiftKeys || []).some(k => day[k] && normalizeArabic(day[k]).toLowerCase() === cleanDoc);
+            if (!hasDoctor) return false;
+        }
+
+        // 3. Shift filter
+        if (state.scheduleShiftFilter && state.scheduleShiftFilter !== 'all') {
+            if ((shiftKeys || []).includes(state.scheduleShiftFilter)) {
+                // If checking specific shift, verify it has a doctor or is valid
+            }
+        }
+
+        // 4. Empty filter
+        if (state.scheduleEmptyOnly) {
+            const hasEmpty = (shiftKeys || []).some(k => !day[k] || !day[k].trim());
+            if (!hasEmpty) return false;
+        }
+
+        // 5. Conflict filter
+        if (state.scheduleConflictOnly) {
+            const hasConflict = (shiftKeys || []).some(k => {
+                const doc = day[k];
+                if (!doc) return false;
+                const evalRes = evaluateCellConflict(doc, day.date, type, k);
+                return evalRes && evalRes.hasConflict;
+            });
+            if (!hasConflict) return false;
+        }
+
+        // 6. Search query matching
+        if (cleanQ) {
+            const matchesDayOrDate = normalizeArabic(day.dayName || '').toLowerCase().includes(cleanQ) || (day.date || '').includes(cleanQ);
+            const matchesDoctor = (shiftKeys || []).some(k => day[k] && normalizeArabic(day[k]).toLowerCase().includes(cleanQ));
+            if (!matchesDayOrDate && !matchesDoctor) return false;
+        }
+
+        return true;
+    }
+
     // 1. ER VIEW (خفارات الطوارئ: 4 وجبات يومياً)
     // =========================================================================
 
@@ -3961,6 +4041,20 @@
     window.deleteResident = deleteResident;
     window.downloadEmergencyDbJson = downloadEmergencyDbJson;
     window.prepareOfficialPrint = prepareOfficialPrint;
+
+    
+    // Expose all interactive live filter functions globally
+    window.applyScheduleLiveFilter = applyScheduleLiveFilter;
+    window.onScheduleDoctorFilter = onScheduleDoctorFilter;
+    window.onScheduleShiftFilter = onScheduleShiftFilter;
+    window.onScheduleDayFilter = onScheduleDayFilter;
+    window.onScheduleEmptyToggle = onScheduleEmptyToggle;
+    window.onScheduleConflictToggle = onScheduleConflictToggle;
+    window.quickFilterByShift = quickFilterByShift;
+    window.clearScheduleSearch = clearScheduleSearch;
+    window.applyDBLiveFilter = applyDBLiveFilter;
+    window.clearDBSearch = clearDBSearch;
+    window.resetDBFilters = resetDBFilters;
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initEmergencyApp);

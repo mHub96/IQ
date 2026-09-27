@@ -51,6 +51,8 @@
         scheduleStatusFilter: 'all',
         // In-schedule preference override notes
         prefOverrides: {},
+        monthlySchedules: {},
+        hospitalResidents: {},
         residents: [],
         schedules: {
             er: [],
@@ -167,6 +169,17 @@
         // 4. Ensure schedule integrity
         ensureScheduleIntegrity();
 
+        // 4b. Initialize in-memory cache for monthly schedules and hospital residents
+        if (!state.monthlySchedules) state.monthlySchedules = {};
+        if (!state.hospitalResidents) state.hospitalResidents = {};
+        const initKey = `${state.hospitalId}_${state.year}_${state.month}`;
+        if (!state.monthlySchedules[initKey] && state.schedules) {
+            state.monthlySchedules[initKey] = JSON.parse(JSON.stringify(state.schedules));
+        }
+        if (!state.hospitalResidents[state.hospitalId] && state.residents && state.residents.length > 0) {
+            state.hospitalResidents[state.hospitalId] = JSON.parse(JSON.stringify(state.residents));
+        }
+
         // 5. Initialize Hospital Selector from Hub
         initHospitalSelector();
 
@@ -187,12 +200,26 @@
             if (!Array.isArray(state.schedules[type])) {
                 state.schedules[type] = [];
             }
+            
+            const existingEntries = state.schedules[type];
+            const newSchedule = [];
+            
             for (let d = 1; d <= daysCount; d++) {
                 const dateStr = formatDateStr(state.year, state.month, d);
                 const dayName = getArabicDayName(state.year, state.month, d);
-                let entry = state.schedules[type].find(s => s.dayNumber === d);
                 
+                // Match by exact date first, then by dayNumber (preventing duplicate assignments)
+                let entry = existingEntries.find(s => s && s.date === dateStr);
                 if (!entry) {
+                    entry = existingEntries.find(s => s && s.dayNumber === d && !newSchedule.some(ns => ns.dayNumber === d));
+                }
+                
+                if (entry) {
+                    entry = Object.assign({}, entry);
+                    entry.dayNumber = d;
+                    entry.date = dateStr;
+                    entry.dayName = dayName;
+                } else {
                     if (type === 'er') {
                         entry = { dayNumber: d, date: dateStr, dayName, morning: '', afternoon: '', preNight: '', lateNight: '', notes: '' };
                     } else if (type === 'con' || type === 'dc') {
@@ -200,17 +227,125 @@
                     } else if (type === 'rs') {
                         entry = { dayNumber: d, date: dateStr, dayName, er_morning: '', er_afternoon: '', er_preNight: '', er_lateNight: '', ward_private: '', ward_floor4: '', ward_floor5: '' };
                     }
-                    state.schedules[type].push(entry);
-                } else {
-                    entry.date = dateStr;
-                    entry.dayName = dayName;
                 }
+                newSchedule.push(entry);
             }
-            state.schedules[type].sort((a, b) => a.dayNumber - b.dayNumber);
+            // Strict replacement: exactly daysCount elements, exactly 1..daysCount
+            state.schedules[type] = newSchedule;
         });
     }
 
+    function saveCurrentMonthScheduleToStore() {
+        if (!state.monthlySchedules) state.monthlySchedules = {};
+        const key = `${state.hospitalId}_${state.year}_${state.month}`;
+        if (state.schedules) {
+            state.monthlySchedules[key] = JSON.parse(JSON.stringify(state.schedules));
+        }
+    }
+
+    function saveCurrentHospitalResidents() {
+        if (!state.hospitalResidents) state.hospitalResidents = {};
+        if (state.hospitalId && Array.isArray(state.residents)) {
+            state.hospitalResidents[state.hospitalId] = JSON.parse(JSON.stringify(state.residents));
+        }
+    }
+
+    function loadMonthScheduleFromStore(hospId, year, month) {
+        if (!state.monthlySchedules) state.monthlySchedules = {};
+        const key = `${hospId}_${year}_${month}`;
+        if (state.monthlySchedules[key]) {
+            state.schedules = JSON.parse(JSON.stringify(state.monthlySchedules[key]));
+        } else if (hospId === 'iraqi' && year === 2026 && month === 9 && window.DEFAULT_EMERGENCY_DATA && window.DEFAULT_EMERGENCY_DATA.schedules) {
+            state.schedules = JSON.parse(JSON.stringify(window.DEFAULT_EMERGENCY_DATA.schedules));
+        } else {
+            state.schedules = { er: [], con: [], dc: [], rs: [] };
+        }
+        ensureScheduleIntegrity();
+    }
+
+    function importResidentsFromHospital(hospId) {
+        let hubResidents = [];
+        if (window.Hub && typeof window.Hub.getResidents === 'function') {
+            hubResidents = window.Hub.getResidents(hospId) || [];
+        }
+        if (hubResidents.length === 0 && window.Hub && typeof window.Hub.getDatabase === 'function') {
+            const db = window.Hub.getDatabase();
+            if (db && Array.isArray(db.residents)) {
+                hubResidents = db.residents.filter(r => Array.isArray(r.hospitals) && r.hospitals.includes(hospId));
+            }
+        }
+
+        if (hubResidents.length === 0) {
+            showNotification(`لم يتم العثور على أطباء مسجلين لمستشفى "${state.hospitalName}" في HOSP HUB`, 'warning');
+            state.residents = [];
+            if (!state.hospitalResidents) state.hospitalResidents = {};
+            state.hospitalResidents[hospId] = [];
+            saveState();
+            renderActiveTab();
+            return false;
+        }
+
+        const femaleNames = ['فاطمة', 'زينب', 'زهراء', 'مريم', 'نور', 'سارة', 'هدى', 'شهد', 'آية', 'اية', 'رشا', 'دعاء', 'رنا', 'منى', 'اسراء', 'إسراء', 'أمل', 'امل', 'ريم', 'حوراء', 'تبارك', 'ضحى', 'بنين', 'تقى', 'فرح'];
+
+        const mapped = hubResidents.map((r, idx) => {
+            let cleanName = (r.name || '').trim();
+            if (cleanName && !cleanName.startsWith('د.') && !cleanName.startsWith('د ')) {
+                cleanName = 'د. ' + cleanName;
+            }
+
+            let sex = r.sex || 'M';
+            if (!r.sex) {
+                const parts = cleanName.split(/\s+/);
+                if (parts.length > 1) {
+                    const first = parts[1];
+                    if (femaleNames.includes(first) || first.endsWith('ة') || first.endsWith('اء')) {
+                        sex = 'F';
+                    }
+                }
+            }
+
+            let spec = r.spec || r.dept || r.department || 'General';
+            if (window.Hub && typeof window.Hub.getSpecialtyName === 'function') {
+                const sName = window.Hub.getSpecialtyName(spec);
+                if (sName) spec = sName;
+            }
+
+            return {
+                id: `er_${hospId}_${r.id || (idx + 1)}`,
+                row: idx + 1,
+                name: cleanName,
+                sex: sex,
+                specialty: spec,
+                board: r.board || 'None',
+                stage: r.stage || 'الأولى',
+                er_target: 0,
+                con_target: 0,
+                dc_target: 0,
+                rs_target: 0,
+                notes: r.notes || '',
+                active: r.active !== false,
+                hospitals: [hospId],
+                phone: r.phone || '',
+                expiryMonth: '',
+                prefDays: [],
+                prefShifts: [],
+                preferences: { prefDays: [], prefShifts: [] }
+            };
+        });
+
+        state.residents = mapped;
+        if (!state.hospitalResidents) state.hospitalResidents = {};
+        state.hospitalResidents[hospId] = mapped;
+        saveState();
+        updateDutyDashboard();
+        renderActiveTab();
+        showNotification(`تم استيراد ${mapped.length} طبيب مقيم بنجاح لمستشفى ${state.hospitalName}`, 'success');
+        return true;
+    }
+
     function saveState() {
+        saveCurrentMonthScheduleToStore();
+        saveCurrentHospitalResidents();
         localStorage.setItem(STATE_KEY, JSON.stringify(state));
         updateDutyDashboard();
     }
@@ -275,6 +410,13 @@
     }
 
     function onHospitalChange(hospId) {
+        if (hospId === state.hospitalId) return;
+
+        // 1. Save current month schedule & current residents
+        saveCurrentMonthScheduleToStore();
+        saveCurrentHospitalResidents();
+
+        // 2. Set new hospital
         state.hospitalId = hospId;
         let hospName = hospId;
         if (window.Hub && typeof window.Hub.getHospital === 'function') {
@@ -287,12 +429,34 @@
             }
         }
         state.hospitalName = hospName;
+
+        // 3. Load or offer to import residents for this hospital
+        if (!state.hospitalResidents) state.hospitalResidents = {};
+        if (state.hospitalResidents[hospId] && state.hospitalResidents[hospId].length > 0) {
+            state.residents = JSON.parse(JSON.stringify(state.hospitalResidents[hospId]));
+        } else {
+            state.residents = [];
+            const shouldImport = confirm(`مستشفى "${hospName}" لا يحتوي على أطباء مقيمين مسجلين في جدول الطوارئ حالياً.\n\nهل ترغب في استيراد الأطباء المقيمين لهذا المستشفى من قاعدة بيانات HOSP HUB؟`);
+            if (shouldImport) {
+                importResidentsFromHospital(hospId);
+            }
+        }
+
+        // 4. Load schedule for this hospital and current month/year
+        loadMonthScheduleFromStore(hospId, state.year, state.month);
+
         saveState();
+        syncMetaInputsWithState();
+        updateDutyDashboard();
         renderActiveTab();
-        showNotification(`تم التبديل إلى: ${hospName}`, 'info');
+        showNotification(`تم التبديل إلى: ${state.hospitalName}`, 'info');
     }
 
     function onMonthYearChange(monthVal, yearVal) {
+        // 1. Save current month schedule
+        saveCurrentMonthScheduleToStore();
+        
+        // 2. Update month and year
         state.month = parseInt(monthVal) || state.month;
         state.year = parseInt(yearVal) || state.year;
         
@@ -302,10 +466,14 @@
         ];
         state.monthYear = `${monthNames[state.month - 1]} ${state.year}`;
         
-        ensureScheduleIntegrity();
+        // 3. Load schedule for newly selected month
+        loadMonthScheduleFromStore(state.hospitalId, state.year, state.month);
+        
         saveState();
         syncMetaInputsWithState();
+        updateDutyDashboard();
         renderActiveTab();
+        showNotification(`تم التبديل إلى جدول شهر: ${state.monthYear}`, 'info');
     }
 
     function onOrderNumberChange(val) {
@@ -473,13 +641,13 @@
             }
         }
 
-        // 5. Hospital On-Call Duty (h.schedule)
+        // 5. Hospital On-Call Duty (checking the resident's registered hospital via Hub)
         const hospDuties = getHospitalDutiesForDoctor(doctorName, dateStr);
         hospDuties.forEach(hd => {
             duties.push({
                 type: 'hospital',
                 slotKey: hd.specCode,
-                label: `خفارة اختصاص في المستشفى: ${hd.specName}`
+                label: hd.hospitalName ? `خفارة اختصاص رسمية في ${hd.hospitalName}: ${hd.specName}` : `خفارة اختصاص في المستشفى: ${hd.specName}`
             });
         });
 
@@ -487,9 +655,37 @@
     }
 
     function getHospitalDutiesForDoctor(doctorName, dateStr) {
+        if (!doctorName || !doctorName.trim()) return [];
         if (!window.Hub || typeof window.Hub.getHospital !== 'function') return [];
-        const hosp = window.Hub.getHospital(state.hospitalId);
-        if (!hosp || !Array.isArray(hosp.schedule)) return [];
+
+        const cleanTarget = normalizeArabic(doctorName);
+        let targetHospIds = [];
+
+        // 1. Check current resident list in ER state
+        const localRes = (state.residents || []).find(r => normalizeArabic(r.name) === cleanTarget);
+        if (localRes && Array.isArray(localRes.hospitals) && localRes.hospitals.length > 0) {
+            targetHospIds = [...localRes.hospitals];
+        } else if (localRes && localRes.hospitalId) {
+            targetHospIds = [localRes.hospitalId];
+        }
+
+        // 2. Check Hub database
+        if (targetHospIds.length === 0 && typeof window.Hub.getResident === 'function') {
+            const hubRes = window.Hub.getResident(doctorName);
+            if (hubRes && Array.isArray(hubRes.hospitals) && hubRes.hospitals.length > 0) {
+                targetHospIds = [...hubRes.hospitals];
+            }
+        }
+
+        // 3. Fallback
+        if (targetHospIds.length === 0) {
+            targetHospIds = [state.hospitalId || 'iraqi'];
+        }
+
+        // Always check active state.hospitalId as well
+        if (state.hospitalId && !targetHospIds.includes(state.hospitalId)) {
+            targetHospIds.push(state.hospitalId);
+        }
 
         const parts = dateStr.split('-');
         const y = parseInt(parts[0], 10);
@@ -497,18 +693,25 @@
         const d = parseInt(parts[2], 10);
         const hospDateStr = formatHospitalDateStr(y, m, d);
 
-        const cleanTarget = normalizeArabic(doctorName);
         const matched = [];
 
-        hosp.schedule.forEach(item => {
-            if (item.date === hospDateStr && item.name && normalizeArabic(item.name) === cleanTarget) {
-                const specName = (window.Hub.getSpecialtyName && window.Hub.getSpecialtyName(item.specCode)) || item.specCode;
-                matched.push({
-                    specCode: item.specCode,
-                    specName: specName,
-                    name: item.name
-                });
-            }
+        targetHospIds.forEach(hId => {
+            const hosp = window.Hub.getHospital(hId);
+            if (!hosp || !Array.isArray(hosp.schedule)) return;
+            const hospName = hosp.name_ar || hosp.hospitalName || hId;
+
+            hosp.schedule.forEach(item => {
+                if (item.date === hospDateStr && item.name && normalizeArabic(item.name) === cleanTarget) {
+                    const specName = (window.Hub.getSpecialtyName && window.Hub.getSpecialtyName(item.specCode)) || item.specCode;
+                    matched.push({
+                        hospitalId: hId,
+                        hospitalName: hospName,
+                        specCode: item.specCode,
+                        specName: specName,
+                        name: item.name
+                    });
+                }
+            });
         });
 
         return matched;
@@ -516,8 +719,6 @@
 
     function getAllHospitalOnCallDoctors(dateStr) {
         if (!window.Hub || typeof window.Hub.getHospital !== 'function') return [];
-        const hosp = window.Hub.getHospital(state.hospitalId);
-        if (!hosp || !Array.isArray(hosp.schedule)) return [];
 
         const parts = dateStr.split('-');
         const y = parseInt(parts[0], 10);
@@ -526,17 +727,35 @@
         const hospDateStr = formatHospitalDateStr(y, m, d);
 
         const onCall = [];
-        hosp.schedule.forEach(item => {
-            if (item.date === hospDateStr && item.name && item.name.trim()) {
-                const specName = (window.Hub.getSpecialtyName && window.Hub.getSpecialtyName(item.specCode)) || item.specCode;
-                onCall.push({
-                    name: item.name,
-                    cleanName: normalizeArabic(item.name),
-                    specCode: item.specCode,
-                    specName: specName
-                });
+        const hospIds = new Set([state.hospitalId || 'iraqi']);
+        (state.residents || []).forEach(r => {
+            if (Array.isArray(r.hospitals)) {
+                r.hospitals.forEach(h => hospIds.add(h));
+            } else if (r.hospitalId) {
+                hospIds.add(r.hospitalId);
             }
         });
+
+        hospIds.forEach(hId => {
+            const hosp = window.Hub.getHospital(hId);
+            if (!hosp || !Array.isArray(hosp.schedule)) return;
+            const hospName = hosp.name_ar || hosp.hospitalName || hId;
+
+            hosp.schedule.forEach(item => {
+                if (item.date === hospDateStr && item.name && item.name.trim()) {
+                    const specName = (window.Hub.getSpecialtyName && window.Hub.getSpecialtyName(item.specCode)) || item.specCode;
+                    onCall.push({
+                        name: item.name,
+                        cleanName: normalizeArabic(item.name),
+                        hospitalId: hId,
+                        hospitalName: hospName,
+                        specCode: item.specCode,
+                        specName: specName
+                    });
+                }
+            });
+        });
+
         return onCall;
     }
 
@@ -1197,9 +1416,9 @@
         document.querySelectorAll('.tab-btn').forEach(btn => {
             const isTarget = btn.getAttribute('data-tab') === tabId;
             if (isTarget) {
-                btn.className = 'tab-btn active-tab flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-2 bg-rose-600 text-white shadow-sm';
+                btn.className = 'tab-btn active-tab shrink-0 h-9 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 bg-rose-600 text-white shadow-xs whitespace-nowrap';
             } else {
-                btn.className = 'tab-btn flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:white';
+                btn.className = 'tab-btn shrink-0 h-9 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap';
             }
         });
 
@@ -1417,7 +1636,9 @@
             const input = document.getElementById('sched-search-input');
             if (input) state.scheduleSearchQuery = input.value.trim();
         }
-        const cleanQ = normalizeArabic(state.scheduleSearchQuery).toLowerCase();
+        const cleanQ = normalizeArabic(state.scheduleSearchQuery || '').toLowerCase();
+        const cleanDocFilter = normalizeArabic(state.scheduleDoctorFilter || '').toLowerCase();
+        const targetHighlight = cleanQ || cleanDocFilter;
 
         const tableBody = document.querySelector('#schedule-view-container tbody');
         if (!tableBody) return;
@@ -1449,32 +1670,30 @@
                 if (isConflicted) hasConflict = true;
 
                 const isShiftEligible = (state.scheduleShiftFilter === 'all' || state.scheduleShiftFilter === slotKey);
+                const cleanDoc = normalizeArabic(docName).toLowerCase();
+
+                const isMatch = targetHighlight && isShiftEligible && cleanDoc && (
+                    (cleanQ && cleanDoc.includes(cleanQ)) ||
+                    (cleanDocFilter && cleanDoc === cleanDocFilter)
+                );
 
                 const docSpan = td.querySelector('.doc-name-span');
-                if (cleanQ && isShiftEligible && docName && normalizeArabic(docName).toLowerCase().includes(cleanQ)) {
+                if (isMatch) {
                     hasNameMatch = true;
                     matchedDuties++;
                     if (docSpan) {
-                        docSpan.classList.add('bg-rose-100', 'dark:bg-rose-950', 'text-rose-800', 'dark:text-rose-200', 'ring-2', 'ring-rose-500', 'px-1.5', 'py-0.5', 'rounded-md', 'font-black');
+                        docSpan.classList.add('bg-amber-300', 'dark:bg-amber-500/40', 'text-amber-950', 'dark:text-amber-100', 'ring-2', 'ring-amber-500', 'shadow-xs', 'px-1.5', 'py-0.5', 'rounded-md', 'font-black');
                     }
                 } else {
                     if (docSpan) {
-                        docSpan.classList.remove('bg-rose-100', 'dark:bg-rose-950', 'text-rose-800', 'dark:text-rose-200', 'ring-2', 'ring-rose-500', 'px-1.5', 'py-0.5', 'rounded-md', 'font-black');
+                        docSpan.classList.remove('bg-amber-300', 'dark:bg-amber-500/40', 'text-amber-950', 'dark:text-amber-100', 'ring-2', 'ring-amber-500', 'shadow-xs', 'px-1.5', 'py-0.5', 'rounded-md', 'font-black');
                     }
                 }
             });
 
             // Doctor dropdown filter
             if (state.scheduleDoctorFilter) {
-                const cleanDocFilter = normalizeArabic(state.scheduleDoctorFilter).toLowerCase();
-                let matchesDoc = false;
-                cells.forEach(td => {
-                    const docName = td.getAttribute('data-doc') || '';
-                    if (docName && normalizeArabic(docName).toLowerCase() === cleanDocFilter) {
-                        matchesDoc = true;
-                    }
-                });
-                if (!matchesDoc) { tr.style.display = 'none'; return; }
+                if (!hasNameMatch) { tr.style.display = 'none'; return; }
             }
 
             // Empty filter
@@ -1507,7 +1726,7 @@
         if (badge) {
             const hasAnyActiveFilter = cleanQ || state.scheduleDoctorFilter || state.scheduleShiftFilter !== 'all' || state.scheduleDayFilter !== 'all' || state.scheduleEmptyOnly || state.scheduleConflictOnly;
             if (hasAnyActiveFilter) {
-                badge.textContent = cleanQ 
+                badge.textContent = targetHighlight 
                     ? `تم العثور على ${matchedDuties} خفارة في ${matchedDays} يوم` 
                     : `معروض ${matchedDays} يوم`;
                 badge.classList.remove('hidden');
@@ -2049,11 +2268,17 @@
             `;
         }
 
+        const cleanQ = normalizeArabic(state.scheduleSearchQuery || '').toLowerCase();
+        const cleanDocFilter = normalizeArabic(state.scheduleDoctorFilter || '').toLowerCase();
+        const cleanDocName = normalizeArabic(assignedDoctor).toLowerCase();
+        const isHighlight = (cleanQ && cleanDocName.includes(cleanQ)) || (cleanDocFilter && cleanDocName === cleanDocFilter);
+        const highlightClasses = isHighlight ? ' bg-amber-300 dark:bg-amber-500/40 text-amber-950 dark:text-amber-100 ring-2 ring-amber-500 shadow-xs px-1.5 py-0.5 rounded-md font-black' : '';
+
         return `
             <td class="py-2 px-3" data-slot="${slotKey}" data-doc="${escapeForInline(assignedDoctor)}" data-conflict="${conflictInfo.hasConflict ? 'true' : 'false'}" data-outside-pref="${hasPrefOverride ? 'true' : 'false'}">
                 <div class="flex items-center justify-between group py-1 px-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 hover:border-slate-400 transition">
                     <div class="flex items-center truncate cursor-pointer flex-1" onclick="openDoctorPicker('${tableType}', ${dayNumber}, '${slotKey}', '${slotKey}')">
-                        <span class="doc-name-span font-bold text-slate-800 dark:text-slate-100 truncate">${assignedDoctor}</span>
+                        <span class="doc-name-span font-bold text-slate-800 dark:text-slate-100 truncate${highlightClasses}">${assignedDoctor}</span>
                         ${badgeHTML}
                         ${overrideBadge}
                     </div>
@@ -2107,6 +2332,12 @@
                         <button type="button" onclick="toggleShowInactiveInDB()" class="px-3 py-1.5 rounded-xl text-xs font-bold ${state.showInactiveInDB ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'} hover:bg-slate-200 transition flex items-center gap-1.5">
                             <i class="fas ${state.showInactiveInDB ? 'fa-eye' : 'fa-eye-slash'}"></i>
                             <span>${state.showInactiveInDB ? 'إخفاء غير النشطين' : `إظهار غير النشطين (${inactiveList.length})`}</span>
+                        </button>
+
+                        <!-- Import Residents from Selected Hospital -->
+                        <button type="button" onclick="importResidentsFromHospital(state.hospitalId)" class="px-3 py-1.5 rounded-xl text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 hover:bg-teal-100 transition flex items-center gap-1.5 shadow-xs" title="استيراد وتحديث الأطباء من قاعدة المستشفى في HOSP HUB">
+                            <i class="fas fa-file-import"></i>
+                            <span>استيراد أطباء المستشفى</span>
                         </button>
 
                         <button type="button" onclick="openHospitalSyncModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-sky-700 bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition flex items-center gap-1.5">
@@ -2343,6 +2574,71 @@
         applyDBLiveFilter('');
     }
 
+    function renderSexBubbleHTML(r) {
+        if (r.sex === 'F') {
+            return `<button type="button" onclick="toggleResidentSex('${r.id}')" class="px-2.5 py-1 rounded-full text-xs font-black transition-all shadow-xs cursor-pointer bg-pink-100 dark:bg-pink-950/60 text-pink-700 dark:text-pink-300 border border-pink-300 dark:border-pink-800 hover:scale-105 active:scale-95 inline-flex items-center gap-1 select-none" title="انقر للتبديل إلى ذكر">
+                <i class="fas fa-venus text-[10px]"></i>
+                <span>أنثى</span>
+            </button>`;
+        } else {
+            return `<button type="button" onclick="toggleResidentSex('${r.id}')" class="px-2.5 py-1 rounded-full text-xs font-black transition-all shadow-xs cursor-pointer bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-800 hover:scale-105 active:scale-95 inline-flex items-center gap-1 select-none" title="انقر للتبديل إلى أنثى">
+                <i class="fas fa-mars text-[10px]"></i>
+                <span>ذكر</span>
+            </button>`;
+        }
+    }
+
+    function renderBoardBubbleHTML(r) {
+        const board = r.board || 'None';
+        if (board === 'Iraqi') {
+            return `<button type="button" onclick="cycleResidentBoard('${r.id}')" class="px-2.5 py-1 rounded-full text-xs font-black transition-all shadow-xs cursor-pointer bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 hover:scale-105 active:scale-95 inline-flex items-center gap-1 select-none" title="انقر للتبديل إلى عربي">
+                <i class="fas fa-graduation-cap text-[10px]"></i>
+                <span>عراقي</span>
+            </button>`;
+        } else if (board === 'Arabic') {
+            return `<button type="button" onclick="cycleResidentBoard('${r.id}')" class="px-2.5 py-1 rounded-full text-xs font-black transition-all shadow-xs cursor-pointer bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-700 hover:scale-105 active:scale-95 inline-flex items-center gap-1 select-none" title="انقر للتبديل إلى بدون">
+                <i class="fas fa-graduation-cap text-[10px]"></i>
+                <span>عربي</span>
+            </button>`;
+        } else {
+            return `<button type="button" onclick="cycleResidentBoard('${r.id}')" class="px-2.5 py-1 rounded-full text-xs font-bold transition-all shadow-xs cursor-pointer bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:scale-105 active:scale-95 inline-flex items-center gap-1 select-none" title="انقر للتبديل إلى عراقي">
+                <span>بدون</span>
+            </button>`;
+        }
+    }
+
+    function toggleResidentSex(id) {
+        const res = (state.residents || []).find(r => r.id === id);
+        if (!res) return;
+        res.sex = (res.sex === 'F') ? 'M' : 'F';
+        saveState();
+        const tr = document.querySelector(`tr[data-resident-id="${id}"]`);
+        if (tr) {
+            tr.setAttribute('data-sex', res.sex);
+            const sexCell = tr.querySelector('.resident-sex-cell');
+            if (sexCell) sexCell.innerHTML = renderSexBubbleHTML(res);
+        }
+    }
+
+    function cycleResidentBoard(id) {
+        const res = (state.residents || []).find(r => r.id === id);
+        if (!res) return;
+        if (res.board === 'Iraqi') {
+            res.board = 'Arabic';
+        } else if (res.board === 'Arabic') {
+            res.board = 'None';
+        } else {
+            res.board = 'Iraqi';
+        }
+        saveState();
+        const tr = document.querySelector(`tr[data-resident-id="${id}"]`);
+        if (tr) {
+            tr.setAttribute('data-board', res.board);
+            const boardCell = tr.querySelector('.resident-board-cell');
+            if (boardCell) boardCell.innerHTML = renderBoardBubbleHTML(res);
+        }
+    }
+
     // Render individual resident row with direct editable inputs & coloring system
     function renderResidentRowHTML(r, rowNum, scheduledCounts, isInactiveSection) {
         const cleanName = normalizeArabic(r.name);
@@ -2400,12 +2696,9 @@
                     </div>
                 </td>
 
-                <!-- Sex (Direct select) -->
-                <td class="py-1 px-2 text-center">
-                    <select onchange="onResidentFieldChange('${r.id}', 'sex', this.value)" class="db-cell-input text-center font-bold ${r.sex === 'F' ? 'text-pink-600' : 'text-blue-600'}">
-                        <option value="M" ${r.sex === 'M' ? 'selected' : ''}>ذكر</option>
-                        <option value="F" ${r.sex === 'F' ? 'selected' : ''}>أنثى</option>
-                    </select>
+                <!-- Sex (Bubble Badge Switcher) -->
+                <td class="py-1 px-2 text-center resident-sex-cell">
+                    ${renderSexBubbleHTML(r)}
                 </td>
 
                 <!-- Specialty (Direct input) -->
@@ -2413,13 +2706,9 @@
                     <input type="text" value="${escapeForInline(r.specialty || 'General')}" onblur="onResidentFieldChange('${r.id}', 'specialty', this.value)" class="db-cell-input text-slate-600 dark:text-slate-300">
                 </td>
 
-                <!-- Board (Direct select) -->
-                <td class="py-1 px-2 text-center">
-                    <select onchange="onResidentFieldChange('${r.id}', 'board', this.value)" class="db-cell-input text-center font-bold">
-                        <option value="Arabic" ${r.board === 'Arabic' ? 'selected' : ''}>عربي</option>
-                        <option value="Iraqi" ${r.board === 'Iraqi' ? 'selected' : ''}>عراقي</option>
-                        <option value="None" ${r.board === 'None' || !r.board ? 'selected' : ''}>بدون</option>
-                    </select>
+                <!-- Board (Bubble Badge Cycler: Iraqi -> Arabic -> None) -->
+                <td class="py-1 px-2 text-center resident-board-cell">
+                    ${renderBoardBubbleHTML(r)}
                 </td>
 
                 <!-- Stage (Selection from الأولى to السادسة) -->
@@ -4423,6 +4712,9 @@
     window.applyDBLiveFilter = applyDBLiveFilter;
     window.clearDBSearch = clearDBSearch;
     window.resetDBFilters = resetDBFilters;
+    window.toggleResidentSex = toggleResidentSex;
+    window.cycleResidentBoard = cycleResidentBoard;
+    window.importResidentsFromHospital = importResidentsFromHospital;
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initEmergencyApp);

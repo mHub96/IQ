@@ -3853,16 +3853,6 @@ window.DEFAULT_EMERGENCY_DATA = {
         "preNight": "د. علي صباح كاظم",
         "lateNight": "د. علي حسين عبدالرضا",
         "notes": ""
-      },
-      {
-        "dayNumber": 1,
-        "date": "2026-10-01",
-        "dayName": "الخميس",
-        "morning": "",
-        "afternoon": "",
-        "preNight": "",
-        "lateNight": "",
-        "notes": ""
       }
     ],
     "con": [
@@ -4045,12 +4035,6 @@ window.DEFAULT_EMERGENCY_DATA = {
         "date": "2026-09-30",
         "dayName": "الأربعاء",
         "doctor": "د. منى عبدالباري"
-      },
-      {
-        "dayNumber": 1,
-        "date": "2026-10-01",
-        "dayName": "الخميس",
-        "doctor": ""
       }
     ],
     "dc": [
@@ -4233,12 +4217,6 @@ window.DEFAULT_EMERGENCY_DATA = {
         "date": "2026-09-30",
         "dayName": "الأربعاء",
         "doctor": "د. ليث انور"
-      },
-      {
-        "dayNumber": 1,
-        "date": "2026-10-01",
-        "dayName": "الخميس",
-        "doctor": ""
       }
     ],
     "rs": [
@@ -4594,18 +4572,6 @@ window.DEFAULT_EMERGENCY_DATA = {
         "dayNumber": 30,
         "date": "2026-09-30",
         "dayName": "الأربعاء",
-        "er_lateNight": "",
-        "er_preNight": "",
-        "er_afternoon": "",
-        "er_morning": "",
-        "ward_private": "",
-        "ward_floor4": "",
-        "ward_floor5": ""
-      },
-      {
-        "dayNumber": 1,
-        "date": "2026-10-01",
-        "dayName": "الخميس",
         "er_lateNight": "",
         "er_preNight": "",
         "er_afternoon": "",

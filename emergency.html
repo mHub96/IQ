@@ -54,77 +54,44 @@
         .tab-btn {
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
-        /* DIRECT IN-DATABASE EDITING STYLES */
-        .db-cell-input {
-            width: 100%;
-            background: transparent;
-            border: 1px solid transparent;
-            border-radius: 6px;
-            padding: 3px 6px;
-            font-size: 11.5px;
-            transition: all 0.15s ease;
+        @page {
+            size: A4 portrait;
+            margin: 4mm 5mm !important;
         }
-        .db-cell-input:hover {
-            border-color: rgba(203, 213, 225, 0.8);
-            background: rgba(248, 250, 252, 0.8);
-        }
-        .dark .db-cell-input:hover {
-            border-color: rgba(71, 85, 105, 0.8);
-            background: rgba(30, 41, 59, 0.8);
-        }
-        .db-cell-input:focus {
-            outline: none;
-            border-color: #f43f5e;
-            background: white;
-            box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.15);
-        }
-        .dark .db-cell-input:focus {
-            background: #0f172a;
-        }
-
-        /* PRINT STYLES STRICTLY TUNED FOR A SINGLE A4 PAGE */
         @media print {
-            @page {
-                size: A4 portrait;
-                margin: 4mm 6mm !important;
-            }
-            .no-print, header, nav, #duty-dashboard-grid, #admin-settings-section, #tabs-nav-bar, #schedule-view-container, #doctor-picker-modal, #hospital-sync-modal, #export-resident-modal, #add-resident-modal, #conflict-modal, #auto-generate-modal, #resident-prefs-modal, #hub-toast-container { 
-                display: none !important; 
-            }
-            body { 
+            html, body { 
                 background: white !important; 
                 color: black !important; 
                 padding: 0 !important; 
                 margin: 0 !important; 
+                font-size: 7.5pt !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+            }
+            .no-print, header, nav, #duty-dashboard-grid, #admin-settings-section, #tabs-nav-bar, #schedule-view-container, #doctor-picker-modal, #hospital-sync-modal, #export-resident-modal, #add-resident-modal, #hub-toast-container, #conflict-modal, #preferences-modal, #auto-schedule-prompt-modal { 
+                display: none !important; 
             }
             #official-print-area { 
                 display: block !important; 
                 width: 100% !important; 
-                margin: 0 auto !important; 
+                margin: 0 !important; 
                 padding: 0 !important; 
-                box-sizing: border-box !important;
             }
-            .print-table { 
-                page-break-inside: avoid !important; 
-                font-size: 8pt !important; 
+            table { 
+                page-break-inside: auto; 
+                font-size: 7.5pt !important; 
                 border-collapse: collapse !important; 
                 width: 100% !important; 
-                border: 1px solid black !important;
             }
-            .print-table tr { 
-                page-break-inside: avoid !important; 
-                page-break-after: auto !important; 
-                height: 18px !important;
+            tr { 
+                page-break-inside: avoid; 
+                page-break-after: auto; 
             }
-            .print-table td, .print-table th { 
-                padding: 1px 3px !important; 
+            td, th { 
+                padding: 1.5px 3px !important; 
                 border: 1px solid black !important; 
                 color: black !important; 
                 line-height: 1.15 !important;
-                text-align: center !important;
             }
         }
     </style>
@@ -171,7 +138,7 @@
                 </button>
                 <button type="button" onclick="prepareOfficialPrint()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 shadow-sm transition">
                     <i class="fas fa-print text-slate-500"></i>
-                    <span class="hidden md:inline">طباعة رسمية (A4)</span>
+                    <span class="hidden md:inline">طباعة رسمية</span>
                 </button>
                 <button type="button" onclick="toggleDarkMode()" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                     <i class="fas fa-moon dark:hidden"></i>
@@ -185,7 +152,7 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
 
         <!-- Administrative Order Bar & Meta Settings -->
-        <section id="admin-settings-section" class="glass-panel rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 no-print space-y-3">
+        <section id="admin-settings-section" class="glass-panel rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 no-print">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-center">
                 <!-- Hospital Selector with Match Button -->
                 <div>
@@ -193,11 +160,11 @@
                         <label class="block text-[11px] font-bold text-slate-500">المستشفى المحددة</label>
                         <button type="button" onclick="openHospitalSyncModal()" class="text-[10px] text-sky-600 hover:underline font-bold flex items-center gap-1">
                             <i class="fas fa-arrows-rotate text-[9px]"></i>
-                            <span>مطابقة ومزامنة</span>
+                            <span>مطابقة الأسماء</span>
                         </button>
                     </div>
                     <select id="meta-hosp-select" onchange="onHospitalChange(this.value)" class="w-full text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/20">
-                        <option value="iraqi">مستشفى الصدر التعليمي</option>
+                        <option value="iraqi">المستشفى العراقي التعليمي (الصدر التعليمي)</option>
                         <option value="basra">مستشفى البصرة التعليمي</option>
                         <option value="mawani">مستشفى الموانئ التعليمي</option>
                     </select>
@@ -234,27 +201,13 @@
                             <span>اقتراح متسلسل</span>
                         </button>
                     </div>
-                    <input type="text" id="meta-order-number" onchange="onOrderNumberChange(this.value)" class="w-full text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" id="meta-order-number" onchange="onOrderNumberChange(this.value)" class="w-full text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                    </div>
                 </div>
 
-                <!-- Official Order Date -->
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-500 mb-1">تاريخ الأمر الإداري</label>
-                    <input type="date" id="meta-order-date" onchange="onOrderDateChange(this.value)" class="w-full text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
-                </div>
-            </div>
-
-            <!-- Signatures Metadata (Head of Residents & Hospital Director) -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800/80">
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-500 mb-1">رئيس الأطباء المقيمين (التوقيع الرسمي)</label>
-                    <input type="text" id="meta-head-residents" onchange="onHeadOfResidentsChange(this.value)" placeholder="د. محمد راضي خضر" class="w-full text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-500 mb-1">مدير المستشفى (التوقيع الرسمي)</label>
-                    <input type="text" id="meta-head-hospital" onchange="onHeadOfHospitalChange(this.value)" placeholder="د. علي عبد معن" class="w-full text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
-                </div>
-                <div class="flex items-end justify-end">
+                <!-- Reset / Tools -->
+                <div class="flex items-center justify-end gap-2 pt-4 sm:pt-0">
                     <button type="button" onclick="resetEmergencyToDefaults()" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 transition flex items-center justify-center gap-1.5" title="استعادة النسخة الأصلية">
                         <i class="fas fa-rotate-left"></i>
                         <span>استعادة الأصلية</span>
@@ -263,7 +216,7 @@
             </div>
 
             <!-- Rotators Strike (RS) Date Range Bar (shown when RS is enabled) -->
-            <div id="rs-settings-bar" class="pt-2 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between flex-wrap gap-3">
+            <div id="rs-settings-bar" class="mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between flex-wrap gap-3">
                 <div class="flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-amber-500"></span>
                     <span class="text-xs font-black text-amber-700 dark:text-amber-300">
@@ -295,11 +248,11 @@
                 <i class="fas fa-truck-medical"></i>
                 <span>1. خفارات الطوارئ (ER)</span>
             </button>
-            <button type="button" data-tab="con" onclick="switchTab('con')" class="tab-btn flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:white">
+            <button type="button" data-tab="con" onclick="switchTab('con')" class="tab-btn flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
                 <i class="fas fa-stethoscope"></i>
                 <span>2. الاستشارية الخافرة (Con)</span>
             </button>
-            <button type="button" data-tab="dc" onclick="switchTab('dc')" class="tab-btn flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:white">
+            <button type="button" data-tab="dc" onclick="switchTab('dc')" class="tab-btn flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
                 <i class="fas fa-file-medical"></i>
                 <span>3. شهادات الوفاة (DC)</span>
             </button>
@@ -315,7 +268,7 @@
             </button>
 
             <!-- Resident Database Tab -->
-            <button type="button" data-tab="db" onclick="switchTab('db')" class="tab-btn flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:white">
+            <button type="button" data-tab="db" onclick="switchTab('db')" class="tab-btn flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
                 <i class="fas fa-users-gear"></i>
                 <span>6. قاعدة الأطباء والأنصبة (DB)</span>
             </button>
@@ -347,16 +300,17 @@
                 </button>
             </div>
 
-            <!-- Modal Search & Clear -->
+            <!-- Modal Search & Filters -->
             <div class="p-4 border-b border-slate-100 dark:border-slate-800 space-y-2 bg-slate-50/50 dark:bg-slate-900/40">
                 <div class="relative">
                     <i class="fas fa-search absolute right-3 top-3 text-slate-400 text-xs"></i>
                     <input type="text" id="picker-search-input" oninput="filterPickerList()" placeholder="بحث باسم الطبيب أو الاختصاص..." class="w-full pr-8 pl-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30">
                 </div>
                 <div class="flex items-center justify-between gap-2">
-                    <span class="text-[11px] font-bold text-slate-500">
-                        <i class="fas fa-filter text-[10px] ml-1"></i> يُعرض فقط الأطباء الذين لديهم خفارات متاحة
-                    </span>
+                    <select id="picker-quota-filter" onchange="filterPickerList()" class="px-2.5 py-1.5 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                        <option value="all">كل الأطباء المتاحين</option>
+                        <option value="pending_only" selected>من تبقى لهم خفارات بحسب النصاب</option>
+                    </select>
                     <button type="button" onclick="clearActiveSlot()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition">
                         <i class="fas fa-eraser ml-1"></i> إفراغ الخفارة
                     </button>
@@ -372,163 +326,6 @@
             <div class="p-3 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                 <button type="button" onclick="closeDoctorPickerModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition">
                     إلغاء
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Conflict Explanation Modal (Click-to-explain with empty option) -->
-    <div id="conflict-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 no-print">
-        <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
-            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-amber-500/10">
-                <div class="flex items-center gap-2">
-                    <span class="text-amber-500 text-lg">⚠️</span>
-                    <h3 class="font-black text-sm text-slate-800 dark:text-slate-100">تنبيه تعارض في الخفارات</h3>
-                </div>
-                <button type="button" onclick="closeConflictModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
-                    <i class="fas fa-times text-sm"></i>
-                </button>
-            </div>
-            <div class="p-5 space-y-3 text-xs">
-                <div id="conflict-modal-details" class="space-y-2">
-                    <!-- Populated dynamically -->
-                </div>
-            </div>
-            <div class="p-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
-                <button type="button" onclick="closeConflictModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition">
-                    إغلاق
-                </button>
-                <button type="button" id="conflict-modal-empty-btn" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-md shadow-rose-600/20 transition flex items-center gap-1.5">
-                    <i class="fas fa-trash-can"></i>
-                    <span>إفراغ هذه الخفارة فقط</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Auto-Generate Options Prompt Modal -->
-    <div id="auto-generate-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 no-print">
-        <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
-            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-wand-magic-sparkles text-rose-600"></i>
-                    <h3 class="font-black text-sm text-slate-800 dark:text-slate-100" id="auto-modal-title">توليد الجدول آلياً</h3>
-                </div>
-                <button type="button" onclick="closeAutoGenerateModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
-                    <i class="fas fa-times text-sm"></i>
-                </button>
-            </div>
-            <div class="p-5 space-y-3 text-xs">
-                <p class="text-slate-600 dark:text-slate-300 font-bold" id="auto-modal-desc">
-                    الجدول يحتوي بالفعل على خفارات مسجلة. يرجى اختيار الإجراء المطلوب:
-                </p>
-                <div class="space-y-2 pt-2">
-                    <button type="button" id="auto-opt-fill-empty" class="w-full text-right p-3 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-rose-400 bg-white dark:bg-slate-900 hover:shadow-sm transition">
-                        <div class="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                            <i class="fas fa-fill-drip text-emerald-500"></i>
-                            <span>إكمال الخانات الفارغة فقط</span>
-                        </div>
-                        <div class="text-[11px] text-slate-400 mt-0.5">يحافظ على التعيينات الحالية ويكمل فقط ما تبقى من الأنصبة</div>
-                    </button>
-                    <button type="button" id="auto-opt-fresh" class="w-full text-right p-3 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-rose-400 bg-white dark:bg-slate-900 hover:shadow-sm transition">
-                        <div class="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                            <i class="fas fa-rotate text-rose-500"></i>
-                            <span>مسح الجدول وإعادة التوليد بالكامل</span>
-                        </div>
-                        <div class="text-[11px] text-slate-400 mt-0.5">يعيد ضبط هذا الجدول ويبدأ توزيعاً جديداً شاملاً ومتوازناً</div>
-                    </button>
-                </div>
-            </div>
-            <div class="p-3 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-                <button type="button" onclick="closeAutoGenerateModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition">
-                    إلغاء
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Resident Duty Preferences Modal -->
-    <div id="resident-prefs-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 no-print">
-        <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
-            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <div>
-                    <h3 class="font-black text-sm text-slate-800 dark:text-slate-100">رغبات وخيارات خفارات الطبيب</h3>
-                    <p class="text-[11px] text-slate-500" id="prefs-modal-docname">د. الاسم</p>
-                </div>
-                <button type="button" onclick="closeResidentPrefsModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
-                    <i class="fas fa-times text-sm"></i>
-                </button>
-            </div>
-            <div class="p-5 space-y-4 text-xs">
-                <!-- Preferred Shifts -->
-                <div>
-                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-2">الوجبات المفضلة للطوارئ:</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-100 dark:bg-slate-900 cursor-pointer">
-                            <input type="checkbox" value="morning" class="pref-shift-cb w-4 h-4 text-rose-600 rounded">
-                            <span>الصباحية (8ص - 2م)</span>
-                        </label>
-                        <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-100 dark:bg-slate-900 cursor-pointer">
-                            <input type="checkbox" value="afternoon" class="pref-shift-cb w-4 h-4 text-rose-600 rounded">
-                            <span>بعد الصباحية (2م - 8م)</span>
-                        </label>
-                        <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-100 dark:bg-slate-900 cursor-pointer">
-                            <input type="checkbox" value="preNight" class="pref-shift-cb w-4 h-4 text-rose-600 rounded">
-                            <span>البرينايت (8م - 2ص)</span>
-                        </label>
-                        <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-100 dark:bg-slate-900 cursor-pointer">
-                            <input type="checkbox" value="lateNight" class="pref-shift-cb w-4 h-4 text-rose-600 rounded">
-                            <span>الليلية (2ص - 8ص)</span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Preferred Days of Week -->
-                <div>
-                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-2">الأيام المفضلة في الأسبوع:</label>
-                    <div class="grid grid-cols-3 gap-1.5">
-                        <label class="flex items-center gap-1.5 p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 cursor-pointer">
-                            <input type="checkbox" value="الأحد" class="pref-day-cb w-3.5 h-3.5 text-rose-600 rounded">
-                            <span>الأحد</span>
-                        </label>
-                        <label class="flex items-center gap-1.5 p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 cursor-pointer">
-                            <input type="checkbox" value="الاثنين" class="pref-day-cb w-3.5 h-3.5 text-rose-600 rounded">
-                            <span>الاثنين</span>
-                        </label>
-                        <label class="flex items-center gap-1.5 p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 cursor-pointer">
-                            <input type="checkbox" value="الثلاثاء" class="pref-day-cb w-3.5 h-3.5 text-rose-600 rounded">
-                            <span>الثلاثاء</span>
-                        </label>
-                        <label class="flex items-center gap-1.5 p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 cursor-pointer">
-                            <input type="checkbox" value="الأربعاء" class="pref-day-cb w-3.5 h-3.5 text-rose-600 rounded">
-                            <span>الأربعاء</span>
-                        </label>
-                        <label class="flex items-center gap-1.5 p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 cursor-pointer">
-                            <input type="checkbox" value="الخميس" class="pref-day-cb w-3.5 h-3.5 text-rose-600 rounded">
-                            <span>الخميس</span>
-                        </label>
-                        <label class="flex items-center gap-1.5 p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 cursor-pointer">
-                            <input type="checkbox" value="الجمعة" class="pref-day-cb w-3.5 h-3.5 text-rose-600 rounded">
-                            <span>الجمعة</span>
-                        </label>
-                        <label class="flex items-center gap-1.5 p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 cursor-pointer">
-                            <input type="checkbox" value="السبت" class="pref-day-cb w-3.5 h-3.5 text-rose-600 rounded">
-                            <span>السبت</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="text-[11px] text-slate-400">
-                    <i class="fas fa-circle-info ml-1 text-slate-400"></i>
-                    سيحاول التوليد الآلي الالتزام بالرغبات قدر الإمكان، وفي حال تعذر ذلك سيتم التعيين وتنبيهك بعلامة توضيحية.
-                </div>
-            </div>
-            <div class="p-3 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
-                <button type="button" onclick="closeResidentPrefsModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition">
-                    إلغاء
-                </button>
-                <button type="button" onclick="saveResidentPreferences()" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-md transition">
-                    حفظ الرغبات
                 </button>
             </div>
         </div>

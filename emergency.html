@@ -98,6 +98,11 @@
 
         /* PRINT STYLES - STRICT SINGLE A4 PORTRAIT PAGE */
         @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
             @page {
                 size: A4 portrait;
                 margin: 4mm 5mm !important;
@@ -130,14 +135,9 @@
                 line-height: 1.15 !important;
             }
             .print-table th, .print-table td {
-                border: 1px solid #1e293b !important;
+                border: 1px solid #000 !important;
                 padding: 2.2px 3.5px !important;
                 text-align: center !important;
-            }
-            .print-table th {
-                background-color: #f1f5f9 !important;
-                font-weight: 800 !important;
-                color: #000 !important;
             }
             .print-table tr {
                 page-break-inside: avoid !important;
@@ -149,7 +149,7 @@
 
     <!-- Top Navigation Header -->
     <header class="sticky top-0 z-40 glass-panel border-b border-slate-200/80 dark:border-slate-800 shadow-xs no-print">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+        <div class="w-full max-w-[1720px] mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
             
             <!-- Left Branding & Back Navigation -->
             <div class="flex items-center gap-3">
@@ -182,13 +182,13 @@
                     <i class="fas fa-arrows-rotate"></i>
                     <span class="hidden lg:inline">مزامنة المستشفى</span>
                 </button>
-                <button type="button" onclick="triggerScheduleAutoGenerate(state.activeTab)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 shadow-md shadow-rose-600/20 transition">
-                    <i class="fas fa-wand-magic-sparkles"></i>
-                    <span class="hidden sm:inline">توليد الجدول آلياً</span>
-                </button>
                 <button type="button" onclick="exportFullScheduleToExcel()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 shadow-xs transition">
                     <i class="fas fa-file-excel text-emerald-500"></i>
                     <span class="hidden md:inline">تصدير Excel</span>
+                </button>
+                <button type="button" onclick="openPrintOptionsModal(state.activeTab)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 shadow-xs transition" title="تخصيص ألوان وتصميم ورقة الطباعة الرسمية">
+                    <i class="fas fa-palette text-rose-500"></i>
+                    <span class="hidden md:inline">خيارات الطباعة</span>
                 </button>
                 <button type="button" onclick="prepareOfficialPrint()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 shadow-xs transition">
                     <i class="fas fa-print text-slate-600"></i>
@@ -202,8 +202,8 @@
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
+    <!-- Main Container (Widescreen 16:9 Frame) -->
+    <main class="w-full max-w-[1720px] mx-auto px-3 sm:px-6 lg:px-8 py-5 space-y-5">
 
         <!-- Administrative Order Bar & Selector Controls -->
         <section class="glass-panel rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 no-print space-y-3">
@@ -312,31 +312,39 @@
             <!-- Rendered dynamically by updateDutyDashboard() -->
         </section>
 
-        <!-- Main Tabs Navigation Bar -->
-        <section class="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-200/70 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 no-print overflow-x-auto no-scrollbar flex-nowrap min-h-[50px] h-[50px]">
-            <button type="button" data-tab="er" onclick="switchTab('er')" class="tab-btn active-tab shrink-0 h-9 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 bg-rose-600 text-white shadow-xs whitespace-nowrap">
-                <i class="fas fa-truck-medical"></i>
-                <span>1. خفارات الطوارئ (ER)</span>
-            </button>
-            <button type="button" data-tab="con" onclick="switchTab('con')" class="tab-btn shrink-0 h-9 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap">
-                <i class="fas fa-stethoscope"></i>
-                <span>2. الاستشارية الخافرة (Con)</span>
-            </button>
-            <button type="button" data-tab="dc" onclick="switchTab('dc')" class="tab-btn shrink-0 h-9 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap">
-                <i class="fas fa-file-medical"></i>
-                <span>3. شهادات الوفاة (DC)</span>
-            </button>
-            <button type="button" id="tab-btn-rs-er" data-tab="rs_er" onclick="switchTab('rs_er')" class="tab-btn shrink-0 h-9 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400 hover:text-amber-900 bg-amber-50 dark:bg-amber-950/40 whitespace-nowrap" style="display: none;">
-                <i class="fas fa-shield-virus"></i>
-                <span>4. إسناد الطوارئ (RS-ER)</span>
-            </button>
-            <button type="button" id="tab-btn-rs-wards" data-tab="rs_wards" onclick="switchTab('rs_wards')" class="tab-btn shrink-0 h-9 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400 hover:text-amber-900 bg-amber-50 dark:bg-amber-950/40 whitespace-nowrap" style="display: none;">
-                <i class="fas fa-bed-pulse"></i>
-                <span>5. إسناد الردهات (RS-Wards)</span>
-            </button>
-            <button type="button" data-tab="db" onclick="switchTab('db')" class="tab-btn shrink-0 h-9 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap">
-                <i class="fas fa-users-gear"></i>
-                <span>قاعدة الأطباء والأنصبة (DB)</span>
+        <!-- Main Navigation Bar: Schedules Tracks + Dedicated Residents DB Button -->
+        <section class="flex items-center justify-between gap-3 no-print flex-wrap">
+            <!-- Schedule Tracks Tabs (Strictly Schedule Views Only) -->
+            <div class="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-200/70 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-x-auto no-scrollbar flex-nowrap min-h-[50px] h-[50px] flex-1">
+                <button type="button" data-tab="er" onclick="switchTab('er')" class="tab-btn active-tab shrink-0 h-9 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 bg-rose-600 text-white shadow-xs whitespace-nowrap">
+                    <i class="fas fa-truck-medical"></i>
+                    <span>1. خفارات الطوارئ (ER)</span>
+                </button>
+                <button type="button" data-tab="con" onclick="switchTab('con')" class="tab-btn shrink-0 h-9 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap">
+                    <i class="fas fa-stethoscope"></i>
+                    <span>2. الاستشارية الخافرة (Con)</span>
+                </button>
+                <button type="button" data-tab="dc" onclick="switchTab('dc')" class="tab-btn shrink-0 h-9 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap">
+                    <i class="fas fa-file-medical"></i>
+                    <span>3. شهادات الوفاة (DC)</span>
+                </button>
+                <button type="button" id="tab-btn-rs-er" data-tab="rs_er" onclick="switchTab('rs_er')" class="tab-btn shrink-0 h-9 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400 hover:text-amber-900 bg-amber-50 dark:bg-amber-950/40 whitespace-nowrap" style="display: none;">
+                    <i class="fas fa-shield-virus"></i>
+                    <span>4. إسناد الطوارئ (RS-ER)</span>
+                </button>
+                <button type="button" id="tab-btn-rs-wards" data-tab="rs_wards" onclick="switchTab('rs_wards')" class="tab-btn shrink-0 h-9 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400 hover:text-amber-900 bg-amber-50 dark:bg-amber-950/40 whitespace-nowrap" style="display: none;">
+                    <i class="fas fa-bed-pulse"></i>
+                    <span>5. إسناد الردهات (RS-Wards)</span>
+                </button>
+            </div>
+
+            <!-- Separate Residents Database Button (Distinct panel that pops up) -->
+            <button type="button" onclick="openResidentsDbModal()" class="shrink-0 h-[46px] px-4 rounded-2xl text-xs font-black flex items-center gap-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md shadow-blue-600/20 transition group">
+                <div class="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center">
+                    <i class="fas fa-users-gear text-sm"></i>
+                </div>
+                <span>قاعدة الأطباء والأنصبة</span>
+                <span id="db-nav-count-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/25 text-white"></span>
             </button>
         </section>
 
@@ -563,6 +571,221 @@
                 <button type="button" onclick="saveResidentPreferences()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-sm transition">
                     حفظ التفضيلات
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Residents Database Dedicated Popup Panel / Modal -->
+    <div id="residents-db-modal" class="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-md hidden flex items-center justify-center p-2 sm:p-4 no-print">
+        <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-[1700px] h-[92vh] flex flex-col overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
+            <!-- Modal Header -->
+            <div class="p-4 sm:px-6 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between bg-slate-100/60 dark:bg-slate-900/60 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                        <i class="fas fa-users-gear text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-sm sm:text-base font-black text-slate-800 dark:text-slate-100">قاعدة بيانات الأطباء المقيمين والأنصبة الرسمية</h2>
+                            <span id="residents-db-modal-hosp" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300"></span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">لوحة مستقلة لإدارة الأطباء، الأنصبة، الاختصاصات، المراحل، وحالات النشاط دون التأثير على الجداول</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="closeResidentsDbModal()" class="w-9 h-9 rounded-2xl flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 transition" title="إغلاق">
+                        <i class="fas fa-times text-base"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Content (Scrollable) -->
+            <div id="residents-db-modal-body" class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
+                <!-- Rendered dynamically by emergency.js -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-3 sm:px-6 bg-slate-100/60 dark:bg-slate-900/60 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between shrink-0 text-xs">
+                <div class="text-slate-500 flex items-center gap-2">
+                    <i class="fas fa-shield-halved text-emerald-500"></i>
+                    <span>يتم حفظ جميع التعديلات تلقائياً وفوراً في التخزين المحلي للمستشفى الحالي</span>
+                </div>
+                <button type="button" onclick="closeResidentsDbModal()" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 transition shadow-xs">
+                    إغلاق اللوحة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Stage Options Bubble Picker Modal (NO DOWN ARROW) -->
+    <div id="stage-options-modal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4 no-print">
+        <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
+            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div>
+                    <h3 class="font-black text-sm text-slate-800 dark:text-slate-100">تحديد مرحلة البورد</h3>
+                    <p class="text-[11px] text-slate-500 font-bold" id="stage-modal-docname">اسم الطبيب</p>
+                </div>
+                <button type="button" onclick="closeStageOptionsModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <div class="p-4 space-y-2" id="stage-modal-options">
+                <!-- Injected dynamically by openStageOptionsModal() -->
+            </div>
+
+            <div class="p-3 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                <button type="button" onclick="closeStageOptionsModal()" class="px-4 py-1.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. Print Options Modal (Full Color Customization) -->
+    <div id="print-options-modal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 no-print">
+        <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150 max-h-[92vh] flex flex-col">
+            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5 text-rose-600">
+                    <div class="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 flex items-center justify-center">
+                        <i class="fas fa-palette text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-sm text-slate-800 dark:text-slate-100">خيارات وتخصيص ألوان الطباعة الرسمية</h3>
+                        <p class="text-[11px] text-slate-500">تخصيص ألوان الترويسة، عطلة الجمعة والسبت، والحدود</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closePrintOptionsModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4 text-xs overflow-y-auto flex-1">
+                <!-- Theme Presets -->
+                <div>
+                    <label class="block font-black text-slate-700 dark:text-slate-300 mb-2">النماذج السريعة المعتمدة:</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="applyPrintPreset('official')" class="p-2.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 hover:border-emerald-500 text-right transition flex flex-col gap-1 bg-white dark:bg-slate-900 group">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-xs text-slate-800 dark:text-slate-100 group-hover:text-emerald-600">النموذج الوزاري PDF</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-black ring-1 ring-slate-400"></span>
+                                    <span class="w-3.5 h-3.5 rounded-full bg-[#5ea37d]"></span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] text-slate-500">ترويسة سوداء + تمييز جمعة وسبت أخضر</span>
+                        </button>
+
+                        <button type="button" onclick="applyPrintPreset('bw')" class="p-2.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 hover:border-slate-500 text-right transition flex flex-col gap-1 bg-white dark:bg-slate-900 group">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-xs text-slate-800 dark:text-slate-100">أبيض وأسود كلاسيكي</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-slate-200 border"></span>
+                                    <span class="w-3.5 h-3.5 rounded-full bg-white border"></span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] text-slate-500">طباعة ليزرية اقتصادية</span>
+                        </button>
+
+                        <button type="button" onclick="applyPrintPreset('navy')" class="p-2.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 hover:border-blue-500 text-right transition flex flex-col gap-1 bg-white dark:bg-slate-900 group">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-xs text-slate-800 dark:text-slate-100">أزرق كحلي ملكي</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-blue-900"></span>
+                                    <span class="w-3.5 h-3.5 rounded-full bg-blue-200"></span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] text-slate-500">ترويسة كحلية + تمييز أزرق فاتح</span>
+                        </button>
+
+                        <button type="button" onclick="applyPrintPreset('emerald')" class="p-2.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 hover:border-teal-500 text-right transition flex flex-col gap-1 bg-white dark:bg-slate-900 group">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-xs text-slate-800 dark:text-slate-100">أخضر زمردي</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-800"></span>
+                                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-200"></span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] text-slate-500">طابع صحي وطبي مميز</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Custom Pickers -->
+                <div class="space-y-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <label class="block font-black text-slate-700 dark:text-slate-300">تخصيص الألوان يدوياً في أي وقت:</label>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <span class="font-bold">خلفية الترويسة:</span>
+                            <input type="color" id="print-opt-header-bg" onchange="onCustomPrintColorChange()" class="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent">
+                        </div>
+
+                        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <span class="font-bold">نص الترويسة:</span>
+                            <input type="color" id="print-opt-header-text" onchange="onCustomPrintColorChange()" class="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent">
+                        </div>
+
+                        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <span class="font-bold">تمييز الجمعة والسبت:</span>
+                            <input type="color" id="print-opt-weekend-bg" onchange="onCustomPrintColorChange()" class="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent">
+                        </div>
+
+                        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <span class="font-bold">نص الجمعة والسبت:</span>
+                            <input type="color" id="print-opt-weekend-text" onchange="onCustomPrintColorChange()" class="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent">
+                        </div>
+
+                        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 sm:col-span-2">
+                            <span class="font-bold">لون خطوط وحدود الجدول:</span>
+                            <input type="color" id="print-opt-border-color" onchange="onCustomPrintColorChange()" class="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Mini Preview -->
+                <div class="p-3 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5">
+                    <span class="text-[10px] font-bold text-slate-400">معاينة مباشرة لشكل الجدول المطبوع:</span>
+                    <table class="w-full text-center border-collapse text-[10px]" id="print-preview-table">
+                        <thead>
+                            <tr id="preview-header-row">
+                                <th class="p-1 border">اليوم</th>
+                                <th class="p-1 border">التاريخ</th>
+                                <th class="p-1 border">الصباحية</th>
+                                <th class="p-1 border">الليلية</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr id="preview-normal-row" class="bg-white text-black">
+                                <td class="p-1 border">الخميس</td>
+                                <td class="p-1 border">03/09/2026</td>
+                                <td class="p-1 border">د. زهراء احمد</td>
+                                <td class="p-1 border">د. محمد شاكر</td>
+                            </tr>
+                            <tr id="preview-weekend-row">
+                                <td class="p-1 border font-bold">الجمعة</td>
+                                <td class="p-1 border">04/09/2026</td>
+                                <td class="p-1 border font-bold">د. إيمان نعيم</td>
+                                <td class="p-1 border font-bold">د. ضرغام عامر</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 shrink-0">
+                <button type="button" onclick="closePrintOptionsModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition">
+                    إغلاق
+                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="savePrintOptions()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 transition shadow-xs">
+                        حفظ التفضيلات
+                    </button>
+                    <button type="button" onclick="saveAndPrintImmediately()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-sm transition flex items-center gap-1.5">
+                        <i class="fas fa-print"></i>
+                        <span>طباعة الآن</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>

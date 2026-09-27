@@ -24,6 +24,50 @@
 
     const STATE_KEY = 'hosp_hub_emergency_state_v3';
     const DB_FILE = './emergency-db.json';
+    const MONTH_STORAGE_PREFIX = 'hosp_hub_emergency_sched_';
+
+    const PRINT_THEME_PRESETS = {
+        official: {
+            name: 'النموذج الوزاري PDF',
+            headerBg: '#000000',
+            headerText: '#ffffff',
+            weekendBg: '#5ea37d',
+            weekendText: '#000000',
+            borderColor: '#000000'
+        },
+        bw: {
+            name: 'أبيض وأسود كلاسيكي',
+            headerBg: '#e2e8f0',
+            headerText: '#000000',
+            weekendBg: '#f1f5f9',
+            weekendText: '#000000',
+            borderColor: '#000000'
+        },
+        navy: {
+            name: 'أزرق كحلي ملكي',
+            headerBg: '#1e3a8a',
+            headerText: '#ffffff',
+            weekendBg: '#bfdbfe',
+            weekendText: '#1e3a8a',
+            borderColor: '#1e3a8a'
+        },
+        emerald: {
+            name: 'أخضر زمردي',
+            headerBg: '#065f46',
+            headerText: '#ffffff',
+            weekendBg: '#a7f3d0',
+            weekendText: '#064e3b',
+            borderColor: '#065f46'
+        },
+        burgundy: {
+            name: 'عنابي طوارئ',
+            headerBg: '#881337',
+            headerText: '#ffffff',
+            weekendBg: '#fecdd3',
+            weekendText: '#881337',
+            borderColor: '#881337'
+        }
+    };
 
     let state = {
         hospitalId: 'iraqi',
@@ -59,12 +103,25 @@
             con: [],
             dc: [],
             rs: []
+        },
+        // Undo / Redo history stacks
+        undoStack: [],
+        redoStack: [],
+        // Official Paper Print Customization
+        printOptions: {
+            theme: 'official',
+            headerBg: '#000000',
+            headerText: '#ffffff',
+            weekendBg: '#5ea37d',
+            weekendText: '#000000',
+            borderColor: '#000000'
         }
     };
 
     let activeSlot = null; // currently opened slot in picker
     let pendingConflictData = null; // slot data for conflict explanation modal
     let pendingAutoGenerateType = null; // schedule type for auto generate modal
+    let activePrintSheet = 'er'; // active sheet for print options modal
 
     // Days in current month
     function getDaysInMonth(year, month) {
@@ -191,6 +248,27 @@
         renderActiveTab();
         updateRsVisibilityUI();
         initAutoModalListeners();
+        initKeyboardShortcuts();
+    }
+
+    function initKeyboardShortcuts() {
+        window.addEventListener('keydown', (e) => {
+            const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+            if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+                if (e.shiftKey) {
+                    e.preventDefault();
+                    redoScheduleAction();
+                } else {
+                    e.preventDefault();
+                    undoScheduleAction();
+                }
+            } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+                e.preventDefault();
+                redoScheduleAction();
+            }
+        });
     }
 
     function ensureScheduleIntegrity() {
@@ -240,6 +318,11 @@
         const key = `${state.hospitalId}_${state.year}_${state.month}`;
         if (state.schedules) {
             state.monthlySchedules[key] = JSON.parse(JSON.stringify(state.schedules));
+            try {
+                localStorage.setItem(MONTH_STORAGE_PREFIX + key, JSON.stringify(state.schedules));
+            } catch (e) {
+                console.warn('Failed to save month schedule to localStorage', e);
+            }
         }
     }
 
@@ -253,14 +336,124 @@
     function loadMonthScheduleFromStore(hospId, year, month) {
         if (!state.monthlySchedules) state.monthlySchedules = {};
         const key = `${hospId}_${year}_${month}`;
-        if (state.monthlySchedules[key]) {
-            state.schedules = JSON.parse(JSON.stringify(state.monthlySchedules[key]));
-        } else if (hospId === 'iraqi' && year === 2026 && month === 9 && window.DEFAULT_EMERGENCY_DATA && window.DEFAULT_EMERGENCY_DATA.schedules) {
-            state.schedules = JSON.parse(JSON.stringify(window.DEFAULT_EMERGENCY_DATA.schedules));
+
+        let loaded = null;
+        try {
+            const raw = localStorage.getItem(MONTH_STORAGE_PREFIX + key);
+            if (raw) {
+                loaded = JSON.parse(raw);
+            }
+        } catch (e) {
+            console.warn('Error reading month schedule from localStorage', e);
+        }
+
+        if (!loaded && state.monthlySchedules[key]) {
+            loaded = state.monthlySchedules[key];
+        }
+
+        // Bundled initial September 2026 data only for default Iraqi hospital
+        if (!loaded && hospId === 'iraqi' && year === 2026 && month === 9 && window.DEFAULT_EMERGENCY_DATA && window.DEFAULT_EMERGENCY_DATA.schedules) {
+            loaded = window.DEFAULT_EMERGENCY_DATA.schedules;
+        }
+
+        if (loaded) {
+            state.schedules = JSON.parse(JSON.stringify(loaded));
         } else {
+            // Strictly empty clean schedule for any unfilled month
             state.schedules = { er: [], con: [], dc: [], rs: [] };
         }
+
+        // Clear undo/redo stacks when loading a different month schedule
+        state.undoStack = [];
+        state.redoStack = [];
+
         ensureScheduleIntegrity();
+    }
+
+    // =========================================================================
+    // UNDO / REDO HISTORY MANAGEMENT (PER SCHEDULE)
+    // =========================================================================
+
+    function pushScheduleHistory(desc) {
+        if (!state.undoStack) state.undoStack = [];
+        if (!state.redoStack) state.redoStack = [];
+
+        state.undoStack.push({
+            schedules: JSON.parse(JSON.stringify(state.schedules)),
+            tab: state.activeTab,
+            desc: desc || 'تعديل جدول'
+        });
+
+        if (state.undoStack.length > 50) {
+            state.undoStack.shift();
+        }
+        state.redoStack = [];
+    }
+
+    function undoScheduleAction() {
+        if (!state.undoStack || state.undoStack.length === 0) {
+            showNotification('لا توجد عمليات سابقة للتراجع عنها', 'warning');
+            return;
+        }
+
+        if (!state.redoStack) state.redoStack = [];
+        state.redoStack.push({
+            schedules: JSON.parse(JSON.stringify(state.schedules)),
+            tab: state.activeTab
+        });
+
+        const prev = state.undoStack.pop();
+        state.schedules = JSON.parse(JSON.stringify(prev.schedules));
+
+        saveState();
+        updateDutyDashboard();
+        renderActiveTab();
+        showNotification(`تم التراجع عن: ${prev.desc || 'آخر تعديل'}`, 'info');
+    }
+
+    function redoScheduleAction() {
+        if (!state.redoStack || state.redoStack.length === 0) {
+            showNotification('لا توجد عمليات لإعادتها', 'warning');
+            return;
+        }
+
+        if (!state.undoStack) state.undoStack = [];
+        state.undoStack.push({
+            schedules: JSON.parse(JSON.stringify(state.schedules)),
+            tab: state.activeTab,
+            desc: 'إعادة التعديل'
+        });
+
+        const next = state.redoStack.pop();
+        state.schedules = JSON.parse(JSON.stringify(next.schedules));
+
+        saveState();
+        updateDutyDashboard();
+        renderActiveTab();
+        showNotification('تمت إعادة تطبيق التعديل', 'info');
+    }
+
+    function renderScheduleUndoRedoButtons() {
+        const canUndo = state.undoStack && state.undoStack.length > 0;
+        const canRedo = state.redoStack && state.redoStack.length > 0;
+
+        return `
+            <div class="inline-flex items-center rounded-xl bg-slate-100 dark:bg-slate-800 p-0.5 border border-slate-200 dark:border-slate-700 shadow-2xs">
+                <button type="button" onclick="undoScheduleAction()" ${!canUndo ? 'disabled' : ''} 
+                    class="px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${!canUndo ? 'text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-50' : 'text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 shadow-xs active:scale-95'}" 
+                    title="تراجع عن آخر تعديل (Ctrl+Z)">
+                    <i class="fas fa-undo text-[11px]"></i>
+                    <span>تراجع</span>
+                </button>
+                <div class="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5"></div>
+                <button type="button" onclick="redoScheduleAction()" ${!canRedo ? 'disabled' : ''} 
+                    class="px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${!canRedo ? 'text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-50' : 'text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 shadow-xs active:scale-95'}" 
+                    title="إعادة التعديل (Ctrl+Y)">
+                    <i class="fas fa-redo text-[11px]"></i>
+                    <span>إعادة</span>
+                </button>
+            </div>
+        `;
     }
 
     function importResidentsFromHospital(hospId) {
@@ -861,6 +1054,7 @@
         const dayEntry = (state.schedules[tableType] || []).find(s => s.dayNumber === dayNumber);
         if (!dayEntry) return;
 
+        pushScheduleHistory('تفريغ الخانة');
         dayEntry[slotKey] = '';
         saveState();
         renderActiveTab();
@@ -884,6 +1078,9 @@
 
         const totalDocEl = document.getElementById('stat-total-doctors');
         if (totalDocEl) totalDocEl.textContent = `${activeDocs.length} / ${totalDocsCount}`;
+
+        const dbNavBadge = document.getElementById('db-nav-count-badge');
+        if (dbNavBadge) dbNavBadge.textContent = `${activeDocs.length} طبيب`;
 
         // 1. ER Duties (4 shifts/day)
         const erRequired = daysCount * 4;
@@ -1410,7 +1607,30 @@
     // TAB SWITCHING & RENDERING
     // =========================================================================
 
+    function openResidentsDbModal() {
+        const modal = document.getElementById('residents-db-modal');
+        const modalBody = document.getElementById('residents-db-modal-body');
+        const modalHosp = document.getElementById('residents-db-modal-hosp');
+        if (!modal || !modalBody) return;
+
+        if (modalHosp) modalHosp.textContent = state.hospitalName || 'المستشفى';
+        renderDBView(modalBody);
+        modal.classList.remove('hidden');
+    }
+
+    function closeResidentsDbModal() {
+        const modal = document.getElementById('residents-db-modal');
+        if (modal) modal.classList.add('hidden');
+        updateDutyDashboard();
+        renderActiveTab();
+    }
+
     function switchTab(tabId) {
+        if (tabId === 'db') {
+            openResidentsDbModal();
+            return;
+        }
+
         state.activeTab = tabId;
         
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -1455,7 +1675,9 @@
                 renderRSWardsView(container);
                 break;
             case 'db':
-                renderDBView(container);
+                openResidentsDbModal();
+                state.activeTab = 'er';
+                renderERView(container);
                 break;
             default:
                 renderERView(container);
@@ -1816,9 +2038,14 @@
                     <p class="text-xs text-slate-500 mt-0.5">4 وجبات خفارة يومياً · المقيمين الأقدمين</p>
                 </div>
                 <div class="flex items-center gap-2">
+                    ${renderScheduleUndoRedoButtons()}
                     <button type="button" onclick="triggerScheduleAutoGenerate('er')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-sm transition flex items-center gap-1.5">
                         <i class="fas fa-wand-magic-sparkles"></i>
                         <span>توليد خفارات الطوارئ آلياً</span>
+                    </button>
+                    <button type="button" onclick="openPrintOptionsModal('er')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5" title="خيارات ألوان وتصميم ورقة الطباعة الرسمية">
+                        <i class="fas fa-palette text-rose-500"></i>
+                        <span>خيارات الطباعة</span>
                     </button>
                     <button type="button" onclick="prepareOfficialPrint('er')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
                         <i class="fas fa-print"></i>
@@ -1900,9 +2127,14 @@
                     <p class="text-xs text-slate-500 mt-0.5">طبيب مقيم أقدم واحد يومياً</p>
                 </div>
                 <div class="flex items-center gap-2">
+                    ${renderScheduleUndoRedoButtons()}
                     <button type="button" onclick="triggerScheduleAutoGenerate('con')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 shadow-sm transition flex items-center gap-1.5">
                         <i class="fas fa-wand-magic-sparkles"></i>
                         <span>توليد خفارات الاستشارية آلياً</span>
+                    </button>
+                    <button type="button" onclick="openPrintOptionsModal('con')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5" title="خيارات ألوان وتصميم ورقة الطباعة الرسمية">
+                        <i class="fas fa-palette text-rose-500"></i>
+                        <span>خيارات الطباعة</span>
                     </button>
                     <button type="button" onclick="prepareOfficialPrint('con')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
                         <i class="fas fa-print"></i>
@@ -1968,9 +2200,14 @@
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
+                    ${renderScheduleUndoRedoButtons()}
                     <button type="button" onclick="triggerScheduleAutoGenerate('dc')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition flex items-center gap-1.5">
                         <i class="fas fa-wand-magic-sparkles"></i>
                         <span>توليد شهادات الوفاة آلياً</span>
+                    </button>
+                    <button type="button" onclick="openPrintOptionsModal('dc')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5" title="خيارات ألوان وتصميم ورقة الطباعة الرسمية">
+                        <i class="fas fa-palette text-rose-500"></i>
+                        <span>خيارات الطباعة</span>
                     </button>
                     <button type="button" onclick="prepareOfficialPrint('dc')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
                         <i class="fas fa-print"></i>
@@ -2058,9 +2295,14 @@
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
+                    ${renderScheduleUndoRedoButtons()}
                     <button type="button" onclick="triggerScheduleAutoGenerate('rs_er')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 shadow-sm transition flex items-center gap-1.5">
                         <i class="fas fa-wand-magic-sparkles"></i>
                         <span>توليد طوارئ الإضراب آلياً</span>
+                    </button>
+                    <button type="button" onclick="openPrintOptionsModal('rs_er')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5" title="خيارات ألوان وتصميم ورقة الطباعة الرسمية">
+                        <i class="fas fa-palette text-rose-500"></i>
+                        <span>خيارات الطباعة</span>
                     </button>
                     <button type="button" onclick="prepareOfficialPrint('rs_er')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
                         <i class="fas fa-print"></i>
@@ -2151,9 +2393,14 @@
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
+                    ${renderScheduleUndoRedoButtons()}
                     <button type="button" onclick="triggerScheduleAutoGenerate('rs_wards')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 shadow-sm transition flex items-center gap-1.5">
                         <i class="fas fa-wand-magic-sparkles"></i>
                         <span>توليد ردهات الإضراب آلياً</span>
+                    </button>
+                    <button type="button" onclick="openPrintOptionsModal('rs_wards')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5" title="خيارات ألوان وتصميم ورقة الطباعة الرسمية">
+                        <i class="fas fa-palette text-rose-500"></i>
+                        <span>خيارات الطباعة</span>
                     </button>
                     <button type="button" onclick="prepareOfficialPrint('rs_wards')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
                         <i class="fas fa-print"></i>
@@ -2639,6 +2886,100 @@
         }
     }
 
+    function getStageBubbleClass(stage) {
+        switch (stage) {
+            case 'الأولى': return 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border-blue-300 dark:border-blue-700';
+            case 'الثانية': return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700';
+            case 'الثالثة': return 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300 border-purple-300 dark:border-purple-700';
+            case 'الرابعة': return 'bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300 border-pink-300 dark:border-pink-700';
+            case 'الخامسة': return 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border-amber-300 dark:border-amber-700';
+            case 'السادسة': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700';
+            default: return 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-300 dark:border-slate-700';
+        }
+    }
+
+    function renderStageBubbleHTML(r) {
+        const stage = r.stage || 'بدون';
+        const colorClass = getStageBubbleClass(stage);
+        return `
+            <button type="button" onclick="openStageOptionsModal('${r.id}', event)" class="px-2.5 py-1 rounded-full text-xs font-black border transition-all duration-150 shadow-2xs hover:scale-105 active:scale-95 cursor-pointer inline-flex items-center justify-center min-w-[62px] ${colorClass}" title="انقر لاختيار مرحلة البورد">
+                <span>${stage}</span>
+            </button>
+        `;
+    }
+
+    let activeStageResidentId = null;
+
+    function openStageOptionsModal(residentId, event) {
+        if (event) event.stopPropagation();
+        const r = (state.residents || []).find(doc => doc.id === residentId);
+        if (!r) return;
+
+        activeStageResidentId = residentId;
+        const modal = document.getElementById('stage-options-modal');
+        const docNameEl = document.getElementById('stage-modal-docname');
+        const optionsEl = document.getElementById('stage-modal-options');
+        if (!modal || !optionsEl) return;
+
+        if (docNameEl) docNameEl.textContent = `${r.name} · (${r.specialty || 'General'})`;
+
+        const stages = [
+            { name: 'الأولى', label: 'المرحلة الأولى (R1)', desc: 'السنة الأولى في برنامج البورد' },
+            { name: 'الثانية', label: 'المرحلة الثانية (R2)', desc: 'السنة الثانية في برنامج البورد' },
+            { name: 'الثالثة', label: 'المرحلة الثالثة (R3)', desc: 'السنة الثالثة في برنامج البورد' },
+            { name: 'الرابعة', label: 'المرحلة الرابعة (R4)', desc: 'السنة الرابعة في برنامج البورد' },
+            { name: 'الخامسة', label: 'المرحلة الخامسة (R5)', desc: 'السنة الخامسة في برنامج البورد' },
+            { name: 'السادسة', label: 'المرحلة السادسة (R6)', desc: 'السنة السادسة في برنامج البورد' },
+            { name: 'بدون', label: 'بدون تحديد', desc: 'طبيب مقيم أقدم ممارس بدون بورد' }
+        ];
+
+        optionsEl.innerHTML = stages.map(s => {
+            const isSelected = r.stage === s.name || (!r.stage && s.name === 'بدون');
+            const colorClass = getStageBubbleClass(s.name);
+            return `
+                <button type="button" onclick="selectResidentStage('${residentId}', '${s.name}')" 
+                    class="w-full p-2.5 rounded-2xl border-2 text-right transition flex items-center justify-between gap-2 group ${isSelected ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/40' : 'border-slate-200 dark:border-slate-700 hover:border-purple-400 bg-white dark:bg-slate-900'}">
+                    <div>
+                        <div class="font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${colorClass}">${s.name}</span>
+                            <span>${s.label}</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 mt-0.5">${s.desc}</div>
+                    </div>
+                    ${isSelected ? '<i class="fas fa-check-circle text-purple-600 text-sm"></i>' : ''}
+                </button>
+            `;
+        }).join('');
+
+        modal.classList.remove('hidden');
+    }
+
+    function closeStageOptionsModal() {
+        const modal = document.getElementById('stage-options-modal');
+        if (modal) modal.classList.add('hidden');
+        activeStageResidentId = null;
+    }
+
+    function selectResidentStage(residentId, newStage) {
+        const r = (state.residents || []).find(doc => doc.id === residentId);
+        if (!r) return;
+
+        r.stage = newStage;
+        saveState();
+
+        const tr = document.querySelector(`tr[data-resident-id="${residentId}"]`);
+        if (tr) {
+            tr.setAttribute('data-stage', newStage);
+            const stageCell = tr.querySelector('.resident-stage-cell');
+            if (stageCell) {
+                stageCell.innerHTML = renderStageBubbleHTML(r);
+            }
+        }
+
+        closeStageOptionsModal();
+        showNotification(`تم تعيين المرحلة: ${newStage} للطبيب ${r.name}`, 'success');
+    }
+
     // Render individual resident row with direct editable inputs & coloring system
     function renderResidentRowHTML(r, rowNum, scheduledCounts, isInactiveSection) {
         const cleanName = normalizeArabic(r.name);
@@ -2660,7 +3001,7 @@
             statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400">معطّل</span>`;
         } else if (isExpired) {
             rowBgClass = 'bg-amber-50/20 text-slate-500';
-            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">منتهي الصلاحية</span>`;
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">منتهي الإقامة</span>`;
         } else if (isFulfilled) {
             rowBgClass = 'bg-emerald-50/40 dark:bg-emerald-950/15 border-l-4 border-l-emerald-500';
             statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">مكتمل (${stats.normalScheduled}/${normalTarget})</span>`;
@@ -2711,11 +3052,9 @@
                     ${renderBoardBubbleHTML(r)}
                 </td>
 
-                <!-- Stage (Selection from الأولى to السادسة) -->
-                <td class="py-1 px-2 text-center">
-                    <select onchange="onResidentFieldChange('${r.id}', 'stage', this.value)" class="db-cell-input text-center font-bold">
-                        ${arabicStages.map(st => `<option value="${st}" ${r.stage === st ? 'selected' : ''}>${st}</option>`).join('')}
-                    </select>
+                <!-- Stage (Interactive Bubble Badge, NO Down Arrow) -->
+                <td class="py-1 px-2 text-center resident-stage-cell">
+                    ${renderStageBubbleHTML(r)}
                 </td>
 
                 <!-- ER Target (Direct number input) -->
@@ -3658,6 +3997,7 @@
 
         const dayEntry = (state.schedules[activeSlot.type] || []).find(s => s.dayNumber === activeSlot.dayNumber);
         if (dayEntry) {
+            pushScheduleHistory(`تعيين ${doctorName}`);
             dayEntry[activeSlot.slotKey] = doctorName;
             saveState();
             renderActiveTab();
@@ -3670,6 +4010,7 @@
         if (!activeSlot) return;
         const dayEntry = (state.schedules[activeSlot.type] || []).find(s => s.dayNumber === activeSlot.dayNumber);
         if (dayEntry) {
+            pushScheduleHistory('تفريغ خانة الخفارة');
             dayEntry[activeSlot.slotKey] = '';
             saveState();
             renderActiveTab();
@@ -3918,6 +4259,8 @@
             alert('لا يوجد أطباء نشطون مؤهلون للتوزيع لهذا الشهر!');
             return;
         }
+
+        pushScheduleHistory(`توليد جدول ${type} آلياً`);
 
         if (type === 'er') {
             runAutoDistributionER(mode, daysCount, activeDocs);
@@ -4293,6 +4636,9 @@
         const activeSheet = targetSheet || state.activeTab;
         const targetTitle = sheetNames[activeSheet] || 'في الطوارئ';
 
+        const opts = state.printOptions || PRINT_THEME_PRESETS.official;
+        const thStyle = `background-color: ${opts.headerBg} !important; color: ${opts.headerText} !important; border: 1px solid ${opts.borderColor} !important; font-weight: 900; padding: 2.5px 3.5px !important; text-align: center;`;
+
         // Prepare table rows depending on sheet (DAY NUMBER / ت COLUMN IS REMOVED AS REQUESTED)
         let tableHeaderHTML = '';
         let tableRowsHTML = '';
@@ -4300,57 +4646,75 @@
         if (activeSheet === 'er' || (!targetSheet && state.activeTab === 'er')) {
             tableHeaderHTML = `
                 <tr>
-                    <th style="width: 70px;">اليوم</th>
-                    <th style="width: 75px;">التاريخ</th>
-                    <th>الصباحية (8ص - 2م)</th>
-                    <th>بعد الصباحية (2م - 8م)</th>
-                    <th>البرينايت (8م - 2ص)</th>
-                    <th>الليلية (2ص - 8ص)</th>
+                    <th style="width: 70px; ${thStyle}">اليوم</th>
+                    <th style="width: 80px; ${thStyle}">التاريخ</th>
+                    <th style="${thStyle}">الصباحية 8ص-2م</th>
+                    <th style="${thStyle}">بعدالصباحية 2م-8م</th>
+                    <th style="${thStyle}">البرينايت 8م-2ص</th>
+                    <th style="${thStyle}">الليلية 2ص-8ص</th>
                 </tr>
             `;
             (state.schedules.er || []).forEach(day => {
+                const isWeekend = (day.dayName === 'الجمعة' || day.dayName === 'السبت');
+                const rowBg = isWeekend ? (opts.weekendBg || '#5ea37d') : '#ffffff';
+                const rowTextColor = isWeekend ? (opts.weekendText || '#000000') : '#000000';
+                const rowWeight = isWeekend ? 'font-weight: 700;' : '';
+                const tdStyle = `border: 1px solid ${opts.borderColor} !important; color: ${rowTextColor} !important; padding: 2.2px 3.5px !important; text-align: center;`;
+
                 tableRowsHTML += `
-                    <tr>
-                        <td style="font-weight: bold;">${day.dayName}</td>
-                        <td style="font-family: Arial, sans-serif;">${formatArabicDateNumbers(day.date)}</td>
-                        <td>${day.morning || ''}</td>
-                        <td>${day.afternoon || ''}</td>
-                        <td>${day.preNight || ''}</td>
-                        <td>${day.lateNight || ''}</td>
+                    <tr style="background-color: ${rowBg} !important; color: ${rowTextColor} !important; ${rowWeight}">
+                        <td style="${tdStyle}; font-weight: bold;">${day.dayName}</td>
+                        <td style="${tdStyle}; font-family: Arial, sans-serif; font-weight: bold;">${formatArabicDateNumbers(day.date)}</td>
+                        <td style="${tdStyle}">${day.morning || ''}</td>
+                        <td style="${tdStyle}">${day.afternoon || ''}</td>
+                        <td style="${tdStyle}">${day.preNight || ''}</td>
+                        <td style="${tdStyle}">${day.lateNight || ''}</td>
                     </tr>
                 `;
             });
         } else if (activeSheet === 'con') {
             tableHeaderHTML = `
                 <tr>
-                    <th style="width: 100px;">اليوم</th>
-                    <th style="width: 100px;">التاريخ</th>
-                    <th>طبيب الاستشارية الخافرة</th>
+                    <th style="width: 100px; ${thStyle}">اليوم</th>
+                    <th style="width: 110px; ${thStyle}">التاريخ</th>
+                    <th style="${thStyle}">طبيب الاستشارية الخافرة</th>
                 </tr>
             `;
             (state.schedules.con || []).forEach(day => {
+                const isWeekend = (day.dayName === 'الجمعة' || day.dayName === 'السبت');
+                const rowBg = isWeekend ? (opts.weekendBg || '#5ea37d') : '#ffffff';
+                const rowTextColor = isWeekend ? (opts.weekendText || '#000000') : '#000000';
+                const rowWeight = isWeekend ? 'font-weight: 700;' : '';
+                const tdStyle = `border: 1px solid ${opts.borderColor} !important; color: ${rowTextColor} !important; padding: 2.5px 4px !important; text-align: center;`;
+
                 tableRowsHTML += `
-                    <tr>
-                        <td style="font-weight: bold;">${day.dayName}</td>
-                        <td style="font-family: Arial, sans-serif;">${formatArabicDateNumbers(day.date)}</td>
-                        <td style="font-weight: bold;">${day.doctor || ''}</td>
+                    <tr style="background-color: ${rowBg} !important; color: ${rowTextColor} !important; ${rowWeight}">
+                        <td style="${tdStyle}; font-weight: bold;">${day.dayName}</td>
+                        <td style="${tdStyle}; font-family: Arial, sans-serif; font-weight: bold;">${formatArabicDateNumbers(day.date)}</td>
+                        <td style="${tdStyle}; font-weight: bold;">${day.doctor || ''}</td>
                     </tr>
                 `;
             });
         } else if (activeSheet === 'dc') {
             tableHeaderHTML = `
                 <tr>
-                    <th style="width: 100px;">اليوم</th>
-                    <th style="width: 100px;">التاريخ</th>
-                    <th>طبيب شهادات الوفاة المكلف</th>
+                    <th style="width: 100px; ${thStyle}">اليوم</th>
+                    <th style="width: 110px; ${thStyle}">التاريخ</th>
+                    <th style="${thStyle}">طبيب شهادات الوفاة المكلف</th>
                 </tr>
             `;
             (state.schedules.dc || []).forEach(day => {
+                const isWeekend = (day.dayName === 'الجمعة' || day.dayName === 'السبت');
+                const rowBg = isWeekend ? (opts.weekendBg || '#5ea37d') : '#ffffff';
+                const rowTextColor = isWeekend ? (opts.weekendText || '#000000') : '#000000';
+                const rowWeight = isWeekend ? 'font-weight: 700;' : '';
+                const tdStyle = `border: 1px solid ${opts.borderColor} !important; color: ${rowTextColor} !important; padding: 2.5px 4px !important; text-align: center;`;
+
                 tableRowsHTML += `
-                    <tr>
-                        <td style="font-weight: bold;">${day.dayName}</td>
-                        <td style="font-family: Arial, sans-serif;">${formatArabicDateNumbers(day.date)}</td>
-                        <td style="font-weight: bold;">${day.doctor || ''}</td>
+                    <tr style="background-color: ${rowBg} !important; color: ${rowTextColor} !important; ${rowWeight}">
+                        <td style="${tdStyle}; font-weight: bold;">${day.dayName}</td>
+                        <td style="${tdStyle}; font-family: Arial, sans-serif; font-weight: bold;">${formatArabicDateNumbers(day.date)}</td>
+                        <td style="${tdStyle}; font-weight: bold;">${day.doctor || ''}</td>
                     </tr>
                 `;
             });
@@ -4360,25 +4724,31 @@
 
             tableHeaderHTML = `
                 <tr>
-                    <th style="width: 70px;">اليوم</th>
-                    <th style="width: 75px;">التاريخ</th>
-                    <th>الصباحية (8ص - 2م)</th>
-                    <th>بعد الصباحية (2م - 8م)</th>
-                    <th>البرينايت (8م - 2ص)</th>
-                    <th>الليلية (2ص - 8ص)</th>
+                    <th style="width: 70px; ${thStyle}">اليوم</th>
+                    <th style="width: 80px; ${thStyle}">التاريخ</th>
+                    <th style="${thStyle}">الصباحية 8ص-2م</th>
+                    <th style="${thStyle}">بعدالصباحية 2م-8م</th>
+                    <th style="${thStyle}">البرينايت 8م-2ص</th>
+                    <th style="${thStyle}">الليلية 2ص-8ص</th>
                 </tr>
             `;
 
             (state.schedules.rs || []).forEach(day => {
                 if (day.dayNumber >= startDay && day.dayNumber <= endDay) {
+                    const isWeekend = (day.dayName === 'الجمعة' || day.dayName === 'السبت');
+                    const rowBg = isWeekend ? (opts.weekendBg || '#5ea37d') : '#ffffff';
+                    const rowTextColor = isWeekend ? (opts.weekendText || '#000000') : '#000000';
+                    const rowWeight = isWeekend ? 'font-weight: 700;' : '';
+                    const tdStyle = `border: 1px solid ${opts.borderColor} !important; color: ${rowTextColor} !important; padding: 2.2px 3.5px !important; text-align: center;`;
+
                     tableRowsHTML += `
-                        <tr>
-                            <td style="font-weight: bold;">${day.dayName}</td>
-                            <td style="font-family: Arial, sans-serif;">${formatArabicDateNumbers(day.date)}</td>
-                            <td>${day.er_morning || ''}</td>
-                            <td>${day.er_afternoon || ''}</td>
-                            <td>${day.er_preNight || ''}</td>
-                            <td>${day.er_lateNight || ''}</td>
+                        <tr style="background-color: ${rowBg} !important; color: ${rowTextColor} !important; ${rowWeight}">
+                            <td style="${tdStyle}; font-weight: bold;">${day.dayName}</td>
+                            <td style="${tdStyle}; font-family: Arial, sans-serif; font-weight: bold;">${formatArabicDateNumbers(day.date)}</td>
+                            <td style="${tdStyle}">${day.er_morning || ''}</td>
+                            <td style="${tdStyle}">${day.er_afternoon || ''}</td>
+                            <td style="${tdStyle}">${day.er_preNight || ''}</td>
+                            <td style="${tdStyle}">${day.er_lateNight || ''}</td>
                         </tr>
                     `;
                 }
@@ -4389,23 +4759,29 @@
 
             tableHeaderHTML = `
                 <tr>
-                    <th style="width: 70px;">اليوم</th>
-                    <th style="width: 75px;">التاريخ</th>
-                    <th>الجناح الخاص</th>
-                    <th>الجناح العام / طابق 4</th>
-                    <th>الجناح العام / طابق 5</th>
+                    <th style="width: 70px; ${thStyle}">اليوم</th>
+                    <th style="width: 80px; ${thStyle}">التاريخ</th>
+                    <th style="${thStyle}">الجناح الخاص</th>
+                    <th style="${thStyle}">الجناح العام / طابق 4</th>
+                    <th style="${thStyle}">الجناح العام / طابق 5</th>
                 </tr>
             `;
 
             (state.schedules.rs || []).forEach(day => {
                 if (day.dayNumber >= startDay && day.dayNumber <= endDay) {
+                    const isWeekend = (day.dayName === 'الجمعة' || day.dayName === 'السبت');
+                    const rowBg = isWeekend ? (opts.weekendBg || '#5ea37d') : '#ffffff';
+                    const rowTextColor = isWeekend ? (opts.weekendText || '#000000') : '#000000';
+                    const rowWeight = isWeekend ? 'font-weight: 700;' : '';
+                    const tdStyle = `border: 1px solid ${opts.borderColor} !important; color: ${rowTextColor} !important; padding: 2.2px 3.5px !important; text-align: center;`;
+
                     tableRowsHTML += `
-                        <tr>
-                            <td style="font-weight: bold;">${day.dayName}</td>
-                            <td style="font-family: Arial, sans-serif;">${formatArabicDateNumbers(day.date)}</td>
-                            <td>${day.ward_private || ''}</td>
-                            <td>${day.ward_floor4 || ''}</td>
-                            <td>${day.ward_floor5 || ''}</td>
+                        <tr style="background-color: ${rowBg} !important; color: ${rowTextColor} !important; ${rowWeight}">
+                            <td style="${tdStyle}; font-weight: bold;">${day.dayName}</td>
+                            <td style="${tdStyle}; font-family: Arial, sans-serif; font-weight: bold;">${formatArabicDateNumbers(day.date)}</td>
+                            <td style="${tdStyle}">${day.ward_private || ''}</td>
+                            <td style="${tdStyle}">${day.ward_floor4 || ''}</td>
+                            <td style="${tdStyle}">${day.ward_floor5 || ''}</td>
                         </tr>
                     `;
                 }
@@ -4417,8 +4793,8 @@
         printContainer.innerHTML = `
             <div style="font-family: 'Cairo', Arial, sans-serif; direction: rtl; color: #000; width: 100%; box-sizing: border-box;">
                 
-                <!-- 1. OFFICIAL CENTERED HEADER (MATCHING USER IMAGE 2) -->
-                <div style="text-align: center; line-height: 1.25; margin-bottom: 6px;">
+                <!-- 1. OFFICIAL CENTERED HEADER (MATCHING MINISTERIAL PDF VERBATIM) -->
+                <div style="text-align: center; line-height: 1.25; margin-bottom: 5px;">
                     <div style="font-size: 10.5pt; font-weight: bold;">جمهورية العراق</div>
                     <div style="font-size: 10.5pt; font-weight: bold;">وزارة الصحة</div>
                     <div style="font-size: 10.5pt; font-weight: bold;">دائرة صحة البصرة</div>
@@ -4426,23 +4802,23 @@
                     <div style="font-size: 10pt; font-weight: bold;">شعبة ادارة الموارد البشرية</div>
                 </div>
 
-                <!-- 2. ORDER NUMBER & DATE (ON RIGHT, MATCHING USER IMAGE 2) -->
-                <div style="text-align: right; margin-bottom: 6px; font-size: 9pt; font-weight: bold; line-height: 1.3;">
-                    <div>العـــدد / &nbsp; ${state.orderNumber || ''}</div>
+                <!-- 2. ORDER NUMBER & DATE (ON RIGHT, MATCHING PDF) -->
+                <div style="text-align: right; margin-bottom: 5px; font-size: 9pt; font-weight: bold; line-height: 1.3;">
+                    <div>العدد / &nbsp; ${state.orderNumber || ''}</div>
                     <div>التاريخ / &nbsp; ${arabicOrderDate}</div>
                 </div>
 
-                <!-- 3. ORDER TITLE & INTRO (MATCHING USER IMAGE 2) -->
-                <div style="text-align: center; margin-bottom: 6px;">
+                <!-- 3. ORDER TITLE & INTRO (MATCHING PDF) -->
+                <div style="text-align: center; margin-bottom: 5px;">
                     <div style="font-size: 11.5pt; font-weight: 900; margin-bottom: 2px;">امر اداري</div>
                     <div style="font-size: 9pt; font-weight: bold;">
                         تقرر ان يكون جدول خفارات المقيمين الاقدمين ${targetTitle} لشهر <u>${state.monthYear}</u> كما مبين ادناه: -
                     </div>
                 </div>
 
-                <!-- 4. FORMAL PRINT TABLE (DAY NUMBER 'ت' REMOVED, SINGLE A4 PAGE TUNED) -->
-                <table class="print-table">
-                    <thead style="background-color: #f1f5f9;">
+                <!-- 4. FORMAL PRINT TABLE (CUSTOMIZABLE PRESET COLORS & MINISTERIAL BORDERS) -->
+                <table class="print-table" style="border: 1px solid ${opts.borderColor} !important;">
+                    <thead style="background-color: ${opts.headerBg} !important; color: ${opts.headerText} !important;">
                         ${tableHeaderHTML}
                     </thead>
                     <tbody>
@@ -4450,13 +4826,13 @@
                     </tbody>
                 </table>
 
-                <!-- 5. INSTRUCTIONS (MATCHING USER IMAGE 1) -->
+                <!-- 5. INSTRUCTIONS (MATCHING PDF) -->
                 <div style="margin-top: 5px; font-size: 7.5pt; font-weight: bold; line-height: 1.35; text-align: right;">
                     <div>◆ يرجى تبليغ رئيس الاطباء المقيمين في حالة تبديل الخفارة وبخلافه يتحمل الطرفين المسؤولية.</div>
                     <div>◆ في حالة تغيب الطبيب عن الخفارة، يعتبر غياب ويكون التعويض مضاعف.</div>
                 </div>
 
-                <!-- 6. SIGNATURES (MATCHING USER IMAGE 1: HEAD OF RESIDENTS RIGHT, HOSPITAL DIRECTOR LEFT) -->
+                <!-- 6. SIGNATURES (MATCHING PDF: HEAD OF RESIDENTS RIGHT, HOSPITAL DIRECTOR LEFT) -->
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 10px; font-size: 8.5pt;">
                     <!-- Head of Residents (Right) -->
                     <div style="width: 45%; text-align: center;">
@@ -4472,15 +4848,15 @@
                     </div>
                 </div>
 
-                <!-- 7. COPIES TO (MATCHING USER IMAGE 1) -->
+                <!-- 7. COPIES TO (MATCHING PDF) -->
                 <div style="margin-top: 6px; font-size: 7pt; font-weight: bold; line-height: 1.25; text-align: right;">
                     <div>نسخه منه الى: -</div>
                     <div>◆ دائرة صحة البصرة / قسم الامور الإدارية / للعلم مع التقدير</div>
                     <div>◆ دائرة صحة البصرة / قسم التفتيش / للعلم مع التقدير</div>
                     <div>◆ دائرة صحة البصرة / قسم العمليات الطبية والخدمات المتخصصة / للعلم مع التقدير</div>
-                    <div>◆ مكتب مدير المستشفى /للعلم مع التقدير</div>
+                    <div>◆ مكتب مدير المستشفى / للعلم مع التقدير</div>
                     <div>◆ رئيس الاطباء المقيمين / شعبة الطوارئ / لوحة الاعلانات – وحدة المتابعة</div>
-                    <div>◆ الاوراق مع الأوليات</div>
+                    <div>◆ الاوراق مع الاوليات</div>
                 </div>
 
             </div>
@@ -4491,8 +4867,136 @@
 
     function formatArabicDateNumbers(dateStr) {
         if (!dateStr) return '';
-        // Convert YYYY-MM-DD to YYYY/MM/DD
-        return dateStr.replace(/-/g, '/');
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+            return `${parts[2]}/${parts[1]}/${parts[0]}`; // DD/MM/YYYY
+        }
+        return dateStr;
+    }
+
+    // =========================================================================
+    // PRINT OPTIONS & COLOR CUSTOMIZATION MODAL HANDLERS
+    // =========================================================================
+
+    function openPrintOptionsModal(targetSheet) {
+        activePrintSheet = targetSheet || state.activeTab || 'er';
+        const modal = document.getElementById('print-options-modal');
+        if (!modal) return;
+
+        const opts = state.printOptions || PRINT_THEME_PRESETS.official;
+
+        const headerBgInput = document.getElementById('print-opt-header-bg');
+        const headerTextInput = document.getElementById('print-opt-header-text');
+        const weekendBgInput = document.getElementById('print-opt-weekend-bg');
+        const weekendTextInput = document.getElementById('print-opt-weekend-text');
+        const borderInput = document.getElementById('print-opt-border-color');
+
+        if (headerBgInput) headerBgInput.value = opts.headerBg || '#000000';
+        if (headerTextInput) headerTextInput.value = opts.headerText || '#ffffff';
+        if (weekendBgInput) weekendBgInput.value = opts.weekendBg || '#5ea37d';
+        if (weekendTextInput) weekendTextInput.value = opts.weekendText || '#000000';
+        if (borderInput) borderInput.value = opts.borderColor || '#000000';
+
+        updatePrintPreview();
+        modal.classList.remove('hidden');
+    }
+
+    function closePrintOptionsModal() {
+        const modal = document.getElementById('print-options-modal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    function applyPrintPreset(presetKey) {
+        const preset = PRINT_THEME_PRESETS[presetKey];
+        if (!preset) return;
+
+        state.printOptions = {
+            theme: presetKey,
+            headerBg: preset.headerBg,
+            headerText: preset.headerText,
+            weekendBg: preset.weekendBg,
+            weekendText: preset.weekendText,
+            borderColor: preset.borderColor
+        };
+
+        const headerBgInput = document.getElementById('print-opt-header-bg');
+        const headerTextInput = document.getElementById('print-opt-header-text');
+        const weekendBgInput = document.getElementById('print-opt-weekend-bg');
+        const weekendTextInput = document.getElementById('print-opt-weekend-text');
+        const borderInput = document.getElementById('print-opt-border-color');
+
+        if (headerBgInput) headerBgInput.value = preset.headerBg;
+        if (headerTextInput) headerTextInput.value = preset.headerText;
+        if (weekendBgInput) weekendBgInput.value = preset.weekendBg;
+        if (weekendTextInput) weekendTextInput.value = preset.weekendText;
+        if (borderInput) borderInput.value = preset.borderColor;
+
+        updatePrintPreview();
+        saveState();
+        showNotification(`تم تطبيق نموذج الطباعة: ${preset.name}`, 'info');
+    }
+
+    function onCustomPrintColorChange() {
+        const headerBgInput = document.getElementById('print-opt-header-bg');
+        const headerTextInput = document.getElementById('print-opt-header-text');
+        const weekendBgInput = document.getElementById('print-opt-weekend-bg');
+        const weekendTextInput = document.getElementById('print-opt-weekend-text');
+        const borderInput = document.getElementById('print-opt-border-color');
+
+        state.printOptions = {
+            theme: 'custom',
+            headerBg: headerBgInput ? headerBgInput.value : '#000000',
+            headerText: headerTextInput ? headerTextInput.value : '#ffffff',
+            weekendBg: weekendBgInput ? weekendBgInput.value : '#5ea37d',
+            weekendText: weekendTextInput ? weekendTextInput.value : '#000000',
+            borderColor: borderInput ? borderInput.value : '#000000'
+        };
+
+        updatePrintPreview();
+    }
+
+    function updatePrintPreview() {
+        const opts = state.printOptions || PRINT_THEME_PRESETS.official;
+        const previewHeader = document.getElementById('preview-header-row');
+        const previewNormal = document.getElementById('preview-normal-row');
+        const previewWeekend = document.getElementById('preview-weekend-row');
+
+        if (previewHeader) {
+            previewHeader.style.backgroundColor = opts.headerBg;
+            previewHeader.style.color = opts.headerText;
+            previewHeader.style.borderColor = opts.borderColor;
+            previewHeader.querySelectorAll('th').forEach(th => {
+                th.style.borderColor = opts.borderColor;
+            });
+        }
+
+        if (previewNormal) {
+            previewNormal.style.backgroundColor = '#ffffff';
+            previewNormal.style.color = '#000000';
+            previewNormal.querySelectorAll('td').forEach(td => {
+                td.style.borderColor = opts.borderColor;
+            });
+        }
+
+        if (previewWeekend) {
+            previewWeekend.style.backgroundColor = opts.weekendBg;
+            previewWeekend.style.color = opts.weekendText;
+            previewWeekend.querySelectorAll('td').forEach(td => {
+                td.style.borderColor = opts.borderColor;
+            });
+        }
+    }
+
+    function savePrintOptions() {
+        onCustomPrintColorChange();
+        saveState();
+        closePrintOptionsModal();
+        showNotification('تم حفظ تخصيص ألوان الطباعة بنجاح', 'success');
+    }
+
+    function saveAndPrintImmediately() {
+        savePrintOptions();
+        prepareOfficialPrint(activePrintSheet || state.activeTab);
     }
 
     // =========================================================================
@@ -4715,6 +5219,28 @@
     window.toggleResidentSex = toggleResidentSex;
     window.cycleResidentBoard = cycleResidentBoard;
     window.importResidentsFromHospital = importResidentsFromHospital;
+
+    // Modals and Action Handlers
+    window.openResidentsDbModal = openResidentsDbModal;
+    window.closeResidentsDbModal = closeResidentsDbModal;
+    window.openStageOptionsModal = openStageOptionsModal;
+    window.closeStageOptionsModal = closeStageOptionsModal;
+    window.selectResidentStage = selectResidentStage;
+    window.renderStageBubbleHTML = renderStageBubbleHTML;
+    window.undoScheduleAction = undoScheduleAction;
+    window.redoScheduleAction = redoScheduleAction;
+    window.renderScheduleUndoRedoButtons = renderScheduleUndoRedoButtons;
+    window.openPrintOptionsModal = openPrintOptionsModal;
+    window.closePrintOptionsModal = closePrintOptionsModal;
+    window.applyPrintPreset = applyPrintPreset;
+    window.onCustomPrintColorChange = onCustomPrintColorChange;
+    window.updatePrintPreview = updatePrintPreview;
+    window.savePrintOptions = savePrintOptions;
+    window.saveAndPrintImmediately = saveAndPrintImmediately;
+    window.formatArabicDateNumbers = formatArabicDateNumbers;
+    window.PRINT_THEME_PRESETS = PRINT_THEME_PRESETS;
+    window.state = state;
+    window.saveState = saveState;
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initEmergencyApp);

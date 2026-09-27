@@ -82,6 +82,12 @@
             border-color: #f43f5e;
             box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.2);
         }
+        .duty-card {
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .duty-card:hover {
+            transform: translateY(-2px);
+        }
 
         /* PRINT STYLES - STRICT SINGLE A4 PORTRAIT PAGE */
         @media print {
@@ -295,7 +301,7 @@
         </section>
 
         <!-- Monthly Duty Dashboard (Counts required, allocated, and scheduled duties) -->
-        <section id="duty-dashboard-grid" class="no-print">
+        <section id="duty-dashboard-grid" class="no-print space-y-4">
             <!-- Rendered dynamically by updateDutyDashboard() -->
         </section>
 

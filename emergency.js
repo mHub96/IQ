@@ -649,7 +649,7 @@
     }
 
     // =========================================================================
-    // MONTHLY DUTY COUNTING DASHBOARD
+    // MONTHLY DUTY COUNTING DASHBOARD (RENOVATED EXECUTIVE COCKPIT)
     // =========================================================================
 
     function updateDutyDashboard() {
@@ -657,10 +657,16 @@
 
         const activeDocs = (state.residents || []).filter(r => r.active && !isResidentExpired(r, state.year, state.month));
         const totalDocsCount = (state.residents || []).length;
+        const inactiveDocs = (state.residents || []).filter(r => !r.active || isResidentExpired(r, state.year, state.month));
+        
+        const femaleDocs = activeDocs.filter(r => r.gender === 'female' || r.gender === 'أنثى');
+        const maleDocs = activeDocs.filter(r => r.gender === 'male' || r.gender === 'ذكر');
+        const boardDocs = activeDocs.filter(r => r.board === 'Arabic' || r.board === 'Iraqi' || r.board === 'عربي' || r.board === 'عراقي');
+
         const totalDocEl = document.getElementById('stat-total-doctors');
         if (totalDocEl) totalDocEl.textContent = `${activeDocs.length} / ${totalDocsCount}`;
 
-        // 1. ER Duties
+        // 1. ER Duties (4 shifts/day)
         const erRequired = daysCount * 4;
         const erAllocated = activeDocs.reduce((sum, r) => sum + (Number(r.er_target) || 0), 0);
         let erScheduled = 0;
@@ -670,33 +676,52 @@
             if (day.preNight && day.preNight.trim()) erScheduled++;
             if (day.lateNight && day.lateNight.trim()) erScheduled++;
         });
+        const erRemaining = Math.max(0, erRequired - erScheduled);
+        const erPercent = erRequired > 0 ? Math.min(100, Math.round((erScheduled / erRequired) * 100)) : 0;
+        const erAllocDiff = erAllocated - erRequired;
 
-        // 2. Con Duties
+        // 2. Con Duties (1 shift/day)
         const conRequired = daysCount * 1;
         const conAllocated = activeDocs.reduce((sum, r) => sum + (Number(r.con_target) || 0), 0);
         let conScheduled = 0;
         (state.schedules.con || []).forEach(day => {
             if (day.doctor && day.doctor.trim()) conScheduled++;
         });
+        const conRemaining = Math.max(0, conRequired - conScheduled);
+        const conPercent = conRequired > 0 ? Math.min(100, Math.round((conScheduled / conRequired) * 100)) : 0;
+        const conAllocDiff = conAllocated - conRequired;
 
-        // 3. DC Duties
+        // 3. DC Duties (1 shift/day)
         const dcRequired = daysCount * 1;
         const dcAllocated = activeDocs.reduce((sum, r) => sum + (Number(r.dc_target) || 0), 0);
         let dcScheduled = 0;
         (state.schedules.dc || []).forEach(day => {
             if (day.doctor && day.doctor.trim()) dcScheduled++;
         });
+        const dcRemaining = Math.max(0, dcRequired - dcScheduled);
+        const dcPercent = dcRequired > 0 ? Math.min(100, Math.round((dcScheduled / dcRequired) * 100)) : 0;
+        const dcAllocDiff = dcAllocated - dcRequired;
 
-        // 4. RS Duties
+        // 4. RS Duties (Rotators Strike)
         let rsDaysCount = 0;
         let rsErScheduled = 0;
         let rsWardsScheduled = 0;
         let rsAllocated = activeDocs.reduce((sum, r) => sum + (Number(r.rs_target) || 0), 0);
+        let rsErRequired = 0;
+        let rsWardsRequired = 0;
+        let rsTotalRequired = 0;
+        let rsTotalScheduled = 0;
+        let rsRemaining = 0;
+        let rsPercent = 0;
+        let rsAllocDiff = 0;
 
         if (state.rsEnabled && state.rsStartDate && state.rsEndDate) {
             const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
             const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || daysCount;
             rsDaysCount = Math.max(0, endDay - startDay + 1);
+            rsErRequired = rsDaysCount * 4;
+            rsWardsRequired = rsDaysCount * 3;
+            rsTotalRequired = rsErRequired + rsWardsRequired;
 
             (state.schedules.rs || []).forEach(day => {
                 if (day.dayNumber >= startDay && day.dayNumber <= endDay) {
@@ -709,116 +734,456 @@
                     if (day.ward_floor5 && day.ward_floor5.trim()) rsWardsScheduled++;
                 }
             });
+
+            rsTotalScheduled = rsErScheduled + rsWardsScheduled;
+            rsRemaining = Math.max(0, rsTotalRequired - rsTotalScheduled);
+            rsPercent = rsTotalRequired > 0 ? Math.min(100, Math.round((rsTotalScheduled / rsTotalRequired) * 100)) : 0;
+            rsAllocDiff = rsAllocated - rsTotalRequired;
         }
+
+        // Overall Monthly Hospital Duty Totals
+        const overallRequired = erRequired + conRequired + dcRequired + (state.rsEnabled ? rsTotalRequired : 0);
+        const overallScheduled = erScheduled + conScheduled + dcScheduled + (state.rsEnabled ? rsTotalScheduled : 0);
+        const overallAllocated = erAllocated + conAllocated + dcAllocated + (state.rsEnabled ? rsAllocated : 0);
+        const overallPercent = overallRequired > 0 ? Math.min(100, Math.round((overallScheduled / overallRequired) * 100)) : 0;
+        const overallRemaining = Math.max(0, overallRequired - overallScheduled);
+        const overallAllocDiff = overallAllocated - overallRequired;
 
         const container = document.getElementById('duty-dashboard-grid');
         if (!container) return;
 
+        const monthNames = [
+            'كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران',
+            'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'
+        ];
+        const currentMonthName = monthNames[state.month - 1] || `شهر ${state.month}`;
+
         const makeBalancePill = (scheduled, required) => {
             const diff = scheduled - required;
             if (diff === 0) {
-                return `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">مكتمل تماماً</span>`;
+                return `
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 shadow-xs">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        <span>مكتمل تماماً</span>
+                    </span>
+                `;
             } else if (diff < 0) {
-                return `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">نقص (${diff})</span>`;
+                return `
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border border-rose-300 dark:border-rose-800 shadow-xs">
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                        <span>نقص (${diff})</span>
+                    </span>
+                `;
             } else {
-                return `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">زيادة (+${diff})</span>`;
+                return `
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300 dark:border-amber-800 shadow-xs">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                        <span>زيادة (+${diff})</span>
+                    </span>
+                `;
             }
         };
 
         const makeAllocatedPill = (allocated, required) => {
             const diff = allocated - required;
             if (diff === 0) {
-                return `<span class="text-emerald-600 font-bold">مطابق للمطلوب (${allocated})</span>`;
+                return `<span class="text-emerald-600 dark:text-emerald-400 font-bold">مطابق (${allocated})</span>`;
             } else if (diff < 0) {
-                return `<span class="text-rose-500 font-bold">عجز في الأنصبة (${allocated} / ${required})</span>`;
+                return `<span class="text-rose-600 dark:text-rose-400 font-bold">عجز (${diff})</span>`;
             } else {
-                return `<span class="text-amber-500 font-bold">فائض أنصبة (${allocated} / ${required})</span>`;
+                return `<span class="text-amber-600 dark:text-amber-400 font-bold">فائض (+${diff})</span>`;
             }
         };
 
+        // Render Renovated Executive Cockpit & 4 Interactive Track Cards
         container.innerHTML = `
-            <!-- ER Card -->
-            <div class="glass-panel rounded-2xl p-3.5 border border-slate-200/80 dark:border-slate-800 hover:border-rose-300 dark:hover:border-rose-900 transition shadow-sm">
-                <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs font-black flex items-center gap-1.5 text-rose-600">
-                        <i class="fas fa-truck-medical"></i>
-                        <span>خفارات الطوارئ (ER)</span>
-                    </span>
-                    ${makeBalancePill(erScheduled, erRequired)}
-                </div>
-                <div class="flex items-baseline justify-between mt-2">
-                    <div class="text-xl sm:text-2xl font-black font-mono text-slate-800 dark:text-slate-100">
-                        ${erScheduled} <span class="text-xs font-normal text-slate-400">/ ${erRequired} مطلوب</span>
+            <!-- 1. Executive Operations & Hospital Readiness Suite -->
+            <div class="relative overflow-hidden rounded-3xl glass-panel border border-slate-200/90 dark:border-slate-800 shadow-sm p-4 sm:p-5">
+                <!-- Ambient Glow Accents -->
+                <div class="pointer-events-none absolute -top-24 -left-20 w-80 h-80 bg-gradient-to-br from-rose-500/10 via-sky-500/10 to-emerald-500/10 rounded-full blur-3xl opacity-60"></div>
+                <div class="pointer-events-none absolute -bottom-24 -right-20 w-80 h-80 bg-gradient-to-tr from-amber-500/10 via-rose-500/10 to-indigo-500/10 rounded-full blur-3xl opacity-60"></div>
+
+                <div class="relative z-10 space-y-4">
+                    <!-- Top Operational Header -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800/80">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-600 via-rose-500 to-red-500 text-white flex items-center justify-center shadow-lg shadow-rose-500/25 shrink-0">
+                                <i class="fas fa-chart-line text-base"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-slate-50 tracking-tight">
+                                        لوحة الجاهزية التشغيلية وتغطية الخفارات
+                                    </h2>
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 font-mono">
+                                        ${currentMonthName} ${state.year}
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                                    <span class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                        <i class="fas fa-hospital text-slate-400"></i>
+                                        <span>${state.hospitalName || 'مستشفى الصدر التعليمي'}</span>
+                                    </span>
+                                    <span class="text-slate-300 dark:text-slate-700">•</span>
+                                    <span>عدد أيام الشهر: <strong>${daysCount} يوماً</strong></span>
+                                    ${state.rsEnabled ? `
+                                        <span class="text-slate-300 dark:text-slate-700">•</span>
+                                        <span class="text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
+                                            <i class="fas fa-triangle-exclamation text-[10px]"></i>
+                                            <span>إضراب المقيمين مفعل (${rsDaysCount} يوم)</span>
+                                        </span>
+                                    ` : ''}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Overall Readiness Badge -->
+                        <div class="flex items-center gap-2 self-start sm:self-center">
+                            ${overallPercent === 100 ? `
+                                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-bold text-xs shadow-xs">
+                                    <span class="relative flex h-2.5 w-2.5">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                                    </span>
+                                    <span>تغطية مكتملة 100% (جاهز للاعتماد)</span>
+                                </div>
+                            ` : `
+                                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 font-bold text-xs shadow-xs">
+                                    <span class="relative flex h-2.5 w-2.5">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                                    </span>
+                                    <span>قيد التعبئة (${overallRemaining} شاغر غير مسند)</span>
+                                </div>
+                            `}
+                        </div>
                     </div>
-                </div>
-                <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-1.5">
-                    <span>الأنصبة المخصصة:</span>
-                    ${makeAllocatedPill(erAllocated, erRequired)}
+
+                    <!-- 4 High-Impact Cockpit Metric Cards -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        <!-- 1. Coverage Percentage -->
+                        <div class="p-3 rounded-2xl bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/70 dark:border-slate-800">
+                            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                <span class="font-bold text-[11px]">نسبة التغطية الكلية</span>
+                                <span class="text-xs font-black font-mono text-rose-600 dark:text-rose-400">${overallPercent}%</span>
+                            </div>
+                            <div class="text-lg sm:text-xl font-black font-mono text-slate-900 dark:text-slate-50 tracking-tight">
+                                ${overallScheduled} <span class="text-xs font-normal text-slate-400 dark:text-slate-500">/ ${overallRequired} خفارة</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-rose-500 via-amber-500 to-emerald-500 rounded-full transition-all duration-500" style="width: ${overallPercent}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Quota Balance -->
+                        <div class="p-3 rounded-2xl bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/70 dark:border-slate-800">
+                            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                <span class="font-bold text-[11px]">رصيد الأنصبة بالقاعدة</span>
+                                <span class="text-[10px] font-black px-1.5 py-0.5 rounded-md ${overallAllocDiff >= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'}">
+                                    ${overallAllocDiff >= 0 ? `+${overallAllocDiff} كفاية` : `${overallAllocDiff} عجز`}
+                                </span>
+                            </div>
+                            <div class="text-lg sm:text-xl font-black font-mono text-slate-900 dark:text-slate-50 tracking-tight">
+                                ${overallAllocated} <span class="text-xs font-normal text-slate-400 dark:text-slate-500">خفارة مقررة</span>
+                            </div>
+                            <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-2 truncate">
+                                ${overallAllocDiff === 0 ? 'مجموع أنصبة الأطباء يطابق المطلوب تماماً' : overallAllocDiff > 0 ? `فائض ${overallAllocDiff} خفارة في أنصبة الأطباء` : `عجز أنصبة الأطباء بمقدار ${Math.abs(overallAllocDiff)} خفارة`}
+                            </p>
+                        </div>
+
+                        <!-- 3. Medical Staff Pool -->
+                        <div onclick="switchTab('db')" class="p-3 rounded-2xl bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/70 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer transition group" title="انقر لفتح وإدارة قاعدة الأطباء">
+                            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                <span class="font-bold text-[11px] group-hover:text-rose-600 transition">الكادر الطبي النشط</span>
+                                <span class="text-[10px] font-bold text-slate-400"><i class="fas fa-users-gear ml-0.5"></i> إدارة</span>
+                            </div>
+                            <div class="text-lg sm:text-xl font-black font-mono text-slate-900 dark:text-slate-50 tracking-tight">
+                                ${activeDocs.length} <span class="text-xs font-normal text-slate-400 dark:text-slate-500">/ ${totalDocsCount} مسجل</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 mt-2 text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate">
+                                <span class="inline-flex items-center gap-0.5"><i class="fas fa-mars text-blue-500"></i> ${maleDocs.length} ذكر</span>
+                                <span>•</span>
+                                <span class="inline-flex items-center gap-0.5"><i class="fas fa-venus text-rose-500"></i> ${femaleDocs.length} أنثى</span>
+                                <span>•</span>
+                                <span class="inline-flex items-center gap-0.5"><i class="fas fa-graduation-cap text-amber-500"></i> ${boardDocs.length} بورد</span>
+                            </div>
+                        </div>
+
+                        <!-- 4. Remaining Vacancies -->
+                        <div class="p-3 rounded-2xl bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/70 dark:border-slate-800">
+                            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                <span class="font-bold text-[11px]">الشواغر غير المنجزة</span>
+                                <span class="text-xs font-black font-mono ${overallRemaining === 0 ? 'text-emerald-500' : 'text-rose-500'}">
+                                    ${overallRemaining === 0 ? '0 شاغر' : `${overallRemaining} شاغر`}
+                                </span>
+                            </div>
+                            <div class="text-lg sm:text-xl font-black font-mono ${overallRemaining === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-slate-50'} tracking-tight">
+                                ${overallRemaining} <span class="text-xs font-normal text-slate-400 dark:text-slate-500">خفارة فارغة</span>
+                            </div>
+                            <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-2 truncate">
+                                ${overallRemaining === 0 ? 'تم شغل كافة الخفارات بنجاح' : 'انقر على البطاقة أدناه لتعبئة الجدول'}
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Con Card -->
-            <div class="glass-panel rounded-2xl p-3.5 border border-slate-200/80 dark:border-slate-800 hover:border-sky-300 dark:hover:border-sky-900 transition shadow-sm">
-                <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs font-black flex items-center gap-1.5 text-sky-600">
-                        <i class="fas fa-stethoscope"></i>
-                        <span>الاستشارية الخافرة (Con)</span>
-                    </span>
-                    ${makeBalancePill(conScheduled, conRequired)}
-                </div>
-                <div class="flex items-baseline justify-between mt-2">
-                    <div class="text-xl sm:text-2xl font-black font-mono text-slate-800 dark:text-slate-100">
-                        ${conScheduled} <span class="text-xs font-normal text-slate-400">/ ${conRequired} مطلوب</span>
-                    </div>
-                </div>
-                <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-1.5">
-                    <span>الأنصبة المخصصة:</span>
-                    ${makeAllocatedPill(conAllocated, conRequired)}
-                </div>
-            </div>
+            <!-- 2. Core Interactive Schedule Tracks (ER, Con, DC, RS) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
 
-            <!-- DC Card -->
-            <div class="glass-panel rounded-2xl p-3.5 border border-slate-200/80 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-900 transition shadow-sm">
-                <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs font-black flex items-center gap-1.5 text-emerald-600">
-                        <i class="fas fa-file-medical"></i>
-                        <span>شهادات الوفاة (DC)</span>
-                    </span>
-                    ${makeBalancePill(dcScheduled, dcRequired)}
-                </div>
-                <div class="flex items-baseline justify-between mt-2">
-                    <div class="text-xl sm:text-2xl font-black font-mono text-slate-800 dark:text-slate-100">
-                        ${dcScheduled} <span class="text-xs font-normal text-slate-400">/ ${dcRequired} مطلوب</span>
-                    </div>
-                </div>
-                <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-1.5">
-                    <span>الأنصبة المخصصة:</span>
-                    ${makeAllocatedPill(dcAllocated, dcRequired)}
-                </div>
-            </div>
+                <!-- 1. ER Card (Emergency Shifts) -->
+                <div onclick="switchTab('er')" class="duty-card group relative overflow-hidden rounded-2xl p-4 glass-panel border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer ${state.activeTab === 'er' ? 'ring-2 ring-rose-500/70 dark:ring-rose-500/80 shadow-md shadow-rose-500/10 border-rose-400 dark:border-rose-700 bg-rose-50/30 dark:bg-rose-950/20' : 'border-slate-200/80 dark:border-slate-800 hover:border-rose-300 dark:hover:border-rose-800'}">
+                    <!-- Accent top border stripe -->
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 to-red-600"></div>
 
-            <!-- RS Summary Card -->
-            ${state.rsEnabled ? `
-            <div class="glass-panel rounded-2xl p-3.5 border border-amber-200/80 dark:border-amber-900/60 bg-amber-500/5 transition shadow-sm">
-                <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs font-black flex items-center gap-1.5 text-amber-600">
-                        <i class="fas fa-bed-pulse"></i>
-                        <span>إضراب المقيمين الدوريين (RS)</span>
-                    </span>
-                    <span class="text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950 px-2 py-0.5 rounded-full">${rsDaysCount} يوم إضراب</span>
-                </div>
-                <div class="grid grid-cols-2 gap-2 mt-2">
-                    <div class="bg-white/60 dark:bg-slate-900/60 p-2 rounded-xl text-center">
-                        <div class="text-[10px] font-bold text-slate-500">طوارئ الإضراب</div>
-                        <div class="text-base font-black font-mono text-slate-800 dark:text-slate-100">${rsErScheduled} / ${rsDaysCount * 4}</div>
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xs font-bold group-hover:scale-110 transition-transform">
+                                <i class="fas fa-truck-medical"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xs font-black text-slate-900 dark:text-slate-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition">خفارات الطوارئ (ER)</h3>
+                                <span class="text-[10px] text-slate-400 font-bold">4 خفارات يومياً</span>
+                            </div>
+                        </div>
+                        ${makeBalancePill(erScheduled, erRequired)}
                     </div>
-                    <div class="bg-white/60 dark:bg-slate-900/60 p-2 rounded-xl text-center">
-                        <div class="text-[10px] font-bold text-slate-500">ردهات الإضراب</div>
-                        <div class="text-base font-black font-mono text-slate-800 dark:text-slate-100">${rsWardsScheduled} / ${rsDaysCount * 3}</div>
+
+                    <!-- Hero numbers & % -->
+                    <div class="flex items-baseline justify-between mt-3">
+                        <div class="text-xl sm:text-2xl font-black font-mono text-slate-900 dark:text-slate-100">
+                            ${erScheduled} <span class="text-xs font-normal text-slate-400">/ ${erRequired}</span>
+                        </div>
+                        <span class="text-xs font-black font-mono px-2 py-0.5 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                            ${erPercent}%
+                        </span>
+                    </div>
+
+                    <!-- Progress bar -->
+                    <div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full mt-2.5 overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-rose-500 to-red-600 rounded-full transition-all duration-500" style="width: ${erPercent}%"></div>
+                    </div>
+
+                    <!-- Sub-metrics Pills -->
+                    <div class="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 grid grid-cols-2 gap-2 text-[11px]">
+                        <div class="bg-slate-50/70 dark:bg-slate-900/60 p-1.5 rounded-lg">
+                            <div class="text-[10px] text-slate-400 font-bold">الأنصبة بالقاعدة</div>
+                            <div class="font-mono text-xs font-bold text-slate-700 dark:text-slate-300 mt-0.5">
+                                ${makeAllocatedPill(erAllocated, erRequired)}
+                            </div>
+                        </div>
+                        <div class="bg-slate-50/70 dark:bg-slate-900/60 p-1.5 rounded-lg">
+                            <div class="text-[10px] text-slate-400 font-bold">المتبقي للجدول</div>
+                            <div class="font-mono text-xs font-bold ${erRemaining === 0 ? 'text-emerald-500' : 'text-rose-500'} mt-0.5">
+                                ${erRemaining === 0 ? 'مغطى بالكامل' : `${erRemaining} شاغر`}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive hint -->
+                    <div class="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
+                        <span>عرض وتعديل جدول الطوارئ</span>
+                        <i class="fas fa-arrow-left text-[10px] transition-transform group-hover:-translate-x-1"></i>
                     </div>
                 </div>
+
+                <!-- 2. Con Card (Consultation Shifts) -->
+                <div onclick="switchTab('con')" class="duty-card group relative overflow-hidden rounded-2xl p-4 glass-panel border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer ${state.activeTab === 'con' ? 'ring-2 ring-sky-500/70 dark:ring-sky-500/80 shadow-md shadow-sky-500/10 border-sky-400 dark:border-sky-700 bg-sky-50/30 dark:bg-sky-950/20' : 'border-slate-200/80 dark:border-slate-800 hover:border-sky-300 dark:hover:border-sky-800'}">
+                    <!-- Accent top border stripe -->
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-500 to-blue-600"></div>
+
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center text-xs font-bold group-hover:scale-110 transition-transform">
+                                <i class="fas fa-stethoscope"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xs font-black text-slate-900 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition">الاستشارية الخافرة (Con)</h3>
+                                <span class="text-[10px] text-slate-400 font-bold">خفارة واحدة يومياً</span>
+                            </div>
+                        </div>
+                        ${makeBalancePill(conScheduled, conRequired)}
+                    </div>
+
+                    <!-- Hero numbers & % -->
+                    <div class="flex items-baseline justify-between mt-3">
+                        <div class="text-xl sm:text-2xl font-black font-mono text-slate-900 dark:text-slate-100">
+                            ${conScheduled} <span class="text-xs font-normal text-slate-400">/ ${conRequired}</span>
+                        </div>
+                        <span class="text-xs font-black font-mono px-2 py-0.5 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400">
+                            ${conPercent}%
+                        </span>
+                    </div>
+
+                    <!-- Progress bar -->
+                    <div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full mt-2.5 overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-sky-500 to-blue-600 rounded-full transition-all duration-500" style="width: ${conPercent}%"></div>
+                    </div>
+
+                    <!-- Sub-metrics Pills -->
+                    <div class="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 grid grid-cols-2 gap-2 text-[11px]">
+                        <div class="bg-slate-50/70 dark:bg-slate-900/60 p-1.5 rounded-lg">
+                            <div class="text-[10px] text-slate-400 font-bold">الأنصبة بالقاعدة</div>
+                            <div class="font-mono text-xs font-bold text-slate-700 dark:text-slate-300 mt-0.5">
+                                ${makeAllocatedPill(conAllocated, conRequired)}
+                            </div>
+                        </div>
+                        <div class="bg-slate-50/70 dark:bg-slate-900/60 p-1.5 rounded-lg">
+                            <div class="text-[10px] text-slate-400 font-bold">المتبقي للجدول</div>
+                            <div class="font-mono text-xs font-bold ${conRemaining === 0 ? 'text-emerald-500' : 'text-rose-500'} mt-0.5">
+                                ${conRemaining === 0 ? 'مغطى بالكامل' : `${conRemaining} شاغر`}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive hint -->
+                    <div class="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                        <span>عرض وتعديل جدول الاستشارية</span>
+                        <i class="fas fa-arrow-left text-[10px] transition-transform group-hover:-translate-x-1"></i>
+                    </div>
+                </div>
+
+                <!-- 3. DC Card (Death Certificates Shifts) -->
+                <div onclick="switchTab('dc')" class="duty-card group relative overflow-hidden rounded-2xl p-4 glass-panel border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer ${state.activeTab === 'dc' ? 'ring-2 ring-emerald-500/70 dark:ring-emerald-500/80 shadow-md shadow-emerald-500/10 border-emerald-400 dark:border-emerald-700 bg-emerald-50/30 dark:bg-emerald-950/20' : 'border-slate-200/80 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-800'}">
+                    <!-- Accent top border stripe -->
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-600"></div>
+
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs font-bold group-hover:scale-110 transition-transform">
+                                <i class="fas fa-file-medical"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xs font-black text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition">شهادات الوفاة (DC)</h3>
+                                <span class="text-[10px] text-slate-400 font-bold">خفارة واحدة يومياً</span>
+                            </div>
+                        </div>
+                        ${makeBalancePill(dcScheduled, dcRequired)}
+                    </div>
+
+                    <!-- Hero numbers & % -->
+                    <div class="flex items-baseline justify-between mt-3">
+                        <div class="text-xl sm:text-2xl font-black font-mono text-slate-900 dark:text-slate-100">
+                            ${dcScheduled} <span class="text-xs font-normal text-slate-400">/ ${dcRequired}</span>
+                        </div>
+                        <span class="text-xs font-black font-mono px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                            ${dcPercent}%
+                        </span>
+                    </div>
+
+                    <!-- Progress bar -->
+                    <div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full mt-2.5 overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full transition-all duration-500" style="width: ${dcPercent}%"></div>
+                    </div>
+
+                    <!-- Sub-metrics Pills -->
+                    <div class="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 grid grid-cols-2 gap-2 text-[11px]">
+                        <div class="bg-slate-50/70 dark:bg-slate-900/60 p-1.5 rounded-lg">
+                            <div class="text-[10px] text-slate-400 font-bold">الأنصبة بالقاعدة</div>
+                            <div class="font-mono text-xs font-bold text-slate-700 dark:text-slate-300 mt-0.5">
+                                ${makeAllocatedPill(dcAllocated, dcRequired)}
+                            </div>
+                        </div>
+                        <div class="bg-slate-50/70 dark:bg-slate-900/60 p-1.5 rounded-lg">
+                            <div class="text-[10px] text-slate-400 font-bold">المتبقي للجدول</div>
+                            <div class="font-mono text-xs font-bold ${dcRemaining === 0 ? 'text-emerald-500' : 'text-rose-500'} mt-0.5">
+                                ${dcRemaining === 0 ? 'مغطى بالكامل' : `${dcRemaining} شاغر`}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive hint -->
+                    <div class="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        <span>عرض وتعديل شهادات الوفاة</span>
+                        <i class="fas fa-arrow-left text-[10px] transition-transform group-hover:-translate-x-1"></i>
+                    </div>
+                </div>
+
+                <!-- 4. RS Card (Rotators Strike - Active or Quick Enable) -->
+                ${state.rsEnabled ? `
+                <div onclick="switchTab('rs_er')" class="duty-card group relative overflow-hidden rounded-2xl p-4 glass-panel border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer ${(state.activeTab === 'rs_er' || state.activeTab === 'rs_wards') ? 'ring-2 ring-amber-500/70 dark:ring-amber-500/80 shadow-md shadow-amber-500/10 border-amber-400 dark:border-amber-700 bg-amber-50/30 dark:bg-amber-950/20' : 'border-slate-200/80 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-800'}">
+                    <!-- Accent top border stripe -->
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-600"></div>
+
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs font-bold group-hover:scale-110 transition-transform">
+                                <i class="fas fa-shield-virus"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xs font-black text-slate-900 dark:text-slate-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition">إضراب المقيمين (RS)</h3>
+                                <span class="text-[10px] text-amber-600 dark:text-amber-400 font-bold">${rsDaysCount} يوم إضراب</span>
+                            </div>
+                        </div>
+                        ${makeBalancePill(rsTotalScheduled, rsTotalRequired)}
+                    </div>
+
+                    <!-- Hero numbers & % -->
+                    <div class="flex items-baseline justify-between mt-3">
+                        <div class="text-xl sm:text-2xl font-black font-mono text-slate-900 dark:text-slate-100">
+                            ${rsTotalScheduled} <span class="text-xs font-normal text-slate-400">/ ${rsTotalRequired}</span>
+                        </div>
+                        <span class="text-xs font-black font-mono px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                            ${rsPercent}%
+                        </span>
+                    </div>
+
+                    <!-- Progress bar -->
+                    <div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full mt-2.5 overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-amber-500 to-orange-600 rounded-full transition-all duration-500" style="width: ${rsPercent}%"></div>
+                    </div>
+
+                    <!-- Sub-metrics Split -->
+                    <div class="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 grid grid-cols-2 gap-2 text-[11px]">
+                        <div class="bg-amber-50/60 dark:bg-amber-950/40 p-1.5 rounded-lg text-center">
+                            <div class="text-[10px] text-amber-700 dark:text-amber-300 font-bold">طوارئ الإضراب</div>
+                            <div class="font-mono text-xs font-black text-amber-900 dark:text-amber-200 mt-0.5">
+                                ${rsErScheduled} / ${rsDaysCount * 4}
+                            </div>
+                        </div>
+                        <div class="bg-amber-50/60 dark:bg-amber-950/40 p-1.5 rounded-lg text-center">
+                            <div class="text-[10px] text-amber-700 dark:text-amber-300 font-bold">ردهات الإضراب</div>
+                            <div class="font-mono text-xs font-black text-amber-900 dark:text-amber-200 mt-0.5">
+                                ${rsWardsScheduled} / ${rsDaysCount * 3}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive hint -->
+                    <div class="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                        <span>عرض وتعديل جداول الإضراب</span>
+                        <i class="fas fa-arrow-left text-[10px] transition-transform group-hover:-translate-x-1"></i>
+                    </div>
+                </div>
+                ` : `
+                <!-- Disabled State RS Card with Quick Activation Action -->
+                <div class="duty-card group relative overflow-hidden rounded-2xl p-4 bg-slate-50/70 dark:bg-slate-900/40 border border-dashed border-slate-300 dark:border-slate-700 flex flex-col justify-between transition-all duration-300">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-xl bg-slate-200/70 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-xs font-bold">
+                                    <i class="fas fa-bed-pulse"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xs font-black text-slate-500 dark:text-slate-400">إضراب المقيمين (RS)</h3>
+                                    <span class="text-[10px] text-slate-400 font-bold">إسناد إضافي</span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold text-slate-500 bg-slate-200/70 dark:bg-slate-800 px-2 py-0.5 rounded-full">معطّل حالياً</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                            نظام إسناد الطوارئ والردهات غير مفعّل للشهر الحالي. عند حدوث إضراب يمكنك تفعيله لإضافة خفارات الإسناد.
+                        </p>
+                    </div>
+
+                    <button type="button" onclick="event.stopPropagation(); toggleRotatorsStrike()" class="mt-3 w-full py-2 px-3 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition flex items-center justify-center gap-1.5 shadow-xs">
+                        <i class="fas fa-toggle-on text-amber-500"></i>
+                        <span>تفعيل إسناد الإضراب الآن</span>
+                    </button>
+                </div>
+                `}
+
             </div>
-            ` : ''}
         `;
     }
 
@@ -845,11 +1210,14 @@
         state.scheduleStatusFilter = 'all';
 
         renderActiveTab();
+        updateDutyDashboard();
     }
 
     function renderActiveTab() {
         const container = document.getElementById('schedule-view-container');
         if (!container) return;
+
+        updateDutyDashboard();
 
         switch (state.activeTab) {
             case 'er':

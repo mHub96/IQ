@@ -536,9 +536,6 @@
                     <button type="button" id="admin-owner-heroes-btn" onclick="openAllRotationHeroesModal()" class="btn-ghost text-xs" style="display:none; color:#0284c7; border-color:rgba(2,132,199,0.4); background:rgba(2,132,199,0.08);">
                         <i class="fas fa-user-md text-sky-500"></i> روابط Rotation Heroes 👑
                     </button>
-                    <a href="./emergency.html" id="admin-owner-emergency-btn" class="btn-ghost text-xs" style="display:none; color:#e11d48; border-color:rgba(225,29,72,0.4); background:rgba(225,29,72,0.08); text-decoration:none; align-items:center; gap:6px;">
-                        <i class="fas fa-truck-medical text-rose-500"></i> جدول خفارات الطوارئ 🚨
-                    </a>
                     <button type="button" onclick="openHospitalSettingsModal()" class="btn-ghost text-xs">
                         <i class="fas fa-sliders"></i> إعدادات المستشفى
                     </button>
@@ -1214,10 +1211,6 @@
                 const hospOwnerStoreBtn = document.getElementById('hosp-modal-owner-store-btn');
                 if (hospOwnerStoreBtn) {
                     hospOwnerStoreBtn.style.display = isOwner ? 'inline-flex' : 'none';
-                }
-                const ownerEmergencyBtn = document.getElementById('admin-owner-emergency-btn');
-                if (ownerEmergencyBtn) {
-                    ownerEmergencyBtn.style.display = isOwner ? 'inline-flex' : 'none';
                 }
 
                 // Empty specialties display state (default false = hidden by default)

@@ -2546,7 +2546,34 @@
     // 6. RESIDENT DATABASE TAB (DB) WITH DIRECT IN-TABLE EDITING & ISOLATED INACTIVE SECTION
     // =========================================================================
 
+    function getDBContainer() {
+        const modalBody = document.getElementById('residents-db-modal-body');
+        if (modalBody) return modalBody;
+        return document.getElementById('schedule-view-container');
+    }
+
+    function refreshDBView() {
+        const container = getDBContainer();
+        if (container) {
+            const prevScroll = container.scrollTop;
+            renderDBView(container);
+            if (prevScroll > 0) {
+                container.scrollTop = prevScroll;
+            }
+        }
+        const navBadge = document.getElementById('db-nav-count-badge');
+        if (navBadge) {
+            const count = (state.residents || []).filter(r => r.active).length;
+            navBadge.textContent = `${count} طبيب`;
+        }
+    }
+
     function renderDBView(container) {
+        if (!container) {
+            container = getDBContainer();
+        }
+        if (!container) return;
+
         const residents = state.residents || [];
         const scheduledCounts = getScheduledCountsMap();
 
@@ -2576,7 +2603,7 @@
                         </button>
 
                         <!-- Toggle Show/Hide Inactive Button -->
-                        <button type="button" onclick="toggleShowInactiveInDB()" class="px-3 py-1.5 rounded-xl text-xs font-bold ${state.showInactiveInDB ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'} hover:bg-slate-200 transition flex items-center gap-1.5">
+                        <button type="button" id="toggle-inactive-btn" onclick="toggleShowInactiveInDB()" class="px-3 py-1.5 rounded-xl text-xs font-bold ${state.showInactiveInDB ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 hover:bg-amber-200' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200'} transition flex items-center gap-1.5 cursor-pointer">
                             <i class="fas ${state.showInactiveInDB ? 'fa-eye' : 'fa-eye-slash'}"></i>
                             <span>${state.showInactiveInDB ? 'إخفاء غير النشطين' : `إظهار غير النشطين (${inactiveList.length})`}</span>
                         </button>
@@ -2698,9 +2725,8 @@
                     </div>
                 </div>
 
-                <!-- 2. INACTIVE RESIDENTS ISOLATED SECTION (Shown when toggled) -->
-                ${state.showInactiveInDB ? `
-                <div class="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-800">
+                <!-- 2. INACTIVE RESIDENTS ISOLATED SECTION (Toggleable in-place) -->
+                <div id="inactive-residents-section" class="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-800 ${state.showInactiveInDB ? '' : 'hidden'}">
                     <div class="flex items-center gap-2">
                         <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
                         <h3 class="text-sm font-black text-slate-500 dark:text-slate-400">الأطباء غير النشطين / المعطلين (${inactiveList.length})</h3>
@@ -2728,12 +2754,14 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60">
-                                ${inactiveList.map((r, idx) => renderResidentRowHTML(r, idx + 1, scheduledCounts, true)).join('')}
+                                ${inactiveList.length > 0 
+                                    ? inactiveList.map((r, idx) => renderResidentRowHTML(r, idx + 1, scheduledCounts, true)).join('')
+                                    : '<tr><td colspan="14" class="py-4 text-center text-slate-400 font-bold">لا يوجد أطباء غير نشطين حالياً في قاعدة البيانات</td></tr>'
+                                }
                             </tbody>
                         </table>
                     </div>
                 </div>
-                ` : ''}
 
             </div>
         `;
@@ -2756,7 +2784,8 @@
         const stageFilter = document.getElementById('db-filter-stage')?.value || 'all';
         const quotaFilter = document.getElementById('db-filter-quota')?.value || 'all';
 
-        const rows = document.querySelectorAll('#schedule-view-container tr[data-resident-id]');
+        const dbContainer = getDBContainer();
+        const rows = dbContainer ? dbContainer.querySelectorAll('tr[data-resident-id]') : document.querySelectorAll('tr[data-resident-id]');
         let visibleCount = 0;
 
         rows.forEach(tr => {
@@ -3219,7 +3248,25 @@
 
     function toggleShowInactiveInDB() {
         state.showInactiveInDB = !state.showInactiveInDB;
-        renderDBView(document.getElementById('schedule-view-container'));
+
+        const inactiveSection = document.getElementById('inactive-residents-section');
+        const toggleBtn = document.getElementById('toggle-inactive-btn');
+        const inactiveCount = (state.residents || []).filter(r => !r.active).length;
+
+        if (inactiveSection && toggleBtn) {
+            if (state.showInactiveInDB) {
+                inactiveSection.classList.remove('hidden');
+                toggleBtn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 hover:bg-amber-200 transition flex items-center gap-1.5 cursor-pointer';
+                toggleBtn.innerHTML = `<i class="fas fa-eye"></i><span>إخفاء غير النشطين</span>`;
+            } else {
+                inactiveSection.classList.add('hidden');
+                toggleBtn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200 transition flex items-center gap-1.5 cursor-pointer';
+                toggleBtn.innerHTML = `<i class="fas fa-eye-slash"></i><span>إظهار غير النشطين (${inactiveCount})</span>`;
+            }
+            applyDBLiveFilter();
+        } else {
+            refreshDBView();
+        }
     }
 
     // Deactivation with confirmation and resetting duty allocations to zero + removing from schedules
@@ -3248,7 +3295,7 @@
         });
 
         saveState();
-        renderDBView(document.getElementById('schedule-view-container'));
+        refreshDBView();
         showNotification(`تم إلغاء تنشيط الطبيب (${docName}) وتصفير أنصبته وإزالته من الجداول`, 'info');
     }
 
@@ -3259,7 +3306,7 @@
         res.active = true;
         res.er_target = 2; // initial default
         saveState();
-        renderDBView(document.getElementById('schedule-view-container'));
+        refreshDBView();
         showNotification(`تمت إعادة تنشيط الطبيب (${res.name}) بنجاح`, 'success');
     }
 
@@ -3288,7 +3335,7 @@
         });
 
         saveState();
-        renderDBView(document.getElementById('schedule-view-container'));
+        refreshDBView();
         showNotification(`تمت ترقية مرحلة ${count} طبيب بورد بنجاح (+1)`, 'success');
     }
 
@@ -3298,7 +3345,7 @@
         if (!confirm(`هل أنت متأكد من حذف الطبيب: "${res.name}" نهائياً من قاعدة الطوارئ؟`)) return;
         state.residents = state.residents.filter(r => r.id !== resId);
         saveState();
-        renderDBView(document.getElementById('schedule-view-container'));
+        refreshDBView();
         showNotification('تم حذف الطبيب من قاعدة الطوارئ', 'info');
     }
 
@@ -4180,7 +4227,7 @@
         state.residents.push(newDoc);
         saveState();
         closeAddResidentModal();
-        renderDBView(document.getElementById('schedule-view-container'));
+        refreshDBView();
         showNotification(`تمت إضافة الطبيب "${formattedName}" بنجاح`, 'success');
     }
 
@@ -5239,6 +5286,9 @@
     window.saveAndPrintImmediately = saveAndPrintImmediately;
     window.formatArabicDateNumbers = formatArabicDateNumbers;
     window.PRINT_THEME_PRESETS = PRINT_THEME_PRESETS;
+    window.getDBContainer = getDBContainer;
+    window.refreshDBView = refreshDBView;
+    window.renderDBView = renderDBView;
     window.state = state;
     window.saveState = saveState;
 

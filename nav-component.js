@@ -108,10 +108,6 @@
                     <a href="./scheduler.html${queryParam}" class="hub-nav-link ${activePageId === 'scheduler' ? 'active' : ''}">
                         <i class="fas fa-calendar-alt"></i> <span>المجدول</span>
                     </a>` : ''}
-                    ${isOwner ? `
-                    <a href="./emergency.html" class="hub-nav-link ${activePageId === 'emergency' ? 'active' : ''}" style="color:#e11d48 !important; font-weight:800;">
-                        <i class="fas fa-truck-medical text-rose-500"></i> <span>خفارات الطوارئ 🚨</span>
-                    </a>` : ''}
                 </div>
 
                 <!-- Right: Role, Theme, Logout & Mobile Toggle -->
@@ -123,8 +119,8 @@
                     </span>
 
                     ${isOwner ? `
-                    <!-- Owner Emergency Shifts Button -->
-                    <a href="./emergency.html" class="hub-nav-btn owner-er-btn" aria-label="نظام خفارات الطوارئ" title="نظام خفارات الطوارئ (المالك)" style="color:#e11d48; border-color:rgba(225,29,72,0.4); background:rgba(225,29,72,0.1); text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">
+                    <!-- Owner Emergency Hub Button -->
+                    <a href="./emergency.html" class="hub-nav-btn owner-emergency-btn" aria-label="خفارات الطوارئ (ER)" title="نظام خفارات الطوارئ والأقسام الخافرة" style="color:#e11d48; border-color:rgba(225,29,72,0.35); background:rgba(225,29,72,0.08);">
                         <i class="fas fa-truck-medical"></i>
                     </a>
                     <!-- Owner Edit Passwords Button -->
@@ -401,12 +397,6 @@
                 <a href="./scheduler.html${queryParam}" class="dock-tab-btn ${activePageId === 'scheduler' ? 'active' : ''}" title="المجدول (صلاحيات الإدارة)">
                     <i class="fas fa-calendar-alt"></i>
                     <span>المجدول</span>
-                </a>
-                ` : ''}
-                ${isOwner ? `
-                <a href="./emergency.html" class="dock-tab-btn ${activePageId === 'emergency' ? 'active' : ''}" style="color:#e11d48;" title="جدول خفارات الطوارئ">
-                    <i class="fas fa-truck-medical text-rose-500"></i>
-                    <span>الطوارئ</span>
                 </a>
                 ` : ''}
             </nav>

@@ -55,14 +55,36 @@
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         @media print {
-            .no-print { display: none !important; }
-            body { background: white !important; color: black !important; padding: 0 !important; margin: 0 !important; }
-            .print-full { width: 100% !important; margin: 0 !important; padding: 0 !important; }
-            table { page-break-inside: auto; font-size: 10px !important; }
-            tr { page-break-inside: avoid; page-break-after: auto; }
-            td, th { padding: 4px 6px !important; }
-            .print-official-header { display: block !important; margin-bottom: 12px; }
-            .print-official-footer { display: block !important; page-break-inside: avoid; margin-top: 16px; }
+            .no-print, header, nav, #duty-dashboard-grid, #admin-settings-section, #tabs-nav-bar, #schedule-view-container, #doctor-picker-modal, #hospital-sync-modal, #export-resident-modal, #add-resident-modal, #hub-toast-container { 
+                display: none !important; 
+            }
+            body { 
+                background: white !important; 
+                color: black !important; 
+                padding: 0 !important; 
+                margin: 0 !important; 
+            }
+            #official-print-area { 
+                display: block !important; 
+                width: 100% !important; 
+                margin: 0 !important; 
+                padding: 10mm 12mm !important; 
+            }
+            table { 
+                page-break-inside: auto; 
+                font-size: 9.5pt !important; 
+                border-collapse: collapse !important; 
+                width: 100% !important; 
+            }
+            tr { 
+                page-break-inside: avoid; 
+                page-break-after: auto; 
+            }
+            td, th { 
+                padding: 4px 6px !important; 
+                border: 1px solid black !important; 
+                color: black !important; 
+            }
         }
     </style>
 </head>
@@ -85,16 +107,23 @@
                     </div>
                     <div>
                         <h1 class="text-sm sm:text-base font-black tracking-tight flex items-center gap-1.5">
-                            <span>نظام خفارات الطوارئ</span>
+                            <span>نظام خفارات الطوارئ والأقسام</span>
                             <span class="text-[10px] bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 px-2 py-0.5 rounded-full font-bold">EMERGENCY HUB</span>
                         </h1>
-                        <p class="text-[10px] text-slate-500 hidden sm:block">مستشفى الصدر التعليمي · إدارة وتوزيع خفارات المقيمين الأقدمين</p>
+                        <p class="text-[10px] text-slate-500 hidden sm:block">إدارة وتوزيع خفارات المقيمين الأقدمين وإضراب الدوريين (RS)</p>
                     </div>
                 </div>
             </div>
 
             <!-- Top Actions -->
             <div class="flex items-center gap-2">
+                <!-- Rotators Strike State Toggle Button -->
+                <button type="button" id="rs-toggle-btn" onclick="toggleRotatorsStrike()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition shadow-xs">
+                    <i class="fas fa-bed-pulse text-amber-500"></i>
+                    <span class="hidden md:inline">إضراب الدوريين (RS)</span>
+                    <span id="rs-toggle-badge" class="text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold">مفعّل</span>
+                </button>
+
                 <button type="button" onclick="autoGenerateSchedule()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 shadow-md shadow-rose-600/20 transition">
                     <i class="fas fa-wand-magic-sparkles"></i>
                     <span class="hidden sm:inline">توليد الجدول آلياً</span>
@@ -103,9 +132,9 @@
                     <i class="fas fa-file-excel text-emerald-500"></i>
                     <span class="hidden md:inline">تصدير Excel</span>
                 </button>
-                <button type="button" onclick="window.print()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 shadow-sm transition">
+                <button type="button" onclick="prepareOfficialPrint()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 shadow-sm transition">
                     <i class="fas fa-print text-slate-500"></i>
-                    <span class="hidden md:inline">طباعة</span>
+                    <span class="hidden md:inline">طباعة رسمية</span>
                 </button>
                 <button type="button" onclick="toggleDarkMode()" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                     <i class="fas fa-moon dark:hidden"></i>
@@ -119,20 +148,61 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
 
         <!-- Administrative Order Bar & Meta Settings -->
-        <section class="glass-panel rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 no-print">
+        <section id="admin-settings-section" class="glass-panel rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 no-print">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-center">
+                <!-- Hospital Selector with Match Button -->
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-500 mb-1">المستشفى</label>
-                    <input type="text" id="meta-hosp-name" onchange="updateMetaHeader('hospitalName', this.value)" class="w-full text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-[11px] font-bold text-slate-500">المستشفى المحددة</label>
+                        <button type="button" onclick="openHospitalSyncModal()" class="text-[10px] text-sky-600 hover:underline font-bold flex items-center gap-1">
+                            <i class="fas fa-arrows-rotate text-[9px]"></i>
+                            <span>مطابقة الأسماء</span>
+                        </button>
+                    </div>
+                    <select id="meta-hosp-select" onchange="onHospitalChange(this.value)" class="w-full text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/20">
+                        <option value="iraqi">المستشفى العراقي التعليمي (الصدر التعليمي)</option>
+                        <option value="basra">مستشفى البصرة التعليمي</option>
+                        <option value="mawani">مستشفى الموانئ التعليمي</option>
+                    </select>
                 </div>
+
+                <!-- Month & Year Selector -->
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 mb-1">شهر وسنة الجدول</label>
-                    <input type="text" id="meta-month-year" onchange="updateMetaHeader('monthYear', this.value)" class="w-full text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <select id="meta-month-select" onchange="onMonthYearChange(this.value, document.getElementById('meta-year-input').value)" class="w-full text-xs font-bold px-2 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                            <option value="1">كانون 2 (1)</option>
+                            <option value="2">شباط (2)</option>
+                            <option value="3">آذار (3)</option>
+                            <option value="4">نيسان (4)</option>
+                            <option value="5">أيار (5)</option>
+                            <option value="6">حزيران (6)</option>
+                            <option value="7">تموز (7)</option>
+                            <option value="8">آب (8)</option>
+                            <option value="9" selected>أيلول (9)</option>
+                            <option value="10">تشرين 1 (10)</option>
+                            <option value="11">تشرين 2 (11)</option>
+                            <option value="12">كانون 1 (12)</option>
+                        </select>
+                        <input type="number" id="meta-year-input" value="2026" min="2024" max="2035" onchange="onMonthYearChange(document.getElementById('meta-month-select').value, this.value)" class="w-full text-xs font-bold px-2 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-mono">
+                    </div>
                 </div>
+
+                <!-- Official Order Number with Sequential Suggestion -->
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-500 mb-1">رقم الأمر الإداري</label>
-                    <input type="text" id="meta-order-number" onchange="updateMetaHeader('orderNumber', this.value)" class="w-full text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-[11px] font-bold text-slate-500">رقم الأمر الإداري</label>
+                        <button type="button" onclick="suggestSequentialOrderNumber()" class="text-[10px] text-rose-600 hover:underline font-bold flex items-center gap-1" title="اقتراح رقم تسلسلي تلقائي">
+                            <i class="fas fa-wand-magic-sparkles text-[9px]"></i>
+                            <span>اقتراح متسلسل</span>
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" id="meta-order-number" onchange="onOrderNumberChange(this.value)" class="w-full text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                    </div>
                 </div>
+
+                <!-- Reset / Tools -->
                 <div class="flex items-center justify-end gap-2 pt-4 sm:pt-0">
                     <button type="button" onclick="resetEmergencyToDefaults()" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 transition flex items-center justify-center gap-1.5" title="استعادة النسخة الأصلية">
                         <i class="fas fa-rotate-left"></i>
@@ -140,29 +210,36 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Rotators Strike (RS) Date Range Bar (shown when RS is enabled) -->
+            <div id="rs-settings-bar" class="mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between flex-wrap gap-3">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span class="text-xs font-black text-amber-700 dark:text-amber-300">
+                        فترة إضراب المقيمين الدوريين (RS):
+                    </span>
+                </div>
+                <div class="flex items-center gap-4 flex-wrap">
+                    <div class="flex items-center gap-1.5">
+                        <label class="text-[11px] font-bold text-slate-500">تاريخ البدء:</label>
+                        <input type="date" id="meta-rs-start" onchange="onRsDateChange('rsStartDate', this.value)" class="text-xs font-bold px-2 py-1 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <label class="text-[11px] font-bold text-slate-500">تاريخ الانتهاء:</label>
+                        <input type="date" id="meta-rs-end" onchange="onRsDateChange('rsEndDate', this.value)" class="text-xs font-bold px-2 py-1 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                    </div>
+                    <span class="text-[10px] text-slate-400">يبدأ الأمر الإداري للطباعة من تاريخ بداية الإضراب وحتى أحدث تاريخ مجدول</span>
+                </div>
+            </div>
         </section>
 
-        <!-- Stats Bar -->
-        <section class="grid grid-cols-2 sm:grid-cols-3 gap-3 no-print">
-            <div class="glass-panel p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800">
-                <div class="text-[11px] font-bold text-slate-500">الأطباء النشطون في القاعدة</div>
-                <div class="text-xl sm:text-2xl font-black text-rose-600 mt-0.5" id="stat-total-doctors">0</div>
-                <div class="text-[10px] text-slate-400">من أصل 136 مقيم أقدم</div>
-            </div>
-            <div class="glass-panel p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800">
-                <div class="text-[11px] font-bold text-slate-500">إجمالي الخفارات المكتملة</div>
-                <div class="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-100 mt-0.5 font-mono" id="stat-total-filled">0 / 0</div>
-                <div class="text-[10px] text-slate-400">طوارئ + استشارية + وفيات</div>
-            </div>
-            <div class="glass-panel p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 col-span-2 sm:col-span-1">
-                <div class="text-[11px] font-bold text-slate-500">أيام الجدول المشمولة</div>
-                <div class="text-xl sm:text-2xl font-black text-emerald-600 mt-0.5 font-mono" id="stat-total-days">31</div>
-                <div class="text-[10px] text-slate-400">كامل فترة الشهر</div>
-            </div>
+        <!-- Monthly Duty Counting Dashboard -->
+        <section id="duty-dashboard-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 no-print">
+            <!-- Dynamically populated by updateDutyDashboard() in emergency.js -->
         </section>
 
         <!-- Main Tabs Navigation Bar -->
-        <section class="flex flex-wrap items-center gap-2 p-1.5 rounded-2xl bg-slate-200/70 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 no-print">
+        <section id="tabs-nav-bar" class="flex flex-wrap items-center gap-2 p-1.5 rounded-2xl bg-slate-200/70 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 no-print">
             <button type="button" data-tab="er" onclick="switchTab('er')" class="tab-btn active-tab flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-2 bg-rose-600 text-white shadow-sm">
                 <i class="fas fa-truck-medical"></i>
                 <span>1. خفارات الطوارئ (ER)</span>
@@ -175,19 +252,32 @@
                 <i class="fas fa-file-medical"></i>
                 <span>3. شهادات الوفاة (DC)</span>
             </button>
-            <button type="button" data-tab="rs" onclick="switchTab('rs')" class="tab-btn flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
-                <i class="fas fa-bed-pulse"></i>
-                <span>4. الإسناد والردهات (RS)</span>
+            
+            <!-- Rotators Strike Tabs (Separate ER and Wards) -->
+            <button type="button" id="tab-btn-rs-er" data-tab="rs_er" onclick="switchTab('rs_er')" class="tab-btn flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400 hover:text-amber-900">
+                <i class="fas fa-truck-medical"></i>
+                <span>4. إضراب طوارئ (RS - ER)</span>
             </button>
+            <button type="button" id="tab-btn-rs-wards" data-tab="rs_wards" onclick="switchTab('rs_wards')" class="tab-btn flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400 hover:text-amber-900">
+                <i class="fas fa-bed-pulse"></i>
+                <span>5. إضراب ردهات (RS - Wards)</span>
+            </button>
+
+            <!-- Resident Database Tab -->
             <button type="button" data-tab="db" onclick="switchTab('db')" class="tab-btn flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
                 <i class="fas fa-users-gear"></i>
-                <span>5. قاعدة الأطباء والأنصبة (DB)</span>
+                <span>6. قاعدة الأطباء والأنصبة (DB)</span>
             </button>
         </section>
 
         <!-- Dynamic Schedule Container -->
         <section id="schedule-view-container" class="glass-panel rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-sm">
             <!-- Rendered dynamically by emergency.js -->
+        </section>
+
+        <!-- Dedicated Official Ministerial Printable Area (Active on Print) -->
+        <section id="official-print-area" class="hidden print:block print-full">
+            <!-- Rendered dynamically by prepareOfficialPrint() in emergency.js -->
         </section>
 
     </main>
@@ -215,7 +305,7 @@
                 <div class="flex items-center justify-between gap-2">
                     <select id="picker-quota-filter" onchange="filterPickerList()" class="px-2.5 py-1.5 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
                         <option value="all">كل الأطباء المتاحين</option>
-                        <option value="pending_only" selected>من تبقى لهم خفارات فقط (بحسب النصاب)</option>
+                        <option value="pending_only" selected>من تبقى لهم خفارات بحسب النصاب</option>
                     </select>
                     <button type="button" onclick="clearActiveSlot()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition">
                         <i class="fas fa-eraser ml-1"></i> إفراغ الخفارة
@@ -225,7 +315,7 @@
 
             <!-- Doctors Scroll List -->
             <div id="picker-doctors-list" class="p-3 max-h-[360px] overflow-y-auto space-y-1.5">
-                <!-- Rendered dynamically -->
+                <!-- Rendered dynamically by emergency.js -->
             </div>
 
             <!-- Modal Footer -->
@@ -237,7 +327,8 @@
         </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- Scripts Integration -->
+    <script src="./hub-core.js"></script>
     <script src="./emergency-data.js"></script>
     <script src="./emergency.js"></script>
 
@@ -257,4 +348,3 @@
     </script>
 </body>
 </html>
-

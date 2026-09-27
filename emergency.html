@@ -272,11 +272,11 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 items-center text-xs">
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 mb-1">رئيس الأطباء المقيمين الأقدمين</label>
-                    <input type="text" id="meta-head-residents" onchange="onHeadOfResidentsChange(this.value)" placeholder="د. محمد راضي خضر" class="w-full text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                    <input type="text" id="meta-head-residents" onblur="onHeadOfResidentsChange(this.value)" onchange="onHeadOfResidentsChange(this.value)" placeholder="د. محمد راضي خضر" class="w-full text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 mb-1">مدير المستشفى</label>
-                    <input type="text" id="meta-head-hospital" onchange="onHeadOfHospitalChange(this.value)" placeholder="د. علي عبد معن" class="w-full text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                    <input type="text" id="meta-head-hospital" onblur="onHeadOfHospitalChange(this.value)" onchange="onHeadOfHospitalChange(this.value)" placeholder="د. علي عبد معن" class="w-full text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
                 </div>
                 <div class="flex items-center justify-between sm:justify-end gap-2 pt-4 sm:pt-0">
                     <button type="button" onclick="toggleRotatorsStrike()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition flex items-center gap-2">
@@ -310,42 +310,6 @@
         <!-- Monthly Duty Dashboard (Counts required, allocated, and scheduled duties) -->
         <section id="duty-dashboard-grid" class="no-print space-y-4">
             <!-- Rendered dynamically by updateDutyDashboard() -->
-        </section>
-
-        <!-- Main Navigation Bar: Schedules Tracks + Dedicated Residents DB Button -->
-        <section class="flex items-center justify-between gap-3 no-print flex-wrap">
-            <!-- Schedule Tracks Tabs (Strictly Schedule Views Only) -->
-            <div class="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-200/70 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-x-auto no-scrollbar flex-nowrap min-h-[50px] h-[50px] flex-1">
-                <button type="button" data-tab="er" onclick="switchTab('er')" class="tab-btn active-tab shrink-0 h-9 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 bg-rose-600 text-white shadow-xs whitespace-nowrap">
-                    <i class="fas fa-truck-medical"></i>
-                    <span>1. خفارات الطوارئ (ER)</span>
-                </button>
-                <button type="button" data-tab="con" onclick="switchTab('con')" class="tab-btn shrink-0 h-9 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap">
-                    <i class="fas fa-stethoscope"></i>
-                    <span>2. الاستشارية الخافرة (Con)</span>
-                </button>
-                <button type="button" data-tab="dc" onclick="switchTab('dc')" class="tab-btn shrink-0 h-9 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap">
-                    <i class="fas fa-file-medical"></i>
-                    <span>3. شهادات الوفاة (DC)</span>
-                </button>
-                <button type="button" id="tab-btn-rs-er" data-tab="rs_er" onclick="switchTab('rs_er')" class="tab-btn shrink-0 h-9 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400 hover:text-amber-900 bg-amber-50 dark:bg-amber-950/40 whitespace-nowrap" style="display: none;">
-                    <i class="fas fa-shield-virus"></i>
-                    <span>4. إسناد الطوارئ (RS-ER)</span>
-                </button>
-                <button type="button" id="tab-btn-rs-wards" data-tab="rs_wards" onclick="switchTab('rs_wards')" class="tab-btn shrink-0 h-9 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400 hover:text-amber-900 bg-amber-50 dark:bg-amber-950/40 whitespace-nowrap" style="display: none;">
-                    <i class="fas fa-bed-pulse"></i>
-                    <span>5. إسناد الردهات (RS-Wards)</span>
-                </button>
-            </div>
-
-            <!-- Separate Residents Database Button (Distinct panel that pops up) -->
-            <button type="button" onclick="openResidentsDbModal()" class="shrink-0 h-[46px] px-4 rounded-2xl text-xs font-black flex items-center gap-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md shadow-blue-600/20 transition group">
-                <div class="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center">
-                    <i class="fas fa-users-gear text-sm"></i>
-                </div>
-                <span>قاعدة الأطباء والأنصبة</span>
-                <span id="db-nav-count-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/25 text-white"></span>
-            </button>
         </section>
 
         <!-- Dynamic Schedule View Container -->

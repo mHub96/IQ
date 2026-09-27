@@ -241,8 +241,19 @@
             }
         }
 
-        // Load the schedule for the determined month from store
+        // Load the schedule and allocations for the determined month from store
         loadMonthScheduleFromStore(state.hospitalId, state.year, state.month);
+        loadMonthAllocationsFromStore(state.hospitalId, state.year, state.month);
+
+        if (!state.hospitalSignatories) state.hospitalSignatories = {};
+        if (state.hospitalId && state.hospitalSignatories[state.hospitalId]) {
+            if (state.hospitalSignatories[state.hospitalId].headOfResidents) {
+                state.headOfResidents = state.hospitalSignatories[state.hospitalId].headOfResidents;
+            }
+            if (state.hospitalSignatories[state.hospitalId].headOfHospital) {
+                state.headOfHospital = state.hospitalSignatories[state.hospitalId].headOfHospital;
+            }
+        }
 
         // 3. Try to fetch emergency-db.json asynchronously if fresh
         try {
@@ -351,6 +362,8 @@
         });
     }
 
+    const MONTH_ALLOC_PREFIX = 'hosp_hub_emergency_alloc_';
+
     function saveCurrentMonthScheduleToStore() {
         if (!state.monthlySchedules) state.monthlySchedules = {};
         const key = `${state.hospitalId}_${state.year}_${state.month}`;
@@ -362,6 +375,149 @@
                 console.warn('Failed to save month schedule to localStorage', e);
             }
         }
+    }
+
+    function saveCurrentMonthAllocationsToStore() {
+        if (!state.hospitalId || !state.year || !state.month) return;
+        const key = `${state.hospitalId}_${state.year}_${state.month}`;
+        const map = {};
+        (state.residents || []).forEach(r => {
+            map[r.id] = {
+                er_target: Number(r.er_target) || 0,
+                con_target: Number(r.con_target) || 0,
+                dc_target: Number(r.dc_target) || 0,
+                rs_target: Number(r.rs_target) || 0
+            };
+        });
+        if (!state.monthlyAllocations) state.monthlyAllocations = {};
+        state.monthlyAllocations[key] = map;
+        try {
+            localStorage.setItem(MONTH_ALLOC_PREFIX + key, JSON.stringify(map));
+        } catch (e) {
+            console.warn('Failed to save monthly allocations to localStorage', e);
+        }
+    }
+
+    function loadMonthAllocationsFromStore(hospId, year, month) {
+        if (!state.monthlyAllocations) state.monthlyAllocations = {};
+        const key = `${hospId}_${year}_${month}`;
+
+        let loadedMap = null;
+        try {
+            const raw = localStorage.getItem(MONTH_ALLOC_PREFIX + key);
+            if (raw) {
+                loadedMap = JSON.parse(raw);
+            }
+        } catch (e) {
+            console.warn('Error reading month allocations from localStorage', e);
+        }
+
+        if (!loadedMap && state.monthlyAllocations[key]) {
+            loadedMap = state.monthlyAllocations[key];
+        }
+
+        // Bundled initial September 2026 allocations for default Iraqi hospital
+        if (!loadedMap && hospId === 'iraqi' && year === 2026 && month === 9 && window.DEFAULT_EMERGENCY_DATA && window.DEFAULT_EMERGENCY_DATA.residents) {
+            loadedMap = {};
+            window.DEFAULT_EMERGENCY_DATA.residents.forEach(r => {
+                loadedMap[r.id] = {
+                    er_target: Number(r.er_target) || 0,
+                    con_target: Number(r.con_target) || 0,
+                    dc_target: Number(r.dc_target) || 0,
+                    rs_target: Number(r.rs_target) || 0
+                };
+            });
+        }
+
+        if (loadedMap) {
+            state.monthlyAllocations[key] = loadedMap;
+            (state.residents || []).forEach(r => {
+                if (loadedMap[r.id]) {
+                    r.er_target = Number(loadedMap[r.id].er_target) || 0;
+                    r.con_target = Number(loadedMap[r.id].con_target) || 0;
+                    r.dc_target = Number(loadedMap[r.id].dc_target) || 0;
+                    r.rs_target = Number(loadedMap[r.id].rs_target) || 0;
+                } else {
+                    r.er_target = 0;
+                    r.con_target = 0;
+                    r.dc_target = 0;
+                    r.rs_target = 0;
+                }
+            });
+            return true;
+        } else {
+            // Empty month: All resident targets are zero/empty by default
+            (state.residents || []).forEach(r => {
+                r.er_target = 0;
+                r.con_target = 0;
+                r.dc_target = 0;
+                r.rs_target = 0;
+            });
+            return false;
+        }
+    }
+
+    function getPreviousMonth(year, month) {
+        const prevMonth = (month === 1) ? 12 : month - 1;
+        const prevYear = (month === 1) ? year - 1 : year;
+        return { month: prevMonth, year: prevYear };
+    }
+
+    function getPreviousMonthAllocations(hospId, year, month) {
+        const prev = getPreviousMonth(year, month);
+        const prevKey = `${hospId}_${prev.year}_${prev.month}`;
+        let prevMap = null;
+        try {
+            const raw = localStorage.getItem(MONTH_ALLOC_PREFIX + prevKey);
+            if (raw) prevMap = JSON.parse(raw);
+        } catch (e) {}
+
+        if (!prevMap && state.monthlyAllocations && state.monthlyAllocations[prevKey]) {
+            prevMap = state.monthlyAllocations[prevKey];
+        }
+
+        if (!prevMap && hospId === 'iraqi' && prev.year === 2026 && prev.month === 9 && window.DEFAULT_EMERGENCY_DATA && window.DEFAULT_EMERGENCY_DATA.residents) {
+            prevMap = {};
+            window.DEFAULT_EMERGENCY_DATA.residents.forEach(r => {
+                prevMap[r.id] = {
+                    er_target: Number(r.er_target) || 0,
+                    con_target: Number(r.con_target) || 0,
+                    dc_target: Number(r.dc_target) || 0,
+                    rs_target: Number(r.rs_target) || 0
+                };
+            });
+        }
+
+        return prevMap;
+    }
+
+    function copyAllocationsFromPreviousMonth() {
+        const prev = getPreviousMonth(state.year, state.month);
+        const prevMap = getPreviousMonthAllocations(state.hospitalId, state.year, state.month);
+        if (!prevMap || Object.keys(prevMap).length === 0) {
+            showNotification('لا توجد أنصبة مسجلة في الشهر السابق لنسخها', 'warning');
+            return false;
+        }
+
+        pushScheduleHistory('نسخ أنصبة الأطباء من الشهر السابق');
+
+        let copiedCount = 0;
+        (state.residents || []).forEach(r => {
+            if (prevMap[r.id]) {
+                r.er_target = Number(prevMap[r.id].er_target) || 0;
+                r.con_target = Number(prevMap[r.id].con_target) || 0;
+                r.dc_target = Number(prevMap[r.id].dc_target) || 0;
+                r.rs_target = Number(prevMap[r.id].rs_target) || 0;
+                copiedCount++;
+            }
+        });
+
+        saveCurrentMonthAllocationsToStore();
+        saveState();
+        updateDutyDashboard();
+        refreshDBView();
+        showNotification(`تم نسخ ونقل أنصبة ${copiedCount} طبيب من شهر (${prev.month}/${prev.year}) بنجاح`, 'success');
+        return true;
     }
 
     function saveCurrentHospitalResidents() {
@@ -409,7 +565,7 @@
     }
 
     // =========================================================================
-    // UNDO / REDO HISTORY MANAGEMENT (PER SCHEDULE)
+    // UNDO / REDO HISTORY MANAGEMENT (PER SCHEDULE & MONTH)
     // =========================================================================
 
     function pushScheduleHistory(desc) {
@@ -418,6 +574,7 @@
 
         state.undoStack.push({
             schedules: JSON.parse(JSON.stringify(state.schedules)),
+            residents: JSON.parse(JSON.stringify(state.residents || [])),
             tab: state.activeTab,
             desc: desc || 'تعديل جدول'
         });
@@ -426,6 +583,7 @@
             state.undoStack.shift();
         }
         state.redoStack = [];
+        updateScheduleUndoRedoUI();
     }
 
     function undoScheduleAction() {
@@ -437,15 +595,26 @@
         if (!state.redoStack) state.redoStack = [];
         state.redoStack.push({
             schedules: JSON.parse(JSON.stringify(state.schedules)),
-            tab: state.activeTab
+            residents: JSON.parse(JSON.stringify(state.residents || [])),
+            tab: state.activeTab,
+            desc: 'إعادة التعديل'
         });
 
         const prev = state.undoStack.pop();
         state.schedules = JSON.parse(JSON.stringify(prev.schedules));
+        if (prev.residents) {
+            state.residents = JSON.parse(JSON.stringify(prev.residents));
+        }
+        if (prev.tab && prev.tab !== state.activeTab && prev.tab !== 'db') {
+            state.activeTab = prev.tab;
+        }
 
+        saveCurrentMonthAllocationsToStore();
         saveState();
         updateDutyDashboard();
         renderActiveTab();
+        refreshDBView();
+        updateScheduleUndoRedoUI();
         showNotification(`تم التراجع عن: ${prev.desc || 'آخر تعديل'}`, 'info');
     }
 
@@ -458,40 +627,167 @@
         if (!state.undoStack) state.undoStack = [];
         state.undoStack.push({
             schedules: JSON.parse(JSON.stringify(state.schedules)),
+            residents: JSON.parse(JSON.stringify(state.residents || [])),
             tab: state.activeTab,
             desc: 'إعادة التعديل'
         });
 
         const next = state.redoStack.pop();
         state.schedules = JSON.parse(JSON.stringify(next.schedules));
+        if (next.residents) {
+            state.residents = JSON.parse(JSON.stringify(next.residents));
+        }
+        if (next.tab && next.tab !== state.activeTab && next.tab !== 'db') {
+            state.activeTab = next.tab;
+        }
 
+        saveCurrentMonthAllocationsToStore();
         saveState();
         updateDutyDashboard();
         renderActiveTab();
+        refreshDBView();
+        updateScheduleUndoRedoUI();
         showNotification('تمت إعادة تطبيق التعديل', 'info');
     }
 
     function renderScheduleUndoRedoButtons() {
-        const canUndo = state.undoStack && state.undoStack.length > 0;
-        const canRedo = state.redoStack && state.redoStack.length > 0;
+        const canUndo = Boolean(state.undoStack && state.undoStack.length > 0);
+        const canRedo = Boolean(state.redoStack && state.redoStack.length > 0);
 
         return `
             <div class="inline-flex items-center rounded-xl bg-slate-100 dark:bg-slate-800 p-0.5 border border-slate-200 dark:border-slate-700 shadow-2xs">
                 <button type="button" onclick="undoScheduleAction()" ${!canUndo ? 'disabled' : ''} 
-                    class="px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${!canUndo ? 'text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-50' : 'text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 shadow-xs active:scale-95'}" 
+                    class="btn-schedule-undo px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${!canUndo ? 'text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-50' : 'text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 shadow-xs active:scale-95'}" 
                     title="تراجع عن آخر تعديل (Ctrl+Z)">
                     <i class="fas fa-undo text-[11px]"></i>
                     <span>تراجع</span>
                 </button>
                 <div class="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5"></div>
                 <button type="button" onclick="redoScheduleAction()" ${!canRedo ? 'disabled' : ''} 
-                    class="px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${!canRedo ? 'text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-50' : 'text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 shadow-xs active:scale-95'}" 
+                    class="btn-schedule-redo px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${!canRedo ? 'text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-50' : 'text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 shadow-xs active:scale-95'}" 
                     title="إعادة التعديل (Ctrl+Y)">
                     <i class="fas fa-redo text-[11px]"></i>
                     <span>إعادة</span>
                 </button>
             </div>
         `;
+    }
+
+    function updateScheduleUndoRedoUI() {
+        const canUndo = Boolean(state.undoStack && state.undoStack.length > 0);
+        const canRedo = Boolean(state.redoStack && state.redoStack.length > 0);
+
+        document.querySelectorAll('.btn-schedule-undo').forEach(btn => {
+            btn.disabled = !canUndo;
+            if (!canUndo) {
+                btn.className = 'btn-schedule-undo px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-50';
+            } else {
+                btn.className = 'btn-schedule-undo px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 shadow-xs active:scale-95';
+            }
+        });
+
+        document.querySelectorAll('.btn-schedule-redo').forEach(btn => {
+            btn.disabled = !canRedo;
+            if (!canRedo) {
+                btn.className = 'btn-schedule-redo px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-50';
+            } else {
+                btn.className = 'btn-schedule-redo px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 shadow-xs active:scale-95';
+            }
+        });
+    }
+
+    function clearCurrentSchedule(sheetType) {
+        const sheetLabels = {
+            er: 'جدول خفارات الطوارئ (ER)',
+            con: 'جدول الاستشارية الخافرة (Con)',
+            dc: 'جدول شهادات الوفاة (DC)',
+            rs_er: 'جدول طوارئ الإسناد (RS - ER)',
+            rs_wards: 'جدول ردهات الإسناد (RS - Wards)'
+        };
+        const title = sheetLabels[sheetType] || 'الجدول';
+
+        const confirmed = confirm(`⚠️ هل أنت متأكد من رغبتك في تفريغ ومسح ${title} لشهر (${state.monthYear}) بالكامل؟\n\n(ملاحظة: يمكنك التراجع عن هذه العملية في أي وقت بالضغط على زر "تراجع" أو Ctrl+Z)`);
+        if (!confirmed) return;
+
+        pushScheduleHistory(`مسح ${title}`);
+
+        if (sheetType === 'er') {
+            (state.schedules.er || []).forEach(day => {
+                day.morning = '';
+                day.afternoon = '';
+                day.preNight = '';
+                day.lateNight = '';
+            });
+        } else if (sheetType === 'con') {
+            (state.schedules.con || []).forEach(day => {
+                day.doctor = '';
+            });
+        } else if (sheetType === 'dc') {
+            (state.schedules.dc || []).forEach(day => {
+                day.doctor = '';
+            });
+        } else if (sheetType === 'rs_er') {
+            const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
+            const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || getDaysInMonth(state.year, state.month);
+            (state.schedules.rs || []).forEach(day => {
+                if (day.dayNumber >= startDay && day.dayNumber <= endDay) {
+                    day.er_morning = '';
+                    day.er_afternoon = '';
+                    day.er_preNight = '';
+                    day.er_lateNight = '';
+                }
+            });
+        } else if (sheetType === 'rs_wards') {
+            const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
+            const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || getDaysInMonth(state.year, state.month);
+            (state.schedules.rs || []).forEach(day => {
+                if (day.dayNumber >= startDay && day.dayNumber <= endDay) {
+                    day.ward_private = '';
+                    day.ward_floor4 = '';
+                    day.ward_floor5 = '';
+                }
+            });
+        }
+
+        saveState();
+        renderActiveTab();
+        updateDutyDashboard();
+        showNotification(`تم مسح وتفريغ ${title} بنجاح`, 'info');
+    }
+
+    function updateResidentRowFulfillment(resId) {
+        const res = (state.residents || []).find(r => r.id === resId);
+        if (!res) return;
+
+        const scheduledCounts = getScheduledCountsMap();
+        const cleanName = normalizeArabic(res.name);
+        const stats = scheduledCounts[cleanName] || { normalScheduled: 0, extraScheduled: 0, erFilled: 0 };
+        const normalTarget = (Number(res.er_target) || 0) + (Number(res.con_target) || 0) + (Number(res.dc_target) || 0);
+        const isFulfilled = (stats.normalScheduled >= normalTarget) && normalTarget > 0;
+        const isExpired = isResidentExpired(res, state.year, state.month);
+
+        const tr = document.querySelector(`tr[data-resident-id="${resId}"]`);
+        if (!tr) return;
+
+        tr.setAttribute('data-quota-status', isFulfilled ? 'fulfilled' : 'unfulfilled');
+
+        let statusBadge = '';
+        if (!res.active) {
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400">معطّل</span>`;
+        } else if (isExpired) {
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">منتهي الإقامة</span>`;
+        } else if (isFulfilled) {
+            tr.className = tr.className.replace(/border-l-rose-400 bg-rose-50\/\d+/g, '').replace(/border-l-emerald-500 bg-emerald-50\/\d+/g, '') + ' bg-emerald-50/40 dark:bg-emerald-950/15 border-l-4 border-l-emerald-500';
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">مكتمل (${stats.normalScheduled}/${normalTarget})</span>`;
+        } else {
+            tr.className = tr.className.replace(/border-l-emerald-500 bg-emerald-50\/\d+/g, '').replace(/border-l-rose-400 bg-rose-50\/\d+/g, '') + ' bg-rose-50/30 dark:bg-rose-950/10 border-l-4 border-l-rose-400';
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">غير مكتمل (${stats.normalScheduled}/${normalTarget})</span>`;
+        }
+
+        const badgeCell = tr.querySelector('.resident-status-badge-cell');
+        if (badgeCell) {
+            badgeCell.innerHTML = `<div>${statusBadge}</div>`;
+        }
     }
 
     function importResidentsFromHospital(hospId) {
@@ -643,8 +939,9 @@
     function onHospitalChange(hospId) {
         if (hospId === state.hospitalId) return;
 
-        // 1. Save current month schedule & current residents
+        // 1. Save current month schedule, allocations & current residents
         saveCurrentMonthScheduleToStore();
+        saveCurrentMonthAllocationsToStore();
         saveCurrentHospitalResidents();
 
         // 2. Set new hospital
@@ -661,6 +958,17 @@
         }
         state.hospitalName = hospName;
 
+        // Restore hospital signatories if recorded
+        if (!state.hospitalSignatories) state.hospitalSignatories = {};
+        if (state.hospitalSignatories[hospId]) {
+            if (state.hospitalSignatories[hospId].headOfResidents) {
+                state.headOfResidents = state.hospitalSignatories[hospId].headOfResidents;
+            }
+            if (state.hospitalSignatories[hospId].headOfHospital) {
+                state.headOfHospital = state.hospitalSignatories[hospId].headOfHospital;
+            }
+        }
+
         // 3. Load or offer to import residents for this hospital
         if (!state.hospitalResidents) state.hospitalResidents = {};
         if (state.hospitalResidents[hospId] && state.hospitalResidents[hospId].length > 0) {
@@ -673,8 +981,9 @@
             }
         }
 
-        // 4. Load schedule for this hospital and current month/year
+        // 4. Load schedule & allocations for this hospital and current month/year
         loadMonthScheduleFromStore(hospId, state.year, state.month);
+        loadMonthAllocationsFromStore(hospId, state.year, state.month);
 
         saveState();
         syncMetaInputsWithState();
@@ -684,8 +993,9 @@
     }
 
     function onMonthYearChange(monthVal, yearVal) {
-        // 1. Save current month schedule
+        // 1. Save current month schedule & allocations
         saveCurrentMonthScheduleToStore();
+        saveCurrentMonthAllocationsToStore();
         
         // 2. Update month and year
         state.month = parseInt(monthVal) || state.month;
@@ -693,12 +1003,25 @@
         
         const monthNames = [
             'كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران',
-            'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الآخر', 'كانون الأول'
+            'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'
         ];
         state.monthYear = `${monthNames[state.month - 1]} ${state.year}`;
         
         // 3. Load schedule for newly selected month
         loadMonthScheduleFromStore(state.hospitalId, state.year, state.month);
+        const hasAlloc = loadMonthAllocationsFromStore(state.hospitalId, state.year, state.month);
+        
+        // 4. If empty month, check if previous month has allocations and offer to transfer
+        if (!hasAlloc) {
+            const prevAlloc = getPreviousMonthAllocations(state.hospitalId, state.year, state.month);
+            if (prevAlloc && Object.keys(prevAlloc).length > 0) {
+                const prev = getPreviousMonth(state.year, state.month);
+                const shouldCopy = confirm(`شهر (${state.monthYear}) لا يحتوي على أنصبة خفارات محددة للأطباء المقيمين.\n\nهل ترغب بنسخ ونقل أنصبة الأطباء من الشهر السابق (${prev.month}/${prev.year}) تلقائياً؟`);
+                if (shouldCopy) {
+                    copyAllocationsFromPreviousMonth();
+                }
+            }
+        }
         
         saveState();
         syncMetaInputsWithState();
@@ -719,12 +1042,24 @@
 
     function onHeadOfResidentsChange(val) {
         state.headOfResidents = val.trim();
+        if (!state.hospitalSignatories) state.hospitalSignatories = {};
+        if (state.hospitalId) {
+            if (!state.hospitalSignatories[state.hospitalId]) state.hospitalSignatories[state.hospitalId] = {};
+            state.hospitalSignatories[state.hospitalId].headOfResidents = state.headOfResidents;
+        }
         saveState();
+        showNotification('تم حفظ اسم مسؤول الأطباء المقيمين بنجاح', 'success');
     }
 
     function onHeadOfHospitalChange(val) {
         state.headOfHospital = val.trim();
+        if (!state.hospitalSignatories) state.hospitalSignatories = {};
+        if (state.hospitalId) {
+            if (!state.hospitalSignatories[state.hospitalId]) state.hospitalSignatories[state.hospitalId] = {};
+            state.hospitalSignatories[state.hospitalId].headOfHospital = state.headOfHospital;
+        }
         saveState();
+        showNotification('تم حفظ اسم مدير المستشفى بنجاح', 'success');
     }
 
     function suggestSequentialOrderNumber() {
@@ -1345,21 +1680,27 @@
                             </p>
                         </div>
 
-                        <!-- 3. Medical Staff Pool -->
-                        <div onclick="switchTab('db')" class="p-3 rounded-2xl bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/70 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer transition group" title="انقر لفتح وإدارة قاعدة الأطباء">
+                        <!-- 3. Medical Staff Pool (Distinct Executive Style) -->
+                        <div onclick="switchTab('db')" class="relative overflow-hidden p-3 rounded-2xl bg-gradient-to-br from-indigo-50/95 via-purple-50/60 to-slate-50/80 dark:from-indigo-950/40 dark:via-purple-950/20 dark:to-slate-900/60 border-2 border-indigo-300/80 dark:border-indigo-700/60 hover:border-indigo-500 dark:hover:border-indigo-400 hover:shadow-md hover:shadow-indigo-500/10 cursor-pointer transition-all duration-200 group active:scale-[0.98]" title="انقر لفتح وإدارة قاعدة بيانات الأطباء المقيمين">
+                            <div class="pointer-events-none absolute -top-6 -right-6 w-20 h-20 bg-indigo-500/10 rounded-full blur-xl"></div>
                             <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
-                                <span class="font-bold text-[11px] group-hover:text-rose-600 transition">الكادر الطبي النشط</span>
-                                <span class="text-[10px] font-bold text-slate-400"><i class="fas fa-users-gear ml-0.5"></i> إدارة</span>
+                                <span class="font-bold text-[11px] text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5 group-hover:text-indigo-600 transition">
+                                    <i class="fas fa-user-doctor text-indigo-600 dark:text-indigo-400"></i>
+                                    <span>الكادر الطبي المقيم</span>
+                                </span>
+                                <span class="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 shadow-2xs group-hover:bg-indigo-600 group-hover:text-white transition">
+                                    <i class="fas fa-users-gear text-[9px]"></i> إدارة
+                                </span>
                             </div>
-                            <div class="text-lg sm:text-xl font-black font-mono text-slate-900 dark:text-slate-50 tracking-tight">
-                                ${activeDocs.length} <span class="text-xs font-normal text-slate-400 dark:text-slate-500">/ ${totalDocsCount} مسجل</span>
+                            <div class="text-lg sm:text-xl font-black font-mono text-indigo-950 dark:text-indigo-100 tracking-tight">
+                                ${activeDocs.length} <span class="text-xs font-normal text-slate-500 dark:text-slate-400">/ ${totalDocsCount} مسجل</span>
                             </div>
-                            <div class="flex items-center gap-1.5 mt-2 text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate">
-                                <span class="inline-flex items-center gap-0.5"><i class="fas fa-mars text-blue-500"></i> ${maleDocs.length} ذكر</span>
-                                <span>•</span>
-                                <span class="inline-flex items-center gap-0.5"><i class="fas fa-venus text-rose-500"></i> ${femaleDocs.length} أنثى</span>
-                                <span>•</span>
-                                <span class="inline-flex items-center gap-0.5"><i class="fas fa-graduation-cap text-amber-500"></i> ${boardDocs.length} بورد</span>
+                            <div class="flex items-center gap-1.5 mt-2 text-[10px] text-slate-600 dark:text-slate-300 font-bold truncate">
+                                <span class="inline-flex items-center gap-0.5 text-blue-600 dark:text-blue-400"><i class="fas fa-mars"></i> ${maleDocs.length} ذكر</span>
+                                <span class="text-slate-300 dark:text-slate-700">•</span>
+                                <span class="inline-flex items-center gap-0.5 text-rose-600 dark:text-rose-400"><i class="fas fa-venus"></i> ${femaleDocs.length} أنثى</span>
+                                <span class="text-slate-300 dark:text-slate-700">•</span>
+                                <span class="inline-flex items-center gap-0.5 text-amber-600 dark:text-amber-400"><i class="fas fa-graduation-cap"></i> ${boardDocs.length} بورد</span>
                             </div>
                         </div>
 
@@ -2077,6 +2418,10 @@
                 </div>
                 <div class="flex items-center gap-2">
                     ${renderScheduleUndoRedoButtons()}
+                    <button type="button" onclick="clearCurrentSchedule('er')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition flex items-center gap-1.5" title="تفريغ ومسح جدول خفارات الطوارئ لهذا الشهر">
+                        <i class="fas fa-trash-can text-[11px]"></i>
+                        <span>تفريغ الجدول</span>
+                    </button>
                     <button type="button" onclick="triggerScheduleAutoGenerate('er')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-sm transition flex items-center gap-1.5">
                         <i class="fas fa-wand-magic-sparkles"></i>
                         <span>توليد خفارات الطوارئ آلياً</span>
@@ -2169,6 +2514,10 @@
                 </div>
                 <div class="flex items-center gap-2">
                     ${renderScheduleUndoRedoButtons()}
+                    <button type="button" onclick="clearCurrentSchedule('con')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition flex items-center gap-1.5" title="تفريغ ومسح جدول الاستشارية الخافرة لهذا الشهر">
+                        <i class="fas fa-trash-can text-[11px]"></i>
+                        <span>تفريغ الجدول</span>
+                    </button>
                     <button type="button" onclick="triggerScheduleAutoGenerate('con')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 shadow-sm transition flex items-center gap-1.5">
                         <i class="fas fa-wand-magic-sparkles"></i>
                         <span>توليد خفارات الاستشارية آلياً</span>
@@ -2245,6 +2594,10 @@
                 </div>
                 <div class="flex items-center gap-2">
                     ${renderScheduleUndoRedoButtons()}
+                    <button type="button" onclick="clearCurrentSchedule('dc')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition flex items-center gap-1.5" title="تفريغ ومسح جدول شهادات الوفاة لهذا الشهر">
+                        <i class="fas fa-trash-can text-[11px]"></i>
+                        <span>تفريغ الجدول</span>
+                    </button>
                     <button type="button" onclick="triggerScheduleAutoGenerate('dc')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition flex items-center gap-1.5">
                         <i class="fas fa-wand-magic-sparkles"></i>
                         <span>توليد شهادات الوفاة آلياً</span>
@@ -2343,6 +2696,10 @@
                 </div>
                 <div class="flex items-center gap-2">
                     ${renderScheduleUndoRedoButtons()}
+                    <button type="button" onclick="clearCurrentSchedule('rs_er')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition flex items-center gap-1.5" title="تفريغ ومسح جدول طوارئ الإسناد لهذا الشهر">
+                        <i class="fas fa-trash-can text-[11px]"></i>
+                        <span>تفريغ الجدول</span>
+                    </button>
                     <button type="button" onclick="triggerScheduleAutoGenerate('rs_er')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 shadow-sm transition flex items-center gap-1.5">
                         <i class="fas fa-wand-magic-sparkles"></i>
                         <span>توليد طوارئ الإضراب آلياً</span>
@@ -2446,6 +2803,10 @@
                 </div>
                 <div class="flex items-center gap-2">
                     ${renderScheduleUndoRedoButtons()}
+                    <button type="button" onclick="clearCurrentSchedule('rs_wards')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition flex items-center gap-1.5" title="تفريغ ومسح جدول ردهات الإسناد لهذا الشهر">
+                        <i class="fas fa-trash-can text-[11px]"></i>
+                        <span>تفريغ الجدول</span>
+                    </button>
                     <button type="button" onclick="triggerScheduleAutoGenerate('rs_wards')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 shadow-sm transition flex items-center gap-1.5">
                         <i class="fas fa-wand-magic-sparkles"></i>
                         <span>توليد ردهات الإضراب آلياً</span>
@@ -3146,28 +3507,28 @@
                     ${renderStageBubbleHTML(r)}
                 </td>
 
-                <!-- ER Target (Direct number input) -->
+                <!-- ER Target (Direct number input with live update) -->
                 <td class="py-1 px-2 text-center">
-                    <input type="number" min="0" value="${r.er_target || 0}" onblur="onResidentTargetChange('${r.id}', 'er_target', this.value)" class="db-cell-input text-center font-mono font-black text-rose-600">
+                    <input type="number" min="0" value="${r.er_target || 0}" oninput="onResidentTargetChange('${r.id}', 'er_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'er_target', this.value)" class="db-cell-input text-center font-mono font-black text-rose-600">
                 </td>
 
-                <!-- Con Target (Direct number input) -->
+                <!-- Con Target (Direct number input with live update) -->
                 <td class="py-1 px-2 text-center">
-                    <input type="number" min="0" value="${r.con_target || 0}" onblur="onResidentTargetChange('${r.id}', 'con_target', this.value)" class="db-cell-input text-center font-mono font-black text-sky-600">
+                    <input type="number" min="0" value="${r.con_target || 0}" oninput="onResidentTargetChange('${r.id}', 'con_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'con_target', this.value)" class="db-cell-input text-center font-mono font-black text-sky-600">
                 </td>
 
-                <!-- DC Target (Direct number input) -->
+                <!-- DC Target (Direct number input with live update) -->
                 <td class="py-1 px-2 text-center">
-                    <input type="number" min="0" value="${r.dc_target || 0}" onblur="onResidentTargetChange('${r.id}', 'dc_target', this.value)" class="db-cell-input text-center font-mono font-black text-emerald-600">
+                    <input type="number" min="0" value="${r.dc_target || 0}" oninput="onResidentTargetChange('${r.id}', 'dc_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'dc_target', this.value)" class="db-cell-input text-center font-mono font-black text-emerald-600">
                 </td>
 
-                <!-- RS Target (Direct number input) -->
+                <!-- RS Target (Direct number input with live update) -->
                 <td class="py-1 px-2 text-center">
-                    <input type="number" min="0" value="${r.rs_target || 0}" onblur="onResidentTargetChange('${r.id}', 'rs_target', this.value)" class="db-cell-input text-center font-mono font-black text-amber-600">
+                    <input type="number" min="0" value="${r.rs_target || 0}" oninput="onResidentTargetChange('${r.id}', 'rs_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'rs_target', this.value)" class="db-cell-input text-center font-mono font-black text-amber-600">
                 </td>
 
                 <!-- Status Badge -->
-                <td class="py-1 px-2">
+                <td class="py-1 px-2 resident-status-badge-cell">
                     <div>${statusBadge}</div>
                 </td>
 
@@ -3300,9 +3661,12 @@
     function onResidentTargetChange(resId, targetField, newVal) {
         const res = (state.residents || []).find(r => r.id === resId);
         if (res) {
-            res[targetField] = Math.max(0, parseInt(newVal, 10) || 0);
+            const parsedVal = Math.max(0, parseInt(newVal, 10) || 0);
+            res[targetField] = parsedVal;
+            saveCurrentMonthAllocationsToStore();
             saveState();
             updateDutyDashboard();
+            updateResidentRowFulfillment(resId);
         }
     }
 
@@ -3337,6 +3701,8 @@
         const confirmMsg = `هل أنت متأكد من إلغاء تنشيط الطبيب (${res.name})؟\n\nتنبيه إداري: سيتم تصفير كافة أنصبته (إلى صفر) وإزالة اسمه من جميع جداول الخفارات تلقائياً.`;
         if (!confirm(confirmMsg)) return;
 
+        pushScheduleHistory(`إلغاء تنشيط الطبيب (${res.name})`);
+
         // Reset quotas to zero
         res.active = false;
         res.er_target = 0;
@@ -3354,8 +3720,13 @@
             });
         });
 
+        saveCurrentMonthAllocationsToStore();
+        saveCurrentHospitalResidents();
         saveState();
         refreshDBView();
+        updateDutyDashboard();
+        renderActiveTab();
+        updateScheduleUndoRedoUI();
         showNotification(`تم إلغاء تنشيط الطبيب (${docName}) وتصفير أنصبته وإزالته من الجداول`, 'info');
     }
 
@@ -3363,10 +3734,17 @@
         const res = (state.residents || []).find(r => r.id === resId);
         if (!res) return;
 
+        pushScheduleHistory(`إعادة تنشيط الطبيب (${res.name})`);
+
         res.active = true;
         res.er_target = 2; // initial default
+        saveCurrentMonthAllocationsToStore();
+        saveCurrentHospitalResidents();
         saveState();
         refreshDBView();
+        updateDutyDashboard();
+        renderActiveTab();
+        updateScheduleUndoRedoUI();
         showNotification(`تمت إعادة تنشيط الطبيب (${res.name}) بنجاح`, 'success');
     }
 
@@ -3382,6 +3760,8 @@
         const msg = `هل ترغب في ترقية مرحلة جميع أطباء البورد (العربي والعراقي) بمقدار مرحلة واحدة (+1)؟\nعدد الأطباء المشمولين بالترقية: ${boardResidents.length} طبيب. (الأطباء بدون بورد لن يتم ترفيعهم)`;
         if (!confirm(msg)) return;
 
+        pushScheduleHistory('ترقية مرحلة أطباء البورد');
+
         let count = 0;
         boardResidents.forEach(r => {
             const curIdx = ARABIC_STAGES.indexOf(r.stage);
@@ -3394,8 +3774,10 @@
             }
         });
 
+        saveCurrentHospitalResidents();
         saveState();
         refreshDBView();
+        updateScheduleUndoRedoUI();
         showNotification(`تمت ترقية مرحلة ${count} طبيب بورد بنجاح (+1)`, 'success');
     }
 
@@ -3403,9 +3785,17 @@
         const res = (state.residents || []).find(r => r.id === resId);
         if (!res) return;
         if (!confirm(`هل أنت متأكد من حذف الطبيب: "${res.name}" نهائياً من قاعدة الطوارئ؟`)) return;
+
+        pushScheduleHistory(`حذف الطبيب (${res.name})`);
+
         state.residents = state.residents.filter(r => r.id !== resId);
+        saveCurrentMonthAllocationsToStore();
+        saveCurrentHospitalResidents();
         saveState();
         refreshDBView();
+        updateDutyDashboard();
+        renderActiveTab();
+        updateScheduleUndoRedoUI();
         showNotification('تم حذف الطبيب من قاعدة الطوارئ', 'info');
     }
 
@@ -4976,8 +5366,8 @@
                     <div style="font-size: 10pt; font-weight: bold;">شعبة ادارة الموارد البشرية</div>
                 </div>
 
-                <!-- 2. ORDER NUMBER & DATE (ON RIGHT, MATCHING PDF) -->
-                <div style="text-align: right; margin-bottom: 5px; font-size: 9pt; font-weight: bold; line-height: 1.3;">
+                <!-- 2. ORDER NUMBER & DATE (ON LEFT SIDE AS REQUESTED) -->
+                <div style="text-align: left; margin-bottom: 5px; font-size: 9pt; font-weight: bold; line-height: 1.3; padding-left: 10px;">
                     <div>العدد / &nbsp; ${state.orderNumber || ''}</div>
                     <div>التاريخ / &nbsp; ${arabicOrderDate}</div>
                 </div>
@@ -5326,10 +5716,18 @@
         exportFullScheduleToExcel,
         resetEmergencyToDefaults,
         getDefaultPeriodByDay18Rule,
-        countIncompleteScheduleSlots
+        countIncompleteScheduleSlots,
+        clearCurrentSchedule,
+        copyAllocationsFromPreviousMonth,
+        updateResidentRowFulfillment,
+        updateScheduleUndoRedoUI
     };
 
     // Global direct aliases for inline HTML attributes
+    window.clearCurrentSchedule = clearCurrentSchedule;
+    window.copyAllocationsFromPreviousMonth = copyAllocationsFromPreviousMonth;
+    window.updateResidentRowFulfillment = updateResidentRowFulfillment;
+    window.updateScheduleUndoRedoUI = updateScheduleUndoRedoUI;
     window.switchTab = switchTab;
     window.exportFullScheduleToExcel = exportFullScheduleToExcel;
     window.resetEmergencyToDefaults = resetEmergencyToDefaults;

@@ -1,29 +1,52 @@
 /**
  * EMERGENCY SHIFT & ON-CALL ROSTER MANAGEMENT SYSTEM
- * HOSP HUB — Full Feature Implementation
+ * HOSP HUB — Full Feature Implementation V2
+ * 
+ * Features:
+ * - Search & Header-based filter in all schedules
+ * - Direct in-database editing without prompts
+ * - Isolated inactive residents section with confirmation & zeroing allocations
+ * - Optional expiry month per resident
+ * - Board stage advancement (+1)
+ * - Separate automatic distribution per schedule with existing-entries prompt
+ * - Gender-prioritized ER shift allocation algorithm (Morning/Post-morning: Females, Pre-night: Males with multiple, Night: Males single)
+ * - Duty preferences (preferred days & shifts) with override indication
+ * - Conflict explanation on click with empty button
+ * - Death Certificate multi-duty conflict checking
+ * - Hide fulfilled residents from picker
+ * - Color system in DB (Green fulfilled, Red unfulfilled, Orange badge for extra/RS)
+ * - Strict Single A4 page formal printout with ministerial header & footer
+ * - Full validation on resident export to hospital (phone required)
  */
 
 (function(window) {
     'use strict';
 
-    // Global Emergency State
-    const STATE_KEY = 'hosp_hub_emergency_state_v2';
+    const STATE_KEY = 'hosp_hub_emergency_state_v3';
     const DB_FILE = './emergency-db.json';
 
     let state = {
         hospitalId: 'iraqi',
-        hospitalName: 'المستشفى العراقي التعليمي (الصدر التعليمي)',
+        hospitalName: 'مستشفى الصدر التعليمي',
         monthYear: 'أيلول 2026',
         month: 9,
         year: 2026,
         orderNumber: '4821',
+        orderDate: '2026-09-01',
+        headOfResidents: 'د. محمد راضي خضر',
+        headOfHospital: 'د. علي عبد معن',
         rsEnabled: true,
         rsStartDate: '2026-09-15',
         rsEndDate: '2026-09-20',
         activeTab: 'er',
         showInactiveInDB: false,
-        showInactiveInPicker: false,
-        pickerQuotaFilter: 'pending_only',
+        // Schedule search & filter states
+        scheduleSearchQuery: '',
+        scheduleShiftFilter: 'all',
+        scheduleDayFilter: 'all',
+        scheduleStatusFilter: 'all',
+        // In-schedule preference override notes
+        prefOverrides: {},
         residents: [],
         schedules: {
             er: [],
@@ -33,8 +56,9 @@
         }
     };
 
-    // Current active slot being edited in picker modal
-    let activeSlot = null;
+    let activeSlot = null; // currently opened slot in picker
+    let pendingConflictData = null; // slot data for conflict explanation modal
+    let pendingAutoGenerateType = null; // schedule type for auto generate modal
 
     // Days in current month
     function getDaysInMonth(year, month) {
@@ -75,12 +99,22 @@
             .trim();
     }
 
+    // Check if a resident is expired for the current month/year
+    function isResidentExpired(resident, year, month) {
+        if (!resident || !resident.expiryMonth) return false;
+        const [expY, expM] = resident.expiryMonth.split('-').map(Number);
+        if (!expY || !expM) return false;
+        if (year > expY) return true;
+        if (year === expY && month >= expM) return true;
+        return false;
+    }
+
     // =========================================================================
     // INITIALIZATION & STATE PERSISTENCE
     // =========================================================================
 
     async function initEmergencyApp() {
-        console.log('Initializing Emergency System...');
+        console.log('Initializing Emergency System V2...');
 
         // 1. Load from localStorage if present
         const saved = localStorage.getItem(STATE_KEY);
@@ -101,31 +135,35 @@
                 state.hospitalName = window.DEFAULT_EMERGENCY_DATA.hospitalName || state.hospitalName;
                 state.monthYear = window.DEFAULT_EMERGENCY_DATA.monthYear || state.monthYear;
                 state.orderNumber = window.DEFAULT_EMERGENCY_DATA.orderNumber || state.orderNumber;
+                state.orderDate = window.DEFAULT_EMERGENCY_DATA.orderDate || state.orderDate;
+                state.headOfResidents = window.DEFAULT_EMERGENCY_DATA.headOfResidents || state.headOfResidents;
+                state.headOfHospital = window.DEFAULT_EMERGENCY_DATA.headOfHospital || state.headOfHospital;
                 state.rsStartDate = window.DEFAULT_EMERGENCY_DATA.rsStartDate || state.rsStartDate;
                 state.rsEndDate = window.DEFAULT_EMERGENCY_DATA.rsEndDate || state.rsEndDate;
             }
         }
 
-        // 3. Try to fetch emergency-db.json asynchronously to ensure synchronization
+        // 3. Try to fetch emergency-db.json asynchronously if fresh
         try {
             const resp = await fetch(DB_FILE);
             if (resp.ok) {
                 const dbJson = await resp.json();
                 if (dbJson && Array.isArray(dbJson.residents) && dbJson.residents.length > 0) {
-                    // Merge DB fields if not edited locally
                     if (!saved) {
                         state.residents = dbJson.residents;
+                        state.headOfResidents = dbJson.headOfResidents || state.headOfResidents;
+                        state.headOfHospital = dbJson.headOfHospital || state.headOfHospital;
                     }
                 }
             }
         } catch (err) {
-            console.log('Local fetch of emergency-db.json skipped (using bundled state)');
+            console.log('Using bundled state');
         }
 
-        // 4. Ensure schedule days count matches month
+        // 4. Ensure schedule integrity
         ensureScheduleIntegrity();
 
-        // 5. Initialize Hospital Hub integration
+        // 5. Initialize Hospital Selector from Hub
         initHospitalSelector();
 
         // 6. Sync UI inputs with state
@@ -135,6 +173,7 @@
         updateDutyDashboard();
         renderActiveTab();
         updateRsVisibilityUI();
+        initAutoModalListeners();
     }
 
     function ensureScheduleIntegrity() {
@@ -144,7 +183,6 @@
             if (!Array.isArray(state.schedules[type])) {
                 state.schedules[type] = [];
             }
-            // Ensure every day 1..daysCount exists
             for (let d = 1; d <= daysCount; d++) {
                 const dateStr = formatDateStr(state.year, state.month, d);
                 const dayName = getArabicDayName(state.year, state.month, d);
@@ -164,7 +202,6 @@
                     entry.dayName = dayName;
                 }
             }
-            // Sort by day number
             state.schedules[type].sort((a, b) => a.dayNumber - b.dayNumber);
         });
     }
@@ -180,9 +217,12 @@
         if (window.DEFAULT_EMERGENCY_DATA) {
             state.residents = JSON.parse(JSON.stringify(window.DEFAULT_EMERGENCY_DATA.residents));
             state.schedules = JSON.parse(JSON.stringify(window.DEFAULT_EMERGENCY_DATA.schedules));
-            state.hospitalName = window.DEFAULT_EMERGENCY_DATA.hospitalName || 'المستشفى العراقي التعليمي';
+            state.hospitalName = window.DEFAULT_EMERGENCY_DATA.hospitalName || 'مستشفى الصدر التعليمي';
             state.monthYear = window.DEFAULT_EMERGENCY_DATA.monthYear || 'أيلول 2026';
             state.orderNumber = window.DEFAULT_EMERGENCY_DATA.orderNumber || '4821';
+            state.orderDate = window.DEFAULT_EMERGENCY_DATA.orderDate || '2026-09-01';
+            state.headOfResidents = window.DEFAULT_EMERGENCY_DATA.headOfResidents || 'د. محمد راضي خضر';
+            state.headOfHospital = window.DEFAULT_EMERGENCY_DATA.headOfHospital || 'د. علي عبد معن';
             state.rsEnabled = true;
             state.rsStartDate = window.DEFAULT_EMERGENCY_DATA.rsStartDate || '2026-09-15';
             state.rsEndDate = window.DEFAULT_EMERGENCY_DATA.rsEndDate || '2026-09-20';
@@ -207,10 +247,9 @@
             hospitals = window.Hub.getHospitals() || [];
         }
 
-        // Fallback default hospitals if Hub not yet loaded
         if (hospitals.length === 0) {
             hospitals = [
-                { id: 'iraqi', name_ar: 'المستشفى العراقي التعليمي (الصدر التعليمي)' },
+                { id: 'iraqi', name_ar: 'مستشفى الصدر التعليمي' },
                 { id: 'basra', name_ar: 'مستشفى البصرة التعليمي' },
                 { id: 'mawani', name_ar: 'مستشفى الموانئ التعليمي' }
             ];
@@ -270,8 +309,22 @@
         saveState();
     }
 
+    function onOrderDateChange(val) {
+        state.orderDate = val;
+        saveState();
+    }
+
+    function onHeadOfResidentsChange(val) {
+        state.headOfResidents = val.trim();
+        saveState();
+    }
+
+    function onHeadOfHospitalChange(val) {
+        state.headOfHospital = val.trim();
+        saveState();
+    }
+
     function suggestSequentialOrderNumber() {
-        // Suggest a sequential order number based on current year or existing order
         const currentNum = parseInt(state.orderNumber) || 4820;
         const nextNum = currentNum + 1;
         state.orderNumber = String(nextNum);
@@ -304,7 +357,6 @@
 
     function updateRsVisibilityUI() {
         const rsBadge = document.getElementById('rs-toggle-badge');
-        const rsBtn = document.getElementById('rs-toggle-btn');
         const rsSettingsBar = document.getElementById('rs-settings-bar');
         const rsErTabBtn = document.getElementById('tab-btn-rs-er');
         const rsWardsTabBtn = document.getElementById('tab-btn-rs-wards');
@@ -340,6 +392,15 @@
         const orderInput = document.getElementById('meta-order-number');
         if (orderInput) orderInput.value = state.orderNumber;
 
+        const orderDateInput = document.getElementById('meta-order-date');
+        if (orderDateInput) orderDateInput.value = state.orderDate || '2026-09-01';
+
+        const headResInput = document.getElementById('meta-head-residents');
+        if (headResInput) headResInput.value = state.headOfResidents || 'د. محمد راضي خضر';
+
+        const headHospInput = document.getElementById('meta-head-hospital');
+        if (headHospInput) headHospInput.value = state.headOfHospital || 'د. علي عبد معن';
+
         const rsStartInput = document.getElementById('meta-rs-start');
         if (rsStartInput) rsStartInput.value = state.rsStartDate;
 
@@ -348,23 +409,18 @@
     }
 
     // =========================================================================
-    // CONFLICT ENGINE & HOSPITAL SCHEDULE LOOKUP
+    // CONFLICT ENGINE & HOSPITAL LOOKUP
     // =========================================================================
 
-    /**
-     * Get all duties a doctor has on dateStr across all systems
-     * dateStr format: YYYY-MM-DD
-     */
     function getDoctorDutiesOnDate(doctorName, dateStr) {
         if (!doctorName || !doctorName.trim()) return [];
         const cleanTarget = normalizeArabic(doctorName);
         const duties = [];
 
-        // Parse date day number
         const parts = dateStr.split('-');
         const dayNumber = parseInt(parts[2], 10);
 
-        // 1. Check ER Schedule
+        // 1. ER Schedule
         const erDay = (state.schedules.er || []).find(s => s.dayNumber === dayNumber);
         if (erDay) {
             const slots = [
@@ -380,19 +436,19 @@
             });
         }
 
-        // 2. Check Consultation Clinic (Con)
+        // 2. Consultation Clinic (Con)
         const conDay = (state.schedules.con || []).find(s => s.dayNumber === dayNumber);
         if (conDay && conDay.doctor && normalizeArabic(conDay.doctor) === cleanTarget) {
             duties.push({ type: 'con', slotKey: 'doctor', label: 'الاستشارية الخافرة' });
         }
 
-        // 3. Check Death Certificates (DC)
+        // 3. Death Certificates (DC)
         const dcDay = (state.schedules.dc || []).find(s => s.dayNumber === dayNumber);
         if (dcDay && dcDay.doctor && normalizeArabic(dcDay.doctor) === cleanTarget) {
             duties.push({ type: 'dc', slotKey: 'doctor', label: 'شهادات الوفاة' });
         }
 
-        // 4. Check Rotators Strike (RS) if enabled
+        // 4. Rotators Strike (RS)
         if (state.rsEnabled) {
             const rsDay = (state.schedules.rs || []).find(s => s.dayNumber === dayNumber);
             if (rsDay) {
@@ -413,22 +469,19 @@
             }
         }
 
-        // 5. Check Hospital On-Call Schedule in hub-data.json
+        // 5. Hospital On-Call Duty (h.schedule)
         const hospDuties = getHospitalDutiesForDoctor(doctorName, dateStr);
         hospDuties.forEach(hd => {
             duties.push({
                 type: 'hospital',
                 slotKey: hd.specCode,
-                label: `خفارة مستشفى: ${hd.specName}`
+                label: `خفارة اختصاص في المستشفى: ${hd.specName}`
             });
         });
 
         return duties;
     }
 
-    /**
-     * Get duties for doctor in the selected hospital schedule
-     */
     function getHospitalDutiesForDoctor(doctorName, dateStr) {
         if (!window.Hub || typeof window.Hub.getHospital !== 'function') return [];
         const hosp = window.Hub.getHospital(state.hospitalId);
@@ -438,7 +491,7 @@
         const y = parseInt(parts[0], 10);
         const m = parseInt(parts[1], 10);
         const d = parseInt(parts[2], 10);
-        const hospDateStr = formatHospitalDateStr(y, m, d); // DD/MM/YYYY
+        const hospDateStr = formatHospitalDateStr(y, m, d);
 
         const cleanTarget = normalizeArabic(doctorName);
         const matched = [];
@@ -457,9 +510,6 @@
         return matched;
     }
 
-    /**
-     * Get ALL doctors having on-call hospital duty on dateStr (DD/MM/YYYY)
-     */
     function getAllHospitalOnCallDoctors(dateStr) {
         if (!window.Hub || typeof window.Hub.getHospital !== 'function') return [];
         const hosp = window.Hub.getHospital(state.hospitalId);
@@ -469,7 +519,7 @@
         const y = parseInt(parts[0], 10);
         const m = parseInt(parts[1], 10);
         const d = parseInt(parts[2], 10);
-        const hospDateStr = formatHospitalDateStr(y, m, d); // DD/MM/YYYY
+        const hospDateStr = formatHospitalDateStr(y, m, d);
 
         const onCall = [];
         hosp.schedule.forEach(item => {
@@ -487,9 +537,9 @@
     }
 
     /**
-     * Conflict Check for a specific cell:
-     * - Death Certificate (DC) is OK to overlap with hospital duty (GREEN FLAGGED).
-     * - Other slots flag conflict (RED / AMBER FLAGGED) if more than 1 duty exists on the same day.
+     * Conflict Check:
+     * - For Death Certificates (DC): Hospital specialty on-call is EXPECTED and VALID (green).
+     *   However, if doctor has OTHER duties in ER, Con, or RS on that day, it IS a conflict!
      */
     function evaluateCellConflict(doctorName, dateStr, currentSlotType, currentSlotKey) {
         if (!doctorName || !doctorName.trim()) {
@@ -497,23 +547,36 @@
         }
 
         const allDuties = getDoctorDutiesOnDate(doctorName, dateStr);
-        // Filter out the duty matching the current cell itself
         const otherDuties = allDuties.filter(d => !(d.type === currentSlotType && d.slotKey === currentSlotKey));
 
         if (currentSlotType === 'dc') {
-            // For DC: Hospital duty overlap is fully allowed and recommended!
+            // For DC: Check for other shifts apart from hospital specialty duty
+            const nonHospitalConflicts = otherDuties.filter(d => d.type !== 'hospital');
             const hospDuty = otherDuties.find(d => d.type === 'hospital');
+
+            if (nonHospitalConflicts.length > 0) {
+                // Real conflict: doctor has ER, Con, or RS duty as well!
+                return {
+                    hasConflict: true,
+                    isDcHospitalDuty: !!hospDuty,
+                    hospDutyName: hospDuty ? hospDuty.label : '',
+                    conflicts: nonHospitalConflicts
+                };
+            }
+
             if (hospDuty) {
                 return {
                     hasConflict: false,
                     isDcHospitalDuty: true,
                     hospDutyName: hospDuty.label,
-                    conflicts: otherDuties
+                    conflicts: []
                 };
             }
+
+            return { hasConflict: false, isDcHospitalDuty: false, conflicts: [] };
         }
 
-        // For other tables, if other duties exist, it's a conflict
+        // For non-DC slots: any other duty is a conflict
         const hasConflict = otherDuties.length > 0;
         return {
             hasConflict,
@@ -522,12 +585,56 @@
         };
     }
 
-    /**
-     * Clear cell in current table ONLY when user clicks conflict badge
-     */
-    function clearCellOnly(tableType, dayNumber, slotKey, event) {
+    // =========================================================================
+    // CONFLICT MODAL (CLICK-TO-EXPLAIN WITH EMPTY OPTION)
+    // =========================================================================
+
+    function openConflictExplanation(tableType, dayNumber, dateStr, slotKey, doctorName, event) {
         if (event) event.stopPropagation();
 
+        const conflictInfo = evaluateCellConflict(doctorName, dateStr, tableType, slotKey);
+        pendingConflictData = { tableType, dayNumber, slotKey, doctorName };
+
+        const modal = document.getElementById('conflict-modal');
+        const detailsEl = document.getElementById('conflict-modal-details');
+        const emptyBtn = document.getElementById('conflict-modal-empty-btn');
+
+        if (!modal || !detailsEl) return;
+
+        detailsEl.innerHTML = `
+            <div class="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 space-y-1">
+                <div>طبيب الخفارة: <strong class="text-slate-800 dark:text-slate-100">${doctorName}</strong></div>
+                <div>اليوم والتاريخ: <span class="font-mono">${dateStr}</span></div>
+                <div>الخفارة المحددة هنا: <span class="text-rose-600 font-bold">${getSlotHumanLabel(tableType, slotKey)}</span></div>
+            </div>
+
+            <div class="space-y-1 pt-1">
+                <span class="font-bold text-slate-700 dark:text-slate-300 block">الخفارات المتعارضة المسجلة لنفس الطبيب في هذا اليوم:</span>
+                <ul class="space-y-1 pr-4 list-disc text-amber-700 dark:text-amber-400 font-medium">
+                    ${conflictInfo.conflicts.map(c => `<li>${c.label}</li>`).join('')}
+                </ul>
+            </div>
+
+            <p class="text-[11px] text-slate-400 pt-1">
+                يمكنك إبقاء الخفارة كما هي، أو إفراغ هذه الخانة فقط وإعادة تعيين طبيب آخر.
+            </p>
+        `;
+
+        emptyBtn.onclick = function() {
+            clearCellOnly(pendingConflictData.tableType, pendingConflictData.dayNumber, pendingConflictData.slotKey);
+            closeConflictModal();
+        };
+
+        modal.classList.remove('hidden');
+    }
+
+    function closeConflictModal() {
+        const modal = document.getElementById('conflict-modal');
+        if (modal) modal.classList.add('hidden');
+        pendingConflictData = null;
+    }
+
+    function clearCellOnly(tableType, dayNumber, slotKey) {
         const dayEntry = (state.schedules[tableType] || []).find(s => s.dayNumber === dayNumber);
         if (!dayEntry) return;
 
@@ -544,15 +651,14 @@
     function updateDutyDashboard() {
         const daysCount = getDaysInMonth(state.year, state.month);
 
-        // 1. Active doctors count
-        const activeDocs = (state.residents || []).filter(r => r.active);
+        const activeDocs = (state.residents || []).filter(r => r.active && !isResidentExpired(r, state.year, state.month));
         const totalDocsCount = (state.residents || []).length;
         const totalDocEl = document.getElementById('stat-total-doctors');
         if (totalDocEl) totalDocEl.textContent = `${activeDocs.length} / ${totalDocsCount}`;
 
-        // 2. ER Duty Metrics
+        // 1. ER Duties
         const erRequired = daysCount * 4;
-        const erAllocated = (state.residents || []).reduce((sum, r) => sum + (Number(r.er_target) || 0), 0);
+        const erAllocated = activeDocs.reduce((sum, r) => sum + (Number(r.er_target) || 0), 0);
         let erScheduled = 0;
         (state.schedules.er || []).forEach(day => {
             if (day.morning && day.morning.trim()) erScheduled++;
@@ -561,27 +667,27 @@
             if (day.lateNight && day.lateNight.trim()) erScheduled++;
         });
 
-        // 3. Consultation Clinic (Con) Metrics
+        // 2. Con Duties
         const conRequired = daysCount * 1;
-        const conAllocated = (state.residents || []).reduce((sum, r) => sum + (Number(r.con_target) || 0), 0);
+        const conAllocated = activeDocs.reduce((sum, r) => sum + (Number(r.con_target) || 0), 0);
         let conScheduled = 0;
         (state.schedules.con || []).forEach(day => {
             if (day.doctor && day.doctor.trim()) conScheduled++;
         });
 
-        // 4. Death Certificates (DC) Metrics
+        // 3. DC Duties
         const dcRequired = daysCount * 1;
-        const dcAllocated = (state.residents || []).reduce((sum, r) => sum + (Number(r.dc_target) || 0), 0);
+        const dcAllocated = activeDocs.reduce((sum, r) => sum + (Number(r.dc_target) || 0), 0);
         let dcScheduled = 0;
         (state.schedules.dc || []).forEach(day => {
             if (day.doctor && day.doctor.trim()) dcScheduled++;
         });
 
-        // 5. Rotators Strike Metrics
+        // 4. RS Duties
         let rsDaysCount = 0;
         let rsErScheduled = 0;
         let rsWardsScheduled = 0;
-        let rsAllocated = (state.residents || []).reduce((sum, r) => sum + (Number(r.rs_target) || 0), 0);
+        let rsAllocated = activeDocs.reduce((sum, r) => sum + (Number(r.rs_target) || 0), 0);
 
         if (state.rsEnabled && state.rsStartDate && state.rsEndDate) {
             const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
@@ -601,7 +707,6 @@
             });
         }
 
-        // Render dashboard HTML inside stats container
         const container = document.getElementById('duty-dashboard-grid');
         if (!container) return;
 
@@ -688,7 +793,7 @@
                 </div>
             </div>
 
-            <!-- RS Summary Card (if enabled) -->
+            <!-- RS Summary Card -->
             ${state.rsEnabled ? `
             <div class="glass-panel rounded-2xl p-3.5 border border-amber-200/80 dark:border-amber-900/60 bg-amber-500/5 transition shadow-sm">
                 <div class="flex items-center justify-between mb-1">
@@ -711,14 +816,6 @@
             </div>
             ` : ''}
         `;
-
-        // Update overall total filled in header
-        const totalFilledEl = document.getElementById('stat-total-filled');
-        if (totalFilledEl) {
-            const grandTotalFilled = erScheduled + conScheduled + dcScheduled + (state.rsEnabled ? (rsErScheduled + rsWardsScheduled) : 0);
-            const grandTotalRequired = erRequired + conRequired + dcRequired + (state.rsEnabled ? (rsDaysCount * 7) : 0);
-            totalFilledEl.textContent = `${grandTotalFilled} / ${grandTotalRequired}`;
-        }
     }
 
     // =========================================================================
@@ -728,7 +825,6 @@
     function switchTab(tabId) {
         state.activeTab = tabId;
         
-        // Update tab buttons styles
         document.querySelectorAll('.tab-btn').forEach(btn => {
             const isTarget = btn.getAttribute('data-tab') === tabId;
             if (isTarget) {
@@ -737,6 +833,12 @@
                 btn.className = 'tab-btn flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:white';
             }
         });
+
+        // Reset schedule search/filter on tab change
+        state.scheduleSearchQuery = '';
+        state.scheduleShiftFilter = 'all';
+        state.scheduleDayFilter = 'all';
+        state.scheduleStatusFilter = 'all';
 
         renderActiveTab();
     }
@@ -770,6 +872,131 @@
     }
 
     // =========================================================================
+    // SEARCH & FILTER BAR FOR SCHEDULES
+    // =========================================================================
+
+    function renderScheduleFilterBar(type, shiftOptions) {
+        return `
+            <div class="p-3 mb-4 rounded-2xl bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2 text-xs">
+                <!-- Search input -->
+                <div class="relative flex-1 min-w-[200px]">
+                    <i class="fas fa-search absolute right-3 top-2.5 text-slate-400 text-xs"></i>
+                    <input type="text" value="${state.scheduleSearchQuery}" oninput="onScheduleSearchInput('${type}', this.value)" placeholder="بحث باسم الطبيب في الجدول..." class="w-full pr-8 pl-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20">
+                </div>
+
+                <!-- Shift Filter -->
+                ${shiftOptions ? `
+                <div class="flex items-center gap-1.5">
+                    <label class="text-[11px] font-bold text-slate-500">الوجبة:</label>
+                    <select onchange="onScheduleShiftFilterChange('${type}', this.value)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs">
+                        <option value="all">كل الوجبات</option>
+                        ${shiftOptions.map(s => `<option value="${s.key}" ${state.scheduleShiftFilter === s.key ? 'selected' : ''}>${s.label}</option>`).join('')}
+                    </select>
+                </div>
+                ` : ''}
+
+                <!-- Day Filter -->
+                <div class="flex items-center gap-1.5">
+                    <label class="text-[11px] font-bold text-slate-500">الأيام:</label>
+                    <select onchange="onScheduleDayFilterChange('${type}', this.value)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs">
+                        <option value="all" ${state.scheduleDayFilter === 'all' ? 'selected' : ''}>جميع الأيام</option>
+                        <option value="weekend" ${state.scheduleDayFilter === 'weekend' ? 'selected' : ''}>عطل ونهاية الأسبوع (الجمعة/السبت)</option>
+                        <option value="weekday" ${state.scheduleDayFilter === 'weekday' ? 'selected' : ''}>أيام الدوام الاعتيادية</option>
+                    </select>
+                </div>
+
+                <!-- Status Filter -->
+                <div class="flex items-center gap-1.5">
+                    <label class="text-[11px] font-bold text-slate-500">الحالة:</label>
+                    <select onchange="onScheduleStatusFilterChange('${type}', this.value)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs">
+                        <option value="all" ${state.scheduleStatusFilter === 'all' ? 'selected' : ''}>جميع الخانات</option>
+                        <option value="conflict_only" ${state.scheduleStatusFilter === 'conflict_only' ? 'selected' : ''}>بها تعارض ⚠️ فقط</option>
+                        <option value="empty_only" ${state.scheduleStatusFilter === 'empty_only' ? 'selected' : ''}>خانات شاغرة فقط</option>
+                        <option value="filled_only" ${state.scheduleStatusFilter === 'filled_only' ? 'selected' : ''}>خانات مكتملة فقط</option>
+                    </select>
+                </div>
+
+                <!-- Reset Filters -->
+                ${(state.scheduleSearchQuery || state.scheduleShiftFilter !== 'all' || state.scheduleDayFilter !== 'all' || state.scheduleStatusFilter !== 'all') ? `
+                <button type="button" onclick="resetScheduleFilters('${type}')" class="px-2.5 py-1.5 rounded-xl text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-bold transition">
+                    <i class="fas fa-times ml-1"></i> إعادة ضبط
+                </button>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    function onScheduleSearchInput(type, val) {
+        state.scheduleSearchQuery = val.trim();
+        renderActiveTab();
+    }
+
+    function onScheduleShiftFilterChange(type, val) {
+        state.scheduleShiftFilter = val;
+        renderActiveTab();
+    }
+
+    function onScheduleDayFilterChange(type, val) {
+        state.scheduleDayFilter = val;
+        renderActiveTab();
+    }
+
+    function onScheduleStatusFilterChange(type, val) {
+        state.scheduleStatusFilter = val;
+        renderActiveTab();
+    }
+
+    function resetScheduleFilters(type) {
+        state.scheduleSearchQuery = '';
+        state.scheduleShiftFilter = 'all';
+        state.scheduleDayFilter = 'all';
+        state.scheduleStatusFilter = 'all';
+        renderActiveTab();
+    }
+
+    // Filter day row based on search & filters
+    function filterDayRow(day, type, shiftKeys) {
+        const cleanQ = normalizeArabic(state.scheduleSearchQuery);
+
+        // 1. Day of week filter
+        const isWeekend = day.dayName === 'الجمعة' || day.dayName === 'السبت';
+        if (state.scheduleDayFilter === 'weekend' && !isWeekend) return false;
+        if (state.scheduleDayFilter === 'weekday' && isWeekend) return false;
+
+        // 2. Status filter
+        if (state.scheduleStatusFilter === 'empty_only') {
+            const hasEmpty = shiftKeys.some(k => !day[k] || !day[k].trim());
+            if (!hasEmpty) return false;
+        } else if (state.scheduleStatusFilter === 'filled_only') {
+            const allFilled = shiftKeys.every(k => day[k] && day[k].trim());
+            if (!allFilled) return false;
+        } else if (state.scheduleStatusFilter === 'conflict_only') {
+            const hasConflict = shiftKeys.some(k => {
+                const doc = day[k];
+                if (!doc) return false;
+                const evalRes = evaluateCellConflict(doc, day.date, type, k);
+                return evalRes.hasConflict;
+            });
+            if (!hasConflict) return false;
+        }
+
+        // 3. Search query filter
+        if (cleanQ) {
+            let matches = false;
+            shiftKeys.forEach(k => {
+                if (state.scheduleShiftFilter === 'all' || state.scheduleShiftFilter === k) {
+                    if (day[k] && normalizeArabic(day[k]).includes(cleanQ)) {
+                        matches = true;
+                    }
+                }
+            });
+            return matches;
+        }
+
+        return true;
+    }
+
+    // =========================================================================
     // 1. ER VIEW (خفارات الطوارئ: 4 وجبات يومياً)
     // =========================================================================
 
@@ -781,6 +1008,9 @@
             { key: 'lateNight', label: 'الليلية (2ص - 8ص)', icon: 'fa-star-and-crescent', color: 'text-purple-500' }
         ];
 
+        const shiftKeys = shifts.map(s => s.key);
+        const filteredDays = (state.schedules.er || []).filter(d => filterDayRow(d, 'er', shiftKeys));
+
         let html = `
             <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <div>
@@ -791,16 +1021,19 @@
                     <p class="text-xs text-slate-500 mt-0.5">4 وجبات خفارة يومياً · المقيمين الأقدمين</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="button" onclick="autoGenerateSchedule()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-sm transition flex items-center gap-1.5">
+                    <button type="button" onclick="triggerScheduleAutoGenerate('er')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-sm transition flex items-center gap-1.5">
                         <i class="fas fa-wand-magic-sparkles"></i>
-                        <span>توزيع آلي منصف</span>
+                        <span>توليد خفارات الطوارئ آلياً</span>
                     </button>
                     <button type="button" onclick="prepareOfficialPrint('er')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
                         <i class="fas fa-print"></i>
-                        <span>طباعة رسمية</span>
+                        <span>طباعة رسمية (A4)</span>
                     </button>
                 </div>
             </div>
+
+            <!-- Filter Bar -->
+            ${renderScheduleFilterBar('er', shifts)}
 
             <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                 <table class="w-full text-right border-collapse text-xs">
@@ -809,7 +1042,7 @@
                             <th class="py-3 px-3 w-12 text-center font-bold">#</th>
                             <th class="py-3 px-3 w-28 font-bold">اليوم والتاريخ</th>
                             ${shifts.map(s => `
-                                <th class="py-3 px-3 font-bold">
+                                <th class="py-3 px-3 font-bold ${state.scheduleShiftFilter !== 'all' && state.scheduleShiftFilter !== s.key ? 'opacity-40' : ''}">
                                     <div class="flex items-center gap-1.5">
                                         <i class="fas ${s.icon} ${s.color}"></i>
                                         <span>${s.label}</span>
@@ -821,19 +1054,29 @@
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
         `;
 
-        (state.schedules.er || []).forEach(day => {
-            const isWeekend = day.dayName === 'الجمعة' || day.dayName === 'السبت';
+        if (filteredDays.length === 0) {
             html += `
-                <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition ${isWeekend ? 'bg-amber-50/30 dark:bg-amber-950/10' : ''}">
-                    <td class="py-2.5 px-3 text-center font-mono font-bold text-slate-500">${day.dayNumber}</td>
-                    <td class="py-2.5 px-3 whitespace-nowrap">
-                        <div class="font-bold text-slate-800 dark:text-slate-100">${day.dayName}</div>
-                        <div class="text-[11px] font-mono text-slate-400">${day.date}</div>
+                <tr>
+                    <td colspan="6" class="py-8 text-center text-slate-400 text-xs">
+                        لا توجد أيام تطابق شروط البحث والفلترة
                     </td>
-                    ${shifts.map(s => renderShiftCellHTML('er', day.dayNumber, day.date, s.key, day[s.key])).join('')}
                 </tr>
             `;
-        });
+        } else {
+            filteredDays.forEach(day => {
+                const isWeekend = day.dayName === 'الجمعة' || day.dayName === 'السبت';
+                html += `
+                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition ${isWeekend ? 'bg-amber-50/30 dark:bg-amber-950/10' : ''}">
+                        <td class="py-2.5 px-3 text-center font-mono font-bold text-slate-500">${day.dayNumber}</td>
+                        <td class="py-2.5 px-3 whitespace-nowrap">
+                            <div class="font-bold text-slate-800 dark:text-slate-100">${day.dayName}</div>
+                            <div class="text-[11px] font-mono text-slate-400">${day.date}</div>
+                        </td>
+                        ${shifts.map(s => renderShiftCellHTML('er', day.dayNumber, day.date, s.key, day[s.key])).join('')}
+                    </tr>
+                `;
+            });
+        }
 
         html += `
                     </tbody>
@@ -845,10 +1088,13 @@
     }
 
     // =========================================================================
-    // 2. CONSULTATION CLINIC VIEW (الاستشارية الخافرة: طبيب واحد يومياً)
+    // 2. CONSULTATION CLINIC VIEW (الاستشارية الخافرة)
     // =========================================================================
 
     function renderConView(container) {
+        const shifts = [{ key: 'doctor', label: 'طبيب الاستشارية الخافرة' }];
+        const filteredDays = (state.schedules.con || []).filter(d => filterDayRow(d, 'con', ['doctor']));
+
         let html = `
             <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <div>
@@ -859,12 +1105,19 @@
                     <p class="text-xs text-slate-500 mt-0.5">طبيب مقيم أقدم واحد يومياً</p>
                 </div>
                 <div class="flex items-center gap-2">
+                    <button type="button" onclick="triggerScheduleAutoGenerate('con')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 shadow-sm transition flex items-center gap-1.5">
+                        <i class="fas fa-wand-magic-sparkles"></i>
+                        <span>توليد خفارات الاستشارية آلياً</span>
+                    </button>
                     <button type="button" onclick="prepareOfficialPrint('con')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
                         <i class="fas fa-print"></i>
-                        <span>طباعة رسمية</span>
+                        <span>طباعة رسمية (A4)</span>
                     </button>
                 </div>
             </div>
+
+            <!-- Filter Bar -->
+            ${renderScheduleFilterBar('con', null)}
 
             <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm max-w-3xl">
                 <table class="w-full text-right border-collapse text-xs">
@@ -878,7 +1131,7 @@
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
         `;
 
-        (state.schedules.con || []).forEach(day => {
+        filteredDays.forEach(day => {
             const isWeekend = day.dayName === 'الجمعة' || day.dayName === 'السبت';
             html += `
                 <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition ${isWeekend ? 'bg-amber-50/30 dark:bg-amber-950/10' : ''}">
@@ -902,10 +1155,12 @@
     }
 
     // =========================================================================
-    // 3. DEATH CERTIFICATES VIEW (شهادات الوفاة: طبيب واحد يومياً + أولوية لخافري المستشفى)
+    // 3. DEATH CERTIFICATES VIEW (شهادات الوفاة)
     // =========================================================================
 
     function renderDCView(container) {
+        const filteredDays = (state.schedules.dc || []).filter(d => filterDayRow(d, 'dc', ['doctor']));
+
         let html = `
             <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <div>
@@ -914,16 +1169,23 @@
                         <span>جدول خفارات شهادات الوفاة (DC)</span>
                     </h2>
                     <p class="text-xs text-slate-500 mt-0.5">
-                        طبيب مقيم أقدم واحد يومياً · <span class="text-emerald-600 dark:text-emerald-400 font-bold">يسمح بالتداخل مع خفارة المستشفى (موصى به ومعلم بالأخضر)</span>
+                        طبيب مقيم أقدم واحد يومياً · <span class="text-emerald-600 dark:text-emerald-400 font-bold">خفارة المستشفى متوافقة وخضراء · الخفارات الأخرى بالـ ER والاستشارية تعتبر تعارضاً</span>
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
+                    <button type="button" onclick="triggerScheduleAutoGenerate('dc')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition flex items-center gap-1.5">
+                        <i class="fas fa-wand-magic-sparkles"></i>
+                        <span>توليد شهادات الوفاة آلياً</span>
+                    </button>
                     <button type="button" onclick="prepareOfficialPrint('dc')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
                         <i class="fas fa-print"></i>
-                        <span>طباعة رسمية</span>
+                        <span>طباعة رسمية (A4)</span>
                     </button>
                 </div>
             </div>
+
+            <!-- Filter Bar -->
+            ${renderScheduleFilterBar('dc', null)}
 
             <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm max-w-4xl">
                 <table class="w-full text-right border-collapse text-xs">
@@ -938,7 +1200,7 @@
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
         `;
 
-        (state.schedules.dc || []).forEach(day => {
+        filteredDays.forEach(day => {
             const isWeekend = day.dayName === 'الجمعة' || day.dayName === 'السبت';
             const hospDuties = day.doctor ? getHospitalDutiesForDoctor(day.doctor, day.date) : [];
             const hasHospDuty = hospDuties.length > 0;
@@ -955,7 +1217,7 @@
                         ${hasHospDuty ? `
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
                                 <i class="fas fa-circle-check text-emerald-500"></i>
-                                <span>خافر في ${hospDuties.map(h => h.specName).join(' + ')}</span>
+                                <span>خافر في المستشفى: ${hospDuties.map(h => h.specName).join(' + ')}</span>
                             </span>
                         ` : `
                             <span class="text-[11px] text-slate-400">لا توجد خفارة اختصاص متزامنة</span>
@@ -975,7 +1237,7 @@
     }
 
     // =========================================================================
-    // 4. ROTATORS STRIKE - ER VIEW (إضراب المقيمين الدوريين - الطوارئ)
+    // 4. ROTATORS STRIKE - ER VIEW
     // =========================================================================
 
     function renderRSERView(container) {
@@ -986,6 +1248,9 @@
             { key: 'er_lateNight', label: 'الليلية (2ص - 8ص)', icon: 'fa-star-and-crescent', color: 'text-purple-500' }
         ];
 
+        const shiftKeys = shifts.map(s => s.key);
+        const filteredDays = (state.schedules.rs || []).filter(d => filterDayRow(d, 'rs', shiftKeys));
+
         let html = `
             <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <div>
@@ -994,16 +1259,23 @@
                         <span>إضراب المقيمين الدوريين — طوارئ الإسناد (RS - ER)</span>
                     </h2>
                     <p class="text-xs text-slate-500 mt-0.5">
-                        فترة الإضراب المحددة: من <strong>${state.rsStartDate || '---'}</strong> إلى <strong>${state.rsEndDate || '---'}</strong>
+                        فترة الإضراب: من <strong>${state.rsStartDate || '---'}</strong> إلى <strong>${state.rsEndDate || '---'}</strong>
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
+                    <button type="button" onclick="triggerScheduleAutoGenerate('rs_er')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 shadow-sm transition flex items-center gap-1.5">
+                        <i class="fas fa-wand-magic-sparkles"></i>
+                        <span>توليد طوارئ الإضراب آلياً</span>
+                    </button>
                     <button type="button" onclick="prepareOfficialPrint('rs_er')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
                         <i class="fas fa-print"></i>
-                        <span>طباعة رسمية لإضراب الطوارئ</span>
+                        <span>طباعة رسمية (A4)</span>
                     </button>
                 </div>
             </div>
+
+            <!-- Filter Bar -->
+            ${renderScheduleFilterBar('rs', shifts)}
 
             <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                 <table class="w-full text-right border-collapse text-xs">
@@ -1012,7 +1284,7 @@
                             <th class="py-3 px-3 w-12 text-center font-bold">#</th>
                             <th class="py-3 px-3 w-28 font-bold">اليوم والتاريخ</th>
                             ${shifts.map(s => `
-                                <th class="py-3 px-3 font-bold">
+                                <th class="py-3 px-3 font-bold ${state.scheduleShiftFilter !== 'all' && state.scheduleShiftFilter !== s.key ? 'opacity-40' : ''}">
                                     <div class="flex items-center gap-1.5">
                                         <i class="fas ${s.icon} ${s.color}"></i>
                                         <span>${s.label}</span>
@@ -1027,12 +1299,12 @@
         const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
         const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || getDaysInMonth(state.year, state.month);
 
-        (state.schedules.rs || []).forEach(day => {
+        filteredDays.forEach(day => {
             const inRsPeriod = day.dayNumber >= startDay && day.dayNumber <= endDay;
             const hasNames = shifts.some(s => day[s.key] && day[s.key].trim());
             const rowClass = inRsPeriod 
                 ? (hasNames ? 'bg-amber-50/50 dark:bg-amber-950/20 font-medium' : 'bg-slate-50/30 dark:bg-slate-800/20') 
-                : 'opacity-50 bg-slate-50/10';
+                : 'opacity-40 bg-slate-50/10';
 
             html += `
                 <tr class="hover:bg-amber-50/80 dark:hover:bg-amber-950/40 transition ${rowClass}">
@@ -1059,7 +1331,7 @@
     }
 
     // =========================================================================
-    // 5. ROTATORS STRIKE - WARDS VIEW (إضراب المقيمين الدوريين - الردهات)
+    // 5. ROTATORS STRIKE - WARDS VIEW
     // =========================================================================
 
     function renderRSWardsView(container) {
@@ -1069,6 +1341,9 @@
             { key: 'ward_floor5', label: 'الجناح العام / طابق 5', icon: 'fa-hospital-user', color: 'text-sky-500' }
         ];
 
+        const wardKeys = wards.map(w => w.key);
+        const filteredDays = (state.schedules.rs || []).filter(d => filterDayRow(d, 'rs', wardKeys));
+
         let html = `
             <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <div>
@@ -1077,16 +1352,23 @@
                         <span>إضراب المقيمين الدوريين — ردهات الإسناد (RS - Wards)</span>
                     </h2>
                     <p class="text-xs text-slate-500 mt-0.5">
-                        تغطية الردهات أثناء إضراب الدوريين · الجناح الخاص وطابق 4 وطابق 5
+                        الجناح الخاص وطابق 4 وطابق 5
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
+                    <button type="button" onclick="triggerScheduleAutoGenerate('rs_wards')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 shadow-sm transition flex items-center gap-1.5">
+                        <i class="fas fa-wand-magic-sparkles"></i>
+                        <span>توليد ردهات الإضراب آلياً</span>
+                    </button>
                     <button type="button" onclick="prepareOfficialPrint('rs_wards')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
                         <i class="fas fa-print"></i>
-                        <span>طباعة رسمية لإضراب الردهات</span>
+                        <span>طباعة رسمية (A4)</span>
                     </button>
                 </div>
             </div>
+
+            <!-- Filter Bar -->
+            ${renderScheduleFilterBar('rs', wards)}
 
             <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                 <table class="w-full text-right border-collapse text-xs">
@@ -1095,7 +1377,7 @@
                             <th class="py-3 px-3 w-12 text-center font-bold">#</th>
                             <th class="py-3 px-3 w-28 font-bold">اليوم والتاريخ</th>
                             ${wards.map(w => `
-                                <th class="py-3 px-3 font-bold">
+                                <th class="py-3 px-3 font-bold ${state.scheduleShiftFilter !== 'all' && state.scheduleShiftFilter !== w.key ? 'opacity-40' : ''}">
                                     <div class="flex items-center gap-1.5">
                                         <i class="fas ${w.icon} ${w.color}"></i>
                                         <span>${w.label}</span>
@@ -1110,12 +1392,12 @@
         const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
         const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || getDaysInMonth(state.year, state.month);
 
-        (state.schedules.rs || []).forEach(day => {
+        filteredDays.forEach(day => {
             const inRsPeriod = day.dayNumber >= startDay && day.dayNumber <= endDay;
             const hasNames = wards.some(w => day[w.key] && day[w.key].trim());
             const rowClass = inRsPeriod 
                 ? (hasNames ? 'bg-amber-50/50 dark:bg-amber-950/20 font-medium' : 'bg-slate-50/30 dark:bg-slate-800/20') 
-                : 'opacity-50 bg-slate-50/10';
+                : 'opacity-40 bg-slate-50/10';
 
             html += `
                 <tr class="hover:bg-amber-50/80 dark:hover:bg-amber-950/40 transition ${rowClass}">
@@ -1142,7 +1424,7 @@
     }
 
     // =========================================================================
-    // CELL RENDERER WITH CLEAN CONFLICT BADGE & CLICK-TO-EMPTY
+    // CELL RENDERER WITH EXPLANATION ON CLICK & CLEAR BUTTON
     // =========================================================================
 
     function renderShiftCellHTML(tableType, dayNumber, dateStr, slotKey, assignedDoctor) {
@@ -1159,24 +1441,34 @@
         }
 
         const conflictInfo = evaluateCellConflict(assignedDoctor, dateStr, tableType, slotKey);
+        const cellSlotId = `${tableType}_${dayNumber}_${slotKey}`;
+        const hasPrefOverride = state.prefOverrides && state.prefOverrides[cellSlotId];
 
         let badgeHTML = '';
-        if (tableType === 'dc' && conflictInfo.isDcHospitalDuty) {
-            // Green Flag for Death Certificate hospital duty overlap
+        if (tableType === 'dc' && conflictInfo.isDcHospitalDuty && !conflictInfo.hasConflict) {
             badgeHTML = `
-                <span class="inline-flex items-center text-emerald-600 dark:text-emerald-400 ml-1.5" title="طبيب خافر في المستشفى اليوم (${conflictInfo.hospDutyName}) - موصى به ومتوافق لشهادات الوفاة">
+                <span class="inline-flex items-center text-emerald-600 dark:text-emerald-400 ml-1.5" title="خافر في المستشفى بنفس اليوم (${conflictInfo.hospDutyName}) - موصى به لشهادات الوفاة">
                     <i class="fas fa-circle-check text-xs"></i>
                 </span>
             `;
         } else if (conflictInfo.hasConflict) {
-            // Amber / Red conflict indicator with hover explanation and click-to-empty
-            const conflictLabels = conflictInfo.conflicts.map(c => c.label).join('، ');
+            // Click opens conflict explanation modal
             badgeHTML = `
                 <button type="button" 
-                    onclick="clearCellOnly('${tableType}', ${dayNumber}, '${slotKey}', event)"
-                    title="⚠️ تعارض خفارة: مسجل في نفس اليوم في (${conflictLabels}). انقر هنا لإفراغ هذه الخلية في هذا الجدول فقط."
-                    class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 hover:bg-rose-100 text-amber-700 hover:text-rose-700 text-[10px] font-black transition ml-1.5 shadow-xs">
+                    onclick="openConflictExplanation('${tableType}', ${dayNumber}, '${dateStr}', '${slotKey}', '${escapeForInline(assignedDoctor)}', event)"
+                    title="⚠️ يوجد تعارض خفارة! انقر لعرض التفاصيل وخيار الإفراغ"
+                    class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 hover:bg-rose-100 text-amber-700 hover:text-rose-700 text-[10px] font-black transition ml-1.5 shadow-xs animate-pulse">
                     ⚠️
+                </button>
+            `;
+        }
+
+        let overrideBadge = '';
+        if (hasPrefOverride) {
+            overrideBadge = `
+                <button type="button" onclick="alert('⚡ تم تعيين هذا الطبيب رغم عدم تطابق رغبته، وذلك لتعذر مطابقة رغباته مع الشواغر المتاحة في الجدول.')" 
+                    title="تم التعيين رغم الرغبة (انقر للتفاصيل)" class="text-amber-500 hover:text-amber-600 text-[10px] ml-1">
+                    ⚡
                 </button>
             `;
         }
@@ -1187,12 +1479,13 @@
                     <div class="flex items-center truncate cursor-pointer flex-1" onclick="openDoctorPicker('${tableType}', ${dayNumber}, '${slotKey}', '${slotKey}')">
                         <span class="font-bold text-slate-800 dark:text-slate-100 truncate">${assignedDoctor}</span>
                         ${badgeHTML}
+                        ${overrideBadge}
                     </div>
                     <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition no-print">
                         <button type="button" onclick="openDoctorPicker('${tableType}', ${dayNumber}, '${slotKey}', '${slotKey}')" class="w-6 h-6 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center" title="تعديل الخافر">
                             <i class="fas fa-pencil text-[10px]"></i>
                         </button>
-                        <button type="button" onclick="clearCellOnly('${tableType}', ${dayNumber}, '${slotKey}', event)" class="w-6 h-6 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 flex items-center justify-center" title="إفراغ الخلية">
+                        <button type="button" onclick="clearCellOnly('${tableType}', ${dayNumber}, '${slotKey}')" class="w-6 h-6 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 flex items-center justify-center" title="إفراغ الخلية">
                             <i class="fas fa-times text-[10px]"></i>
                         </button>
                     </div>
@@ -1202,22 +1495,31 @@
     }
 
     // =========================================================================
-    // 6. RESIDENT DATABASE TAB (DB) WITH INLINE EDITING & HOSPITAL EXPORT
+    // 6. RESIDENT DATABASE TAB (DB) WITH DIRECT IN-TABLE EDITING & ISOLATED INACTIVE SECTION
     // =========================================================================
 
     function renderDBView(container) {
-        let residents = state.residents || [];
+        const residents = state.residents || [];
+        const scheduledCounts = getScheduledCountsMap();
 
-        // Filter inactive if toggled off
-        if (!state.showInactiveInDB) {
-            residents = residents.filter(r => r.active);
-        }
+        // Separate Active and Inactive Residents
+        const activeList = residents.filter(r => r.active);
+        const inactiveList = residents.filter(r => !r.active);
 
-        // Search query filter
+        // Filter active list by query
         const query = (document.getElementById('db-search-input')?.value || '').trim();
-        if (query) {
-            const cleanQ = normalizeArabic(query);
-            residents = residents.filter(r => 
+        const cleanQ = normalizeArabic(query);
+
+        let filteredActive = activeList;
+        let filteredInactive = inactiveList;
+
+        if (cleanQ) {
+            filteredActive = filteredActive.filter(r => 
+                normalizeArabic(r.name).includes(cleanQ) || 
+                (r.specialty && r.specialty.toLowerCase().includes(query.toLowerCase())) ||
+                (r.notes && r.notes.toLowerCase().includes(query.toLowerCase()))
+            );
+            filteredInactive = filteredInactive.filter(r => 
                 normalizeArabic(r.name).includes(cleanQ) || 
                 (r.specialty && r.specialty.toLowerCase().includes(query.toLowerCase())) ||
                 (r.notes && r.notes.toLowerCase().includes(query.toLowerCase()))
@@ -1225,7 +1527,7 @@
         }
 
         let html = `
-            <div class="space-y-4">
+            <div class="space-y-5">
                 <!-- DB Header Actions & Controls -->
                 <div class="flex items-center justify-between flex-wrap gap-3 pb-2 border-b border-slate-200 dark:border-slate-800">
                     <div>
@@ -1234,14 +1536,21 @@
                             <span>قاعدة المقيمين الأقدمين والأنصبة (DB)</span>
                         </h2>
                         <p class="text-xs text-slate-500 mt-0.5">
-                            انقر مباشرة على أي رقم أو حقل للتعديل الفوري · يتم حفظ التعديلات تلقائياً
+                            التعديل مباشر وفوري في الحقول أدناه دون نوافذ · يتم حفظ التعديلات بمجرد مغادرة الحقل
                         </p>
                     </div>
 
                     <div class="flex items-center gap-2 flex-wrap">
+                        <!-- Advance Board Stage Button -->
+                        <button type="button" onclick="advanceBoardResidentsStage()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 hover:bg-purple-100 transition flex items-center gap-1.5 shadow-xs">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>ترقية مرحلة أطباء البورد (+1)</span>
+                        </button>
+
+                        <!-- Toggle Show/Hide Inactive Button -->
                         <button type="button" onclick="toggleShowInactiveInDB()" class="px-3 py-1.5 rounded-xl text-xs font-bold ${state.showInactiveInDB ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'} hover:bg-slate-200 transition flex items-center gap-1.5">
                             <i class="fas ${state.showInactiveInDB ? 'fa-eye' : 'fa-eye-slash'}"></i>
-                            <span>${state.showInactiveInDB ? 'إخفاء غير النشطين' : 'إظهار غير النشطين (${(state.residents || []).filter(r => !r.active).length})'}</span>
+                            <span>${state.showInactiveInDB ? 'إخفاء غير النشطين' : `إظهار غير النشطين (${inactiveList.length})`}</span>
                         </button>
 
                         <button type="button" onclick="openHospitalSyncModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-sky-700 bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition flex items-center gap-1.5">
@@ -1261,153 +1570,232 @@
                     </div>
                 </div>
 
-                <!-- Search Bar -->
+                <!-- Search Bar & Summary -->
                 <div class="flex items-center gap-3">
                     <div class="relative flex-1">
                         <i class="fas fa-search absolute right-3.5 top-3 text-slate-400 text-xs"></i>
                         <input type="text" id="db-search-input" value="${query}" oninput="renderDBView(document.getElementById('schedule-view-container'))" placeholder="بحث بالاسم أو الاختصاص أو الملاحظات..." class="w-full pr-9 pl-4 py-2 rounded-xl text-xs bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/20">
                     </div>
                     <div class="text-xs text-slate-500 font-bold whitespace-nowrap">
-                        عرض: <span class="text-rose-600 font-black">${residents.length}</span> طبيب
+                        الأطباء النشطون: <span class="text-rose-600 font-black">${activeList.length}</span> · غير النشطين: <span class="text-slate-400 font-black">${inactiveList.length}</span>
                     </div>
                 </div>
 
-                <!-- Residents Table -->
-                <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <table class="w-full text-right border-collapse text-xs">
-                        <thead>
-                            <tr class="bg-slate-100/80 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
-                                <th class="py-3 px-3 w-10 text-center font-bold">#</th>
-                                <th class="py-3 px-3 font-bold">اسم المقيم الأقدم</th>
-                                <th class="py-3 px-3 w-16 text-center font-bold">الجنس</th>
-                                <th class="py-3 px-3 font-bold">الاختصاص</th>
-                                <th class="py-3 px-3 w-20 text-center font-bold">البورد</th>
-                                <th class="py-3 px-3 w-14 text-center font-bold">المرحلة</th>
-                                <th class="py-3 px-3 w-20 text-center font-bold text-rose-600">نصاب ER</th>
-                                <th class="py-3 px-3 w-20 text-center font-bold text-sky-600">نصاب Con</th>
-                                <th class="py-3 px-3 w-20 text-center font-bold text-emerald-600">نصاب DC</th>
-                                <th class="py-3 px-3 w-20 text-center font-bold text-amber-600">نصاب RS</th>
-                                <th class="py-3 px-3 font-bold">ملاحظات</th>
-                                <th class="py-3 px-3 w-16 text-center font-bold">الحالة</th>
-                                <th class="py-3 px-3 w-24 text-center font-bold">إجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
-        `;
+                <!-- 1. ACTIVE RESIDENTS SECTION -->
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                        <h3 class="text-sm font-black text-slate-800 dark:text-slate-100">الأطباء النشطون المشمولون بالخفارات (${filteredActive.length})</h3>
+                    </div>
 
-        residents.forEach((r, idx) => {
-            const boardColor = r.board === 'Arabic' ? 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300' :
-                               r.board === 'Iraqi' ? 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300' :
-                               'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
-
-            const boardLabel = r.board === 'Arabic' ? 'عربي' : r.board === 'Iraqi' ? 'عراقي' : 'بدون';
-            const sexLabel = r.sex === 'F' ? 'أنثى' : 'ذكر';
-            const sexColor = r.sex === 'F' ? 'text-pink-500' : 'text-blue-500';
-
-            html += `
-                <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition ${!r.active ? 'opacity-40 bg-slate-100/30' : ''}">
-                    <td class="py-2 px-3 text-center font-mono text-slate-400">${idx + 1}</td>
-                    
-                    <!-- Name (Click to edit) -->
-                    <td class="py-2 px-3 font-bold text-slate-800 dark:text-slate-100">
-                        <span class="hover:underline cursor-pointer" onclick="inlineEditResidentField('${r.id}', 'name', '${escapeForInline(r.name)}')">
-                            ${r.name}
-                        </span>
-                    </td>
-
-                    <!-- Sex (Click to toggle) -->
-                    <td class="py-2 px-3 text-center">
-                        <button type="button" onclick="cycleResidentSex('${r.id}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold ${sexColor} bg-slate-100 dark:bg-slate-800 hover:scale-105 transition" title="انقر للتبديل بين ذكر وأنثى">
-                            ${sexLabel}
-                        </button>
-                    </td>
-
-                    <!-- Specialty (Click to edit) -->
-                    <td class="py-2 px-3 text-slate-600 dark:text-slate-300">
-                        <span class="hover:underline cursor-pointer" onclick="inlineEditResidentField('${r.id}', 'specialty', '${escapeForInline(r.specialty)}')">
-                            ${r.specialty || '-'}
-                        </span>
-                    </td>
-
-                    <!-- Board (Click to cycle) -->
-                    <td class="py-2 px-3 text-center">
-                        <button type="button" onclick="cycleResidentBoard('${r.id}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold ${boardColor} hover:scale-105 transition" title="انقر للتبديل: عربي / عراقي / بدون">
-                            ${boardLabel}
-                        </button>
-                    </td>
-
-                    <!-- Stage -->
-                    <td class="py-2 px-3 text-center font-mono">
-                        <span class="hover:underline cursor-pointer" onclick="inlineEditResidentField('${r.id}', 'stage', '${escapeForInline(r.stage)}')">
-                            ${r.stage || '-'}
-                        </span>
-                    </td>
-
-                    <!-- ER Target (Clickable number) -->
-                    <td class="py-2 px-3 text-center">
-                        <span onclick="inlineEditResidentNumber('${r.id}', 'er_target', ${r.er_target})" class="inline-block px-2.5 py-1 rounded-xl font-mono font-black text-rose-600 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 cursor-pointer transition shadow-xs" title="انقر لتعديل نصاب الطوارئ">
-                            ${r.er_target}
-                        </span>
-                    </td>
-
-                    <!-- Con Target (Clickable number) -->
-                    <td class="py-2 px-3 text-center">
-                        <span onclick="inlineEditResidentNumber('${r.id}', 'con_target', ${r.con_target})" class="inline-block px-2.5 py-1 rounded-xl font-mono font-black text-sky-600 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/60 cursor-pointer transition shadow-xs" title="انقر لتعديل نصاب الاستشارية">
-                            ${r.con_target}
-                        </span>
-                    </td>
-
-                    <!-- DC Target (Clickable number) -->
-                    <td class="py-2 px-3 text-center">
-                        <span onclick="inlineEditResidentNumber('${r.id}', 'dc_target', ${r.dc_target})" class="inline-block px-2.5 py-1 rounded-xl font-mono font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 cursor-pointer transition shadow-xs" title="انقر لتعديل نصاب شهادات الوفاة">
-                            ${r.dc_target}
-                        </span>
-                    </td>
-
-                    <!-- RS Target (Clickable number) -->
-                    <td class="py-2 px-3 text-center">
-                        <span onclick="inlineEditResidentNumber('${r.id}', 'rs_target', ${r.rs_target})" class="inline-block px-2.5 py-1 rounded-xl font-mono font-black text-amber-600 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 cursor-pointer transition shadow-xs" title="انقر لتعديل نصاب الإضراب">
-                            ${r.rs_target}
-                        </span>
-                    </td>
-
-                    <!-- Notes -->
-                    <td class="py-2 px-3 text-[11px] text-slate-500 max-w-[140px] truncate">
-                        <span class="hover:underline cursor-pointer" onclick="inlineEditResidentField('${r.id}', 'notes', '${escapeForInline(r.notes)}')">
-                            ${r.notes || '-'}
-                        </span>
-                    </td>
-
-                    <!-- Active Toggle -->
-                    <td class="py-2 px-3 text-center">
-                        <button type="button" onclick="toggleResidentActive('${r.id}')" class="w-7 h-7 rounded-xl flex items-center justify-center mx-auto ${r.active ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/40' : 'text-slate-400 bg-slate-100 dark:bg-slate-800'}" title="${r.active ? 'نشط في الجداول' : 'متوقف / غير مشمول'}">
-                            <i class="fas ${r.active ? 'fa-check' : 'fa-ban'} text-xs"></i>
-                        </button>
-                    </td>
-
-                    <!-- Actions: Export to Hosp & Delete -->
-                    <td class="py-2 px-3 text-center">
-                        <div class="flex items-center justify-center gap-1.5">
-                            <button type="button" onclick="openExportResidentModal('${r.id}')" class="w-7 h-7 rounded-xl text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/40 flex items-center justify-center transition" title="تصدير هذا الطبيب إلى المستشفى المحددة">
-                                <i class="fas fa-file-export text-xs"></i>
-                            </button>
-                            <button type="button" onclick="deleteResident('${r.id}')" class="w-7 h-7 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center justify-center transition" title="حذف من القاعدة">
-                                <i class="fas fa-trash-can text-xs"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        });
-
-        html += `
-                        </tbody>
-                    </table>
+                    <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <table class="w-full text-right border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-100/80 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
+                                    <th class="py-3 px-2 w-10 text-center font-bold">#</th>
+                                    <th class="py-3 px-3 font-bold w-48">اسم المقيم الأقدم</th>
+                                    <th class="py-3 px-2 w-16 text-center font-bold">الجنس</th>
+                                    <th class="py-3 px-3 font-bold w-36">الاختصاص</th>
+                                    <th class="py-3 px-2 w-24 text-center font-bold">البورد</th>
+                                    <th class="py-3 px-2 w-14 text-center font-bold">المرحلة</th>
+                                    <th class="py-3 px-2 w-16 text-center font-bold text-rose-600">نصاب ER</th>
+                                    <th class="py-3 px-2 w-16 text-center font-bold text-sky-600">نصاب Con</th>
+                                    <th class="py-3 px-2 w-16 text-center font-bold text-emerald-600">نصاب DC</th>
+                                    <th class="py-3 px-2 w-16 text-center font-bold text-amber-600">نصاب RS</th>
+                                    <th class="py-3 px-2 w-32 font-bold">حالة النصاب</th>
+                                    <th class="py-3 px-2 w-28 font-bold">شهر الانتهاء</th>
+                                    <th class="py-3 px-2 w-20 text-center font-bold">الرغبات</th>
+                                    <th class="py-3 px-2 w-14 text-center font-bold">إلغاء تنشيط</th>
+                                    <th class="py-3 px-2 w-20 text-center font-bold">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
+                                ${filteredActive.map((r, idx) => renderResidentRowHTML(r, idx + 1, scheduledCounts, false)).join('')}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+
+                <!-- 2. INACTIVE RESIDENTS ISOLATED SECTION (Shown when toggled) -->
+                ${state.showInactiveInDB ? `
+                <div class="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+                        <h3 class="text-sm font-black text-slate-500 dark:text-slate-400">الأطباء غير النشطين / المتوقفون (${filteredInactive.length})</h3>
+                        <span class="text-[11px] text-slate-400">(تم تصفير أنصبة كافة الأطباء غير النشطين تلقائياً لمنع شمولهم بالخفارات)</span>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm opacity-70">
+                        <table class="w-full text-right border-collapse text-xs bg-slate-50/50 dark:bg-slate-900/20">
+                            <thead>
+                                <tr class="bg-slate-200/60 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400">
+                                    <th class="py-2.5 px-2 w-10 text-center font-bold">#</th>
+                                    <th class="py-2.5 px-3 font-bold w-48">اسم المقيم الأقدم</th>
+                                    <th class="py-2.5 px-2 w-16 text-center font-bold">الجنس</th>
+                                    <th class="py-2.5 px-3 font-bold w-36">الاختصاص</th>
+                                    <th class="py-2.5 px-2 w-24 text-center font-bold">البورد</th>
+                                    <th class="py-2.5 px-2 w-14 text-center font-bold">المرحلة</th>
+                                    <th class="py-2.5 px-2 w-16 text-center font-bold">نصاب ER</th>
+                                    <th class="py-2.5 px-2 w-16 text-center font-bold">نصاب Con</th>
+                                    <th class="py-2.5 px-2 w-16 text-center font-bold">نصاب DC</th>
+                                    <th class="py-2.5 px-2 w-16 text-center font-bold">نصاب RS</th>
+                                    <th class="py-2.5 px-2 w-32 font-bold">الحالة</th>
+                                    <th class="py-2.5 px-2 w-28 font-bold">شهر الانتهاء</th>
+                                    <th class="py-2.5 px-2 w-20 text-center font-bold">تنشيط</th>
+                                    <th class="py-2.5 px-2 w-20 text-center font-bold">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60">
+                                ${filteredInactive.map((r, idx) => renderResidentRowHTML(r, idx + 1, scheduledCounts, true)).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                ` : ''}
+
             </div>
         `;
 
         container.innerHTML = html;
+    }
+
+    // Render individual resident row with direct editable inputs & coloring system
+    function renderResidentRowHTML(r, rowNum, scheduledCounts, isInactiveSection) {
+        const cleanName = normalizeArabic(r.name);
+        const stats = scheduledCounts[cleanName] || { normalScheduled: 0, extraScheduled: 0, erFilled: 0 };
+        const normalTarget = (Number(r.er_target) || 0) + (Number(r.con_target) || 0) + (Number(r.dc_target) || 0);
+
+        // Color System:
+        // 1. Fulfilled (Green)
+        // 2. Unfulfilled (Red)
+        // 3. Extra Duties (Orange badge)
+        const isFulfilled = (stats.normalScheduled >= normalTarget) && normalTarget > 0;
+        const isExpired = isResidentExpired(r, state.year, state.month);
+
+        let rowBgClass = '';
+        let statusBadge = '';
+
+        if (isInactiveSection) {
+            rowBgClass = 'bg-slate-100/40 dark:bg-slate-900/40 text-slate-500';
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400">متوقف</span>`;
+        } else if (isExpired) {
+            rowBgClass = 'bg-amber-50/20 text-slate-500';
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">منتهي الصلاحية</span>`;
+        } else if (isFulfilled) {
+            rowBgClass = 'bg-emerald-50/40 dark:bg-emerald-950/15 border-l-4 border-l-emerald-500';
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">مكتمل (${stats.normalScheduled}/${normalTarget})</span>`;
+        } else {
+            rowBgClass = 'bg-rose-50/30 dark:bg-rose-950/10 border-l-4 border-l-rose-400';
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">غير مكتمل (${stats.normalScheduled}/${normalTarget})</span>`;
+        }
+
+        const extraBadge = stats.extraScheduled > 0 ? `
+            <span class="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-500 text-white shadow-xs">
+                ⭐ إضافي/إضراب: ${stats.extraScheduled}
+            </span>
+        ` : '';
+
+        return `
+            <tr class="hover:bg-slate-100/60 dark:hover:bg-slate-800/40 transition ${rowBgClass}">
+                <td class="py-1 px-2 text-center font-mono text-slate-400 text-xs">${rowNum}</td>
+                
+                <!-- Name (Direct input) -->
+                <td class="py-1 px-2">
+                    <input type="text" value="${escapeForInline(r.name)}" onblur="onResidentFieldChange('${r.id}', 'name', this.value)" class="db-cell-input font-bold text-slate-800 dark:text-slate-100">
+                </td>
+
+                <!-- Sex (Direct select) -->
+                <td class="py-1 px-2 text-center">
+                    <select onchange="onResidentFieldChange('${r.id}', 'sex', this.value)" class="db-cell-input text-center font-bold ${r.sex === 'F' ? 'text-pink-600' : 'text-blue-600'}">
+                        <option value="M" ${r.sex === 'M' ? 'selected' : ''}>ذكر</option>
+                        <option value="F" ${r.sex === 'F' ? 'selected' : ''}>أنثى</option>
+                    </select>
+                </td>
+
+                <!-- Specialty (Direct input) -->
+                <td class="py-1 px-2">
+                    <input type="text" value="${escapeForInline(r.specialty || 'General')}" onblur="onResidentFieldChange('${r.id}', 'specialty', this.value)" class="db-cell-input text-slate-600 dark:text-slate-300">
+                </td>
+
+                <!-- Board (Direct select) -->
+                <td class="py-1 px-2 text-center">
+                    <select onchange="onResidentFieldChange('${r.id}', 'board', this.value)" class="db-cell-input text-center font-bold">
+                        <option value="Arabic" ${r.board === 'Arabic' ? 'selected' : ''}>عربي (Arabic)</option>
+                        <option value="Iraqi" ${r.board === 'Iraqi' ? 'selected' : ''}>عراقي (Iraqi)</option>
+                        <option value="None" ${r.board === 'None' || !r.board ? 'selected' : ''}>بدون (None)</option>
+                    </select>
+                </td>
+
+                <!-- Stage (Direct input) -->
+                <td class="py-1 px-2 text-center">
+                    <input type="text" value="${escapeForInline(r.stage || '')}" onblur="onResidentFieldChange('${r.id}', 'stage', this.value)" class="db-cell-input text-center font-mono font-bold">
+                </td>
+
+                <!-- ER Target (Direct number input) -->
+                <td class="py-1 px-2 text-center">
+                    <input type="number" min="0" value="${r.er_target || 0}" onblur="onResidentTargetChange('${r.id}', 'er_target', this.value)" class="db-cell-input text-center font-mono font-black text-rose-600">
+                </td>
+
+                <!-- Con Target (Direct number input) -->
+                <td class="py-1 px-2 text-center">
+                    <input type="number" min="0" value="${r.con_target || 0}" onblur="onResidentTargetChange('${r.id}', 'con_target', this.value)" class="db-cell-input text-center font-mono font-black text-sky-600">
+                </td>
+
+                <!-- DC Target (Direct number input) -->
+                <td class="py-1 px-2 text-center">
+                    <input type="number" min="0" value="${r.dc_target || 0}" onblur="onResidentTargetChange('${r.id}', 'dc_target', this.value)" class="db-cell-input text-center font-mono font-black text-emerald-600">
+                </td>
+
+                <!-- RS Target (Direct number input) -->
+                <td class="py-1 px-2 text-center">
+                    <input type="number" min="0" value="${r.rs_target || 0}" onblur="onResidentTargetChange('${r.id}', 'rs_target', this.value)" class="db-cell-input text-center font-mono font-black text-amber-600">
+                </td>
+
+                <!-- Status & Extra Duties Badges -->
+                <td class="py-1 px-2">
+                    <div>${statusBadge}</div>
+                    ${extraBadge}
+                </td>
+
+                <!-- Expiry Month (Direct month picker) -->
+                <td class="py-1 px-2">
+                    <input type="month" value="${r.expiryMonth || ''}" onchange="onResidentFieldChange('${r.id}', 'expiryMonth', this.value)" class="db-cell-input text-[11px] font-mono text-slate-500">
+                </td>
+
+                <!-- Preferences Button (if active) / Reactivate Button (if inactive) -->
+                ${!isInactiveSection ? `
+                <td class="py-1 px-2 text-center">
+                    <button type="button" onclick="openResidentPrefsModal('${r.id}')" class="px-2 py-1 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 transition" title="تحديد الرغبات">
+                        <i class="fas fa-sliders text-rose-500 ml-0.5"></i>
+                        <span>رغبات</span>
+                    </button>
+                </td>
+                <td class="py-1 px-2 text-center">
+                    <button type="button" onclick="deactivateResidentWithConfirmation('${r.id}')" class="w-7 h-7 rounded-xl flex items-center justify-center mx-auto text-emerald-600 bg-emerald-50 hover:bg-rose-50 hover:text-rose-600 transition" title="إلغاء التنشيط وتصفير الأنصبة">
+                        <i class="fas fa-toggle-on text-base"></i>
+                    </button>
+                </td>
+                ` : `
+                <td class="py-1 px-2 text-center">
+                    <button type="button" onclick="reactivateResident('${r.id}')" class="px-2 py-1 rounded-xl text-[10px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition" title="إعادة تنشيط الطبيب">
+                        <i class="fas fa-rotate-left ml-0.5"></i> تنشيط
+                    </button>
+                </td>
+                `}
+
+                <!-- Actions: Export to Hosp & Delete -->
+                <td class="py-1 px-2 text-center">
+                    <div class="flex items-center justify-center gap-1">
+                        <button type="button" onclick="openExportResidentModal('${r.id}')" class="w-6 h-6 rounded-lg text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950 flex items-center justify-center transition" title="تصدير للمستشفى">
+                            <i class="fas fa-file-export text-xs"></i>
+                        </button>
+                        <button type="button" onclick="deleteResident('${r.id}')" class="w-6 h-6 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950 flex items-center justify-center transition" title="حذف نهائي">
+                            <i class="fas fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
     }
 
     function escapeForInline(str) {
@@ -1415,91 +1803,172 @@
         return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
     }
 
+    function getScheduledCountsMap() {
+        const counts = {};
+        const getEntry = (name) => {
+            const c = normalizeArabic(name);
+            if (!counts[c]) counts[c] = { normalScheduled: 0, extraScheduled: 0, erFilled: 0, conFilled: 0, dcFilled: 0, rsErFilled: 0, rsWardsFilled: 0 };
+            return counts[c];
+        };
+
+        // ER
+        (state.schedules.er || []).forEach(day => {
+            ['morning', 'afternoon', 'preNight', 'lateNight'].forEach(k => {
+                if (day[k]) {
+                    const e = getEntry(day[k]);
+                    e.erFilled++;
+                    e.normalScheduled++;
+                }
+            });
+        });
+
+        // Con
+        (state.schedules.con || []).forEach(day => {
+            if (day.doctor) {
+                const e = getEntry(day.doctor);
+                e.conFilled++;
+                e.normalScheduled++;
+            }
+        });
+
+        // DC
+        (state.schedules.dc || []).forEach(day => {
+            if (day.doctor) {
+                const e = getEntry(day.doctor);
+                e.dcFilled++;
+                e.normalScheduled++;
+            }
+        });
+
+        // RS
+        (state.schedules.rs || []).forEach(day => {
+            ['er_morning', 'er_afternoon', 'er_preNight', 'er_lateNight'].forEach(k => {
+                if (day[k]) {
+                    const e = getEntry(day[k]);
+                    e.rsErFilled++;
+                    e.extraScheduled++;
+                }
+            });
+            ['ward_private', 'ward_floor4', 'ward_floor5'].forEach(k => {
+                if (day[k]) {
+                    const e = getEntry(day[k]);
+                    e.rsWardsFilled++;
+                    e.extraScheduled++;
+                }
+            });
+        });
+
+        return counts;
+    }
+
+    // Direct in-database field changes
+    function onResidentFieldChange(resId, field, newVal) {
+        const res = (state.residents || []).find(r => r.id === resId);
+        if (res) {
+            const oldVal = res[field];
+            res[field] = newVal.trim();
+            saveState();
+
+            // If name changed, update schedules
+            if (field === 'name' && oldVal !== res.name) {
+                ['er', 'con', 'dc', 'rs'].forEach(type => {
+                    (state.schedules[type] || []).forEach(day => {
+                        Object.keys(day).forEach(k => {
+                            if (day[k] === oldVal) day[k] = res.name;
+                        });
+                    });
+                });
+                saveState();
+            }
+        }
+    }
+
+    function onResidentTargetChange(resId, targetField, newVal) {
+        const res = (state.residents || []).find(r => r.id === resId);
+        if (res) {
+            res[targetField] = Math.max(0, parseInt(newVal, 10) || 0);
+            saveState();
+            updateDutyDashboard();
+        }
+    }
+
     function toggleShowInactiveInDB() {
         state.showInactiveInDB = !state.showInactiveInDB;
         renderDBView(document.getElementById('schedule-view-container'));
     }
 
-    function inlineEditResidentNumber(resId, field, currentVal) {
-        const fieldNames = {
-            er_target: 'نصاب خفارات الطوارئ (ER)',
-            con_target: 'نصاب خفارات الاستشارية (Con)',
-            dc_target: 'نصاب خفارات شهادات الوفاة (DC)',
-            rs_target: 'نصاب خفارات إضراب الدوريين (RS)'
-        };
-        const promptText = `أدخل ${fieldNames[field] || field}:`;
-        const newVal = prompt(promptText, currentVal);
-        if (newVal === null) return;
-        const num = parseInt(newVal, 10);
-        if (isNaN(num) || num < 0) {
-            alert('الرجاء إدخال رقم صحيح');
+    // Deactivation with confirmation and resetting duty allocations to zero + removing from schedules
+    function deactivateResidentWithConfirmation(resId) {
+        const res = (state.residents || []).find(r => r.id === resId);
+        if (!res) return;
+
+        const confirmMsg = `هل أنت متأكد من إلغاء تنشيط الطبيب (${res.name})؟\n\nتنبيه إداري: سيتم تصفير كافة أنصبته (إلى صفر) وإزالة اسمه من جميع جداول الخفارات تلقائياً.`;
+        if (!confirm(confirmMsg)) return;
+
+        // Reset quotas to zero
+        res.active = false;
+        res.er_target = 0;
+        res.con_target = 0;
+        res.dc_target = 0;
+        res.rs_target = 0;
+
+        // Remove name from all schedules
+        const docName = res.name;
+        ['er', 'con', 'dc', 'rs'].forEach(type => {
+            (state.schedules[type] || []).forEach(day => {
+                Object.keys(day).forEach(k => {
+                    if (day[k] === docName) day[k] = '';
+                });
+            });
+        });
+
+        saveState();
+        renderDBView(document.getElementById('schedule-view-container'));
+        showNotification(`تم إلغاء تنشيط الطبيب (${docName}) وتصفير أنصبته وإزالته من الجداول`, 'info');
+    }
+
+    function reactivateResident(resId) {
+        const res = (state.residents || []).find(r => r.id === resId);
+        if (!res) return;
+
+        res.active = true;
+        res.er_target = 2; // initial default
+        saveState();
+        renderDBView(document.getElementById('schedule-view-container'));
+        showNotification(`تمت إعادة تنشيط الطبيب (${res.name}) بنجاح`, 'success');
+    }
+
+    // Advance stage of all Board residents (+1)
+    function advanceBoardResidentsStage() {
+        const boardResidents = (state.residents || []).filter(r => r.board === 'Arabic' || r.board === 'Iraqi');
+        if (boardResidents.length === 0) {
+            alert('لا يوجد أطباء مسجلون في البورد العربي أو العراقي في القاعدة');
             return;
         }
 
-        const res = (state.residents || []).find(r => r.id === resId);
-        if (res) {
-            res[field] = num;
-            saveState();
-            renderDBView(document.getElementById('schedule-view-container'));
-            showNotification(`تم تعديل ${fieldNames[field]} إلى: ${num}`, 'success');
-        }
-    }
+        const msg = `هل ترغب في ترقية مرحلة جميع أطباء البورد (العربي والعراقي) بمقدار مرحلة واحدة (+1)؟\nعدد الأطباء المشمولين بالترقية: ${boardResidents.length} طبيب.`;
+        if (!confirm(msg)) return;
 
-    function inlineEditResidentField(resId, field, currentVal) {
-        const fieldNames = {
-            name: 'اسم المقيم الأقدم',
-            specialty: 'الاختصاص الطبي',
-            stage: 'المرحلة',
-            notes: 'الملاحظات'
-        };
-        const promptText = `أدخل ${fieldNames[field] || field}:`;
-        const newVal = prompt(promptText, currentVal);
-        if (newVal === null) return;
+        let count = 0;
+        boardResidents.forEach(r => {
+            const currentStage = parseFloat(r.stage);
+            if (!isNaN(currentStage)) {
+                r.stage = (currentStage + 1).toFixed(1);
+            } else {
+                r.stage = '2.0';
+            }
+            count++;
+        });
 
-        const res = (state.residents || []).find(r => r.id === resId);
-        if (res) {
-            res[field] = newVal.trim();
-            saveState();
-            renderDBView(document.getElementById('schedule-view-container'));
-            showNotification(`تم تحديث ${fieldNames[field]} بنجاح`, 'success');
-        }
-    }
-
-    function cycleResidentBoard(resId) {
-        const res = (state.residents || []).find(r => r.id === resId);
-        if (!res) return;
-        const order = ['Arabic', 'Iraqi', 'None'];
-        const currentIdx = order.indexOf(res.board);
-        const nextIdx = (currentIdx + 1) % order.length;
-        res.board = order[nextIdx];
         saveState();
         renderDBView(document.getElementById('schedule-view-container'));
-        const labels = { Arabic: 'عربي', Iraqi: 'عراقي', None: 'بدون' };
-        showNotification(`تم تغيير نوع البورد إلى: ${labels[res.board]}`, 'info');
-    }
-
-    function cycleResidentSex(resId) {
-        const res = (state.residents || []).find(r => r.id === resId);
-        if (!res) return;
-        res.sex = res.sex === 'F' ? 'M' : 'F';
-        saveState();
-        renderDBView(document.getElementById('schedule-view-container'));
-        showNotification(`تم تغيير الجنس إلى: ${res.sex === 'F' ? 'أنثى' : 'ذكر'}`, 'info');
-    }
-
-    function toggleResidentActive(resId) {
-        const res = (state.residents || []).find(r => r.id === resId);
-        if (!res) return;
-        res.active = !res.active;
-        saveState();
-        renderDBView(document.getElementById('schedule-view-container'));
-        showNotification(res.active ? `تم تنشيط الطبيب: ${res.name}` : `تم إيقاف الطبيب: ${res.name}`, 'info');
+        showNotification(`تمت ترقية مرحلة ${count} طبيب بورد بنجاح (+1)`, 'success');
     }
 
     function deleteResident(resId) {
         const res = (state.residents || []).find(r => r.id === resId);
         if (!res) return;
-        if (!confirm(`هل أنت متأكد من حذف الطبيب: "${res.name}" من قاعدة الطوارئ؟`)) return;
+        if (!confirm(`هل أنت متأكد من حذف الطبيب: "${res.name}" نهائياً من قاعدة الطوارئ؟`)) return;
         state.residents = state.residents.filter(r => r.id !== resId);
         saveState();
         renderDBView(document.getElementById('schedule-view-container'));
@@ -1510,6 +1979,8 @@
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
             version: '1.0',
             updatedAt: new Date().toISOString(),
+            headOfResidents: state.headOfResidents,
+            headOfHospital: state.headOfHospital,
             totalResidents: (state.residents || []).length,
             residents: state.residents
         }, null, 2));
@@ -1523,7 +1994,65 @@
     }
 
     // =========================================================================
-    // 7. EXPORT RESIDENT TO HOSPITAL (STRUCTURE & HUB SYNC)
+    // RESIDENT DUTY PREFERENCES MODAL
+    // =========================================================================
+
+    let activePrefsResId = null;
+
+    function openResidentPrefsModal(resId) {
+        const res = (state.residents || []).find(r => r.id === resId);
+        if (!res) return;
+
+        activePrefsResId = resId;
+        const modal = document.getElementById('resident-prefs-modal');
+        const nameEl = document.getElementById('prefs-modal-docname');
+
+        if (!modal) return;
+        nameEl.textContent = `${res.name} (${res.specialty || 'عام'})`;
+
+        // Populate checkboxes
+        const prefShifts = res.prefShifts || [];
+        const prefDays = res.prefDays || [];
+
+        modal.querySelectorAll('.pref-shift-cb').forEach(cb => {
+            cb.checked = prefShifts.includes(cb.value);
+        });
+
+        modal.querySelectorAll('.pref-day-cb').forEach(cb => {
+            cb.checked = prefDays.includes(cb.value);
+        });
+
+        modal.classList.remove('hidden');
+    }
+
+    function closeResidentPrefsModal() {
+        const modal = document.getElementById('resident-prefs-modal');
+        if (modal) modal.classList.add('hidden');
+        activePrefsResId = null;
+    }
+
+    function saveResidentPreferences() {
+        if (!activePrefsResId) return;
+        const res = (state.residents || []).find(r => r.id === activePrefsResId);
+        if (!res) return;
+
+        const modal = document.getElementById('resident-prefs-modal');
+        const shifts = [];
+        const days = [];
+
+        modal.querySelectorAll('.pref-shift-cb:checked').forEach(cb => shifts.push(cb.value));
+        modal.querySelectorAll('.pref-day-cb:checked').forEach(cb => days.push(cb.value));
+
+        res.prefShifts = shifts;
+        res.prefDays = days;
+
+        saveState();
+        closeResidentPrefsModal();
+        showNotification(`تم حفظ رغبات الخفارة للطبيب (${res.name}) بنجاح`, 'success');
+    }
+
+    // =========================================================================
+    // EXPORT RESIDENT TO HOSPITAL (STRICT VALIDATION: PHONE REQUIRED)
     // =========================================================================
 
     function openExportResidentModal(resId) {
@@ -1538,55 +2067,53 @@
             document.body.appendChild(modal);
         }
 
-        const hospName = state.hospitalName;
-        const targetSpec = res.specialty || 'General';
-
-        // Prepare structure expected by hospital
-        const hospitalStructure = {
-            id: `doc_${Date.now()}`,
-            name: res.name.startsWith('د.') ? res.name : `د. ${res.name}`,
-            phone: '---',
-            spec: targetSpec,
-            active: res.active,
-            hospitals: [state.hospitalId]
-        };
-
         modal.innerHTML = `
             <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
                 <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <div>
-                        <h3 class="font-black text-sm text-slate-800 dark:text-slate-100">تصدير مقيم إلى المستشفى المحددة</h3>
-                        <p class="text-[11px] text-slate-500">المستشفى الهدف: <strong>${hospName}</strong></p>
+                        <h3 class="font-black text-sm text-slate-800 dark:text-slate-100">تصدير طبيب إلى قاعدة المستشفى الرسمية</h3>
+                        <p class="text-[11px] text-slate-500">المستشفى الهدف: <strong>${state.hospitalName}</strong></p>
                     </div>
                     <button type="button" onclick="closeExportResidentModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
                         <i class="fas fa-times text-sm"></i>
                     </button>
                 </div>
 
-                <div class="p-5 space-y-4 text-xs">
+                <form onsubmit="handleConfirmExportResident('${resId}', event)" class="p-5 space-y-3 text-xs">
                     <p class="text-slate-600 dark:text-slate-300">
-                        سيتم إضافة هذا الطبيب إلى جدول أطباء المستشفى بالهيكلية الرسمية الخاصة بقاعدة بيانات المستشفى:
+                        يشترط تعبئة كافة الحقول المطلوبة لقاعدة المستشفى الرسمية (رقم الهاتف إلزامي):
                     </p>
 
-                    <div class="p-3 bg-slate-900 text-slate-100 font-mono rounded-xl text-[11px] overflow-x-auto" dir="ltr">
-<pre>${JSON.stringify(hospitalStructure, null, 2)}</pre>
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">الاسم الكامل <span class="text-rose-500">*</span>:</label>
+                        <input type="text" id="exp-res-name" value="${escapeForInline(res.name)}" required class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">الاختصاص الطبي <span class="text-rose-500">*</span>:</label>
+                        <input type="text" id="exp-res-spec" value="${escapeForInline(res.specialty || 'General')}" required class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">رقم الهاتف <span class="text-rose-500">* (حقل إلزامي)</span>:</label>
+                        <input type="tel" id="exp-res-phone" value="${escapeForInline(res.phone || '')}" required placeholder="مثال: 07701234567" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
                     </div>
 
                     <div class="p-3 bg-blue-50 dark:bg-blue-950/40 rounded-xl border border-blue-200 dark:border-blue-900/60 text-[11px] text-blue-800 dark:text-blue-300">
                         <i class="fas fa-circle-info ml-1 text-blue-500"></i>
-                        تبقى البيانات الإضافية (أنصبة الطوارئ، نوع البورد، والمرحلة) محفوظة ومخصصة لموقع الطوارئ فقط دون التأثير على بقية المستشفيات.
+                        سيتم حفظ رقم الهاتف في قاعدة الطوارئ وتصدير الطبيب لقائمة أطباء المستشفى.
                     </div>
-                </div>
 
-                <div class="p-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
-                    <button type="button" onclick="closeExportResidentModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition">
-                        إلغاء
-                    </button>
-                    <button type="button" onclick="confirmExportResidentToHospital('${resId}')" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 shadow-md shadow-sky-600/20 transition flex items-center gap-1.5">
-                        <i class="fas fa-check"></i>
-                        <span>تأكيد التصدير للمستشفى</span>
-                    </button>
-                </div>
+                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
+                        <button type="button" onclick="closeExportResidentModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition">
+                            إلغاء
+                        </button>
+                        <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 shadow-md transition flex items-center gap-1.5">
+                            <i class="fas fa-check"></i>
+                            <span>تأكيد التصدير للمستشفى</span>
+                        </button>
+                    </div>
+                </form>
             </div>
         `;
         modal.classList.remove('hidden');
@@ -1597,19 +2124,39 @@
         if (modal) modal.classList.add('hidden');
     }
 
-    async function confirmExportResidentToHospital(resId) {
+    async function handleConfirmExportResident(resId, e) {
+        e.preventDefault();
         const res = (state.residents || []).find(r => r.id === resId);
         if (!res) return;
+
+        const nameInput = document.getElementById('exp-res-name');
+        const specInput = document.getElementById('exp-res-spec');
+        const phoneInput = document.getElementById('exp-res-phone');
+
+        const name = (nameInput?.value || '').trim();
+        const spec = (specInput?.value || '').trim();
+        const phone = (phoneInput?.value || '').trim();
+
+        // Strict Phone Validation
+        if (!phone) {
+            alert('رقم الهاتف حقل إلزامي لتصدير الطبيب لقاعدة المستشفى الرسمية.');
+            phoneInput.focus();
+            return;
+        }
+
+        res.name = name;
+        res.specialty = spec;
+        res.phone = phone;
+        saveState();
 
         try {
             if (window.Hub && typeof window.Hub.getHospital === 'function') {
                 const hosp = window.Hub.getHospital(state.hospitalId);
                 if (hosp) {
                     if (!Array.isArray(hosp.names)) hosp.names = [];
-                    
-                    const cleanRes = normalizeArabic(res.name);
+                    const cleanRes = normalizeArabic(name);
                     const alreadyExists = hosp.names.some(n => normalizeArabic(n.name) === cleanRes);
-                    
+
                     if (alreadyExists) {
                         alert('هذا الطبيب موجود بالفعل في قائمة أطباء المستشفى المحددة.');
                         closeExportResidentModal();
@@ -1618,22 +2165,22 @@
 
                     const newDoc = {
                         id: `res_exp_${Date.now()}`,
-                        name: res.name.startsWith('د.') ? res.name : `د. ${res.name}`,
-                        phone: '---',
-                        spec: res.specialty || 'General',
+                        name: name.startsWith('د.') ? name : `د. ${name}`,
+                        phone: phone,
+                        spec: spec,
                         active: res.active,
                         hospitals: [state.hospitalId]
                     };
 
                     hosp.names.push(newDoc);
                     if (typeof window.Hub.saveDatabase === 'function') {
-                        await window.Hub.saveDatabase(`Exported resident ${res.name} to ${state.hospitalName}`);
+                        await window.Hub.saveDatabase(`Exported resident ${name} to ${state.hospitalName}`);
                     }
                 }
             }
 
             closeExportResidentModal();
-            showNotification(`تم تصدير الطبيب "${res.name}" إلى مستشفى "${state.hospitalName}" بنجاح!`, 'success');
+            showNotification(`تم تصدير الطبيب "${name}" إلى مستشفى "${state.hospitalName}" بنجاح!`, 'success');
         } catch (err) {
             console.error('Error exporting resident to hospital:', err);
             showNotification('حدث خطأ أثناء تصدير الطبيب للمستشفى', 'error');
@@ -1641,7 +2188,7 @@
     }
 
     // =========================================================================
-    // 8. HOSPITAL RECONCILIATION & MATCHING MODAL
+    // HOSPITAL RECONCILIATION MODAL
     // =========================================================================
 
     function openHospitalSyncModal() {
@@ -1660,8 +2207,6 @@
         }
 
         const erResidents = state.residents || [];
-
-        // Match categorization
         const matched = [];
         const missingInEr = [];
         const erOnly = [];
@@ -1672,13 +2217,11 @@
         const erCleanMap = new Map();
         erResidents.forEach(e => erCleanMap.set(normalizeArabic(e.name), e));
 
-        // 1. Check ER against Hospital
         erResidents.forEach(e => {
             const clean = normalizeArabic(e.name);
             if (hospCleanMap.has(clean)) {
                 matched.push({ er: e, hosp: hospCleanMap.get(clean), matchType: 'exact' });
             } else {
-                // Check fuzzy
                 let foundFuzzy = null;
                 for (let [hClean, hDoc] of hospCleanMap.entries()) {
                     if (hClean.includes(clean) || clean.includes(hClean)) {
@@ -1694,7 +2237,6 @@
             }
         });
 
-        // 2. Check Hospital against ER for missing in ER
         hospResidents.forEach(h => {
             const clean = normalizeArabic(h.name);
             let inEr = erCleanMap.has(clean);
@@ -1767,7 +2309,7 @@
                     </div>
                     ` : ''}
 
-                    <!-- Fuzzy matches / Spelling updates -->
+                    <!-- Fuzzy matches -->
                     <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2">
                         <span class="text-xs font-black text-slate-800 dark:text-slate-200 block">
                             تحديث تهجئة الأسماء لتطابق قائمة المستشفى الرسمية:
@@ -1818,7 +2360,6 @@
             const oldName = res.name;
             res.name = officialName;
 
-            // Update in all schedules
             ['er', 'con', 'dc', 'rs'].forEach(type => {
                 (state.schedules[type] || []).forEach(day => {
                     Object.keys(day).forEach(k => {
@@ -1834,9 +2375,8 @@
     }
 
     function importSingleDoctorToER(name, spec) {
-        const newId = `er_res_${Date.now()}`;
         state.residents.push({
-            id: newId,
+            id: `er_res_${Date.now()}`,
             name: name,
             sex: 'M',
             specialty: spec || 'General',
@@ -1846,6 +2386,10 @@
             con_target: 0,
             dc_target: 0,
             rs_target: 0,
+            phone: '',
+            expiryMonth: '',
+            prefDays: [],
+            prefShifts: [],
             notes: 'Imported from hospital',
             active: true,
             hospitals: [state.hospitalId]
@@ -1879,6 +2423,10 @@
                     con_target: 0,
                     dc_target: 0,
                     rs_target: 0,
+                    phone: h.phone || '',
+                    expiryMonth: '',
+                    prefDays: [],
+                    prefShifts: [],
                     notes: 'Imported from hospital',
                     active: true,
                     hospitals: [state.hospitalId]
@@ -1893,7 +2441,7 @@
     }
 
     // =========================================================================
-    // 9. DOCTOR PICKER MODAL (PRIORITY FOR DC + CONFLICT RED FLAGGING)
+    // 7. DOCTOR PICKER MODAL (STRICT: HIDES RESIDENTS WHO FULFILLED ALLOCATIONS)
     // =========================================================================
 
     function openDoctorPicker(type, dayNumber, slotKey, slotLabel) {
@@ -1946,6 +2494,10 @@
         return map[key] || key;
     }
 
+    /**
+     * Filter Picker List:
+     * STRICT REQUIREMENT: Only show residents with available duties (hide fulfilled residents who reached target).
+     */
     function filterPickerList() {
         if (!activeSlot) return;
         const listContainer = document.getElementById('picker-doctors-list');
@@ -1955,9 +2507,7 @@
         const query = (searchInput?.value || '').trim();
         const cleanQ = normalizeArabic(query);
 
-        const quotaFilter = document.getElementById('picker-quota-filter')?.value || 'all';
-
-        // 1. Get all hospital on-call doctors on this date
+        // 1. Get hospital on-call doctors
         const hospitalOnCall = getAllHospitalOnCallDoctors(activeSlot.dateStr);
         const hospDoctorMap = new Map();
         hospitalOnCall.forEach(hd => hospDoctorMap.set(hd.cleanName, hd));
@@ -1965,12 +2515,24 @@
         // 2. Count current scheduled duties for each resident across month for this type
         const scheduledCounts = countScheduledDutiesPerResident(activeSlot.type);
 
-        let residents = (state.residents || []).slice();
+        const targetField = activeSlot.type === 'er' ? 'er_target' :
+                            activeSlot.type === 'con' ? 'con_target' :
+                            activeSlot.type === 'dc' ? 'dc_target' : 'rs_target';
 
-        // Filter inactive
-        if (!state.showInactiveInPicker) {
-            residents = residents.filter(r => r.active);
-        }
+        // 3. STRICT FILTER: Only show active, non-expired residents who have NOT yet fulfilled their quota!
+        let residents = (state.residents || []).filter(r => {
+            if (!r.active) return false;
+            if (isResidentExpired(r, state.year, state.month)) return false;
+
+            const target = Number(r[targetField]) || 0;
+            if (target <= 0) return false;
+
+            const cleanName = normalizeArabic(r.name);
+            const filled = scheduledCounts[cleanName] || 0;
+
+            // STRICT: The resident who fulfilled their allocated duties should NOT appear in selections
+            return filled < target;
+        });
 
         // Search query filter
         if (cleanQ) {
@@ -1980,20 +2542,7 @@
             );
         }
 
-        // Quota filter
-        const targetField = activeSlot.type === 'er' ? 'er_target' :
-                            activeSlot.type === 'con' ? 'con_target' :
-                            activeSlot.type === 'dc' ? 'dc_target' : 'rs_target';
-
-        if (quotaFilter === 'pending_only') {
-            residents = residents.filter(r => {
-                const filled = scheduledCounts[normalizeArabic(r.name)] || 0;
-                const target = Number(r[targetField]) || 0;
-                return filled < target;
-            });
-        }
-
-        // Evaluate conflict and priority for sorting
+        // Enrich with conflict & hospital on-call priority
         const enriched = residents.map(r => {
             const cleanName = normalizeArabic(r.name);
             const filled = scheduledCounts[cleanName] || 0;
@@ -2017,20 +2566,16 @@
             };
         });
 
-        // SORTING LOGIC:
-        // For DC: Doctors with hospital duty on that day are ranked FIRST at the top!
-        // Otherwise: Sort by remaining quota descending, then non-conflicting first
+        // Sorting: For DC, doctors with hospital duty ranked first!
         enriched.sort((a, b) => {
             if (activeSlot.type === 'dc') {
                 if (a.isHospOnCall && !b.isHospOnCall) return -1;
                 if (!a.isHospOnCall && b.isHospOnCall) return 1;
             }
 
-            // Conflicts sorted to the bottom
             if (!a.hasConflict && b.hasConflict) return -1;
             if (a.hasConflict && !b.hasConflict) return 1;
 
-            // Highest remaining quota first
             if (b.remaining !== a.remaining) {
                 return b.remaining - a.remaining;
             }
@@ -2040,9 +2585,10 @@
 
         if (enriched.length === 0) {
             listContainer.innerHTML = `
-                <div class="py-8 text-center text-slate-400 text-xs">
-                    <i class="fas fa-user-slash text-2xl mb-2 block"></i>
-                    لا يوجد أطباء متاحون يطابقون شروط البحث
+                <div class="py-8 text-center text-slate-400 text-xs space-y-1">
+                    <i class="fas fa-check-circle text-emerald-500 text-2xl mb-1 block"></i>
+                    <div class="font-bold text-slate-700 dark:text-slate-300">لا يوجد أطباء لديهم خفارات متبقية شاغرة لهذا القسم</div>
+                    <div class="text-[11px]">جميع الأطباء استوفوا أنصبتهم المقررة بالكامل أو تم إخفاؤهم لعدم توفر رصيد خفارات.</div>
                 </div>
             `;
             return;
@@ -2087,19 +2633,13 @@
                                 ` : ''}
                             </div>
                             <div class="text-[11px] text-slate-400 mt-0.5">
-                                ${r.specialty || 'عام'} · بورد: ${r.board === 'Arabic' ? 'عربي' : r.board === 'Iraqi' ? 'عراقي' : 'بدون'}
+                                ${r.specialty || 'عام'} · الجنس: ${r.sex === 'F' ? 'أنثى' : 'ذكر'} · متبقي: <strong class="text-rose-600">${item.remaining}</strong> خفارات
                             </div>
                         </div>
                     </div>
 
-                    <!-- Quota badge -->
-                    <div class="text-left shrink-0">
-                        <div class="text-xs font-mono font-black ${item.remaining > 0 ? 'text-emerald-600' : 'text-slate-400'}">
-                            ${item.filled} / ${item.target}
-                        </div>
-                        <div class="text-[10px] text-slate-400 font-bold">
-                            ${item.remaining > 0 ? `متبقي ${item.remaining}` : 'اكتمل النصاب'}
-                        </div>
+                    <div class="text-left shrink-0 font-mono font-black text-xs text-emerald-600">
+                        ${item.filled} / ${item.target}
                     </div>
                 </div>
             `;
@@ -2150,7 +2690,7 @@
     }
 
     // =========================================================================
-    // 10. ADD NEW RESIDENT MODAL
+    // 8. ADD NEW RESIDENT MODAL
     // =========================================================================
 
     function openAddResidentModal() {
@@ -2176,7 +2716,7 @@
 
                 <form onsubmit="handleSaveNewResident(event)" class="p-5 space-y-3 text-xs">
                     <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">اسم الطبيب الرباعي:</label>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">اسم الطبيب الرباعي <span class="text-rose-500">*</span>:</label>
                         <input type="text" id="new-res-name" required placeholder="د. الاسم الكامل..." class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
                     </div>
 
@@ -2228,16 +2768,20 @@
                         </div>
                     </div>
 
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">رقم الهاتف (اختياري / مطلوب للتصدير):</label>
+                            <input type="tel" id="new-res-phone" placeholder="0770..." class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">شهر انتهاء الصلاحية (اختياري):</label>
+                            <input type="month" id="new-res-expiry" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                        </div>
+                    </div>
+
                     <div>
                         <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">ملاحظات إدارية:</label>
                         <input type="text" id="new-res-notes" placeholder="ملاحظات..." class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
-                    </div>
-
-                    <div class="pt-2">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" id="new-res-export-hosp" checked class="w-4 h-4 rounded text-rose-600">
-                            <span class="font-bold text-slate-700 dark:text-slate-300">تصدير الطبيب أيضاً إلى قاعدة المستشفى المحددة حالياً (${state.hospitalName})</span>
-                        </label>
                     </div>
 
                     <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
@@ -2259,7 +2803,7 @@
         if (modal) modal.classList.add('hidden');
     }
 
-    async function handleSaveNewResident(e) {
+    function handleSaveNewResident(e) {
         e.preventDefault();
         const rawName = document.getElementById('new-res-name').value.trim();
         const formattedName = rawName.startsWith('د.') ? rawName : `د. ${rawName}`;
@@ -2271,8 +2815,9 @@
         const con_target = parseInt(document.getElementById('new-res-con').value, 10) || 0;
         const dc_target = parseInt(document.getElementById('new-res-dc').value, 10) || 0;
         const rs_target = parseInt(document.getElementById('new-res-rs').value, 10) || 0;
+        const phone = document.getElementById('new-res-phone').value.trim();
+        const expiryMonth = document.getElementById('new-res-expiry').value.trim();
         const notes = document.getElementById('new-res-notes').value.trim();
-        const exportToHosp = document.getElementById('new-res-export-hosp').checked;
 
         const newDoc = {
             id: `er_res_${Date.now()}`,
@@ -2285,6 +2830,10 @@
             con_target,
             dc_target,
             rs_target,
+            phone,
+            expiryMonth,
+            prefDays: [],
+            prefShifts: [],
             notes,
             active: true,
             hospitals: [state.hospitalId]
@@ -2292,137 +2841,444 @@
 
         state.residents.push(newDoc);
         saveState();
-
-        if (exportToHosp) {
-            await confirmExportResidentToHospital(newDoc.id);
-        }
-
         closeAddResidentModal();
         renderDBView(document.getElementById('schedule-view-container'));
         showNotification(`تمت إضافة الطبيب "${formattedName}" بنجاح`, 'success');
     }
 
     // =========================================================================
-    // 11. AUTO GENERATE SCHEDULE (SMART BALANCED DISTRIBUTION)
+    // 9. AUTOMATIC DISTRIBUTION PER SCHEDULE TAB (WITH ENTRY CHECK PROMPT)
     // =========================================================================
 
-    function autoGenerateSchedule() {
-        if (!confirm('هل ترغب في توليد وتوزيع خفارات الشهر آلياً بحسب الأنصبة المخصصة لكل طبيب وتجنب التعارضات؟')) return;
+    function triggerScheduleAutoGenerate(type) {
+        pendingAutoGenerateType = type;
+        const schedule = state.schedules[type] || [];
+        
+        // Check if there are any existing filled entries
+        let hasEntries = false;
+        if (type === 'er') {
+            hasEntries = schedule.some(d => d.morning || d.afternoon || d.preNight || d.lateNight);
+        } else if (type === 'con' || type === 'dc') {
+            hasEntries = schedule.some(d => d.doctor && d.doctor.trim());
+        } else if (type === 'rs_er') {
+            hasEntries = schedule.some(d => d.er_morning || d.er_afternoon || d.er_preNight || d.er_lateNight);
+        } else if (type === 'rs_wards') {
+            hasEntries = schedule.some(d => d.ward_private || d.ward_floor4 || d.ward_floor5);
+        }
 
-        const activeDocs = (state.residents || []).filter(r => r.active);
+        if (hasEntries) {
+            // Prompt modal
+            const modal = document.getElementById('auto-generate-modal');
+            const titleEl = document.getElementById('auto-modal-title');
+            if (modal) {
+                const titles = {
+                    er: 'توليد خفارات قسم الطوارئ (ER)',
+                    con: 'توليد خفارات الاستشارية (Con)',
+                    dc: 'توليد خفارات شهادات الوفاة (DC)',
+                    rs_er: 'توليد خفارات إضراب الطوارئ (RS - ER)',
+                    rs_wards: 'توليد خفارات إضراب الردهات (RS - Wards)'
+                };
+                if (titleEl) titleEl.textContent = titles[type] || 'توليد الجدول آلياً';
+                modal.classList.remove('hidden');
+            }
+        } else {
+            // Empty schedule, run fresh generation immediately
+            runAutoDistribution(type, 'fresh');
+        }
+    }
+
+    function initAutoModalListeners() {
+        const fillEmptyBtn = document.getElementById('auto-opt-fill-empty');
+        const freshBtn = document.getElementById('auto-opt-fresh');
+
+        if (fillEmptyBtn) {
+            fillEmptyBtn.onclick = function() {
+                closeAutoGenerateModal();
+                if (pendingAutoGenerateType) runAutoDistribution(pendingAutoGenerateType, 'fill_empty');
+            };
+        }
+        if (freshBtn) {
+            freshBtn.onclick = function() {
+                closeAutoGenerateModal();
+                if (pendingAutoGenerateType) runAutoDistribution(pendingAutoGenerateType, 'fresh');
+            };
+        }
+    }
+
+    function closeAutoGenerateModal() {
+        const modal = document.getElementById('auto-generate-modal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    /**
+     * Run Auto Distribution Algorithm with Gender Priorities & Preferences
+     */
+    function runAutoDistribution(type, mode) {
+        const daysCount = getDaysInMonth(state.year, state.month);
+        const activeDocs = (state.residents || []).filter(r => r.active && !isResidentExpired(r, state.year, state.month));
+
         if (activeDocs.length === 0) {
-            alert('لا يوجد أطباء نشطون في القاعدة للتوزيع!');
+            alert('لا يوجد أطباء نشطون مؤهلون للتوزيع لهذا الشهر!');
             return;
         }
 
-        const daysCount = getDaysInMonth(state.year, state.month);
-
-        // Track doctor assignments per day to prevent duplicate daily duties
-        const dayAssignments = {};
-        for (let d = 1; d <= daysCount; d++) {
-            dayAssignments[d] = new Set();
-        }
-
-        // 1. First Pass: Death Certificates (DC) - Prioritize Hospital On-Call residents!
-        for (let d = 1; d <= daysCount; d++) {
-            const dateStr = formatDateStr(state.year, state.month, d);
-            const hospDoctors = getAllHospitalOnCallDoctors(dateStr);
-            
-            let chosen = null;
-            // Look for hospital doctor who has DC target
-            for (let hd of hospDoctors) {
-                const resident = activeDocs.find(r => normalizeArabic(r.name) === hd.cleanName && (r.dc_target > 0));
-                if (resident) {
-                    chosen = resident.name;
-                    break;
-                }
-            }
-
-            // Fallback to any active doctor with DC target
-            if (!chosen) {
-                const candidates = activeDocs.filter(r => (r.dc_target > 0) && !dayAssignments[d].has(r.name));
-                if (candidates.length > 0) {
-                    chosen = candidates[Math.floor(Math.random() * candidates.length)].name;
-                }
-            }
-
-            if (chosen) {
-                const dcEntry = state.schedules.dc.find(s => s.dayNumber === d);
-                if (dcEntry) dcEntry.doctor = chosen;
-                // Note: DC overlap is allowed, but we record assignment
-            }
-        }
-
-        // 2. Second Pass: Consultation Clinic (Con)
-        const conPool = [];
-        activeDocs.forEach(r => {
-            for (let i = 0; i < (r.con_target || 0); i++) conPool.push(r.name);
-        });
-        // Shuffle
-        conPool.sort(() => Math.random() - 0.5);
-
-        for (let d = 1; d <= daysCount; d++) {
-            const conEntry = state.schedules.con.find(s => s.dayNumber === d);
-            if (conEntry) {
-                let chosen = null;
-                for (let i = 0; i < conPool.length; i++) {
-                    const candidate = conPool[i];
-                    if (!dayAssignments[d].has(candidate)) {
-                        chosen = candidate;
-                        conPool.splice(i, 1);
-                        break;
-                    }
-                }
-                if (!chosen && activeDocs.length > 0) {
-                    chosen = activeDocs[Math.floor(Math.random() * activeDocs.length)].name;
-                }
-                conEntry.doctor = chosen || '';
-                if (chosen) dayAssignments[d].add(chosen);
-            }
-        }
-
-        // 3. Third Pass: Main ER Shifts (Morning, Afternoon, PreNight, LateNight)
-        const erSlots = ['morning', 'afternoon', 'preNight', 'lateNight'];
-        const erPool = [];
-        activeDocs.forEach(r => {
-            for (let i = 0; i < (r.er_target || 0); i++) erPool.push(r.name);
-        });
-        erPool.sort(() => Math.random() - 0.5);
-
-        for (let d = 1; d <= daysCount; d++) {
-            const erEntry = state.schedules.er.find(s => s.dayNumber === d);
-            if (erEntry) {
-                erSlots.forEach(slot => {
-                    let chosen = null;
-                    for (let i = 0; i < erPool.length; i++) {
-                        const candidate = erPool[i];
-                        if (!dayAssignments[d].has(candidate)) {
-                            chosen = candidate;
-                            erPool.splice(i, 1);
-                            break;
-                        }
-                    }
-                    if (!chosen) {
-                        const available = activeDocs.filter(r => !dayAssignments[d].has(r.name));
-                        if (available.length > 0) {
-                            chosen = available[Math.floor(Math.random() * available.length)].name;
-                        } else {
-                            chosen = activeDocs[Math.floor(Math.random() * activeDocs.length)].name;
-                        }
-                    }
-                    erEntry[slot] = chosen || '';
-                    if (chosen) dayAssignments[d].add(chosen);
-                });
-            }
+        if (type === 'er') {
+            runAutoDistributionER(mode, daysCount, activeDocs);
+        } else if (type === 'con') {
+            runAutoDistributionCon(mode, daysCount, activeDocs);
+        } else if (type === 'dc') {
+            runAutoDistributionDC(mode, daysCount, activeDocs);
+        } else if (type === 'rs_er') {
+            runAutoDistributionRSER(mode, daysCount, activeDocs);
+        } else if (type === 'rs_wards') {
+            runAutoDistributionRSWards(mode, daysCount, activeDocs);
         }
 
         saveState();
         renderActiveTab();
-        showNotification('تم توليد وتوزيع الجدول آلياً بنجاح!', 'success');
+        showNotification('تم اكتمال التوليد والتوزيع الآلي بنجاح!', 'success');
+    }
+
+    /**
+     * ER SPECIFIC ALGORITHM:
+     * 1- Morning (8AM-2PM): Utmost priority to females.
+     * 2- Post-Morning (2PM-8PM): Priority to females, then males.
+     * 3- Pre-Night (8PM-2AM): Priority to males with multiple duties (er_target > 1).
+     * 4- Night (2AM-8AM): Priority to males with a single duty (er_target === 1).
+     * 5- Shift diversity & resident preferences.
+     */
+    function runAutoDistributionER(mode, daysCount, activeDocs) {
+        const schedule = state.schedules.er;
+        const shifts = ['morning', 'afternoon', 'preNight', 'lateNight'];
+
+        if (mode === 'fresh') {
+            schedule.forEach(d => {
+                shifts.forEach(s => d[s] = '');
+            });
+            state.prefOverrides = {};
+        }
+
+        // Track doctor assignments
+        const assignedCount = {};
+        const assignedShifts = {}; // doc => Set of shift names
+        const assignedDays = {};   // dayNumber => Set of doc names
+
+        for (let d = 1; d <= daysCount; d++) {
+            assignedDays[d] = new Set();
+        }
+
+        // Initialize with existing entries if fill_empty
+        activeDocs.forEach(r => {
+            assignedCount[r.name] = 0;
+            assignedShifts[r.name] = new Set();
+        });
+
+        schedule.forEach(day => {
+            shifts.forEach(s => {
+                if (day[s] && day[s].trim()) {
+                    const doc = day[s].trim();
+                    assignedCount[doc] = (assignedCount[doc] || 0) + 1;
+                    if (!assignedShifts[doc]) assignedShifts[doc] = new Set();
+                    assignedShifts[doc].add(s);
+                    assignedDays[day.dayNumber].add(doc);
+                }
+            });
+        });
+
+        // Helper to check if doctor is available for slot
+        function isAvailable(doc, dayNumber, shiftKey) {
+            const r = activeDocs.find(x => x.name === doc);
+            if (!r) return false;
+
+            // Quota check
+            if ((assignedCount[doc] || 0) >= (r.er_target || 0)) return false;
+
+            // Day conflict check (already has duty today in ER or other schedules)
+            if (assignedDays[dayNumber].has(doc)) return false;
+            const dateStr = formatDateStr(state.year, state.month, dayNumber);
+            const conflict = evaluateCellConflict(doc, dateStr, 'er', shiftKey);
+            if (conflict.hasConflict) return false;
+
+            return true;
+        }
+
+        // 1. FILL MORNING (8AM - 2PM): Utmost priority to females
+        for (let d = 1; d <= daysCount; d++) {
+            const dayEntry = schedule.find(s => s.dayNumber === d);
+            if (dayEntry && !dayEntry.morning) {
+                // Females first
+                let candidates = activeDocs.filter(r => r.sex === 'F' && isAvailable(r.name, d, 'morning'));
+                
+                // Prioritize female whose preference matches morning or day
+                let matchedPref = candidates.find(r => (r.prefShifts && r.prefShifts.includes('morning')) || (r.prefDays && r.prefDays.includes(dayEntry.dayName)));
+                let chosen = matchedPref || candidates[0];
+
+                // If no females left, males come in
+                if (!chosen) {
+                    const maleCandidates = activeDocs.filter(r => r.sex === 'M' && isAvailable(r.name, d, 'morning'));
+                    chosen = maleCandidates[0];
+                }
+
+                if (chosen) {
+                    assignSlotER(dayEntry, 'morning', chosen, d, assignedCount, assignedShifts, assignedDays);
+                }
+            }
+        }
+
+        // 2. FILL POST-MORNING / AFTERNOON (2PM - 8PM): Priority to females, then males
+        for (let d = 1; d <= daysCount; d++) {
+            const dayEntry = schedule.find(s => s.dayNumber === d);
+            if (dayEntry && !dayEntry.afternoon) {
+                let candidates = activeDocs.filter(r => r.sex === 'F' && isAvailable(r.name, d, 'afternoon'));
+                let chosen = candidates[0];
+
+                if (!chosen) {
+                    const maleCandidates = activeDocs.filter(r => r.sex === 'M' && isAvailable(r.name, d, 'afternoon'));
+                    // Diversity: prefer male who hasn't done afternoon yet
+                    chosen = maleCandidates.find(m => !assignedShifts[m.name]?.has('afternoon')) || maleCandidates[0];
+                }
+
+                if (chosen) {
+                    assignSlotER(dayEntry, 'afternoon', chosen, d, assignedCount, assignedShifts, assignedDays);
+                }
+            }
+        }
+
+        // 3. FILL PRE-NIGHT (8PM - 2AM): Priority to males with multiple duties (er_target > 1)
+        for (let d = 1; d <= daysCount; d++) {
+            const dayEntry = schedule.find(s => s.dayNumber === d);
+            if (dayEntry && !dayEntry.preNight) {
+                // Males with multiple duties
+                let candidates = activeDocs.filter(r => r.sex === 'M' && (r.er_target > 1) && isAvailable(r.name, d, 'preNight'));
+                
+                // Diversity: hasn't done preNight yet
+                let chosen = candidates.find(m => !assignedShifts[m.name]?.has('preNight')) || candidates[0];
+
+                // Fallback to any available male
+                if (!chosen) {
+                    candidates = activeDocs.filter(r => r.sex === 'M' && isAvailable(r.name, d, 'preNight'));
+                    chosen = candidates[0];
+                }
+                // Fallback to any doctor
+                if (!chosen) {
+                    candidates = activeDocs.filter(r => isAvailable(r.name, d, 'preNight'));
+                    chosen = candidates[0];
+                }
+
+                if (chosen) {
+                    assignSlotER(dayEntry, 'preNight', chosen, d, assignedCount, assignedShifts, assignedDays);
+                }
+            }
+        }
+
+        // 4. FILL NIGHT (2AM - 8AM): Priority to males with a single duty (er_target === 1)
+        for (let d = 1; d <= daysCount; d++) {
+            const dayEntry = schedule.find(s => s.dayNumber === d);
+            if (dayEntry && !dayEntry.lateNight) {
+                // Males with single duty
+                let candidates = activeDocs.filter(r => r.sex === 'M' && (r.er_target === 1) && isAvailable(r.name, d, 'lateNight'));
+                let chosen = candidates[0];
+
+                if (!chosen) {
+                    // Males with remaining quota
+                    candidates = activeDocs.filter(r => r.sex === 'M' && isAvailable(r.name, d, 'lateNight'));
+                    chosen = candidates.find(m => !assignedShifts[m.name]?.has('lateNight')) || candidates[0];
+                }
+                if (!chosen) {
+                    candidates = activeDocs.filter(r => isAvailable(r.name, d, 'lateNight'));
+                    chosen = candidates[0];
+                }
+
+                if (chosen) {
+                    assignSlotER(dayEntry, 'lateNight', chosen, d, assignedCount, assignedShifts, assignedDays);
+                }
+            }
+        }
+    }
+
+    function assignSlotER(dayEntry, shiftKey, resident, dayNumber, assignedCount, assignedShifts, assignedDays) {
+        dayEntry[shiftKey] = resident.name;
+        assignedCount[resident.name] = (assignedCount[resident.name] || 0) + 1;
+        if (!assignedShifts[resident.name]) assignedShifts[resident.name] = new Set();
+        assignedShifts[resident.name].add(shiftKey);
+        assignedDays[dayNumber].add(resident.name);
+
+        // Preference Override Check
+        const cellSlotId = `er_${dayNumber}_${shiftKey}`;
+        if (resident.prefShifts && resident.prefShifts.length > 0) {
+            if (!resident.prefShifts.includes(shiftKey)) {
+                if (!state.prefOverrides) state.prefOverrides = {};
+                state.prefOverrides[cellSlotId] = true;
+            }
+        }
+    }
+
+    /**
+     * CON AUTOMATIC DISTRIBUTION
+     */
+    function runAutoDistributionCon(mode, daysCount, activeDocs) {
+        const schedule = state.schedules.con;
+        if (mode === 'fresh') {
+            schedule.forEach(d => d.doctor = '');
+        }
+
+        const conCandidates = activeDocs.filter(r => (r.con_target || 0) > 0);
+        const assigned = countScheduledDutiesPerResident('con');
+
+        for (let d = 1; d <= daysCount; d++) {
+            const dayEntry = schedule.find(s => s.dayNumber === d);
+            if (dayEntry && !dayEntry.doctor) {
+                const dateStr = formatDateStr(state.year, state.month, d);
+                const available = conCandidates.filter(r => {
+                    const filled = assigned[normalizeArabic(r.name)] || 0;
+                    if (filled >= r.con_target) return false;
+                    const evalRes = evaluateCellConflict(r.name, dateStr, 'con', 'doctor');
+                    return !evalRes.hasConflict;
+                });
+
+                if (available.length > 0) {
+                    // Sort by highest remaining
+                    available.sort((a, b) => ((b.con_target - (assigned[normalizeArabic(b.name)] || 0)) - (a.con_target - (assigned[normalizeArabic(a.name)] || 0))));
+                    const chosen = available[0];
+                    dayEntry.doctor = chosen.name;
+                    assigned[normalizeArabic(chosen.name)] = (assigned[normalizeArabic(chosen.name)] || 0) + 1;
+                }
+            }
+        }
+    }
+
+    /**
+     * DC AUTOMATIC DISTRIBUTION (Prioritizes Hospital On-Call specialty doctors!)
+     */
+    function runAutoDistributionDC(mode, daysCount, activeDocs) {
+        const schedule = state.schedules.dc;
+        if (mode === 'fresh') {
+            schedule.forEach(d => d.doctor = '');
+        }
+
+        const dcCandidates = activeDocs.filter(r => (r.dc_target || 0) > 0);
+        const assigned = countScheduledDutiesPerResident('dc');
+
+        for (let d = 1; d <= daysCount; d++) {
+            const dayEntry = schedule.find(s => s.dayNumber === d);
+            if (dayEntry && !dayEntry.doctor) {
+                const dateStr = formatDateStr(state.year, state.month, d);
+                const hospOnCall = getAllHospitalOnCallDoctors(dateStr);
+                const hospCleanSet = new Set(hospOnCall.map(h => h.cleanName));
+
+                // 1. Doctors on-call in hospital on this date who still have DC quota
+                let chosen = dcCandidates.find(r => {
+                    const clean = normalizeArabic(r.name);
+                    const filled = assigned[clean] || 0;
+                    return (filled < r.dc_target) && hospCleanSet.has(clean);
+                });
+
+                // 2. Fallback to any candidate without ER/Con conflict
+                if (!chosen) {
+                    chosen = dcCandidates.find(r => {
+                        const filled = assigned[normalizeArabic(r.name)] || 0;
+                        if (filled >= r.dc_target) return false;
+                        const evalRes = evaluateCellConflict(r.name, dateStr, 'dc', 'doctor');
+                        return !evalRes.hasConflict;
+                    });
+                }
+
+                if (chosen) {
+                    dayEntry.doctor = chosen.name;
+                    assigned[normalizeArabic(chosen.name)] = (assigned[normalizeArabic(chosen.name)] || 0) + 1;
+                }
+            }
+        }
+    }
+
+    /**
+     * RS ER AUTOMATIC DISTRIBUTION
+     */
+    function runAutoDistributionRSER(mode, daysCount, activeDocs) {
+        const schedule = state.schedules.rs;
+        const shifts = ['er_morning', 'er_afternoon', 'er_preNight', 'er_lateNight'];
+        const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
+        const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || daysCount;
+
+        if (mode === 'fresh') {
+            schedule.forEach(d => {
+                if (d.dayNumber >= startDay && d.dayNumber <= endDay) {
+                    shifts.forEach(s => d[s] = '');
+                }
+            });
+        }
+
+        const rsCandidates = activeDocs.filter(r => (r.rs_target || 0) > 0);
+        const assigned = countScheduledDutiesPerResident('rs');
+
+        for (let d = startDay; d <= endDay; d++) {
+            const dayEntry = schedule.find(s => s.dayNumber === d);
+            if (dayEntry) {
+                const dateStr = formatDateStr(state.year, state.month, d);
+                shifts.forEach(slot => {
+                    if (!dayEntry[slot]) {
+                        const available = rsCandidates.filter(r => {
+                            const filled = assigned[normalizeArabic(r.name)] || 0;
+                            if (filled >= r.rs_target) return false;
+                            const evalRes = evaluateCellConflict(r.name, dateStr, 'rs', slot);
+                            return !evalRes.hasConflict;
+                        });
+                        if (available.length > 0) {
+                            const chosen = available[0];
+                            dayEntry[slot] = chosen.name;
+                            assigned[normalizeArabic(chosen.name)] = (assigned[normalizeArabic(chosen.name)] || 0) + 1;
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    /**
+     * RS WARDS AUTOMATIC DISTRIBUTION
+     */
+    function runAutoDistributionRSWards(mode, daysCount, activeDocs) {
+        const schedule = state.schedules.rs;
+        const wards = ['ward_private', 'ward_floor4', 'ward_floor5'];
+        const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
+        const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || daysCount;
+
+        if (mode === 'fresh') {
+            schedule.forEach(d => {
+                if (d.dayNumber >= startDay && d.dayNumber <= endDay) {
+                    wards.forEach(w => d[w] = '');
+                }
+            });
+        }
+
+        const rsCandidates = activeDocs.filter(r => (r.rs_target || 0) > 0);
+        const assigned = countScheduledDutiesPerResident('rs');
+
+        for (let d = startDay; d <= endDay; d++) {
+            const dayEntry = schedule.find(s => s.dayNumber === d);
+            if (dayEntry) {
+                const dateStr = formatDateStr(state.year, state.month, d);
+                wards.forEach(slot => {
+                    if (!dayEntry[slot]) {
+                        const available = rsCandidates.filter(r => {
+                            const filled = assigned[normalizeArabic(r.name)] || 0;
+                            if (filled >= r.rs_target) return false;
+                            const evalRes = evaluateCellConflict(r.name, dateStr, 'rs', slot);
+                            return !evalRes.hasConflict;
+                        });
+                        if (available.length > 0) {
+                            const chosen = available[0];
+                            dayEntry[slot] = chosen.name;
+                            assigned[normalizeArabic(chosen.name)] = (assigned[normalizeArabic(chosen.name)] || 0) + 1;
+                        }
+                    }
+                });
+            }
+        }
     }
 
     // =========================================================================
-    // 12. OFFICIAL MINISTERIAL PRINTING LAYOUT
+    // 10. OFFICIAL MINISTERIAL PRINTING LAYOUT (FITS STRICTLY ON A SINGLE A4 PAGE)
     // =========================================================================
 
     function prepareOfficialPrint(targetSheet) {
@@ -2430,96 +3286,89 @@
         if (!printContainer) return;
 
         const sheetNames = {
-            er: 'لقسم الطوارئ (ER)',
-            con: 'للاشتشارية الخافرة (Con)',
-            dc: 'لشهادات الوفاة (DC)',
-            rs_er: 'لإضراب المقيمين الدوريين — طوارئ الإسناد (RS - ER)',
-            rs_wards: 'لإضراب المقيمين الدوريين — ردهات الإسناد (RS - Wards)'
+            er: 'في الطوارئ',
+            con: 'في الاستشارية',
+            dc: 'لشهادات الوفاة',
+            rs_er: 'في إضراب طوارئ الإسناد (RS)',
+            rs_wards: 'في إضراب ردهات الإسناد (RS)'
         };
 
-        const targetTitle = sheetNames[targetSheet] || sheetNames[state.activeTab] || 'لقسم الطوارئ';
+        const activeSheet = targetSheet || state.activeTab;
+        const targetTitle = sheetNames[activeSheet] || 'في الطوارئ';
 
-        // Prepare table rows depending on sheet
+        // Prepare table rows depending on sheet (DAY NUMBER / ت COLUMN IS REMOVED AS REQUESTED)
         let tableHeaderHTML = '';
         let tableRowsHTML = '';
 
-        if (targetSheet === 'er' || (state.activeTab === 'er' && !targetSheet)) {
+        if (activeSheet === 'er' || (!targetSheet && state.activeTab === 'er')) {
             tableHeaderHTML = `
                 <tr>
-                    <th style="border: 1px solid #000; padding: 4px; width: 35px; text-align: center;">ت</th>
-                    <th style="border: 1px solid #000; padding: 4px; width: 65px; text-align: center;">اليوم</th>
-                    <th style="border: 1px solid #000; padding: 4px; width: 80px; text-align: center;">التاريخ</th>
-                    <th style="border: 1px solid #000; padding: 4px; text-align: center;">الصباحية (8ص - 2م)</th>
-                    <th style="border: 1px solid #000; padding: 4px; text-align: center;">بعد الصباحية (2م - 8م)</th>
-                    <th style="border: 1px solid #000; padding: 4px; text-align: center;">البرينايت (8م - 2ص)</th>
-                    <th style="border: 1px solid #000; padding: 4px; text-align: center;">الليلية (2ص - 8ص)</th>
+                    <th style="width: 70px;">اليوم</th>
+                    <th style="width: 75px;">التاريخ</th>
+                    <th>الصباحية (8ص - 2م)</th>
+                    <th>بعد الصباحية (2م - 8م)</th>
+                    <th>البرينايت (8م - 2ص)</th>
+                    <th>الليلية (2ص - 8ص)</th>
                 </tr>
             `;
             (state.schedules.er || []).forEach(day => {
                 tableRowsHTML += `
                     <tr>
-                        <td style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">${day.dayNumber}</td>
-                        <td style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">${day.dayName}</td>
-                        <td style="border: 1px solid #000; padding: 4px; text-align: center; font-family: monospace;">${day.date}</td>
-                        <td style="border: 1px solid #000; padding: 4px; text-align: center;">${day.morning || ''}</td>
-                        <td style="border: 1px solid #000; padding: 4px; text-align: center;">${day.afternoon || ''}</td>
-                        <td style="border: 1px solid #000; padding: 4px; text-align: center;">${day.preNight || ''}</td>
-                        <td style="border: 1px solid #000; padding: 4px; text-align: center;">${day.lateNight || ''}</td>
+                        <td style="font-weight: bold;">${day.dayName}</td>
+                        <td style="font-family: Arial, sans-serif;">${formatArabicDateNumbers(day.date)}</td>
+                        <td>${day.morning || ''}</td>
+                        <td>${day.afternoon || ''}</td>
+                        <td>${day.preNight || ''}</td>
+                        <td>${day.lateNight || ''}</td>
                     </tr>
                 `;
             });
-        } else if (targetSheet === 'con') {
+        } else if (activeSheet === 'con') {
             tableHeaderHTML = `
                 <tr>
-                    <th style="border: 1px solid #000; padding: 4px; width: 40px; text-align: center;">ت</th>
-                    <th style="border: 1px solid #000; padding: 4px; width: 80px; text-align: center;">اليوم</th>
-                    <th style="border: 1px solid #000; padding: 4px; width: 100px; text-align: center;">التاريخ</th>
-                    <th style="border: 1px solid #000; padding: 4px; text-align: center;">طبيب الاستشارية الخافرة</th>
+                    <th style="width: 100px;">اليوم</th>
+                    <th style="width: 100px;">التاريخ</th>
+                    <th>طبيب الاستشارية الخافرة</th>
                 </tr>
             `;
             (state.schedules.con || []).forEach(day => {
                 tableRowsHTML += `
                     <tr>
-                        <td style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">${day.dayNumber}</td>
-                        <td style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">${day.dayName}</td>
-                        <td style="border: 1px solid #000; padding: 4px; text-align: center; font-family: monospace;">${day.date}</td>
-                        <td style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">${day.doctor || ''}</td>
+                        <td style="font-weight: bold;">${day.dayName}</td>
+                        <td style="font-family: Arial, sans-serif;">${formatArabicDateNumbers(day.date)}</td>
+                        <td style="font-weight: bold;">${day.doctor || ''}</td>
                     </tr>
                 `;
             });
-        } else if (targetSheet === 'dc') {
+        } else if (activeSheet === 'dc') {
             tableHeaderHTML = `
                 <tr>
-                    <th style="border: 1px solid #000; padding: 4px; width: 40px; text-align: center;">ت</th>
-                    <th style="border: 1px solid #000; padding: 4px; width: 80px; text-align: center;">اليوم</th>
-                    <th style="border: 1px solid #000; padding: 4px; width: 100px; text-align: center;">التاريخ</th>
-                    <th style="border: 1px solid #000; padding: 4px; text-align: center;">طبيب شهادات الوفاة المكلف</th>
+                    <th style="width: 100px;">اليوم</th>
+                    <th style="width: 100px;">التاريخ</th>
+                    <th>طبيب شهادات الوفاة المكلف</th>
                 </tr>
             `;
             (state.schedules.dc || []).forEach(day => {
                 tableRowsHTML += `
                     <tr>
-                        <td style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">${day.dayNumber}</td>
-                        <td style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">${day.dayName}</td>
-                        <td style="border: 1px solid #000; padding: 4px; text-align: center; font-family: monospace;">${day.date}</td>
-                        <td style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">${day.doctor || ''}</td>
+                        <td style="font-weight: bold;">${day.dayName}</td>
+                        <td style="font-family: Arial, sans-serif;">${formatArabicDateNumbers(day.date)}</td>
+                        <td style="font-weight: bold;">${day.doctor || ''}</td>
                     </tr>
                 `;
             });
-        } else if (targetSheet === 'rs_er') {
-            // Rotators Strike ER Printout (Strictly from RS Start Date to RS End Date or latest scheduled date!)
+        } else if (activeSheet === 'rs_er') {
             const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
             const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || getDaysInMonth(state.year, state.month);
 
             tableHeaderHTML = `
                 <tr>
-                    <th style="border: 1px solid #000; padding: 4px; width: 35px; text-align: center;">ت</th>
-                    <th style="border: 1px solid #000; padding: 4px; width: 65px; text-align: center;">اليوم</th>
-                    <th style="border: 1px solid #000; padding: 4px; width: 80px; text-align: center;">التاريخ</th>
-                    <th style="border: 1px solid #000; padding: 4px; text-align: center;">الصباحية (8ص - 2م)</th>
-                    <th style="border: 1px solid #000; padding: 4px; text-align: center;">بعد الصباحية (2م - 8م)</th>
-                    <th style="border: 1px solid #000; padding: 4px; text-align: center;">البرينايت (8م - 2ص)</th>
-                    <th style="border: 1px solid #000; padding: 4px; text-align: center;">الليلية (2ص - 8ص)</th>
+                    <th style="width: 70px;">اليوم</th>
+                    <th style="width: 75px;">التاريخ</th>
+                    <th>الصباحية (8ص - 2م)</th>
+                    <th>بعد الصباحية (2م - 8م)</th>
+                    <th>البرينايت (8م - 2ص)</th>
+                    <th>الليلية (2ص - 8ص)</th>
                 </tr>
             `;
 
@@ -2527,30 +3376,27 @@
                 if (day.dayNumber >= startDay && day.dayNumber <= endDay) {
                     tableRowsHTML += `
                         <tr>
-                            <td style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">${day.dayNumber}</td>
-                            <td style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">${day.dayName}</td>
-                            <td style="border: 1px solid #000; padding: 4px; text-align: center; font-family: monospace;">${day.date}</td>
-                            <td style="border: 1px solid #000; padding: 4px; text-align: center;">${day.er_morning || ''}</td>
-                            <td style="border: 1px solid #000; padding: 4px; text-align: center;">${day.er_afternoon || ''}</td>
-                            <td style="border: 1px solid #000; padding: 4px; text-align: center;">${day.er_preNight || ''}</td>
-                            <td style="border: 1px solid #000; padding: 4px; text-align: center;">${day.er_lateNight || ''}</td>
+                            <td style="font-weight: bold;">${day.dayName}</td>
+                            <td style="font-family: Arial, sans-serif;">${formatArabicDateNumbers(day.date)}</td>
+                            <td>${day.er_morning || ''}</td>
+                            <td>${day.er_afternoon || ''}</td>
+                            <td>${day.er_preNight || ''}</td>
+                            <td>${day.er_lateNight || ''}</td>
                         </tr>
                     `;
                 }
             });
-        } else if (targetSheet === 'rs_wards') {
-            // Rotators Strike Wards Printout
+        } else if (activeSheet === 'rs_wards') {
             const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
             const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || getDaysInMonth(state.year, state.month);
 
             tableHeaderHTML = `
                 <tr>
-                    <th style="border: 1px solid #000; padding: 4px; width: 35px; text-align: center;">ت</th>
-                    <th style="border: 1px solid #000; padding: 4px; width: 65px; text-align: center;">اليوم</th>
-                    <th style="border: 1px solid #000; padding: 4px; width: 80px; text-align: center;">التاريخ</th>
-                    <th style="border: 1px solid #000; padding: 4px; text-align: center;">الجناح الخاص</th>
-                    <th style="border: 1px solid #000; padding: 4px; text-align: center;">الجناح العام / طابق 4</th>
-                    <th style="border: 1px solid #000; padding: 4px; text-align: center;">الجناح العام / طابق 5</th>
+                    <th style="width: 70px;">اليوم</th>
+                    <th style="width: 75px;">التاريخ</th>
+                    <th>الجناح الخاص</th>
+                    <th>الجناح العام / طابق 4</th>
+                    <th>الجناح العام / طابق 5</th>
                 </tr>
             `;
 
@@ -2558,50 +3404,48 @@
                 if (day.dayNumber >= startDay && day.dayNumber <= endDay) {
                     tableRowsHTML += `
                         <tr>
-                            <td style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">${day.dayNumber}</td>
-                            <td style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">${day.dayName}</td>
-                            <td style="border: 1px solid #000; padding: 4px; text-align: center; font-family: monospace;">${day.date}</td>
-                            <td style="border: 1px solid #000; padding: 4px; text-align: center;">${day.ward_private || ''}</td>
-                            <td style="border: 1px solid #000; padding: 4px; text-align: center;">${day.ward_floor4 || ''}</td>
-                            <td style="border: 1px solid #000; padding: 4px; text-align: center;">${day.ward_floor5 || ''}</td>
+                            <td style="font-weight: bold;">${day.dayName}</td>
+                            <td style="font-family: Arial, sans-serif;">${formatArabicDateNumbers(day.date)}</td>
+                            <td>${day.ward_private || ''}</td>
+                            <td>${day.ward_floor4 || ''}</td>
+                            <td>${day.ward_floor5 || ''}</td>
                         </tr>
                     `;
                 }
             });
         }
 
+        const arabicOrderDate = state.orderDate ? formatArabicDateNumbers(state.orderDate) : formatArabicDateNumbers(new Date().toISOString().split('T')[0]);
+
         printContainer.innerHTML = `
-            <div style="font-family: 'Cairo', Arial, sans-serif; direction: rtl; color: #000; width: 100%;">
+            <div style="font-family: 'Cairo', Arial, sans-serif; direction: rtl; color: #000; width: 100%; box-sizing: border-box;">
                 
-                <!-- Official Administrative Letterhead -->
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 8px;">
-                    <div style="text-align: right; line-height: 1.4; font-size: 10pt; font-weight: bold;">
-                        <div>جمهورية العراق</div>
-                        <div>وزارة الصحة</div>
-                        <div>دائرة صحة البصرة</div>
-                        <div>${state.hospitalName}</div>
-                        <div>شعبة إدارة الموارد البشرية</div>
-                    </div>
+                <!-- 1. OFFICIAL CENTERED HEADER (MATCHING USER IMAGE 2) -->
+                <div style="text-align: center; line-height: 1.25; margin-bottom: 6px;">
+                    <div style="font-size: 10.5pt; font-weight: bold;">جمهورية العراق</div>
+                    <div style="font-size: 10.5pt; font-weight: bold;">وزارة الصحة</div>
+                    <div style="font-size: 10.5pt; font-weight: bold;">دائرة صحة البصرة</div>
+                    <div style="font-size: 10.5pt; font-weight: bold;">${state.hospitalName}</div>
+                    <div style="font-size: 10pt; font-weight: bold;">شعبة ادارة الموارد البشرية</div>
+                </div>
 
-                    <div style="text-align: center; line-height: 1.3;">
-                        <div style="font-size: 11pt; font-weight: bold;">جمهورية العراق</div>
-                        <div style="font-size: 16pt; font-weight: 900; margin: 4px 0;">أمـــــر إداري</div>
-                    </div>
+                <!-- 2. ORDER NUMBER & DATE (ON RIGHT, MATCHING USER IMAGE 2) -->
+                <div style="text-align: right; margin-bottom: 6px; font-size: 9pt; font-weight: bold; line-height: 1.3;">
+                    <div>العـــدد / &nbsp; ${state.orderNumber || ''}</div>
+                    <div>التاريخ / &nbsp; ${arabicOrderDate}</div>
+                </div>
 
-                    <div style="text-align: left; line-height: 1.4; font-size: 10pt;" dir="ltr">
-                        <div><strong>No:</strong> ${state.orderNumber || '4821'}</div>
-                        <div><strong>Date:</strong> ${new Date().toISOString().split('T')[0]}</div>
+                <!-- 3. ORDER TITLE & INTRO (MATCHING USER IMAGE 2) -->
+                <div style="text-align: center; margin-bottom: 6px;">
+                    <div style="font-size: 11.5pt; font-weight: 900; margin-bottom: 2px;">امر اداري</div>
+                    <div style="font-size: 9pt; font-weight: bold;">
+                        تقرر ان يكون جدول خفارات المقيمين الاقدمين ${targetTitle} لشهر <u>${state.monthYear}</u> كما مبين ادناه: -
                     </div>
                 </div>
 
-                <!-- Administrative Intro Text -->
-                <div style="margin: 10px 0; font-size: 10.5pt; font-weight: bold; line-height: 1.5;">
-                    تقرر أن يكون جدول خفارات المقيمين الأقدمين ${targetTitle} لشهر <u>${state.monthYear}</u> كما مبين أدناه:-
-                </div>
-
-                <!-- Pristine Print Table -->
-                <table style="width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 9.5pt; border: 1.5px solid #000;">
-                    <thead style="background-color: #f1f5f9; -webkit-print-color-adjust: exact;">
+                <!-- 4. FORMAL PRINT TABLE (DAY NUMBER 'ت' REMOVED, SINGLE A4 PAGE TUNED) -->
+                <table class="print-table">
+                    <thead style="background-color: #f1f5f9;">
                         ${tableHeaderHTML}
                     </thead>
                     <tbody>
@@ -2609,30 +3453,37 @@
                     </tbody>
                 </table>
 
-                <!-- Administrative Instructions & Notes -->
-                <div style="margin-top: 14px; font-size: 9pt; line-height: 1.5; border: 1px solid #000; padding: 6px 10px; border-radius: 4px;">
-                    <div>◆ يرجى تبليغ رئيس الأطباء المقيمين في حالة تبديل الخفارة وبخلافه يتحمل الطرفان المسؤولية الإدارية والقانونية.</div>
-                    <div>◆ في حالة تغيب الطبيب عن الخفارة، يعتبر غياباً ويكون التعويض مضاعفاً بموجب الضوابط والتعليمات النافذة.</div>
+                <!-- 5. INSTRUCTIONS (MATCHING USER IMAGE 1) -->
+                <div style="margin-top: 5px; font-size: 7.5pt; font-weight: bold; line-height: 1.35; text-align: right;">
+                    <div>◆ يرجى تبليغ رئيس الاطباء المقيمين في حالة تبديل الخفارة وبخلافه يتحمل الطرفين المسؤولية.</div>
+                    <div>◆ في حالة تغيب الطبيب عن الخفارة، يعتبر غياب ويكون التعويض مضاعف.</div>
                 </div>
 
-                <!-- Signatures Block -->
-                <div style="display: flex; justify-content: space-between; margin-top: 30px; text-align: center; font-size: 10pt; font-weight: bold;">
-                    <div style="width: 23%;">
-                        <div>منظم الجدول</div>
-                        <div style="margin-top: 30px;">............................</div>
+                <!-- 6. SIGNATURES (MATCHING USER IMAGE 1: HEAD OF RESIDENTS RIGHT, HOSPITAL DIRECTOR LEFT) -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 10px; font-size: 8.5pt;">
+                    <!-- Head of Residents (Right) -->
+                    <div style="width: 45%; text-align: center;">
+                        <div style="font-weight: bold; font-size: 9pt;">${state.headOfResidents || 'د. محمد راضي خضر'}</div>
+                        <div style="font-weight: bold; font-size: 8pt; margin-top: 1px;">رئيس الأطباء المقيمين</div>
                     </div>
-                    <div style="width: 23%;">
-                        <div>رئيس الأطباء المقيمين</div>
-                        <div style="margin-top: 30px;">............................</div>
+
+                    <!-- Hospital Director (Left) -->
+                    <div style="width: 45%; text-align: center;">
+                        <div style="font-size: 7.5pt; font-weight: bold;">الطبيب الاخصائي</div>
+                        <div style="font-weight: bold; font-size: 9pt;">${state.headOfHospital || 'د. علي عبد معن'}</div>
+                        <div style="font-weight: bold; font-size: 8pt; margin-top: 1px;">مدير ${state.hospitalName}</div>
                     </div>
-                    <div style="width: 23%;">
-                        <div>مسؤول الموارد البشرية</div>
-                        <div style="margin-top: 30px;">............................</div>
-                    </div>
-                    <div style="width: 23%;">
-                        <div>مدير المستشفى</div>
-                        <div style="margin-top: 30px;">............................</div>
-                    </div>
+                </div>
+
+                <!-- 7. COPIES TO (MATCHING USER IMAGE 1) -->
+                <div style="margin-top: 6px; font-size: 7pt; font-weight: bold; line-height: 1.25; text-align: right;">
+                    <div>نسخه منه الى: -</div>
+                    <div>◆ دائرة صحة البصرة / قسم الامور الإدارية / للعلم مع التقدير</div>
+                    <div>◆ دائرة صحة البصرة / قسم التفتيش / للعلم مع التقدير</div>
+                    <div>◆ دائرة صحة البصرة / قسم العمليات الطبية والخدمات المتخصصة / للعلم مع التقدير</div>
+                    <div>◆ مكتب مدير المستشفى /للعلم مع التقدير</div>
+                    <div>◆ رئيس الاطباء المقيمين / شعبة الطوارئ / لوحة الاعلانات – وحدة المتابعة</div>
+                    <div>◆ الاوراق مع الأوليات</div>
                 </div>
 
             </div>
@@ -2641,8 +3492,14 @@
         window.print();
     }
 
+    function formatArabicDateNumbers(dateStr) {
+        if (!dateStr) return '';
+        // Convert YYYY-MM-DD to YYYY/MM/DD
+        return dateStr.replace(/-/g, '/');
+    }
+
     // =========================================================================
-    // 13. EXCEL EXPORT
+    // 11. EXCEL EXPORT
     // =========================================================================
 
     function exportFullScheduleToExcel() {
@@ -2689,9 +3546,9 @@
 
         // 5. DB Sheet
         const dbData = [
-            ['الاسم', 'الجنس', 'الاختصاص', 'نوع البورد', 'المرحلة', 'نصاب ER', 'نصاب Con', 'نصاب DC', 'نصاب RS', 'الحالة', 'ملاحظات'],
+            ['الاسم', 'الجنس', 'الاختصاص', 'نوع البورد', 'المرحلة', 'نصاب ER', 'نصاب Con', 'نصاب DC', 'نصاب RS', 'الحالة', 'شهر الانتهاء', 'الهاتف', 'ملاحظات'],
             ...(state.residents || []).map(r => [
-                r.name, r.sex, r.specialty, r.board, r.stage, r.er_target, r.con_target, r.dc_target, r.rs_target, r.active ? 'نشط' : 'متوقف', r.notes
+                r.name, r.sex === 'F' ? 'أنثى' : 'ذكر', r.specialty, r.board, r.stage, r.er_target, r.con_target, r.dc_target, r.rs_target, r.active ? 'نشط' : 'متوقف', r.expiryMonth || '', r.phone || '', r.notes
             ])
         ];
         const wsDb = XLSX.utils.aoa_to_sheet(dbData);
@@ -2702,7 +3559,7 @@
     }
 
     // =========================================================================
-    // NOTIFICATIONS SYSTEM
+    // NOTIFICATIONS
     // =========================================================================
 
     function showNotification(msg, type = 'info') {
@@ -2734,7 +3591,7 @@
     }
 
     // =========================================================================
-    // EXPOSE TO WINDOW
+    // GLOBAL EXPORTS
     // =========================================================================
 
     window.EmergencyHub = {
@@ -2744,6 +3601,9 @@
         onHospitalChange,
         onMonthYearChange,
         onOrderNumberChange,
+        onOrderDateChange,
+        onHeadOfResidentsChange,
+        onHeadOfHospitalChange,
         suggestSequentialOrderNumber,
         onRsDateChange,
         toggleRotatorsStrike,
@@ -2753,17 +3613,30 @@
         selectDoctorForSlot,
         clearActiveSlot,
         clearCellOnly,
+        openConflictExplanation,
+        closeConflictModal,
+        triggerScheduleAutoGenerate,
+        closeAutoGenerateModal,
+        runAutoDistribution,
+        onScheduleSearchInput,
+        onScheduleShiftFilterChange,
+        onScheduleDayFilterChange,
+        onScheduleStatusFilterChange,
+        resetScheduleFilters,
         toggleShowInactiveInDB,
-        inlineEditResidentNumber,
-        inlineEditResidentField,
-        cycleResidentBoard,
-        cycleResidentSex,
-        toggleResidentActive,
+        onResidentFieldChange,
+        onResidentTargetChange,
+        deactivateResidentWithConfirmation,
+        reactivateResident,
+        advanceBoardResidentsStage,
+        openResidentPrefsModal,
+        closeResidentPrefsModal,
+        saveResidentPreferences,
         deleteResident,
         downloadEmergencyDbJson,
         openExportResidentModal,
         closeExportResidentModal,
-        confirmExportResidentToHospital,
+        handleConfirmExportResident,
         openHospitalSyncModal,
         closeHospitalSyncModal,
         syncDoctorNameSpelling,
@@ -2772,15 +3645,13 @@
         openAddResidentModal,
         closeAddResidentModal,
         handleSaveNewResident,
-        autoGenerateSchedule,
         prepareOfficialPrint,
         exportFullScheduleToExcel,
         resetEmergencyToDefaults
     };
 
-    // Global direct aliases for inline HTML event handlers
+    // Global direct aliases for inline HTML attributes
     window.switchTab = switchTab;
-    window.autoGenerateSchedule = autoGenerateSchedule;
     window.exportFullScheduleToExcel = exportFullScheduleToExcel;
     window.resetEmergencyToDefaults = resetEmergencyToDefaults;
     window.openDoctorPicker = openDoctorPicker;
@@ -2789,11 +3660,23 @@
     window.selectDoctorForSlot = selectDoctorForSlot;
     window.clearActiveSlot = clearActiveSlot;
     window.clearCellOnly = clearCellOnly;
+    window.openConflictExplanation = openConflictExplanation;
+    window.closeConflictModal = closeConflictModal;
+    window.triggerScheduleAutoGenerate = triggerScheduleAutoGenerate;
+    window.closeAutoGenerateModal = closeAutoGenerateModal;
+    window.onScheduleSearchInput = onScheduleSearchInput;
+    window.onScheduleShiftFilterChange = onScheduleShiftFilterChange;
+    window.onScheduleDayFilterChange = onScheduleDayFilterChange;
+    window.onScheduleStatusFilterChange = onScheduleStatusFilterChange;
+    window.resetScheduleFilters = resetScheduleFilters;
     window.toggleRotatorsStrike = toggleRotatorsStrike;
     window.suggestSequentialOrderNumber = suggestSequentialOrderNumber;
     window.onHospitalChange = onHospitalChange;
     window.onMonthYearChange = onMonthYearChange;
     window.onOrderNumberChange = onOrderNumberChange;
+    window.onOrderDateChange = onOrderDateChange;
+    window.onHeadOfResidentsChange = onHeadOfResidentsChange;
+    window.onHeadOfHospitalChange = onHeadOfHospitalChange;
     window.onRsDateChange = onRsDateChange;
     window.openHospitalSyncModal = openHospitalSyncModal;
     window.closeHospitalSyncModal = closeHospitalSyncModal;
@@ -2802,21 +3685,23 @@
     window.importAllMissingDoctorsToER = importAllMissingDoctorsToER;
     window.openExportResidentModal = openExportResidentModal;
     window.closeExportResidentModal = closeExportResidentModal;
-    window.confirmExportResidentToHospital = confirmExportResidentToHospital;
+    window.handleConfirmExportResident = handleConfirmExportResident;
     window.openAddResidentModal = openAddResidentModal;
     window.closeAddResidentModal = closeAddResidentModal;
     window.handleSaveNewResident = handleSaveNewResident;
     window.toggleShowInactiveInDB = toggleShowInactiveInDB;
-    window.inlineEditResidentNumber = inlineEditResidentNumber;
-    window.inlineEditResidentField = inlineEditResidentField;
-    window.cycleResidentBoard = cycleResidentBoard;
-    window.cycleResidentSex = cycleResidentSex;
-    window.toggleResidentActive = toggleResidentActive;
+    window.onResidentFieldChange = onResidentFieldChange;
+    window.onResidentTargetChange = onResidentTargetChange;
+    window.deactivateResidentWithConfirmation = deactivateResidentWithConfirmation;
+    window.reactivateResident = reactivateResident;
+    window.advanceBoardResidentsStage = advanceBoardResidentsStage;
+    window.openResidentPrefsModal = openResidentPrefsModal;
+    window.closeResidentPrefsModal = closeResidentPrefsModal;
+    window.saveResidentPreferences = saveResidentPreferences;
     window.deleteResident = deleteResident;
     window.downloadEmergencyDbJson = downloadEmergencyDbJson;
     window.prepareOfficialPrint = prepareOfficialPrint;
 
-    // Auto-init on DOM ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initEmergencyApp);
     } else {

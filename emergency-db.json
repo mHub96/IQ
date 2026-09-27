@@ -19,7 +19,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_2",
@@ -37,7 +41,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_3",
@@ -55,7 +63,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_4",
@@ -73,7 +85,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_5",
@@ -91,7 +107,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_6",
@@ -109,7 +129,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_7",
@@ -127,7 +151,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_8",
@@ -145,7 +173,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_9",
@@ -163,7 +195,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_10",
@@ -181,7 +217,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_11",
@@ -199,7 +239,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_12",
@@ -217,7 +261,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_13",
@@ -235,7 +283,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_14",
@@ -253,7 +305,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_15",
@@ -271,7 +327,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_16",
@@ -289,7 +349,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_17",
@@ -307,7 +371,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_18",
@@ -325,7 +393,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_19",
@@ -343,7 +415,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_20",
@@ -361,7 +437,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_21",
@@ -379,7 +459,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_22",
@@ -397,7 +481,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_23",
@@ -415,7 +503,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_24",
@@ -433,7 +525,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_25",
@@ -451,7 +547,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_26",
@@ -469,7 +569,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_27",
@@ -487,7 +591,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_28",
@@ -505,7 +613,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_29",
@@ -523,7 +635,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_30",
@@ -541,7 +657,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_31",
@@ -559,7 +679,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_32",
@@ -577,7 +701,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_33",
@@ -595,7 +723,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_34",
@@ -613,7 +745,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_35",
@@ -631,7 +767,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_36",
@@ -649,7 +789,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_37",
@@ -667,7 +811,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_38",
@@ -685,7 +833,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_39",
@@ -703,7 +855,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_40",
@@ -721,7 +877,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_41",
@@ -739,7 +899,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_42",
@@ -757,7 +921,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_43",
@@ -775,7 +943,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_44",
@@ -793,7 +965,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_45",
@@ -811,7 +987,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_46",
@@ -829,7 +1009,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_47",
@@ -847,7 +1031,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_48",
@@ -865,7 +1053,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_49",
@@ -883,7 +1075,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_50",
@@ -901,7 +1097,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_51",
@@ -919,7 +1119,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_52",
@@ -937,7 +1141,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_53",
@@ -955,7 +1163,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_54",
@@ -973,7 +1185,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_55",
@@ -991,7 +1207,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_56",
@@ -1009,7 +1229,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_57",
@@ -1027,7 +1251,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_58",
@@ -1045,7 +1273,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_59",
@@ -1063,7 +1295,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_60",
@@ -1081,7 +1317,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_61",
@@ -1099,7 +1339,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_62",
@@ -1117,7 +1361,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_63",
@@ -1135,7 +1383,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_64",
@@ -1153,7 +1405,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_65",
@@ -1171,7 +1427,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_66",
@@ -1189,7 +1449,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_67",
@@ -1207,7 +1471,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_68",
@@ -1225,7 +1493,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_69",
@@ -1243,7 +1515,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_70",
@@ -1261,7 +1537,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_71",
@@ -1279,7 +1559,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_72",
@@ -1297,7 +1581,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_73",
@@ -1315,7 +1603,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_74",
@@ -1333,7 +1625,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_75",
@@ -1351,7 +1647,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_76",
@@ -1369,7 +1669,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_77",
@@ -1387,7 +1691,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_78",
@@ -1405,7 +1713,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_79",
@@ -1423,7 +1735,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_80",
@@ -1441,7 +1757,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_81",
@@ -1459,7 +1779,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_82",
@@ -1477,7 +1801,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_83",
@@ -1495,7 +1823,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_84",
@@ -1513,7 +1845,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_85",
@@ -1531,7 +1867,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_86",
@@ -1549,7 +1889,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_87",
@@ -1567,7 +1911,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_88",
@@ -1585,7 +1933,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_89",
@@ -1603,7 +1955,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_90",
@@ -1621,7 +1977,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_91",
@@ -1639,7 +1999,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_92",
@@ -1657,7 +2021,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_93",
@@ -1675,7 +2043,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_94",
@@ -1693,7 +2065,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_95",
@@ -1711,7 +2087,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_96",
@@ -1729,7 +2109,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_97",
@@ -1747,7 +2131,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_98",
@@ -1765,7 +2153,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_99",
@@ -1783,7 +2175,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_100",
@@ -1801,7 +2197,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_101",
@@ -1819,7 +2219,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_102",
@@ -1837,7 +2241,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_103",
@@ -1855,7 +2263,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_104",
@@ -1873,7 +2285,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_105",
@@ -1891,7 +2307,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_106",
@@ -1909,7 +2329,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_107",
@@ -1927,7 +2351,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_108",
@@ -1945,7 +2373,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_109",
@@ -1963,7 +2395,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_110",
@@ -1981,7 +2417,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_111",
@@ -1999,7 +2439,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_112",
@@ -2017,7 +2461,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_113",
@@ -2035,7 +2483,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_114",
@@ -2053,7 +2505,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_115",
@@ -2071,7 +2527,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_116",
@@ -2089,7 +2549,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_117",
@@ -2107,7 +2571,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_118",
@@ -2125,7 +2593,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_119",
@@ -2143,7 +2615,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_120",
@@ -2161,7 +2637,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_121",
@@ -2179,7 +2659,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_122",
@@ -2197,7 +2681,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_123",
@@ -2215,7 +2703,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_124",
@@ -2233,7 +2725,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_125",
@@ -2251,7 +2747,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_126",
@@ -2269,7 +2769,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_127",
@@ -2287,7 +2791,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_128",
@@ -2305,7 +2813,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_129",
@@ -2323,7 +2835,11 @@
       "active": false,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_130",
@@ -2341,7 +2857,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_131",
@@ -2359,7 +2879,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_132",
@@ -2377,7 +2901,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_133",
@@ -2395,7 +2923,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_134",
@@ -2413,7 +2945,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_135",
@@ -2431,7 +2967,11 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     },
     {
       "id": "er_res_136",
@@ -2449,7 +2989,14 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     }
-  ]
+  ],
+  "headOfResidents": "د. محمد راضي خضر",
+  "headOfHospital": "د. علي عبد معن",
+  "headOfHospitalTitle": "مدير مستشفى الصدر التعليمي"
 }

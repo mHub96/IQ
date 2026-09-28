@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T15:13:27.208Z",
+  "lastUpdated": "2026-09-28T15:26:51.294Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20705,16 +20705,6 @@
             "RM"
           ],
           "enabled": true
-        },
-        {
-          "id": "REF",
-          "name_ar": "الاحالات",
-          "name_en": "Referrals",
-          "icon": "🚑",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true,
-          "color": "#a30000"
         },
         {
           "id": "AO",
@@ -43791,16 +43781,6 @@
       "name_ar": "طب الامراض التنفسية",
       "name_en": "Respiratory Medicine",
       "icon": "🫁",
-      "color": "#0f766e",
-      "parentSpec": null,
-      "acceptPool": [],
-      "enabled": true
-    },
-    {
-      "id": "REF",
-      "name_ar": "الاحالات",
-      "name_en": "Referrals",
-      "icon": "🚑",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],

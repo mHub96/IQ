@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T20:21:04.830Z",
+  "lastUpdated": "2026-09-28T20:27:12.269Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20707,16 +20707,6 @@
           "enabled": true
         },
         {
-          "id": "REFE",
-          "name_ar": "الاحالات",
-          "name_en": "Referrals",
-          "icon": "🚑",
-          "color": "#650094",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
           "id": "Der",
           "name_ar": "الجلدية",
           "name_en": "Dermatology",
@@ -20725,6 +20715,16 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
+        },
+        {
+          "id": "REFE",
+          "name_ar": "الاحالات",
+          "name_en": "Referrals",
+          "icon": "🚑",
+          "color": "#650094",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "EM",

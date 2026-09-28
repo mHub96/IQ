@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T13:40:16.649Z",
+  "lastUpdated": "2026-09-28T13:52:30.423Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -31993,10 +31993,11 @@
         {
           "date": "28/09/2026",
           "specCode": "O",
-          "name": "د. بشير حسن",
+          "name": "د. مصطفى هادي",
           "VisitCount": 0,
           "dutyTime": "",
-          "dutySlot": 0
+          "dutySlot": 0,
+          "timestamp": "16:52"
         },
         {
           "date": "29/09/2026",

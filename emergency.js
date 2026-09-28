@@ -98,6 +98,13 @@
         monthlySchedules: {},
         hospitalResidents: {},
         residents: [],
+        // Database Sorting states
+        dbSortColumn: 'name',
+        dbSortDirection: 'asc',
+        // Specialty Custom Colors Map
+        specialtyColors: {},
+        // Clear Print Metadata (Handwritten pen dotted lines)
+        clearPrintMeta: false,
         schedules: {
             er: [],
             con: [],
@@ -107,10 +114,6 @@
         // Undo / Redo history stacks
         undoStack: [],
         redoStack: [],
-        // Residents Database Sort & Specialty Colors
-        dbSortColumn: 'name',
-        dbSortDirection: 'asc',
-        specialtyColors: {},
         // Official Paper Print Customization
         printOptions: {
             theme: 'official',
@@ -126,205 +129,6 @@
     let pendingConflictData = null; // slot data for conflict explanation modal
     let pendingAutoGenerateType = null; // schedule type for auto generate modal
     let activePrintSheet = 'er'; // active sheet for print options modal
-
-    // Stage Number to Choice Normalizer
-    const STAGE_NUM_TO_CHOICE = {
-        '1': 'الأولى', '1.0': 'الأولى', 'R1': 'الأولى',
-        '2': 'الثانية', '2.0': 'الثانية', 'R2': 'الثانية',
-        '3': 'الثالثة', '3.0': 'الثالثة', 'R3': 'الثالثة',
-        '4': 'الرابعة', '4.0': 'الرابعة', 'R4': 'الرابعة',
-        '5': 'الخامسة', '5.0': 'الخامسة', 'R5': 'الخامسة',
-        '6': 'السادسة', '6.0': 'السادسة', 'R6': 'السادسة',
-        '0': 'بدون', 'None': 'بدون', 'none': 'بدون', '': 'بدون'
-    };
-
-    function normalizeStageChoice(val) {
-        if (!val) return 'بدون';
-        const s = String(val).trim();
-        if (STAGE_NUM_TO_CHOICE[s]) return STAGE_NUM_TO_CHOICE[s];
-        return s;
-    }
-
-    // Default Specialty Colors Palette
-    const DEFAULT_SPECIALTY_COLORS = {
-        'الجراحة العامة': '#e11d48',
-        'الباطنية': '#2563eb',
-        'طب الطوارئ': '#dc2626',
-        'الكسور والعظام': '#d97706',
-        'النسائية والتوليد': '#db2777',
-        'الأطفال': '#059669',
-        'التخدير والعناية المركزة': '#7c3aed',
-        'العيون': '#0891b2',
-        'الأنف والأذن والحنجرة': '#4f46e5',
-        'الأشعة والتصوير': '#0d9488',
-        'Cardiothoracic': '#9333ea',
-        'Dermatology': '#eab308',
-        'ENT': '#06b6d4',
-        'Emergency': '#f43f5e',
-        'General': '#64748b'
-    };
-
-    function getSpecialtyColor(specName) {
-        if (!specName) return '#64748b';
-        if (state.specialtyColors && state.specialtyColors[specName]) {
-            return state.specialtyColors[specName];
-        }
-        if (DEFAULT_SPECIALTY_COLORS[specName]) {
-            return DEFAULT_SPECIALTY_COLORS[specName];
-        }
-        const palette = ['#e11d48', '#2563eb', '#059669', '#d97706', '#7c3aed', '#0891b2', '#db2777', '#4f46e5', '#ca8a04', '#0d9488'];
-        let hash = 0;
-        for (let i = 0; i < specName.length; i++) {
-            hash = (hash << 5) - hash + specName.charCodeAt(i);
-            hash |= 0;
-        }
-        return palette[Math.abs(hash) % palette.length];
-    }
-
-    function setSpecialtyColor(specName, newColor) {
-        if (!specName || !newColor) return;
-        if (!state.specialtyColors) state.specialtyColors = {};
-        state.specialtyColors[specName] = newColor;
-        saveState();
-        refreshDBView();
-        showNotification(`تم تحديث لون اختصاص (${specName}) بنجاح`, 'success');
-    }
-
-    // Hospital Specialties Registry Provider
-    function getHospitalSpecialties(hospitalId) {
-        const hospId = hospitalId || state.hospitalId;
-        const list = new Set();
-        
-        // 1. From window.Hub if available
-        if (window.Hub && typeof window.Hub.getHospital === 'function') {
-            const h = window.Hub.getHospital(hospId);
-            if (h && Array.isArray(h.specialties)) {
-                h.specialties.forEach(s => {
-                    const name = (window.Hub.getSpecialtyName && window.Hub.getSpecialtyName(s.id || s.code)) || s.name_ar || s.name || s.id;
-                    if (name) list.add(name);
-                });
-            }
-            if (h && Array.isArray(h.names)) {
-                h.names.forEach(doc => {
-                    const sName = (window.Hub.getSpecialtyName && window.Hub.getSpecialtyName(doc.spec)) || doc.spec;
-                    if (sName) list.add(sName);
-                });
-            }
-        }
-        
-        // 2. From current emergency state residents
-        (state.residents || []).forEach(r => {
-            if (r.specialty && r.specialty.trim()) list.add(r.specialty.trim());
-        });
-        
-        // 3. Fallbacks if list is still empty
-        if (list.size === 0) {
-            ['الجراحة العامة', 'الباطنية', 'طب الطوارئ', 'الكسور والعظام', 'النسائية والتوليد', 'الأطفال', 'التخدير والعناية المركزة', 'العيون', 'الأنف والأذن والحنجرة', 'الأشعة والتصوير'].forEach(s => list.add(s));
-        }
-        
-        return Array.from(list).sort((a, b) => a.localeCompare(b, 'ar'));
-    }
-
-    // Check if RS Strike period intersects with the given year & month
-    function isRsActiveInMonth(year, month) {
-        if (!state.rsEnabled || !state.rsStartDate || !state.rsEndDate) return false;
-        const startParts = state.rsStartDate.split('-');
-        const endParts = state.rsEndDate.split('-');
-        if (startParts.length < 3 || endParts.length < 3) return false;
-        const sYear = parseInt(startParts[0], 10);
-        const sMonth = parseInt(startParts[1], 10);
-        const eYear = parseInt(endParts[0], 10);
-        const eMonth = parseInt(endParts[1], 10);
-        
-        const curVal = (parseInt(year, 10) || 0) * 12 + (parseInt(month, 10) || 0);
-        const sVal = sYear * 12 + sMonth;
-        const eVal = eYear * 12 + eMonth;
-        return curVal >= sVal && curVal <= eVal;
-    }
-
-    // Sort resident list according to column and direction
-    function sortResidentList(list, col, dir) {
-        if (!Array.isArray(list)) return [];
-        const direction = dir === 'desc' ? -1 : 1;
-        const arabicStagesOrder = ['الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة', 'السادسة', 'بدون'];
-        const boardOrder = ['Iraqi', 'Arabic', 'None'];
-
-        return [...list].sort((a, b) => {
-            let valA, valB;
-            switch (col) {
-                case 'row':
-                case 'id':
-                    return direction * (String(a.id || '').localeCompare(String(b.id || '')));
-                case 'name':
-                    return direction * normalizeArabic(a.name || '').localeCompare(normalizeArabic(b.name || ''), 'ar');
-                case 'sex':
-                    valA = a.sex || 'M';
-                    valB = b.sex || 'M';
-                    return direction * valA.localeCompare(valB);
-                case 'specialty':
-                    valA = a.specialty || '';
-                    valB = b.specialty || '';
-                    return direction * valA.localeCompare(valB, 'ar');
-                case 'board':
-                    valA = boardOrder.indexOf(a.board) !== -1 ? boardOrder.indexOf(a.board) : 99;
-                    valB = boardOrder.indexOf(b.board) !== -1 ? boardOrder.indexOf(b.board) : 99;
-                    return direction * (valA - valB);
-                case 'stage':
-                    valA = arabicStagesOrder.indexOf(normalizeStageChoice(a.stage));
-                    valB = arabicStagesOrder.indexOf(normalizeStageChoice(b.stage));
-                    if (valA === -1) valA = 99;
-                    if (valB === -1) valB = 99;
-                    return direction * (valA - valB);
-                case 'er_target':
-                    return direction * ((Number(a.er_target) || 0) - (Number(b.er_target) || 0));
-                case 'con_target':
-                    return direction * ((Number(a.con_target) || 0) - (Number(b.con_target) || 0));
-                case 'dc_target':
-                    return direction * ((Number(a.dc_target) || 0) - (Number(b.dc_target) || 0));
-                case 'rs_target':
-                    return direction * ((Number(a.rs_target) || 0) - (Number(b.rs_target) || 0));
-                case 'quota':
-                    const totA = (Number(a.er_target) || 0) + (Number(a.con_target) || 0) + (Number(a.dc_target) || 0);
-                    const totB = (Number(b.er_target) || 0) + (Number(b.con_target) || 0) + (Number(b.dc_target) || 0);
-                    return direction * (totA - totB);
-                case 'expiryMonth':
-                    valA = a.expiryMonth || '';
-                    valB = b.expiryMonth || '';
-                    return direction * valA.localeCompare(valB);
-                default:
-                    return direction * normalizeArabic(a.name || '').localeCompare(normalizeArabic(b.name || ''), 'ar');
-            }
-        });
-    }
-
-    function sortDBByColumn(colKey) {
-        if (state.dbSortColumn === colKey) {
-            state.dbSortDirection = (state.dbSortDirection === 'asc') ? 'desc' : 'asc';
-        } else {
-            state.dbSortColumn = colKey;
-            state.dbSortDirection = 'asc';
-        }
-        state.residents = sortResidentList(state.residents, state.dbSortColumn, state.dbSortDirection);
-        saveState();
-        refreshDBView();
-    }
-
-    function renderSortIcon(colKey) {
-        if (state.dbSortColumn === colKey) {
-            return `<i class="fas fa-sort-${state.dbSortDirection === 'asc' ? 'up text-rose-600' : 'down text-rose-600'} text-xs shrink-0"></i>`;
-        }
-        return `<i class="fas fa-sort text-slate-300 dark:text-slate-600 text-[10px] shrink-0 opacity-40 hover:opacity-100"></i>`;
-    }
-
-    function onDBMonthChange(monthVal) {
-        onMonthYearChange(monthVal, state.year);
-        refreshDBView();
-    }
-
-    function onDBYearChange(yearVal) {
-        onMonthYearChange(state.month, yearVal);
-        refreshDBView();
-    }
 
     // Days in current month
     function getDaysInMonth(year, month) {
@@ -638,7 +442,7 @@
             state.monthlyAllocations[key] = loadedMap;
             (state.residents || []).forEach(r => {
                 if (loadedMap[r.id]) {
-                    r.active = (loadedMap[r.id].active !== undefined) ? loadedMap[r.id].active : true;
+                    r.active = loadedMap[r.id].active !== undefined ? Boolean(loadedMap[r.id].active) : true;
                     r.er_target = Number(loadedMap[r.id].er_target) || 0;
                     r.con_target = Number(loadedMap[r.id].con_target) || 0;
                     r.dc_target = Number(loadedMap[r.id].dc_target) || 0;
@@ -653,7 +457,7 @@
             });
             return true;
         } else {
-            // Empty month: All resident targets are zero/empty by default, and all start active
+            // Empty month: All resident targets are zero/empty by default, active is true
             (state.residents || []).forEach(r => {
                 r.active = true;
                 r.er_target = 0;
@@ -708,13 +512,13 @@
             return false;
         }
 
-        pushScheduleHistory('نسخ أنصبة وحالات الأطباء من الشهر السابق');
+        pushScheduleHistory('نسخ أنصبة الأطباء من الشهر السابق');
 
         let copiedCount = 0;
         (state.residents || []).forEach(r => {
             if (prevMap[r.id]) {
                 if (prevMap[r.id].active !== undefined) {
-                    r.active = prevMap[r.id].active;
+                    r.active = Boolean(prevMap[r.id].active);
                 }
                 r.er_target = Number(prevMap[r.id].er_target) || 0;
                 r.con_target = Number(prevMap[r.id].con_target) || 0;
@@ -728,18 +532,14 @@
         saveState();
         updateDutyDashboard();
         refreshDBView();
-        showNotification(`تم نسخ ونقل أنصبة وحالات ${copiedCount} طبيب من شهر (${prev.month}/${prev.year}) بنجاح`, 'success');
+        showNotification(`تم نسخ ونقل أنصبة ${copiedCount} طبيب من شهر (${prev.month}/${prev.year}) بنجاح`, 'success');
         return true;
     }
 
     function saveCurrentHospitalResidents() {
         if (!state.hospitalResidents) state.hospitalResidents = {};
         if (state.hospitalId && Array.isArray(state.residents)) {
-            // Master hospital registry preserves active: true so month-specific deactivations remain month-isolated
-            state.hospitalResidents[state.hospitalId] = state.residents.map(r => ({
-                ...r,
-                active: true
-            }));
+            state.hospitalResidents[state.hospitalId] = JSON.parse(JSON.stringify(state.residents));
         }
     }
 
@@ -985,7 +785,24 @@
         const tr = document.querySelector(`tr[data-resident-id="${resId}"]`);
         if (!tr) return;
 
+        const hasActiveRS = state.rsEnabled && (stats.extraScheduled > 0 || (Number(res.rs_target) || 0) > 0);
         tr.setAttribute('data-quota-status', isFulfilled ? 'fulfilled' : 'unfulfilled');
+        tr.setAttribute('data-has-extra', hasActiveRS ? 'true' : 'false');
+
+        // Update RS dot badge beside doctor name
+        const nameCell = tr.querySelector('.resident-name-cell') || tr.querySelector('td:nth-child(2)');
+        if (nameCell) {
+            const extraDotEl = nameCell.querySelector('.rs-dot-badge');
+            const flexDiv = nameCell.querySelector('.flex');
+            if (hasActiveRS && !extraDotEl && flexDiv) {
+                const dotSpan = document.createElement('span');
+                dotSpan.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 inline-block shrink-0 ring-2 ring-white dark:ring-slate-900 shadow-xs rs-dot-badge';
+                dotSpan.title = `خفارات إسناد إضافية (مجدول: ${stats.extraScheduled} / نصاب: ${res.rs_target || 0})`;
+                flexDiv.prepend(dotSpan);
+            } else if (!hasActiveRS && extraDotEl) {
+                extraDotEl.remove();
+            }
+        }
 
         let statusBadge = '';
         if (!res.active) {
@@ -998,20 +815,6 @@
         } else {
             tr.className = tr.className.replace(/border-l-emerald-500 bg-emerald-50\/\d+/g, '').replace(/border-l-rose-400 bg-rose-50\/\d+/g, '') + ' bg-rose-50/30 dark:bg-rose-950/10 border-l-4 border-l-rose-400';
             statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">غير مكتمل (${stats.normalScheduled}/${normalTarget})</span>`;
-        }
-
-        const rsTarget = Number(res.rs_target) || 0;
-        const rsActiveInCurrentMonth = isRsActiveInMonth(state.year, state.month);
-        const hasActiveRS = (stats.extraScheduled > 0) || (rsActiveInCurrentMonth && rsTarget > 0);
-        tr.setAttribute('data-has-extra', hasActiveRS ? 'true' : 'false');
-
-        const dotContainer = tr.querySelector('.resident-rs-dot-container');
-        if (dotContainer) {
-            dotContainer.innerHTML = (stats.extraScheduled > 0) ? `
-                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block shrink-0 ring-2 ring-white dark:ring-slate-900 shadow-xs" title="خفارات إسناد إضافية (RS: ${stats.extraScheduled})"></span>
-            ` : (rsActiveInCurrentMonth && rsTarget > 0) ? `
-                <span class="w-2.5 h-2.5 rounded-full border-2 border-amber-500 bg-amber-100 inline-block shrink-0 ring-2 ring-white dark:ring-slate-900 shadow-xs" title="نصاب إسناد مقرر (RS: ${rsTarget})"></span>
-            ` : '';
         }
 
         const badgeCell = tr.querySelector('.resident-status-badge-cell');
@@ -1074,7 +877,7 @@
                 sex: sex,
                 specialty: spec,
                 board: r.board || 'None',
-                stage: normalizeStageChoice(r.stage || 'الأولى'),
+                stage: r.stage || 'الأولى',
                 er_target: 0,
                 con_target: 0,
                 dc_target: 0,
@@ -1102,7 +905,6 @@
 
     function saveState() {
         saveCurrentMonthScheduleToStore();
-        saveCurrentMonthAllocationsToStore();
         saveCurrentHospitalResidents();
         localStorage.setItem(STATE_KEY, JSON.stringify(state));
         updateDutyDashboard();
@@ -1258,7 +1060,6 @@
         syncMetaInputsWithState();
         updateDutyDashboard();
         renderActiveTab();
-        refreshDBView();
         showNotification(`تم التبديل إلى جدول شهر: ${state.monthYear}`, 'info');
     }
 
@@ -1376,12 +1177,6 @@
 
         const rsEndInput = document.getElementById('meta-rs-end');
         if (rsEndInput) rsEndInput.value = state.rsEndDate;
-
-        const dbMonthSelect = document.getElementById('db-month-select');
-        if (dbMonthSelect) dbMonthSelect.value = state.month;
-
-        const dbYearInput = document.getElementById('db-year-input');
-        if (dbYearInput) dbYearInput.value = state.year;
     }
 
     // =========================================================================
@@ -1742,8 +1537,7 @@
         let rsPercent = 0;
         let rsAllocDiff = 0;
 
-        const rsActiveInMonth = isRsActiveInMonth(state.year, state.month);
-        if (state.rsEnabled && rsActiveInMonth && state.rsStartDate && state.rsEndDate) {
+        if (state.rsEnabled && state.rsStartDate && state.rsEndDate) {
             const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
             const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || daysCount;
             rsDaysCount = Math.max(0, endDay - startDay + 1);
@@ -1770,9 +1564,9 @@
         }
 
         // Overall Monthly Hospital Duty Totals
-        const overallRequired = erRequired + conRequired + dcRequired + (state.rsEnabled && rsActiveInMonth ? rsTotalRequired : 0);
-        const overallScheduled = erScheduled + conScheduled + dcScheduled + (state.rsEnabled && rsActiveInMonth ? rsTotalScheduled : 0);
-        const overallAllocated = erAllocated + conAllocated + dcAllocated + (state.rsEnabled && rsActiveInMonth ? rsAllocated : 0);
+        const overallRequired = erRequired + conRequired + dcRequired + (state.rsEnabled ? rsTotalRequired : 0);
+        const overallScheduled = erScheduled + conScheduled + dcScheduled + (state.rsEnabled ? rsTotalScheduled : 0);
+        const overallAllocated = erAllocated + conAllocated + dcAllocated + (state.rsEnabled ? rsAllocated : 0);
         const overallPercent = overallRequired > 0 ? Math.min(100, Math.round((overallScheduled / overallRequired) * 100)) : 0;
         const overallRemaining = Math.max(0, overallRequired - overallScheduled);
         const overallAllocDiff = overallAllocated - overallRequired;
@@ -3228,6 +3022,451 @@
         }
     }
 
+    // Stage names normalization (Converts numbers 1..6 or R1..R6 to Arabic names)
+    function normalizeStageName(val) {
+        if (!val) return 'بدون';
+        const str = String(val).trim();
+        switch (str) {
+            case '1':
+            case 'R1':
+            case 'r1':
+            case 'المرحلة الأولى':
+            case 'الأولى':
+                return 'الأولى';
+            case '2':
+            case 'R2':
+            case 'r2':
+            case 'المرحلة الثانية':
+            case 'الثانية':
+                return 'الثانية';
+            case '3':
+            case 'R3':
+            case 'r3':
+            case 'المرحلة الثالثة':
+            case 'الثالثة':
+                return 'الثالثة';
+            case '4':
+            case 'R4':
+            case 'r4':
+            case 'المرحلة الرابعة':
+            case 'الرابعة':
+                return 'الرابعة';
+            case '5':
+            case 'R5':
+            case 'r5':
+            case 'المرحلة الخامسة':
+            case 'الخامسة':
+                return 'الخامسة';
+            case '6':
+            case 'R6':
+            case 'r6':
+            case 'المرحلة السادسة':
+            case 'السادسة':
+                return 'السادسة';
+            case '0':
+            case 'none':
+            case 'None':
+            case 'بدون':
+            case 'بدون تحديد':
+                return 'بدون';
+            default:
+                return str;
+        }
+    }
+
+    // Default medical specialty color palette
+    const DEFAULT_SPECIALTY_COLORS = {
+        'جراحة عامة': '#10b981',
+        'الجراحة العامة': '#10b981',
+        'general surgery': '#10b981',
+        'جراحة الصدر و الاوعية الدموية': '#f97316',
+        'cardiothoracic': '#f97316',
+        'جراحة الجملة العصبية': '#8b5cf6',
+        'neurosurgery': '#8b5cf6',
+        'الكسور': '#ef4444',
+        'orthopaedics': '#ef4444',
+        'جراحة المسالك البولية': '#06b6d4',
+        'urosurgery': '#06b6d4',
+        'الأذن و الأنف و الحنجرة': '#eab308',
+        'ent': '#eab308',
+        'العيون': '#3b82f6',
+        'ophthalmology': '#3b82f6',
+        'الباطنية': '#6366f1',
+        'internal medicine': '#6366f1',
+        'طب الأطفال': '#ec4899',
+        'paediatrics': '#ec4899',
+        'جراحة التجميل': '#d946ef',
+        'plastic surgery': '#d946ef',
+        'الجلدية': '#14b8a6',
+        'dermatology': '#14b8a6',
+        'الأشعة والسونار': '#64748b',
+        'radiology': '#64748b',
+        'الأورام': '#a855f7',
+        'oncology': '#a855f7',
+        'أمراض الدم': '#be123c',
+        'haematology': '#be123c',
+        'طب الأسرة': '#059669',
+        'family medicine': '#059669',
+        'طوارئ': '#dc2626',
+        'طب الطوارئ': '#dc2626',
+        'emergency': '#dc2626',
+        'gp': '#64748b',
+        'عام': '#64748b',
+        'general': '#64748b'
+    };
+
+    function getSpecialtyColor(specName) {
+        if (!specName) return '#64748b';
+        const clean = specName.trim().toLowerCase();
+        
+        // 1. User customized color
+        if (state.specialtyColors && state.specialtyColors[clean]) {
+            return state.specialtyColors[clean];
+        }
+        if (state.specialtyColors && state.specialtyColors[specName]) {
+            return state.specialtyColors[specName];
+        }
+
+        // 2. Hospital specialty color from Hub
+        if (window.Hub && typeof window.Hub.getHospital === 'function') {
+            const hosp = window.Hub.getHospital(state.hospitalId);
+            if (hosp && Array.isArray(hosp.specialties)) {
+                const found = hosp.specialties.find(s => 
+                    (s.name_ar && s.name_ar.toLowerCase() === clean) ||
+                    (s.name_en && s.name_en.toLowerCase() === clean) ||
+                    (s.name && s.name.toLowerCase() === clean)
+                );
+                if (found && found.color) return found.color;
+            }
+        }
+
+        // 3. Preset color
+        if (DEFAULT_SPECIALTY_COLORS[clean]) {
+            return DEFAULT_SPECIALTY_COLORS[clean];
+        }
+        for (const [key, color] of Object.entries(DEFAULT_SPECIALTY_COLORS)) {
+            if (clean.includes(key) || key.includes(clean)) {
+                return color;
+            }
+        }
+
+        // 4. Hash fallback
+        let hash = 0;
+        for (let i = 0; i < specName.length; i++) {
+            hash = specName.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const colors = ['#0284c7', '#0d9488', '#16a34a', '#ca8a04', '#ea580c', '#e11d48', '#9333ea', '#4f46e5', '#0891b2'];
+        return colors[Math.abs(hash) % colors.length];
+    }
+
+    function getHospitalSpecialties(hospId) {
+        const id = hospId || state.hospitalId;
+        const result = [];
+        const seen = new Set();
+
+        const addSpec = (nameAr, nameEn, col) => {
+            if (!nameAr || typeof nameAr !== 'string') return;
+            const cleanAr = nameAr.trim();
+            if (!cleanAr || seen.has(cleanAr.toLowerCase())) return;
+            seen.add(cleanAr.toLowerCase());
+            result.push({
+                name: cleanAr,
+                name_en: nameEn ? nameEn.trim() : '',
+                color: col || getSpecialtyColor(cleanAr)
+            });
+        };
+
+        // 1. From window.Hub / hub-data
+        if (window.Hub && typeof window.Hub.getHospital === 'function') {
+            const hosp = window.Hub.getHospital(id);
+            if (hosp && Array.isArray(hosp.specialties)) {
+                hosp.specialties.forEach(s => {
+                    addSpec(s.name_ar || s.name, s.name_en || s.enName || '', s.color);
+                });
+            }
+        }
+
+        // 2. From residents of this hospital in state
+        (state.residents || []).forEach(r => {
+            if (r.specialty) {
+                addSpec(r.specialty, '', getSpecialtyColor(r.specialty));
+            }
+        });
+
+        // 3. Fallback standard list if empty
+        const fallbackList = [
+            { ar: 'الجراحة العامة', en: 'General Surgery' },
+            { ar: 'جراحة الصدر و الاوعية الدموية', en: 'Cardiothoracic Surgery' },
+            { ar: 'جراحة الجملة العصبية', en: 'Neurosurgery' },
+            { ar: 'الكسور', en: 'Orthopaedics' },
+            { ar: 'جراحة المسالك البولية', en: 'Urosurgery' },
+            { ar: 'الأذن و الأنف و الحنجرة', en: 'ENT' },
+            { ar: 'العيون', en: 'Ophthalmology' },
+            { ar: 'جراحة التجميل', en: 'Plastic Surgery' },
+            { ar: 'الباطنية', en: 'Internal Medicine' },
+            { ar: 'طب الأطفال', en: 'Paediatrics' },
+            { ar: 'الجلدية', en: 'Dermatology' },
+            { ar: 'طب الطوارئ', en: 'Emergency Medicine' },
+            { ar: 'الأشعة والسونار', en: 'Radiology' },
+            { ar: 'الأورام', en: 'Oncology' },
+            { ar: 'أمراض الدم', en: 'Haematology' },
+            { ar: 'طب الأسرة', en: 'Family Medicine' }
+        ];
+
+        if (result.length < 5) {
+            fallbackList.forEach(item => {
+                addSpec(item.ar, item.en, getSpecialtyColor(item.ar));
+            });
+        }
+
+        return result;
+    }
+
+    // Resident Sorting Algorithm
+    function sortResidentsList(list, sortCol, sortDir) {
+        const stageOrder = ['الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة', 'السادسة', 'بدون'];
+        const scheduledCounts = getScheduledCountsMap();
+
+        return [...list].sort((a, b) => {
+            let res = 0;
+            switch (sortCol) {
+                case 'row':
+                    res = (Number(a.row) || 0) - (Number(b.row) || 0);
+                    break;
+                case 'name': {
+                    const nameA = (a.name || '').replace(/^د\.\s*/, '').trim();
+                    const nameB = (b.name || '').replace(/^د\.\s*/, '').trim();
+                    res = nameA.localeCompare(nameB, 'ar');
+                    break;
+                }
+                case 'sex':
+                    res = (a.sex || '').localeCompare(b.sex || '');
+                    break;
+                case 'specialty':
+                    res = (a.specialty || '').localeCompare(b.specialty || '', 'ar');
+                    break;
+                case 'board':
+                    res = (a.board || '').localeCompare(b.board || '');
+                    break;
+                case 'stage': {
+                    const normA = normalizeStageName(a.stage);
+                    const normB = normalizeStageName(b.stage);
+                    const idxA = stageOrder.indexOf(normA);
+                    const idxB = stageOrder.indexOf(normB);
+                    res = (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+                    break;
+                }
+                case 'er_target':
+                    res = (Number(a.er_target) || 0) - (Number(b.er_target) || 0);
+                    break;
+                case 'con_target':
+                    res = (Number(a.con_target) || 0) - (Number(b.con_target) || 0);
+                    break;
+                case 'dc_target':
+                    res = (Number(a.dc_target) || 0) - (Number(b.dc_target) || 0);
+                    break;
+                case 'rs_target':
+                    res = (Number(a.rs_target) || 0) - (Number(b.rs_target) || 0);
+                    break;
+                case 'quota': {
+                    const normA = (Number(a.er_target) || 0) + (Number(a.con_target) || 0) + (Number(a.dc_target) || 0);
+                    const normB = (Number(b.er_target) || 0) + (Number(b.con_target) || 0) + (Number(b.dc_target) || 0);
+                    const countA = (scheduledCounts[normalizeArabic(a.name)] || {}).normalScheduled || 0;
+                    const countB = (scheduledCounts[normalizeArabic(b.name)] || {}).normalScheduled || 0;
+                    const fulA = normA > 0 && countA >= normA ? 1 : 0;
+                    const fulB = normB > 0 && countB >= normB ? 1 : 0;
+                    res = fulA - fulB;
+                    break;
+                }
+                case 'expiryMonth':
+                    res = (a.expiryMonth || '').localeCompare(b.expiryMonth || '');
+                    break;
+                default: {
+                    const nameA = (a.name || '').replace(/^د\.\s*/, '').trim();
+                    const nameB = (b.name || '').replace(/^د\.\s*/, '').trim();
+                    res = nameA.localeCompare(nameB, 'ar');
+                }
+            }
+            return sortDir === 'desc' ? -res : res;
+        });
+    }
+
+    function onDBSortColumn(colKey) {
+        if ((state.dbSortColumn || 'name') === colKey) {
+            state.dbSortDirection = state.dbSortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            state.dbSortColumn = colKey;
+            state.dbSortDirection = 'asc';
+        }
+        saveState();
+        refreshDBView();
+    }
+
+    function getSortHeaderHTML(colKey, label, widthClass, extraClass = '') {
+        const isCurrent = (state.dbSortColumn || 'name') === colKey;
+        const icon = isCurrent 
+            ? (state.dbSortDirection === 'desc' ? 'fa-arrow-down-wide-short text-rose-600' : 'fa-arrow-up-wide-short text-rose-600')
+            : 'fa-sort text-slate-300 dark:text-slate-600 group-hover:text-slate-500';
+
+        return `
+            <th onclick="onDBSortColumn('${colKey}')" 
+                class="py-3 px-2 ${widthClass} ${extraClass} cursor-pointer hover:bg-slate-200/60 dark:hover:bg-slate-800 select-none transition group"
+                title="انقر للترتيب ${isCurrent && state.dbSortDirection === 'asc' ? 'تنازلياً' : 'تصاعدياً'} بحسب ${label}">
+                <div class="flex items-center justify-center gap-1">
+                    <span>${label}</span>
+                    <i class="fas ${icon} text-[10px]"></i>
+                </div>
+            </th>
+        `;
+    }
+
+    function onDBMonthChange(monthVal, yearVal) {
+        onMonthYearChange(monthVal, yearVal);
+        refreshDBView();
+    }
+
+    // Modal to Import Allocations from previous months
+    function openImportMonthAllocationsModal() {
+        const modal = document.getElementById('import-allocations-modal');
+        const body = document.getElementById('import-allocations-modal-body');
+        if (!modal || !body) return;
+
+        const monthNames = [
+            'كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران',
+            'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'
+        ];
+
+        const availableMonths = [];
+        for (let y = 2025; y <= 2028; y++) {
+            for (let m = 1; m <= 12; m++) {
+                if (y === state.year && m === state.month) continue;
+                
+                const key = `${state.hospitalId}_${y}_${m}`;
+                let rec = null;
+                try {
+                    const raw = localStorage.getItem(MONTH_ALLOC_PREFIX + key);
+                    if (raw) rec = JSON.parse(raw);
+                } catch (e) {}
+                if (!rec && state.monthlyAllocations && state.monthlyAllocations[key]) {
+                    rec = state.monthlyAllocations[key];
+                }
+                if (!rec && state.hospitalId === 'iraqi' && y === 2026 && m === 9 && window.DEFAULT_EMERGENCY_DATA) {
+                    rec = window.DEFAULT_EMERGENCY_DATA.residents;
+                }
+
+                if (rec && Object.keys(rec).length > 0) {
+                    availableMonths.push({
+                        year: y,
+                        month: m,
+                        label: `${monthNames[m - 1]} ${y}`,
+                        count: Array.isArray(rec) ? rec.length : Object.keys(rec).length
+                    });
+                }
+            }
+        }
+
+        const prev = getPreviousMonth(state.year, state.month);
+        const prevLabel = `${monthNames[prev.month - 1]} ${prev.year}`;
+
+        body.innerHTML = `
+            <div class="space-y-4">
+                <div class="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-2xl border border-amber-200/80 dark:border-amber-800/60 text-slate-700 dark:text-slate-300">
+                    <div class="font-bold text-xs text-amber-900 dark:text-amber-200 mb-1">
+                        <i class="fas fa-circle-info ml-1 text-amber-600"></i>
+                        الشهر المستهدف الحالي: <strong>${state.monthYear}</strong>
+                    </div>
+                    <p class="text-[11px] leading-relaxed">
+                        سيتم استيراد أنصبة الخفارات الرسمية (ER, Con, DC, RS) وحالات التنشيط لجميع الأطباء من الشهر المختار ونقلها إلى شهر (${state.monthYear}).
+                    </p>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">اختر الشهر السابق للاستيراد منه:</label>
+                    <select id="import-source-month-select" class="w-full px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold text-xs">
+                        <option value="${prev.year}_${prev.month}">الشهر السابق مباشرة (${prevLabel})</option>
+                        ${availableMonths.filter(am => !(am.year === prev.year && am.month === prev.month)).map(am => `
+                            <option value="${am.year}_${am.month}">${am.label} (${am.count} طبيب)</option>
+                        `).join('')}
+                    </select>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
+                    <button type="button" onclick="closeImportMonthAllocationsModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition">
+                        إلغاء
+                    </button>
+                    <button type="button" onclick="executeImportMonthAllocations()" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 shadow-sm transition flex items-center gap-1.5">
+                        <i class="fas fa-file-import"></i>
+                        <span>تأكيد استيراد الأنصبة</span>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        modal.classList.remove('hidden');
+    }
+
+    function closeImportMonthAllocationsModal() {
+        const modal = document.getElementById('import-allocations-modal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    function executeImportMonthAllocations() {
+        const select = document.getElementById('import-source-month-select');
+        if (!select) return;
+
+        const [srcYearStr, srcMonthStr] = select.value.split('_');
+        const srcYear = parseInt(srcYearStr, 10);
+        const srcMonth = parseInt(srcMonthStr, 10);
+
+        const srcKey = `${state.hospitalId}_${srcYear}_${srcMonth}`;
+        let srcMap = null;
+        try {
+            const raw = localStorage.getItem(MONTH_ALLOC_PREFIX + srcKey);
+            if (raw) srcMap = JSON.parse(raw);
+        } catch (e) {}
+        if (!srcMap && state.monthlyAllocations && state.monthlyAllocations[srcKey]) {
+            srcMap = state.monthlyAllocations[srcKey];
+        }
+        if (!srcMap && state.hospitalId === 'iraqi' && srcYear === 2026 && srcMonth === 9 && window.DEFAULT_EMERGENCY_DATA) {
+            srcMap = {};
+            window.DEFAULT_EMERGENCY_DATA.residents.forEach(r => {
+                srcMap[r.id] = {
+                    active: r.active !== false,
+                    er_target: Number(r.er_target) || 0,
+                    con_target: Number(r.con_target) || 0,
+                    dc_target: Number(r.dc_target) || 0,
+                    rs_target: Number(r.rs_target) || 0
+                };
+            });
+        }
+
+        if (!srcMap || Object.keys(srcMap).length === 0) {
+            showNotification('لا توجد بيانات مسجلة في الشهر المختار للاستيراد منه', 'warning');
+            return;
+        }
+
+        pushScheduleHistory(`استيراد الأنصبة من شهر ${srcMonth}/${srcYear}`);
+
+        let importedCount = 0;
+        (state.residents || []).forEach(r => {
+            if (srcMap[r.id]) {
+                r.active = srcMap[r.id].active !== undefined ? Boolean(srcMap[r.id].active) : true;
+                r.er_target = Number(srcMap[r.id].er_target) || 0;
+                r.con_target = Number(srcMap[r.id].con_target) || 0;
+                r.dc_target = Number(srcMap[r.id].dc_target) || 0;
+                r.rs_target = Number(srcMap[r.id].rs_target) || 0;
+                importedCount++;
+            }
+        });
+
+        saveCurrentMonthAllocationsToStore();
+        saveState();
+        closeImportMonthAllocationsModal();
+        updateDutyDashboard();
+        refreshDBView();
+        showNotification(`تم بنجاح استيراد أنصبة وإحصائيات ${importedCount} طبيب من شهر (${srcMonth}/${srcYear}) إلى شهر (${state.monthYear})`, 'success');
+    }
+
     function renderDBView(container) {
         if (!container) {
             container = getDBContainer();
@@ -3237,47 +3476,56 @@
         const residents = state.residents || [];
         const scheduledCounts = getScheduledCountsMap();
 
-        // Sort residents based on active column header
-        state.dbSortColumn = state.dbSortColumn || 'name';
-        state.dbSortDirection = state.dbSortDirection || 'asc';
-        const sortedResidents = sortResidentList(residents, state.dbSortColumn, state.dbSortDirection);
+        // Separate Active and Inactive Residents for the selected month
+        const rawActive = residents.filter(r => r.active);
+        const rawInactive = residents.filter(r => !r.active);
 
-        // Separate Active and Inactive Residents
-        const activeList = sortedResidents.filter(r => r.active);
-        const inactiveList = sortedResidents.filter(r => !r.active);
-        const hospSpecialties = getHospitalSpecialties(state.hospitalId);
+        // Sort lists according to current sort column and direction
+        const activeList = sortResidentsList(rawActive, state.dbSortColumn || 'name', state.dbSortDirection || 'asc');
+        const inactiveList = sortResidentsList(rawInactive, state.dbSortColumn || 'name', state.dbSortDirection || 'asc');
+
+        const allUniqueSpecs = Array.from(new Set(
+            residents.map(r => r.specialty).filter(Boolean)
+                .concat(getHospitalSpecialties(state.hospitalId).map(s => s.name))
+        )).sort((a, b) => a.localeCompare(b, 'ar'));
+
+        const monthNames = [
+            'كانون الثاني (1)', 'شباط (2)', 'آذار (3)', 'نيسان (4)', 'أيار (5)', 'حزيران (6)',
+            'تموز (7)', 'آب (8)', 'أيلول (9)', 'تشرين الأول (10)', 'تشرين الثاني (11)', 'كانون الأول (12)'
+        ];
 
         let html = `
             <div class="space-y-5">
                 <!-- DB Header Actions & Controls -->
                 <div class="flex items-center justify-between flex-wrap gap-3 pb-2 border-b border-slate-200 dark:border-slate-800">
                     <div>
-                        <h2 class="text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                            <i class="fas fa-users-gear text-rose-600"></i>
-                            <span>قاعدة المقيمين الأقدمين والأنصبة (DB)</span>
-                        </h2>
-                        <p class="text-xs text-slate-500 mt-0.5">
-                            التعديل مباشر وفوري في الجدول · يتم حفظ التغييرات تلقائياً بمجرد الخروج من الحقل
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                <i class="fas fa-users-gear text-rose-600"></i>
+                                <span>قاعدة المقيمين الأقدمين والأنصبة (DB)</span>
+                            </h2>
+                            <!-- Live Month Selector in DB Header -->
+                            <div class="flex items-center gap-1.5 p-1 px-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs">
+                                <i class="fas fa-calendar-days text-rose-600 text-xs"></i>
+                                <span class="font-bold text-[11px] text-slate-500">شهر:</span>
+                                <select id="db-month-select" onchange="onDBMonthChange(this.value, document.getElementById('db-year-select').value)" class="text-xs font-black bg-transparent border-0 text-slate-800 dark:text-slate-100 cursor-pointer focus:outline-none">
+                                    ${monthNames.map((m, idx) => `<option value="${idx + 1}" ${state.month === (idx + 1) ? 'selected' : ''}>${m}</option>`).join('')}
+                                </select>
+                                <select id="db-year-select" onchange="onDBMonthChange(document.getElementById('db-month-select').value, this.value)" class="text-xs font-mono font-bold bg-transparent border-0 text-slate-800 dark:text-slate-100 cursor-pointer focus:outline-none">
+                                    ${[2025, 2026, 2027, 2028].map(y => `<option value="${y}" ${state.year === y ? 'selected' : ''}>${y}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">
+                            الأنصبة والحالات شهرية مستقلة · انقر على ترويسة أي عمود لترتيب الأطباء تصاعدياً أو تنازلياً
                         </p>
                     </div>
 
                     <div class="flex items-center gap-2 flex-wrap">
-                        <!-- Month & Year Selector for DB Panel -->
-                        <div class="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs">
-                            <i class="fas fa-calendar-days text-rose-600 px-1 text-xs"></i>
-                            <select id="db-month-select" onchange="onDBMonthChange(this.value)" class="px-2 py-1 rounded-lg bg-white dark:bg-slate-900 border-0 font-bold text-slate-800 dark:text-slate-100 text-xs">
-                                ${[
-                                    'كانون الثاني (1)', 'شباط (2)', 'آذار (3)', 'نيسان (4)', 'أيار (5)', 'حزيران (6)',
-                                    'تموز (7)', 'آب (8)', 'أيلول (9)', 'تشرين الأول (10)', 'تشرين الثاني (11)', 'كانون الأول (12)'
-                                ].map((mName, idx) => `<option value="${idx + 1}" ${state.month === (idx + 1) ? 'selected' : ''}>${mName}</option>`).join('')}
-                            </select>
-                            <input type="number" id="db-year-input" value="${state.year}" onchange="onDBYearChange(this.value)" min="2020" max="2035" class="w-16 px-1.5 py-1 text-center rounded-lg bg-white dark:bg-slate-900 border-0 font-bold font-mono text-slate-800 dark:text-slate-100 text-xs">
-                        </div>
-
                         <!-- Import Allocations from Previous Month Button -->
-                        <button type="button" onclick="copyAllocationsFromPreviousMonth()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 transition flex items-center gap-1.5 shadow-xs" title="استيراد ونقل أنصبة وحالات الأطباء من الشهر السابق للشهر الحالي">
-                            <i class="fas fa-clock-rotate-left text-indigo-500"></i>
-                            <span>استيراد أنصبة الشهر السابق</span>
+                        <button type="button" onclick="openImportMonthAllocationsModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 transition flex items-center gap-1.5 shadow-xs" title="استيراد أنصبة وإحصائيات الأطباء من أي شهر سابق">
+                            <i class="fas fa-clock-rotate-left"></i>
+                            <span>استيراد من شهر سابق</span>
                         </button>
 
                         <!-- Advance Board Stage Button -->
@@ -3334,7 +3582,7 @@
                         <!-- Specialty Filter -->
                         <select id="db-filter-specialty" onchange="applyDBLiveFilter()" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs">
                             <option value="all">الاختصاص: الكل</option>
-                            ${hospSpecialties.map(spec => `<option value="${escapeForInline(spec)}">${spec}</option>`).join('')}
+                            ${allUniqueSpecs.map(s => `<option value="${escapeForInline(s)}">${s}</option>`).join('')}
                         </select>
 
                         <!-- Sex Filter -->
@@ -3384,49 +3632,25 @@
                 <div class="space-y-2">
                     <div class="flex items-center gap-2">
                         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                        <h3 class="text-sm font-black text-slate-800 dark:text-slate-100">الأطباء النشطون المشمولون بالخفارات (<span id="active-res-count">${activeList.length}</span>)</h3>
+                        <h3 class="text-sm font-black text-slate-800 dark:text-slate-100">الأطباء النشطون لشهر (${state.monthYear}) (<span id="active-res-count">${activeList.length}</span>)</h3>
                     </div>
 
                     <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                         <table class="w-full text-right border-collapse text-xs">
                             <thead>
                                 <tr class="bg-slate-100/80 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
-                                    <th onclick="sortDBByColumn('row')" class="py-3 px-2 w-10 text-center font-bold cursor-pointer select-none hover:bg-slate-200/60 dark:hover:bg-slate-800 transition" title="ترتيب حسب التسلسل">
-                                        <div class="flex items-center justify-center gap-1"><span>#</span>${renderSortIcon('row')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('name')" class="py-3 px-3 font-bold w-48 cursor-pointer select-none hover:bg-slate-200/60 dark:hover:bg-slate-800 transition" title="ترتيب أبجدي حسب الاسم">
-                                        <div class="flex items-center justify-between"><span>اسم المقيم الأقدم</span>${renderSortIcon('name')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('sex')" class="py-3 px-2 w-16 text-center font-bold cursor-pointer select-none hover:bg-slate-200/60 dark:hover:bg-slate-800 transition" title="ترتيب حسب الجنس">
-                                        <div class="flex items-center justify-center gap-1"><span>الجنس</span>${renderSortIcon('sex')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('specialty')" class="py-3 px-3 font-bold w-36 cursor-pointer select-none hover:bg-slate-200/60 dark:hover:bg-slate-800 transition" title="ترتيب حسب الاختصاص">
-                                        <div class="flex items-center justify-between"><span>الاختصاص</span>${renderSortIcon('specialty')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('board')" class="py-3 px-2 w-24 text-center font-bold cursor-pointer select-none hover:bg-slate-200/60 dark:hover:bg-slate-800 transition" title="ترتيب حسب البورد">
-                                        <div class="flex items-center justify-center gap-1"><span>البورد</span>${renderSortIcon('board')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('stage')" class="py-3 px-2 w-20 text-center font-bold cursor-pointer select-none hover:bg-slate-200/60 dark:hover:bg-slate-800 transition" title="ترتيب حسب المرحلة">
-                                        <div class="flex items-center justify-center gap-1"><span>المرحلة</span>${renderSortIcon('stage')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('er_target')" class="py-3 px-2 w-16 text-center font-bold text-rose-600 cursor-pointer select-none hover:bg-rose-50 dark:hover:bg-rose-950/40 transition" title="ترتيب حسب نصاب ER">
-                                        <div class="flex items-center justify-center gap-1"><span>نصاب ER</span>${renderSortIcon('er_target')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('con_target')" class="py-3 px-2 w-16 text-center font-bold text-sky-600 cursor-pointer select-none hover:bg-sky-50 dark:hover:bg-sky-950/40 transition" title="ترتيب حسب نصاب Con">
-                                        <div class="flex items-center justify-center gap-1"><span>نصاب Con</span>${renderSortIcon('con_target')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('dc_target')" class="py-3 px-2 w-16 text-center font-bold text-emerald-600 cursor-pointer select-none hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition" title="ترتيب حسب نصاب DC">
-                                        <div class="flex items-center justify-center gap-1"><span>نصاب DC</span>${renderSortIcon('dc_target')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('rs_target')" class="py-3 px-2 w-16 text-center font-bold text-amber-600 cursor-pointer select-none hover:bg-amber-50 dark:hover:bg-amber-950/40 transition" title="ترتيب حسب نصاب RS">
-                                        <div class="flex items-center justify-center gap-1"><span>نصاب RS</span>${renderSortIcon('rs_target')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('quota')" class="py-3 px-2 w-32 font-bold cursor-pointer select-none hover:bg-slate-200/60 dark:hover:bg-slate-800 transition" title="ترتيب حسب مجموع النصاب والحالة">
-                                        <div class="flex items-center justify-between"><span>حالة النصاب</span>${renderSortIcon('quota')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('expiryMonth')" class="py-3 px-2 w-28 font-bold cursor-pointer select-none hover:bg-slate-200/60 dark:hover:bg-slate-800 transition" title="ترتيب حسب شهر الانتهاء">
-                                        <div class="flex items-center justify-between"><span>شهر الانتهاء</span>${renderSortIcon('expiryMonth')}</div>
-                                    </th>
+                                    ${getSortHeaderHTML('row', '#', 'w-10', 'text-center font-bold')}
+                                    ${getSortHeaderHTML('name', 'اسم المقيم الأقدم', 'w-48', 'font-bold text-right')}
+                                    ${getSortHeaderHTML('sex', 'الجنس', 'w-16', 'text-center font-bold')}
+                                    ${getSortHeaderHTML('specialty', 'الاختصاص', 'w-36', 'font-bold text-center')}
+                                    ${getSortHeaderHTML('board', 'البورد', 'w-24', 'text-center font-bold')}
+                                    ${getSortHeaderHTML('stage', 'المرحلة', 'w-20', 'text-center font-bold')}
+                                    ${getSortHeaderHTML('er_target', 'نصاب ER', 'w-16', 'text-center font-bold text-rose-600')}
+                                    ${getSortHeaderHTML('con_target', 'نصاب Con', 'w-16', 'text-center font-bold text-sky-600')}
+                                    ${getSortHeaderHTML('dc_target', 'نصاب DC', 'w-16', 'text-center font-bold text-emerald-600')}
+                                    ${getSortHeaderHTML('rs_target', 'نصاب RS', 'w-16', 'text-center font-bold text-amber-600')}
+                                    ${getSortHeaderHTML('quota', 'حالة النصاب', 'w-32', 'font-bold text-center')}
+                                    ${getSortHeaderHTML('expiryMonth', 'شهر الانتهاء', 'w-28', 'font-bold text-center')}
                                     <th class="py-3 px-2 w-20 text-center font-bold">الرغبات</th>
                                     <th class="py-3 px-2 w-14 text-center font-bold">تعطيل</th>
                                     <th class="py-3 px-2 w-20 text-center font-bold">إجراءات</th>
@@ -3443,50 +3667,26 @@
                 <div id="inactive-residents-section" class="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-800 ${state.showInactiveInDB ? '' : 'hidden'}">
                     <div class="flex items-center gap-2">
                         <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
-                        <h3 class="text-sm font-black text-slate-500 dark:text-slate-400">الأطباء غير النشطين / المعطلين (${inactiveList.length})</h3>
-                        <span class="text-[11px] text-slate-400">(تم تصفير أنصبتهم لهذا الشهر ومستبعدون تماماً من جداول الخفارات)</span>
+                        <h3 class="text-sm font-black text-slate-500 dark:text-slate-400">الأطباء غير النشطين / المعطلين لشهر (${state.monthYear}) (${inactiveList.length})</h3>
+                        <span class="text-[11px] text-slate-400">(تم تعطيلهم وتصفير أنصبتهم لهذا الشهر ومستبعدون من جداول خفاراته)</span>
                     </div>
 
                     <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm opacity-80">
                         <table class="w-full text-right border-collapse text-xs bg-slate-50/50 dark:bg-slate-900/20">
                             <thead>
                                 <tr class="bg-slate-200/60 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400">
-                                    <th onclick="sortDBByColumn('row')" class="py-2.5 px-2 w-10 text-center font-bold cursor-pointer select-none hover:bg-slate-300/60 dark:hover:bg-slate-800 transition">
-                                        <div class="flex items-center justify-center gap-1"><span>#</span>${renderSortIcon('row')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('name')" class="py-2.5 px-3 font-bold w-48 cursor-pointer select-none hover:bg-slate-300/60 dark:hover:bg-slate-800 transition">
-                                        <div class="flex items-center justify-between"><span>اسم المقيم الأقدم</span>${renderSortIcon('name')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('sex')" class="py-2.5 px-2 w-16 text-center font-bold cursor-pointer select-none hover:bg-slate-300/60 dark:hover:bg-slate-800 transition">
-                                        <div class="flex items-center justify-center gap-1"><span>الجنس</span>${renderSortIcon('sex')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('specialty')" class="py-2.5 px-3 font-bold w-36 cursor-pointer select-none hover:bg-slate-300/60 dark:hover:bg-slate-800 transition">
-                                        <div class="flex items-center justify-between"><span>الاختصاص</span>${renderSortIcon('specialty')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('board')" class="py-2.5 px-2 w-24 text-center font-bold cursor-pointer select-none hover:bg-slate-300/60 dark:hover:bg-slate-800 transition">
-                                        <div class="flex items-center justify-center gap-1"><span>البورد</span>${renderSortIcon('board')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('stage')" class="py-2.5 px-2 w-20 text-center font-bold cursor-pointer select-none hover:bg-slate-300/60 dark:hover:bg-slate-800 transition">
-                                        <div class="flex items-center justify-center gap-1"><span>المرحلة</span>${renderSortIcon('stage')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('er_target')" class="py-2.5 px-2 w-16 text-center font-bold cursor-pointer select-none hover:bg-slate-300/60 dark:hover:bg-slate-800 transition">
-                                        <div class="flex items-center justify-center gap-1"><span>نصاب ER</span>${renderSortIcon('er_target')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('con_target')" class="py-2.5 px-2 w-16 text-center font-bold cursor-pointer select-none hover:bg-slate-300/60 dark:hover:bg-slate-800 transition">
-                                        <div class="flex items-center justify-center gap-1"><span>نصاب Con</span>${renderSortIcon('con_target')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('dc_target')" class="py-2.5 px-2 w-16 text-center font-bold cursor-pointer select-none hover:bg-slate-300/60 dark:hover:bg-slate-800 transition">
-                                        <div class="flex items-center justify-center gap-1"><span>نصاب DC</span>${renderSortIcon('dc_target')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('rs_target')" class="py-2.5 px-2 w-16 text-center font-bold cursor-pointer select-none hover:bg-slate-300/60 dark:hover:bg-slate-800 transition">
-                                        <div class="flex items-center justify-center gap-1"><span>نصاب RS</span>${renderSortIcon('rs_target')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('quota')" class="py-2.5 px-2 w-32 font-bold cursor-pointer select-none hover:bg-slate-300/60 dark:hover:bg-slate-800 transition">
-                                        <div class="flex items-center justify-between"><span>الحالة</span>${renderSortIcon('quota')}</div>
-                                    </th>
-                                    <th onclick="sortDBByColumn('expiryMonth')" class="py-2.5 px-2 w-28 font-bold cursor-pointer select-none hover:bg-slate-300/60 dark:hover:bg-slate-800 transition">
-                                        <div class="flex items-center justify-between"><span>شهر الانتهاء</span>${renderSortIcon('expiryMonth')}</div>
-                                    </th>
+                                    ${getSortHeaderHTML('row', '#', 'w-10', 'text-center font-bold')}
+                                    ${getSortHeaderHTML('name', 'اسم المقيم الأقدم', 'w-48', 'font-bold text-right')}
+                                    ${getSortHeaderHTML('sex', 'الجنس', 'w-16', 'text-center font-bold')}
+                                    ${getSortHeaderHTML('specialty', 'الاختصاص', 'w-36', 'font-bold text-center')}
+                                    ${getSortHeaderHTML('board', 'البورد', 'w-24', 'text-center font-bold')}
+                                    ${getSortHeaderHTML('stage', 'المرحلة', 'w-20', 'text-center font-bold')}
+                                    ${getSortHeaderHTML('er_target', 'نصاب ER', 'w-16', 'text-center font-bold')}
+                                    ${getSortHeaderHTML('con_target', 'نصاب Con', 'w-16', 'text-center font-bold')}
+                                    ${getSortHeaderHTML('dc_target', 'نصاب DC', 'w-16', 'text-center font-bold')}
+                                    ${getSortHeaderHTML('rs_target', 'نصاب RS', 'w-16', 'text-center font-bold')}
+                                    ${getSortHeaderHTML('quota', 'الحالة', 'w-32', 'font-bold text-center')}
+                                    ${getSortHeaderHTML('expiryMonth', 'شهر الانتهاء', 'w-28', 'font-bold text-center')}
                                     <th class="py-2.5 px-2 w-20 text-center font-bold">تنشيط</th>
                                     <th class="py-2.5 px-2 w-20 text-center font-bold">إجراءات</th>
                                 </tr>
@@ -3494,7 +3694,7 @@
                             <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60">
                                 ${inactiveList.length > 0 
                                     ? inactiveList.map((r, idx) => renderResidentRowHTML(r, idx + 1, scheduledCounts, true)).join('')
-                                    : '<tr><td colspan="14" class="py-4 text-center text-slate-400 font-bold">لا يوجد أطباء غير نشطين حالياً في قاعدة البيانات لهذا الشهر</td></tr>'
+                                    : '<tr><td colspan="14" class="py-4 text-center text-slate-400 font-bold">لا يوجد أطباء غير نشطين في هذا الشهر</td></tr>'
                                 }
                             </tbody>
                         </table>
@@ -3530,13 +3730,13 @@
         rows.forEach(tr => {
             const name = tr.getAttribute('data-name') || '';
             const sex = tr.getAttribute('data-sex') || '';
+            const spec = (tr.getAttribute('data-spec') || '').toLowerCase();
             const board = tr.getAttribute('data-board') || '';
             const stage = tr.getAttribute('data-stage') || '';
-            const spec = tr.getAttribute('data-spec') || '';
             const quotaStatus = tr.getAttribute('data-quota-status') || '';
             const hasExtra = tr.getAttribute('data-has-extra') === 'true';
 
-            if (specFilter !== 'all' && spec !== specFilter) { tr.style.display = 'none'; return; }
+            if (specFilter !== 'all' && spec !== specFilter.toLowerCase()) { tr.style.display = 'none'; return; }
             if (sexFilter !== 'all' && sex !== sexFilter) { tr.style.display = 'none'; return; }
             if (boardFilter !== 'all' && board !== boardFilter) { tr.style.display = 'none'; return; }
             if (stageFilter !== 'all' && stage !== stageFilter) { tr.style.display = 'none'; return; }
@@ -3546,8 +3746,7 @@
 
             if (cleanQ) {
                 const cleanName = normalizeArabic(name).toLowerCase();
-                const cleanSpec = spec.toLowerCase();
-                if (!cleanName.includes(cleanQ) && !cleanSpec.includes(cleanQ)) {
+                if (!cleanName.includes(cleanQ) && !spec.includes(cleanQ)) {
                     tr.style.display = 'none';
                     return;
                 }
@@ -3752,17 +3951,20 @@
         showNotification(`تم تعيين المرحلة: ${newStage} للطبيب ${r.name}`, 'success');
     }
 
-    // Render Specialty Bubble HTML with dynamic customizable color
+    // =========================================================================
+    // SPECIALTY BUBBLE, PICKER & COLOR CUSTOMIZATION SYSTEM
+    // =========================================================================
+
     function renderSpecialtyBubbleHTML(r) {
-        const specName = r.specialty || 'General';
-        const color = getSpecialtyColor(specName);
+        const spec = r.specialty || 'عام';
+        const color = getSpecialtyColor(spec);
         return `
             <button type="button" onclick="openSpecialtyPickerModal('${r.id}', event)" 
-                class="px-2.5 py-1 rounded-full text-xs font-black transition-all shadow-2xs hover:scale-105 active:scale-95 cursor-pointer inline-flex items-center justify-center gap-1.5 border"
-                style="background-color: ${color}18; color: ${color}; border-color: ${color}4d;"
-                title="انقر لاختيار الاختصاص أو تخصيص لونه">
-                <span class="w-2 h-2 rounded-full inline-block shrink-0 shadow-2xs" style="background-color: ${color};"></span>
-                <span>${escapeForInline(specName)}</span>
+                class="px-2.5 py-1 rounded-full text-xs font-black border transition-all duration-150 shadow-2xs hover:scale-105 active:scale-95 cursor-pointer inline-flex items-center justify-center gap-1.5 select-none" 
+                style="background-color: ${color}15; color: ${color}; border-color: ${color}55;" 
+                title="انقر لاختيار الاختصاص أو تعديل لونه">
+                <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${color};"></span>
+                <span>${spec}</span>
             </button>
         `;
     }
@@ -3780,120 +3982,139 @@
         const optionsEl = document.getElementById('specialty-modal-options');
         if (!modal || !optionsEl) return;
 
-        if (docNameEl) docNameEl.textContent = `${r.name} · (${r.specialty || 'General'})`;
-
-        const specs = getHospitalSpecialties(state.hospitalId);
-        if (r.specialty && !specs.includes(r.specialty)) {
-            specs.unshift(r.specialty);
+        if (docNameEl) {
+            docNameEl.textContent = `تحديد اختصاص: ${r.name}`;
         }
 
-        optionsEl.innerHTML = `
-            <div class="space-y-2">
-                ${specs.map(spec => {
-                    const isSelected = (r.specialty === spec) || (!r.specialty && spec === 'General');
-                    const color = getSpecialtyColor(spec);
+        const hospSpecs = getHospitalSpecialties(state.hospitalId);
+
+        // Ensure current resident's specialty is included in list
+        if (r.specialty && !hospSpecs.some(s => s.name === r.specialty)) {
+            hospSpecs.unshift({
+                name: r.specialty,
+                name_en: '',
+                color: getSpecialtyColor(r.specialty)
+            });
+        }
+
+        let html = `
+            <div class="space-y-2 mb-3">
+                ${hospSpecs.map(s => {
+                    const isSelected = (r.specialty === s.name);
+                    const color = getSpecialtyColor(s.name);
                     return `
-                        <div class="w-full p-2.5 rounded-2xl border-2 transition flex items-center justify-between gap-3 ${isSelected ? 'border-rose-500 bg-rose-50/50 dark:bg-rose-950/40' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300'}">
-                            <button type="button" onclick="selectResidentSpecialty('${residentId}', '${escapeForInline(spec)}')" class="flex items-center gap-2.5 flex-1 text-right cursor-pointer">
-                                <span class="w-3 h-3 rounded-full shrink-0 shadow-xs" style="background-color: ${color};"></span>
-                                <span class="font-black text-xs text-slate-800 dark:text-slate-100">${spec}</span>
-                                ${isSelected ? '<span class="text-[10px] font-bold text-rose-600 bg-rose-100 dark:bg-rose-950 px-2 py-0.5 rounded-full">الحالي</span>' : ''}
+                        <div class="p-2.5 rounded-2xl border-2 transition flex items-center justify-between gap-2 ${isSelected ? 'border-rose-600 bg-rose-50/50 dark:bg-rose-950/40' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-slate-300'}">
+                            <button type="button" onclick="selectResidentSpecialty('${residentId}', '${escapeForInline(s.name)}')" class="flex-1 flex items-center gap-2 text-right">
+                                <span class="w-3.5 h-3.5 rounded-full shrink-0 shadow-2xs border border-white dark:border-slate-800" style="background-color: ${color};"></span>
+                                <span class="font-bold text-xs text-slate-800 dark:text-slate-100">${s.name}</span>
+                                ${s.name_en ? `<span class="text-[10px] text-slate-400 font-mono">(${s.name_en})</span>` : ''}
+                                ${isSelected ? '<i class="fas fa-check-circle text-rose-600 text-xs mr-auto ml-1"></i>' : ''}
                             </button>
-                            <div class="flex items-center gap-2 shrink-0" onclick="event.stopPropagation()">
-                                <label class="text-[10px] text-slate-400 font-bold" title="تغيير لون هذا الاختصاص">اللون:</label>
-                                <input type="color" value="${color}" 
-                                    onchange="changeSpecialtyColor('${escapeForInline(spec)}', this.value)" 
-                                    class="w-7 h-7 rounded-lg cursor-pointer border border-slate-300 dark:border-slate-700 bg-transparent p-0.5" 
-                                    title="اختر لوناً جديداً لاختصاص (${escapeForInline(spec)})">
+                            <!-- Color Picker to customize specialty color -->
+                            <div class="flex items-center gap-1.5 shrink-0 pl-1 border-r border-slate-200 dark:border-slate-700 pr-2" title="تعديل لون الاختصاص">
+                                <input type="color" value="${color}" onchange="updateSpecialtyColor('${escapeForInline(s.name)}', this.value, event)" class="w-6 h-6 rounded-lg cursor-pointer border-0 bg-transparent p-0">
                             </div>
                         </div>
                     `;
                 }).join('')}
             </div>
 
-            <!-- Custom Specialty Addition -->
-            <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800">
-                <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">أو اكتب اختصاصاً جديداً مع اختيار لونه:</label>
+            <!-- Custom Specialty Entry -->
+            <div class="pt-2 border-t border-slate-200 dark:border-slate-800">
+                <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">إضافة اختصاص جديد أو مخصص:</label>
                 <div class="flex items-center gap-2">
-                    <input type="text" id="custom-spec-input" placeholder="اسم الاختصاص الجديد..." class="flex-1 px-3 py-1.5 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold">
-                    <input type="color" id="custom-spec-color" value="#059669" class="w-8 h-8 rounded-xl cursor-pointer border border-slate-300 dark:border-slate-700 bg-transparent p-0.5">
-                    <button type="button" onclick="addAndSelectCustomSpecialty('${residentId}')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 transition shrink-0">
-                        إضافة وتعيين
+                    <input type="text" id="new-custom-spec-input" placeholder="اسم الاختصاص الجديد..." class="flex-1 px-3 py-1.5 text-xs rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold focus:outline-none focus:ring-2 focus:ring-rose-500/20">
+                    <input type="color" id="new-custom-spec-color" value="#0284c7" class="w-7 h-7 rounded-lg cursor-pointer border-0 bg-transparent p-0" title="لون الاختصاص الجديد">
+                    <button type="button" onclick="saveNewCustomSpecialty('${residentId}')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 transition shrink-0">
+                        تعيين
                     </button>
                 </div>
             </div>
         `;
 
+        optionsEl.innerHTML = html;
         modal.classList.remove('hidden');
     }
 
-    function closeSpecialtyPickerModal() {
+    function closeSpecialtyOptionsModal() {
         const modal = document.getElementById('specialty-options-modal');
         if (modal) modal.classList.add('hidden');
         activeSpecialtyResidentId = null;
     }
 
-    function selectResidentSpecialty(residentId, specName) {
+    function selectResidentSpecialty(residentId, newSpec) {
         const r = (state.residents || []).find(doc => doc.id === residentId);
         if (!r) return;
 
-        r.specialty = specName;
-        saveCurrentHospitalResidents();
+        r.specialty = newSpec;
         saveState();
 
         const tr = document.querySelector(`tr[data-resident-id="${residentId}"]`);
         if (tr) {
-            tr.setAttribute('data-spec', specName);
+            tr.setAttribute('data-spec', newSpec);
             const specCell = tr.querySelector('.resident-spec-cell');
             if (specCell) {
                 specCell.innerHTML = renderSpecialtyBubbleHTML(r);
             }
         }
 
-        closeSpecialtyPickerModal();
-        showNotification(`تم تعيين الاختصاص: ${specName} للطبيب ${r.name}`, 'success');
+        closeSpecialtyOptionsModal();
+        showNotification(`تم تعيين الاختصاص: ${newSpec} للطبيب ${r.name}`, 'success');
     }
 
-    function changeSpecialtyColor(specName, newColor) {
-        if (!specName || !newColor) return;
+    function updateSpecialtyColor(specName, newColor, event) {
+        if (event) event.stopPropagation();
+        if (!specName) return;
+
         if (!state.specialtyColors) state.specialtyColors = {};
-        state.specialtyColors[specName] = newColor;
+        state.specialtyColors[specName.trim().toLowerCase()] = newColor;
+        state.specialtyColors[specName.trim()] = newColor;
+
+        try {
+            localStorage.setItem('hosp_hub_emergency_specialty_colors', JSON.stringify(state.specialtyColors));
+        } catch (e) {
+            console.warn('Failed to save specialty color to localStorage', e);
+        }
+
         saveState();
 
-        // Update all specialty bubbles currently in DB view
-        const dbContainer = getDBContainer();
-        const rows = dbContainer ? dbContainer.querySelectorAll('tr[data-resident-id]') : document.querySelectorAll('tr[data-resident-id]');
-        rows.forEach(tr => {
+        // Update all specialty bubbles in the table immediately
+        document.querySelectorAll('tr[data-resident-id]').forEach(tr => {
             const resId = tr.getAttribute('data-resident-id');
-            const res = (state.residents || []).find(doc => doc.id === resId);
-            if (res && (res.specialty === specName || (!res.specialty && specName === 'General'))) {
-                const cell = tr.querySelector('.resident-spec-cell');
-                if (cell) cell.innerHTML = renderSpecialtyBubbleHTML(res);
+            const res = (state.residents || []).find(d => d.id === resId);
+            if (res && res.specialty && res.specialty.trim().toLowerCase() === specName.trim().toLowerCase()) {
+                const specCell = tr.querySelector('.resident-spec-cell');
+                if (specCell) {
+                    specCell.innerHTML = renderSpecialtyBubbleHTML(res);
+                }
             }
         });
 
-        // Update the open modal if currently open
+        // Also refresh open modal view if still open
         if (activeSpecialtyResidentId) {
             openSpecialtyPickerModal(activeSpecialtyResidentId);
         }
 
-        showNotification(`تم تحديث لون اختصاص (${specName}) بنجاح`, 'success');
+        showNotification(`تم تحديث لون اختصاص "${specName}" بنجاح`, 'info');
     }
 
-    function addAndSelectCustomSpecialty(residentId) {
-        const input = document.getElementById('custom-spec-input');
-        const colorInput = document.getElementById('custom-spec-color');
-        if (!input) return;
-        const name = input.value.trim();
-        if (!name) {
-            alert('يرجى إدخال اسم الاختصاص أولاً');
-            return;
-        }
-        if (colorInput && colorInput.value) {
-            if (!state.specialtyColors) state.specialtyColors = {};
-            state.specialtyColors[name] = colorInput.value;
-        }
-        selectResidentSpecialty(residentId, name);
+    function saveNewCustomSpecialty(residentId) {
+        const input = document.getElementById('new-custom-spec-input');
+        const colorInput = document.getElementById('new-custom-spec-color');
+        if (!input || !input.value.trim()) return;
+
+        const specName = input.value.trim();
+        const color = colorInput ? colorInput.value : '#0284c7';
+
+        if (!state.specialtyColors) state.specialtyColors = {};
+        state.specialtyColors[specName.toLowerCase()] = color;
+        state.specialtyColors[specName] = color;
+
+        try {
+            localStorage.setItem('hosp_hub_emergency_specialty_colors', JSON.stringify(state.specialtyColors));
+        } catch (e) {}
+
+        selectResidentSpecialty(residentId, specName);
     }
 
     // Render individual resident row with direct editable inputs & coloring system
@@ -3901,9 +4122,6 @@
         const cleanName = normalizeArabic(r.name);
         const stats = scheduledCounts[cleanName] || { normalScheduled: 0, extraScheduled: 0, erFilled: 0 };
         const normalTarget = (Number(r.er_target) || 0) + (Number(r.con_target) || 0) + (Number(r.dc_target) || 0);
-
-        // Normalize stage choice (replace any stage numbers)
-        r.stage = normalizeStageChoice(r.stage);
 
         // Color System:
         // 1. Fulfilled (Green)
@@ -3929,29 +4147,20 @@
             statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">غير مكتمل (${stats.normalScheduled}/${normalTarget})</span>`;
         }
 
-        // Active RS check for the selected month: must have scheduled extra duties or have positive RS target during an active RS period
-        const rsActiveInCurrentMonth = isRsActiveInMonth(state.year, state.month);
-        const rsTarget = Number(r.rs_target) || 0;
-        const hasActiveRS = (stats.extraScheduled > 0) || (rsActiveInCurrentMonth && rsTarget > 0);
-
-        const extraDotHTML = (stats.extraScheduled > 0) ? `
-            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block shrink-0 ring-2 ring-white dark:ring-slate-900 shadow-xs" title="خفارات إسناد إضافية (RS: ${stats.extraScheduled})"></span>
-        ` : (rsActiveInCurrentMonth && rsTarget > 0) ? `
-            <span class="w-2.5 h-2.5 rounded-full border-2 border-amber-500 bg-amber-100 inline-block shrink-0 ring-2 ring-white dark:ring-slate-900 shadow-xs" title="نصاب إسناد مقرر (RS: ${rsTarget})"></span>
+        // Orange badge beside name (Active ONLY if state.rsEnabled is true AND resident has extra scheduled or RS target)
+        const hasActiveRS = state.rsEnabled && (stats.extraScheduled > 0 || (Number(r.rs_target) || 0) > 0);
+        const extraDot = hasActiveRS ? `
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block shrink-0 ring-2 ring-white dark:ring-slate-900 shadow-xs rs-dot-badge" title="خفارات إسناد إضافية (مجدول: ${stats.extraScheduled} / نصاب: ${r.rs_target || 0})"></span>
         ` : '';
 
-        const extraDotContainer = `
-            <span class="resident-rs-dot-container flex items-center shrink-0">
-                ${extraDotHTML}
-            </span>
-        `;
+        const normalizedStage = normalizeStageName(r.stage) || 'بدون';
 
         return `
             <tr data-resident-id="${r.id}" 
                 data-name="${escapeForInline(r.name)}" 
                 data-sex="${r.sex}" 
                 data-board="${r.board || 'None'}" 
-                data-stage="${r.stage || 'بدون'}" 
+                data-stage="${normalizedStage}" 
                 data-quota-status="${isFulfilled ? 'fulfilled' : 'unfulfilled'}" 
                 data-has-extra="${hasActiveRS ? 'true' : 'false'}" 
                 data-spec="${escapeForInline(r.specialty || '')}"
@@ -3959,9 +4168,9 @@
                 <td class="py-1 px-2 text-center font-mono text-slate-400 text-xs">${rowNum}</td>
                 
                 <!-- Name with Orange Dot Badge (if extra RS duties) -->
-                <td class="py-1 px-2">
+                <td class="py-1 px-2 resident-name-cell">
                     <div class="flex items-center gap-1.5 flex-1 min-w-[150px]">
-                        ${extraDotContainer}
+                        ${extraDot}
                         <input type="text" value="${escapeForInline(r.name)}" onblur="onResidentFieldChange('${r.id}', 'name', this.value)" class="db-cell-input font-bold text-slate-800 dark:text-slate-100 flex-1">
                     </div>
                 </td>
@@ -3971,7 +4180,7 @@
                     ${renderSexBubbleHTML(r)}
                 </td>
 
-                <!-- Specialty (Interactive Bubble Badge with Color) -->
+                <!-- Specialty (Interactive Bubble Badge with Color & Selection) -->
                 <td class="py-1 px-2 text-center resident-spec-cell">
                     ${renderSpecialtyBubbleHTML(r)}
                 </td>
@@ -3981,7 +4190,7 @@
                     ${renderBoardBubbleHTML(r)}
                 </td>
 
-                <!-- Stage (Interactive Bubble Badge, NO Down Arrow) -->
+                <!-- Stage (Interactive Bubble Badge, Arabic Named) -->
                 <td class="py-1 px-2 text-center resident-stage-cell">
                     ${renderStageBubbleHTML(r)}
                 </td>
@@ -4094,23 +4303,30 @@
             }
         });
 
-        // RS
-        (state.schedules.rs || []).forEach(day => {
-            ['er_morning', 'er_afternoon', 'er_preNight', 'er_lateNight'].forEach(k => {
-                if (day[k]) {
-                    const e = getEntry(day[k]);
-                    e.rsErFilled++;
-                    e.extraScheduled++;
+        // RS (Only counted if Rotators Strike is enabled and active in the selected window)
+        if (state.rsEnabled) {
+            const startDay = state.rsStartDate ? parseInt(state.rsStartDate.split('-')[2], 10) : 1;
+            const endDay = state.rsEndDate ? parseInt(state.rsEndDate.split('-')[2], 10) : 31;
+            (state.schedules.rs || []).forEach(day => {
+                const dayNum = parseInt(day.day, 10) || parseInt(day.dayNumber, 10) || 0;
+                if (!dayNum || (dayNum >= startDay && dayNum <= endDay)) {
+                    ['er_morning', 'er_afternoon', 'er_preNight', 'er_lateNight'].forEach(k => {
+                        if (day[k]) {
+                            const e = getEntry(day[k]);
+                            e.rsErFilled++;
+                            e.extraScheduled++;
+                        }
+                    });
+                    ['ward_private', 'ward_floor4', 'ward_floor5'].forEach(k => {
+                        if (day[k]) {
+                            const e = getEntry(day[k]);
+                            e.rsWardsFilled++;
+                            e.extraScheduled++;
+                        }
+                    });
                 }
             });
-            ['ward_private', 'ward_floor4', 'ward_floor5'].forEach(k => {
-                if (day[k]) {
-                    const e = getEntry(day[k]);
-                    e.rsWardsFilled++;
-                    e.extraScheduled++;
-                }
-            });
-        });
+        }
 
         return counts;
     }
@@ -4172,24 +4388,24 @@
         }
     }
 
-    // Deactivation with confirmation and resetting duty allocations to zero + removing from schedules (Month-Specific)
+    // Deactivation with confirmation and resetting duty allocations to zero + removing from current month schedules
     function deactivateResidentWithConfirmation(resId) {
         const res = (state.residents || []).find(r => r.id === resId);
         if (!res) return;
 
-        const confirmMsg = `هل أنت متأكد من إلغاء تنشيط الطبيب (${res.name}) لشهر (${state.monthYear})؟\n\nتنبيه إداري: سيتم تصفير كافة أنصبته لهذا الشهر فقط (إلى صفر) وإزالة اسمه من جداول هذا الشهر تلقائياً دون المساس بالقاعدة العامة للمستشفى.`;
+        const confirmMsg = `هل أنت متأكد من إلغاء تنشيط الطبيب (${res.name}) لشهر (${state.monthYear})؟\n\nتنبيه إداري: سيتم تصفير كافة أنصبته وإزالة اسمه من جداول شهر (${state.monthYear}) فقط، ويبقى نشطاً في الأشهر الأخرى.`;
         if (!confirm(confirmMsg)) return;
 
-        pushScheduleHistory(`إلغاء تنشيط الطبيب (${res.name}) لشهر (${state.monthYear})`);
+        pushScheduleHistory(`إلغاء تنشيط الطبيب (${res.name}) لشهر ${state.monthYear}`);
 
-        // Reset quotas to zero for current month
+        // Reset quotas to zero for current selected month
         res.active = false;
         res.er_target = 0;
         res.con_target = 0;
         res.dc_target = 0;
         res.rs_target = 0;
 
-        // Remove name from current month schedules
+        // Remove name from current month schedules only
         const docName = res.name;
         ['er', 'con', 'dc', 'rs'].forEach(type => {
             (state.schedules[type] || []).forEach(day => {
@@ -4206,17 +4422,17 @@
         updateDutyDashboard();
         renderActiveTab();
         updateScheduleUndoRedoUI();
-        showNotification(`تم إلغاء تنشيط الطبيب (${docName}) لشهر (${state.monthYear}) وتصفير أنصبته وإزالته من الجداول`, 'info');
+        showNotification(`تم إلغاء تنشيط الطبيب (${docName}) لشهر (${state.monthYear}) وتصفير أنصبته وإزالته من جداول الشهر`, 'info');
     }
 
     function reactivateResident(resId) {
         const res = (state.residents || []).find(r => r.id === resId);
         if (!res) return;
 
-        pushScheduleHistory(`إعادة تنشيط الطبيب (${res.name}) لشهر (${state.monthYear})`);
+        pushScheduleHistory(`إعادة تنشيط الطبيب (${res.name}) لشهر ${state.monthYear}`);
 
         res.active = true;
-        res.er_target = 2; // initial default
+        res.er_target = 2; // initial default for this month
         saveCurrentMonthAllocationsToStore();
         saveState();
         refreshDBView();
@@ -4365,8 +4581,10 @@
         if (!modal) {
             modal = document.createElement('div');
             modal.id = 'export-resident-modal';
-            modal.className = 'fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print';
+            modal.className = 'fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print';
             document.body.appendChild(modal);
+        } else {
+            modal.className = 'fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print';
         }
 
         modal.innerHTML = `
@@ -4499,8 +4717,10 @@
         if (!modal) {
             modal = document.createElement('div');
             modal.id = 'hospital-sync-modal';
-            modal.className = 'fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print';
+            modal.className = 'fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print';
             document.body.appendChild(modal);
+        } else {
+            modal.className = 'fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print';
         }
 
         let hospResidents = [];
@@ -5003,18 +5223,20 @@
         if (!modal) {
             modal = document.createElement('div');
             modal.id = 'add-resident-modal';
-            modal.className = 'fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print';
+            modal.className = 'fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print';
             document.body.appendChild(modal);
+        } else {
+            modal.className = 'fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print';
         }
 
-        const hospSpecialties = getHospitalSpecialties(state.hospitalId);
+        const hospSpecs = getHospitalSpecialties(state.hospitalId);
 
         modal.innerHTML = `
             <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
                 <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <div>
                         <h3 class="font-black text-sm text-slate-800 dark:text-slate-100">إضافة مقيم أقدم جديد</h3>
-                        <p class="text-[11px] text-slate-500">إضافة الطبيب لقاعدة خفارات الطوارئ (${state.hospitalName})</p>
+                        <p class="text-[11px] text-slate-500">إضافة الطبيب لقاعدة خفارات الطوارئ وترتيبه تلقائياً</p>
                     </div>
                     <button type="button" onclick="closeAddResidentModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
                         <i class="fas fa-times text-sm"></i>
@@ -5030,15 +5252,16 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">الجنس:</label>
-                            <select id="new-res-sex" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                            <select id="new-res-sex" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold">
                                 <option value="M">ذكر</option>
                                 <option value="F">أنثى</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">الاختصاص (من اختصاصات المستشفى):</label>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">الاختصاص (مستشفى ${escapeForInline(state.hospitalName || '')}):</label>
                             <select id="new-res-spec" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold">
-                                ${hospSpecialties.map(spec => `<option value="${escapeForInline(spec)}">${spec}</option>`).join('')}
+                                ${hospSpecs.map(s => `<option value="${escapeForInline(s.name)}">${s.name}</option>`).join('')}
+                                <option value="عام">عام (General)</option>
                             </select>
                         </div>
                     </div>
@@ -5046,7 +5269,7 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">نوع البورد:</label>
-                            <select id="new-res-board" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                            <select id="new-res-board" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold">
                                 <option value="Arabic">عربي (Arabic)</option>
                                 <option value="Iraqi">عراقي (Iraqi)</option>
                                 <option value="None" selected>بدون بورد (None)</option>
@@ -5127,7 +5350,7 @@
         const sex = document.getElementById('new-res-sex').value;
         const specialty = document.getElementById('new-res-spec').value.trim() || 'General';
         const board = document.getElementById('new-res-board').value;
-        const stage = normalizeStageChoice(document.getElementById('new-res-stage').value);
+        const stage = document.getElementById('new-res-stage').value.trim() || 'الأولى';
         const er_target = parseInt(document.getElementById('new-res-er').value, 10) || 0;
         const con_target = parseInt(document.getElementById('new-res-con').value, 10) || 0;
         const dc_target = parseInt(document.getElementById('new-res-dc').value, 10) || 0;
@@ -5157,14 +5380,14 @@
         };
 
         state.residents.push(newDoc);
-        // Automatically sort using active sort settings
-        state.residents = sortResidentList(state.residents, state.dbSortColumn || 'name', state.dbSortDirection || 'asc');
-        saveCurrentHospitalResidents();
+        // Auto-sort residents according to current sort column and direction
+        state.residents = sortResidentsList(state.residents, state.dbSortColumn || 'name', state.dbSortDirection || 'asc');
         saveCurrentMonthAllocationsToStore();
+        saveCurrentHospitalResidents();
         saveState();
         closeAddResidentModal();
         refreshDBView();
-        showNotification(`تمت إضافة الطبيب "${formattedName}" بنجاح وتلقائياً بترتيب الجدول`, 'success');
+        showNotification(`تمت إضافة وترتيب الطبيب "${formattedName}" بنجاح`, 'success');
     }
 
     // =========================================================================
@@ -5839,6 +6062,15 @@
         }
 
         const arabicOrderDate = state.orderDate ? formatArabicDateNumbers(state.orderDate) : formatArabicDateNumbers(new Date().toISOString().split('T')[0]);
+        const isMetaCleared = Boolean(state.clearPrintMeta);
+
+        const numberValueHTML = isMetaCleared
+            ? `<span style="border-bottom: 1.5px dotted #000; display: inline-block; min-width: 125px; height: 13px; vertical-align: baseline;"></span>`
+            : `<span>${state.orderNumber || ''}</span>`;
+
+        const dateValueHTML = isMetaCleared
+            ? `<span style="border-bottom: 1.5px dotted #000; display: inline-block; min-width: 125px; height: 13px; vertical-align: baseline;"></span>`
+            : `<span>${arabicOrderDate}</span>`;
 
         printContainer.innerHTML = `
             <div style="font-family: 'Cairo', Arial, sans-serif; direction: rtl; color: #000; width: 100%; box-sizing: border-box;">
@@ -5852,10 +6084,18 @@
                     <div style="font-size: 10pt; font-weight: bold;">شعبة ادارة الموارد البشرية</div>
                 </div>
 
-                <!-- 2. ORDER NUMBER & DATE (ON LEFT SIDE AS REQUESTED) -->
-                <div style="text-align: left; margin-bottom: 5px; font-size: 9pt; font-weight: bold; line-height: 1.3; padding-left: 10px;">
-                    <div>العدد / &nbsp; ${state.orderNumber || ''}</div>
-                    <div>التاريخ / &nbsp; ${arabicOrderDate}</div>
+                <!-- 2. ORDER NUMBER & DATE (ON LEFT SIDE OF PAGE, RIGHT-ALIGNED FROM RIGHT SIDE) -->
+                <div style="display: flex; justify-content: flex-start; direction: ltr; margin-bottom: 6px; padding-left: 15px;">
+                    <div style="direction: rtl; text-align: right; font-size: 9pt; font-weight: bold; line-height: 1.45;">
+                        <div style="display: flex; align-items: baseline; gap: 4px;">
+                            <span style="display: inline-block; min-width: 52px; text-align: right;">العدد /</span>
+                            ${numberValueHTML}
+                        </div>
+                        <div style="display: flex; align-items: baseline; gap: 4px;">
+                            <span style="display: inline-block; min-width: 52px; text-align: right;">التاريخ /</span>
+                            ${dateValueHTML}
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 3. ORDER TITLE & INTRO (MATCHING PDF) -->
@@ -5950,12 +6190,32 @@
         if (borderInput) borderInput.value = opts.borderColor || '#000000';
 
         updatePrintPreview();
+        updateClearPrintMetaUI();
         modal.classList.remove('hidden');
     }
 
     function closePrintOptionsModal() {
         const modal = document.getElementById('print-options-modal');
         if (modal) modal.classList.add('hidden');
+    }
+
+    function toggleClearPrintMeta() {
+        state.clearPrintMeta = !state.clearPrintMeta;
+        updateClearPrintMetaUI();
+        saveState();
+        showNotification(state.clearPrintMeta ? 'تم تفعيل تفريغ العدد والتاريخ (خط تنقيط للكتابة اليدوية)' : 'تم إلغاء تفريغ العدد والتاريخ (إظهار القيم)', 'info');
+    }
+
+    function updateClearPrintMetaUI() {
+        const btn = document.getElementById('toggle-clear-print-meta-btn');
+        if (!btn) return;
+        if (state.clearPrintMeta) {
+            btn.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs bg-rose-600 text-white hover:bg-rose-700 shrink-0';
+            btn.innerHTML = '<i class="fas fa-check-circle"></i><span>مفرّغ (منقّط)</span>';
+        } else {
+            btn.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-300 shrink-0';
+            btn.innerHTML = '<i class="fas fa-pen-to-square"></i><span>تفريغ</span>';
+        }
     }
 
     function applyPrintPreset(presetKey) {
@@ -6208,20 +6468,18 @@
         updateResidentRowFulfillment,
         updateScheduleUndoRedoUI,
         openSpecialtyPickerModal,
-        closeSpecialtyPickerModal,
+        closeSpecialtyOptionsModal,
         selectResidentSpecialty,
-        changeSpecialtyColor,
-        addAndSelectCustomSpecialty,
+        updateSpecialtyColor,
+        saveNewCustomSpecialty,
         renderSpecialtyBubbleHTML,
-        getHospitalSpecialties,
-        getSpecialtyColor,
-        setSpecialtyColor,
-        sortDBByColumn,
-        renderSortIcon,
-        sortResidentList,
+        onDBSortColumn,
         onDBMonthChange,
-        onDBYearChange,
-        normalizeStageChoice
+        openImportMonthAllocationsModal,
+        closeImportMonthAllocationsModal,
+        executeImportMonthAllocations,
+        toggleClearPrintMeta,
+        updateClearPrintMetaUI
     };
 
     // Global direct aliases for inline HTML attributes
@@ -6282,6 +6540,20 @@
     window.downloadEmergencyDbJson = downloadEmergencyDbJson;
     window.prepareOfficialPrint = prepareOfficialPrint;
 
+    // Database Sorting, Month, Import & Specialty Management
+    window.onDBSortColumn = onDBSortColumn;
+    window.onDBMonthChange = onDBMonthChange;
+    window.openImportMonthAllocationsModal = openImportMonthAllocationsModal;
+    window.closeImportMonthAllocationsModal = closeImportMonthAllocationsModal;
+    window.executeImportMonthAllocations = executeImportMonthAllocations;
+    window.openSpecialtyPickerModal = openSpecialtyPickerModal;
+    window.closeSpecialtyOptionsModal = closeSpecialtyOptionsModal;
+    window.selectResidentSpecialty = selectResidentSpecialty;
+    window.updateSpecialtyColor = updateSpecialtyColor;
+    window.saveNewCustomSpecialty = saveNewCustomSpecialty;
+    window.renderSpecialtyBubbleHTML = renderSpecialtyBubbleHTML;
+    window.toggleClearPrintMeta = toggleClearPrintMeta;
+    window.updateClearPrintMetaUI = updateClearPrintMetaUI;
     
     // Expose all interactive live filter functions globally
     window.applyScheduleLiveFilter = applyScheduleLiveFilter;
@@ -6306,21 +6578,6 @@
     window.closeStageOptionsModal = closeStageOptionsModal;
     window.selectResidentStage = selectResidentStage;
     window.renderStageBubbleHTML = renderStageBubbleHTML;
-    window.openSpecialtyPickerModal = openSpecialtyPickerModal;
-    window.closeSpecialtyPickerModal = closeSpecialtyPickerModal;
-    window.selectResidentSpecialty = selectResidentSpecialty;
-    window.changeSpecialtyColor = changeSpecialtyColor;
-    window.addAndSelectCustomSpecialty = addAndSelectCustomSpecialty;
-    window.renderSpecialtyBubbleHTML = renderSpecialtyBubbleHTML;
-    window.getHospitalSpecialties = getHospitalSpecialties;
-    window.getSpecialtyColor = getSpecialtyColor;
-    window.setSpecialtyColor = setSpecialtyColor;
-    window.sortDBByColumn = sortDBByColumn;
-    window.renderSortIcon = renderSortIcon;
-    window.sortResidentList = sortResidentList;
-    window.onDBMonthChange = onDBMonthChange;
-    window.onDBYearChange = onDBYearChange;
-    window.normalizeStageChoice = normalizeStageChoice;
     window.undoScheduleAction = undoScheduleAction;
     window.redoScheduleAction = redoScheduleAction;
     window.renderScheduleUndoRedoButtons = renderScheduleUndoRedoButtons;

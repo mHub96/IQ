@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T14:49:18.587Z",
+  "lastUpdated": "2026-09-28T14:49:21.484Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20659,16 +20659,6 @@
           "enabled": true
         },
         {
-          "id": "P",
-          "name_ar": "النفسية",
-          "name_en": "Psychiatry",
-          "icon": "🧠",
-          "color": "#fef606",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
           "id": "D",
           "name_ar": "الوفيات",
           "name_en": "Death Certificates",
@@ -20704,6 +20694,16 @@
             "PS",
             "RM"
           ],
+          "enabled": true
+        },
+        {
+          "id": "P",
+          "name_ar": "النفسية",
+          "name_en": "Psychiatry",
+          "icon": "🧠",
+          "color": "#fef606",
+          "parentSpec": null,
+          "acceptPool": [],
           "enabled": true
         },
         {

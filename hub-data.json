@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T13:34:10.647Z",
+  "lastUpdated": "2026-09-28T13:35:03.909Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -29723,10 +29723,11 @@
         {
           "date": "28/09/2026",
           "specCode": "Pe",
-          "name": "د مسره شهاب",
+          "name": "د. لينا نجم عبد",
           "VisitCount": 0,
           "dutySlot": 0,
-          "dutyTime": ""
+          "dutyTime": "",
+          "timestamp": "16:35"
         },
         {
           "date": "29/09/2026",

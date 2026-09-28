@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T14:49:04.367Z",
+  "lastUpdated": "2026-09-28T14:49:11.045Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20629,6 +20629,16 @@
           "enabled": false
         },
         {
+          "id": "NM",
+          "name_ar": "طب الجملة العصبية",
+          "name_en": "Neuromedicine",
+          "icon": "🧠",
+          "color": "#79e9f1",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
           "id": "R",
           "name_ar": "الأشعة و السونار",
           "name_en": "Radiology",
@@ -20715,16 +20725,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "NM",
-          "name_ar": "طب الجملة العصبية",
-          "name_en": "Neuromedicine",
-          "icon": "🧠",
-          "color": "#79e9f1",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
         },
         {
           "id": "P",

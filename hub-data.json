@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T14:16:40.914Z",
+  "lastUpdated": "2026-09-28T14:46:27.299Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20795,6 +20795,16 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
+        },
+        {
+          "id": "REF",
+          "name_ar": "الاحالات",
+          "name_en": "Referrals",
+          "icon": "🚑",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true,
+          "color": "#a30000"
         }
       ],
       "names": [
@@ -43781,6 +43791,15 @@
       "name_en": "Respiratory Medicine",
       "icon": "🫁",
       "color": "#0f766e",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "REF",
+      "name_ar": "الاحالات",
+      "name_en": "Referrals",
+      "icon": "🚑",
       "parentSpec": null,
       "acceptPool": [],
       "enabled": true

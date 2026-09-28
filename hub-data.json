@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T17:15:35.245Z",
+  "lastUpdated": "2026-09-28T17:15:37.328Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20717,21 +20717,21 @@
           "enabled": true
         },
         {
-          "id": "AO",
-          "name_ar": "المعاون الاداري",
-          "name_en": "Administrative Officer",
-          "icon": "🧑",
-          "color": "#2563eb",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
           "id": "REFE",
           "name_ar": "الاحالات",
           "name_en": "Referrals",
           "icon": "🚑",
           "color": "#650094",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "AO",
+          "name_ar": "المعاون الاداري",
+          "name_en": "Administrative Officer",
+          "icon": "🧑",
+          "color": "#2563eb",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true

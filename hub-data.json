@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T20:19:25.459Z",
+  "lastUpdated": "2026-09-28T20:19:32.772Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20650,6 +20650,16 @@
           "enabled": true
         },
         {
+          "id": "AO",
+          "name_ar": "المعاون الاداري",
+          "name_en": "Administrative Officer",
+          "icon": "🧑",
+          "color": "#2563eb",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
           "id": "P",
           "name_ar": "النفسية",
           "name_en": "Psychiatry",
@@ -20695,16 +20705,6 @@
             "PS",
             "RM"
           ],
-          "enabled": true
-        },
-        {
-          "id": "AO",
-          "name_ar": "المعاون الاداري",
-          "name_en": "Administrative Officer",
-          "icon": "🧑",
-          "color": "#2563eb",
-          "parentSpec": null,
-          "acceptPool": [],
           "enabled": true
         },
         {

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T16:37:36.389Z",
+  "lastUpdated": "2026-09-28T17:03:02.151Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -29110,10 +29110,11 @@
         {
           "date": "28/09/2026",
           "specCode": "US",
-          "name": "د. حسين علي عطيه",
+          "name": "د. عمر حسين",
           "VisitCount": 0,
           "dutySlot": 0,
-          "dutyTime": ""
+          "dutyTime": "",
+          "timestamp": "20:03"
         },
         {
           "date": "29/09/2026",

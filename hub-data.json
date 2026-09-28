@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T20:20:39.456Z",
+  "lastUpdated": "2026-09-28T20:20:49.343Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -2480,7 +2480,6 @@
           "department": "M",
           "active": true,
           "hospitals": [
-            "basra",
             "iraqi"
           ]
         },
@@ -20758,16 +20757,6 @@
           "enabled": false
         },
         {
-          "id": "H",
-          "name_ar": "طب الامراض القلبية",
-          "name_en": "Cardiology",
-          "icon": "🫀",
-          "color": "#c91d70",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
           "id": "PS",
           "name_ar": "الجراحة التجميلية",
           "name_en": "Plastic Surgery",
@@ -23548,20 +23537,6 @@
           "active": true,
           "hospitals": [
             "basra"
-          ]
-        },
-        {
-          "id": "res-0105",
-          "name": "د. منتظر حميد هاشم",
-          "phone": "+9647827925226",
-          "spec": "H",
-          "tag": "H",
-          "dept": "M",
-          "department": "M",
-          "active": true,
-          "hospitals": [
-            "basra",
-            "iraqi"
           ]
         },
         {
@@ -42847,7 +42822,6 @@
       "department": "M",
       "active": true,
       "hospitals": [
-        "basra",
         "iraqi"
       ]
     },

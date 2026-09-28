@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T20:15:43.465Z",
+  "lastUpdated": "2026-09-28T20:16:16.516Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -901,20 +901,6 @@
           ]
         },
         {
-          "id": "res-0151",
-          "name": "د. حسنين فيصل",
-          "phone": "+9647803101498",
-          "spec": "GS",
-          "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
-          "active": false,
-          "hospitals": [
-            "basra",
-            "iraqi"
-          ]
-        },
-        {
           "id": "res-0176",
           "name": "د. حسين عبدالامير كاطع",
           "phone": "+9647703347068",
@@ -1807,6 +1793,20 @@
           "active": true,
           "hospitals": [
             "iraqi"
+          ]
+        },
+        {
+          "id": "res-0190",
+          "name": "د. علي حسين عبدالرضا",
+          "phone": "+9647849000964",
+          "spec": "GS",
+          "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
+          "active": false,
+          "hospitals": [
+            "iraqi",
+            "basra"
           ]
         },
         {
@@ -18369,10 +18369,11 @@
         {
           "date": "28/09/2026",
           "specCode": "ON",
-          "name": "د. زهراء سهيل نجم",
+          "name": "د. علي اسعد يحيى",
           "VisitCount": 0,
           "dutyTime": "",
-          "dutySlot": 0
+          "dutySlot": 0,
+          "timestamp": "21:10"
         },
         {
           "date": "29/09/2026",
@@ -21550,10 +21551,9 @@
           "tag": "GS",
           "dept": "GS",
           "department": "GS",
-          "active": false,
+          "active": true,
           "hospitals": [
-            "basra",
-            "iraqi"
+            "basra"
           ]
         },
         {
@@ -22674,12 +22674,13 @@
           "id": "res-0190",
           "name": "د. علي حسين عبدالرضا",
           "phone": "+9647849000964",
-          "spec": "CT",
-          "tag": "CT",
+          "spec": "GS",
+          "tag": "GS",
           "dept": "GS",
           "department": "GS",
           "active": false,
           "hospitals": [
+            "iraqi",
             "basra"
           ]
         },
@@ -28674,7 +28675,7 @@
           "date": "28/09/2026",
           "specCode": "GS",
           "name": "د. علي احمد محسن",
-          "VisitCount": 1,
+          "VisitCount": 2,
           "dutySlot": 0,
           "dutyTime": ""
         },
@@ -28889,11 +28890,11 @@
         {
           "date": "28/09/2026",
           "specCode": "OR",
-          "name": "د. علي عبد الكريم عبدالله",
+          "name": "د. علي مطشر ابو كحيله",
           "VisitCount": 11,
           "dutySlot": 0,
           "dutyTime": "",
-          "timestamp": "16:34"
+          "timestamp": "21:11"
         },
         {
           "date": "29/09/2026",
@@ -29731,7 +29732,7 @@
           "date": "28/09/2026",
           "specCode": "Pe",
           "name": "د. لينا نجم عبد",
-          "VisitCount": 3,
+          "VisitCount": 2,
           "dutySlot": 0,
           "dutyTime": "",
           "timestamp": "16:35"
@@ -30087,15 +30088,6 @@
           "VisitCount": 0,
           "dutySlot": 0,
           "dutyTime": "08:00AM - 08:00PM"
-        },
-        {
-          "date": "28/09/2026",
-          "specCode": "D",
-          "name": "د. مريم علي محمد",
-          "VisitCount": 1,
-          "dutySlot": 0,
-          "dutyTime": "08:00AM - 08:00PM",
-          "timestamp": "18:13"
         },
         {
           "date": "29/09/2026",
@@ -31859,14 +31851,6 @@
           "dutySlot": 1
         },
         {
-          "date": "28/09/2026",
-          "specCode": "D",
-          "name": "د. علي حسين عبدالرضا",
-          "VisitCount": 0,
-          "dutyTime": "08:00PM - 08:00AM",
-          "dutySlot": 1
-        },
-        {
           "date": "29/09/2026",
           "specCode": "D",
           "name": "د. حيدر علي",
@@ -32295,6 +32279,151 @@
           "name": "د. حسنين كريم صالح",
           "timestamp": "12:08",
           "VisitCount": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "ENT",
+          "name": "د. مريم علي محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "ENT",
+          "name": "د. بان عبد الامير صمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "ENT",
+          "name": "د. مريم علي محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "04/10/2026",
+          "specCode": "ENT",
+          "name": "د. وديان باقر كامل",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "ENT",
+          "name": "د. درر علي محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/10/2026",
+          "specCode": "ENT",
+          "name": "د. بان عبد الامير صمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "07/10/2026",
+          "specCode": "ENT",
+          "name": "د. مريم علي محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "ENT",
+          "name": "د. الزهراء علي محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "09/10/2026",
+          "specCode": "ENT",
+          "name": "د. دعاء ناظم اسماعيل",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "ENT",
+          "name": "د. درر علي محمد",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "11/10/2026",
+          "specCode": "ENT",
+          "name": "د. دعاء ناظم اسماعيل",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "ENT",
+          "name": "د. بان عبد الامير صمد",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "12/10/2026",
+          "specCode": "ENT",
+          "name": "د. درر علي محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "13/10/2026",
+          "specCode": "ENT",
+          "name": "د. مريم علي محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "21/10/2026",
+          "specCode": "ENT",
+          "name": "د. درر علي محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "14/10/2026",
+          "specCode": "ENT",
+          "name": "د. وديان باقر كامل",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "15/10/2026",
+          "specCode": "ENT",
+          "name": "د. وديان باقر كامل",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "28/09/2026",
+          "specCode": "D",
+          "name": "د. علي وفي",
+          "VisitCount": 1,
+          "dutySlot": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "timestamp": "23:05"
         }
       ],
       "rotationHeroesUrl": "",
@@ -38842,10 +38971,9 @@
       "tag": "GS",
       "dept": "GS",
       "department": "GS",
-      "active": false,
+      "active": true,
       "hospitals": [
-        "basra",
-        "iraqi"
+        "basra"
       ]
     },
     {
@@ -41073,12 +41201,13 @@
       "id": "res-0190",
       "name": "د. علي حسين عبدالرضا",
       "phone": "+9647849000964",
-      "spec": "CT",
-      "tag": "CT",
+      "spec": "GS",
+      "tag": "GS",
       "dept": "GS",
       "department": "GS",
       "active": false,
       "hospitals": [
+        "iraqi",
         "basra"
       ]
     },

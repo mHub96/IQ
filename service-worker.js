@@ -8,8 +8,6 @@ const APP_SHELL = [
   './Home.html',
   './emergency.html',
   './emergency.js',
-  './emergency-data.js',
-  './emergency-db.json',
   './residents.html',
   './schedule.html',
   './specialists.html',

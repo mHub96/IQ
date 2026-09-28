@@ -5962,6 +5962,15 @@
         return checkDay(dayNumber - 1) || checkDay(dayNumber + 1);
     }
 
+    function shuffleArray(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+
     function runAutoDistributionER(mode, daysCount, activeDocs) {
         const schedule = state.schedules.er;
         const shifts = ['morning', 'afternoon', 'preNight', 'lateNight'];
@@ -6105,249 +6114,232 @@
 
         // -----------------------------------------------------------------
         // PASS 1: HIGHEST PRIORITY - Exact Preference Match (Both Day & Shift)
-        // Variety Rule: When a doctor has multiple preferences, vary both
-        // shifts and days to make the least possible similarities in duties.
+        // Doctor-Centric Round-Robin: Guarantees maximum duty variety across
+        // preferred shifts and days (e.g. 1 afternoon, 1 preNight, 1 lateNight
+        // across Sunday, Tuesday, Thursday) with randomized date selection!
         // -----------------------------------------------------------------
-        for (let d = 1; d <= daysCount; d++) {
-            const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (!dayEntry) continue;
+        let pass1Progress = true;
+        let guard1 = 0;
+        while (pass1Progress && guard1 < 200) {
+            guard1++;
+            pass1Progress = false;
 
-            shifts.forEach(shiftKey => {
-                if (!dayEntry[shiftKey]) {
-                    // Tier 1: Non-consecutive, satisfying BOTH shift & day variety
-                    let matchCandidates = activeDocs.filter(r => {
-                        if (!isDoctorAvailable(r, d, shiftKey, false)) return false;
-                        const hasDayPref = Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
-                        const hasShiftPref = Array.isArray(r.prefShifts) && r.prefShifts.includes(shiftKey);
-                        if (!hasDayPref || !hasShiftPref) return false;
-                        return isShiftVarietySatisfied(r, shiftKey) && isDayVarietySatisfied(r, dayEntry.dayName);
-                    });
-
-                    // Tier 2: Non-consecutive, satisfying shift variety (day variety relaxed)
-                    if (matchCandidates.length === 0) {
-                        matchCandidates = activeDocs.filter(r => {
-                            if (!isDoctorAvailable(r, d, shiftKey, false)) return false;
-                            const hasDayPref = Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
-                            const hasShiftPref = Array.isArray(r.prefShifts) && r.prefShifts.includes(shiftKey);
-                            if (!hasDayPref || !hasShiftPref) return false;
-                            return isShiftVarietySatisfied(r, shiftKey);
-                        });
-                    }
-
-                    // Tier 3: Non-consecutive, both preferences matched
-                    if (matchCandidates.length === 0) {
-                        matchCandidates = activeDocs.filter(r => {
-                            if (!isDoctorAvailable(r, d, shiftKey, false)) return false;
-                            const hasDayPref = Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
-                            const hasShiftPref = Array.isArray(r.prefShifts) && r.prefShifts.includes(shiftKey);
-                            return hasDayPref && hasShiftPref;
-                        });
-                    }
-
-                    // Tier 4: Consecutive fallback relaxation if no non-consecutive candidate
-                    if (matchCandidates.length === 0) {
-                        matchCandidates = activeDocs.filter(r => {
-                            if (!isDoctorAvailable(r, d, shiftKey, true)) return false;
-                            const hasDayPref = Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
-                            const hasShiftPref = Array.isArray(r.prefShifts) && r.prefShifts.includes(shiftKey);
-                            return hasDayPref && hasShiftPref;
-                        });
-                    }
-
-                    if (matchCandidates.length > 0) {
-                        // Sort candidates for MAXIMUM VARIETY:
-                        // 1. Shift variety: prioritize doctor who has received this specific shift fewest times
-                        // 2. Day variety: prioritize doctor who has received this day-of-week fewest times
-                        // 3. Shift diversity balance: avoid repeating a shift if doctor has unfulfilled preferred shifts
-                        // 4. Day diversity balance: avoid repeating a day if doctor has unfulfilled preferred days
-                        // 5. Total duties fairness (lowest assigned duties first)
-                        matchCandidates.sort((a, b) => {
-                            const shiftDiff = getShiftCount(a, shiftKey) - getShiftCount(b, shiftKey);
-                            if (shiftDiff !== 0) return shiftDiff;
-
-                            const dayDiff = getDayNameCount(a, dayEntry.dayName) - getDayNameCount(b, dayEntry.dayName);
-                            if (dayDiff !== 0) return dayDiff;
-
-                            const aExcessShift = getShiftCount(a, shiftKey) - getMinPrefShiftCount(a);
-                            const bExcessShift = getShiftCount(b, shiftKey) - getMinPrefShiftCount(b);
-                            if (aExcessShift !== bExcessShift) return aExcessShift - bExcessShift;
-
-                            const aExcessDay = getDayNameCount(a, dayEntry.dayName) - getMinPrefDayCount(a);
-                            const bExcessDay = getDayNameCount(b, dayEntry.dayName) - getMinPrefDayCount(b);
-                            if (aExcessDay !== bExcessDay) return aExcessDay - bExcessDay;
-
-                            return getAssigned(a) - getAssigned(b);
-                        });
-
-                        assignSlot(dayEntry, shiftKey, matchCandidates[0], d);
-                    }
-                }
-            });
-        }
-
-        // -----------------------------------------------------------------
-        // PASS 2: DAY PREFERENCE MATCH (e.g. Doctor preferred Friday)
-        // Doctor requested this day; try candidate shifts in order of FEWEST ASSIGNED
-        // first to ensure maximum variety across all preferred shifts!
-        // -----------------------------------------------------------------
-        for (let d = 1; d <= daysCount; d++) {
-            const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (!dayEntry) continue;
-
-            // Prioritize doctors who satisfy day variety on this day first
-            let dayPrefDocs = activeDocs.filter(r => {
+            const candidateDocs = activeDocs.filter(r => {
                 return hasRemainingQuota(r) &&
-                    Array.isArray(r.prefDays) &&
-                    r.prefDays.includes(dayEntry.dayName) &&
-                    isDayVarietySatisfied(r, dayEntry.dayName);
+                    Array.isArray(r.prefDays) && r.prefDays.length > 0 &&
+                    Array.isArray(r.prefShifts) && r.prefShifts.length > 0;
             });
 
-            if (dayPrefDocs.length === 0) {
-                dayPrefDocs = activeDocs.filter(r => {
-                    return hasRemainingQuota(r) &&
-                        Array.isArray(r.prefDays) &&
-                        r.prefDays.includes(dayEntry.dayName);
-                });
-            }
+            // Randomize doctor order each round for fair distribution across runs
+            const docsOrder = shuffleArray(candidateDocs);
 
-            // Prioritize doctors who have received this day of the week FEWEST times
-            dayPrefDocs.sort((a, b) => {
-                const dayDiff = getDayNameCount(a, dayEntry.dayName) - getDayNameCount(b, dayEntry.dayName);
-                if (dayDiff !== 0) return dayDiff;
-                return getAssigned(a) - getAssigned(b);
-            });
+            for (const r of docsOrder) {
+                if (!hasRemainingQuota(r)) continue;
 
-            dayPrefDocs.forEach(r => {
-                if (!hasRemainingQuota(r)) return;
-                const clean = normalizeArabic(r.name);
-                if (assignedDays[d] && assignedDays[d].has(clean)) return;
+                const minShift = getMinPrefShiftCount(r);
+                const minDay = getMinPrefDayCount(r);
 
-                // Determine candidate shifts in order of preference & VARIETY (fewest assigned first)
-                let shiftOrder = [];
-                if (Array.isArray(r.prefShifts) && r.prefShifts.length > 0) {
-                    // 1. Preferred shifts that satisfy shift variety first!
-                    const balancedPrefShifts = r.prefShifts.filter(s => isShiftVarietySatisfied(r, s))
-                        .sort((s1, s2) => getShiftCount(r, s1) - getShiftCount(r, s2));
-                    // 2. Remaining preferred shifts sorted by fewest assigned
-                    const remainingPrefShifts = r.prefShifts.filter(s => !balancedPrefShifts.includes(s))
-                        .sort((s1, s2) => getShiftCount(r, s1) - getShiftCount(r, s2));
-                    // 3. Other non-preferred shifts sorted by fewest assigned
-                    const otherShifts = shifts.filter(s => !r.prefShifts.includes(s))
-                        .sort((s1, s2) => getShiftCount(r, s1) - getShiftCount(r, s2));
-                    shiftOrder = balancedPrefShifts.concat(remainingPrefShifts).concat(otherShifts);
-                } else if (r.sex === 'F') {
-                    shiftOrder = ['morning', 'afternoon', 'preNight', 'lateNight']
-                        .sort((s1, s2) => getShiftCount(r, s1) - getShiftCount(r, s2));
-                } else {
-                    shiftOrder = (getQuota(r) > 1) 
-                        ? ['preNight', 'morning', 'afternoon', 'lateNight']
-                        : ['lateNight', 'preNight', 'afternoon', 'morning'];
-                    shiftOrder.sort((s1, s2) => getShiftCount(r, s1) - getShiftCount(r, s2));
-                }
+                // 1. Preferred shifts that currently have minimum assignments (strict variety!)
+                let candidateShifts = r.prefShifts.filter(s => getShiftCount(r, s) === minShift);
+                if (candidateShifts.length === 0) candidateShifts = r.prefShifts.slice();
+                candidateShifts = shuffleArray(candidateShifts);
 
-                // First try strictly non-consecutive
-                let assigned = false;
-                for (const s of shiftOrder) {
-                    if (!dayEntry[s] && isDoctorAvailable(r, d, s, false)) {
-                        assignSlot(dayEntry, s, r, d);
-                        assigned = true;
-                        break;
-                    }
-                }
-                // Fallback allowing consecutive
-                if (!assigned) {
-                    for (const s of shiftOrder) {
-                        if (!dayEntry[s] && isDoctorAvailable(r, d, s, true)) {
-                            assignSlot(dayEntry, s, r, d);
-                            break;
+                // 2. Preferred days that currently have minimum assignments (strict variety!)
+                let candidateDays = r.prefDays.filter(dn => getDayNameCount(r, dn) === minDay);
+                if (candidateDays.length === 0) candidateDays = r.prefDays.slice();
+                candidateDays = shuffleArray(candidateDays);
+
+                // Tier 1: Non-consecutive slots matching candidateShifts & candidateDays
+                let validSlots = [];
+                for (const shiftKey of candidateShifts) {
+                    for (let d = 1; d <= daysCount; d++) {
+                        const dayEntry = schedule.find(s => s.dayNumber === d);
+                        if (dayEntry && !dayEntry[shiftKey] && candidateDays.includes(dayEntry.dayName)) {
+                            if (isDoctorAvailable(r, d, shiftKey, false)) {
+                                validSlots.push({ d, dayEntry, shiftKey, consecutive: false });
+                            }
                         }
                     }
                 }
-            });
+
+                // Tier 2: Non-consecutive slots matching candidateShifts on any preferred day (relaxed day variety)
+                if (validSlots.length === 0) {
+                    for (const shiftKey of candidateShifts) {
+                        for (let d = 1; d <= daysCount; d++) {
+                            const dayEntry = schedule.find(s => s.dayNumber === d);
+                            if (dayEntry && !dayEntry[shiftKey] && r.prefDays.includes(dayEntry.dayName)) {
+                                if (isDoctorAvailable(r, d, shiftKey, false)) {
+                                    validSlots.push({ d, dayEntry, shiftKey, consecutive: false });
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Tier 3: Consecutive fallback relaxation if required
+                if (validSlots.length === 0) {
+                    for (const shiftKey of candidateShifts) {
+                        for (let d = 1; d <= daysCount; d++) {
+                            const dayEntry = schedule.find(s => s.dayNumber === d);
+                            if (dayEntry && !dayEntry[shiftKey] && r.prefDays.includes(dayEntry.dayName)) {
+                                if (isDoctorAvailable(r, d, shiftKey, true)) {
+                                    validSlots.push({ d, dayEntry, shiftKey, consecutive: true });
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (validSlots.length > 0) {
+                    // Pick a random slot among the valid candidates for date distribution randomness!
+                    validSlots = shuffleArray(validSlots);
+                    const chosen = validSlots[0];
+                    assignSlot(chosen.dayEntry, chosen.shiftKey, r, chosen.d);
+                    pass1Progress = true;
+                }
+            }
         }
 
         // -----------------------------------------------------------------
-        // PASS 3: SHIFT PREFERENCE MATCH (Doctor preferred specific shift)
+        // PASS 2: DAY PREFERENCE MATCH (Doctors with Day prefs, no shift prefs)
+        // Doctor requested this day; try candidate shifts in order of FEWEST ASSIGNED
+        // first to ensure maximum variety across all shifts, with randomized dates!
+        // -----------------------------------------------------------------
+        let pass2Progress = true;
+        let guard2 = 0;
+        while (pass2Progress && guard2 < 200) {
+            guard2++;
+            pass2Progress = false;
+
+            const dayPrefDocs = activeDocs.filter(r => {
+                return hasRemainingQuota(r) &&
+                    Array.isArray(r.prefDays) && r.prefDays.length > 0;
+            });
+
+            const docsOrder = shuffleArray(dayPrefDocs);
+
+            for (const r of docsOrder) {
+                if (!hasRemainingQuota(r)) continue;
+
+                const minDay = getMinPrefDayCount(r);
+                let candidateDays = r.prefDays.filter(dn => getDayNameCount(r, dn) === minDay);
+                if (candidateDays.length === 0) candidateDays = r.prefDays.slice();
+                candidateDays = shuffleArray(candidateDays);
+
+                // Determine candidate shifts based on variety & gender rules
+                let shiftCandidates = [];
+                if (Array.isArray(r.prefShifts) && r.prefShifts.length > 0) {
+                    const minS = getMinPrefShiftCount(r);
+                    shiftCandidates = r.prefShifts.filter(s => getShiftCount(r, s) === minS);
+                    if (shiftCandidates.length === 0) shiftCandidates = r.prefShifts.slice();
+                } else if (r.sex === 'F') {
+                    shiftCandidates = ['morning', 'afternoon', 'preNight', 'lateNight'];
+                } else {
+                    shiftCandidates = (getQuota(r) > 1) 
+                        ? ['preNight', 'morning', 'afternoon', 'lateNight']
+                        : ['lateNight', 'preNight', 'afternoon', 'morning'];
+                }
+                shiftCandidates.sort((s1, s2) => getShiftCount(r, s1) - getShiftCount(r, s2));
+
+                let validSlots = [];
+                // First try non-consecutive
+                for (const shiftKey of shiftCandidates) {
+                    for (let d = 1; d <= daysCount; d++) {
+                        const dayEntry = schedule.find(s => s.dayNumber === d);
+                        if (dayEntry && !dayEntry[shiftKey] && candidateDays.includes(dayEntry.dayName)) {
+                            if (isDoctorAvailable(r, d, shiftKey, false)) {
+                                validSlots.push({ d, dayEntry, shiftKey, consecutive: false });
+                            }
+                        }
+                    }
+                    if (validSlots.length > 0) break;
+                }
+
+                // Fallback consecutive relaxation
+                if (validSlots.length === 0) {
+                    for (const shiftKey of shiftCandidates) {
+                        for (let d = 1; d <= daysCount; d++) {
+                            const dayEntry = schedule.find(s => s.dayNumber === d);
+                            if (dayEntry && !dayEntry[shiftKey] && candidateDays.includes(dayEntry.dayName)) {
+                                if (isDoctorAvailable(r, d, shiftKey, true)) {
+                                    validSlots.push({ d, dayEntry, shiftKey, consecutive: true });
+                                }
+                            }
+                        }
+                        if (validSlots.length > 0) break;
+                    }
+                }
+
+                if (validSlots.length > 0) {
+                    validSlots = shuffleArray(validSlots);
+                    const chosen = validSlots[0];
+                    assignSlot(chosen.dayEntry, chosen.shiftKey, r, chosen.d);
+                    pass2Progress = true;
+                }
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // PASS 3: SHIFT PREFERENCE MATCH (Doctor preferred specific shifts)
         // Rotates shifts in round-robin fashion so doctors with multiple
         // preferences receive varied duties with least possible similarities!
         // (e.g. 1 morning, 1 afternoon, 1 prenight for a doctor with 3 duties)
         // -----------------------------------------------------------------
-        let shiftPrefProgress = true;
-        let iterationGuard = 0;
-        while (shiftPrefProgress && iterationGuard < 200) {
-            iterationGuard++;
-            shiftPrefProgress = false;
+        let pass3Progress = true;
+        let guard3 = 0;
+        while (pass3Progress && guard3 < 200) {
+            guard3++;
+            pass3Progress = false;
 
-            // Find all doctors who have remaining quota and preferred shifts
-            const candidateDocs = activeDocs.filter(r => {
-                if (!hasRemainingQuota(r)) return false;
-                return Array.isArray(r.prefShifts) && r.prefShifts.length > 0;
+            const shiftPrefDocs = activeDocs.filter(r => {
+                return hasRemainingQuota(r) &&
+                    Array.isArray(r.prefShifts) && r.prefShifts.length > 0;
             });
 
-            // Sort doctors by fewest min preferred shift assignments, then fewest total assigned
-            candidateDocs.sort((a, b) => {
-                const aMin = getMinPrefShiftCount(a);
-                const bMin = getMinPrefShiftCount(b);
-                if (aMin !== bMin) return aMin - bMin;
-                return getAssigned(a) - getAssigned(b);
-            });
+            const docsOrder = shuffleArray(shiftPrefDocs);
 
-            for (const r of candidateDocs) {
+            for (const r of docsOrder) {
                 if (!hasRemainingQuota(r)) continue;
 
-                // Candidates: preferred shifts satisfying shift variety first
-                let eligibleShifts = r.prefShifts.filter(s => isShiftVarietySatisfied(r, s));
-                if (eligibleShifts.length === 0) {
-                    eligibleShifts = r.prefShifts.slice();
-                }
-                eligibleShifts.sort((s1, s2) => getShiftCount(r, s1) - getShiftCount(r, s2));
+                const minShift = getMinPrefShiftCount(r);
+                let eligibleShifts = r.prefShifts.filter(s => getShiftCount(r, s) === minShift);
+                if (eligibleShifts.length === 0) eligibleShifts = r.prefShifts.slice();
+                eligibleShifts = shuffleArray(eligibleShifts);
 
+                let validSlots = [];
                 for (const shiftKey of eligibleShifts) {
-                    let candidateDays = [];
                     for (let d = 1; d <= daysCount; d++) {
                         const dayEntry = schedule.find(s => s.dayNumber === d);
                         if (dayEntry && !dayEntry[shiftKey] && isDoctorAvailable(r, d, shiftKey, false)) {
-                            candidateDays.push({ d, dayEntry, allowConsecutive: false });
+                            validSlots.push({ d, dayEntry, shiftKey, consecutive: false });
                         }
                     }
+                    if (validSlots.length > 0) break;
+                }
 
-                    if (candidateDays.length === 0) {
+                if (validSlots.length === 0) {
+                    for (const shiftKey of eligibleShifts) {
                         for (let d = 1; d <= daysCount; d++) {
                             const dayEntry = schedule.find(s => s.dayNumber === d);
                             if (dayEntry && !dayEntry[shiftKey] && isDoctorAvailable(r, d, shiftKey, true)) {
-                                candidateDays.push({ d, dayEntry, allowConsecutive: true });
+                                validSlots.push({ d, dayEntry, shiftKey, consecutive: true });
                             }
                         }
+                        if (validSlots.length > 0) break;
                     }
+                }
 
-                    if (candidateDays.length > 0) {
-                        // Sort candidate days for maximum DAY VARIETY:
-                        candidateDays.sort((a, b) => {
-                            const aDayName = a.dayEntry.dayName;
-                            const bDayName = b.dayEntry.dayName;
-
-                            // 1. Preferred days first
-                            const aIsPref = Array.isArray(r.prefDays) && r.prefDays.includes(aDayName) ? 1 : 0;
-                            const bIsPref = Array.isArray(r.prefDays) && r.prefDays.includes(bDayName) ? 1 : 0;
-                            if (aIsPref !== bIsPref) return bIsPref - aIsPref;
-
-                            // 2. Day variety satisfaction
-                            const aVar = isDayVarietySatisfied(r, aDayName) ? 1 : 0;
-                            const bVar = isDayVarietySatisfied(r, bDayName) ? 1 : 0;
-                            if (aVar !== bVar) return bVar - aVar;
-
-                            // 3. Lowest day-of-week count
-                            const dayCountDiff = getDayNameCount(r, aDayName) - getDayNameCount(r, bDayName);
-                            if (dayCountDiff !== 0) return dayCountDiff;
-
-                            return a.d - b.d;
-                        });
-
-                        const chosen = candidateDays[0];
-                        assignSlot(chosen.dayEntry, shiftKey, r, chosen.d);
-                        shiftPrefProgress = true;
-                        break; // Move to next doctor so other doctors get their turns and shifts rotate!
-                    }
+                if (validSlots.length > 0) {
+                    // Sort valid slots to prioritize days of week doctor has worked fewest times,
+                    // with a random tie-breaker for date variety across runs
+                    validSlots.sort((a, b) => {
+                        const dayCountDiff = getDayNameCount(r, a.dayEntry.dayName) - getDayNameCount(r, b.dayEntry.dayName);
+                        if (dayCountDiff !== 0) return dayCountDiff;
+                        return Math.random() - 0.5;
+                    });
+                    const chosen = validSlots[0];
+                    assignSlot(chosen.dayEntry, chosen.shiftKey, r, chosen.d);
+                    pass3Progress = true;
                 }
             }
         }
@@ -6360,11 +6352,13 @@
         // - Pre-Night (8PM-2AM): Males with multiple duties (>1), then any male, then any doc
         // - Late-Night (2AM-8AM): Males with single duty (==1), then any male, then any doc
         // Priority within each tier given to doctors with FEWEST OF THIS SHIFT!
+        // Shuffled dates across the month ensure natural, non-linear distribution!
         // STRICT QUOTA LIMIT: IF NO CANDIDATE HAS QUOTA, LEAVE CELL EMPTY!
         // -----------------------------------------------------------------
+        const shuffledDaysForGen = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
 
         // 4A. Morning
-        for (let d = 1; d <= daysCount; d++) {
+        for (const d of shuffledDaysForGen) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.morning) {
                 let candidates = activeDocs.filter(r => r.sex === 'F' && isDoctorAvailable(r, d, 'morning', false));
@@ -6385,7 +6379,9 @@
                         if (sDiff !== 0) return sDiff;
                         const dDiff = getDayNameCount(a, dayEntry.dayName) - getDayNameCount(b, dayEntry.dayName);
                         if (dDiff !== 0) return dDiff;
-                        return getAssigned(a) - getAssigned(b);
+                        const assignedDiff = getAssigned(a) - getAssigned(b);
+                        if (assignedDiff !== 0) return assignedDiff;
+                        return Math.random() - 0.5;
                     });
                     assignSlot(dayEntry, 'morning', candidates[0], d);
                 }
@@ -6393,7 +6389,7 @@
         }
 
         // 4B. Afternoon
-        for (let d = 1; d <= daysCount; d++) {
+        for (const d of shuffledDaysForGen) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.afternoon) {
                 let candidates = activeDocs.filter(r => r.sex === 'F' && isDoctorAvailable(r, d, 'afternoon', false));
@@ -6414,7 +6410,9 @@
                         if (sDiff !== 0) return sDiff;
                         const dDiff = getDayNameCount(a, dayEntry.dayName) - getDayNameCount(b, dayEntry.dayName);
                         if (dDiff !== 0) return dDiff;
-                        return getAssigned(a) - getAssigned(b);
+                        const assignedDiff = getAssigned(a) - getAssigned(b);
+                        if (assignedDiff !== 0) return assignedDiff;
+                        return Math.random() - 0.5;
                     });
                     assignSlot(dayEntry, 'afternoon', candidates[0], d);
                 }
@@ -6422,7 +6420,7 @@
         }
 
         // 4C. Pre-Night (8PM - 2AM)
-        for (let d = 1; d <= daysCount; d++) {
+        for (const d of shuffledDaysForGen) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.preNight) {
                 let candidates = activeDocs.filter(r => r.sex === 'M' && getQuota(r) > 1 && isDoctorAvailable(r, d, 'preNight', false));
@@ -6449,7 +6447,9 @@
                         if (sDiff !== 0) return sDiff;
                         const dDiff = getDayNameCount(a, dayEntry.dayName) - getDayNameCount(b, dayEntry.dayName);
                         if (dDiff !== 0) return dDiff;
-                        return getAssigned(a) - getAssigned(b);
+                        const assignedDiff = getAssigned(a) - getAssigned(b);
+                        if (assignedDiff !== 0) return assignedDiff;
+                        return Math.random() - 0.5;
                     });
                     assignSlot(dayEntry, 'preNight', candidates[0], d);
                 }
@@ -6457,7 +6457,7 @@
         }
 
         // 4D. Late-Night (2AM - 8AM)
-        for (let d = 1; d <= daysCount; d++) {
+        for (const d of shuffledDaysForGen) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.lateNight) {
                 let candidates = activeDocs.filter(r => r.sex === 'M' && getQuota(r) === 1 && isDoctorAvailable(r, d, 'lateNight', false));
@@ -6484,7 +6484,9 @@
                         if (sDiff !== 0) return sDiff;
                         const dDiff = getDayNameCount(a, dayEntry.dayName) - getDayNameCount(b, dayEntry.dayName);
                         if (dDiff !== 0) return dDiff;
-                        return getAssigned(a) - getAssigned(b);
+                        const assignedDiff = getAssigned(a) - getAssigned(b);
+                        if (assignedDiff !== 0) return assignedDiff;
+                        return Math.random() - 0.5;
                     });
                     assignSlot(dayEntry, 'lateNight', candidates[0], d);
                 }
@@ -6554,8 +6556,10 @@
             assignedDayNameCounts[clean][dayEntry.dayName] = (assignedDayNameCounts[clean][dayEntry.dayName] || 0) + 1;
         }
 
+        const shuffledDaysCon = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
+
         // Pass 1: Preferences (Doctors who prefer this day)
-        for (let d = 1; d <= daysCount; d++) {
+        for (const d of shuffledDaysCon) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.doctor) {
                 // Tier 1: Day variety satisfied (doctor hasn't had more of this day than of their other preferred days)
@@ -6584,7 +6588,8 @@
                         if (dayDiff !== 0) return dayDiff;
                         const remA = (Number(a.con_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
                         const remB = (Number(b.con_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
-                        return remB - remA;
+                        if (remB !== remA) return remB - remA;
+                        return Math.random() - 0.5;
                     });
                     assignCon(dayEntry, prefMatches[0]);
                 }
@@ -6592,7 +6597,7 @@
         }
 
         // Pass 2: General Fill for remaining slots
-        for (let d = 1; d <= daysCount; d++) {
+        for (const d of shuffledDaysCon) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.doctor) {
                 let available = conCandidates.filter(r => isConAvailable(r, d, false));
@@ -6605,7 +6610,8 @@
                         if (dayDiff !== 0) return dayDiff;
                         const remA = (Number(a.con_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
                         const remB = (Number(b.con_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
-                        return remB - remA;
+                        if (remB !== remA) return remB - remA;
+                        return Math.random() - 0.5;
                     });
                     assignCon(dayEntry, available[0]);
                 }
@@ -6675,8 +6681,10 @@
             assignedDayNameCounts[clean][dayEntry.dayName] = (assignedDayNameCounts[clean][dayEntry.dayName] || 0) + 1;
         }
 
+        const shuffledDaysDC = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
+
         // Pass 1: Preferences (Doctors who prefer this day)
-        for (let d = 1; d <= daysCount; d++) {
+        for (const d of shuffledDaysDC) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.doctor) {
                 // Tier 1: Day variety satisfied
@@ -6703,7 +6711,8 @@
                         if (dayDiff !== 0) return dayDiff;
                         const remA = (Number(a.dc_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
                         const remB = (Number(b.dc_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
-                        return remB - remA;
+                        if (remB !== remA) return remB - remA;
+                        return Math.random() - 0.5;
                     });
                     assignDC(dayEntry, prefMatches[0]);
                 }
@@ -6711,7 +6720,7 @@
         }
 
         // Pass 2: Doctors on-call in hospital on this date
-        for (let d = 1; d <= daysCount; d++) {
+        for (const d of shuffledDaysDC) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.doctor) {
                 const dateStr = formatDateStr(state.year, state.month, d);
@@ -6735,7 +6744,8 @@
                         if (dayDiff !== 0) return dayDiff;
                         const remA = (Number(a.dc_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
                         const remB = (Number(b.dc_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
-                        return remB - remA;
+                        if (remB !== remA) return remB - remA;
+                        return Math.random() - 0.5;
                     });
                     assignDC(dayEntry, onCallCandidates[0]);
                 }
@@ -6743,7 +6753,7 @@
         }
 
         // Pass 3: General Fallback for remaining slots
-        for (let d = 1; d <= daysCount; d++) {
+        for (const d of shuffledDaysDC) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.doctor) {
                 let available = dcCandidates.filter(r => isDCAvailable(r, d, false));
@@ -6756,7 +6766,8 @@
                         if (dayDiff !== 0) return dayDiff;
                         const remA = (Number(a.dc_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
                         const remB = (Number(b.dc_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
-                        return remB - remA;
+                        if (remB !== remA) return remB - remA;
+                        return Math.random() - 0.5;
                     });
                     assignDC(dayEntry, available[0]);
                 }
@@ -6843,8 +6854,12 @@
             assignedDayNameCounts[clean][dayEntry.dayName] = (assignedDayNameCounts[clean][dayEntry.dayName] || 0) + 1;
         }
 
+        const rsDaysArr = [];
+        for (let d = startDay; d <= endDay; d++) rsDaysArr.push(d);
+        const shuffledDaysRS = shuffleArray(rsDaysArr);
+
         // Pass 1: Preferences
-        for (let d = startDay; d <= endDay; d++) {
+        for (const d of shuffledDaysRS) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (!dayEntry) continue;
             shifts.forEach(slot => {
@@ -6872,7 +6887,8 @@
                             if (dayDiff !== 0) return dayDiff;
                             const remA = (Number(a.rs_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
                             const remB = (Number(b.rs_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
-                            return remB - remA;
+                            if (remB !== remA) return remB - remA;
+                            return Math.random() - 0.5;
                         });
                         assignRS(dayEntry, slot, prefMatches[0]);
                     }
@@ -6881,7 +6897,7 @@
         }
 
         // Pass 2: General Fallback
-        for (let d = startDay; d <= endDay; d++) {
+        for (const d of shuffledDaysRS) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (!dayEntry) continue;
             shifts.forEach(slot => {
@@ -6899,7 +6915,8 @@
                             if (dayDiff !== 0) return dayDiff;
                             const remA = (Number(a.rs_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
                             const remB = (Number(b.rs_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
-                            return remB - remA;
+                            if (remB !== remA) return remB - remA;
+                            return Math.random() - 0.5;
                         });
                         assignRS(dayEntry, slot, available[0]);
                     }
@@ -6969,8 +6986,12 @@
             assignedDayNameCounts[clean][dayEntry.dayName] = (assignedDayNameCounts[clean][dayEntry.dayName] || 0) + 1;
         }
 
+        const rsWardsDaysArr = [];
+        for (let d = startDay; d <= endDay; d++) rsWardsDaysArr.push(d);
+        const shuffledDaysRSWards = shuffleArray(rsWardsDaysArr);
+
         // Pass 1: Preferences (day match)
-        for (let d = startDay; d <= endDay; d++) {
+        for (const d of shuffledDaysRSWards) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (!dayEntry) continue;
             wards.forEach(slot => {
@@ -6991,7 +7012,8 @@
                             if (dayDiff !== 0) return dayDiff;
                             const remA = (Number(a.rs_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
                             const remB = (Number(b.rs_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
-                            return remB - remA;
+                            if (remB !== remA) return remB - remA;
+                            return Math.random() - 0.5;
                         });
                         assignRSWards(dayEntry, slot, prefMatches[0]);
                     }
@@ -7000,7 +7022,7 @@
         }
 
         // Pass 2: General Fallback
-        for (let d = startDay; d <= endDay; d++) {
+        for (const d of shuffledDaysRSWards) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (!dayEntry) continue;
             wards.forEach(slot => {
@@ -7015,7 +7037,8 @@
                             if (dayDiff !== 0) return dayDiff;
                             const remA = (Number(a.rs_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
                             const remB = (Number(b.rs_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
-                            return remB - remA;
+                            if (remB !== remA) return remB - remA;
+                            return Math.random() - 0.5;
                         });
                         assignRSWards(dayEntry, slot, available[0]);
                     }

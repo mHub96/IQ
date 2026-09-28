@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T17:15:19.703Z",
+  "lastUpdated": "2026-09-28T17:15:32.123Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20805,6 +20805,16 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
+        },
+        {
+          "id": "REFE",
+          "name_ar": "الاحالات",
+          "name_en": "Referrals",
+          "icon": "🚑",
+          "color": "#650094",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
         }
       ],
       "names": [

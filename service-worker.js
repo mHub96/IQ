@@ -10,10 +10,10 @@ const APP_SHELL = [
   './emergency.js',
   './emergency-data.js',
   './emergency-db.json',
-  './icu.html',
+  './residents.html',
   './schedule.html',
   './specialists.html',
-  './residents.html',
+  './icu.html',
   './signup.html',
   './admin.html',
   './scheduler.html',
@@ -31,7 +31,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('[Service Worker] Caching complete app shell');
+        console.log('[Service Worker] Caching app shell');
         return cache.addAll(APP_SHELL);
       })
       .then(() => {

@@ -78,7 +78,7 @@
             <nav class="hub-nav-bar" id="hub-main-nav">
                 <!-- Left: Brand -->
                 <div class="hub-nav-left">
-                    <a href="./index.html" class="hub-nav-brand" title="العودة إلى البوابة الرئيسية">
+                    <a href="./index.html?portal=true" class="hub-nav-brand" title="العودة إلى البوابة الرئيسية">
                         <span class="brand-icon"><i class="fas fa-hospital-alt"></i></span>
                         <span class="brand-text">بوابة المستشفيات</span>
                     </a>
@@ -86,7 +86,7 @@
 
                 <!-- Center: Universal Webpage Links -->
                 <div class="hub-nav-center">
-                    <a href="./index.html" class="hub-nav-link ${activePageId === 'hub' ? 'active' : ''}">
+                    <a href="./index.html?portal=true" class="hub-nav-link ${activePageId === 'hub' ? 'active' : ''}">
                         <i class="fas fa-th-large"></i> <span>البوابة الرئيسية</span>
                     </a>
                     <a href="./schedule.html${queryParam}" class="hub-nav-link ${activePageId === 'schedule' ? 'active' : ''}">
@@ -369,7 +369,7 @@
             ${activePageId !== 'hub' ? `
             <!-- Universal Mobile Bottom App Dock -->
             <nav class="hub-mobile-bottom-dock" id="hub-bottom-dock">
-                <a href="./index.html" class="dock-tab-btn ${activePageId === 'hub' ? 'active' : ''}" title="البوابة الرئيسية">
+                <a href="./index.html?portal=true" class="dock-tab-btn ${activePageId === 'hub' ? 'active' : ''}" title="البوابة الرئيسية">
                     <i class="fas fa-hospital-alt"></i>
                     <span>الرئيسية</span>
                 </a>
@@ -541,7 +541,7 @@
     window.logoutNav = function() {
         if (!window.Hub) return;
         window.Hub.auth.logout();
-        window.location.href = './index.html';
+        window.location.href = './index.html?portal=true';
     };
 
     // Admin link guard
@@ -819,7 +819,7 @@
     window.handleRoleBadgeClick = function() {
         if (!window.Hub) return;
         if (!window.Hub.auth.isLoggedIn()) {
-            window.location.href = './index.html';
+            window.location.href = './index.html?portal=true';
             return;
         }
         window.openRoleSwitcherModal();
@@ -829,7 +829,7 @@
         if (window.Hub && window.Hub.auth) {
             window.Hub.auth.logout();
         }
-        window.location.href = './index.html';
+        window.location.href = './index.html?portal=true';
     };
 
     window.openUpgradeModal = function() {
@@ -1347,14 +1347,6 @@
 
             // Internal page navigation
             if (href.includes('.html') || (!href.includes('://') && !href.startsWith('//'))) {
-                try {
-                    let target = href;
-                    if (!target.startsWith('./') && !target.startsWith('/')) {
-                        target = './' + target;
-                    }
-                    localStorage.setItem('hosp_hub_last_page', target);
-                } catch (err) {}
-
                 if (progressEl) {
                     progressEl.style.transform = '';
                     progressEl.classList.remove('done');

@@ -7,28 +7,55 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="theme-color" content="#0f766e" />
     <title>بوابة المستشفيات التعليمية · Medical Hub App 🇮🇶</title>
-    
-    <!-- PWA Resume: Immediately relaunch to where user left off -->
+    <link rel="manifest" href="./manifest.webmanifest" />
     <script>
         (function() {
             try {
-                var search = window.location.search;
-                var params = new URLSearchParams(search);
-                if (params.has('home') || params.has('no_redirect') || params.has('reset')) {
-                    localStorage.setItem('hosp_hub_last_page', './index.html');
+                const params = new URLSearchParams(window.location.search);
+                // If explicit portal visit, stay on portal and update last page
+                if (params.get('portal') === 'true' || params.get('hub') === 'true' || params.get('force') === 'true') {
+                    localStorage.setItem('pwa_last_page', './index.html');
+                    if (window.history && window.history.replaceState) {
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
                     return;
                 }
-                var lastPage = localStorage.getItem('hosp_hub_last_page');
-                if (lastPage) {
-                    var clean = lastPage.split('?')[0].split('#')[0].replace(/^\.\//, '').trim();
-                    if (clean && clean !== 'index.html' && clean !== 'Home.html' && clean.endsWith('.html')) {
-                        window.location.replace(lastPage.startsWith('./') ? lastPage : './' + lastPage);
+
+                // If navigating from inside the hospital hub app, do not redirect
+                const ref = document.referrer;
+                const isInternalReferrer = ref && (
+                    ref.includes('emergency.html') ||
+                    ref.includes('schedule.html') ||
+                    ref.includes('residents.html') ||
+                    ref.includes('specialists.html') ||
+                    ref.includes('admin.html') ||
+                    ref.includes('Home.html') ||
+                    ref.includes('icu.html') ||
+                    ref.includes('scheduler.html') ||
+                    ref.includes('s.html')
+                );
+
+                if (isInternalReferrer) {
+                    localStorage.setItem('pwa_last_page', './index.html');
+                    return;
+                }
+
+                // Fresh PWA / browser launch: check if there is a saved last page to restore
+                const lastPage = localStorage.getItem('pwa_last_page');
+                if (lastPage && typeof lastPage === 'string') {
+                    const clean = lastPage.trim();
+                    const fileName = clean.split('?')[0].split('#')[0].split('/').pop();
+                    if (fileName && fileName !== 'index.html' && fileName !== '') {
+                        window._pwa_redirecting = true;
+                        window.location.replace(clean);
                     }
                 }
-            } catch(e) {}
+            } catch (e) {
+                console.warn('PWA state restore error:', e);
+            }
         })();
     </script>
-    <link rel="manifest" href="./manifest.webmanifest" />
+    <script src="./pwa.js"></script>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -2743,6 +2770,5 @@
             renderHubDashboard();
         });
     </script>
-    <script src="./pwa.js"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T20:16:16.516Z",
+  "lastUpdated": "2026-09-28T20:16:27.227Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -1803,7 +1803,7 @@
           "tag": "GS",
           "dept": "GS",
           "department": "GS",
-          "active": false,
+          "active": true,
           "hospitals": [
             "iraqi",
             "basra"
@@ -22678,7 +22678,7 @@
           "tag": "GS",
           "dept": "GS",
           "department": "GS",
-          "active": false,
+          "active": true,
           "hospitals": [
             "iraqi",
             "basra"
@@ -41205,7 +41205,7 @@
       "tag": "GS",
       "dept": "GS",
       "department": "GS",
-      "active": false,
+      "active": true,
       "hospitals": [
         "iraqi",
         "basra"

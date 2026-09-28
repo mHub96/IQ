@@ -248,6 +248,22 @@
             }
         }
 
+        // Ensure baseline activation state is restored from canonical data if state was corrupted (e.g. 0 inactives)
+        const baselineMap = {};
+        if (window.DEFAULT_EMERGENCY_DATA && Array.isArray(window.DEFAULT_EMERGENCY_DATA.residents)) {
+            window.DEFAULT_EMERGENCY_DATA.residents.forEach(r => {
+                baselineMap[r.id] = (r.active !== false);
+            });
+        }
+        const inactiveInState = (state.residents || []).filter(r => r.active === false).length;
+        if (inactiveInState === 0 && Object.keys(baselineMap).length > 0) {
+            (state.residents || []).forEach(r => {
+                if (baselineMap[r.id] !== undefined) {
+                    r.active = baselineMap[r.id];
+                }
+            });
+        }
+
         // Load the schedule and allocations for the determined month from store
         loadMonthScheduleFromStore(state.hospitalId, state.year, state.month);
         loadMonthAllocationsFromStore(state.hospitalId, state.year, state.month);
@@ -406,6 +422,14 @@
         }
     }
 
+    function getBaselineResidentActive(residentId) {
+        if (window.DEFAULT_EMERGENCY_DATA && Array.isArray(window.DEFAULT_EMERGENCY_DATA.residents)) {
+            const found = window.DEFAULT_EMERGENCY_DATA.residents.find(r => r.id === residentId);
+            if (found) return found.active !== false;
+        }
+        return true;
+    }
+
     function loadMonthAllocationsFromStore(hospId, year, month) {
         if (!state.monthlyAllocations) state.monthlyAllocations = {};
         const key = `${hospId}_${year}_${month}`;
@@ -439,16 +463,26 @@
         }
 
         if (loadedMap) {
+            // Heuristically heal if loadedMap had 0 inactives for large baseline dataset (e.g. from previous bug)
+            const inactivesInMap = Object.values(loadedMap).filter(v => v.active === false).length;
+            if (inactivesInMap === 0 && Object.keys(loadedMap).length >= 100) {
+                Object.keys(loadedMap).forEach(rId => {
+                    if (!getBaselineResidentActive(rId)) {
+                        loadedMap[rId].active = false;
+                    }
+                });
+            }
+
             state.monthlyAllocations[key] = loadedMap;
             (state.residents || []).forEach(r => {
                 if (loadedMap[r.id]) {
-                    r.active = loadedMap[r.id].active !== undefined ? Boolean(loadedMap[r.id].active) : true;
+                    r.active = loadedMap[r.id].active !== undefined ? Boolean(loadedMap[r.id].active) : getBaselineResidentActive(r.id);
                     r.er_target = Number(loadedMap[r.id].er_target) || 0;
                     r.con_target = Number(loadedMap[r.id].con_target) || 0;
                     r.dc_target = Number(loadedMap[r.id].dc_target) || 0;
                     r.rs_target = Number(loadedMap[r.id].rs_target) || 0;
                 } else {
-                    r.active = true;
+                    r.active = getBaselineResidentActive(r.id);
                     r.er_target = 0;
                     r.con_target = 0;
                     r.dc_target = 0;
@@ -457,9 +491,9 @@
             });
             return true;
         } else {
-            // Empty month: All resident targets are zero/empty by default, active is true
+            // Empty month: All resident targets are zero/empty by default, active is baseline state
             (state.residents || []).forEach(r => {
-                r.active = true;
+                r.active = getBaselineResidentActive(r.id);
                 r.er_target = 0;
                 r.con_target = 0;
                 r.dc_target = 0;
@@ -1478,8 +1512,8 @@
         const totalDocsCount = (state.residents || []).length;
         const inactiveDocs = (state.residents || []).filter(r => !r.active || isResidentExpired(r, state.year, state.month));
         
-        const femaleDocs = activeDocs.filter(r => r.gender === 'female' || r.gender === 'أنثى');
-        const maleDocs = activeDocs.filter(r => r.gender === 'male' || r.gender === 'ذكر');
+        const femaleDocs = activeDocs.filter(r => r.sex === 'F' || r.gender === 'female' || r.gender === 'أنثى');
+        const maleDocs = activeDocs.filter(r => r.sex === 'M' || r.gender === 'male' || r.gender === 'ذكر');
         const boardDocs = activeDocs.filter(r => r.board === 'Arabic' || r.board === 'Iraqi' || r.board === 'عربي' || r.board === 'عراقي');
 
         const totalDocEl = document.getElementById('stat-total-doctors');
@@ -3845,15 +3879,20 @@
             res.board = 'Arabic';
         } else if (res.board === 'Arabic') {
             res.board = 'None';
+            res.stage = 'بدون';
         } else {
             res.board = 'Iraqi';
+            if (!res.stage || res.stage === 'بدون') res.stage = 'الأولى';
         }
         saveState();
         const tr = document.querySelector(`tr[data-resident-id="${id}"]`);
         if (tr) {
             tr.setAttribute('data-board', res.board);
+            tr.setAttribute('data-stage', res.stage || 'بدون');
             const boardCell = tr.querySelector('.resident-board-cell');
             if (boardCell) boardCell.innerHTML = renderBoardBubbleHTML(res);
+            const stageCell = tr.querySelector('.resident-stage-cell');
+            if (stageCell) stageCell.innerHTML = renderStageBubbleHTML(res);
         }
     }
 
@@ -3870,7 +3909,15 @@
     }
 
     function renderStageBubbleHTML(r) {
-        const stage = r.stage || 'بدون';
+        const isNoneBoard = r.board === 'None' || !r.board || r.board === 'بدون';
+        if (isNoneBoard) {
+            return `
+                <button type="button" disabled class="px-2.5 py-1 rounded-full text-xs font-bold border transition-all shadow-2xs opacity-40 cursor-not-allowed inline-flex items-center justify-center min-w-[62px] bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700" title="لا توجد مرحلة لأطباء بدون بورد">
+                    <span>بدون</span>
+                </button>
+            `;
+        }
+        const stage = r.stage || 'الأولى';
         const colorClass = getStageBubbleClass(stage);
         return `
             <button type="button" onclick="openStageOptionsModal('${r.id}', event)" class="px-2.5 py-1 rounded-full text-xs font-black border transition-all duration-150 shadow-2xs hover:scale-105 active:scale-95 cursor-pointer inline-flex items-center justify-center min-w-[62px] ${colorClass}" title="انقر لاختيار مرحلة البورد">
@@ -3885,6 +3932,7 @@
         if (event) event.stopPropagation();
         const r = (state.residents || []).find(doc => doc.id === residentId);
         if (!r) return;
+        if (r.board === 'None' || !r.board || r.board === 'بدون') return;
 
         activeStageResidentId = residentId;
         const modal = document.getElementById('stage-options-modal');
@@ -4570,8 +4618,27 @@
     }
 
     // =========================================================================
-    // EXPORT RESIDENT TO HOSPITAL (STRICT VALIDATION: PHONE REQUIRED)
+    // EXPORT RESIDENT TO HOSPITAL (FULL ADMIN RESIDENT PANEL FORM)
     // =========================================================================
+
+    function toggleExpResidentMulti(isMulti) {
+        const singleWrap = document.getElementById('exp-res-hosp-single-wrap');
+        const multiWrap = document.getElementById('exp-res-hosp-multi-wrap');
+        if (singleWrap) singleWrap.classList.toggle('hidden', isMulti);
+        if (multiWrap) multiWrap.classList.toggle('hidden', !isMulti);
+    }
+
+    function onExpResSpecChanged(specId) {
+        const deptSelect = document.getElementById('exp-res-dept');
+        if (deptSelect && !deptSelect.dataset.userModified) {
+            deptSelect.value = specId;
+        }
+    }
+
+    function onExpResDeptChanged() {
+        const deptSelect = document.getElementById('exp-res-dept');
+        if (deptSelect) deptSelect.dataset.userModified = 'true';
+    }
 
     function openExportResidentModal(resId) {
         const res = (state.residents || []).find(r => r.id === resId);
@@ -4581,56 +4648,167 @@
         if (!modal) {
             modal = document.createElement('div');
             modal.id = 'export-resident-modal';
-            modal.className = 'fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print';
             document.body.appendChild(modal);
-        } else {
-            modal.className = 'fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print';
+        }
+        modal.style.zIndex = '99999';
+        modal.className = 'fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 no-print overflow-y-auto';
+
+        // Load specialties from Hub or fallback
+        let specs = [];
+        if (window.Hub && typeof window.Hub.getGlobalSpecialties === 'function') {
+            specs = window.Hub.getGlobalSpecialties();
+        } else if (window.Hub && window.Hub.specialties && typeof window.Hub.specialties.getAll === 'function') {
+            specs = window.Hub.specialties.getAll();
+        }
+        if (!specs || specs.length === 0) {
+            specs = [
+                { id: 'GS', name_ar: 'الجراحة العامة', icon: '🔪' },
+                { id: 'CM', name_ar: 'الباطنية العامة', icon: '🩺' },
+                { id: 'ORTHO', name_ar: 'جراحة العظام والكسور', icon: '🦴' },
+                { id: 'OBGYN', name_ar: 'النسائية والتوليد', icon: '👶' },
+                { id: 'PED', name_ar: 'طب الأطفال', icon: '🍼' },
+                { id: 'RADIO', name_ar: 'الأشعة والتصوير الطبي', icon: '🩻' },
+                { id: 'NEURO', name_ar: 'الجراحة العصبية', icon: '🧠' },
+                { id: 'ENT', name_ar: 'الأنف والأذن والحنجرة', icon: '👂' },
+                { id: 'OPHTH', name_ar: 'طب وجراحة العيون', icon: '👁️' },
+                { id: 'DERM', name_ar: 'الأمراض الجلدية', icon: '🧴' },
+                { id: 'URO', name_ar: 'جراحة المسالك البولية', icon: '🚽' },
+                { id: 'PSYCH', name_ar: 'الطب النفسي والعصبي', icon: '🧘' },
+                { id: 'ANES', name_ar: 'التخدير والعناية المركزة', icon: '💉' },
+                { id: 'CARDIO', name_ar: 'أمراض وجراحة القلب', icon: '❤️' },
+                { id: 'PLAST', name_ar: 'جراحة التجميل والتقويم', icon: '🩹' },
+                { id: 'MAXILLO', name_ar: 'جراحة الوجه والفكين', icon: '🦷' }
+            ];
         }
 
+        const resSpecNorm = (res.specialty || '').trim();
+        const specOptionsHtml = specs.map(s => {
+            const sName = s.name_ar || s.name || s.id;
+            const isMatch = s.id === resSpecNorm || sName === resSpecNorm || normalizeArabic(sName) === normalizeArabic(resSpecNorm);
+            return `<option value="${s.id}" ${isMatch ? 'selected' : ''}>${s.icon || '🏥'} ${sName}</option>`;
+        }).join('');
+
+        const deptOptionsHtml = specs.map(s => {
+            const sName = s.name_ar || s.name || s.id;
+            const isMatch = s.id === resSpecNorm || sName === resSpecNorm || normalizeArabic(sName) === normalizeArabic(resSpecNorm);
+            return `<option value="${s.id}" ${isMatch ? 'selected' : ''}>${s.icon || '🏥'} ${sName}</option>`;
+        }).join('');
+
+        // Hospitals
+        let hospitals = [];
+        if (window.Hub && typeof window.Hub.getHospitals === 'function') {
+            hospitals = window.Hub.getHospitals() || [];
+        }
+        if (!hospitals || hospitals.length === 0) {
+            hospitals = [
+                { id: state.hospitalId || 'iraqi', name: state.hospitalName || 'المستشفى العراقي' }
+            ];
+        }
+
+        const hospSingleOptionsHtml = hospitals.map(h => {
+            const isSelected = (h.id === state.hospitalId);
+            return `<option value="${h.id}" ${isSelected ? 'selected' : ''}>${h.name}</option>`;
+        }).join('');
+
+        const hospCheckboxesHtml = hospitals.map(h => {
+            const isChecked = (h.id === state.hospitalId);
+            return `
+                <label class="flex items-center gap-2 p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 cursor-pointer text-xs">
+                    <input type="checkbox" name="exp-res-hosp-cb" value="${h.id}" ${isChecked ? 'checked' : ''} class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500 accent-teal-600">
+                    <span class="font-bold text-slate-700 dark:text-slate-200">${h.name}</span>
+                </label>
+            `;
+        }).join('');
+
         modal.innerHTML = `
-            <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
-                <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <div>
-                        <h3 class="font-black text-sm text-slate-800 dark:text-slate-100">تصدير طبيب إلى قاعدة المستشفى الرسمية</h3>
-                        <p class="text-[11px] text-slate-500">المستشفى الهدف: <strong>${state.hospitalName}</strong></p>
+            <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150 my-8">
+                <div class="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-2xl bg-teal-100 dark:bg-teal-950/60 text-teal-600 dark:text-amber-400 flex items-center justify-center font-bold text-base shadow-xs">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-black text-sm text-slate-800 dark:text-slate-100">بيانات المقيم الجديد</h3>
+                            <p class="text-[11px] text-slate-500">إضافة وتصدير الطبيب لقاعدة بيانات المستشفى الرسمية</p>
+                        </div>
                     </div>
-                    <button type="button" onclick="closeExportResidentModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
+                    <button type="button" onclick="closeExportResidentModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                         <i class="fas fa-times text-sm"></i>
                     </button>
                 </div>
 
-                <form onsubmit="handleConfirmExportResident('${resId}', event)" class="p-5 space-y-3 text-xs">
-                    <p class="text-slate-600 dark:text-slate-300">
-                        يشترط تعبئة كافة الحقول المطلوبة لقاعدة المستشفى الرسمية (رقم الهاتف إلزامي):
-                    </p>
-
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">الاسم الكامل <span class="text-rose-500">*</span>:</label>
-                        <input type="text" id="exp-res-name" value="${escapeForInline(res.name)}" required class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                <form onsubmit="handleConfirmExportResident('${resId}', event)" class="p-5 sm:p-6 space-y-4 text-xs">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">اسم المقيم <span class="text-rose-500">*</span></label>
+                            <input type="text" id="exp-res-name" value="${escapeForInline(res.name)}" required class="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold text-xs focus:ring-2 focus:ring-teal-500 outline-none" placeholder="مثال: د. احمد علي" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">رقم الهاتف <span class="text-rose-500 font-normal">(إلزامي)</span></label>
+                            <input type="tel" id="exp-res-phone" value="${escapeForInline(res.phone || '')}" required class="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-mono font-bold text-xs text-left focus:ring-2 focus:ring-teal-500 outline-none" placeholder="07XXXXXXXXX" dir="ltr" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">التخصص الأساسي (Specialty)</label>
+                            <select id="exp-res-spec" onchange="onExpResSpecChanged(this.value)" class="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold text-xs focus:ring-2 focus:ring-teal-500 outline-none cursor-pointer">
+                                ${specOptionsHtml}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1 flex items-center justify-between">
+                                <span>القسم المكلف به (الخفارات)</span>
+                                <span class="text-[10px] text-teal-600 dark:text-amber-400 font-normal">تناوب Rotation</span>
+                            </label>
+                            <select id="exp-res-dept" onchange="onExpResDeptChanged()" class="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold text-xs focus:ring-2 focus:ring-teal-500 outline-none cursor-pointer">
+                                ${deptOptionsHtml}
+                            </select>
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">الاختصاص الطبي <span class="text-rose-500">*</span>:</label>
-                        <input type="text" id="exp-res-spec" value="${escapeForInline(res.specialty || 'General')}" required class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                    <!-- Hospital Assignment & Multi-Hospital Switch -->
+                    <div class="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                    <i class="fas fa-shuffle text-teal-600 dark:text-amber-400"></i>
+                                    <span>تغطية أكثر من مستشفى</span>
+                                </div>
+                                <div class="text-[11px] text-slate-400 mt-0.5">تعيين المقيم للدوام في عدة مستشفيات مشتركة</div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="exp-res-multi-toggle" onchange="toggleExpResidentMulti(this.checked)" class="sr-only peer" />
+                                <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-slate-600 peer-checked:bg-teal-600"></div>
+                            </label>
+                        </div>
+
+                        <div id="exp-res-hosp-single-wrap">
+                            <label class="block text-[11px] font-bold text-slate-500 mb-1">المستشفى التابع له:</label>
+                            <select id="exp-res-hospital-single" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold text-xs">
+                                ${hospSingleOptionsHtml}
+                            </select>
+                        </div>
+
+                        <div id="exp-res-hosp-multi-wrap" class="hidden pt-1 border-t border-slate-200 dark:border-slate-800">
+                            <label class="block text-[11px] font-bold text-slate-500 mb-1.5">حدد المستشفيات التي يداوم فيها المقيم:</label>
+                            <div id="exp-res-hospital-checkboxes" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                ${hospCheckboxesHtml}
+                            </div>
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">رقم الهاتف <span class="text-rose-500">* (حقل إلزامي)</span>:</label>
-                        <input type="tel" id="exp-res-phone" value="${escapeForInline(res.phone || '')}" required placeholder="مثال: 07701234567" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
-                    </div>
-
-                    <div class="p-3 bg-blue-50 dark:bg-blue-950/40 rounded-xl border border-blue-200 dark:border-blue-900/60 text-[11px] text-blue-800 dark:text-blue-300">
-                        <i class="fas fa-circle-info ml-1 text-blue-500"></i>
-                        سيتم حفظ رقم الهاتف في قاعدة الطوارئ وتصدير الطبيب لقائمة أطباء المستشفى.
+                    <div class="flex items-center justify-between pt-1">
+                        <label class="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer select-none">
+                            <input type="checkbox" id="exp-res-active" ${res.active ? 'checked' : ''} class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500 accent-teal-600 cursor-pointer" />
+                            <span>المقيم نشط في جدول الخفارات (غير احتياط)</span>
+                        </label>
                     </div>
 
                     <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
-                        <button type="button" onclick="closeExportResidentModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition">
+                        <button type="button" onclick="closeExportResidentModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                             إلغاء
                         </button>
-                        <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 shadow-md transition flex items-center gap-1.5">
+                        <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 shadow-md transition flex items-center gap-1.5 cursor-pointer">
                             <i class="fas fa-check"></i>
-                            <span>تأكيد التصدير للمستشفى</span>
+                            <span>إضافة المقيم لقاعدة المستشفى</span>
                         </button>
                     </div>
                 </form>
@@ -4650,12 +4828,24 @@
         if (!res) return;
 
         const nameInput = document.getElementById('exp-res-name');
-        const specInput = document.getElementById('exp-res-spec');
         const phoneInput = document.getElementById('exp-res-phone');
+        const specInput = document.getElementById('exp-res-spec');
+        const deptInput = document.getElementById('exp-res-dept');
+        const activeInput = document.getElementById('exp-res-active');
+        const multiToggle = document.getElementById('exp-res-multi-toggle');
 
         const name = (nameInput?.value || '').trim();
-        const spec = (specInput?.value || '').trim();
         const phone = (phoneInput?.value || '').trim();
+        const spec = (specInput?.value || '').trim();
+        const dept = (deptInput?.value || '').trim() || spec;
+        const active = activeInput ? activeInput.checked : true;
+        const isMulti = multiToggle ? multiToggle.checked : false;
+
+        if (!name) {
+            alert('الرجاء إدخال اسم المقيم');
+            if (nameInput) nameInput.focus();
+            return;
+        }
 
         // Strict Phone Validation (Required, at least 10 digits)
         const cleanDigits = phone.replace(/[^0-9]/g, '');
@@ -4665,48 +4855,91 @@
             return;
         }
 
-        res.name = name;
-        res.specialty = spec;
+        let assignedHospitals = [];
+        if (isMulti) {
+            document.querySelectorAll('input[name="exp-res-hosp-cb"]:checked').forEach(cb => {
+                assignedHospitals.push(cb.value);
+            });
+            if (assignedHospitals.length === 0) {
+                alert('الرجاء اختيار مستشفى واحد على الأقل للمقيم');
+                return;
+            }
+        } else {
+            const singleH = document.getElementById('exp-res-hospital-single')?.value || state.hospitalId;
+            assignedHospitals = [singleH];
+        }
+
+        const formattedName = (name.startsWith('د.') || name.startsWith('د ')) ? name : `د. ${name}`;
+
+        res.name = formattedName;
         res.phone = phone;
+        res.specialty = spec;
         saveState();
 
         try {
-            if (window.Hub && typeof window.Hub.getHospital === 'function') {
-                const hosp = window.Hub.getHospital(state.hospitalId);
-                if (hosp) {
-                    if (!Array.isArray(hosp.names)) hosp.names = [];
-                    const cleanRes = normalizeArabic(name);
-                    const alreadyExists = hosp.names.some(n => normalizeArabic(n.name) === cleanRes);
-
-                    if (alreadyExists) {
-                        alert('هذا الطبيب موجود بالفعل في قائمة أطباء المستشفى المحددة.');
-                        closeExportResidentModal();
-                        return;
-                    }
-
-                    const newDoc = {
-                        id: `res_exp_${Date.now()}`,
-                        name: name.startsWith('د.') ? name : `د. ${name}`,
+            let exportedSuccessfully = false;
+            // 1. Try Hub.addResident if available
+            if (window.Hub && typeof window.Hub.addResident === 'function') {
+                try {
+                    await window.Hub.addResident({
+                        name: formattedName,
                         phone: phone,
                         spec: spec,
-                        active: res.active,
-                        hospitals: [state.hospitalId]
-                    };
-
-                    hosp.names.push(newDoc);
-                    if (typeof window.Hub.saveDatabase === 'function') {
-                        await window.Hub.saveDatabase(`Exported resident ${name} to ${state.hospitalName}`);
-                    }
+                        tag: spec,
+                        dept: dept,
+                        department: dept,
+                        active: active,
+                        hospitals: assignedHospitals
+                    });
+                    exportedSuccessfully = true;
+                } catch (hubErr) {
+                    console.warn('Hub.addResident error, falling back to direct hospital storage:', hubErr);
                 }
             }
 
+            // 2. Direct fallback into hosp.names
+            if (!exportedSuccessfully && window.Hub && typeof window.Hub.getHospital === 'function') {
+                assignedHospitals.forEach(hId => {
+                    const hosp = window.Hub.getHospital(hId);
+                    if (hosp) {
+                        if (!Array.isArray(hosp.names)) hosp.names = [];
+                        const cleanNew = normalizeArabic(formattedName);
+                        const exists = hosp.names.some(n => normalizeArabic(n.name) === cleanNew);
+                        if (!exists) {
+                            hosp.names.push({
+                                id: `res_exp_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+                                name: formattedName,
+                                phone: phone,
+                                spec: spec,
+                                dept: dept,
+                                active: active,
+                                hospitals: assignedHospitals
+                            });
+                        }
+                    }
+                });
+
+                if (typeof window.Hub.saveDatabase === 'function') {
+                    await window.Hub.saveDatabase(`Exported resident ${formattedName} to ${assignedHospitals.join(', ')}`);
+                }
+                exportedSuccessfully = true;
+            }
+
             closeExportResidentModal();
-            showNotification(`تم تصدير الطبيب "${name}" إلى مستشفى "${state.hospitalName}" بنجاح!`, 'success');
+            refreshDBView();
+            showNotification(`تمت إضافة الطبيب "${formattedName}" إلى قاعدة بيانات المستشفى بنجاح!`, 'success');
         } catch (err) {
             console.error('Error exporting resident to hospital:', err);
             showNotification('حدث خطأ أثناء تصدير الطبيب للمستشفى', 'error');
         }
     }
+
+    window.toggleExpResidentMulti = toggleExpResidentMulti;
+    window.onExpResSpecChanged = onExpResSpecChanged;
+    window.onExpResDeptChanged = onExpResDeptChanged;
+    window.openExportResidentModal = openExportResidentModal;
+    window.closeExportResidentModal = closeExportResidentModal;
+    window.handleConfirmExportResident = handleConfirmExportResident;
 
     // =========================================================================
     // HOSPITAL RECONCILIATION MODAL
@@ -5486,13 +5719,13 @@
     }
 
     /**
-     * ER SPECIFIC ALGORITHM:
-     * 1- Morning (8AM-2PM): Utmost priority to females.
-     * 2- Post-Morning (2PM-8PM): Priority to females, then males.
-     * 3- Pre-Night (8PM-2AM): Priority to males with multiple duties (er_target > 1).
-     * 4- Night (2AM-8AM): Priority to males with a single duty (er_target === 1).
-     * 5- Shift diversity & resident preferences.
+     * ADVANCED AUTOMATIC DISTRIBUTION SYSTEM
+     * 1- Absolute priority to doctors with preferences (both Day and Shift, then Day, then Shift).
+     * 2- Hard Quota Limit: Never exceed allocated duties (er_target, con_target, dc_target, rs_target),
+     *    even if it leaves cells empty due to shortage of allocations.
+     * 3- Cross-schedule preferences: Day preferences apply to all allocated schedules.
      */
+
     function runAutoDistributionER(mode, daysCount, activeDocs) {
         const schedule = state.schedules.er;
         const shifts = ['morning', 'afternoon', 'preNight', 'lateNight'];
@@ -5504,157 +5737,294 @@
             state.prefOverrides = {};
         }
 
-        // Track doctor assignments
+        // Track assignments strictly by normalized doctor name
         const assignedCount = {};
-        const assignedShifts = {}; // doc => Set of shift names
-        const assignedDays = {};   // dayNumber => Set of doc names
+        const assignedShifts = {}; // cleanName => Set of shift names
+        const assignedDays = {};   // dayNumber => Set of cleanNames
 
         for (let d = 1; d <= daysCount; d++) {
             assignedDays[d] = new Set();
         }
 
-        // Initialize with existing entries if fill_empty
         activeDocs.forEach(r => {
-            assignedCount[r.name] = 0;
-            assignedShifts[r.name] = new Set();
+            const clean = normalizeArabic(r.name);
+            assignedCount[clean] = 0;
+            assignedShifts[clean] = new Set();
         });
 
+        // Initialize with existing entries if fill_empty
         schedule.forEach(day => {
             shifts.forEach(s => {
                 if (day[s] && day[s].trim()) {
-                    const doc = day[s].trim();
-                    assignedCount[doc] = (assignedCount[doc] || 0) + 1;
-                    if (!assignedShifts[doc]) assignedShifts[doc] = new Set();
-                    assignedShifts[doc].add(s);
-                    assignedDays[day.dayNumber].add(doc);
+                    const clean = normalizeArabic(day[s].trim());
+                    assignedCount[clean] = (assignedCount[clean] || 0) + 1;
+                    if (!assignedShifts[clean]) assignedShifts[clean] = new Set();
+                    assignedShifts[clean].add(s);
+                    if (assignedDays[day.dayNumber]) assignedDays[day.dayNumber].add(clean);
                 }
             });
         });
 
-        // Helper to check if doctor is available for slot
-        function isAvailable(doc, dayNumber, shiftKey) {
-            const r = activeDocs.find(x => x.name === doc);
-            if (!r) return false;
+        function getQuota(r) {
+            return Math.max(0, Number(r.er_target) || 0);
+        }
 
-            // Quota check
-            if ((assignedCount[doc] || 0) >= (r.er_target || 0)) return false;
+        function getAssigned(r) {
+            const clean = normalizeArabic(r.name);
+            return assignedCount[clean] || 0;
+        }
 
-            // Day conflict check (already has duty today in ER or other schedules)
-            if (assignedDays[dayNumber].has(doc)) return false;
+        function hasRemainingQuota(r) {
+            return getAssigned(r) < getQuota(r);
+        }
+
+        // Strict availability check:
+        // Must NEVER exceed quota!
+        // Must NEVER duplicate doctor on same day!
+        // Must NOT conflict with other schedules!
+        function isDoctorAvailable(r, dayNumber, shiftKey) {
+            if (!r || !hasRemainingQuota(r)) return false;
+            const clean = normalizeArabic(r.name);
+            if (assignedDays[dayNumber] && assignedDays[dayNumber].has(clean)) return false;
+
             const dateStr = formatDateStr(state.year, state.month, dayNumber);
-            const conflict = evaluateCellConflict(doc, dateStr, 'er', shiftKey);
-            if (conflict.hasConflict) return false;
+            const conflict = evaluateCellConflict(r.name, dateStr, 'er', shiftKey);
+            if (conflict && conflict.hasConflict) return false;
 
             return true;
         }
 
-        // 1. FILL MORNING (8AM - 2PM): Utmost priority to females
+        function assignSlot(dayEntry, shiftKey, r, dayNumber) {
+            dayEntry[shiftKey] = r.name;
+            const clean = normalizeArabic(r.name);
+            assignedCount[clean] = (assignedCount[clean] || 0) + 1;
+            if (!assignedShifts[clean]) assignedShifts[clean] = new Set();
+            assignedShifts[clean].add(shiftKey);
+            if (assignedDays[dayNumber]) assignedDays[dayNumber].add(clean);
+
+            // Preference Override Check (track if doctor preferred a shift but was given a different one)
+            const cellSlotId = `er_${dayNumber}_${shiftKey}`;
+            if (r.prefShifts && r.prefShifts.length > 0) {
+                if (!r.prefShifts.includes(shiftKey)) {
+                    if (!state.prefOverrides) state.prefOverrides = {};
+                    state.prefOverrides[cellSlotId] = true;
+                }
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // PASS 1: HIGHEST PRIORITY - Exact Preference Match (Both Day & Shift)
+        // -----------------------------------------------------------------
+        for (let d = 1; d <= daysCount; d++) {
+            const dayEntry = schedule.find(s => s.dayNumber === d);
+            if (!dayEntry) continue;
+
+            shifts.forEach(shiftKey => {
+                if (!dayEntry[shiftKey]) {
+                    const matchCandidates = activeDocs.filter(r => {
+                        if (!isDoctorAvailable(r, d, shiftKey)) return false;
+                        const hasDayPref = Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
+                        const hasShiftPref = Array.isArray(r.prefShifts) && r.prefShifts.includes(shiftKey);
+                        return hasDayPref && hasShiftPref;
+                    });
+
+                    if (matchCandidates.length > 0) {
+                        // Sort by lowest assigned duties first (fairness)
+                        matchCandidates.sort((a, b) => getAssigned(a) - getAssigned(b));
+                        assignSlot(dayEntry, shiftKey, matchCandidates[0], d);
+                    }
+                }
+            });
+        }
+
+        // -----------------------------------------------------------------
+        // PASS 2: DAY PREFERENCE MATCH (e.g. Doctor preferred Friday)
+        // Doctor requested this day; try their preferred shift if available,
+        // or a shift matching their gender/profile.
+        // -----------------------------------------------------------------
+        for (let d = 1; d <= daysCount; d++) {
+            const dayEntry = schedule.find(s => s.dayNumber === d);
+            if (!dayEntry) continue;
+
+            const dayPrefDocs = activeDocs.filter(r => {
+                return hasRemainingQuota(r) &&
+                    Array.isArray(r.prefDays) &&
+                    r.prefDays.includes(dayEntry.dayName);
+            });
+
+            dayPrefDocs.sort((a, b) => getAssigned(a) - getAssigned(b));
+
+            dayPrefDocs.forEach(r => {
+                if (!hasRemainingQuota(r)) return;
+                const clean = normalizeArabic(r.name);
+                if (assignedDays[d] && assignedDays[d].has(clean)) return;
+
+                // Determine candidate shifts in order of preference
+                let shiftOrder = [];
+                if (Array.isArray(r.prefShifts) && r.prefShifts.length > 0) {
+                    shiftOrder = r.prefShifts.slice();
+                    shifts.forEach(s => { if (!shiftOrder.includes(s)) shiftOrder.push(s); });
+                } else if (r.sex === 'F') {
+                    shiftOrder = ['morning', 'afternoon', 'preNight', 'lateNight'];
+                } else {
+                    shiftOrder = (getQuota(r) > 1) 
+                        ? ['preNight', 'morning', 'afternoon', 'lateNight']
+                        : ['lateNight', 'preNight', 'afternoon', 'morning'];
+                }
+
+                for (const s of shiftOrder) {
+                    if (!dayEntry[s] && isDoctorAvailable(r, d, s)) {
+                        assignSlot(dayEntry, s, r, d);
+                        break;
+                    }
+                }
+            });
+        }
+
+        // -----------------------------------------------------------------
+        // PASS 3: SHIFT PREFERENCE MATCH (Doctor preferred specific shift)
+        // -----------------------------------------------------------------
+        shifts.forEach(shiftKey => {
+            const shiftPrefDocs = activeDocs.filter(r => {
+                return hasRemainingQuota(r) &&
+                    Array.isArray(r.prefShifts) &&
+                    r.prefShifts.includes(shiftKey);
+            });
+
+            shiftPrefDocs.sort((a, b) => getAssigned(a) - getAssigned(b));
+
+            shiftPrefDocs.forEach(r => {
+                if (!hasRemainingQuota(r)) return;
+                for (let d = 1; d <= daysCount; d++) {
+                    if (!hasRemainingQuota(r)) break;
+                    const dayEntry = schedule.find(s => s.dayNumber === d);
+                    if (dayEntry && !dayEntry[shiftKey] && isDoctorAvailable(r, d, shiftKey)) {
+                        assignSlot(dayEntry, shiftKey, r, d);
+                    }
+                }
+            });
+        });
+
+        // -----------------------------------------------------------------
+        // PASS 4: GENERAL DISTRIBUTION FOR REMAINING SLOTS
+        // Respecting medical rules:
+        // - Morning (8AM-2PM): Females first, then males
+        // - Afternoon (2PM-8PM): Females first, then males (prefer diversity)
+        // - Pre-Night (8PM-2AM): Males with multiple duties (>1), then any male, then any doc
+        // - Late-Night (2AM-8AM): Males with single duty (==1), then any male, then any doc
+        // STRICT QUOTA LIMIT: IF NO CANDIDATE HAS QUOTA, LEAVE CELL EMPTY!
+        // -----------------------------------------------------------------
+
+        // 4A. Morning
         for (let d = 1; d <= daysCount; d++) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.morning) {
-                // Females first
-                let candidates = activeDocs.filter(r => r.sex === 'F' && isAvailable(r.name, d, 'morning'));
-                
-                // Prioritize female whose preference matches morning or day
-                let matchedPref = candidates.find(r => (r.prefShifts && r.prefShifts.includes('morning')) || (r.prefDays && r.prefDays.includes(dayEntry.dayName)));
-                let chosen = matchedPref || candidates[0];
+                let candidates = activeDocs.filter(r => r.sex === 'F' && isDoctorAvailable(r, d, 'morning'));
+                candidates.sort((a, b) => getAssigned(a) - getAssigned(b));
+                let chosen = candidates[0];
 
-                // If no females left, males come in
                 if (!chosen) {
-                    const maleCandidates = activeDocs.filter(r => r.sex === 'M' && isAvailable(r.name, d, 'morning'));
+                    const maleCandidates = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'morning'));
+                    maleCandidates.sort((a, b) => getAssigned(a) - getAssigned(b));
                     chosen = maleCandidates[0];
                 }
 
                 if (chosen) {
-                    assignSlotER(dayEntry, 'morning', chosen, d, assignedCount, assignedShifts, assignedDays);
+                    assignSlot(dayEntry, 'morning', chosen, d);
                 }
             }
         }
 
-        // 2. FILL POST-MORNING / AFTERNOON (2PM - 8PM): Priority to females, then males
+        // 4B. Afternoon
         for (let d = 1; d <= daysCount; d++) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.afternoon) {
-                let candidates = activeDocs.filter(r => r.sex === 'F' && isAvailable(r.name, d, 'afternoon'));
+                let candidates = activeDocs.filter(r => r.sex === 'F' && isDoctorAvailable(r, d, 'afternoon'));
+                candidates.sort((a, b) => getAssigned(a) - getAssigned(b));
                 let chosen = candidates[0];
 
                 if (!chosen) {
-                    const maleCandidates = activeDocs.filter(r => r.sex === 'M' && isAvailable(r.name, d, 'afternoon'));
-                    // Diversity: prefer male who hasn't done afternoon yet
-                    chosen = maleCandidates.find(m => !assignedShifts[m.name]?.has('afternoon')) || maleCandidates[0];
+                    const maleCandidates = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'afternoon'));
+                    maleCandidates.sort((a, b) => {
+                        const aClean = normalizeArabic(a.name);
+                        const bClean = normalizeArabic(b.name);
+                        const aDone = assignedShifts[aClean]?.has('afternoon') ? 1 : 0;
+                        const bDone = assignedShifts[bClean]?.has('afternoon') ? 1 : 0;
+                        if (aDone !== bDone) return aDone - bDone;
+                        return getAssigned(a) - getAssigned(b);
+                    });
+                    chosen = maleCandidates[0];
                 }
 
                 if (chosen) {
-                    assignSlotER(dayEntry, 'afternoon', chosen, d, assignedCount, assignedShifts, assignedDays);
+                    assignSlot(dayEntry, 'afternoon', chosen, d);
                 }
             }
         }
 
-        // 3. FILL PRE-NIGHT (8PM - 2AM): Priority to males with multiple duties (er_target > 1)
+        // 4C. Pre-Night (8PM - 2AM)
         for (let d = 1; d <= daysCount; d++) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.preNight) {
-                // Males with multiple duties
-                let candidates = activeDocs.filter(r => r.sex === 'M' && (r.er_target > 1) && isAvailable(r.name, d, 'preNight'));
-                
-                // Diversity: hasn't done preNight yet
-                let chosen = candidates.find(m => !assignedShifts[m.name]?.has('preNight')) || candidates[0];
-
-                // Fallback to any available male
-                if (!chosen) {
-                    candidates = activeDocs.filter(r => r.sex === 'M' && isAvailable(r.name, d, 'preNight'));
-                    chosen = candidates[0];
-                }
-                // Fallback to any doctor
-                if (!chosen) {
-                    candidates = activeDocs.filter(r => isAvailable(r.name, d, 'preNight'));
-                    chosen = candidates[0];
-                }
-
-                if (chosen) {
-                    assignSlotER(dayEntry, 'preNight', chosen, d, assignedCount, assignedShifts, assignedDays);
-                }
-            }
-        }
-
-        // 4. FILL NIGHT (2AM - 8AM): Priority to males with a single duty (er_target === 1)
-        for (let d = 1; d <= daysCount; d++) {
-            const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (dayEntry && !dayEntry.lateNight) {
-                // Males with single duty
-                let candidates = activeDocs.filter(r => r.sex === 'M' && (r.er_target === 1) && isAvailable(r.name, d, 'lateNight'));
+                let candidates = activeDocs.filter(r => r.sex === 'M' && getQuota(r) > 1 && isDoctorAvailable(r, d, 'preNight'));
+                candidates.sort((a, b) => {
+                    const aClean = normalizeArabic(a.name);
+                    const bClean = normalizeArabic(b.name);
+                    const aDone = assignedShifts[aClean]?.has('preNight') ? 1 : 0;
+                    const bDone = assignedShifts[bClean]?.has('preNight') ? 1 : 0;
+                    if (aDone !== bDone) return aDone - bDone;
+                    return getAssigned(a) - getAssigned(b);
+                });
                 let chosen = candidates[0];
 
                 if (!chosen) {
-                    // Males with remaining quota
-                    candidates = activeDocs.filter(r => r.sex === 'M' && isAvailable(r.name, d, 'lateNight'));
-                    chosen = candidates.find(m => !assignedShifts[m.name]?.has('lateNight')) || candidates[0];
+                    const anyMales = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'preNight'));
+                    anyMales.sort((a, b) => getAssigned(a) - getAssigned(b));
+                    chosen = anyMales[0];
                 }
+
                 if (!chosen) {
-                    candidates = activeDocs.filter(r => isAvailable(r.name, d, 'lateNight'));
-                    chosen = candidates[0];
+                    const anyDocs = activeDocs.filter(r => isDoctorAvailable(r, d, 'preNight'));
+                    anyDocs.sort((a, b) => getAssigned(a) - getAssigned(b));
+                    chosen = anyDocs[0];
                 }
 
                 if (chosen) {
-                    assignSlotER(dayEntry, 'lateNight', chosen, d, assignedCount, assignedShifts, assignedDays);
+                    assignSlot(dayEntry, 'preNight', chosen, d);
                 }
             }
         }
-    }
 
-    function assignSlotER(dayEntry, shiftKey, resident, dayNumber, assignedCount, assignedShifts, assignedDays) {
-        dayEntry[shiftKey] = resident.name;
-        assignedCount[resident.name] = (assignedCount[resident.name] || 0) + 1;
-        if (!assignedShifts[resident.name]) assignedShifts[resident.name] = new Set();
-        assignedShifts[resident.name].add(shiftKey);
-        assignedDays[dayNumber].add(resident.name);
+        // 4D. Late-Night (2AM - 8AM)
+        for (let d = 1; d <= daysCount; d++) {
+            const dayEntry = schedule.find(s => s.dayNumber === d);
+            if (dayEntry && !dayEntry.lateNight) {
+                let candidates = activeDocs.filter(r => r.sex === 'M' && getQuota(r) === 1 && isDoctorAvailable(r, d, 'lateNight'));
+                candidates.sort((a, b) => getAssigned(a) - getAssigned(b));
+                let chosen = candidates[0];
 
-        // Preference Override Check
-        const cellSlotId = `er_${dayNumber}_${shiftKey}`;
-        if (resident.prefShifts && resident.prefShifts.length > 0) {
-            if (!resident.prefShifts.includes(shiftKey)) {
-                if (!state.prefOverrides) state.prefOverrides = {};
-                state.prefOverrides[cellSlotId] = true;
+                if (!chosen) {
+                    const anyMales = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'lateNight'));
+                    anyMales.sort((a, b) => {
+                        const aClean = normalizeArabic(a.name);
+                        const bClean = normalizeArabic(b.name);
+                        const aDone = assignedShifts[aClean]?.has('lateNight') ? 1 : 0;
+                        const bDone = assignedShifts[bClean]?.has('lateNight') ? 1 : 0;
+                        if (aDone !== bDone) return aDone - bDone;
+                        return getAssigned(a) - getAssigned(b);
+                    });
+                    chosen = anyMales[0];
+                }
+
+                if (!chosen) {
+                    const anyDocs = activeDocs.filter(r => isDoctorAvailable(r, d, 'lateNight'));
+                    anyDocs.sort((a, b) => getAssigned(a) - getAssigned(b));
+                    chosen = anyDocs[0];
+                }
+
+                if (chosen) {
+                    assignSlot(dayEntry, 'lateNight', chosen, d);
+                }
             }
         }
     }
@@ -5668,26 +6038,58 @@
             schedule.forEach(d => d.doctor = '');
         }
 
-        const conCandidates = activeDocs.filter(r => (r.con_target || 0) > 0);
+        const conCandidates = activeDocs.filter(r => (Number(r.con_target) || 0) > 0);
         const assigned = countScheduledDutiesPerResident('con');
 
+        function isConAvailable(r, dayNumber) {
+            const clean = normalizeArabic(r.name);
+            const filled = assigned[clean] || 0;
+            const target = Number(r.con_target) || 0;
+            if (filled >= target) return false;
+
+            const dateStr = formatDateStr(state.year, state.month, dayNumber);
+            const evalRes = evaluateCellConflict(r.name, dateStr, 'con', 'doctor');
+            return !evalRes.hasConflict;
+        }
+
+        function assignCon(dayEntry, r) {
+            dayEntry.doctor = r.name;
+            const clean = normalizeArabic(r.name);
+            assigned[clean] = (assigned[clean] || 0) + 1;
+        }
+
+        // Pass 1: Preferences (Doctors who prefer this day)
         for (let d = 1; d <= daysCount; d++) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.doctor) {
-                const dateStr = formatDateStr(state.year, state.month, d);
-                const available = conCandidates.filter(r => {
-                    const filled = assigned[normalizeArabic(r.name)] || 0;
-                    if (filled >= r.con_target) return false;
-                    const evalRes = evaluateCellConflict(r.name, dateStr, 'con', 'doctor');
-                    return !evalRes.hasConflict;
+                const prefMatches = conCandidates.filter(r => {
+                    if (!isConAvailable(r, d)) return false;
+                    return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
                 });
 
+                if (prefMatches.length > 0) {
+                    prefMatches.sort((a, b) => {
+                        const remA = (Number(a.con_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
+                        const remB = (Number(b.con_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
+                        return remB - remA;
+                    });
+                    assignCon(dayEntry, prefMatches[0]);
+                }
+            }
+        }
+
+        // Pass 2: General Fill for remaining slots
+        for (let d = 1; d <= daysCount; d++) {
+            const dayEntry = schedule.find(s => s.dayNumber === d);
+            if (dayEntry && !dayEntry.doctor) {
+                const available = conCandidates.filter(r => isConAvailable(r, d));
                 if (available.length > 0) {
-                    // Sort by highest remaining
-                    available.sort((a, b) => ((b.con_target - (assigned[normalizeArabic(b.name)] || 0)) - (a.con_target - (assigned[normalizeArabic(a.name)] || 0))));
-                    const chosen = available[0];
-                    dayEntry.doctor = chosen.name;
-                    assigned[normalizeArabic(chosen.name)] = (assigned[normalizeArabic(chosen.name)] || 0) + 1;
+                    available.sort((a, b) => {
+                        const remA = (Number(a.con_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
+                        const remB = (Number(b.con_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
+                        return remB - remA;
+                    });
+                    assignCon(dayEntry, available[0]);
                 }
             }
         }
@@ -5702,9 +6104,47 @@
             schedule.forEach(d => d.doctor = '');
         }
 
-        const dcCandidates = activeDocs.filter(r => (r.dc_target || 0) > 0);
+        const dcCandidates = activeDocs.filter(r => (Number(r.dc_target) || 0) > 0);
         const assigned = countScheduledDutiesPerResident('dc');
 
+        function isDCAvailable(r, dayNumber) {
+            const clean = normalizeArabic(r.name);
+            const filled = assigned[clean] || 0;
+            const target = Number(r.dc_target) || 0;
+            if (filled >= target) return false;
+
+            const dateStr = formatDateStr(state.year, state.month, dayNumber);
+            const evalRes = evaluateCellConflict(r.name, dateStr, 'dc', 'doctor');
+            return !evalRes.hasConflict;
+        }
+
+        function assignDC(dayEntry, r) {
+            dayEntry.doctor = r.name;
+            const clean = normalizeArabic(r.name);
+            assigned[clean] = (assigned[clean] || 0) + 1;
+        }
+
+        // Pass 1: Preferences (Doctors who prefer this day)
+        for (let d = 1; d <= daysCount; d++) {
+            const dayEntry = schedule.find(s => s.dayNumber === d);
+            if (dayEntry && !dayEntry.doctor) {
+                const prefMatches = dcCandidates.filter(r => {
+                    if (!isDCAvailable(r, d)) return false;
+                    return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
+                });
+
+                if (prefMatches.length > 0) {
+                    prefMatches.sort((a, b) => {
+                        const remA = (Number(a.dc_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
+                        const remB = (Number(b.dc_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
+                        return remB - remA;
+                    });
+                    assignDC(dayEntry, prefMatches[0]);
+                }
+            }
+        }
+
+        // Pass 2: Doctors on-call in hospital on this date
         for (let d = 1; d <= daysCount; d++) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.doctor) {
@@ -5712,26 +6152,34 @@
                 const hospOnCall = getAllHospitalOnCallDoctors(dateStr);
                 const hospCleanSet = new Set(hospOnCall.map(h => h.cleanName));
 
-                // 1. Doctors on-call in hospital on this date who still have DC quota
-                let chosen = dcCandidates.find(r => {
-                    const clean = normalizeArabic(r.name);
-                    const filled = assigned[clean] || 0;
-                    return (filled < r.dc_target) && hospCleanSet.has(clean);
+                const onCallCandidates = dcCandidates.filter(r => {
+                    if (!isDCAvailable(r, d)) return false;
+                    return hospCleanSet.has(normalizeArabic(r.name));
                 });
 
-                // 2. Fallback to any candidate without ER/Con conflict
-                if (!chosen) {
-                    chosen = dcCandidates.find(r => {
-                        const filled = assigned[normalizeArabic(r.name)] || 0;
-                        if (filled >= r.dc_target) return false;
-                        const evalRes = evaluateCellConflict(r.name, dateStr, 'dc', 'doctor');
-                        return !evalRes.hasConflict;
+                if (onCallCandidates.length > 0) {
+                    onCallCandidates.sort((a, b) => {
+                        const remA = (Number(a.dc_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
+                        const remB = (Number(b.dc_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
+                        return remB - remA;
                     });
+                    assignDC(dayEntry, onCallCandidates[0]);
                 }
+            }
+        }
 
-                if (chosen) {
-                    dayEntry.doctor = chosen.name;
-                    assigned[normalizeArabic(chosen.name)] = (assigned[normalizeArabic(chosen.name)] || 0) + 1;
+        // Pass 3: General Fallback for remaining slots
+        for (let d = 1; d <= daysCount; d++) {
+            const dayEntry = schedule.find(s => s.dayNumber === d);
+            if (dayEntry && !dayEntry.doctor) {
+                const available = dcCandidates.filter(r => isDCAvailable(r, d));
+                if (available.length > 0) {
+                    available.sort((a, b) => {
+                        const remA = (Number(a.dc_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
+                        const remB = (Number(b.dc_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
+                        return remB - remA;
+                    });
+                    assignDC(dayEntry, available[0]);
                 }
             }
         }
@@ -5743,6 +6191,12 @@
     function runAutoDistributionRSER(mode, daysCount, activeDocs) {
         const schedule = state.schedules.rs;
         const shifts = ['er_morning', 'er_afternoon', 'er_preNight', 'er_lateNight'];
+        const shiftMap = {
+            'er_morning': 'morning',
+            'er_afternoon': 'afternoon',
+            'er_preNight': 'preNight',
+            'er_lateNight': 'lateNight'
+        };
         const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
         const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || daysCount;
 
@@ -5754,29 +6208,68 @@
             });
         }
 
-        const rsCandidates = activeDocs.filter(r => (r.rs_target || 0) > 0);
+        const rsCandidates = activeDocs.filter(r => (Number(r.rs_target) || 0) > 0);
         const assigned = countScheduledDutiesPerResident('rs');
 
+        function isRSAvailable(r, dayNumber, slot) {
+            const clean = normalizeArabic(r.name);
+            const filled = assigned[clean] || 0;
+            const target = Number(r.rs_target) || 0;
+            if (filled >= target) return false;
+
+            const dateStr = formatDateStr(state.year, state.month, dayNumber);
+            const evalRes = evaluateCellConflict(r.name, dateStr, 'rs', slot);
+            return !evalRes.hasConflict;
+        }
+
+        function assignRS(dayEntry, slot, r) {
+            dayEntry[slot] = r.name;
+            const clean = normalizeArabic(r.name);
+            assigned[clean] = (assigned[clean] || 0) + 1;
+        }
+
+        // Pass 1: Preferences
         for (let d = startDay; d <= endDay; d++) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (dayEntry) {
-                const dateStr = formatDateStr(state.year, state.month, d);
-                shifts.forEach(slot => {
-                    if (!dayEntry[slot]) {
-                        const available = rsCandidates.filter(r => {
-                            const filled = assigned[normalizeArabic(r.name)] || 0;
-                            if (filled >= r.rs_target) return false;
-                            const evalRes = evaluateCellConflict(r.name, dateStr, 'rs', slot);
-                            return !evalRes.hasConflict;
+            if (!dayEntry) continue;
+            shifts.forEach(slot => {
+                if (!dayEntry[slot]) {
+                    const standardShift = shiftMap[slot];
+                    const prefMatches = rsCandidates.filter(r => {
+                        if (!isRSAvailable(r, d, slot)) return false;
+                        const hasDay = Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
+                        const hasShift = Array.isArray(r.prefShifts) && r.prefShifts.includes(standardShift);
+                        return hasDay || hasShift;
+                    });
+                    if (prefMatches.length > 0) {
+                        prefMatches.sort((a, b) => {
+                            const remA = (Number(a.rs_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
+                            const remB = (Number(b.rs_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
+                            return remB - remA;
                         });
-                        if (available.length > 0) {
-                            const chosen = available[0];
-                            dayEntry[slot] = chosen.name;
-                            assigned[normalizeArabic(chosen.name)] = (assigned[normalizeArabic(chosen.name)] || 0) + 1;
-                        }
+                        assignRS(dayEntry, slot, prefMatches[0]);
                     }
-                });
-            }
+                }
+            });
+        }
+
+        // Pass 2: General Fallback
+        for (let d = startDay; d <= endDay; d++) {
+            const dayEntry = schedule.find(s => s.dayNumber === d);
+            if (!dayEntry) continue;
+            shifts.forEach(slot => {
+                if (!dayEntry[slot]) {
+                    const available = rsCandidates.filter(r => isRSAvailable(r, d, slot));
+                    if (available.length > 0) {
+                        available.sort((a, b) => {
+                            const remA = (Number(a.rs_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
+                            const remB = (Number(b.rs_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
+                            return remB - remA;
+                        });
+                        assignRS(dayEntry, slot, available[0]);
+                    }
+                }
+            });
         }
     }
 
@@ -5797,29 +6290,65 @@
             });
         }
 
-        const rsCandidates = activeDocs.filter(r => (r.rs_target || 0) > 0);
+        const rsCandidates = activeDocs.filter(r => (Number(r.rs_target) || 0) > 0);
         const assigned = countScheduledDutiesPerResident('rs');
 
+        function isRSWardsAvailable(r, dayNumber, slot) {
+            const clean = normalizeArabic(r.name);
+            const filled = assigned[clean] || 0;
+            const target = Number(r.rs_target) || 0;
+            if (filled >= target) return false;
+
+            const dateStr = formatDateStr(state.year, state.month, dayNumber);
+            const evalRes = evaluateCellConflict(r.name, dateStr, 'rs', slot);
+            return !evalRes.hasConflict;
+        }
+
+        function assignRSWards(dayEntry, slot, r) {
+            dayEntry[slot] = r.name;
+            const clean = normalizeArabic(r.name);
+            assigned[clean] = (assigned[clean] || 0) + 1;
+        }
+
+        // Pass 1: Preferences (day match)
         for (let d = startDay; d <= endDay; d++) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (dayEntry) {
-                const dateStr = formatDateStr(state.year, state.month, d);
-                wards.forEach(slot => {
-                    if (!dayEntry[slot]) {
-                        const available = rsCandidates.filter(r => {
-                            const filled = assigned[normalizeArabic(r.name)] || 0;
-                            if (filled >= r.rs_target) return false;
-                            const evalRes = evaluateCellConflict(r.name, dateStr, 'rs', slot);
-                            return !evalRes.hasConflict;
+            if (!dayEntry) continue;
+            wards.forEach(slot => {
+                if (!dayEntry[slot]) {
+                    const prefMatches = rsCandidates.filter(r => {
+                        if (!isRSWardsAvailable(r, d, slot)) return false;
+                        return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
+                    });
+                    if (prefMatches.length > 0) {
+                        prefMatches.sort((a, b) => {
+                            const remA = (Number(a.rs_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
+                            const remB = (Number(b.rs_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
+                            return remB - remA;
                         });
-                        if (available.length > 0) {
-                            const chosen = available[0];
-                            dayEntry[slot] = chosen.name;
-                            assigned[normalizeArabic(chosen.name)] = (assigned[normalizeArabic(chosen.name)] || 0) + 1;
-                        }
+                        assignRSWards(dayEntry, slot, prefMatches[0]);
                     }
-                });
-            }
+                }
+            });
+        }
+
+        // Pass 2: General Fallback
+        for (let d = startDay; d <= endDay; d++) {
+            const dayEntry = schedule.find(s => s.dayNumber === d);
+            if (!dayEntry) continue;
+            wards.forEach(slot => {
+                if (!dayEntry[slot]) {
+                    const available = rsCandidates.filter(r => isRSWardsAvailable(r, d, slot));
+                    if (available.length > 0) {
+                        available.sort((a, b) => {
+                            const remA = (Number(a.rs_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
+                            const remB = (Number(b.rs_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
+                            return remB - remA;
+                        });
+                        assignRSWards(dayEntry, slot, available[0]);
+                    }
+                }
+            });
         }
     }
 
@@ -6592,7 +7121,9 @@
     window.PRINT_THEME_PRESETS = PRINT_THEME_PRESETS;
     window.getDBContainer = getDBContainer;
     window.refreshDBView = refreshDBView;
-    window.renderDBView = renderDBView;
+    window.updateDutyDashboard = updateDutyDashboard;
+    window.runAutoDistribution = runAutoDistribution;
+    window.initEmergencyApp = initEmergencyApp;
     window.state = state;
     window.saveState = saveState;
 

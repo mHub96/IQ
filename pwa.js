@@ -1,23 +1,78 @@
+// pwa.js - Progressive Web App Support & State Persistence for Hospital Main Hub
 (() => {
+  'use strict';
+
+  const STORAGE_KEY_LAST_PAGE = 'hosp_hub_last_page';
   let deferredInstallPrompt = null;
 
-  // Register the service worker WITHOUT a changing parameter
+  // ---------------------------------------------------------------------------
+  // 1. SAVE LAST VISITED PAGE (So PWA launches directly where user left off)
+  // ---------------------------------------------------------------------------
+  function getCurrentRelativeUrl() {
+    try {
+      const pathParts = window.location.pathname.split('/');
+      const fileName = pathParts.pop() || 'index.html';
+      return './' + fileName + window.location.search + window.location.hash;
+    } catch (e) {
+      return './index.html';
+    }
+  }
+
+  function saveCurrentPageAsLastPwaPage() {
+    try {
+      const relUrl = getCurrentRelativeUrl();
+      localStorage.setItem(STORAGE_KEY_LAST_PAGE, relUrl);
+    } catch (e) {}
+  }
+
+  // Save immediately on script execution
+  saveCurrentPageAsLastPwaPage();
+
+  // Save on page lifecycle events
+  window.addEventListener('pageshow', saveCurrentPageAsLastPwaPage);
+  window.addEventListener('popstate', saveCurrentPageAsLastPwaPage);
+  window.addEventListener('hashchange', saveCurrentPageAsLastPwaPage);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      saveCurrentPageAsLastPwaPage();
+    }
+  });
+
+  // Track user clicks on internal links to immediately update the target page
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href]');
+    if (!link) return;
+    const href = link.getAttribute('href');
+    if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('tel:') || href.startsWith('mailto:')) return;
+    if (link.target && link.target !== '_self') return;
+    if (link.hasAttribute('download')) return;
+
+    // Check if internal navigation link
+    if (href.includes('.html') || (!href.includes('://') && !href.startsWith('//'))) {
+      try {
+        let target = href;
+        if (!target.startsWith('./') && !target.startsWith('/')) {
+          target = './' + target;
+        }
+        localStorage.setItem(STORAGE_KEY_LAST_PAGE, target);
+      } catch (err) {}
+    }
+  }, { capture: true });
+
+  // ---------------------------------------------------------------------------
+  // 2. SERVICE WORKER REGISTRATION & UPDATES
+  // ---------------------------------------------------------------------------
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./service-worker.js')
       .then(registration => {
-        console.log('Service Worker registered successfully');
-
-        // Check for updates on load (but only if there's actually a new version)
-        // This will not show the prompt unless the CACHE_VERSION changed.
+        // Check for updates on load (if CACHE_VERSION changed)
         registration.update();
 
-        // Listen for a new service worker installing
+        // Listen for new worker installing
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing;
+          if (!newWorker) return;
           newWorker.addEventListener('statechange', () => {
-            // Only show the prompt if:
-            // 1. The new worker is installed (state === 'installed')
-            // 2. There was a previous controller (meaning this is an update, not a first install)
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               showUpdatePrompt();
             }
@@ -29,22 +84,23 @@
       });
   }
 
-  // Show a friendly prompt to reload
+  // Show friendly prompt to reload when updated
   function showUpdatePrompt() {
-    // Use a flag to avoid showing the toast more than once per session
     if (window._updatePromptShown) return;
     window._updatePromptShown = true;
 
     if (typeof showToast === 'function') {
-      showToast('🔄 New version available. Reload to update.', 'info', 6000);
+      showToast('🔄 تم تحديث التطبيق. انقر لإعادة التحميل.', 'info', 6000);
     } else {
-      if (confirm('A new version of this app is available. Refresh now?')) {
+      if (confirm('يتوفر تحديث جديد للتطبيق. هل ترغب في إعادة التحميل الآن؟')) {
         window.location.reload();
       }
     }
   }
 
-  // ----- Install Button (unchanged) -----
+  // ---------------------------------------------------------------------------
+  // 3. PWA INSTALL BUTTON (Home Screen Prompt)
+  // ---------------------------------------------------------------------------
   function addInstallButton() {
     if (document.getElementById('pwa-install-button')) return;
     const button = document.createElement('button');
@@ -72,16 +128,19 @@
     deferredInstallPrompt = null;
     document.getElementById('pwa-install-button')?.remove();
     if (typeof showToast === 'function') {
-      showToast('✅ App installed successfully!', 'success');
+      showToast('✅ تم تثبيت التطبيق بنجاح!', 'success');
     }
   });
 
-  // On page load, check for updates (without forcing a re-install)
+  // On page load, check for service worker updates
   window.addEventListener('load', () => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.ready.then(registration => {
-        registration.update(); // Safe – only checks if there's a new version on the server
+        registration.update();
       });
     }
   });
+
+  // Export helper for debugging or manual calls
+  window.saveCurrentPageAsLastPwaPage = saveCurrentPageAsLastPwaPage;
 })();

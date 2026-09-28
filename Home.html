@@ -5,6 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <title>الخفراء اليوم · Duty Roster 🇮🇶</title>
+    
+    <!-- PWA Resume: Immediately relaunch to where user left off -->
+    <script>
+        (function() {
+            try {
+                var search = window.location.search;
+                var params = new URLSearchParams(search);
+                if (params.has('home') || params.has('no_redirect') || params.has('reset')) {
+                    localStorage.setItem('hosp_hub_last_page', './Home.html');
+                    return;
+                }
+                var lastPage = localStorage.getItem('hosp_hub_last_page');
+                if (lastPage) {
+                    var clean = lastPage.split('?')[0].split('#')[0].replace(/^\.\//, '').trim();
+                    if (clean && clean !== 'Home.html' && clean !== 'index.html' && clean.endsWith('.html')) {
+                        window.location.replace(lastPage.startsWith('./') ? lastPage : './' + lastPage);
+                    }
+                }
+            } catch(e) {}
+        })();
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {

@@ -8,6 +8,28 @@
     <meta name="theme-color" content="#0f766e" />
     <title>بوابة المستشفيات التعليمية · Medical Hub App 🇮🇶</title>
     
+    <!-- PWA Resume: Immediately relaunch to where user left off -->
+    <script>
+        (function() {
+            try {
+                var search = window.location.search;
+                var params = new URLSearchParams(search);
+                if (params.has('home') || params.has('no_redirect') || params.has('reset')) {
+                    localStorage.setItem('hosp_hub_last_page', './index.html');
+                    return;
+                }
+                var lastPage = localStorage.getItem('hosp_hub_last_page');
+                if (lastPage) {
+                    var clean = lastPage.split('?')[0].split('#')[0].replace(/^\.\//, '').trim();
+                    if (clean && clean !== 'index.html' && clean !== 'Home.html' && clean.endsWith('.html')) {
+                        window.location.replace(lastPage.startsWith('./') ? lastPage : './' + lastPage);
+                    }
+                }
+            } catch(e) {}
+        })();
+    </script>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -2721,5 +2743,6 @@
             renderHubDashboard();
         });
     </script>
+    <script src="./pwa.js"></script>
 </body>
 </html>

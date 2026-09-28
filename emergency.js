@@ -5975,8 +5975,9 @@
 
         // Track assignments strictly by normalized doctor name
         const assignedCount = {};
-        const assignedShifts = {}; // cleanName => Set of shift names
-        const assignedDays = {};   // dayNumber => Set of cleanNames
+        const assignedShiftCounts = {};     // cleanName => { morning: 0, afternoon: 0, preNight: 0, lateNight: 0 }
+        const assignedDayOfWeekCounts = {}; // cleanName => { 'الجمعة': 0, ... }
+        const assignedDays = {};            // dayNumber => Set of cleanNames
 
         for (let d = 1; d <= daysCount; d++) {
             assignedDays[d] = new Set();
@@ -5985,7 +5986,8 @@
         activeDocs.forEach(r => {
             const clean = normalizeArabic(r.name);
             assignedCount[clean] = 0;
-            assignedShifts[clean] = new Set();
+            assignedShiftCounts[clean] = { morning: 0, afternoon: 0, preNight: 0, lateNight: 0 };
+            assignedDayOfWeekCounts[clean] = {};
         });
 
         // Initialize with existing entries if fill_empty
@@ -5994,8 +5996,14 @@
                 if (day[s] && day[s].trim()) {
                     const clean = normalizeArabic(day[s].trim());
                     assignedCount[clean] = (assignedCount[clean] || 0) + 1;
-                    if (!assignedShifts[clean]) assignedShifts[clean] = new Set();
-                    assignedShifts[clean].add(s);
+                    if (!assignedShiftCounts[clean]) {
+                        assignedShiftCounts[clean] = { morning: 0, afternoon: 0, preNight: 0, lateNight: 0 };
+                    }
+                    assignedShiftCounts[clean][s] = (assignedShiftCounts[clean][s] || 0) + 1;
+                    if (!assignedDayOfWeekCounts[clean]) {
+                        assignedDayOfWeekCounts[clean] = {};
+                    }
+                    assignedDayOfWeekCounts[clean][day.dayName] = (assignedDayOfWeekCounts[clean][day.dayName] || 0) + 1;
                     if (assignedDays[day.dayNumber]) assignedDays[day.dayNumber].add(clean);
                 }
             });
@@ -6012,6 +6020,16 @@
 
         function hasRemainingQuota(r) {
             return getAssigned(r) < getQuota(r);
+        }
+
+        function getDoctorShiftCount(r, s) {
+            const clean = normalizeArabic(r.name);
+            return (assignedShiftCounts[clean] && assignedShiftCounts[clean][s]) || 0;
+        }
+
+        function getDoctorDayCount(r, dayName) {
+            const clean = normalizeArabic(r.name);
+            return (assignedDayOfWeekCounts[clean] && assignedDayOfWeekCounts[clean][dayName]) || 0;
         }
 
         // Strict availability check:
@@ -6039,8 +6057,14 @@
             dayEntry[shiftKey] = r.name;
             const clean = normalizeArabic(r.name);
             assignedCount[clean] = (assignedCount[clean] || 0) + 1;
-            if (!assignedShifts[clean]) assignedShifts[clean] = new Set();
-            assignedShifts[clean].add(shiftKey);
+            if (!assignedShiftCounts[clean]) {
+                assignedShiftCounts[clean] = { morning: 0, afternoon: 0, preNight: 0, lateNight: 0 };
+            }
+            assignedShiftCounts[clean][shiftKey] = (assignedShiftCounts[clean][shiftKey] || 0) + 1;
+            if (!assignedDayOfWeekCounts[clean]) {
+                assignedDayOfWeekCounts[clean] = {};
+            }
+            assignedDayOfWeekCounts[clean][dayEntry.dayName] = (assignedDayOfWeekCounts[clean][dayEntry.dayName] || 0) + 1;
             if (assignedDays[dayNumber]) assignedDays[dayNumber].add(clean);
 
             // Preference Override Check (track if doctor preferred a shift but was given a different one)
@@ -6053,104 +6077,181 @@
             }
         }
 
+        // Variety Comparator:
+        // 1. Prioritize doctors with lowest count of this specific shift
+        // 2. Prioritize doctors with lowest count on this day of week
+        // 3. Fairness: doctor with lowest total assigned duties
+        function compareCandidates(a, b, dayName, shiftKey) {
+            const aClean = normalizeArabic(a.name);
+            const bClean = normalizeArabic(b.name);
+
+            const aShiftCount = getDoctorShiftCount(a, shiftKey);
+            const bShiftCount = getDoctorShiftCount(b, shiftKey);
+            if (aShiftCount !== bShiftCount) return aShiftCount - bShiftCount;
+
+            const aDayCount = getDoctorDayCount(a, dayName);
+            const bDayCount = getDoctorDayCount(b, dayName);
+            if (aDayCount !== bDayCount) return aDayCount - bDayCount;
+
+            return getAssigned(a) - getAssigned(b);
+        }
+
+        // Dynamically order shifts for doctor r:
+        // Preferred shifts come first, sorted by least assigned count (variety!)
+        // Non-preferred shifts follow, also sorted by least assigned count.
+        function getDoctorShiftOrder(r) {
+            const getShiftCount = (s) => getDoctorShiftCount(r, s);
+
+            let preferred = [];
+            let others = [];
+
+            if (Array.isArray(r.prefShifts) && r.prefShifts.length > 0) {
+                preferred = r.prefShifts.slice();
+                shifts.forEach(s => {
+                    if (!preferred.includes(s)) others.push(s);
+                });
+            } else if (r.sex === 'F') {
+                preferred = ['morning', 'afternoon'];
+                others = ['preNight', 'lateNight'];
+            } else {
+                if (getQuota(r) > 1) {
+                    preferred = ['preNight', 'morning', 'afternoon'];
+                    others = ['lateNight'];
+                } else {
+                    preferred = ['lateNight', 'preNight'];
+                    others = ['afternoon', 'morning'];
+                }
+            }
+
+            preferred.sort((a, b) => getShiftCount(a) - getShiftCount(b));
+            others.sort((a, b) => getShiftCount(a) - getShiftCount(b));
+
+            return [...preferred, ...others];
+        }
+
+        // Helper: is day count balanced across doctor's preferred days?
+        function isDayBalanced(r, dayName, allowance = 0) {
+            if (!Array.isArray(r.prefDays) || r.prefDays.length <= 1) return true;
+            const currentCount = getDoctorDayCount(r, dayName);
+            const minCount = Math.min(...r.prefDays.map(dn => getDoctorDayCount(r, dn)));
+            return currentCount <= minCount + allowance;
+        }
+
+        // Helper: is shift count balanced across doctor's preferred shifts?
+        function isShiftBalanced(r, shiftKey, allowance = 0) {
+            if (!Array.isArray(r.prefShifts) || r.prefShifts.length <= 1) return true;
+            const currentCount = getDoctorShiftCount(r, shiftKey);
+            const minCount = Math.min(...r.prefShifts.map(sn => getDoctorShiftCount(r, sn)));
+            return currentCount <= minCount + allowance;
+        }
+
+        const maxDoctorQuota = Math.max(...activeDocs.map(r => getQuota(r)), 1);
+
         // -----------------------------------------------------------------
         // PASS 1: HIGHEST PRIORITY - Exact Preference Match (Both Day & Shift)
+        // With round-robin variety: ensures doctors with multiple preferences
+        // do not stack all their duties on one day or one shift.
         // -----------------------------------------------------------------
-        for (let d = 1; d <= daysCount; d++) {
-            const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (!dayEntry) continue;
+        for (let round = 0; round <= maxDoctorQuota; round++) {
+            for (let d = 1; d <= daysCount; d++) {
+                const dayEntry = schedule.find(s => s.dayNumber === d);
+                if (!dayEntry) continue;
 
-            shifts.forEach(shiftKey => {
-                if (!dayEntry[shiftKey]) {
-                    const matchCandidates = activeDocs.filter(r => {
-                        if (!isDoctorAvailable(r, d, shiftKey)) return false;
-                        const hasDayPref = Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
-                        const hasShiftPref = Array.isArray(r.prefShifts) && r.prefShifts.includes(shiftKey);
-                        return hasDayPref && hasShiftPref;
-                    });
+                shifts.forEach(shiftKey => {
+                    if (!dayEntry[shiftKey]) {
+                        const matchCandidates = activeDocs.filter(r => {
+                            if (!isDoctorAvailable(r, d, shiftKey)) return false;
+                            const hasDayPref = Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
+                            const hasShiftPref = Array.isArray(r.prefShifts) && r.prefShifts.includes(shiftKey);
+                            if (!hasDayPref || !hasShiftPref) return false;
 
-                    if (matchCandidates.length > 0) {
-                        // Sort by lowest assigned duties first (fairness)
-                        matchCandidates.sort((a, b) => getAssigned(a) - getAssigned(b));
-                        assignSlot(dayEntry, shiftKey, matchCandidates[0], d);
+                            return isShiftBalanced(r, shiftKey, round) && isDayBalanced(r, dayEntry.dayName, round);
+                        });
+
+                        if (matchCandidates.length > 0) {
+                            matchCandidates.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, shiftKey));
+                            assignSlot(dayEntry, shiftKey, matchCandidates[0], d);
+                        }
                     }
-                }
-            });
+                });
+            }
         }
 
         // -----------------------------------------------------------------
-        // PASS 2: DAY PREFERENCE MATCH (e.g. Doctor preferred Friday)
-        // Doctor requested this day; try their preferred shift if available,
-        // or a shift matching their gender/profile.
+        // PASS 2: DAY PREFERENCE MATCH (e.g. Doctor preferred Friday / Saturday)
+        // Varies distribution across preferred days and alternates shifts per doctor.
         // -----------------------------------------------------------------
-        for (let d = 1; d <= daysCount; d++) {
-            const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (!dayEntry) continue;
+        for (let round = 0; round <= maxDoctorQuota; round++) {
+            for (let d = 1; d <= daysCount; d++) {
+                const dayEntry = schedule.find(s => s.dayNumber === d);
+                if (!dayEntry) continue;
 
-            const dayPrefDocs = activeDocs.filter(r => {
-                return hasRemainingQuota(r) &&
-                    Array.isArray(r.prefDays) &&
-                    r.prefDays.includes(dayEntry.dayName);
-            });
+                const dayPrefDocs = activeDocs.filter(r => {
+                    if (!hasRemainingQuota(r)) return false;
+                    if (!Array.isArray(r.prefDays) || !r.prefDays.includes(dayEntry.dayName)) return false;
+                    return isDayBalanced(r, dayEntry.dayName, round);
+                });
 
-            dayPrefDocs.sort((a, b) => getAssigned(a) - getAssigned(b));
+                dayPrefDocs.sort((a, b) => {
+                    const aDayCount = getDoctorDayCount(a, dayEntry.dayName);
+                    const bDayCount = getDoctorDayCount(b, dayEntry.dayName);
+                    if (aDayCount !== bDayCount) return aDayCount - bDayCount;
+                    return getAssigned(a) - getAssigned(b);
+                });
 
-            dayPrefDocs.forEach(r => {
-                if (!hasRemainingQuota(r)) return;
-                const clean = normalizeArabic(r.name);
-                if (assignedDays[d] && assignedDays[d].has(clean)) return;
+                dayPrefDocs.forEach(r => {
+                    if (!hasRemainingQuota(r)) return;
+                    const clean = normalizeArabic(r.name);
+                    if (assignedDays[d] && assignedDays[d].has(clean)) return;
 
-                // Determine candidate shifts in order of preference
-                let shiftOrder = [];
-                if (Array.isArray(r.prefShifts) && r.prefShifts.length > 0) {
-                    shiftOrder = r.prefShifts.slice();
-                    shifts.forEach(s => { if (!shiftOrder.includes(s)) shiftOrder.push(s); });
-                } else if (r.sex === 'F') {
-                    shiftOrder = ['morning', 'afternoon', 'preNight', 'lateNight'];
-                } else {
-                    shiftOrder = (getQuota(r) > 1) 
-                        ? ['preNight', 'morning', 'afternoon', 'lateNight']
-                        : ['lateNight', 'preNight', 'afternoon', 'morning'];
-                }
-
-                for (const s of shiftOrder) {
-                    if (!dayEntry[s] && isDoctorAvailable(r, d, s)) {
-                        assignSlot(dayEntry, s, r, d);
-                        break;
+                    const shiftOrder = getDoctorShiftOrder(r);
+                    for (const s of shiftOrder) {
+                        if (!dayEntry[s] && isDoctorAvailable(r, d, s)) {
+                            assignSlot(dayEntry, s, r, d);
+                            break;
+                        }
                     }
-                }
-            });
+                });
+            }
         }
 
         // -----------------------------------------------------------------
-        // PASS 3: SHIFT PREFERENCE MATCH (Doctor preferred specific shift)
+        // PASS 3: SHIFT PREFERENCE MATCH (Doctor preferred specific shifts)
+        // CRITICAL VARIETY RULE:
+        // If a resident has multiple preferred shifts (e.g. morning, afternoon, preNight),
+        // each duty received must alternate to the least-assigned preferred shift.
+        // Round 0 gives at most 1 of each preferred shift.
+        // Round 1 gives at most 2, etc.
         // -----------------------------------------------------------------
-        shifts.forEach(shiftKey => {
-            const shiftPrefDocs = activeDocs.filter(r => {
-                return hasRemainingQuota(r) &&
-                    Array.isArray(r.prefShifts) &&
-                    r.prefShifts.includes(shiftKey);
-            });
+        for (let round = 0; round <= maxDoctorQuota; round++) {
+            for (let d = 1; d <= daysCount; d++) {
+                const dayEntry = schedule.find(s => s.dayNumber === d);
+                if (!dayEntry) continue;
 
-            shiftPrefDocs.sort((a, b) => getAssigned(a) - getAssigned(b));
+                shifts.forEach(shiftKey => {
+                    if (!dayEntry[shiftKey]) {
+                        const shiftPrefDocs = activeDocs.filter(r => {
+                            if (!hasRemainingQuota(r)) return false;
+                            if (!Array.isArray(r.prefShifts) || !r.prefShifts.includes(shiftKey)) return false;
+                            if (!isDoctorAvailable(r, d, shiftKey)) return false;
 
-            shiftPrefDocs.forEach(r => {
-                if (!hasRemainingQuota(r)) return;
-                for (let d = 1; d <= daysCount; d++) {
-                    if (!hasRemainingQuota(r)) break;
-                    const dayEntry = schedule.find(s => s.dayNumber === d);
-                    if (dayEntry && !dayEntry[shiftKey] && isDoctorAvailable(r, d, shiftKey)) {
-                        assignSlot(dayEntry, shiftKey, r, d);
+                            return isShiftBalanced(r, shiftKey, round);
+                        });
+
+                        if (shiftPrefDocs.length > 0) {
+                            shiftPrefDocs.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, shiftKey));
+                            assignSlot(dayEntry, shiftKey, shiftPrefDocs[0], d);
+                        }
                     }
-                }
-            });
-        });
+                });
+            }
+        }
 
         // -----------------------------------------------------------------
         // PASS 4: GENERAL DISTRIBUTION FOR REMAINING SLOTS
-        // Respecting medical rules:
+        // Respecting medical rules with full variety:
         // - Morning (8AM-2PM): Females first, then males
-        // - Afternoon (2PM-8PM): Females first, then males (prefer diversity)
+        // - Afternoon (2PM-8PM): Females first, then males
         // - Pre-Night (8PM-2AM): Males with multiple duties (>1), then any male, then any doc
         // - Late-Night (2AM-8AM): Males with single duty (==1), then any male, then any doc
         // STRICT QUOTA LIMIT: IF NO CANDIDATE HAS QUOTA, LEAVE CELL EMPTY!
@@ -6161,24 +6262,24 @@
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.morning) {
                 let candidates = activeDocs.filter(r => r.sex === 'F' && isDoctorAvailable(r, d, 'morning', false));
-                candidates.sort((a, b) => getAssigned(a) - getAssigned(b));
+                candidates.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, 'morning'));
                 let chosen = candidates[0];
 
                 if (!chosen) {
                     const maleCandidates = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'morning', false));
-                    maleCandidates.sort((a, b) => getAssigned(a) - getAssigned(b));
+                    maleCandidates.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, 'morning'));
                     chosen = maleCandidates[0];
                 }
 
-                // Fallback relaxation if no non-consecutive candidate has quota
+                // Fallback relaxation
                 if (!chosen) {
                     const fFallback = activeDocs.filter(r => r.sex === 'F' && isDoctorAvailable(r, d, 'morning', true));
-                    fFallback.sort((a, b) => getAssigned(a) - getAssigned(b));
+                    fFallback.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, 'morning'));
                     chosen = fFallback[0];
                 }
                 if (!chosen) {
                     const mFallback = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'morning', true));
-                    mFallback.sort((a, b) => getAssigned(a) - getAssigned(b));
+                    mFallback.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, 'morning'));
                     chosen = mFallback[0];
                 }
 
@@ -6193,38 +6294,24 @@
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.afternoon) {
                 let candidates = activeDocs.filter(r => r.sex === 'F' && isDoctorAvailable(r, d, 'afternoon', false));
-                candidates.sort((a, b) => getAssigned(a) - getAssigned(b));
+                candidates.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, 'afternoon'));
                 let chosen = candidates[0];
 
                 if (!chosen) {
                     const maleCandidates = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'afternoon', false));
-                    maleCandidates.sort((a, b) => {
-                        const aClean = normalizeArabic(a.name);
-                        const bClean = normalizeArabic(b.name);
-                        const aDone = assignedShifts[aClean]?.has('afternoon') ? 1 : 0;
-                        const bDone = assignedShifts[bClean]?.has('afternoon') ? 1 : 0;
-                        if (aDone !== bDone) return aDone - bDone;
-                        return getAssigned(a) - getAssigned(b);
-                    });
+                    maleCandidates.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, 'afternoon'));
                     chosen = maleCandidates[0];
                 }
 
                 // Fallback relaxation
                 if (!chosen) {
                     const fFallback = activeDocs.filter(r => r.sex === 'F' && isDoctorAvailable(r, d, 'afternoon', true));
-                    fFallback.sort((a, b) => getAssigned(a) - getAssigned(b));
+                    fFallback.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, 'afternoon'));
                     chosen = fFallback[0];
                 }
                 if (!chosen) {
                     const mFallback = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'afternoon', true));
-                    mFallback.sort((a, b) => {
-                        const aClean = normalizeArabic(a.name);
-                        const bClean = normalizeArabic(b.name);
-                        const aDone = assignedShifts[aClean]?.has('afternoon') ? 1 : 0;
-                        const bDone = assignedShifts[bClean]?.has('afternoon') ? 1 : 0;
-                        if (aDone !== bDone) return aDone - bDone;
-                        return getAssigned(a) - getAssigned(b);
-                    });
+                    mFallback.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, 'afternoon'));
                     chosen = mFallback[0];
                 }
 
@@ -6239,37 +6326,30 @@
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.preNight) {
                 let candidates = activeDocs.filter(r => r.sex === 'M' && getQuota(r) > 1 && isDoctorAvailable(r, d, 'preNight', false));
-                candidates.sort((a, b) => {
-                    const aClean = normalizeArabic(a.name);
-                    const bClean = normalizeArabic(b.name);
-                    const aDone = assignedShifts[aClean]?.has('preNight') ? 1 : 0;
-                    const bDone = assignedShifts[bClean]?.has('preNight') ? 1 : 0;
-                    if (aDone !== bDone) return aDone - bDone;
-                    return getAssigned(a) - getAssigned(b);
-                });
+                candidates.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, 'preNight'));
                 let chosen = candidates[0];
 
                 if (!chosen) {
                     const anyMales = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'preNight', false));
-                    anyMales.sort((a, b) => getAssigned(a) - getAssigned(b));
+                    anyMales.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, 'preNight'));
                     chosen = anyMales[0];
                 }
 
                 if (!chosen) {
                     const anyDocs = activeDocs.filter(r => isDoctorAvailable(r, d, 'preNight', false));
-                    anyDocs.sort((a, b) => getAssigned(a) - getAssigned(b));
+                    anyDocs.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, 'preNight'));
                     chosen = anyDocs[0];
                 }
 
                 // Fallback relaxation
                 if (!chosen) {
                     const anyMales = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'preNight', true));
-                    anyMales.sort((a, b) => getAssigned(a) - getAssigned(b));
+                    anyMales.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, 'preNight'));
                     chosen = anyMales[0];
                 }
                 if (!chosen) {
                     const anyDocs = activeDocs.filter(r => isDoctorAvailable(r, d, 'preNight', true));
-                    anyDocs.sort((a, b) => getAssigned(a) - getAssigned(b));
+                    anyDocs.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, 'preNight'));
                     chosen = anyDocs[0];
                 }
 
@@ -6284,44 +6364,30 @@
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.lateNight) {
                 let candidates = activeDocs.filter(r => r.sex === 'M' && getQuota(r) === 1 && isDoctorAvailable(r, d, 'lateNight', false));
-                candidates.sort((a, b) => getAssigned(a) - getAssigned(b));
+                candidates.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, 'lateNight'));
                 let chosen = candidates[0];
 
                 if (!chosen) {
                     const anyMales = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'lateNight', false));
-                    anyMales.sort((a, b) => {
-                        const aClean = normalizeArabic(a.name);
-                        const bClean = normalizeArabic(b.name);
-                        const aDone = assignedShifts[aClean]?.has('lateNight') ? 1 : 0;
-                        const bDone = assignedShifts[bClean]?.has('lateNight') ? 1 : 0;
-                        if (aDone !== bDone) return aDone - bDone;
-                        return getAssigned(a) - getAssigned(b);
-                    });
+                    anyMales.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, 'lateNight'));
                     chosen = anyMales[0];
                 }
 
                 if (!chosen) {
                     const anyDocs = activeDocs.filter(r => isDoctorAvailable(r, d, 'lateNight', false));
-                    anyDocs.sort((a, b) => getAssigned(a) - getAssigned(b));
+                    anyDocs.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, 'lateNight'));
                     chosen = anyDocs[0];
                 }
 
                 // Fallback relaxation
                 if (!chosen) {
                     const anyMales = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'lateNight', true));
-                    anyMales.sort((a, b) => {
-                        const aClean = normalizeArabic(a.name);
-                        const bClean = normalizeArabic(b.name);
-                        const aDone = assignedShifts[aClean]?.has('lateNight') ? 1 : 0;
-                        const bDone = assignedShifts[bClean]?.has('lateNight') ? 1 : 0;
-                        if (aDone !== bDone) return aDone - bDone;
-                        return getAssigned(a) - getAssigned(b);
-                    });
+                    anyMales.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, 'lateNight'));
                     chosen = anyMales[0];
                 }
                 if (!chosen) {
                     const anyDocs = activeDocs.filter(r => isDoctorAvailable(r, d, 'lateNight', true));
-                    anyDocs.sort((a, b) => getAssigned(a) - getAssigned(b));
+                    anyDocs.sort((a, b) => compareCandidates(a, b, dayEntry.dayName, 'lateNight'));
                     chosen = anyDocs[0];
                 }
 
@@ -6333,7 +6399,7 @@
     }
 
     /**
-     * CON AUTOMATIC DISTRIBUTION
+     * CON AUTOMATIC DISTRIBUTION (with Variety across preferred days)
      */
     function runAutoDistributionCon(mode, daysCount, activeDocs) {
         const schedule = state.schedules.con;
@@ -6343,6 +6409,18 @@
 
         const conCandidates = activeDocs.filter(r => (Number(r.con_target) || 0) > 0);
         const assigned = countScheduledDutiesPerResident('con');
+        const assignedDaysOfWeek = {};
+
+        conCandidates.forEach(r => {
+            assignedDaysOfWeek[normalizeArabic(r.name)] = {};
+        });
+        schedule.forEach(day => {
+            if (day.doctor && day.doctor.trim()) {
+                const clean = normalizeArabic(day.doctor.trim());
+                if (!assignedDaysOfWeek[clean]) assignedDaysOfWeek[clean] = {};
+                assignedDaysOfWeek[clean][day.dayName] = (assignedDaysOfWeek[clean][day.dayName] || 0) + 1;
+            }
+        });
 
         function isConAvailable(r, dayNumber, allowConsecutive = false) {
             const clean = normalizeArabic(r.name);
@@ -6365,30 +6443,51 @@
             dayEntry.doctor = r.name;
             const clean = normalizeArabic(r.name);
             assigned[clean] = (assigned[clean] || 0) + 1;
+            if (!assignedDaysOfWeek[clean]) assignedDaysOfWeek[clean] = {};
+            assignedDaysOfWeek[clean][dayEntry.dayName] = (assignedDaysOfWeek[clean][dayEntry.dayName] || 0) + 1;
         }
 
-        // Pass 1: Preferences (Doctors who prefer this day)
-        for (let d = 1; d <= daysCount; d++) {
-            const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (dayEntry && !dayEntry.doctor) {
-                let prefMatches = conCandidates.filter(r => {
-                    if (!isConAvailable(r, d, false)) return false;
-                    return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
-                });
-                if (prefMatches.length === 0) {
-                    prefMatches = conCandidates.filter(r => {
-                        if (!isConAvailable(r, d, true)) return false;
-                        return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
-                    });
-                }
+        const maxConQuota = Math.max(...conCandidates.map(r => Number(r.con_target) || 0), 1);
 
-                if (prefMatches.length > 0) {
-                    prefMatches.sort((a, b) => {
-                        const remA = (Number(a.con_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
-                        const remB = (Number(b.con_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
-                        return remB - remA;
+        function isConDayBalanced(r, dayName, allowance = 0) {
+            if (!Array.isArray(r.prefDays) || r.prefDays.length <= 1) return true;
+            const clean = normalizeArabic(r.name);
+            const currentCount = (assignedDaysOfWeek[clean] && assignedDaysOfWeek[clean][dayName]) || 0;
+            const minCount = Math.min(...r.prefDays.map(dn => (assignedDaysOfWeek[clean] && assignedDaysOfWeek[clean][dn]) || 0));
+            return currentCount <= minCount + allowance;
+        }
+
+        // Pass 1: Preferences (Doctors who prefer this day, varied round-by-round)
+        for (let round = 0; round <= maxConQuota; round++) {
+            for (let d = 1; d <= daysCount; d++) {
+                const dayEntry = schedule.find(s => s.dayNumber === d);
+                if (dayEntry && !dayEntry.doctor) {
+                    let prefMatches = conCandidates.filter(r => {
+                        if (!isConAvailable(r, d, false)) return false;
+                        if (!Array.isArray(r.prefDays) || !r.prefDays.includes(dayEntry.dayName)) return false;
+                        return isConDayBalanced(r, dayEntry.dayName, round);
                     });
-                    assignCon(dayEntry, prefMatches[0]);
+                    if (prefMatches.length === 0) {
+                        prefMatches = conCandidates.filter(r => {
+                            if (!isConAvailable(r, d, true)) return false;
+                            if (!Array.isArray(r.prefDays) || !r.prefDays.includes(dayEntry.dayName)) return false;
+                            return isConDayBalanced(r, dayEntry.dayName, round);
+                        });
+                    }
+
+                    if (prefMatches.length > 0) {
+                        prefMatches.sort((a, b) => {
+                            const aClean = normalizeArabic(a.name);
+                            const bClean = normalizeArabic(b.name);
+                            const aDayCount = (assignedDaysOfWeek[aClean] && assignedDaysOfWeek[aClean][dayEntry.dayName]) || 0;
+                            const bDayCount = (assignedDaysOfWeek[bClean] && assignedDaysOfWeek[bClean][dayEntry.dayName]) || 0;
+                            if (aDayCount !== bDayCount) return aDayCount - bDayCount;
+                            const remA = (Number(a.con_target) || 0) - (assigned[aClean] || 0);
+                            const remB = (Number(b.con_target) || 0) - (assigned[bClean] || 0);
+                            return remB - remA;
+                        });
+                        assignCon(dayEntry, prefMatches[0]);
+                    }
                 }
             }
         }
@@ -6403,8 +6502,13 @@
                 }
                 if (available.length > 0) {
                     available.sort((a, b) => {
-                        const remA = (Number(a.con_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
-                        const remB = (Number(b.con_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
+                        const aClean = normalizeArabic(a.name);
+                        const bClean = normalizeArabic(b.name);
+                        const aDayCount = (assignedDaysOfWeek[aClean] && assignedDaysOfWeek[aClean][dayEntry.dayName]) || 0;
+                        const bDayCount = (assignedDaysOfWeek[bClean] && assignedDaysOfWeek[bClean][dayEntry.dayName]) || 0;
+                        if (aDayCount !== bDayCount) return aDayCount - bDayCount;
+                        const remA = (Number(a.con_target) || 0) - (assigned[aClean] || 0);
+                        const remB = (Number(b.con_target) || 0) - (assigned[bClean] || 0);
                         return remB - remA;
                     });
                     assignCon(dayEntry, available[0]);
@@ -6414,7 +6518,7 @@
     }
 
     /**
-     * DC AUTOMATIC DISTRIBUTION (Prioritizes Hospital On-Call specialty doctors!)
+     * DC AUTOMATIC DISTRIBUTION (with Variety across preferred days & Prioritizing Hospital On-Call)
      */
     function runAutoDistributionDC(mode, daysCount, activeDocs) {
         const schedule = state.schedules.dc;
@@ -6424,6 +6528,18 @@
 
         const dcCandidates = activeDocs.filter(r => (Number(r.dc_target) || 0) > 0);
         const assigned = countScheduledDutiesPerResident('dc');
+        const assignedDaysOfWeek = {};
+
+        dcCandidates.forEach(r => {
+            assignedDaysOfWeek[normalizeArabic(r.name)] = {};
+        });
+        schedule.forEach(day => {
+            if (day.doctor && day.doctor.trim()) {
+                const clean = normalizeArabic(day.doctor.trim());
+                if (!assignedDaysOfWeek[clean]) assignedDaysOfWeek[clean] = {};
+                assignedDaysOfWeek[clean][day.dayName] = (assignedDaysOfWeek[clean][day.dayName] || 0) + 1;
+            }
+        });
 
         function isDCAvailable(r, dayNumber, allowConsecutive = false) {
             const clean = normalizeArabic(r.name);
@@ -6446,30 +6562,51 @@
             dayEntry.doctor = r.name;
             const clean = normalizeArabic(r.name);
             assigned[clean] = (assigned[clean] || 0) + 1;
+            if (!assignedDaysOfWeek[clean]) assignedDaysOfWeek[clean] = {};
+            assignedDaysOfWeek[clean][dayEntry.dayName] = (assignedDaysOfWeek[clean][dayEntry.dayName] || 0) + 1;
         }
 
-        // Pass 1: Preferences (Doctors who prefer this day)
-        for (let d = 1; d <= daysCount; d++) {
-            const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (dayEntry && !dayEntry.doctor) {
-                let prefMatches = dcCandidates.filter(r => {
-                    if (!isDCAvailable(r, d, false)) return false;
-                    return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
-                });
-                if (prefMatches.length === 0) {
-                    prefMatches = dcCandidates.filter(r => {
-                        if (!isDCAvailable(r, d, true)) return false;
-                        return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
-                    });
-                }
+        const maxDCQuota = Math.max(...dcCandidates.map(r => Number(r.dc_target) || 0), 1);
 
-                if (prefMatches.length > 0) {
-                    prefMatches.sort((a, b) => {
-                        const remA = (Number(a.dc_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
-                        const remB = (Number(b.dc_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
-                        return remB - remA;
+        function isDCDayBalanced(r, dayName, allowance = 0) {
+            if (!Array.isArray(r.prefDays) || r.prefDays.length <= 1) return true;
+            const clean = normalizeArabic(r.name);
+            const currentCount = (assignedDaysOfWeek[clean] && assignedDaysOfWeek[clean][dayName]) || 0;
+            const minCount = Math.min(...r.prefDays.map(dn => (assignedDaysOfWeek[clean] && assignedDaysOfWeek[clean][dn]) || 0));
+            return currentCount <= minCount + allowance;
+        }
+
+        // Pass 1: Preferences (Doctors who prefer this day, varied round-by-round)
+        for (let round = 0; round <= maxDCQuota; round++) {
+            for (let d = 1; d <= daysCount; d++) {
+                const dayEntry = schedule.find(s => s.dayNumber === d);
+                if (dayEntry && !dayEntry.doctor) {
+                    let prefMatches = dcCandidates.filter(r => {
+                        if (!isDCAvailable(r, d, false)) return false;
+                        if (!Array.isArray(r.prefDays) || !r.prefDays.includes(dayEntry.dayName)) return false;
+                        return isDCDayBalanced(r, dayEntry.dayName, round);
                     });
-                    assignDC(dayEntry, prefMatches[0]);
+                    if (prefMatches.length === 0) {
+                        prefMatches = dcCandidates.filter(r => {
+                            if (!isDCAvailable(r, d, true)) return false;
+                            if (!Array.isArray(r.prefDays) || !r.prefDays.includes(dayEntry.dayName)) return false;
+                            return isDCDayBalanced(r, dayEntry.dayName, round);
+                        });
+                    }
+
+                    if (prefMatches.length > 0) {
+                        prefMatches.sort((a, b) => {
+                            const aClean = normalizeArabic(a.name);
+                            const bClean = normalizeArabic(b.name);
+                            const aDayCount = (assignedDaysOfWeek[aClean] && assignedDaysOfWeek[aClean][dayEntry.dayName]) || 0;
+                            const bDayCount = (assignedDaysOfWeek[bClean] && assignedDaysOfWeek[bClean][dayEntry.dayName]) || 0;
+                            if (aDayCount !== bDayCount) return aDayCount - bDayCount;
+                            const remA = (Number(a.dc_target) || 0) - (assigned[aClean] || 0);
+                            const remB = (Number(b.dc_target) || 0) - (assigned[bClean] || 0);
+                            return remB - remA;
+                        });
+                        assignDC(dayEntry, prefMatches[0]);
+                    }
                 }
             }
         }
@@ -6495,8 +6632,13 @@
 
                 if (onCallCandidates.length > 0) {
                     onCallCandidates.sort((a, b) => {
-                        const remA = (Number(a.dc_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
-                        const remB = (Number(b.dc_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
+                        const aClean = normalizeArabic(a.name);
+                        const bClean = normalizeArabic(b.name);
+                        const aDayCount = (assignedDaysOfWeek[aClean] && assignedDaysOfWeek[aClean][dayEntry.dayName]) || 0;
+                        const bDayCount = (assignedDaysOfWeek[bClean] && assignedDaysOfWeek[bClean][dayEntry.dayName]) || 0;
+                        if (aDayCount !== bDayCount) return aDayCount - bDayCount;
+                        const remA = (Number(a.dc_target) || 0) - (assigned[aClean] || 0);
+                        const remB = (Number(b.dc_target) || 0) - (assigned[bClean] || 0);
                         return remB - remA;
                     });
                     assignDC(dayEntry, onCallCandidates[0]);
@@ -6514,8 +6656,13 @@
                 }
                 if (available.length > 0) {
                     available.sort((a, b) => {
-                        const remA = (Number(a.dc_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
-                        const remB = (Number(b.dc_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
+                        const aClean = normalizeArabic(a.name);
+                        const bClean = normalizeArabic(b.name);
+                        const aDayCount = (assignedDaysOfWeek[aClean] && assignedDaysOfWeek[aClean][dayEntry.dayName]) || 0;
+                        const bDayCount = (assignedDaysOfWeek[bClean] && assignedDaysOfWeek[bClean][dayEntry.dayName]) || 0;
+                        if (aDayCount !== bDayCount) return aDayCount - bDayCount;
+                        const remA = (Number(a.dc_target) || 0) - (assigned[aClean] || 0);
+                        const remB = (Number(b.dc_target) || 0) - (assigned[bClean] || 0);
                         return remB - remA;
                     });
                     assignDC(dayEntry, available[0]);
@@ -6525,7 +6672,7 @@
     }
 
     /**
-     * RS ER AUTOMATIC DISTRIBUTION
+     * RS ER AUTOMATIC DISTRIBUTION (with Variety across shifts and days)
      */
     function runAutoDistributionRSER(mode, daysCount, activeDocs) {
         const schedule = state.schedules.rs;
@@ -6549,6 +6696,29 @@
 
         const rsCandidates = activeDocs.filter(r => (Number(r.rs_target) || 0) > 0);
         const assigned = countScheduledDutiesPerResident('rs');
+        const assignedDaysOfWeek = {};
+        const assignedShiftCounts = {};
+
+        rsCandidates.forEach(r => {
+            const clean = normalizeArabic(r.name);
+            assignedDaysOfWeek[clean] = {};
+            assignedShiftCounts[clean] = { morning: 0, afternoon: 0, preNight: 0, lateNight: 0 };
+        });
+
+        schedule.forEach(d => {
+            if (d.dayNumber >= startDay && d.dayNumber <= endDay) {
+                shifts.forEach(s => {
+                    if (d[s] && d[s].trim()) {
+                        const clean = normalizeArabic(d[s].trim());
+                        if (!assignedDaysOfWeek[clean]) assignedDaysOfWeek[clean] = {};
+                        assignedDaysOfWeek[clean][d.dayName] = (assignedDaysOfWeek[clean][d.dayName] || 0) + 1;
+                        if (!assignedShiftCounts[clean]) assignedShiftCounts[clean] = { morning: 0, afternoon: 0, preNight: 0, lateNight: 0 };
+                        const stdShift = shiftMap[s];
+                        if (stdShift) assignedShiftCounts[clean][stdShift] = (assignedShiftCounts[clean][stdShift] || 0) + 1;
+                    }
+                });
+            }
+        });
 
         function isRSAvailable(r, dayNumber, slot, allowConsecutive = false) {
             const clean = normalizeArabic(r.name);
@@ -6571,39 +6741,80 @@
             dayEntry[slot] = r.name;
             const clean = normalizeArabic(r.name);
             assigned[clean] = (assigned[clean] || 0) + 1;
+            if (!assignedDaysOfWeek[clean]) assignedDaysOfWeek[clean] = {};
+            assignedDaysOfWeek[clean][dayEntry.dayName] = (assignedDaysOfWeek[clean][dayEntry.dayName] || 0) + 1;
+            if (!assignedShiftCounts[clean]) assignedShiftCounts[clean] = { morning: 0, afternoon: 0, preNight: 0, lateNight: 0 };
+            const stdShift = shiftMap[slot];
+            if (stdShift) assignedShiftCounts[clean][stdShift] = (assignedShiftCounts[clean][stdShift] || 0) + 1;
         }
 
-        // Pass 1: Preferences
-        for (let d = startDay; d <= endDay; d++) {
-            const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (!dayEntry) continue;
-            shifts.forEach(slot => {
-                if (!dayEntry[slot]) {
-                    const standardShift = shiftMap[slot];
-                    let prefMatches = rsCandidates.filter(r => {
-                        if (!isRSAvailable(r, d, slot, false)) return false;
-                        const hasDay = Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
-                        const hasShift = Array.isArray(r.prefShifts) && r.prefShifts.includes(standardShift);
-                        return hasDay || hasShift;
-                    });
-                    if (prefMatches.length === 0) {
-                        prefMatches = rsCandidates.filter(r => {
-                            if (!isRSAvailable(r, d, slot, true)) return false;
+        const maxRSQuota = Math.max(...rsCandidates.map(r => Number(r.rs_target) || 0), 1);
+
+        function isRSDayBalanced(r, dayName, allowance = 0) {
+            if (!Array.isArray(r.prefDays) || r.prefDays.length <= 1) return true;
+            const clean = normalizeArabic(r.name);
+            const currentCount = (assignedDaysOfWeek[clean] && assignedDaysOfWeek[clean][dayName]) || 0;
+            const minCount = Math.min(...r.prefDays.map(dn => (assignedDaysOfWeek[clean] && assignedDaysOfWeek[clean][dn]) || 0));
+            return currentCount <= minCount + allowance;
+        }
+
+        function isRSShiftBalanced(r, standardShift, allowance = 0) {
+            if (!Array.isArray(r.prefShifts) || r.prefShifts.length <= 1) return true;
+            const clean = normalizeArabic(r.name);
+            const currentCount = (assignedShiftCounts[clean] && assignedShiftCounts[clean][standardShift]) || 0;
+            const minCount = Math.min(...r.prefShifts.map(sn => (assignedShiftCounts[clean] && assignedShiftCounts[clean][sn]) || 0));
+            return currentCount <= minCount + allowance;
+        }
+
+        // Pass 1: Preferences with Variety
+        for (let round = 0; round <= maxRSQuota; round++) {
+            for (let d = startDay; d <= endDay; d++) {
+                const dayEntry = schedule.find(s => s.dayNumber === d);
+                if (!dayEntry) continue;
+                shifts.forEach(slot => {
+                    if (!dayEntry[slot]) {
+                        const standardShift = shiftMap[slot];
+                        let prefMatches = rsCandidates.filter(r => {
+                            if (!isRSAvailable(r, d, slot, false)) return false;
                             const hasDay = Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
                             const hasShift = Array.isArray(r.prefShifts) && r.prefShifts.includes(standardShift);
-                            return hasDay || hasShift;
+                            if (!hasDay && !hasShift) return false;
+
+                            return (hasDay ? isRSDayBalanced(r, dayEntry.dayName, round) : true) &&
+                                   (hasShift ? isRSShiftBalanced(r, standardShift, round) : true);
                         });
+
+                        if (prefMatches.length === 0) {
+                            prefMatches = rsCandidates.filter(r => {
+                                if (!isRSAvailable(r, d, slot, true)) return false;
+                                const hasDay = Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
+                                const hasShift = Array.isArray(r.prefShifts) && r.prefShifts.includes(standardShift);
+                                if (!hasDay && !hasShift) return false;
+
+                                return (hasDay ? isRSDayBalanced(r, dayEntry.dayName, round) : true) &&
+                                       (hasShift ? isRSShiftBalanced(r, standardShift, round) : true);
+                            });
+                        }
+
+                        if (prefMatches.length > 0) {
+                            prefMatches.sort((a, b) => {
+                                const aClean = normalizeArabic(a.name);
+                                const bClean = normalizeArabic(b.name);
+                                const aS = (assignedShiftCounts[aClean] && assignedShiftCounts[aClean][standardShift]) || 0;
+                                const bS = (assignedShiftCounts[bClean] && assignedShiftCounts[bClean][standardShift]) || 0;
+                                if (aS !== bS) return aS - bS;
+                                const aD = (assignedDaysOfWeek[aClean] && assignedDaysOfWeek[aClean][dayEntry.dayName]) || 0;
+                                const bD = (assignedDaysOfWeek[bClean] && assignedDaysOfWeek[bClean][dayEntry.dayName]) || 0;
+                                if (aD !== bD) return aD - bD;
+                                const remA = (Number(a.rs_target) || 0) - (assigned[aClean] || 0);
+                                const remB = (Number(b.rs_target) || 0) - (assigned[bClean] || 0);
+                                return remB - remA;
+                            });
+                            assignRS(dayEntry, slot, prefMatches[0]);
+                        }
                     }
-                    if (prefMatches.length > 0) {
-                        prefMatches.sort((a, b) => {
-                            const remA = (Number(a.rs_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
-                            const remB = (Number(b.rs_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
-                            return remB - remA;
-                        });
-                        assignRS(dayEntry, slot, prefMatches[0]);
-                    }
-                }
-            });
+                });
+            }
         }
 
         // Pass 2: General Fallback
@@ -6612,14 +6823,23 @@
             if (!dayEntry) continue;
             shifts.forEach(slot => {
                 if (!dayEntry[slot]) {
+                    const standardShift = shiftMap[slot];
                     let available = rsCandidates.filter(r => isRSAvailable(r, d, slot, false));
                     if (available.length === 0) {
                         available = rsCandidates.filter(r => isRSAvailable(r, d, slot, true));
                     }
                     if (available.length > 0) {
                         available.sort((a, b) => {
-                            const remA = (Number(a.rs_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
-                            const remB = (Number(b.rs_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
+                            const aClean = normalizeArabic(a.name);
+                            const bClean = normalizeArabic(b.name);
+                            const aS = (assignedShiftCounts[aClean] && assignedShiftCounts[aClean][standardShift]) || 0;
+                            const bS = (assignedShiftCounts[bClean] && assignedShiftCounts[bClean][standardShift]) || 0;
+                            if (aS !== bS) return aS - bS;
+                            const aD = (assignedDaysOfWeek[aClean] && assignedDaysOfWeek[aClean][dayEntry.dayName]) || 0;
+                            const bD = (assignedDaysOfWeek[bClean] && assignedDaysOfWeek[bClean][dayEntry.dayName]) || 0;
+                            if (aD !== bD) return aD - bD;
+                            const remA = (Number(a.rs_target) || 0) - (assigned[aClean] || 0);
+                            const remB = (Number(b.rs_target) || 0) - (assigned[bClean] || 0);
                             return remB - remA;
                         });
                         assignRS(dayEntry, slot, available[0]);
@@ -6630,7 +6850,7 @@
     }
 
     /**
-     * RS WARDS AUTOMATIC DISTRIBUTION
+     * RS WARDS AUTOMATIC DISTRIBUTION (with Day Variety)
      */
     function runAutoDistributionRSWards(mode, daysCount, activeDocs) {
         const schedule = state.schedules.rs;
@@ -6648,6 +6868,23 @@
 
         const rsCandidates = activeDocs.filter(r => (Number(r.rs_target) || 0) > 0);
         const assigned = countScheduledDutiesPerResident('rs');
+        const assignedDaysOfWeek = {};
+
+        rsCandidates.forEach(r => {
+            assignedDaysOfWeek[normalizeArabic(r.name)] = {};
+        });
+
+        schedule.forEach(d => {
+            if (d.dayNumber >= startDay && d.dayNumber <= endDay) {
+                wards.forEach(w => {
+                    if (d[w] && d[w].trim()) {
+                        const clean = normalizeArabic(d[w].trim());
+                        if (!assignedDaysOfWeek[clean]) assignedDaysOfWeek[clean] = {};
+                        assignedDaysOfWeek[clean][d.dayName] = (assignedDaysOfWeek[clean][d.dayName] || 0) + 1;
+                    }
+                });
+            }
+        });
 
         function isRSWardsAvailable(r, dayNumber, slot, allowConsecutive = false) {
             const clean = normalizeArabic(r.name);
@@ -6670,34 +6907,55 @@
             dayEntry[slot] = r.name;
             const clean = normalizeArabic(r.name);
             assigned[clean] = (assigned[clean] || 0) + 1;
+            if (!assignedDaysOfWeek[clean]) assignedDaysOfWeek[clean] = {};
+            assignedDaysOfWeek[clean][dayEntry.dayName] = (assignedDaysOfWeek[clean][dayEntry.dayName] || 0) + 1;
         }
 
-        // Pass 1: Preferences (day match)
-        for (let d = startDay; d <= endDay; d++) {
-            const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (!dayEntry) continue;
-            wards.forEach(slot => {
-                if (!dayEntry[slot]) {
-                    let prefMatches = rsCandidates.filter(r => {
-                        if (!isRSWardsAvailable(r, d, slot, false)) return false;
-                        return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
-                    });
-                    if (prefMatches.length === 0) {
-                        prefMatches = rsCandidates.filter(r => {
-                            if (!isRSWardsAvailable(r, d, slot, true)) return false;
-                            return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
+        const maxRSQuota = Math.max(...rsCandidates.map(r => Number(r.rs_target) || 0), 1);
+
+        function isRSWardsDayBalanced(r, dayName, allowance = 0) {
+            if (!Array.isArray(r.prefDays) || r.prefDays.length <= 1) return true;
+            const clean = normalizeArabic(r.name);
+            const currentCount = (assignedDaysOfWeek[clean] && assignedDaysOfWeek[clean][dayName]) || 0;
+            const minCount = Math.min(...r.prefDays.map(dn => (assignedDaysOfWeek[clean] && assignedDaysOfWeek[clean][dn]) || 0));
+            return currentCount <= minCount + allowance;
+        }
+
+        // Pass 1: Preferences (day match with variety)
+        for (let round = 0; round <= maxRSQuota; round++) {
+            for (let d = startDay; d <= endDay; d++) {
+                const dayEntry = schedule.find(s => s.dayNumber === d);
+                if (!dayEntry) continue;
+                wards.forEach(slot => {
+                    if (!dayEntry[slot]) {
+                        let prefMatches = rsCandidates.filter(r => {
+                            if (!isRSWardsAvailable(r, d, slot, false)) return false;
+                            if (!Array.isArray(r.prefDays) || !r.prefDays.includes(dayEntry.dayName)) return false;
+                            return isRSWardsDayBalanced(r, dayEntry.dayName, round);
                         });
+                        if (prefMatches.length === 0) {
+                            prefMatches = rsCandidates.filter(r => {
+                                if (!isRSWardsAvailable(r, d, slot, true)) return false;
+                                if (!Array.isArray(r.prefDays) || !r.prefDays.includes(dayEntry.dayName)) return false;
+                                return isRSWardsDayBalanced(r, dayEntry.dayName, round);
+                            });
+                        }
+                        if (prefMatches.length > 0) {
+                            prefMatches.sort((a, b) => {
+                                const aClean = normalizeArabic(a.name);
+                                const bClean = normalizeArabic(b.name);
+                                const aDayCount = (assignedDaysOfWeek[aClean] && assignedDaysOfWeek[aClean][dayEntry.dayName]) || 0;
+                                const bDayCount = (assignedDaysOfWeek[bClean] && assignedDaysOfWeek[bClean][dayEntry.dayName]) || 0;
+                                if (aDayCount !== bDayCount) return aDayCount - bDayCount;
+                                const remA = (Number(a.rs_target) || 0) - (assigned[aClean] || 0);
+                                const remB = (Number(b.rs_target) || 0) - (assigned[bClean] || 0);
+                                return remB - remA;
+                            });
+                            assignRSWards(dayEntry, slot, prefMatches[0]);
+                        }
                     }
-                    if (prefMatches.length > 0) {
-                        prefMatches.sort((a, b) => {
-                            const remA = (Number(a.rs_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
-                            const remB = (Number(b.rs_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
-                            return remB - remA;
-                        });
-                        assignRSWards(dayEntry, slot, prefMatches[0]);
-                    }
-                }
-            });
+                });
+            }
         }
 
         // Pass 2: General Fallback
@@ -6712,8 +6970,13 @@
                     }
                     if (available.length > 0) {
                         available.sort((a, b) => {
-                            const remA = (Number(a.rs_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
-                            const remB = (Number(b.rs_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
+                            const aClean = normalizeArabic(a.name);
+                            const bClean = normalizeArabic(b.name);
+                            const aDayCount = (assignedDaysOfWeek[aClean] && assignedDaysOfWeek[aClean][dayEntry.dayName]) || 0;
+                            const bDayCount = (assignedDaysOfWeek[bClean] && assignedDaysOfWeek[bClean][dayEntry.dayName]) || 0;
+                            if (aDayCount !== bDayCount) return aDayCount - bDayCount;
+                            const remA = (Number(a.rs_target) || 0) - (assigned[aClean] || 0);
+                            const remB = (Number(b.rs_target) || 0) - (assigned[bClean] || 0);
                             return remB - remA;
                         });
                         assignRSWards(dayEntry, slot, available[0]);

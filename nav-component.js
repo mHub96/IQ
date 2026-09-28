@@ -1347,6 +1347,14 @@
 
             // Internal page navigation
             if (href.includes('.html') || (!href.includes('://') && !href.startsWith('//'))) {
+                try {
+                    let target = href;
+                    if (!target.startsWith('./') && !target.startsWith('/')) {
+                        target = './' + target;
+                    }
+                    localStorage.setItem('hosp_hub_last_page', target);
+                } catch (err) {}
+
                 if (progressEl) {
                     progressEl.style.transform = '';
                     progressEl.classList.remove('done');

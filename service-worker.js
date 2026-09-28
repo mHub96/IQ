@@ -1,11 +1,19 @@
 // service-worker.js - Dynamic versioning for Hospital Main Hub
-const CACHE_VERSION = 'v2.0.0';
+const CACHE_VERSION = 'v2.1.0';
 const CACHE_NAME = `hospital-hub-${CACHE_VERSION}`;
 
 const APP_SHELL = [
   './',
   './index.html',
   './Home.html',
+  './emergency.html',
+  './emergency.js',
+  './emergency-data.js',
+  './emergency-db.json',
+  './icu.html',
+  './schedule.html',
+  './specialists.html',
+  './residents.html',
   './signup.html',
   './admin.html',
   './scheduler.html',
@@ -23,7 +31,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('[Service Worker] Caching app shell');
+        console.log('[Service Worker] Caching complete app shell');
         return cache.addAll(APP_SHELL);
       })
       .then(() => {

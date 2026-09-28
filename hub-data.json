@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T14:47:30.869Z",
+  "lastUpdated": "2026-09-28T14:47:37.754Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20573,16 +20573,6 @@
           "enabled": true
         },
         {
-          "id": "REF",
-          "name_ar": "الاحالات",
-          "name_en": "Referrals",
-          "icon": "🚑",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true,
-          "color": "#a30000"
-        },
-        {
           "id": "G",
           "name_ar": "النسائية و التوليد",
           "name_en": "Gynecology",
@@ -20695,6 +20685,16 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true
+        },
+        {
+          "id": "REF",
+          "name_ar": "الاحالات",
+          "name_en": "Referrals",
+          "icon": "🚑",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true,
+          "color": "#a30000"
         },
         {
           "id": "ON",

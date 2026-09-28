@@ -328,17 +328,23 @@
             const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
             if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
 
+            const dbModal = document.getElementById('residents-db-modal');
+            const isDbOpen = dbModal && !dbModal.classList.contains('hidden');
+
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
                 if (e.shiftKey) {
                     e.preventDefault();
-                    redoScheduleAction();
+                    if (isDbOpen) redoDBAction();
+                    else redoScheduleAction();
                 } else {
                     e.preventDefault();
-                    undoScheduleAction();
+                    if (isDbOpen) undoDBAction();
+                    else undoScheduleAction();
                 }
             } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
                 e.preventDefault();
-                redoScheduleAction();
+                if (isDbOpen) redoDBAction();
+                else redoScheduleAction();
             }
         });
     }
@@ -746,6 +752,127 @@
         });
     }
 
+    // =========================================================================
+    // RESIDENTS DB UNDO / REDO HISTORY SYSTEM (DEDICATED STACK)
+    // =========================================================================
+
+    const DB_HISTORY_MAX = 50;
+    let dbHistoryStack = [];
+    let dbHistoryIndex = -1;
+    let isDbHistoryNavigating = false;
+    let dbTargetDebounceTimer = null;
+
+    function captureDBSnapshot(desc = '') {
+        return {
+            residents: JSON.parse(JSON.stringify(state.residents || [])),
+            monthlyAllocations: JSON.parse(JSON.stringify(state.monthlyAllocations || {})),
+            specialtyColors: JSON.parse(JSON.stringify(state.specialtyColors || {})),
+            schedules: JSON.parse(JSON.stringify(state.schedules || {})),
+            desc: desc || 'تعديل في قاعدة المقيمين'
+        };
+    }
+
+    function initDBHistory() {
+        if (!Array.isArray(dbHistoryStack) || dbHistoryStack.length === 0) {
+            dbHistoryStack = [captureDBSnapshot('الحالة الابتدائية')];
+            dbHistoryIndex = 0;
+            updateDBUndoRedoUI();
+        }
+    }
+
+    function pushDBHistory(desc = '') {
+        if (isDbHistoryNavigating) return;
+
+        // If not initialized, initialize with current state first
+        if (!Array.isArray(dbHistoryStack) || dbHistoryStack.length === 0) {
+            dbHistoryStack = [captureDBSnapshot('الحالة الابتدائية')];
+            dbHistoryIndex = 0;
+        }
+
+        // Discard any redos beyond current index
+        if (dbHistoryIndex < dbHistoryStack.length - 1) {
+            dbHistoryStack = dbHistoryStack.slice(0, dbHistoryIndex + 1);
+        }
+
+        const snapshot = captureDBSnapshot(desc);
+        dbHistoryStack.push(snapshot);
+        if (dbHistoryStack.length > DB_HISTORY_MAX) {
+            dbHistoryStack.shift();
+        }
+        dbHistoryIndex = dbHistoryStack.length - 1;
+        updateDBUndoRedoUI();
+    }
+
+    function undoDBAction() {
+        if (dbHistoryIndex > 0) {
+            dbHistoryIndex--;
+            const snap = dbHistoryStack[dbHistoryIndex];
+            applyDBSnapshot(snap);
+            showNotification(`تم التراجع عن: ${snap.desc || 'آخر تعديل في قاعدة المقيمين'}`, 'info');
+        } else {
+            showNotification('لا توجد عمليات سابقة للتراجع عنها في اللوحة', 'warning');
+        }
+    }
+
+    function redoDBAction() {
+        if (dbHistoryIndex < dbHistoryStack.length - 1) {
+            dbHistoryIndex++;
+            const snap = dbHistoryStack[dbHistoryIndex];
+            applyDBSnapshot(snap);
+            showNotification(`تمت إعادة تطبيق: ${snap.desc || 'التعديل'}`, 'info');
+        } else {
+            showNotification('لا توجد عمليات لإعادة تطبيقها', 'warning');
+        }
+    }
+
+    function applyDBSnapshot(snap) {
+        if (!snap) return;
+        isDbHistoryNavigating = true;
+        try {
+            state.residents = JSON.parse(JSON.stringify(snap.residents || []));
+            state.monthlyAllocations = JSON.parse(JSON.stringify(snap.monthlyAllocations || {}));
+            state.specialtyColors = JSON.parse(JSON.stringify(snap.specialtyColors || {}));
+            if (snap.schedules) {
+                state.schedules = JSON.parse(JSON.stringify(snap.schedules));
+            }
+
+            syncCurrentMonthAllocations();
+            saveCurrentMonthAllocationsToStore();
+            saveCurrentMonthScheduleToStore();
+            saveCurrentHospitalResidents();
+            saveState();
+            refreshDBView();
+            updateDutyDashboard();
+            renderActiveTab();
+            updateDBUndoRedoUI();
+        } finally {
+            isDbHistoryNavigating = false;
+        }
+    }
+
+    function updateDBUndoRedoUI() {
+        const canUndo = dbHistoryIndex > 0;
+        const canRedo = dbHistoryIndex < dbHistoryStack.length - 1;
+
+        document.querySelectorAll('.db-undo-btn').forEach(btn => {
+            btn.disabled = !canUndo;
+            if (canUndo) {
+                btn.classList.remove('opacity-40', 'cursor-not-allowed');
+            } else {
+                btn.classList.add('opacity-40', 'cursor-not-allowed');
+            }
+        });
+
+        document.querySelectorAll('.db-redo-btn').forEach(btn => {
+            btn.disabled = !canRedo;
+            if (canRedo) {
+                btn.classList.remove('opacity-40', 'cursor-not-allowed');
+            } else {
+                btn.classList.add('opacity-40', 'cursor-not-allowed');
+            }
+        });
+    }
+
     function clearCurrentSchedule(sheetType) {
         const sheetLabels = {
             er: 'جدول خفارات الطوارئ (ER)',
@@ -923,6 +1050,7 @@
                 expiryMonth: '',
                 prefDays: [],
                 prefShifts: [],
+                noConsecutiveDays: true,
                 preferences: { prefDays: [], prefShifts: [] }
             };
         });
@@ -931,8 +1059,10 @@
         if (!state.hospitalResidents) state.hospitalResidents = {};
         state.hospitalResidents[hospId] = mapped;
         saveState();
+        pushDBHistory(`استيراد ${mapped.length} طبيب مقيم لمستشفى (${state.hospitalName})`);
         updateDutyDashboard();
         renderActiveTab();
+        updateDBUndoRedoUI();
         showNotification(`تم استيراد ${mapped.length} طبيب مقيم بنجاح لمستشفى ${state.hospitalName}`, 'success');
         return true;
     }
@@ -2059,9 +2189,11 @@
         const modalHosp = document.getElementById('residents-db-modal-hosp');
         if (!modal || !modalBody) return;
 
+        initDBHistory();
         if (modalHosp) modalHosp.textContent = state.hospitalName || 'المستشفى';
         renderDBView(modalBody);
         modal.classList.remove('hidden');
+        updateDBUndoRedoUI();
     }
 
     function closeResidentsDbModal() {
@@ -3344,7 +3476,7 @@
 
         return `
             <th onclick="onDBSortColumn('${colKey}')" 
-                class="py-3 px-2 ${widthClass} ${extraClass} cursor-pointer hover:bg-slate-200/60 dark:hover:bg-slate-800 select-none transition group"
+                class="sticky top-0 z-20 bg-slate-100 dark:bg-slate-900 py-3 px-2 ${widthClass} ${extraClass} cursor-pointer hover:bg-slate-200/80 dark:hover:bg-slate-800 select-none transition group shadow-2xs"
                 title="انقر للترتيب ${isCurrent && state.dbSortDirection === 'asc' ? 'تنازلياً' : 'تصاعدياً'} بحسب ${label}">
                 <div class="flex items-center justify-center gap-1">
                     <span>${label}</span>
@@ -3479,7 +3611,7 @@
             return;
         }
 
-        pushScheduleHistory(`استيراد الأنصبة من شهر ${srcMonth}/${srcYear}`);
+        pushDBHistory(`استيراد الأنصبة من شهر ${srcMonth}/${srcYear}`);
 
         let importedCount = 0;
         (state.residents || []).forEach(r => {
@@ -3498,6 +3630,7 @@
         closeImportMonthAllocationsModal();
         updateDutyDashboard();
         refreshDBView();
+        updateDBUndoRedoUI();
         showNotification(`تم بنجاح استيراد أنصبة وإحصائيات ${importedCount} طبيب من شهر (${srcMonth}/${srcYear}) إلى شهر (${state.monthYear})`, 'success');
     }
 
@@ -3556,6 +3689,18 @@
                     </div>
 
                     <div class="flex items-center gap-2 flex-wrap">
+                        <!-- Undo / Redo in Toolbar -->
+                        <div class="flex items-center gap-1 ps-1 pe-2 border-e border-slate-200 dark:border-slate-800">
+                            <button type="button" onclick="undoDBAction()" class="db-undo-btn px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center gap-1 shadow-2xs opacity-40 cursor-not-allowed" title="تراجع عن آخر تعديل في اللوحة (Ctrl+Z)" disabled>
+                                <i class="fas fa-undo text-slate-500"></i>
+                                <span>تراجع</span>
+                            </button>
+                            <button type="button" onclick="redoDBAction()" class="db-redo-btn px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center gap-1 shadow-2xs opacity-40 cursor-not-allowed" title="إعادة تطبيق التعديل (Ctrl+Y)" disabled>
+                                <i class="fas fa-redo text-slate-500"></i>
+                                <span>إعادة</span>
+                            </button>
+                        </div>
+
                         <!-- Import Allocations from Previous Month Button -->
                         <button type="button" onclick="openImportMonthAllocationsModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 transition flex items-center gap-1.5 shadow-xs" title="استيراد أنصبة وإحصائيات الأطباء من أي شهر سابق">
                             <i class="fas fa-clock-rotate-left"></i>
@@ -3669,10 +3814,10 @@
                         <h3 class="text-sm font-black text-slate-800 dark:text-slate-100">الأطباء النشطون لشهر (${state.monthYear}) (<span id="active-res-count">${activeList.length}</span>)</h3>
                     </div>
 
-                    <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div class="overflow-auto max-h-[68vh] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative">
                         <table class="w-full text-right border-collapse text-xs">
-                            <thead>
-                                <tr class="bg-slate-100/80 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
+                            <thead class="sticky top-0 z-20 bg-slate-100 dark:bg-slate-900 shadow-xs">
+                                <tr class="bg-slate-100/90 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
                                     ${getSortHeaderHTML('row', '#', 'w-10', 'text-center font-bold')}
                                     ${getSortHeaderHTML('name', 'اسم المقيم الأقدم', 'w-48', 'font-bold text-right')}
                                     ${getSortHeaderHTML('sex', 'الجنس', 'w-16', 'text-center font-bold')}
@@ -3685,9 +3830,9 @@
                                     ${getSortHeaderHTML('rs_target', 'نصاب RS', 'w-16', 'text-center font-bold text-amber-600')}
                                     ${getSortHeaderHTML('quota', 'حالة النصاب', 'w-32', 'font-bold text-center')}
                                     ${getSortHeaderHTML('expiryMonth', 'شهر الانتهاء', 'w-28', 'font-bold text-center')}
-                                    <th class="py-3 px-2 w-20 text-center font-bold">الرغبات</th>
-                                    <th class="py-3 px-2 w-14 text-center font-bold">تعطيل</th>
-                                    <th class="py-3 px-2 w-20 text-center font-bold">إجراءات</th>
+                                    <th class="sticky top-0 z-20 bg-slate-100 dark:bg-slate-900 py-3 px-2 w-20 text-center font-bold shadow-2xs">الرغبات</th>
+                                    <th class="sticky top-0 z-20 bg-slate-100 dark:bg-slate-900 py-3 px-2 w-14 text-center font-bold shadow-2xs">تعطيل</th>
+                                    <th class="sticky top-0 z-20 bg-slate-100 dark:bg-slate-900 py-3 px-2 w-20 text-center font-bold shadow-2xs">إجراءات</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
@@ -3705,10 +3850,10 @@
                         <span class="text-[11px] text-slate-400">(تم تعطيلهم وتصفير أنصبتهم لهذا الشهر ومستبعدون من جداول خفاراته)</span>
                     </div>
 
-                    <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm opacity-80">
+                    <div class="overflow-auto max-h-[50vh] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm opacity-80 relative">
                         <table class="w-full text-right border-collapse text-xs bg-slate-50/50 dark:bg-slate-900/20">
-                            <thead>
-                                <tr class="bg-slate-200/60 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400">
+                            <thead class="sticky top-0 z-20 bg-slate-200 dark:bg-slate-900 shadow-xs">
+                                <tr class="bg-slate-200/90 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400">
                                     ${getSortHeaderHTML('row', '#', 'w-10', 'text-center font-bold')}
                                     ${getSortHeaderHTML('name', 'اسم المقيم الأقدم', 'w-48', 'font-bold text-right')}
                                     ${getSortHeaderHTML('sex', 'الجنس', 'w-16', 'text-center font-bold')}
@@ -3721,8 +3866,8 @@
                                     ${getSortHeaderHTML('rs_target', 'نصاب RS', 'w-16', 'text-center font-bold')}
                                     ${getSortHeaderHTML('quota', 'الحالة', 'w-32', 'font-bold text-center')}
                                     ${getSortHeaderHTML('expiryMonth', 'شهر الانتهاء', 'w-28', 'font-bold text-center')}
-                                    <th class="py-2.5 px-2 w-20 text-center font-bold">تنشيط</th>
-                                    <th class="py-2.5 px-2 w-20 text-center font-bold">إجراءات</th>
+                                    <th class="sticky top-0 z-20 bg-slate-200 dark:bg-slate-900 py-2.5 px-2 w-20 text-center font-bold shadow-2xs">تنشيط</th>
+                                    <th class="sticky top-0 z-20 bg-slate-200 dark:bg-slate-900 py-2.5 px-2 w-20 text-center font-bold shadow-2xs">إجراءات</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60">
@@ -3740,6 +3885,7 @@
 
         container.innerHTML = html;
         if (state.dbSearchQuery) applyDBLiveFilter(state.dbSearchQuery);
+        updateDBUndoRedoUI();
     }
 
     function applyDBLiveFilter(queryVal) {
@@ -3864,12 +4010,14 @@
         if (!res) return;
         res.sex = (res.sex === 'F') ? 'M' : 'F';
         saveState();
+        pushDBHistory(`تغيير جنس الطبيب (${res.name})`);
         const tr = document.querySelector(`tr[data-resident-id="${id}"]`);
         if (tr) {
             tr.setAttribute('data-sex', res.sex);
             const sexCell = tr.querySelector('.resident-sex-cell');
             if (sexCell) sexCell.innerHTML = renderSexBubbleHTML(res);
         }
+        updateDutyDashboard();
     }
 
     function cycleResidentBoard(id) {
@@ -3885,6 +4033,7 @@
             if (!res.stage || res.stage === 'بدون') res.stage = 'الأولى';
         }
         saveState();
+        pushDBHistory(`تغيير بورد الطبيب (${res.name})`);
         const tr = document.querySelector(`tr[data-resident-id="${id}"]`);
         if (tr) {
             tr.setAttribute('data-board', res.board);
@@ -3985,6 +4134,7 @@
 
         r.stage = newStage;
         saveState();
+        pushDBHistory(`تغيير مرحلة الطبيب (${r.name}) إلى ${newStage}`);
 
         const tr = document.querySelector(`tr[data-resident-id="${residentId}"]`);
         if (tr) {
@@ -4096,6 +4246,7 @@
 
         r.specialty = newSpec;
         saveState();
+        pushDBHistory(`تغيير اختصاص الطبيب (${r.name}) إلى ${newSpec}`);
 
         const tr = document.querySelector(`tr[data-resident-id="${residentId}"]`);
         if (tr) {
@@ -4125,6 +4276,7 @@
         }
 
         saveState();
+        pushDBHistory(`تغيير لون اختصاص (${specName})`);
 
         // Update all specialty bubbles in the table immediately
         document.querySelectorAll('tr[data-resident-id]').forEach(tr => {
@@ -4276,10 +4428,26 @@
                 <!-- Preferences Button (if active) / Reactivate Button (if inactive) -->
                 ${!isInactiveSection ? `
                 <td class="py-1 px-2 text-center">
-                    <button type="button" onclick="openResidentPrefsModal('${r.id}')" class="px-2 py-1 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 transition" title="تحديد رغبات الخفارات">
-                        <i class="fas fa-sliders text-rose-500 ml-0.5"></i>
-                        <span>رغبات</span>
-                    </button>
+                    ${(() => {
+                        const hasPrefs = (Array.isArray(r.prefDays) && r.prefDays.length > 0) || 
+                                         (Array.isArray(r.prefShifts) && r.prefShifts.length > 0) || 
+                                         (r.noConsecutiveDays === false);
+                        if (hasPrefs) {
+                            return `
+                                <button type="button" onclick="openResidentPrefsModal('${r.id}')" class="px-2.5 py-1 rounded-xl text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition shadow-2xs flex items-center justify-center gap-1 mx-auto" title="لديه رغبات محددة - انقر للتعديل">
+                                    <i class="fas fa-sliders text-emerald-600"></i>
+                                    <span>رغبات</span>
+                                </button>
+                            `;
+                        } else {
+                            return `
+                                <button type="button" onclick="openResidentPrefsModal('${r.id}')" class="px-2.5 py-1 rounded-xl text-[10px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition shadow-2xs flex items-center justify-center gap-1 mx-auto" title="لا توجد رغبات محددة - انقر للإضافة">
+                                    <i class="fas fa-sliders text-rose-500"></i>
+                                    <span>رغبات</span>
+                                </button>
+                            `;
+                        }
+                    })()}
                 </td>
                 <td class="py-1 px-2 text-center">
                     <button type="button" onclick="deactivateResidentWithConfirmation('${r.id}')" class="w-7 h-7 rounded-xl flex items-center justify-center mx-auto text-emerald-600 bg-emerald-50 hover:bg-rose-50 hover:text-rose-600 transition" title="تعطيل الطبيب وتصفير أنصبته">
@@ -4386,6 +4554,7 @@
             const oldVal = res[field];
             res[field] = newVal.trim();
             saveState();
+            pushDBHistory(`تعديل ${field} للطبيب (${res.name})`);
 
             // If name changed, update schedules
             if (field === 'name' && oldVal !== res.name) {
@@ -4410,6 +4579,11 @@
             saveState();
             updateDutyDashboard();
             updateResidentRowFulfillment(resId);
+
+            clearTimeout(dbTargetDebounceTimer);
+            dbTargetDebounceTimer = setTimeout(() => {
+                pushDBHistory(`تعديل نصاب ${targetField} للطبيب (${res.name})`);
+            }, 350);
         }
     }
 
@@ -4444,7 +4618,7 @@
         const confirmMsg = `هل أنت متأكد من إلغاء تنشيط الطبيب (${res.name}) لشهر (${state.monthYear})؟\n\nتنبيه إداري: سيتم تصفير كافة أنصبته وإزالة اسمه من جداول شهر (${state.monthYear}) فقط، ويبقى نشطاً في الأشهر الأخرى.`;
         if (!confirm(confirmMsg)) return;
 
-        pushScheduleHistory(`إلغاء تنشيط الطبيب (${res.name}) لشهر ${state.monthYear}`);
+        pushDBHistory(`إلغاء تنشيط الطبيب (${res.name}) لشهر ${state.monthYear}`);
 
         // Reset quotas to zero for current selected month
         res.active = false;
@@ -4469,7 +4643,7 @@
         refreshDBView();
         updateDutyDashboard();
         renderActiveTab();
-        updateScheduleUndoRedoUI();
+        updateDBUndoRedoUI();
         showNotification(`تم إلغاء تنشيط الطبيب (${docName}) لشهر (${state.monthYear}) وتصفير أنصبته وإزالته من جداول الشهر`, 'info');
     }
 
@@ -4477,7 +4651,7 @@
         const res = (state.residents || []).find(r => r.id === resId);
         if (!res) return;
 
-        pushScheduleHistory(`إعادة تنشيط الطبيب (${res.name}) لشهر ${state.monthYear}`);
+        pushDBHistory(`إعادة تنشيط الطبيب (${res.name}) لشهر ${state.monthYear}`);
 
         res.active = true;
         res.er_target = 2; // initial default for this month
@@ -4486,7 +4660,7 @@
         refreshDBView();
         updateDutyDashboard();
         renderActiveTab();
-        updateScheduleUndoRedoUI();
+        updateDBUndoRedoUI();
         showNotification(`تمت إعادة تنشيط الطبيب (${res.name}) لشهر (${state.monthYear}) بنجاح`, 'success');
     }
 
@@ -4502,7 +4676,7 @@
         const msg = `هل ترغب في ترقية مرحلة جميع أطباء البورد (العربي والعراقي) بمقدار مرحلة واحدة (+1)؟\nعدد الأطباء المشمولين بالترقية: ${boardResidents.length} طبيب. (الأطباء بدون بورد لن يتم ترفيعهم)`;
         if (!confirm(msg)) return;
 
-        pushScheduleHistory('ترقية مرحلة أطباء البورد');
+        pushDBHistory('ترقية مرحلة أطباء البورد (+1)');
 
         let count = 0;
         boardResidents.forEach(r => {
@@ -4519,7 +4693,7 @@
         saveCurrentHospitalResidents();
         saveState();
         refreshDBView();
-        updateScheduleUndoRedoUI();
+        updateDBUndoRedoUI();
         showNotification(`تمت ترقية مرحلة ${count} طبيب بورد بنجاح (+1)`, 'success');
     }
 
@@ -4528,7 +4702,7 @@
         if (!res) return;
         if (!confirm(`هل أنت متأكد من حذف الطبيب: "${res.name}" نهائياً من قاعدة الطوارئ؟`)) return;
 
-        pushScheduleHistory(`حذف الطبيب (${res.name})`);
+        pushDBHistory(`حذف الطبيب (${res.name})`);
 
         state.residents = state.residents.filter(r => r.id !== resId);
         saveCurrentMonthAllocationsToStore();
@@ -4537,7 +4711,7 @@
         refreshDBView();
         updateDutyDashboard();
         renderActiveTab();
-        updateScheduleUndoRedoUI();
+        updateDBUndoRedoUI();
         showNotification('تم حذف الطبيب من قاعدة الطوارئ', 'info');
     }
 
@@ -4588,6 +4762,12 @@
             cb.checked = prefDays.includes(cb.value);
         });
 
+        // Consecutive days preference (preferred by default for all residents)
+        const noConsecutiveCb = document.getElementById('pref-no-consecutive');
+        if (noConsecutiveCb) {
+            noConsecutiveCb.checked = (res.noConsecutiveDays !== false);
+        }
+
         modal.classList.remove('hidden');
     }
 
@@ -4612,8 +4792,16 @@
         res.prefShifts = shifts;
         res.prefDays = days;
 
+        const noConsecutiveCb = document.getElementById('pref-no-consecutive');
+        if (noConsecutiveCb) {
+            res.noConsecutiveDays = noConsecutiveCb.checked;
+        }
+
         saveState();
+        pushDBHistory(`تعديل رغبات الطبيب (${res.name})`);
         closeResidentPrefsModal();
+        refreshDBView();
+        updateDBUndoRedoUI();
         showNotification(`تم حفظ رغبات الخفارة للطبيب (${res.name}) بنجاح`, 'success');
     }
 
@@ -4701,21 +4889,25 @@
         }
         if (!hospitals || hospitals.length === 0) {
             hospitals = [
-                { id: state.hospitalId || 'iraqi', name: state.hospitalName || 'المستشفى العراقي' }
+                { id: state.hospitalId || 'iraqi', name_ar: state.hospitalName || 'مستشفى الصدر التعليمي' }
             ];
         }
 
+        const currentHospId = state.hospitalId || (window.Hub && typeof window.Hub.getActiveHospitalId === 'function' ? window.Hub.getActiveHospitalId() : 'iraqi');
+
         const hospSingleOptionsHtml = hospitals.map(h => {
-            const isSelected = (h.id === state.hospitalId);
-            return `<option value="${h.id}" ${isSelected ? 'selected' : ''}>${h.name}</option>`;
+            const hName = h.name_ar || h.hospitalName || h.name || h.id;
+            const isSelected = (h.id === currentHospId);
+            return `<option value="${h.id}" ${isSelected ? 'selected' : ''}>${hName}</option>`;
         }).join('');
 
         const hospCheckboxesHtml = hospitals.map(h => {
-            const isChecked = (h.id === state.hospitalId);
+            const hName = h.name_ar || h.hospitalName || h.name || h.id;
+            const isChecked = (h.id === currentHospId);
             return `
                 <label class="flex items-center gap-2 p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 cursor-pointer text-xs">
                     <input type="checkbox" name="exp-res-hosp-cb" value="${h.id}" ${isChecked ? 'checked' : ''} class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500 accent-teal-600">
-                    <span class="font-bold text-slate-700 dark:text-slate-200">${h.name}</span>
+                    <span class="font-bold text-slate-700 dark:text-slate-200">${hName}</span>
                 </label>
             `;
         }).join('');
@@ -5607,6 +5799,7 @@
             expiryMonth,
             prefDays: [],
             prefShifts: [],
+            noConsecutiveDays: true,
             notes,
             active: true,
             hospitals: [state.hospitalId]
@@ -5618,8 +5811,10 @@
         saveCurrentMonthAllocationsToStore();
         saveCurrentHospitalResidents();
         saveState();
+        pushDBHistory(`إضافة الطبيب (${formattedName})`);
         closeAddResidentModal();
         refreshDBView();
+        updateDBUndoRedoUI();
         showNotification(`تمت إضافة وترتيب الطبيب "${formattedName}" بنجاح`, 'success');
     }
 
@@ -5726,6 +5921,47 @@
      * 3- Cross-schedule preferences: Day preferences apply to all allocated schedules.
      */
 
+    /**
+     * Cross-schedule check for duties on adjacent days (day - 1, day + 1)
+     * Checks ER, Consultation (Con), Death Certificates (DC), and Rotators Strike (RS).
+     */
+    function hasDoctorDutyOnAdjacentDay(doctorName, dayNumber, daysCount) {
+        if (!doctorName) return false;
+        const clean = normalizeArabic(doctorName);
+        function checkDay(d) {
+            if (d < 1 || d > daysCount) return false;
+            // 1. ER Schedule
+            const erDay = (state.schedules.er || []).find(s => s.dayNumber === d);
+            if (erDay) {
+                if ((erDay.morning && normalizeArabic(erDay.morning) === clean) ||
+                    (erDay.afternoon && normalizeArabic(erDay.afternoon) === clean) ||
+                    (erDay.preNight && normalizeArabic(erDay.preNight) === clean) ||
+                    (erDay.lateNight && normalizeArabic(erDay.lateNight) === clean)) {
+                    return true;
+                }
+            }
+            // 2. Con Schedule
+            const conDay = (state.schedules.con || []).find(s => s.dayNumber === d);
+            if (conDay && conDay.doctor && normalizeArabic(conDay.doctor) === clean) return true;
+
+            // 3. DC Schedule
+            const dcDay = (state.schedules.dc || []).find(s => s.dayNumber === d);
+            if (dcDay && dcDay.doctor && normalizeArabic(dcDay.doctor) === clean) return true;
+
+            // 4. RS Schedule
+            const rsDay = (state.schedules.rs || []).find(s => s.dayNumber === d);
+            if (rsDay) {
+                for (const k of Object.keys(rsDay)) {
+                    if ((k.startsWith('er_') || k.startsWith('ward_')) && rsDay[k]) {
+                        if (normalizeArabic(rsDay[k]) === clean) return true;
+                    }
+                }
+            }
+            return false;
+        }
+        return checkDay(dayNumber - 1) || checkDay(dayNumber + 1);
+    }
+
     function runAutoDistributionER(mode, daysCount, activeDocs) {
         const schedule = state.schedules.er;
         const shifts = ['morning', 'afternoon', 'preNight', 'lateNight'];
@@ -5782,7 +6018,8 @@
         // Must NEVER exceed quota!
         // Must NEVER duplicate doctor on same day!
         // Must NOT conflict with other schedules!
-        function isDoctorAvailable(r, dayNumber, shiftKey) {
+        // Must avoid consecutive days if preferred (r.noConsecutiveDays !== false)
+        function isDoctorAvailable(r, dayNumber, shiftKey, allowConsecutive = false) {
             if (!r || !hasRemainingQuota(r)) return false;
             const clean = normalizeArabic(r.name);
             if (assignedDays[dayNumber] && assignedDays[dayNumber].has(clean)) return false;
@@ -5790,6 +6027,10 @@
             const dateStr = formatDateStr(state.year, state.month, dayNumber);
             const conflict = evaluateCellConflict(r.name, dateStr, 'er', shiftKey);
             if (conflict && conflict.hasConflict) return false;
+
+            if (!allowConsecutive && r.noConsecutiveDays !== false) {
+                if (hasDoctorDutyOnAdjacentDay(clean, dayNumber, daysCount)) return false;
+            }
 
             return true;
         }
@@ -5919,14 +6160,26 @@
         for (let d = 1; d <= daysCount; d++) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.morning) {
-                let candidates = activeDocs.filter(r => r.sex === 'F' && isDoctorAvailable(r, d, 'morning'));
+                let candidates = activeDocs.filter(r => r.sex === 'F' && isDoctorAvailable(r, d, 'morning', false));
                 candidates.sort((a, b) => getAssigned(a) - getAssigned(b));
                 let chosen = candidates[0];
 
                 if (!chosen) {
-                    const maleCandidates = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'morning'));
+                    const maleCandidates = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'morning', false));
                     maleCandidates.sort((a, b) => getAssigned(a) - getAssigned(b));
                     chosen = maleCandidates[0];
+                }
+
+                // Fallback relaxation if no non-consecutive candidate has quota
+                if (!chosen) {
+                    const fFallback = activeDocs.filter(r => r.sex === 'F' && isDoctorAvailable(r, d, 'morning', true));
+                    fFallback.sort((a, b) => getAssigned(a) - getAssigned(b));
+                    chosen = fFallback[0];
+                }
+                if (!chosen) {
+                    const mFallback = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'morning', true));
+                    mFallback.sort((a, b) => getAssigned(a) - getAssigned(b));
+                    chosen = mFallback[0];
                 }
 
                 if (chosen) {
@@ -5939,12 +6192,12 @@
         for (let d = 1; d <= daysCount; d++) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.afternoon) {
-                let candidates = activeDocs.filter(r => r.sex === 'F' && isDoctorAvailable(r, d, 'afternoon'));
+                let candidates = activeDocs.filter(r => r.sex === 'F' && isDoctorAvailable(r, d, 'afternoon', false));
                 candidates.sort((a, b) => getAssigned(a) - getAssigned(b));
                 let chosen = candidates[0];
 
                 if (!chosen) {
-                    const maleCandidates = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'afternoon'));
+                    const maleCandidates = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'afternoon', false));
                     maleCandidates.sort((a, b) => {
                         const aClean = normalizeArabic(a.name);
                         const bClean = normalizeArabic(b.name);
@@ -5954,6 +6207,25 @@
                         return getAssigned(a) - getAssigned(b);
                     });
                     chosen = maleCandidates[0];
+                }
+
+                // Fallback relaxation
+                if (!chosen) {
+                    const fFallback = activeDocs.filter(r => r.sex === 'F' && isDoctorAvailable(r, d, 'afternoon', true));
+                    fFallback.sort((a, b) => getAssigned(a) - getAssigned(b));
+                    chosen = fFallback[0];
+                }
+                if (!chosen) {
+                    const mFallback = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'afternoon', true));
+                    mFallback.sort((a, b) => {
+                        const aClean = normalizeArabic(a.name);
+                        const bClean = normalizeArabic(b.name);
+                        const aDone = assignedShifts[aClean]?.has('afternoon') ? 1 : 0;
+                        const bDone = assignedShifts[bClean]?.has('afternoon') ? 1 : 0;
+                        if (aDone !== bDone) return aDone - bDone;
+                        return getAssigned(a) - getAssigned(b);
+                    });
+                    chosen = mFallback[0];
                 }
 
                 if (chosen) {
@@ -5966,7 +6238,7 @@
         for (let d = 1; d <= daysCount; d++) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.preNight) {
-                let candidates = activeDocs.filter(r => r.sex === 'M' && getQuota(r) > 1 && isDoctorAvailable(r, d, 'preNight'));
+                let candidates = activeDocs.filter(r => r.sex === 'M' && getQuota(r) > 1 && isDoctorAvailable(r, d, 'preNight', false));
                 candidates.sort((a, b) => {
                     const aClean = normalizeArabic(a.name);
                     const bClean = normalizeArabic(b.name);
@@ -5978,13 +6250,25 @@
                 let chosen = candidates[0];
 
                 if (!chosen) {
-                    const anyMales = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'preNight'));
+                    const anyMales = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'preNight', false));
                     anyMales.sort((a, b) => getAssigned(a) - getAssigned(b));
                     chosen = anyMales[0];
                 }
 
                 if (!chosen) {
-                    const anyDocs = activeDocs.filter(r => isDoctorAvailable(r, d, 'preNight'));
+                    const anyDocs = activeDocs.filter(r => isDoctorAvailable(r, d, 'preNight', false));
+                    anyDocs.sort((a, b) => getAssigned(a) - getAssigned(b));
+                    chosen = anyDocs[0];
+                }
+
+                // Fallback relaxation
+                if (!chosen) {
+                    const anyMales = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'preNight', true));
+                    anyMales.sort((a, b) => getAssigned(a) - getAssigned(b));
+                    chosen = anyMales[0];
+                }
+                if (!chosen) {
+                    const anyDocs = activeDocs.filter(r => isDoctorAvailable(r, d, 'preNight', true));
                     anyDocs.sort((a, b) => getAssigned(a) - getAssigned(b));
                     chosen = anyDocs[0];
                 }
@@ -5999,12 +6283,12 @@
         for (let d = 1; d <= daysCount; d++) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.lateNight) {
-                let candidates = activeDocs.filter(r => r.sex === 'M' && getQuota(r) === 1 && isDoctorAvailable(r, d, 'lateNight'));
+                let candidates = activeDocs.filter(r => r.sex === 'M' && getQuota(r) === 1 && isDoctorAvailable(r, d, 'lateNight', false));
                 candidates.sort((a, b) => getAssigned(a) - getAssigned(b));
                 let chosen = candidates[0];
 
                 if (!chosen) {
-                    const anyMales = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'lateNight'));
+                    const anyMales = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'lateNight', false));
                     anyMales.sort((a, b) => {
                         const aClean = normalizeArabic(a.name);
                         const bClean = normalizeArabic(b.name);
@@ -6017,7 +6301,26 @@
                 }
 
                 if (!chosen) {
-                    const anyDocs = activeDocs.filter(r => isDoctorAvailable(r, d, 'lateNight'));
+                    const anyDocs = activeDocs.filter(r => isDoctorAvailable(r, d, 'lateNight', false));
+                    anyDocs.sort((a, b) => getAssigned(a) - getAssigned(b));
+                    chosen = anyDocs[0];
+                }
+
+                // Fallback relaxation
+                if (!chosen) {
+                    const anyMales = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'lateNight', true));
+                    anyMales.sort((a, b) => {
+                        const aClean = normalizeArabic(a.name);
+                        const bClean = normalizeArabic(b.name);
+                        const aDone = assignedShifts[aClean]?.has('lateNight') ? 1 : 0;
+                        const bDone = assignedShifts[bClean]?.has('lateNight') ? 1 : 0;
+                        if (aDone !== bDone) return aDone - bDone;
+                        return getAssigned(a) - getAssigned(b);
+                    });
+                    chosen = anyMales[0];
+                }
+                if (!chosen) {
+                    const anyDocs = activeDocs.filter(r => isDoctorAvailable(r, d, 'lateNight', true));
                     anyDocs.sort((a, b) => getAssigned(a) - getAssigned(b));
                     chosen = anyDocs[0];
                 }
@@ -6041,7 +6344,7 @@
         const conCandidates = activeDocs.filter(r => (Number(r.con_target) || 0) > 0);
         const assigned = countScheduledDutiesPerResident('con');
 
-        function isConAvailable(r, dayNumber) {
+        function isConAvailable(r, dayNumber, allowConsecutive = false) {
             const clean = normalizeArabic(r.name);
             const filled = assigned[clean] || 0;
             const target = Number(r.con_target) || 0;
@@ -6049,7 +6352,13 @@
 
             const dateStr = formatDateStr(state.year, state.month, dayNumber);
             const evalRes = evaluateCellConflict(r.name, dateStr, 'con', 'doctor');
-            return !evalRes.hasConflict;
+            if (evalRes.hasConflict) return false;
+
+            if (!allowConsecutive && r.noConsecutiveDays !== false) {
+                if (hasDoctorDutyOnAdjacentDay(clean, dayNumber, daysCount)) return false;
+            }
+
+            return true;
         }
 
         function assignCon(dayEntry, r) {
@@ -6062,10 +6371,16 @@
         for (let d = 1; d <= daysCount; d++) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.doctor) {
-                const prefMatches = conCandidates.filter(r => {
-                    if (!isConAvailable(r, d)) return false;
+                let prefMatches = conCandidates.filter(r => {
+                    if (!isConAvailable(r, d, false)) return false;
                     return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
                 });
+                if (prefMatches.length === 0) {
+                    prefMatches = conCandidates.filter(r => {
+                        if (!isConAvailable(r, d, true)) return false;
+                        return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
+                    });
+                }
 
                 if (prefMatches.length > 0) {
                     prefMatches.sort((a, b) => {
@@ -6082,7 +6397,10 @@
         for (let d = 1; d <= daysCount; d++) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.doctor) {
-                const available = conCandidates.filter(r => isConAvailable(r, d));
+                let available = conCandidates.filter(r => isConAvailable(r, d, false));
+                if (available.length === 0) {
+                    available = conCandidates.filter(r => isConAvailable(r, d, true));
+                }
                 if (available.length > 0) {
                     available.sort((a, b) => {
                         const remA = (Number(a.con_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
@@ -6107,7 +6425,7 @@
         const dcCandidates = activeDocs.filter(r => (Number(r.dc_target) || 0) > 0);
         const assigned = countScheduledDutiesPerResident('dc');
 
-        function isDCAvailable(r, dayNumber) {
+        function isDCAvailable(r, dayNumber, allowConsecutive = false) {
             const clean = normalizeArabic(r.name);
             const filled = assigned[clean] || 0;
             const target = Number(r.dc_target) || 0;
@@ -6115,7 +6433,13 @@
 
             const dateStr = formatDateStr(state.year, state.month, dayNumber);
             const evalRes = evaluateCellConflict(r.name, dateStr, 'dc', 'doctor');
-            return !evalRes.hasConflict;
+            if (evalRes.hasConflict) return false;
+
+            if (!allowConsecutive && r.noConsecutiveDays !== false) {
+                if (hasDoctorDutyOnAdjacentDay(clean, dayNumber, daysCount)) return false;
+            }
+
+            return true;
         }
 
         function assignDC(dayEntry, r) {
@@ -6128,10 +6452,16 @@
         for (let d = 1; d <= daysCount; d++) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.doctor) {
-                const prefMatches = dcCandidates.filter(r => {
-                    if (!isDCAvailable(r, d)) return false;
+                let prefMatches = dcCandidates.filter(r => {
+                    if (!isDCAvailable(r, d, false)) return false;
                     return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
                 });
+                if (prefMatches.length === 0) {
+                    prefMatches = dcCandidates.filter(r => {
+                        if (!isDCAvailable(r, d, true)) return false;
+                        return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
+                    });
+                }
 
                 if (prefMatches.length > 0) {
                     prefMatches.sort((a, b) => {
@@ -6152,10 +6482,16 @@
                 const hospOnCall = getAllHospitalOnCallDoctors(dateStr);
                 const hospCleanSet = new Set(hospOnCall.map(h => h.cleanName));
 
-                const onCallCandidates = dcCandidates.filter(r => {
-                    if (!isDCAvailable(r, d)) return false;
+                let onCallCandidates = dcCandidates.filter(r => {
+                    if (!isDCAvailable(r, d, false)) return false;
                     return hospCleanSet.has(normalizeArabic(r.name));
                 });
+                if (onCallCandidates.length === 0) {
+                    onCallCandidates = dcCandidates.filter(r => {
+                        if (!isDCAvailable(r, d, true)) return false;
+                        return hospCleanSet.has(normalizeArabic(r.name));
+                    });
+                }
 
                 if (onCallCandidates.length > 0) {
                     onCallCandidates.sort((a, b) => {
@@ -6172,7 +6508,10 @@
         for (let d = 1; d <= daysCount; d++) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.doctor) {
-                const available = dcCandidates.filter(r => isDCAvailable(r, d));
+                let available = dcCandidates.filter(r => isDCAvailable(r, d, false));
+                if (available.length === 0) {
+                    available = dcCandidates.filter(r => isDCAvailable(r, d, true));
+                }
                 if (available.length > 0) {
                     available.sort((a, b) => {
                         const remA = (Number(a.dc_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
@@ -6211,7 +6550,7 @@
         const rsCandidates = activeDocs.filter(r => (Number(r.rs_target) || 0) > 0);
         const assigned = countScheduledDutiesPerResident('rs');
 
-        function isRSAvailable(r, dayNumber, slot) {
+        function isRSAvailable(r, dayNumber, slot, allowConsecutive = false) {
             const clean = normalizeArabic(r.name);
             const filled = assigned[clean] || 0;
             const target = Number(r.rs_target) || 0;
@@ -6219,7 +6558,13 @@
 
             const dateStr = formatDateStr(state.year, state.month, dayNumber);
             const evalRes = evaluateCellConflict(r.name, dateStr, 'rs', slot);
-            return !evalRes.hasConflict;
+            if (evalRes.hasConflict) return false;
+
+            if (!allowConsecutive && r.noConsecutiveDays !== false) {
+                if (hasDoctorDutyOnAdjacentDay(clean, dayNumber, daysCount)) return false;
+            }
+
+            return true;
         }
 
         function assignRS(dayEntry, slot, r) {
@@ -6235,12 +6580,20 @@
             shifts.forEach(slot => {
                 if (!dayEntry[slot]) {
                     const standardShift = shiftMap[slot];
-                    const prefMatches = rsCandidates.filter(r => {
-                        if (!isRSAvailable(r, d, slot)) return false;
+                    let prefMatches = rsCandidates.filter(r => {
+                        if (!isRSAvailable(r, d, slot, false)) return false;
                         const hasDay = Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
                         const hasShift = Array.isArray(r.prefShifts) && r.prefShifts.includes(standardShift);
                         return hasDay || hasShift;
                     });
+                    if (prefMatches.length === 0) {
+                        prefMatches = rsCandidates.filter(r => {
+                            if (!isRSAvailable(r, d, slot, true)) return false;
+                            const hasDay = Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
+                            const hasShift = Array.isArray(r.prefShifts) && r.prefShifts.includes(standardShift);
+                            return hasDay || hasShift;
+                        });
+                    }
                     if (prefMatches.length > 0) {
                         prefMatches.sort((a, b) => {
                             const remA = (Number(a.rs_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
@@ -6259,7 +6612,10 @@
             if (!dayEntry) continue;
             shifts.forEach(slot => {
                 if (!dayEntry[slot]) {
-                    const available = rsCandidates.filter(r => isRSAvailable(r, d, slot));
+                    let available = rsCandidates.filter(r => isRSAvailable(r, d, slot, false));
+                    if (available.length === 0) {
+                        available = rsCandidates.filter(r => isRSAvailable(r, d, slot, true));
+                    }
                     if (available.length > 0) {
                         available.sort((a, b) => {
                             const remA = (Number(a.rs_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
@@ -6293,7 +6649,7 @@
         const rsCandidates = activeDocs.filter(r => (Number(r.rs_target) || 0) > 0);
         const assigned = countScheduledDutiesPerResident('rs');
 
-        function isRSWardsAvailable(r, dayNumber, slot) {
+        function isRSWardsAvailable(r, dayNumber, slot, allowConsecutive = false) {
             const clean = normalizeArabic(r.name);
             const filled = assigned[clean] || 0;
             const target = Number(r.rs_target) || 0;
@@ -6301,7 +6657,13 @@
 
             const dateStr = formatDateStr(state.year, state.month, dayNumber);
             const evalRes = evaluateCellConflict(r.name, dateStr, 'rs', slot);
-            return !evalRes.hasConflict;
+            if (evalRes.hasConflict) return false;
+
+            if (!allowConsecutive && r.noConsecutiveDays !== false) {
+                if (hasDoctorDutyOnAdjacentDay(clean, dayNumber, daysCount)) return false;
+            }
+
+            return true;
         }
 
         function assignRSWards(dayEntry, slot, r) {
@@ -6316,10 +6678,16 @@
             if (!dayEntry) continue;
             wards.forEach(slot => {
                 if (!dayEntry[slot]) {
-                    const prefMatches = rsCandidates.filter(r => {
-                        if (!isRSWardsAvailable(r, d, slot)) return false;
+                    let prefMatches = rsCandidates.filter(r => {
+                        if (!isRSWardsAvailable(r, d, slot, false)) return false;
                         return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
                     });
+                    if (prefMatches.length === 0) {
+                        prefMatches = rsCandidates.filter(r => {
+                            if (!isRSWardsAvailable(r, d, slot, true)) return false;
+                            return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
+                        });
+                    }
                     if (prefMatches.length > 0) {
                         prefMatches.sort((a, b) => {
                             const remA = (Number(a.rs_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
@@ -6338,7 +6706,10 @@
             if (!dayEntry) continue;
             wards.forEach(slot => {
                 if (!dayEntry[slot]) {
-                    const available = rsCandidates.filter(r => isRSWardsAvailable(r, d, slot));
+                    let available = rsCandidates.filter(r => isRSWardsAvailable(r, d, slot, false));
+                    if (available.length === 0) {
+                        available = rsCandidates.filter(r => isRSWardsAvailable(r, d, slot, true));
+                    }
                     if (available.length > 0) {
                         available.sort((a, b) => {
                             const remA = (Number(a.rs_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
@@ -7008,10 +7379,22 @@
         closeImportMonthAllocationsModal,
         executeImportMonthAllocations,
         toggleClearPrintMeta,
-        updateClearPrintMetaUI
+        updateClearPrintMetaUI,
+        undoDBAction,
+        redoDBAction,
+        pushDBHistory,
+        initDBHistory,
+        updateDBUndoRedoUI,
+        hasDoctorDutyOnAdjacentDay
     };
 
     // Global direct aliases for inline HTML attributes
+    window.undoDBAction = undoDBAction;
+    window.redoDBAction = redoDBAction;
+    window.pushDBHistory = pushDBHistory;
+    window.initDBHistory = initDBHistory;
+    window.updateDBUndoRedoUI = updateDBUndoRedoUI;
+    window.hasDoctorDutyOnAdjacentDay = hasDoctorDutyOnAdjacentDay;
     window.clearCurrentSchedule = clearCurrentSchedule;
     window.copyAllocationsFromPreviousMonth = copyAllocationsFromPreviousMonth;
     window.updateResidentRowFulfillment = updateResidentRowFulfillment;

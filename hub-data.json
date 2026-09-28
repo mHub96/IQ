@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T17:03:02.151Z",
+  "lastUpdated": "2026-09-28T17:14:07.025Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -346,6 +346,16 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
+        },
+        {
+          "id": "REFE",
+          "name_ar": "الاحالات",
+          "name_en": "Referrals",
+          "icon": "🚑",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true,
+          "color": "#0f766e"
         }
       ],
       "names": [
@@ -20795,6 +20805,16 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
+        },
+        {
+          "id": "REFE",
+          "name_ar": "الاحالات",
+          "name_en": "Referrals",
+          "icon": "🚑",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true,
+          "color": "#0f766e"
         }
       ],
       "names": [
@@ -29110,11 +29130,10 @@
         {
           "date": "28/09/2026",
           "specCode": "US",
-          "name": "د. عمر حسين",
+          "name": "د. حسين علي عطيه",
           "VisitCount": 0,
           "dutySlot": 0,
-          "dutyTime": "",
-          "timestamp": "20:03"
+          "dutyTime": ""
         },
         {
           "date": "29/09/2026",
@@ -30490,7 +30509,7 @@
           "date": "28/09/2026",
           "specCode": "OP",
           "name": "د. علي خالد",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -31146,7 +31165,7 @@
           "date": "28/09/2026",
           "specCode": "M",
           "name": "د. دعاء نبيل",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0
         },
@@ -32627,6 +32646,16 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
+        },
+        {
+          "id": "REFE",
+          "name_ar": "الاحالات",
+          "name_en": "Referrals",
+          "icon": "🚑",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true,
+          "color": "#0f766e"
         }
       ],
       "names": [
@@ -43783,6 +43812,15 @@
       "name_en": "Respiratory Medicine",
       "icon": "🫁",
       "color": "#0f766e",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "REFE",
+      "name_ar": "الاحالات",
+      "name_en": "Referrals",
+      "icon": "🚑",
       "parentSpec": null,
       "acceptPool": [],
       "enabled": true

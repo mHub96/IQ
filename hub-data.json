@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T17:54:05.447Z",
+  "lastUpdated": "2026-09-28T18:10:24.900Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -18369,10 +18369,11 @@
         {
           "date": "28/09/2026",
           "specCode": "ON",
-          "name": "د. زهراء سهيل نجم",
+          "name": "د. علي اسعد يحيى",
           "VisitCount": 0,
           "dutyTime": "",
-          "dutySlot": 0
+          "dutySlot": 0,
+          "timestamp": "21:10"
         },
         {
           "date": "29/09/2026",

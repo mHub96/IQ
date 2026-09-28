@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T17:14:07.025Z",
+  "lastUpdated": "2026-09-28T17:15:02.932Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20727,6 +20727,16 @@
           "enabled": true
         },
         {
+          "id": "REFE",
+          "name_ar": "الاحالات",
+          "name_en": "Referrals",
+          "icon": "🚑",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true,
+          "color": "#0f766e"
+        },
+        {
           "id": "ON",
           "name_ar": "طب الاورام",
           "name_en": "Oncology",
@@ -20805,16 +20815,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "REFE",
-          "name_ar": "الاحالات",
-          "name_en": "Referrals",
-          "icon": "🚑",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true,
-          "color": "#0f766e"
         }
       ],
       "names": [
@@ -43821,6 +43821,7 @@
       "name_ar": "الاحالات",
       "name_en": "Referrals",
       "icon": "🚑",
+      "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
       "enabled": true

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-27T14:39:10.425Z",
+  "lastUpdated": "2026-09-28T13:34:10.647Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -28882,10 +28882,11 @@
         {
           "date": "28/09/2026",
           "specCode": "OR",
-          "name": "د. علي مطشر ابو كحيله",
+          "name": "د. علي عبد الكريم عبدالله",
           "VisitCount": 0,
           "dutySlot": 0,
-          "dutyTime": ""
+          "dutyTime": "",
+          "timestamp": "16:34"
         },
         {
           "date": "29/09/2026",

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T13:55:58.591Z",
+  "lastUpdated": "2026-09-28T13:59:14.468Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -23849,19 +23849,6 @@
           ]
         },
         {
-          "id": "res-0293",
-          "name": "د. وعد سمير باسم",
-          "phone": "+9647833288508",
-          "spec": "Pe",
-          "tag": "Pe",
-          "dept": "Pe",
-          "department": "Pe",
-          "active": false,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
           "id": "res-0267",
           "name": "د. ولاء سالم",
           "phone": "+9647708765123",
@@ -33559,6 +33546,19 @@
           "dept": "M",
           "department": "M",
           "active": true,
+          "hospitals": [
+            "mawani"
+          ]
+        },
+        {
+          "id": "res-0293",
+          "name": "د. وعد سمير باسم",
+          "phone": "+9647833288508",
+          "spec": "Pe",
+          "tag": "Pe",
+          "dept": "Pe",
+          "department": "Pe",
+          "active": false,
           "hospitals": [
             "mawani"
           ]
@@ -43352,7 +43352,7 @@
       "department": "Pe",
       "active": false,
       "hospitals": [
-        "basra"
+        "mawani"
       ]
     },
     {

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T14:47:40.360Z",
+  "lastUpdated": "2026-09-28T14:49:04.367Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20639,6 +20639,16 @@
           "enabled": true
         },
         {
+          "id": "N",
+          "name_ar": "طب امراض الكلى",
+          "name_en": "Nephrology",
+          "icon": "🧫",
+          "color": "#ff5ccb",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
           "id": "D",
           "name_ar": "الوفيات",
           "name_en": "Death Certificates",
@@ -20705,16 +20715,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "N",
-          "name_ar": "طب امراض الكلى",
-          "name_en": "Nephrology",
-          "icon": "🧫",
-          "color": "#ff5ccb",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
         },
         {
           "id": "NM",

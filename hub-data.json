@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T05:43:36.983Z",
+  "lastUpdated": "2026-09-29T05:46:42.788Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -29059,11 +29059,10 @@
         {
           "date": "29/09/2026",
           "specCode": "US",
-          "name": "د. عمر حسين",
+          "name": "د. حيدر علي",
           "VisitCount": 1,
           "dutySlot": 0,
-          "dutyTime": "",
-          "timestamp": "08:43"
+          "dutyTime": ""
         },
         {
           "date": "30/09/2026",
@@ -29293,7 +29292,7 @@
           "date": "29/09/2026",
           "specCode": "ENT",
           "name": "د. بان عبد الامير صمد",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutySlot": 0,
           "dutyTime": ""
         },

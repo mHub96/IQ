@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:53:47.250Z",
+  "lastUpdated": "2026-09-29T08:54:15.283Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24249,10 +24249,10 @@
           "id": "res-mumfw31lmi8n",
           "name": "د. يقين هاني فالح",
           "phone": "رقم غير متوفر",
-          "spec": "NS",
-          "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
           "active": true,
           "hospitals": [
             "basra"
@@ -44274,10 +44274,10 @@
       "id": "res-mumfw31lmi8n",
       "name": "د. يقين هاني فالح",
       "phone": "",
-      "spec": "NS",
-      "tag": "NS",
-      "dept": "NS",
-      "department": "NS",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
       "active": true,
       "hospitals": [
         "basra"

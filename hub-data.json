@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:03:09.086Z",
+  "lastUpdated": "2026-09-29T08:03:39.408Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20751,16 +20751,6 @@
           "name_en": "Plastic Surgery",
           "icon": "🪡",
           "color": "#2563eb",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
-          "id": "RM",
-          "name_ar": "طب الامراض التنفسية",
-          "name_en": "Respiratory Medicine",
-          "icon": "🫁",
-          "color": "#3bb8f7",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false

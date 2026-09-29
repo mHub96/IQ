@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T16:03:53.309Z",
+  "lastUpdated": "2026-09-29T16:04:04.257Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20774,6 +20774,17 @@
           "color": "#0f766e",
           "parentSpec": null,
           "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "NS_iraqi",
+          "name_ar": "جراحة الجملة العصبية",
+          "name_en": "Neurosurgery",
+          "icon": "🧠",
+          "color": "#fea101",
+          "isClone": true,
+          "clonedFromHospitalId": "iraqi",
+          "clonedFromSpecId": "NS",
           "enabled": true
         }
       ],

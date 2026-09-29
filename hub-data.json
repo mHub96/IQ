@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:53:38.354Z",
+  "lastUpdated": "2026-09-29T08:53:47.250Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20754,6 +20754,16 @@
           "acceptPool": [],
           "enabled": true,
           "color": "#ff0000"
+        },
+        {
+          "id": "NS",
+          "name_ar": "جراحة الجملة العصبية",
+          "name_en": "Neurosurgery",
+          "icon": "🧠",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
         }
       ],
       "names": [
@@ -24230,6 +24240,19 @@
           "tag": "REF",
           "dept": "REF",
           "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
+        },
+        {
+          "id": "res-mumfw31lmi8n",
+          "name": "د. يقين هاني فالح",
+          "phone": "رقم غير متوفر",
+          "spec": "NS",
+          "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
           "active": true,
           "hospitals": [
             "basra"
@@ -44242,6 +44265,19 @@
       "tag": "REF",
       "dept": "REF",
       "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumfw31lmi8n",
+      "name": "د. يقين هاني فالح",
+      "phone": "",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
       "active": true,
       "hospitals": [
         "basra"

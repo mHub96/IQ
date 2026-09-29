@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T05:54:34.794Z",
+  "lastUpdated": "2026-09-29T06:01:21.236Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -30012,10 +30012,11 @@
         {
           "date": "29/09/2026",
           "specCode": "D",
-          "name": "د. زهراء توفيق",
+          "name": "د. علي حسن",
           "VisitCount": 1,
           "dutySlot": 0,
-          "dutyTime": "08:00AM - 08:00PM"
+          "dutyTime": "08:00AM - 08:00PM",
+          "timestamp": "09:01"
         },
         {
           "date": "30/09/2026",

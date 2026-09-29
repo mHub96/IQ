@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:30:33.395Z",
+  "lastUpdated": "2026-09-29T08:30:58.212Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -23974,6 +23974,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumf2qoxv95f",
+          "name": "د. كفاء جبر عجيل",
+          "phone": "0787 287 0588",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -43718,6 +43731,19 @@
       "id": "res-mumf27jlpy1s",
       "name": "د. نبأ قاسم يسر",
       "phone": "0771 628 3489",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumf2qoxv95f",
+      "name": "د. كفاء جبر عجيل",
+      "phone": "0787 287 0588",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

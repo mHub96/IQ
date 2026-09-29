@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:20:32.900Z",
+  "lastUpdated": "2026-09-29T08:22:12.051Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -23844,6 +23844,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumergpd4cu8",
+          "name": "د. زين العابدين عبدالامير غالي",
+          "phone": "0776 780 6619",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -43458,6 +43471,19 @@
       "id": "res-mumepc74g5b8",
       "name": "د. سحر محمود زايد",
       "phone": "0776 345 8007",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumergpd4cu8",
+      "name": "د. زين العابدين عبدالامير غالي",
+      "phone": "0776 780 6619",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

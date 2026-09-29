@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T11:50:15.556Z",
+  "lastUpdated": "2026-09-29T11:56:23.258Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24753,19 +24753,6 @@
           ]
         },
         {
-          "id": "res-mumi7xagdlc8",
-          "name": "د. فتوح هشام خلف",
-          "phone": "رقم غير متوفر",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
           "id": "res-mumi8nlbe44k",
           "name": "د. قتيبة رعد جواد",
           "phone": "0770 570 4775",
@@ -45365,19 +45352,6 @@
     {
       "id": "res-mumi7mbozzwp",
       "name": "د. مصطفى مبارك جحيل",
-      "phone": "",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumi7xagdlc8",
-      "name": "د. فتوح هشام خلف",
       "phone": "",
       "spec": "REF",
       "tag": "REF",

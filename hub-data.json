@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:03:49.074Z",
+  "lastUpdated": "2026-09-29T08:04:20.702Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20608,16 +20608,6 @@
           "enabled": false
         },
         {
-          "id": "R",
-          "name_ar": "الأشعة و السونار",
-          "name_en": "Radiology",
-          "icon": "🩻",
-          "color": "#6700e6",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
           "id": "D",
           "name_ar": "الوفيات",
           "name_en": "Death Certificates",
@@ -20653,6 +20643,16 @@
             "PS",
             "RM"
           ],
+          "enabled": true
+        },
+        {
+          "id": "R",
+          "name_ar": "الأشعة و السونار",
+          "name_en": "Radiology",
+          "icon": "🩻",
+          "color": "#6700e6",
+          "parentSpec": null,
+          "acceptPool": [],
           "enabled": true
         },
         {

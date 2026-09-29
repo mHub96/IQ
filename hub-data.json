@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T21:38:04.496Z",
+  "lastUpdated": "2026-09-29T23:21:57.737Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -28899,10 +28899,11 @@
         {
           "date": "29/09/2026",
           "specCode": "OR",
-          "name": "د. المصطفى سعد عبد الصمد",
+          "name": "د. محمد ناظم",
           "VisitCount": 0,
           "dutySlot": 0,
-          "dutyTime": ""
+          "dutyTime": "",
+          "timestamp": "02:21"
         },
         {
           "date": "30/09/2026",

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T18:50:01.738Z",
+  "lastUpdated": "2026-09-29T18:56:29.427Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -346,6 +346,16 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
+        },
+        {
+          "id": "REFE",
+          "name_ar": "الاحالات",
+          "name_en": "Referrals",
+          "icon": "🚑",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true,
+          "color": "#0f766e"
         }
       ],
       "names": [
@@ -2470,6 +2480,7 @@
           "department": "M",
           "active": true,
           "hospitals": [
+            "basra",
             "iraqi"
           ]
         },
@@ -2809,6 +2820,19 @@
           "dept": "NS",
           "department": "NS",
           "active": false,
+          "hospitals": [
+            "iraqi"
+          ]
+        },
+        {
+          "id": "res-mun1f5yrbwju",
+          "name": "د. مجيد حميد مجيد",
+          "phone": "07831004089",
+          "spec": "NS",
+          "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
+          "active": true,
           "hospitals": [
             "iraqi"
           ]
@@ -18358,10 +18382,11 @@
         {
           "date": "28/09/2026",
           "specCode": "ON",
-          "name": "د. زهراء سهيل نجم",
+          "name": "د. علي اسعد يحيى",
           "VisitCount": 0,
           "dutyTime": "",
-          "dutySlot": 0
+          "dutySlot": 0,
+          "timestamp": "21:10"
         },
         {
           "date": "29/09/2026",
@@ -19092,7 +19117,7 @@
           "date": "28/09/2026",
           "specCode": "CT",
           "name": "د. علي عبدالرحمن عبدالصمد",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -19100,7 +19125,7 @@
           "date": "29/09/2026",
           "specCode": "CT",
           "name": "د. منتظر صفاء ماجد",
-          "VisitCount": 2,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -19325,7 +19350,7 @@
           "date": "29/09/2026",
           "specCode": "NS",
           "name": "د. اسعد حسن فرحان",
-          "VisitCount": 5,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -20280,7 +20305,7 @@
           "date": "29/09/2026",
           "specCode": "ICU",
           "name": "د. سماء علي",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -20472,17 +20497,14 @@
       },
       "specialties": [
         {
-          "id": "NS_iraqi",
+          "id": "NS",
           "name_ar": "جراحة الجملة العصبية",
           "name_en": "Neurosurgery",
           "icon": "🧠",
           "color": "#fea101",
-          "isClone": true,
-          "clonedFromHospitalId": "iraqi",
-          "clonedFromSpecId": "NS",
-          "enabled": true,
           "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "CT",
@@ -20490,12 +20512,9 @@
           "name_en": "Cardiothoracic Surgery",
           "icon": "🫀",
           "color": "#e05910",
-          "isClone": true,
-          "clonedFromHospitalId": "iraqi",
-          "clonedFromSpecId": "CT",
-          "enabled": true,
           "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "GS",
@@ -20634,6 +20653,46 @@
           "enabled": false
         },
         {
+          "id": "NM",
+          "name_ar": "طب الجملة العصبية",
+          "name_en": "Neuromedicine",
+          "icon": "🧠",
+          "color": "#79e9f1",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "R",
+          "name_ar": "الأشعة و السونار",
+          "name_en": "Radiology",
+          "icon": "🩻",
+          "color": "#6700e6",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "N",
+          "name_ar": "طب امراض الكلى",
+          "name_en": "Nephrology",
+          "icon": "🧫",
+          "color": "#ff5ccb",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "P",
+          "name_ar": "النفسية",
+          "name_en": "Psychiatry",
+          "icon": "🧠",
+          "color": "#fef606",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
           "id": "D",
           "name_ar": "الوفيات",
           "name_en": "Death Certificates",
@@ -20672,77 +20731,14 @@
           "enabled": true
         },
         {
-          "id": "R_iraqi",
-          "name_ar": "الأشعة و السونار",
-          "name_en": "Radiology",
-          "icon": "🩻",
-          "color": "#6700e6",
-          "isClone": true,
-          "clonedFromHospitalId": "iraqi",
-          "clonedFromSpecId": "R",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
-        },
-        {
-          "id": "R",
-          "name_ar": "الأشعة و السونار",
-          "name_en": "Radiology",
-          "icon": "🩻",
-          "color": "#6700e6",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
-          "id": "ON",
-          "name_ar": "طب الاورام",
-          "name_en": "Oncology",
-          "icon": "☢️",
-          "color": "#84cc16",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
-          "id": "N",
-          "name_ar": "طب امراض الكلى",
-          "name_en": "Nephrology",
-          "icon": "🧫",
-          "color": "#ff5ccb",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
-          "id": "NM",
-          "name_ar": "طب الجملة العصبية",
-          "name_en": "Neuromedicine",
-          "icon": "🧠",
-          "color": "#79e9f1",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
-          "id": "P",
-          "name_ar": "النفسية",
-          "name_en": "Psychiatry",
-          "icon": "🧠",
-          "color": "#fef606",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
-          "id": "REF",
-          "name_ar": "دوري احالات",
-          "name_en": "Refferral",
+          "id": "REFE",
+          "name_ar": "الاحالات",
+          "name_en": "Referrals",
           "icon": "🚑",
+          "color": "#650094",
           "parentSpec": null,
           "acceptPool": [],
-          "enabled": true,
-          "color": "#ff0000"
+          "enabled": true
         },
         {
           "id": "AO",
@@ -20753,6 +20749,16 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true
+        },
+        {
+          "id": "ON",
+          "name_ar": "طب الاورام",
+          "name_en": "Oncology",
+          "icon": "☢️",
+          "color": "#84cc16",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "Der",
@@ -20795,14 +20801,34 @@
           "enabled": false
         },
         {
-          "id": "NS",
-          "name_ar": "جراحة الجملة العصبية",
-          "name_en": "Neurosurgery",
-          "icon": "🧠",
-          "color": "#0f766e",
+          "id": "H",
+          "name_ar": "طب الامراض القلبية",
+          "name_en": "Cardiology",
+          "icon": "🫀",
+          "color": "#c91d70",
           "parentSpec": null,
           "acceptPool": [],
-          "enabled": true
+          "enabled": false
+        },
+        {
+          "id": "PS",
+          "name_ar": "الجراحة التجميلية",
+          "name_en": "Plastic Surgery",
+          "icon": "🪡",
+          "color": "#2563eb",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": false
+        },
+        {
+          "id": "RM",
+          "name_ar": "طب الامراض التنفسية",
+          "name_en": "Respiratory Medicine",
+          "icon": "🫁",
+          "color": "#3bb8f7",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": false
         }
       ],
       "names": [
@@ -22662,11 +22688,11 @@
           "id": "res-0190",
           "name": "د. علي حسين عبدالرضا",
           "phone": "+9647849000964",
-          "spec": "GS",
-          "tag": "GS",
+          "spec": "CT",
+          "tag": "CT",
           "dept": "GS",
           "department": "GS",
-          "active": true,
+          "active": false,
           "hospitals": [
             "basra"
           ]
@@ -23568,6 +23594,20 @@
           ]
         },
         {
+          "id": "res-0105",
+          "name": "د. منتظر حميد هاشم",
+          "phone": "+9647827925226",
+          "spec": "H",
+          "tag": "H",
+          "dept": "M",
+          "department": "M",
+          "active": true,
+          "hospitals": [
+            "basra",
+            "iraqi"
+          ]
+        },
+        {
           "id": "res-0384",
           "name": "د. منير تعبان",
           "phone": "+9647703142928",
@@ -23880,997 +23920,17 @@
           "hospitals": [
             "basra"
           ]
-        },
-        {
-          "id": "res-mume7svkjcak",
-          "name": "د. علي علاء",
-          "phone": "0770 418 4424",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumepc74g5b8",
-          "name": "د. سحر محمود زايد",
-          "phone": "0776 345 8007",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumergpd4cu8",
-          "name": "د. زين العابدين عبدالامير غالي",
-          "phone": "0776 780 6619",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumesaglcirv",
-          "name": "د. اسراء عبدالباسط عبدالصمد",
-          "phone": "0772 745 3044",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumet5m8r98e",
-          "name": "د. معتز حميد محمد",
-          "phone": "0786 716 8648",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumey1ts4tk8",
-          "name": "د. حنين بلال احمد",
-          "phone": "0782 993 9373",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumez0vhpagx",
-          "name": "د. زينب علي شيال",
-          "phone": "0783 824 1127",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumezi0z902g",
-          "name": "د. عمر فاروق مطشر",
-          "phone": "0780 765 5988",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumf061dpfsj",
-          "name": "د. الحسن عمار ياسر",
-          "phone": "0776 054 7843",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumf1500m0tt",
-          "name": "د. نرجس حمد نعمان",
-          "phone": "0772 771 3780",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumf1mf5owmc",
-          "name": "د. رغد حسين كاظم",
-          "phone": "0774 542 7074",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumf27jlpy1s",
-          "name": "د. نبأ قاسم يسر",
-          "phone": "0771 628 3489",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumf2qoxv95f",
-          "name": "د. كفاء جبر عجيل",
-          "phone": "0787 287 0588",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumf3bghbn7t",
-          "name": "د. زينب محمد مهاوي",
-          "phone": "0783 008 2928",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumf4kzk79pw",
-          "name": "د. منتظر مزهر محمد",
-          "phone": "0775 063 9250",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumf542kcc6k",
-          "name": "د. زهراء عدنان قاسم",
-          "phone": "0780 699 6283",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumf69ssb0yi",
-          "name": "د. منار نبيل مزهر",
-          "phone": "0783 275 5820",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumf85cy7a13",
-          "name": "د. بتول عبدالامير عجيل",
-          "phone": "0780 784 0569",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumf93oxwpiv",
-          "name": "د. علي عماد عبدالكاظم",
-          "phone": "0781 375 1807",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumfadjtjvwl",
-          "name": "د. مصطفى عبدالرزاق ورد",
-          "phone": "0781 283 9610",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumfb485rd35",
-          "name": "د. ود صائب عبدالهادي",
-          "phone": "0783 144 0790",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumfc7qtn8jq",
-          "name": "د. زهراء علي خير الله",
-          "phone": "0781 106 9919",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumfmh7ogpp3",
-          "name": "د. احمد محمد فراي",
-          "phone": "0781 432 3744",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumfn8n7lit4",
-          "name": "د. احمد صلاح عبدالباري",
-          "phone": "0776 099 7597",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumfoady9zdj",
-          "name": "د. ابو تراب قيس عبدالحسن",
-          "phone": "0782 969 0018",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumfp0wj2ezz",
-          "name": "د. احمد خلف عبد",
-          "phone": "0786 143 7337",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumfppbm7k4v",
-          "name": "د. محمد هاشم صبر",
-          "phone": "0780 120 2898",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumfr23qvpxs",
-          "name": "د. محمد خيري دفار",
-          "phone": "+964 772 910 7469",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumfruyh2xx6",
-          "name": "د. عبدالله كاظم جواد",
-          "phone": "0777 164 2474",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumft10ntuz9",
-          "name": "د. زهراء مجيد كطافة",
-          "phone": "+964 772 748 6214",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumfukljiiaf",
-          "name": "د. الزهراء ميثم مطر",
-          "phone": "0772 111 5783",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumfvw6nes7u",
-          "name": "د. فرقان عبدالزهره بريدي",
-          "phone": "+964 771 662 8539",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumfw31lmi8n",
-          "name": "د. يقين هاني فالح",
-          "phone": "+964 772 752 1470",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumfx6cvdvd8",
-          "name": "د. رسل عبدالسادة سلمان",
-          "phone": "+964 783 103 1312",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumfxqpa4k4p",
-          "name": "د. محمد مسلم علي",
-          "phone": "رقم غير متوفر",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumg1jmco61d",
-          "name": "د. نور الهدى عبدالله حسن",
-          "phone": "+964 780 126 7959",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumg1vg9o026",
-          "name": "د. ضحى فوزي صدام",
-          "phone": "رقم غير متوفر",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumg2bnrqv52",
-          "name": "د. زينب حليم شرشاح",
-          "phone": "0772 388 1858",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumg2sj19xk9",
-          "name": "د. حسين وارد عبدالكريم",
-          "phone": "0771 817 1777",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumgjay0otjm",
-          "name": "د. ريم قاسم عبدالمحسن",
-          "phone": "0772 926 6092",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumgjtprjs81",
-          "name": "د. محمد فهد محمود",
-          "phone": "0772 927 8481",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumgk3vgb9vb",
-          "name": "د. نرجس محمد شاكر",
-          "phone": "0773 986 0405",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumgkfaq9ac7",
-          "name": "د. وسن صباح محمد",
-          "phone": "0772 824 2883",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumgkpun55f1",
-          "name": "د. حنين عدنان مطشر",
-          "phone": "+964 771 611 7215",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumgl06fngk9",
-          "name": "د. نور رياض بنيان",
-          "phone": "0774 351 7024",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumgmefytqr3",
-          "name": "د. اسيل علي طرار",
-          "phone": "0773 236 1055",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumgmsz5xrll",
-          "name": "د. الاء توفيق جبار",
-          "phone": "0771 860 8733",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumgnlq1b0m8",
-          "name": "د. علا غسان حامد",
-          "phone": "0772 252 0799",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumgny62iwlu",
-          "name": "د. مرتضى رعد حمودي",
-          "phone": "0773 864 4386",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumgo5pqhihs",
-          "name": "د. دعاء طاهر علي",
-          "phone": "رقم غير متوفر",
-          "spec": "NS",
-          "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumgqrxraq3r",
-          "name": "د. ايات نزار عبدالستار",
-          "phone": "0771 722 9706",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumgr7y6lgra",
-          "name": "د. روان فخري فاضل",
-          "phone": "+964 773 033 9067",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumgrtqvf1v5",
-          "name": "د. ديار رياض عيسى",
-          "phone": "+964 780 840 1520",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumht1jg0b4p",
-          "name": "د. بنين اياد عبادي",
-          "phone": "رقم غير متوفر",
-          "spec": "NS",
-          "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumhtcm952mo",
-          "name": "د. صباح سلام صباح",
-          "phone": "0775 416 1600",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumhtx8banzt",
-          "name": "د. محمد انتضار راضي",
-          "phone": "0773 984 9401",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumhuj6ej84v",
-          "name": "د. حسن علي صالح",
-          "phone": "+964 773 392 0533",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumi1bnecht4",
-          "name": "د. نور احمد شريف",
-          "phone": "+964 780 191 1068",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumi1kk15og7",
-          "name": "د. علي محمد عبدالرزاق",
-          "phone": "0773 945 2641",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumi1xx2i404",
-          "name": "د. شيرين عماد عبدالكريم",
-          "phone": "0770 774 1207",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumi2ielxnra",
-          "name": "د. علي اكبر رحيم",
-          "phone": "0773 016 9967",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumi2sf9t8m6",
-          "name": "د. مرتضى باسم خلف",
-          "phone": "0772 911 0904",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumi3nre8fjz",
-          "name": "د. محمد باقر صباح",
-          "phone": "0777 092 5176",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumi49kird3y",
-          "name": "د. سارة رشيد رجه",
-          "phone": "0771 119 4590",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumi5cktzljm",
-          "name": "د. مجيد ياسين مجيد",
-          "phone": "0772 766 7998",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumi5rdhdjz1",
-          "name": "د. بتول عماد عبدالحافظ",
-          "phone": "0772 405 6627",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumi6e9tbmwf",
-          "name": "د. بتول علي عبدالله",
-          "phone": "0788 166 0960",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumi7dsdzptx",
-          "name": "د. منار عمار ناصر",
-          "phone": "0772 573 1822",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumi7mbozzwp",
-          "name": "د. مصطفى مبارك جحيل",
-          "phone": "0773 527 1808",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumi8nlbe44k",
-          "name": "د. قتيبة رعد جواد",
-          "phone": "0770 570 4775",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumi94u8xkiq",
-          "name": "د. حوراء عبدالرضا سلمان",
-          "phone": "0775 295 4438",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumi9g13j9bm",
-          "name": "د. اسراء فوزي فنجان",
-          "phone": "0780 114 9860",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumi9s0c0pos",
-          "name": "د. حسين فراس ناصر",
-          "phone": "+964 771 498 8456",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumia6njh0g4",
-          "name": "د. وفاء عبدالواحد علي",
-          "phone": "رقم غير متوفر",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumialntvzkn",
-          "name": "د. ايه غازي فالح",
-          "phone": "+964 770 554 2125",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-mumiawwkxhtd",
-          "name": "د. زهراء محمد هادي",
-          "phone": "رقم غير متوفر",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
         }
       ],
       "schedule": [
+        {
+          "date": "18/04/2026",
+          "specCode": "NS",
+          "name": "د. علي جواد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
         {
           "date": "20/07/2026",
           "specCode": "MF",
@@ -29412,7 +28472,7 @@
           "date": "28/09/2026",
           "specCode": "MF",
           "name": "د. حسن فائق",
-          "VisitCount": 0,
+          "VisitCount": 2,
           "dutySlot": 0,
           "dutyTime": ""
         },
@@ -29628,7 +28688,7 @@
           "date": "28/09/2026",
           "specCode": "GS",
           "name": "د. علي احمد محسن",
-          "VisitCount": 0,
+          "VisitCount": 2,
           "dutySlot": 0,
           "dutyTime": ""
         },
@@ -29636,7 +28696,7 @@
           "date": "29/09/2026",
           "specCode": "GS",
           "name": "د. علي قاسم عبدالله",
-          "VisitCount": 5,
+          "VisitCount": 0,
           "dutySlot": 0,
           "dutyTime": ""
         },
@@ -29843,17 +28903,17 @@
         {
           "date": "28/09/2026",
           "specCode": "OR",
-          "name": "د. علي عبد الكريم عبدالله",
-          "VisitCount": 0,
+          "name": "د. علي مطشر ابو كحيله",
+          "VisitCount": 11,
           "dutySlot": 0,
           "dutyTime": "",
-          "timestamp": "16:34"
+          "timestamp": "21:11"
         },
         {
           "date": "29/09/2026",
           "specCode": "OR",
           "name": "د. المصطفى سعد عبد الصمد",
-          "VisitCount": 3,
+          "VisitCount": 0,
           "dutySlot": 0,
           "dutyTime": ""
         },
@@ -30685,7 +29745,7 @@
           "date": "28/09/2026",
           "specCode": "Pe",
           "name": "د. لينا نجم عبد",
-          "VisitCount": 1,
+          "VisitCount": 2,
           "dutySlot": 0,
           "dutyTime": "",
           "timestamp": "16:35"
@@ -30693,11 +29753,10 @@
         {
           "date": "29/09/2026",
           "specCode": "Pe",
-          "name": "د. زينب فلاح عبد المهدي",
-          "VisitCount": 13,
+          "name": "د. لينا نجم عبد",
+          "VisitCount": 0,
           "dutySlot": 0,
-          "dutyTime": "",
-          "timestamp": "09:22"
+          "dutyTime": ""
         },
         {
           "date": "30/09/2026",
@@ -31046,7 +30105,16 @@
         {
           "date": "28/09/2026",
           "specCode": "D",
-          "name": "د. صبا ياسين",
+          "name": "د. مريم علي محمد",
+          "VisitCount": 1,
+          "dutySlot": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "timestamp": "18:13"
+        },
+        {
+          "date": "29/09/2026",
+          "specCode": "D",
+          "name": "د. زهراء توفيق",
           "VisitCount": 0,
           "dutySlot": 0,
           "dutyTime": "08:00AM - 08:00PM"
@@ -31270,11 +30338,10 @@
         {
           "date": "29/09/2026",
           "specCode": "ICU",
-          "name": "د. آياد فالح",
-          "VisitCount": 1,
+          "name": "د. رسل عوده ساري",
+          "VisitCount": 0,
           "dutyTime": "08:00AM - 08:00PM",
-          "dutySlot": 0,
-          "timestamp": "10:49"
+          "dutySlot": 0
         },
         {
           "date": "29/09/2026",
@@ -32127,11 +31194,10 @@
         {
           "date": "29/09/2026",
           "specCode": "M",
-          "name": "د. مها عباس",
-          "VisitCount": 1,
+          "name": "د. فاديا ثائر",
+          "VisitCount": 0,
           "dutyTime": "08:00AM - 08:00PM",
-          "dutySlot": 0,
-          "timestamp": "10:13"
+          "dutySlot": 0
         },
         {
           "date": "29/09/2026",
@@ -32815,6 +31881,14 @@
           "dutySlot": 1
         },
         {
+          "date": "29/09/2026",
+          "specCode": "D",
+          "name": "د. حيدر علي",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
           "date": "30/09/2026",
           "specCode": "D",
           "name": "د. عبدالله جبار",
@@ -32951,7 +32025,7 @@
           "date": "29/09/2026",
           "specCode": "O",
           "name": "د. مصطفى هادي",
-          "VisitCount": 6,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -33237,17 +32311,17 @@
           "VisitCount": 0
         },
         {
-          "date": "01/10/2026",
+          "date": "02/10/2026",
           "specCode": "ENT",
-          "name": "د. بان عبد الامير صمد",
+          "name": "د. مريم علي محمد",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
         {
-          "date": "02/10/2026",
+          "date": "01/10/2026",
           "specCode": "ENT",
-          "name": "د. مريم علي محمد",
+          "name": "د. بان عبد الامير صمد",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
@@ -33261,21 +32335,116 @@
           "dutySlot": 0
         },
         {
-          "date": "01/10/2026",
-          "specCode": "REF",
-          "name": "د. علي علاء",
+          "date": "04/10/2026",
+          "specCode": "ENT",
+          "name": "د. وديان باقر كامل",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
         {
-          "date": "29/09/2026",
-          "specCode": "D",
-          "name": "د. عمر جليل عيسى",
-          "VisitCount": 1,
-          "dutySlot": 0,
+          "date": "05/10/2026",
+          "specCode": "ENT",
+          "name": "د. درر علي محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/10/2026",
+          "specCode": "ENT",
+          "name": "د. بان عبد الامير صمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "07/10/2026",
+          "specCode": "ENT",
+          "name": "د. مريم علي محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "ENT",
+          "name": "د. الزهراء علي محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "09/10/2026",
+          "specCode": "ENT",
+          "name": "د. دعاء ناظم اسماعيل",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "ENT",
+          "name": "د. درر علي محمد",
+          "VisitCount": 0,
           "dutyTime": "08:00AM - 08:00PM",
-          "timestamp": "20:04"
+          "dutySlot": 0
+        },
+        {
+          "date": "11/10/2026",
+          "specCode": "ENT",
+          "name": "د. دعاء ناظم اسماعيل",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "ENT",
+          "name": "د. بان عبد الامير صمد",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "12/10/2026",
+          "specCode": "ENT",
+          "name": "د. درر علي محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "13/10/2026",
+          "specCode": "ENT",
+          "name": "د. مريم علي محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "21/10/2026",
+          "specCode": "ENT",
+          "name": "د. درر علي محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "14/10/2026",
+          "specCode": "ENT",
+          "name": "د. وديان باقر كامل",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "15/10/2026",
+          "specCode": "ENT",
+          "name": "د. وديان باقر كامل",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
         }
       ],
       "rotationHeroesUrl": "",
@@ -33627,6 +32796,16 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
+        },
+        {
+          "id": "REFE",
+          "name_ar": "الاحالات",
+          "name_en": "Referrals",
+          "icon": "🚑",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true,
+          "color": "#0f766e"
         }
       ],
       "names": [
@@ -35832,7 +35011,7 @@
           "date": "29/09/2026",
           "specCode": "M",
           "name": "د. حنان محمود حسن",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -36776,7 +35955,7 @@
           "date": "29/09/2026",
           "specCode": "G",
           "name": "د. حوراء حسن صگبان",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0
         },
@@ -37552,7 +36731,7 @@
           "date": "29/09/2026",
           "specCode": "ICU",
           "name": "د. اسماء مطشر حسين",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -42044,11 +41223,11 @@
       "id": "res-0190",
       "name": "د. علي حسين عبدالرضا",
       "phone": "+9647849000964",
-      "spec": "GS",
-      "tag": "GS",
+      "spec": "CT",
+      "tag": "CT",
       "dept": "GS",
       "department": "GS",
-      "active": true,
+      "active": false,
       "hospitals": [
         "basra"
       ]
@@ -43727,6 +42906,7 @@
       "department": "M",
       "active": true,
       "hospitals": [
+        "basra",
         "iraqi"
       ]
     },
@@ -44461,991 +43641,16 @@
       ]
     },
     {
-      "id": "res-mume7svkjcak",
-      "name": "د. علي علاء",
-      "phone": "0770 418 4424",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumepc74g5b8",
-      "name": "د. سحر محمود زايد",
-      "phone": "0776 345 8007",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumergpd4cu8",
-      "name": "د. زين العابدين عبدالامير غالي",
-      "phone": "0776 780 6619",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumesaglcirv",
-      "name": "د. اسراء عبدالباسط عبدالصمد",
-      "phone": "0772 745 3044",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumet5m8r98e",
-      "name": "د. معتز حميد محمد",
-      "phone": "0786 716 8648",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumey1ts4tk8",
-      "name": "د. حنين بلال احمد",
-      "phone": "0782 993 9373",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumez0vhpagx",
-      "name": "د. زينب علي شيال",
-      "phone": "0783 824 1127",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumezi0z902g",
-      "name": "د. عمر فاروق مطشر",
-      "phone": "0780 765 5988",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumf061dpfsj",
-      "name": "د. الحسن عمار ياسر",
-      "phone": "0776 054 7843",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumf1500m0tt",
-      "name": "د. نرجس حمد نعمان",
-      "phone": "0772 771 3780",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumf1mf5owmc",
-      "name": "د. رغد حسين كاظم",
-      "phone": "0774 542 7074",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumf27jlpy1s",
-      "name": "د. نبأ قاسم يسر",
-      "phone": "0771 628 3489",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumf2qoxv95f",
-      "name": "د. كفاء جبر عجيل",
-      "phone": "0787 287 0588",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumf3bghbn7t",
-      "name": "د. زينب محمد مهاوي",
-      "phone": "0783 008 2928",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumf4kzk79pw",
-      "name": "د. منتظر مزهر محمد",
-      "phone": "0775 063 9250",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumf542kcc6k",
-      "name": "د. زهراء عدنان قاسم",
-      "phone": "0780 699 6283",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumf69ssb0yi",
-      "name": "د. منار نبيل مزهر",
-      "phone": "0783 275 5820",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumf85cy7a13",
-      "name": "د. بتول عبدالامير عجيل",
-      "phone": "0780 784 0569",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumf93oxwpiv",
-      "name": "د. علي عماد عبدالكاظم",
-      "phone": "0781 375 1807",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumfadjtjvwl",
-      "name": "د. مصطفى عبدالرزاق ورد",
-      "phone": "0781 283 9610",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumfb485rd35",
-      "name": "د. ود صائب عبدالهادي",
-      "phone": "0783 144 0790",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumfc7qtn8jq",
-      "name": "د. زهراء علي خير الله",
-      "phone": "0781 106 9919",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumfmh7ogpp3",
-      "name": "د. احمد محمد فراي",
-      "phone": "0781 432 3744",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumfn8n7lit4",
-      "name": "د. احمد صلاح عبدالباري",
-      "phone": "0776 099 7597",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumfoady9zdj",
-      "name": "د. ابو تراب قيس عبدالحسن",
-      "phone": "0782 969 0018",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumfp0wj2ezz",
-      "name": "د. احمد خلف عبد",
-      "phone": "0786 143 7337",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumfppbm7k4v",
-      "name": "د. محمد هاشم صبر",
-      "phone": "0780 120 2898",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumfr23qvpxs",
-      "name": "د. محمد خيري دفار",
-      "phone": "+964 772 910 7469",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumfruyh2xx6",
-      "name": "د. عبدالله كاظم جواد",
-      "phone": "0777 164 2474",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumft10ntuz9",
-      "name": "د. زهراء مجيد كطافة",
-      "phone": "+964 772 748 6214",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumfukljiiaf",
-      "name": "د. الزهراء ميثم مطر",
-      "phone": "0772 111 5783",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumfvw6nes7u",
-      "name": "د. فرقان عبدالزهره بريدي",
-      "phone": "+964 771 662 8539",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumfw31lmi8n",
-      "name": "د. يقين هاني فالح",
-      "phone": "+964 772 752 1470",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumfx6cvdvd8",
-      "name": "د. رسل عبدالسادة سلمان",
-      "phone": "+964 783 103 1312",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumfxqpa4k4p",
-      "name": "د. محمد مسلم علي",
-      "phone": "",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumg1jmco61d",
-      "name": "د. نور الهدى عبدالله حسن",
-      "phone": "+964 780 126 7959",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumg1vg9o026",
-      "name": "د. ضحى فوزي صدام",
-      "phone": "",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumg2bnrqv52",
-      "name": "د. زينب حليم شرشاح",
-      "phone": "0772 388 1858",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumg2sj19xk9",
-      "name": "د. حسين وارد عبدالكريم",
-      "phone": "0771 817 1777",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumgjay0otjm",
-      "name": "د. ريم قاسم عبدالمحسن",
-      "phone": "0772 926 6092",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumgjtprjs81",
-      "name": "د. محمد فهد محمود",
-      "phone": "0772 927 8481",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumgk3vgb9vb",
-      "name": "د. نرجس محمد شاكر",
-      "phone": "0773 986 0405",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumgkfaq9ac7",
-      "name": "د. وسن صباح محمد",
-      "phone": "0772 824 2883",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumgkpun55f1",
-      "name": "د. حنين عدنان مطشر",
-      "phone": "+964 771 611 7215",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumgl06fngk9",
-      "name": "د. نور رياض بنيان",
-      "phone": "0774 351 7024",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumgmefytqr3",
-      "name": "د. اسيل علي طرار",
-      "phone": "0773 236 1055",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumgmsz5xrll",
-      "name": "د. الاء توفيق جبار",
-      "phone": "0771 860 8733",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumgnlq1b0m8",
-      "name": "د. علا غسان حامد",
-      "phone": "0772 252 0799",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumgny62iwlu",
-      "name": "د. مرتضى رعد حمودي",
-      "phone": "0773 864 4386",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumgo5pqhihs",
-      "name": "د. دعاء طاهر علي",
-      "phone": "",
+      "id": "res-mun1f5yrbwju",
+      "name": "د. مجيد حميد مجيد",
+      "phone": "07831004089",
       "spec": "NS",
       "tag": "NS",
       "dept": "NS",
       "department": "NS",
       "active": true,
       "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumgqrxraq3r",
-      "name": "د. ايات نزار عبدالستار",
-      "phone": "0771 722 9706",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumgr7y6lgra",
-      "name": "د. روان فخري فاضل",
-      "phone": "+964 773 033 9067",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumgrtqvf1v5",
-      "name": "د. ديار رياض عيسى",
-      "phone": "+964 780 840 1520",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumht1jg0b4p",
-      "name": "د. بنين اياد عبادي",
-      "phone": "",
-      "spec": "NS",
-      "tag": "NS",
-      "dept": "NS",
-      "department": "NS",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumhtcm952mo",
-      "name": "د. صباح سلام صباح",
-      "phone": "0775 416 1600",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumhtx8banzt",
-      "name": "د. محمد انتضار راضي",
-      "phone": "0773 984 9401",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumhuj6ej84v",
-      "name": "د. حسن علي صالح",
-      "phone": "+964 773 392 0533",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumi1bnecht4",
-      "name": "د. نور احمد شريف",
-      "phone": "+964 780 191 1068",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumi1kk15og7",
-      "name": "د. علي محمد عبدالرزاق",
-      "phone": "0773 945 2641",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumi1xx2i404",
-      "name": "د. شيرين عماد عبدالكريم",
-      "phone": "0770 774 1207",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumi2ielxnra",
-      "name": "د. علي اكبر رحيم",
-      "phone": "0773 016 9967",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumi2sf9t8m6",
-      "name": "د. مرتضى باسم خلف",
-      "phone": "0772 911 0904",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumi3nre8fjz",
-      "name": "د. محمد باقر صباح",
-      "phone": "0777 092 5176",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumi49kird3y",
-      "name": "د. سارة رشيد رجه",
-      "phone": "0771 119 4590",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumi5cktzljm",
-      "name": "د. مجيد ياسين مجيد",
-      "phone": "0772 766 7998",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumi5rdhdjz1",
-      "name": "د. بتول عماد عبدالحافظ",
-      "phone": "0772 405 6627",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumi6e9tbmwf",
-      "name": "د. بتول علي عبدالله",
-      "phone": "0788 166 0960",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumi7dsdzptx",
-      "name": "د. منار عمار ناصر",
-      "phone": "0772 573 1822",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumi7mbozzwp",
-      "name": "د. مصطفى مبارك جحيل",
-      "phone": "0773 527 1808",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumi8nlbe44k",
-      "name": "د. قتيبة رعد جواد",
-      "phone": "0770 570 4775",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumi94u8xkiq",
-      "name": "د. حوراء عبدالرضا سلمان",
-      "phone": "0775 295 4438",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumi9g13j9bm",
-      "name": "د. اسراء فوزي فنجان",
-      "phone": "0780 114 9860",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumi9s0c0pos",
-      "name": "د. حسين فراس ناصر",
-      "phone": "+964 771 498 8456",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumia6njh0g4",
-      "name": "د. وفاء عبدالواحد علي",
-      "phone": "",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumialntvzkn",
-      "name": "د. ايه غازي فالح",
-      "phone": "+964 770 554 2125",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumiawwkxhtd",
-      "name": "د. زهراء محمد هادي",
-      "phone": "",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
+        "iraqi"
       ]
     }
   ],
@@ -45775,31 +43980,11 @@
       "enabled": true
     },
     {
-      "id": "REF",
-      "name_ar": "دوري احالات",
-      "name_en": "Refferral",
+      "id": "REFE",
+      "name_ar": "الاحالات",
+      "name_en": "Referrals",
       "icon": "🚑",
       "color": "#0f766e",
-      "parentSpec": null,
-      "acceptPool": [],
-      "enabled": true
-    },
-    {
-      "id": "NS_iraqi",
-      "name_ar": "جراحة الجملة العصبية",
-      "name_en": "Neurosurgery",
-      "icon": "🧠",
-      "color": "#fea101",
-      "parentSpec": null,
-      "acceptPool": [],
-      "enabled": true
-    },
-    {
-      "id": "R_iraqi",
-      "name_ar": "الأشعة و السونار",
-      "name_en": "Radiology",
-      "icon": "🩻",
-      "color": "#6700e6",
       "parentSpec": null,
       "acceptPool": [],
       "enabled": true

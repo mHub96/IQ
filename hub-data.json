@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T09:56:58.736Z",
+  "lastUpdated": "2026-09-29T09:57:17.911Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24699,6 +24699,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumi5rdhdjz1",
+          "name": "د. بتول عماد عبدالحافظ",
+          "phone": "رقم غير متوفر",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -45157,6 +45170,19 @@
     {
       "id": "res-mumi5cktzljm",
       "name": "د. مجيد ياسين مجيد",
+      "phone": "",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumi5rdhdjz1",
+      "name": "د. بتول عماد عبدالحافظ",
       "phone": "",
       "spec": "REF",
       "tag": "REF",

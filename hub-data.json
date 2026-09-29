@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T10:00:09.833Z",
+  "lastUpdated": "2026-09-29T10:00:25.359Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24803,6 +24803,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumi9s0c0pos",
+          "name": "د. حسين فراس ناصر",
+          "phone": "رقم غير متوفر",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -45365,6 +45378,19 @@
     {
       "id": "res-mumi9g13j9bm",
       "name": "د. اسراء فوزي فنجان",
+      "phone": "",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumi9s0c0pos",
+      "name": "د. حسين فراس ناصر",
       "phone": "",
       "spec": "REF",
       "tag": "REF",

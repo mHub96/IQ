@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:00:54.957Z",
+  "lastUpdated": "2026-09-29T08:01:01.050Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20473,16 +20473,6 @@
       },
       "specialties": [
         {
-          "id": "NS",
-          "name_ar": "جراحة الجملة العصبية",
-          "name_en": "Neurosurgery",
-          "icon": "🧠",
-          "color": "#fea101",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
           "id": "GS",
           "name_ar": "الجراحة العامة",
           "name_en": "General Surgery",
@@ -23866,14 +23856,6 @@
         }
       ],
       "schedule": [
-        {
-          "date": "18/04/2026",
-          "specCode": "NS",
-          "name": "د. علي جواد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
         {
           "date": "20/07/2026",
           "specCode": "MF",

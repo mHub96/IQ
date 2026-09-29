@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T05:14:24.450Z",
+  "lastUpdated": "2026-09-29T05:14:26.273Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20291,7 +20291,7 @@
           "date": "29/09/2026",
           "specCode": "ICU",
           "name": "د. سماء علي",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -28824,15 +28824,6 @@
           "timestamp": "21:11"
         },
         {
-          "date": "29/09/2026",
-          "specCode": "OR",
-          "name": "د. محمد ناظم",
-          "VisitCount": 0,
-          "dutySlot": 0,
-          "dutyTime": "",
-          "timestamp": "08:02"
-        },
-        {
           "date": "30/09/2026",
           "specCode": "OR",
           "name": "د. محمد ناظم",
@@ -30246,7 +30237,7 @@
           "date": "29/09/2026",
           "specCode": "ICU",
           "name": "د. رسل عوده ساري",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0
         },
@@ -31101,11 +31092,10 @@
         {
           "date": "29/09/2026",
           "specCode": "M",
-          "name": "د مها عباس جابر",
+          "name": "د. فاديا ثائر",
           "VisitCount": 0,
           "dutyTime": "08:00AM - 08:00PM",
-          "dutySlot": 0,
-          "timestamp": "08:07"
+          "dutySlot": 0
         },
         {
           "date": "29/09/2026",
@@ -32354,6 +32344,15 @@
           "dutySlot": 0,
           "dutyTime": "08:00AM - 08:00PM",
           "timestamp": "23:05"
+        },
+        {
+          "date": "29/09/2026",
+          "specCode": "OR",
+          "name": "د. محمد ناظم",
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": "",
+          "timestamp": "08:02"
         }
       ],
       "rotationHeroesUrl": "",

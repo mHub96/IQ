@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:06:34.983Z",
+  "lastUpdated": "2026-09-29T08:06:54.706Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -23818,6 +23818,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mume7svkjcak",
+          "name": "د. علي علاء",
+          "phone": "0770 418 4424",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -28370,7 +28383,7 @@
           "date": "29/09/2026",
           "specCode": "MF",
           "name": "د. عبد الله وسام",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutySlot": 0,
           "dutyTime": ""
         },
@@ -43406,6 +43419,19 @@
       "hospitals": [
         "basra"
       ]
+    },
+    {
+      "id": "res-mume7svkjcak",
+      "name": "د. علي علاء",
+      "phone": "0770 418 4424",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
     }
   ],
   "globalSpecialties": [
@@ -43738,7 +43764,6 @@
       "name_ar": "دوري احالات",
       "name_en": "Refferral",
       "icon": "🚑",
-      "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
       "enabled": true

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T09:15:11.164Z",
+  "lastUpdated": "2026-09-29T09:15:27.293Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24452,6 +24452,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumgny62iwlu",
+          "name": "د. مرتضى رعد حمودي",
+          "phone": "رقم غير متوفر",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -44663,6 +44676,19 @@
     {
       "id": "res-mumgnlq1b0m8",
       "name": "د. علا غسان حامد",
+      "phone": "",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumgny62iwlu",
+      "name": "د. مرتضى رعد حمودي",
       "phone": "",
       "spec": "REF",
       "tag": "REF",

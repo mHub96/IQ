@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T09:18:28.185Z",
+  "lastUpdated": "2026-09-29T09:47:24.558Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24517,6 +24517,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumht1jg0b4p",
+          "name": "د. بنين اياد عبادي",
+          "phone": "رقم غير متوفر",
+          "spec": "NS",
+          "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -44798,6 +44811,19 @@
       "tag": "REF",
       "dept": "REF",
       "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumht1jg0b4p",
+      "name": "د. بنين اياد عبادي",
+      "phone": "",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
       "active": true,
       "hospitals": [
         "basra"

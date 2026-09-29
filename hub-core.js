@@ -1436,7 +1436,10 @@
         // Check if this specialty from this source is already cloned
         let existingClone = targetHosp.specialties.find(s => s.isClone && s.clonedFromHospitalId === sourceHospitalId && s.clonedFromSpecId === sourceSpecId);
         if (existingClone) {
-            throw new Error('هذا التخصص مستنسخ مسبقاً في هذا المستشفى ولا يمكن إضافته أكثر من مرة.');
+            existingClone.enabled = true;
+            if (customColor) existingClone.color = customColor;
+            await saveDatabase(`Re-enabled clone specialty ${sourceSpecId} from ${sourceHospitalId} into ${targetHospitalId}`);
+            return existingClone;
         }
 
         // Determine unique ID in target hospital

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T20:51:22.051Z",
+  "lastUpdated": "2026-09-29T20:53:16.882Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -824,15 +824,15 @@
         {
           "id": "res-0013",
           "name": "د. ايناس عدنان",
-          "phone": "+9647733358134",
+          "phone": "+964 788 421 4325",
           "spec": "A",
           "tag": "A",
           "dept": "A",
           "department": "A",
           "active": true,
           "hospitals": [
-            "basra",
-            "iraqi"
+            "iraqi",
+            "basra"
           ]
         },
         {
@@ -21258,15 +21258,15 @@
         {
           "id": "res-0013",
           "name": "د. ايناس عدنان",
-          "phone": "+9647733358134",
+          "phone": "+964 788 421 4325",
           "spec": "A",
           "tag": "A",
           "dept": "A",
           "department": "A",
           "active": true,
           "hospitals": [
-            "basra",
-            "iraqi"
+            "iraqi",
+            "basra"
           ]
         },
         {
@@ -38556,15 +38556,15 @@
     {
       "id": "res-0013",
       "name": "د. ايناس عدنان",
-      "phone": "+9647733358134",
+      "phone": "+964 788 421 4325",
       "spec": "A",
       "tag": "A",
       "dept": "A",
       "department": "A",
       "active": true,
       "hospitals": [
-        "basra",
-        "iraqi"
+        "iraqi",
+        "basra"
       ]
     },
     {

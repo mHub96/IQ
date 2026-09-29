@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T16:03:33.628Z",
+  "lastUpdated": "2026-09-29T16:03:45.642Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20763,6 +20763,17 @@
           "color": "#0f766e",
           "parentSpec": null,
           "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "R_iraqi",
+          "name_ar": "الأشعة و السونار",
+          "name_en": "Radiology",
+          "icon": "🩻",
+          "color": "#6700e6",
+          "isClone": true,
+          "clonedFromHospitalId": "iraqi",
+          "clonedFromSpecId": "R",
           "enabled": true
         }
       ],

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:49:52.745Z",
+  "lastUpdated": "2026-09-29T08:50:30.137Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24182,6 +24182,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumfruyh2xx6",
+          "name": "د. عبدالله كاظم جواد",
+          "phone": "0777 164 2474",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -44134,6 +44147,19 @@
       "id": "res-mumfr23qvpxs",
       "name": "د. محمد خيري دفار",
       "phone": "+964 772 910 7469",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumfruyh2xx6",
+      "name": "د. عبدالله كاظم جواد",
+      "phone": "0777 164 2474",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

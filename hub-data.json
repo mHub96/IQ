@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:47:43.513Z",
+  "lastUpdated": "2026-09-29T08:48:17.877Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24143,6 +24143,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumfp0wj2ezz",
+          "name": "د. احمد خلف عبد",
+          "phone": "0786 143 7337",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -44056,6 +44069,19 @@
       "id": "res-mumfoady9zdj",
       "name": "د. ابو تراب قيس عبدالحسن",
       "phone": "0782 969 0018",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumfp0wj2ezz",
+      "name": "د. احمد خلف عبد",
+      "phone": "0786 143 7337",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

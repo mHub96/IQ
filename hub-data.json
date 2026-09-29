@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:30:58.212Z",
+  "lastUpdated": "2026-09-29T08:31:25.124Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -23987,6 +23987,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumf3bghbn7t",
+          "name": "د. زينب محمد مهاوي",
+          "phone": "0783 008 2928",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -43744,6 +43757,19 @@
       "id": "res-mumf2qoxv95f",
       "name": "د. كفاء جبر عجيل",
       "phone": "0787 287 0588",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumf3bghbn7t",
+      "name": "د. زينب محمد مهاوي",
+      "phone": "0783 008 2928",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

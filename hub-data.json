@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T09:14:33.907Z",
+  "lastUpdated": "2026-09-29T09:15:11.164Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24439,6 +24439,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumgnlq1b0m8",
+          "name": "د. علا غسان حامد",
+          "phone": "رقم غير متوفر",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -44637,6 +44650,19 @@
     {
       "id": "res-mumgmsz5xrll",
       "name": "د. الاء توفيق جبار",
+      "phone": "",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumgnlq1b0m8",
+      "name": "د. علا غسان حامد",
       "phone": "",
       "spec": "REF",
       "tag": "REF",

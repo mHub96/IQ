@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T09:13:09.929Z",
+  "lastUpdated": "2026-09-29T09:14:15.073Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24413,6 +24413,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumgmefytqr3",
+          "name": "د. اسيل علي طرار",
+          "phone": "رقم غير متوفر",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -44585,6 +44598,19 @@
     {
       "id": "res-mumgl06fngk9",
       "name": "د. نور رياض بنيان",
+      "phone": "",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumgmefytqr3",
+      "name": "د. اسيل علي طرار",
       "phone": "",
       "spec": "REF",
       "tag": "REF",

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T05:52:47.242Z",
+  "lastUpdated": "2026-09-29T05:53:07.221Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -18378,7 +18378,7 @@
           "date": "29/09/2026",
           "specCode": "ON",
           "name": "د. حميدة حبيب عباس",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -29060,7 +29060,7 @@
           "date": "29/09/2026",
           "specCode": "US",
           "name": "د. حيدر علي",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutySlot": 0,
           "dutyTime": ""
         },
@@ -29292,7 +29292,7 @@
           "date": "29/09/2026",
           "specCode": "ENT",
           "name": "د. بان عبد الامير صمد",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutySlot": 0,
           "dutyTime": ""
         },
@@ -29789,7 +29789,7 @@
           "date": "29/09/2026",
           "specCode": "OP",
           "name": "د. ايات فيصل",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutySlot": 0,
           "dutyTime": ""
         },
@@ -30013,7 +30013,7 @@
           "date": "29/09/2026",
           "specCode": "D",
           "name": "د. زهراء توفيق",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutySlot": 0,
           "dutyTime": "08:00AM - 08:00PM"
         },
@@ -30236,11 +30236,10 @@
         {
           "date": "29/09/2026",
           "specCode": "ICU",
-          "name": "د. زينب عبد الرزاق",
+          "name": "د. رسل عوده ساري",
           "VisitCount": 1,
           "dutyTime": "08:00AM - 08:00PM",
-          "dutySlot": 0,
-          "timestamp": "08:37"
+          "dutySlot": 0
         },
         {
           "date": "29/09/2026",
@@ -31915,11 +31914,10 @@
         {
           "date": "29/09/2026",
           "specCode": "O",
-          "name": "د. بشير حسن",
+          "name": "د. مصطفى هادي",
           "VisitCount": 0,
           "dutyTime": "",
-          "dutySlot": 0,
-          "timestamp": "08:52"
+          "dutySlot": 0
         },
         {
           "date": "30/09/2026",
@@ -36648,7 +36646,7 @@
           "date": "29/09/2026",
           "specCode": "ICU",
           "name": "د. اسماء مطشر حسين",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },

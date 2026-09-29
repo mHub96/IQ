@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T12:54:46.575Z",
+  "lastUpdated": "2026-09-29T12:59:10.240Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22620,6 +22620,19 @@
           ]
         },
         {
+          "id": "res-0190",
+          "name": "د. علي حسين عبدالرضا",
+          "phone": "+9647849000964",
+          "spec": "GS",
+          "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
+        },
+        {
           "id": "res-0336",
           "name": "د. علي حمادي",
           "phone": "+9647706921715",
@@ -41999,12 +42012,14 @@
       "id": "res-0190",
       "name": "د. علي حسين عبدالرضا",
       "phone": "+9647849000964",
-      "spec": "CT",
-      "tag": "CT",
+      "spec": "GS",
+      "tag": "GS",
       "dept": "GS",
       "department": "GS",
-      "active": false,
-      "hospitals": []
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
     },
     {
       "id": "res-0336",

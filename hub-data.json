@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:22:55.309Z",
+  "lastUpdated": "2026-09-29T08:23:30.994Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -23870,6 +23870,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumet5m8r98e",
+          "name": "د. معتز حميد محمد",
+          "phone": "0786 716 8648",
+          "spec": "NS",
+          "tag": "NS",
+          "dept": "AO",
+          "department": "AO",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -43514,6 +43527,19 @@
       "tag": "REF",
       "dept": "REF",
       "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumet5m8r98e",
+      "name": "د. معتز حميد محمد",
+      "phone": "0786 716 8648",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "AO",
+      "department": "AO",
       "active": true,
       "hospitals": [
         "basra"

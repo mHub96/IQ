@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T07:58:20.298Z",
+  "lastUpdated": "2026-09-29T07:58:49.130Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -28878,11 +28878,10 @@
         {
           "date": "29/09/2026",
           "specCode": "OR",
-          "name": "د. محمد ناظم",
+          "name": "د. المصطفى سعد عبد الصمد",
           "VisitCount": 2,
           "dutySlot": 0,
-          "dutyTime": "",
-          "timestamp": "10:58"
+          "dutyTime": ""
         },
         {
           "date": "30/09/2026",
@@ -32278,6 +32277,30 @@
           "name": "د. حسنين كريم صالح",
           "timestamp": "12:08",
           "VisitCount": 0
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "ENT",
+          "name": "د. بان عبد الامير صمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "ENT",
+          "name": "د. مريم علي محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "ENT",
+          "name": "د. مريم علي محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
         }
       ],
       "rotationHeroesUrl": "",

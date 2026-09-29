@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:30:06.019Z",
+  "lastUpdated": "2026-09-29T08:30:33.395Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -23961,6 +23961,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumf27jlpy1s",
+          "name": "د. نبأ قاسم يسر",
+          "phone": "0771 628 3489",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -43692,6 +43705,19 @@
       "id": "res-mumf1mf5owmc",
       "name": "د. رغد حسين كاظم",
       "phone": "0774 542 7074",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumf27jlpy1s",
+      "name": "د. نبأ قاسم يسر",
+      "phone": "0771 628 3489",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

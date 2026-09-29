@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:58:02.007Z",
+  "lastUpdated": "2026-09-29T08:58:17.337Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24296,6 +24296,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumg1vg9o026",
+          "name": "د. ضحى فوزي صدام",
+          "phone": "رقم غير متوفر",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -44351,6 +44364,19 @@
     {
       "id": "res-mumg1jmco61d",
       "name": "د. نور الهدى عبدالله حسن",
+      "phone": "",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumg1vg9o026",
+      "name": "د. ضحى فوزي صدام",
       "phone": "",
       "spec": "REF",
       "tag": "REF",

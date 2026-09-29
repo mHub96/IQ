@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:03:39.408Z",
+  "lastUpdated": "2026-09-29T08:03:42.586Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20741,16 +20741,6 @@
           "name_en": "General Practitioner",
           "icon": "🏥",
           "color": "#627ae4",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
-          "id": "PS",
-          "name_ar": "الجراحة التجميلية",
-          "name_en": "Plastic Surgery",
-          "icon": "🪡",
-          "color": "#2563eb",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false

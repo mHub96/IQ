@@ -1608,6 +1608,38 @@
             document.getElementById('edit-res-hosp-multi-wrap').classList.toggle('hidden', !isMulti);
         }
 
+        function formatDoctorName(rawName) {
+            if (!rawName || typeof rawName !== 'string') return '';
+            let cleaned = rawName.trim();
+            cleaned = cleaned.replace(/^(د|dr)[\.\s\:\/]+/gi, '').trim();
+            if (!cleaned) return '';
+            return `د. ${cleaned}`;
+        }
+
+        function formatIraqiPhoneNumber(rawPhone) {
+            if (!rawPhone || typeof rawPhone !== 'string') return '';
+            let p = rawPhone.trim();
+            const arabicDigits = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+            for (let i = 0; i < 10; i++) {
+                p = p.split(arabicDigits[i]).join(String(i));
+            }
+            const hasPlus = p.startsWith('+');
+            p = p.replace(/\D/g, '');
+            if (!p) return '';
+            if (p.startsWith('00964')) {
+                p = '+964' + p.substring(5);
+            } else if (p.startsWith('964')) {
+                p = '+' + p;
+            } else if (p.startsWith('07')) {
+                p = '+964' + p.substring(1);
+            } else if (p.startsWith('7') && p.length === 10) {
+                p = '+964' + p;
+            } else if (hasPlus) {
+                p = '+' + p;
+            }
+            return p;
+        }
+
         async function submitAddResident() {
             const name = document.getElementById('new-res-name').value.trim();
             const phone = document.getElementById('new-res-phone').value.trim();
@@ -1635,7 +1667,8 @@
                 assignedHospitals = [singleHid];
             }
 
-            const formattedName = name.startsWith('د.') || name.startsWith('د ') ? name : `د. ${name}`;
+            const formattedName = formatDoctorName(name);
+            const formattedPhone = formatIraqiPhoneNumber(phone);
 
             // Close panel immediately on save
             document.getElementById('new-res-name').value = '';
@@ -1647,7 +1680,7 @@
             try {
                 await Hub.addResident({
                     name: formattedName,
-                    phone: phone,
+                    phone: formattedPhone,
                     spec: spec,
                     tag: spec,
                     dept: dept,
@@ -1741,6 +1774,8 @@
             }
 
             const oldName = currentHospital.names[idx].name;
+            const formattedName = formatDoctorName(name);
+            const formattedPhone = formatIraqiPhoneNumber(phone);
 
             // Close modal immediately on save
             closeEditModal();
@@ -1748,8 +1783,8 @@
             try {
                 const targetIdOrName = resId || oldName;
                 await Hub.updateResident(targetIdOrName, {
-                    name: name,
-                    phone: phone,
+                    name: formattedName,
+                    phone: formattedPhone,
                     spec: spec,
                     tag: spec,
                     dept: dept,
@@ -1759,9 +1794,9 @@
                 });
 
                 // Also update schedule logs if name was changed
-                if (oldName !== name) {
+                if (oldName !== formattedName) {
                     (currentHospital.schedule || []).forEach(s => {
-                        if (s.name === oldName) s.name = name;
+                        if (s.name === oldName) s.name = formattedName;
                     });
                 }
 
@@ -1772,7 +1807,7 @@
                     preserveScroll: true,
                     forceOpenSpecId: spec,
                     highlightResidentId: resId,
-                    highlightResidentName: name
+                    highlightResidentName: formattedName
                 });
                 updateStatsBadges();
                 showToast('تم حفظ تعديل المقيم بنجاح', 'success');
@@ -2302,16 +2337,22 @@
             const sourceHosp = Hub.getHospital ? Hub.getHospital(sourceHospitalId) : null;
             if (!sourceHosp) {
                 specSelect.innerHTML = '<option value="">-- اختر المستشفى أولاً --</option>';
+                onCloneSourceSpecChanged();
                 return;
             }
 
-            const activeSpecs = (sourceHosp.specialties || []).filter(s => s.enabled !== false);
-            if (activeSpecs.length === 0) {
-                specSelect.innerHTML = '<option value="">-- لا توجد تخصصات في هذا المستشفى --</option>';
+            // Filter out specialties already cloned into current hospital
+            const existingClones = (currentHospital.specialties || []).filter(s => s && s.isClone && s.clonedFromHospitalId === sourceHospitalId);
+            const alreadyClonedSpecIds = new Set(existingClones.map(s => s.clonedFromSpecId));
+
+            const availableSpecs = (sourceHosp.specialties || []).filter(s => s.enabled !== false && !alreadyClonedSpecIds.has(s.id));
+            if (availableSpecs.length === 0) {
+                specSelect.innerHTML = '<option value="">-- جميع تخصصات هذا المستشفى مضافة مسبقاً --</option>';
+                onCloneSourceSpecChanged();
                 return;
             }
 
-            specSelect.innerHTML = activeSpecs.map(s => {
+            specSelect.innerHTML = availableSpecs.map(s => {
                 const sName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(s.id, sourceHospitalId) : (s.name_ar || s.id);
                 return `<option value="${s.id}" data-color="${s.color || '#0f766e'}">${s.icon || '🏥'} ${sName} (${s.id})</option>`;
             }).join('');
@@ -2344,6 +2385,13 @@
             }
             if (!sourceSpecId) {
                 showToast('الرجاء اختيار التخصص المطلوب استنساخه', 'error');
+                return;
+            }
+
+            // Check if already cloned
+            const isAlreadyCloned = (currentHospital.specialties || []).some(s => s && s.isClone && s.clonedFromHospitalId === sourceHospitalId && s.clonedFromSpecId === sourceSpecId);
+            if (isAlreadyCloned) {
+                showToast('هذا التخصص مستنسخ بالفعل في هذا المستشفى ولا يمكن إضافته أكثر من مرة', 'error');
                 return;
             }
 

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:07:31.612Z",
+  "lastUpdated": "2026-09-29T08:08:18.656Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20574,6 +20574,16 @@
           "enabled": true
         },
         {
+          "id": "AO",
+          "name_ar": "المعاون الاداري",
+          "name_en": "Administrative Officer",
+          "icon": "🧑",
+          "color": "#2563eb",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
           "id": "OP",
           "name_ar": "تخدير العمليات",
           "name_en": "OT Anaesthesia",
@@ -20651,16 +20661,6 @@
           "name_en": "Radiology",
           "icon": "🩻",
           "color": "#6700e6",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
-          "id": "AO",
-          "name_ar": "المعاون الاداري",
-          "name_en": "Administrative Officer",
-          "icon": "🧑",
-          "color": "#2563eb",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true

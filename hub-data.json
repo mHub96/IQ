@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:28:27.013Z",
+  "lastUpdated": "2026-09-29T08:28:58.131Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -23922,6 +23922,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumf061dpfsj",
+          "name": "د. الحسن عمار ياسر",
+          "phone": "0776 054 7843",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -43614,6 +43627,19 @@
       "id": "res-mumezi0z902g",
       "name": "د. عمر فاروق مطشر",
       "phone": "0780 765 5988",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumf061dpfsj",
+      "name": "د. الحسن عمار ياسر",
+      "phone": "0776 054 7843",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

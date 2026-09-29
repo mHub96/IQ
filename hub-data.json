@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:38:26.471Z",
+  "lastUpdated": "2026-09-29T08:46:19.048Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24091,6 +24091,32 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumfc7qtn8jq",
+          "name": "د. زهراء علي خير الله",
+          "phone": "0781 106 9919",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
+        },
+        {
+          "id": "res-mumfmh7ogpp3",
+          "name": "د. احمد محمد فراي",
+          "phone": "0781 432 3744",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -30502,7 +30528,7 @@
           "date": "29/09/2026",
           "specCode": "ICU",
           "name": "د. آياد فالح",
-          "VisitCount": 2,
+          "VisitCount": 1,
           "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0,
           "timestamp": "10:49"
@@ -43952,6 +43978,32 @@
       "id": "res-mumfb485rd35",
       "name": "د. ود صائب عبدالهادي",
       "phone": "0783 144 0790",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumfc7qtn8jq",
+      "name": "د. زهراء علي خير الله",
+      "phone": "0781 106 9919",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumfmh7ogpp3",
+      "name": "د. احمد محمد فراي",
+      "phone": "0781 432 3744",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

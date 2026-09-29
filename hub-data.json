@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:58:17.337Z",
+  "lastUpdated": "2026-09-29T08:58:38.346Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24309,6 +24309,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumg2bnrqv52",
+          "name": "د. زينب حليم شرشاح",
+          "phone": "رقم غير متوفر",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -44377,6 +44390,19 @@
     {
       "id": "res-mumg1vg9o026",
       "name": "د. ضحى فوزي صدام",
+      "phone": "",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumg2bnrqv52",
+      "name": "د. زينب حليم شرشاح",
       "phone": "",
       "spec": "REF",
       "tag": "REF",

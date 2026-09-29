@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:07:01.103Z",
+  "lastUpdated": "2026-09-29T08:07:08.376Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -43764,6 +43764,7 @@
       "name_ar": "دوري احالات",
       "name_en": "Refferral",
       "icon": "🚑",
+      "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
       "enabled": true

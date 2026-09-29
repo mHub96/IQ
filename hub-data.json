@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T18:56:29.427Z",
+  "lastUpdated": "2026-09-29T18:57:27.197Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -2820,19 +2820,6 @@
           "dept": "NS",
           "department": "NS",
           "active": false,
-          "hospitals": [
-            "iraqi"
-          ]
-        },
-        {
-          "id": "res-mun1f5yrbwju",
-          "name": "د. مجيد حميد مجيد",
-          "phone": "07831004089",
-          "spec": "NS",
-          "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
-          "active": true,
           "hospitals": [
             "iraqi"
           ]
@@ -43638,19 +43625,6 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
-    },
-    {
-      "id": "res-mun1f5yrbwju",
-      "name": "د. مجيد حميد مجيد",
-      "phone": "07831004089",
-      "spec": "NS",
-      "tag": "NS",
-      "dept": "NS",
-      "department": "NS",
-      "active": true,
-      "hospitals": [
-        "iraqi"
       ]
     }
   ],

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:06:06.320Z",
+  "lastUpdated": "2026-09-29T08:06:34.983Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -28370,7 +28370,7 @@
           "date": "29/09/2026",
           "specCode": "MF",
           "name": "د. عبد الله وسام",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutySlot": 0,
           "dutyTime": ""
         },
@@ -43738,6 +43738,7 @@
       "name_ar": "دوري احالات",
       "name_en": "Refferral",
       "icon": "🚑",
+      "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
       "enabled": true

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T06:14:57.193Z",
+  "lastUpdated": "2026-09-29T06:20:32.999Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -346,16 +346,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "REFE",
-          "name_ar": "الاحالات",
-          "name_en": "Referrals",
-          "icon": "🚑",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true,
-          "color": "#0f766e"
         }
       ],
       "names": [
@@ -897,6 +887,20 @@
           "department": "OR",
           "active": false,
           "hospitals": [
+            "iraqi"
+          ]
+        },
+        {
+          "id": "res-0151",
+          "name": "د. حسنين فيصل",
+          "phone": "+9647803101498",
+          "spec": "GS",
+          "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
+          "active": false,
+          "hospitals": [
+            "basra",
             "iraqi"
           ]
         },
@@ -1549,13 +1553,13 @@
         },
         {
           "id": "res-0120",
-          "name": "د. زهراء غانم عبدالصاحب",
-          "phone": "+964 783 188 9389",
+          "name": "د. صفا كاظم حسن",
+          "phone": "+9647710888537",
           "spec": "ON",
           "tag": "ON",
           "dept": "ON",
           "department": "ON",
-          "active": true,
+          "active": false,
           "hospitals": [
             "iraqi"
           ]
@@ -1793,20 +1797,6 @@
           "active": true,
           "hospitals": [
             "iraqi"
-          ]
-        },
-        {
-          "id": "res-0190",
-          "name": "د. علي حسين عبدالرضا",
-          "phone": "+9647849000964",
-          "spec": "GS",
-          "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
-          "active": true,
-          "hospitals": [
-            "iraqi",
-            "basra"
           ]
         },
         {
@@ -2480,6 +2470,7 @@
           "department": "M",
           "active": true,
           "hospitals": [
+            "basra",
             "iraqi"
           ]
         },
@@ -18368,11 +18359,10 @@
         {
           "date": "28/09/2026",
           "specCode": "ON",
-          "name": "د. علي اسعد يحيى",
+          "name": "د. زهراء سهيل نجم",
           "VisitCount": 0,
           "dutyTime": "",
-          "dutySlot": 0,
-          "timestamp": "21:10"
+          "dutySlot": 0
         },
         {
           "date": "29/09/2026",
@@ -19103,7 +19093,7 @@
           "date": "28/09/2026",
           "specCode": "CT",
           "name": "د. علي عبدالرحمن عبدالصمد",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -20483,14 +20473,24 @@
       },
       "specialties": [
         {
-          "id": "AO",
-          "name_ar": "المعاون الاداري",
-          "name_en": "Administrative Officer",
-          "icon": "🧑",
-          "color": "#2563eb",
+          "id": "NS",
+          "name_ar": "جراحة الجملة العصبية",
+          "name_en": "Neurosurgery",
+          "icon": "🧠",
+          "color": "#fea101",
           "parentSpec": null,
           "acceptPool": [],
-          "enabled": true
+          "enabled": false
+        },
+        {
+          "id": "CT",
+          "name_ar": "جراحة الصدر و الاوعية الدموية",
+          "name_en": "Cardiothoracic Surgery",
+          "icon": "🫀",
+          "color": "#e05910",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "GS",
@@ -20629,41 +20629,11 @@
           "enabled": false
         },
         {
-          "id": "NM",
-          "name_ar": "طب الجملة العصبية",
-          "name_en": "Neuromedicine",
-          "icon": "🧠",
-          "color": "#79e9f1",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
           "id": "R",
           "name_ar": "الأشعة و السونار",
           "name_en": "Radiology",
           "icon": "🩻",
           "color": "#6700e6",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
-          "id": "N",
-          "name_ar": "طب امراض الكلى",
-          "name_en": "Nephrology",
-          "icon": "🧫",
-          "color": "#ff5ccb",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
-          "id": "P",
-          "name_ar": "النفسية",
-          "name_en": "Psychiatry",
-          "icon": "🧠",
-          "color": "#fef606",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true
@@ -20707,11 +20677,51 @@
           "enabled": true
         },
         {
-          "id": "REFE",
-          "name_ar": "الاحالات",
-          "name_en": "Referrals",
-          "icon": "🚑",
-          "color": "#650094",
+          "id": "AO",
+          "name_ar": "المعاون الاداري",
+          "name_en": "Administrative Officer",
+          "icon": "🧑",
+          "color": "#2563eb",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "ON",
+          "name_ar": "طب الاورام",
+          "name_en": "Oncology",
+          "icon": "☢️",
+          "color": "#84cc16",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": false
+        },
+        {
+          "id": "N",
+          "name_ar": "طب امراض الكلى",
+          "name_en": "Nephrology",
+          "icon": "🧫",
+          "color": "#ff5ccb",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "NM",
+          "name_ar": "طب الجملة العصبية",
+          "name_en": "Neuromedicine",
+          "icon": "🧠",
+          "color": "#79e9f1",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "P",
+          "name_ar": "النفسية",
+          "name_en": "Psychiatry",
+          "icon": "🧠",
+          "color": "#fef606",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true
@@ -20757,11 +20767,31 @@
           "enabled": false
         },
         {
+          "id": "H",
+          "name_ar": "طب الامراض القلبية",
+          "name_en": "Cardiology",
+          "icon": "🫀",
+          "color": "#c91d70",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": false
+        },
+        {
           "id": "PS",
           "name_ar": "الجراحة التجميلية",
           "name_en": "Plastic Surgery",
           "icon": "🪡",
           "color": "#2563eb",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": false
+        },
+        {
+          "id": "RM",
+          "name_ar": "طب الامراض التنفسية",
+          "name_en": "Respiratory Medicine",
+          "icon": "🫁",
+          "color": "#3bb8f7",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
@@ -21500,9 +21530,10 @@
           "tag": "GS",
           "dept": "GS",
           "department": "GS",
-          "active": true,
+          "active": false,
           "hospitals": [
-            "basra"
+            "basra",
+            "iraqi"
           ]
         },
         {
@@ -22623,13 +22654,12 @@
           "id": "res-0190",
           "name": "د. علي حسين عبدالرضا",
           "phone": "+9647849000964",
-          "spec": "GS",
-          "tag": "GS",
+          "spec": "CT",
+          "tag": "CT",
           "dept": "GS",
           "department": "GS",
-          "active": true,
+          "active": false,
           "hospitals": [
-            "iraqi",
             "basra"
           ]
         },
@@ -23530,6 +23560,20 @@
           ]
         },
         {
+          "id": "res-0105",
+          "name": "د. منتظر حميد هاشم",
+          "phone": "+9647827925226",
+          "spec": "H",
+          "tag": "H",
+          "dept": "M",
+          "department": "M",
+          "active": true,
+          "hospitals": [
+            "basra",
+            "iraqi"
+          ]
+        },
+        {
           "id": "res-0384",
           "name": "د. منير تعبان",
           "phone": "+9647703142928",
@@ -23845,6 +23889,14 @@
         }
       ],
       "schedule": [
+        {
+          "date": "18/04/2026",
+          "specCode": "NS",
+          "name": "د. علي جواد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
         {
           "date": "20/07/2026",
           "specCode": "MF",
@@ -28386,7 +28438,7 @@
           "date": "28/09/2026",
           "specCode": "MF",
           "name": "د. حسن فائق",
-          "VisitCount": 2,
+          "VisitCount": 0,
           "dutySlot": 0,
           "dutyTime": ""
         },
@@ -28602,7 +28654,7 @@
           "date": "28/09/2026",
           "specCode": "GS",
           "name": "د. علي احمد محسن",
-          "VisitCount": 3,
+          "VisitCount": 0,
           "dutySlot": 0,
           "dutyTime": ""
         },
@@ -28817,11 +28869,19 @@
         {
           "date": "28/09/2026",
           "specCode": "OR",
-          "name": "د. علي مطشر ابو كحيله",
-          "VisitCount": 11,
+          "name": "د. علي عبد الكريم عبدالله",
+          "VisitCount": 0,
           "dutySlot": 0,
           "dutyTime": "",
-          "timestamp": "21:11"
+          "timestamp": "16:34"
+        },
+        {
+          "date": "29/09/2026",
+          "specCode": "OR",
+          "name": "د. المصطفى سعد عبد الصمد",
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "30/09/2026",
@@ -29050,11 +29110,10 @@
         {
           "date": "28/09/2026",
           "specCode": "US",
-          "name": "د. عمر حسين",
+          "name": "د. حسين علي عطيه",
           "VisitCount": 0,
           "dutySlot": 0,
-          "dutyTime": "",
-          "timestamp": "23:53"
+          "dutyTime": ""
         },
         {
           "date": "29/09/2026",
@@ -29652,7 +29711,7 @@
           "date": "28/09/2026",
           "specCode": "Pe",
           "name": "د. لينا نجم عبد",
-          "VisitCount": 2,
+          "VisitCount": 1,
           "dutySlot": 0,
           "dutyTime": "",
           "timestamp": "16:35"
@@ -30010,13 +30069,20 @@
           "dutyTime": "08:00AM - 08:00PM"
         },
         {
+          "date": "28/09/2026",
+          "specCode": "D",
+          "name": "د. صبا ياسين",
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": "08:00AM - 08:00PM"
+        },
+        {
           "date": "29/09/2026",
           "specCode": "D",
-          "name": "د. علي حسن",
-          "VisitCount": 1,
+          "name": "د. زهراء توفيق",
+          "VisitCount": 0,
           "dutySlot": 0,
-          "dutyTime": "08:00AM - 08:00PM",
-          "timestamp": "09:01"
+          "dutyTime": "08:00AM - 08:00PM"
         },
         {
           "date": "30/09/2026",
@@ -30238,7 +30304,7 @@
           "date": "29/09/2026",
           "specCode": "ICU",
           "name": "د. رسل عوده ساري",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0
         },
@@ -31086,7 +31152,7 @@
           "date": "28/09/2026",
           "specCode": "M",
           "name": "د. محمد بشير",
-          "VisitCount": 2,
+          "VisitCount": 0,
           "dutyTime": "08:00PM - 08:00AM",
           "dutySlot": 1
         },
@@ -31772,6 +31838,14 @@
           "dutySlot": 1
         },
         {
+          "date": "28/09/2026",
+          "specCode": "D",
+          "name": "د. علي حسين عبدالرضا",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
           "date": "29/09/2026",
           "specCode": "D",
           "name": "د. حيدر علي",
@@ -31916,7 +31990,7 @@
           "date": "29/09/2026",
           "specCode": "O",
           "name": "د. مصطفى هادي",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -32199,167 +32273,6 @@
           "specCode": "GS",
           "name": "د. حسنين كريم صالح",
           "timestamp": "12:08",
-          "VisitCount": 0
-        },
-        {
-          "date": "02/10/2026",
-          "specCode": "ENT",
-          "name": "د. مريم علي محمد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "01/10/2026",
-          "specCode": "ENT",
-          "name": "د. بان عبد الامير صمد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "03/10/2026",
-          "specCode": "ENT",
-          "name": "د. مريم علي محمد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "04/10/2026",
-          "specCode": "ENT",
-          "name": "د. وديان باقر كامل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "05/10/2026",
-          "specCode": "ENT",
-          "name": "د. درر علي محمد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "06/10/2026",
-          "specCode": "ENT",
-          "name": "د. بان عبد الامير صمد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "07/10/2026",
-          "specCode": "ENT",
-          "name": "د. مريم علي محمد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "08/10/2026",
-          "specCode": "ENT",
-          "name": "د. الزهراء علي محمد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "09/10/2026",
-          "specCode": "ENT",
-          "name": "د. دعاء ناظم اسماعيل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "10/10/2026",
-          "specCode": "ENT",
-          "name": "د. درر علي محمد",
-          "VisitCount": 0,
-          "dutyTime": "08:00AM - 08:00PM",
-          "dutySlot": 0
-        },
-        {
-          "date": "11/10/2026",
-          "specCode": "ENT",
-          "name": "د. دعاء ناظم اسماعيل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "10/10/2026",
-          "specCode": "ENT",
-          "name": "د. بان عبد الامير صمد",
-          "VisitCount": 0,
-          "dutyTime": "08:00PM - 08:00AM",
-          "dutySlot": 1
-        },
-        {
-          "date": "12/10/2026",
-          "specCode": "ENT",
-          "name": "د. درر علي محمد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "13/10/2026",
-          "specCode": "ENT",
-          "name": "د. مريم علي محمد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "21/10/2026",
-          "specCode": "ENT",
-          "name": "د. درر علي محمد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "14/10/2026",
-          "specCode": "ENT",
-          "name": "د. وديان باقر كامل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "15/10/2026",
-          "specCode": "ENT",
-          "name": "د. وديان باقر كامل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "28/09/2026",
-          "specCode": "D",
-          "name": "د. علي وفي",
-          "VisitCount": 1,
-          "dutySlot": 0,
-          "dutyTime": "08:00AM - 08:00PM",
-          "timestamp": "23:05"
-        },
-        {
-          "date": "29/09/2026",
-          "specCode": "OR",
-          "name": "د. محمد ناظم",
-          "VisitCount": 2,
-          "dutySlot": 0,
-          "dutyTime": "",
-          "timestamp": "08:02"
-        },
-        {
-          "date": "29/09/2026",
-          "specCode": "NM",
-          "name": "د. منتظر حميد",
-          "timestamp": "08:19",
           "VisitCount": 0
         }
       ],
@@ -32712,16 +32625,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "REFE",
-          "name_ar": "الاحالات",
-          "name_en": "Referrals",
-          "icon": "🚑",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true,
-          "color": "#0f766e"
         }
       ],
       "names": [
@@ -34927,7 +34830,7 @@
           "date": "29/09/2026",
           "specCode": "M",
           "name": "د. حنان محمود حسن",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -38908,9 +38811,10 @@
       "tag": "GS",
       "dept": "GS",
       "department": "GS",
-      "active": true,
+      "active": false,
       "hospitals": [
-        "basra"
+        "basra",
+        "iraqi"
       ]
     },
     {
@@ -40511,13 +40415,13 @@
     },
     {
       "id": "res-0120",
-      "name": "د. زهراء غانم عبدالصاحب",
-      "phone": "+964 783 188 9389",
+      "name": "د. صفا كاظم حسن",
+      "phone": "+9647710888537",
       "spec": "ON",
       "tag": "ON",
       "dept": "ON",
       "department": "ON",
-      "active": true,
+      "active": false,
       "hospitals": [
         "iraqi"
       ]
@@ -41138,13 +41042,12 @@
       "id": "res-0190",
       "name": "د. علي حسين عبدالرضا",
       "phone": "+9647849000964",
-      "spec": "GS",
-      "tag": "GS",
+      "spec": "CT",
+      "tag": "CT",
       "dept": "GS",
       "department": "GS",
-      "active": true,
+      "active": false,
       "hospitals": [
-        "iraqi",
         "basra"
       ]
     },
@@ -42822,6 +42725,7 @@
       "department": "M",
       "active": true,
       "hospitals": [
+        "basra",
         "iraqi"
       ]
     },
@@ -43876,16 +43780,6 @@
       "name_ar": "طب الامراض التنفسية",
       "name_en": "Respiratory Medicine",
       "icon": "🫁",
-      "color": "#0f766e",
-      "parentSpec": null,
-      "acceptPool": [],
-      "enabled": true
-    },
-    {
-      "id": "REFE",
-      "name_ar": "الاحالات",
-      "name_en": "Referrals",
-      "icon": "🚑",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],

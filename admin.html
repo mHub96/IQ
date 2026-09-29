@@ -1383,13 +1383,14 @@
             const specs = currentHospital.specialties || [];
             const names = currentHospital.names || [];
             const showEmpty = window.showEmptySpecialties === true;
+            const isResidentActive = (n) => n.active !== false && n.spec !== 'RESERVE';
 
             let renderedCount = 0;
             let hiddenEmptyCount = 0;
 
-            const itemsHtml = specs.map(spec => {
-                const primaryResidents = names.filter(n => n.spec === spec.id || n.tag === spec.id);
-                const rotatingResidents = names.filter(n => (n.dept === spec.id || n.department === spec.id) && n.spec !== spec.id && n.tag !== spec.id);
+            const itemsHtmlArray = specs.map(spec => {
+                const primaryResidents = names.filter(n => (n.spec === spec.id || n.tag === spec.id) && isResidentActive(n));
+                const rotatingResidents = names.filter(n => (n.dept === spec.id || n.department === spec.id) && n.spec !== spec.id && n.tag !== spec.id && isResidentActive(n));
                 const totalCount = primaryResidents.length + rotatingResidents.length;
 
                 if (totalCount === 0) {
@@ -1428,7 +1429,7 @@
                                 <div class="text-center py-4 text-xs text-slate-400">لا يوجد مقيمين مسجلين في هذا التخصص حالياً (0 مقيم)</div>
                             ` : `
                                 <!-- Primary Residents in this Specialty -->
-                                ${primaryResidents.map(r => renderResidentCardItem(r, false)).join('')}
+                                ${primaryResidents.map(r => renderResidentCardItem(r, false, false)).join('')}
 
                                 <!-- Guest Rotating Residents Assigned to this Department -->
                                 ${rotatingResidents.length > 0 ? `
@@ -1436,15 +1437,77 @@
                                         <i class="fas fa-rotate"></i>
                                         <span>أطباء متناوبون مكلفون بدوام وخفارات هذا القسم (${rotatingResidents.length}):</span>
                                     </div>
-                                    ${rotatingResidents.map(r => renderResidentCardItem(r, true)).join('')}
+                                    ${rotatingResidents.map(r => renderResidentCardItem(r, true, false)).join('')}
                                 ` : ''}
                             `}
                         </div>
                     </div>
                 `;
-            }).join('');
+            });
 
-            container.innerHTML = itemsHtml || `
+            // Dedicated RESERVE Category for Inactive / Reserve Residents
+            const reserveResidents = names.filter(n => !isResidentActive(n));
+            const reserveCount = reserveResidents.length;
+            let reserveHtml = '';
+
+            if (reserveCount === 0) {
+                hiddenEmptyCount++;
+                if (showEmpty) {
+                    renderedCount++;
+                    const boxId = 'spec-box-RESERVE';
+                    const isOpen = window.openSpecBoxIds.has(boxId);
+                    reserveHtml = `
+                        <div class="mb-2">
+                            <div class="spec-header border-dashed border-amber-300 dark:border-amber-700/60 bg-amber-50/50 dark:bg-amber-950/20" onclick="toggleAccordion('${boxId}')">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-xl">⏳</span>
+                                    <span class="font-bold text-amber-900 dark:text-amber-300">RESERVE (قائمة الاحتياط - الأطباء غير النشطين)</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900">
+                                        0 مقيم
+                                    </span>
+                                    <i class="fas ${isOpen ? 'fa-chevron-up' : 'fa-chevron-down'} text-xs text-slate-400"></i>
+                                </div>
+                            </div>
+                            <div id="${boxId}" class="spec-content ${isOpen ? 'active' : ''}">
+                                <div class="text-center py-4 text-xs text-slate-400">لا يوجد أطباء في قائمة الاحتياط حالياً (0 مقيم)</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                renderedCount++;
+                const boxId = 'spec-box-RESERVE';
+                const isOpen = window.openSpecBoxIds.has(boxId);
+                reserveHtml = `
+                    <div class="mb-2">
+                        <div class="spec-header border border-amber-400 dark:border-amber-700/70 bg-amber-50/70 dark:bg-amber-950/30" onclick="toggleAccordion('${boxId}')">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-xl">⏳</span>
+                                <span class="font-bold text-amber-900 dark:text-amber-300">RESERVE (قائمة الاحتياط - الأطباء غير النشطين)</span>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-200/80 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 font-bold">
+                                    غير مشمولين بالخفارات
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                                    ${reserveCount} مقيم احتياط
+                                </span>
+                                <i class="fas ${isOpen ? 'fa-chevron-up' : 'fa-chevron-down'} text-xs text-amber-600 dark:text-amber-400"></i>
+                            </div>
+                        </div>
+
+                        <div id="${boxId}" class="spec-content ${isOpen ? 'active' : ''}">
+                            ${reserveResidents.map(r => renderResidentCardItem(r, false, true)).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            const allHtml = itemsHtmlArray.filter(Boolean).join('') + reserveHtml;
+
+            container.innerHTML = allHtml || `
                 <div class="p-8 text-center text-slate-400 glass-card">
                     <i class="fas fa-filter text-3xl mb-2 text-slate-300 dark:text-slate-600"></i>
                     <div class="font-bold text-sm">جميع التخصصات المتبقية فارغة (0 مقيم) وتم إخفاؤها تلقائياً.</div>
@@ -1455,9 +1518,9 @@
             const summaryEl = document.getElementById('specs-filter-summary');
             if (summaryEl) {
                 if (hiddenEmptyCount > 0 && !showEmpty) {
-                    summaryEl.innerHTML = `<i class="fas fa-eye-slash ml-1 text-slate-400"></i> عرض ${renderedCount} تخصصاً نشطاً (تم إخفاء ${hiddenEmptyCount} فارغاً)`;
+                    summaryEl.innerHTML = `<i class="fas fa-eye-slash ml-1 text-slate-400"></i> عرض ${renderedCount} فئة نشطة (تم إخفاء ${hiddenEmptyCount} فارغة)`;
                 } else {
-                    summaryEl.innerHTML = `<i class="fas fa-list-check ml-1 text-teal-600 dark:text-amber-400"></i> عرض جميع التخصصات (${specs.length} تخصص)`;
+                    summaryEl.innerHTML = `<i class="fas fa-list-check ml-1 text-teal-600 dark:text-amber-400"></i> عرض جميع التخصصات وفئة الاحتياط (${specs.length + 1} فئة)`;
                 }
             }
 
@@ -1482,7 +1545,7 @@
             }
         }
 
-        function renderResidentCardItem(r, isGuestRotating) {
+        function renderResidentCardItem(r, isGuestRotating, isReserve) {
             const names = currentHospital.names || [];
             const realIdx = names.indexOf(r);
             const isActive = r.active !== false && r.spec !== 'RESERVE';
@@ -1491,18 +1554,23 @@
             const hasRotation = rDeptId !== rSpecId;
 
             const globalSpecs = (typeof Hub !== 'undefined' && Hub.getGlobalSpecialties) ? Hub.getGlobalSpecialties() : [];
-            const originSpecObj = globalSpecs.find(s => s.id === rSpecId) || (currentHospital.specialties || []).find(s => s.id === rSpecId) || { name_ar: rSpecId };
-            const deptSpecObj = globalSpecs.find(s => s.id === rDeptId) || (currentHospital.specialties || []).find(s => s.id === rDeptId) || { name_ar: rDeptId };
+            const originSpecObj = globalSpecs.find(s => s.id === rSpecId) || (currentHospital.specialties || []).find(s => s.id === rSpecId) || { name_ar: (window.Hub && Hub.getSpecialtyName ? Hub.getSpecialtyName(rSpecId) : rSpecId) };
+            const deptSpecObj = globalSpecs.find(s => s.id === rDeptId) || (currentHospital.specialties || []).find(s => s.id === rDeptId) || { name_ar: (window.Hub && Hub.getSpecialtyName ? Hub.getSpecialtyName(rDeptId) : rDeptId) };
+            const originSpecName = (originSpecObj && originSpecObj.name_ar && originSpecObj.name_ar !== 'RESERVE') ? originSpecObj.name_ar : (window.Hub && Hub.getSpecialtyName ? Hub.getSpecialtyName(rSpecId) : rSpecId);
             const cardDomId = r.id ? `resident-card-${r.id}` : `resident-card-idx-${realIdx}`;
 
             return `
-                <div id="${cardDomId}" data-res-name="${r.name}" data-res-id="${r.id || ''}" class="resident-card ${isGuestRotating ? 'border-amber-200 dark:border-amber-800/40 bg-amber-50/20 dark:bg-amber-950/10' : ''}">
+                <div id="${cardDomId}" data-res-name="${r.name}" data-res-id="${r.id || ''}" class="resident-card ${isReserve ? 'border-amber-300 dark:border-amber-800/60 bg-amber-50/30 dark:bg-amber-950/20' : (isGuestRotating ? 'border-amber-200 dark:border-amber-800/40 bg-amber-50/20 dark:bg-amber-950/10' : '')}">
                     <div class="flex items-center gap-3 flex-1 min-w-0">
                         <span class="w-2.5 h-2.5 rounded-full flex-shrink-0 ${isActive ? 'bg-emerald-500' : 'bg-amber-500'}"></span>
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center gap-2 flex-wrap">
                                 <span class="font-bold text-sm text-slate-800 dark:text-slate-200">${r.name}</span>
-                                ${isGuestRotating ? `
+                                ${isReserve ? `
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700" title="اختصاص الطبيب">
+                                        <i class="fas fa-stethoscope ml-1 text-teal-600 dark:text-amber-400"></i> اختصاصه: ${originSpecName}
+                                    </span>
+                                ` : (isGuestRotating ? `
                                     <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
                                         <i class="fas fa-rotate ml-1"></i> متناوب (تخصصه الأصلي: ${originSpecObj.name_ar})
                                     </span>
@@ -1510,7 +1578,7 @@
                                     <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-700">
                                         <i class="fas fa-arrow-right-arrow-left ml-1"></i> تناوب في: ${deptSpecObj.name_ar} (خفاراته هناك)
                                     </span>
-                                ` : '')}
+                                ` : ''))}
                             </div>
                             <div class="text-xs font-mono text-slate-400" dir="ltr">${r.phone || 'بدون هاتف'}</div>
                         </div>
@@ -1690,11 +1758,12 @@
                 });
 
                 currentHospital = Hub.getActiveHospital();
+                const targetBoxSpec = (active && spec !== 'RESERVE') ? spec : 'RESERVE';
                 if (!window.openSpecBoxIds) window.openSpecBoxIds = new Set();
-                window.openSpecBoxIds.add(`spec-box-${spec}`);
+                window.openSpecBoxIds.add(`spec-box-${targetBoxSpec}`);
                 renderResidentsAccordion({
                     preserveScroll: true,
-                    forceOpenSpecId: spec,
+                    forceOpenSpecId: targetBoxSpec,
                     highlightResidentName: formattedName,
                     scrollIntoView: true
                 });
@@ -1801,11 +1870,12 @@
                 }
 
                 currentHospital = Hub.getActiveHospital();
+                const targetBoxSpec = (active && spec !== 'RESERVE') ? spec : 'RESERVE';
                 if (!window.openSpecBoxIds) window.openSpecBoxIds = new Set();
-                window.openSpecBoxIds.add(`spec-box-${spec}`);
+                window.openSpecBoxIds.add(`spec-box-${targetBoxSpec}`);
                 renderResidentsAccordion({
                     preserveScroll: true,
-                    forceOpenSpecId: spec,
+                    forceOpenSpecId: targetBoxSpec,
                     highlightResidentId: resId,
                     highlightResidentName: formattedName
                 });
@@ -1823,7 +1893,8 @@
             try {
                 const r = currentHospital.names[idx];
                 const resId = r ? (r.id || name) : name;
-                const specId = r ? (r.spec || r.tag) : null;
+                const isActive = r ? (r.active !== false && r.spec !== 'RESERVE') : true;
+                const specId = isActive ? (r ? (r.spec || r.tag) : null) : 'RESERVE';
                 if (specId) {
                     if (!window.openSpecBoxIds) window.openSpecBoxIds = new Set();
                     window.openSpecBoxIds.add(`spec-box-${specId}`);

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:00:51.570Z",
+  "lastUpdated": "2026-09-29T08:00:54.957Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20483,16 +20483,6 @@
           "enabled": false
         },
         {
-          "id": "CT",
-          "name_ar": "جراحة الصدر و الاوعية الدموية",
-          "name_en": "Cardiothoracic Surgery",
-          "icon": "🫀",
-          "color": "#e05910",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
           "id": "GS",
           "name_ar": "الجراحة العامة",
           "name_en": "General Surgery",
@@ -22646,19 +22636,6 @@
           "dept": "NM",
           "department": "NM",
           "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-0190",
-          "name": "د. علي حسين عبدالرضا",
-          "phone": "+9647849000964",
-          "spec": "CT",
-          "tag": "CT",
-          "dept": "GS",
-          "department": "GS",
-          "active": false,
           "hospitals": [
             "basra"
           ]
@@ -41074,9 +41051,7 @@
       "dept": "GS",
       "department": "GS",
       "active": false,
-      "hospitals": [
-        "basra"
-      ]
+      "hospitals": []
     },
     {
       "id": "res-0336",

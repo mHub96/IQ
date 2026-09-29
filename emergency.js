@@ -202,11 +202,163 @@
     }
 
     // =========================================================================
+    // HOSPITAL HUB CACHE & DOCTORS LOADER HELPERS
+    // =========================================================================
+    let hubFallbackData = null;
+
+    async function ensureHubDatabaseLoaded() {
+        if (window.Hub && typeof window.Hub.loadDatabase === 'function') {
+            try {
+                await window.Hub.loadDatabase();
+            } catch (e) {
+                console.warn('Hub loadDatabase error:', e);
+            }
+        }
+        const hosps = (window.Hub && typeof window.Hub.getHospitals === 'function') ? window.Hub.getHospitals() : [];
+        if (hosps.length === 0 && !hubFallbackData) {
+            try {
+                if (typeof fetch === 'function') {
+                    const res = await fetch('./hub-data.json?t=' + Date.now());
+                    if (res.ok) {
+                        hubFallbackData = await res.json();
+                        if (window.Hub && typeof window.Hub.getDatabase === 'function' && !window.Hub.getDatabase()) {
+                            try {
+                                localStorage.setItem('hospital_hub_database_v3', JSON.stringify(hubFallbackData));
+                                localStorage.setItem('hospital_hub_database_v2', JSON.stringify(hubFallbackData));
+                                if (typeof window.Hub.loadDatabase === 'function') await window.Hub.loadDatabase();
+                            } catch (e) {}
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn('Direct hub-data.json fallback fetch error:', err);
+            }
+        }
+    }
+
+    function getAllHospitalRecords() {
+        let hospitals = [];
+        if (window.Hub && typeof window.Hub.getHospitals === 'function') {
+            hospitals = window.Hub.getHospitals() || [];
+        }
+        if (hospitals.length === 0 && hubFallbackData && hubFallbackData.hospitals) {
+            hospitals = Object.values(hubFallbackData.hospitals);
+        }
+        if (hospitals.length === 0) {
+            hospitals = [
+                { id: 'iraqi', name_ar: 'المستشفى العراقي التعليمي' },
+                { id: 'basra', name_ar: 'مستشفى البصرة التعليمي' },
+                { id: 'mawani', name_ar: 'مستشفى الموانئ التعليمي' }
+            ];
+        }
+        return hospitals;
+    }
+
+    function getHospitalRecord(hospId) {
+        if (!hospId) return null;
+        if (window.Hub && typeof window.Hub.getHospital === 'function') {
+            const h = window.Hub.getHospital(hospId);
+            if (h) return h;
+        }
+        if (hubFallbackData && hubFallbackData.hospitals && hubFallbackData.hospitals[hospId]) {
+            return hubFallbackData.hospitals[hospId];
+        }
+        return null;
+    }
+
+    function getHospitalDoctorsList(hospId) {
+        if (!hospId) return [];
+        let docs = [];
+        const hosp = getHospitalRecord(hospId);
+        if (hosp && Array.isArray(hosp.names)) {
+            docs.push(...hosp.names);
+        }
+        let shared = [];
+        if (window.Hub && typeof window.Hub.getResidents === 'function') {
+            shared = window.Hub.getResidents(hospId) || [];
+        } else if (hubFallbackData && Array.isArray(hubFallbackData.residents)) {
+            shared = hubFallbackData.residents.filter(r => Array.isArray(r.hospitals) && r.hospitals.includes(hospId));
+        }
+        shared.forEach(s => {
+            const sNorm = normalizeArabic(s.name);
+            if (!docs.some(d => normalizeArabic(d.name) === sNorm)) {
+                docs.push(s);
+            }
+        });
+        return docs;
+    }
+
+    function getHospitalSpecificSpecialties(hospId) {
+        const hosp = getHospitalRecord(hospId);
+        const result = [];
+        const seen = new Set();
+
+        if (hosp && Array.isArray(hosp.specialties) && hosp.specialties.length > 0) {
+            hosp.specialties.forEach(s => {
+                const canonEn = canonicalizeSpecialtyName(s.name_en || s.enName || s.name_ar || s.name || s.id);
+                const key = (s.id || canonEn).toLowerCase();
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    result.push({
+                        id: s.id,
+                        name_ar: s.name_ar || s.name || '',
+                        name_en: canonEn,
+                        color: s.color || getSpecialtyColor(canonEn)
+                    });
+                }
+            });
+            return result;
+        }
+
+        // Fallback: extract unique specialties from the hospital's doctors
+        const docs = getHospitalDoctorsList(hospId);
+        const uniqueSpecIds = [...new Set(docs.map(d => d.spec || d.specialty || d.dept).filter(Boolean))];
+        uniqueSpecIds.forEach(specId => {
+            const canonEn = canonicalizeSpecialtyName(specId);
+            result.push({
+                id: specId,
+                name_ar: specId,
+                name_en: canonEn,
+                color: getSpecialtyColor(canonEn)
+            });
+        });
+        return result;
+    }
+
+    function isDoctorInHospitalSpecialty(doc, specId, hospSpecialties) {
+        if (!specId || specId === 'all') return true;
+        const docSpec = doc.spec || doc.tag || doc.dept || doc.department || '';
+        if (docSpec === specId) return true;
+
+        const targetSpecObj = (hospSpecialties || []).find(s => s.id === specId);
+        const targetEn = targetSpecObj ? canonicalizeSpecialtyName(targetSpecObj.name_en || targetSpecObj.name_ar || targetSpecObj.id) : canonicalizeSpecialtyName(specId);
+
+        const docSpecObj = (hospSpecialties || []).find(s => s.id === docSpec);
+        const docEn = docSpecObj ? canonicalizeSpecialtyName(docSpecObj.name_en || docSpecObj.name_ar || docSpecObj.id) : canonicalizeSpecialtyName(docSpec);
+
+        if (targetEn && docEn && targetEn.toLowerCase() === docEn.toLowerCase()) {
+            return true;
+        }
+        return false;
+    }
+
+    function isResidentAlreadyInER(doc) {
+        const normName = normalizeArabic(doc.name || '');
+        const cleanPhone = doc.phone ? formatIraqiPhoneNumber(doc.phone) : '';
+        return (state.residents || []).some(r => {
+            const nameMatches = normalizeArabic(r.name || '') === normName;
+            const phoneMatches = cleanPhone && r.phone && (formatIraqiPhoneNumber(r.phone) === cleanPhone);
+            return nameMatches || phoneMatches;
+        });
+    }
+
+    // =========================================================================
     // INITIALIZATION & STATE PERSISTENCE
     // =========================================================================
 
     async function initEmergencyApp() {
         console.log('Initializing Emergency System V2...');
+        await ensureHubDatabaseLoaded();
 
         // 1. Load from localStorage if present
         const saved = localStorage.getItem(STATE_KEY);
@@ -3794,14 +3946,12 @@
         };
 
         // 1. From window.Hub / hub-data for specified hospital
-        if (window.Hub && typeof window.Hub.getHospital === 'function') {
-            const hosp = window.Hub.getHospital(id);
-            if (hosp && Array.isArray(hosp.specialties)) {
-                hosp.specialties.forEach(s => {
-                    const en = s.name_en || s.enName || SPECIALTY_ID_MAP[s.id] || '';
-                    addSpec(s.name_ar || s.name, en, s.color);
-                });
-            }
+        const hosp = getHospitalRecord(id);
+        if (hosp && Array.isArray(hosp.specialties)) {
+            hosp.specialties.forEach(s => {
+                const en = s.name_en || s.enName || SPECIALTY_ID_MAP[s.id] || '';
+                addSpec(s.name_ar || s.name, en, s.color);
+            });
         }
 
         // 2. From residents in state (canonicalized to English)
@@ -6315,20 +6465,18 @@
         }
 
         let allHospDocs = [];
-        if (window.Hub && typeof window.Hub.getHospitals === 'function') {
-            const allHosps = window.Hub.getHospitals();
-            allHosps.forEach(h => {
-                if (hospId !== 'all' && h.id !== hospId) return;
-                const names = Array.isArray(h.names) ? h.names : [];
-                names.forEach(d => {
-                    allHospDocs.push({
-                        doc: d,
-                        hospitalId: h.id,
-                        hospitalName: h.name_ar || h.hospitalName || h.id
-                    });
+        const allHosps = getAllHospitalRecords();
+        allHosps.forEach(h => {
+            if (hospId !== 'all' && h.id !== hospId) return;
+            const names = getHospitalDoctorsList(h.id);
+            names.forEach(d => {
+                allHospDocs.push({
+                    doc: d,
+                    hospitalId: h.id,
+                    hospitalName: h.name_ar || h.hospitalName || h.id
                 });
             });
-        }
+        });
 
         const cleanQ = normalizeArabic(query).toLowerCase();
         const matches = allHospDocs.filter(item => {
@@ -6363,12 +6511,8 @@
     }
 
     function quickFillAddResidentModal(hospId, docKey) {
-        let hospObj = null;
-        let hospResidents = [];
-        if (window.Hub && typeof window.Hub.getHospital === 'function') {
-            hospObj = window.Hub.getHospital(hospId);
-            if (hospObj && Array.isArray(hospObj.names)) hospResidents = hospObj.names;
-        }
+        const hospObj = getHospitalRecord(hospId);
+        const hospResidents = getHospitalDoctorsList(hospId);
 
         const doc = hospResidents.find(d => (d.id && d.id === docKey) || d.name === docKey);
         if (!doc) return;
@@ -6457,19 +6601,17 @@
 
         // 2. Check if present in Hospital Database (Hub)
         let hospMatch = null;
-        if (window.Hub && typeof window.Hub.getHospitals === 'function') {
-            const allHospitals = window.Hub.getHospitals();
-            for (const h of allHospitals) {
-                const names = Array.isArray(h.names) ? h.names : [];
-                const match = names.find(n => {
-                    const nameMatches = normalizeArabic(n.name) === normNewName;
-                    const phoneMatches = formattedPhone && n.phone && (formatIraqiPhoneNumber(n.phone) === formattedPhone);
-                    return nameMatches || phoneMatches;
-                });
-                if (match) {
-                    hospMatch = { resident: match, hospital: h };
-                    break;
-                }
+        const allHospitals = getAllHospitalRecords();
+        for (const h of allHospitals) {
+            const names = getHospitalDoctorsList(h.id);
+            const match = names.find(n => {
+                const nameMatches = normalizeArabic(n.name) === normNewName;
+                const phoneMatches = formattedPhone && n.phone && (formatIraqiPhoneNumber(n.phone) === formattedPhone);
+                return nameMatches || phoneMatches;
+            });
+            if (match) {
+                hospMatch = { resident: match, hospital: h };
+                break;
             }
         }
 
@@ -6570,7 +6712,9 @@
     // 8.5 IMPORT RESIDENT FROM HOSPITAL MODAL (WITH DETAIL REVIEW & FILLING)
     // =========================================================================
 
-    function openImportResidentFromHospitalModal(preselectedHospId, preselectedDocName) {
+    let currentImportAvailableDocs = [];
+
+    async function openImportResidentFromHospitalModal(preselectedHospId, preselectedDocName) {
         let modal = document.getElementById('import-resident-from-hospital-modal');
         if (!modal) {
             modal = document.createElement('div');
@@ -6584,20 +6728,12 @@
             modal.classList.remove('hidden');
         }
 
-        let hospitals = [];
-        if (window.Hub && typeof window.Hub.getHospitals === 'function') {
-            hospitals = window.Hub.getHospitals() || [];
-        }
-        if (hospitals.length === 0) {
-            hospitals = [
-                { id: 'iraqi', name_ar: 'المستشفى العراقي التعليمي' },
-                { id: 'basra', name_ar: 'مستشفى البصرة التعليمي' },
-                { id: 'mawani', name_ar: 'مستشفى الموانئ التعليمي' }
-            ];
-        }
+        // Ensure hospital database is fully loaded from cache/hub-data
+        await ensureHubDatabaseLoaded();
 
+        const hospitals = getAllHospitalRecords();
         const selectedHospId = preselectedHospId || state.hospitalId || (hospitals[0] ? hospitals[0].id : 'iraqi');
-        const hospSpecs = getHospitalSpecialties(selectedHospId);
+        const hospSpecs = getHospitalSpecificSpecialties(selectedHospId);
 
         modal.innerHTML = `
             <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
@@ -6618,38 +6754,75 @@
                     <!-- Hospital & Doctor Selection -->
                     <div class="p-3 bg-teal-50/60 dark:bg-teal-950/30 rounded-2xl border border-teal-200/80 dark:border-teal-800/60 space-y-2.5">
                         <div>
-                            <label class="block font-bold text-teal-900 dark:text-teal-200 mb-1">المستشفى المصدر:</label>
+                            <label class="block font-bold text-teal-900 dark:text-teal-200 mb-1">
+                                <i class="fas fa-hospital ml-1 text-teal-600"></i>
+                                المستشفى المصدر:
+                            </label>
                             <select id="import-res-hosp-select" onchange="onImportResidentHospChanged()" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-teal-300 dark:border-teal-700 text-slate-800 dark:text-slate-100 font-bold">
                                 ${hospitals.map(h => `<option value="${h.id}" ${h.id === selectedHospId ? 'selected' : ''}>${h.name_ar || h.hospitalName || h.id}</option>`).join('')}
                             </select>
                         </div>
 
-                        <!-- Filter by Specialty & Name Search -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <div>
-                                <label class="block text-[11px] font-bold text-teal-800 dark:text-teal-300 mb-1">فلترة حسب الاختصاص:</label>
-                                <select id="import-res-filter-spec" onchange="onImportResidentFilterChanged()" class="w-full px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-teal-300 dark:border-teal-700 text-slate-800 dark:text-slate-100 font-bold text-xs">
-                                    <option value="all">جميع الاختصاصات (الكل)</option>
-                                    ${hospSpecs.map(s => `<option value="${escapeForInline(s.name)}">${s.name}</option>`).join('')}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-bold text-teal-800 dark:text-teal-300 mb-1">بحث بالاسم:</label>
-                                <div class="relative">
-                                    <input type="text" id="import-res-filter-search" oninput="onImportResidentFilterChanged()" placeholder="اكتب اسم الطبيب للبحث..." class="w-full pr-7 pl-2 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-teal-300 dark:border-teal-700 text-slate-800 dark:text-slate-100 font-bold text-xs">
-                                    <i class="fas fa-search absolute right-2.5 top-2 text-teal-600 text-xs"></i>
-                                </div>
-                            </div>
+                        <!-- Filter by Hospital Specialty -->
+                        <div>
+                            <label class="block text-[11px] font-bold text-teal-800 dark:text-teal-300 mb-1">
+                                <i class="fas fa-stethoscope ml-1 text-teal-600"></i>
+                                فلترة حسب اختصاصات المستشفى:
+                            </label>
+                            <select id="import-res-filter-spec" onchange="onImportResidentFilterChanged()" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-teal-300 dark:border-teal-700 text-slate-800 dark:text-slate-100 font-bold text-xs">
+                                <option value="all">جميع الاختصاصات (الكل)</option>
+                                ${hospSpecs.map(s => {
+                                    const label = s.name_ar ? `${s.name_ar} (${s.name_en})` : s.name_en;
+                                    return `<option value="${escapeForInline(s.id)}">${label}</option>`;
+                                }).join('')}
+                            </select>
                         </div>
 
+                        <!-- Searchable Autocomplete Combobox for Resident -->
                         <div>
                             <div class="flex items-center justify-between mb-1">
-                                <label class="block font-bold text-teal-900 dark:text-teal-200">المقيم المطلوب استيراده <span class="text-rose-500">*</span>:</label>
+                                <label class="block font-bold text-teal-900 dark:text-teal-200">
+                                    <i class="fas fa-user-md ml-1 text-teal-600"></i>
+                                    المقيم المطلوب استيراده <span class="text-rose-500">*</span>:
+                                </label>
                                 <span id="import-res-count-badge" class="text-[10px] font-mono font-bold text-teal-700 dark:text-teal-300"></span>
                             </div>
-                            <select id="import-res-doc-select" onchange="onImportResidentDocChanged()" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-teal-300 dark:border-teal-700 text-slate-800 dark:text-slate-100 font-bold">
-                                <!-- Populated dynamically -->
-                            </select>
+                            <div class="relative" id="import-res-combobox-wrapper">
+                                <div class="relative flex items-center">
+                                    <input 
+                                        type="text" 
+                                        id="import-res-search-input" 
+                                        autocomplete="off" 
+                                        placeholder="اختر من القائمة أو ابدأ بكتابة اسم المقيم..." 
+                                        class="w-full pr-8 pl-8 py-2 rounded-xl bg-white dark:bg-slate-900 border border-teal-300 dark:border-teal-700 text-slate-800 dark:text-slate-100 font-bold text-xs focus:ring-2 focus:ring-teal-500 focus:outline-none transition shadow-xs"
+                                        oninput="onImportResidentSearchInput(this.value)"
+                                        onfocus="openImportResidentSuggestions()"
+                                        onclick="openImportResidentSuggestions()"
+                                        onkeydown="onImportResidentSearchKeydown(event)"
+                                    />
+                                    <i class="fas fa-search absolute right-2.5 top-2.5 text-teal-600 text-xs pointer-events-none"></i>
+                                    <button 
+                                        type="button" 
+                                        id="import-res-toggle-btn"
+                                        onclick="toggleImportResidentSuggestions(event)" 
+                                        class="absolute left-1.5 top-1 p-1.5 rounded-lg text-teal-600 dark:text-teal-400 hover:bg-teal-100 dark:hover:bg-teal-900/50 transition cursor-pointer" 
+                                        title="عرض / إخفاء القائمة"
+                                    >
+                                        <i class="fas fa-chevron-down text-xs transition-transform duration-200" id="import-res-chevron"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Hidden input for selected doc ID -->
+                                <input type="hidden" id="import-res-selected-id" value="">
+
+                                <!-- Suggestions Dropdown Panel -->
+                                <div 
+                                    id="import-res-suggestions-panel" 
+                                    class="hidden absolute left-0 right-0 top-full mt-1.5 max-h-56 overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-teal-300 dark:border-teal-700 shadow-2xl z-[100] divide-y divide-slate-100 dark:divide-slate-800"
+                                >
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -6670,7 +6843,7 @@
                         <div>
                             <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">الاختصاص (English):</label>
                             <select id="import-res-spec" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold">
-                                ${hospSpecs.map(s => `<option value="${escapeForInline(s.name)}">${s.name}</option>`).join('')}
+                                ${hospSpecs.map(s => `<option value="${escapeForInline(s.name_en)}">${s.name_en}</option>`).join('')}
                             </select>
                         </div>
                     </div>
@@ -6748,28 +6921,63 @@
             </div>
         `;
 
+        if (!window._importResidentClickBound) {
+            window._importResidentClickBound = true;
+            document.addEventListener('click', function(e) {
+                const wrapper = document.getElementById('import-res-combobox-wrapper');
+                const panel = document.getElementById('import-res-suggestions-panel');
+                if (wrapper && panel && !panel.classList.contains('hidden')) {
+                    if (!wrapper.contains(e.target)) {
+                        closeImportResidentSuggestions();
+                    }
+                }
+            });
+        }
+
         populateImportResidentDoctorList(selectedHospId, preselectedDocName);
     }
 
     function closeImportResidentFromHospitalModal() {
         const modal = document.getElementById('import-resident-from-hospital-modal');
         if (modal) modal.classList.add('hidden');
+        closeImportResidentSuggestions();
     }
 
     function onImportResidentHospChanged() {
         const hospSelect = document.getElementById('import-res-hosp-select');
-        const specSelect = document.getElementById('import-res-spec');
-        const filterSpecSelect = document.getElementById('import-res-filter-spec');
         if (!hospSelect) return;
         const hospId = hospSelect.value;
 
-        const hospSpecs = getHospitalSpecialties(hospId);
-        if (specSelect) {
-            specSelect.innerHTML = hospSpecs.map(s => `<option value="${escapeForInline(s.name)}">${s.name}</option>`).join('');
-        }
+        // 1. Update specialty filter options to strictly this hospital's specialties
+        const filterSpecSelect = document.getElementById('import-res-filter-spec');
+        const hospSpecs = getHospitalSpecificSpecialties(hospId);
+
         if (filterSpecSelect) {
-            filterSpecSelect.innerHTML = `<option value="all">جميع الاختصاصات (الكل)</option>` + hospSpecs.map(s => `<option value="${escapeForInline(s.name)}">${s.name}</option>`).join('');
+            filterSpecSelect.innerHTML = `<option value="all">جميع الاختصاصات (الكل)</option>` + 
+                hospSpecs.map(s => {
+                    const label = s.name_ar ? `${s.name_ar} (${s.name_en})` : s.name_en;
+                    return `<option value="${escapeForInline(s.id)}">${label}</option>`;
+                }).join('');
+            filterSpecSelect.value = 'all';
         }
+
+        // 2. Update target ER specialty select
+        const specSelect = document.getElementById('import-res-spec');
+        if (specSelect) {
+            specSelect.innerHTML = hospSpecs.map(s => `<option value="${escapeForInline(s.name_en)}">${s.name_en}</option>`).join('');
+        }
+
+        // 3. Clear combobox input and selection
+        const searchInput = document.getElementById('import-res-search-input');
+        const selectedIdInput = document.getElementById('import-res-selected-id');
+        if (searchInput) searchInput.value = '';
+        if (selectedIdInput) selectedIdInput.value = '';
+
+        // 4. Clear form inputs
+        const nameInput = document.getElementById('import-res-name');
+        const phoneInput = document.getElementById('import-res-phone');
+        if (nameInput) nameInput.value = '';
+        if (phoneInput) phoneInput.value = '';
 
         populateImportResidentDoctorList(hospId);
     }
@@ -6777,110 +6985,161 @@
     function onImportResidentFilterChanged() {
         const hospSelect = document.getElementById('import-res-hosp-select');
         if (!hospSelect) return;
+        const searchInput = document.getElementById('import-res-search-input');
+        if (searchInput) searchInput.value = '';
         populateImportResidentDoctorList(hospSelect.value);
     }
 
     function populateImportResidentDoctorList(hospId, preselectedDocName) {
-        const docSelect = document.getElementById('import-res-doc-select');
-        if (!docSelect) return;
-
-        let hospResidents = [];
-        let hospObj = null;
-        if (window.Hub && typeof window.Hub.getHospital === 'function') {
-            hospObj = window.Hub.getHospital(hospId);
-            if (hospObj && Array.isArray(hospObj.names)) hospResidents = hospObj.names;
-        }
-        if (hospResidents.length === 0 && window.Hub && typeof window.Hub.getResidents === 'function') {
-            hospResidents = window.Hub.getResidents(hospId) || [];
-        }
+        const allHospDocs = getHospitalDoctorsList(hospId);
+        const hospSpecs = getHospitalSpecificSpecialties(hospId);
 
         const existingErNames = new Set((state.residents || []).map(r => normalizeArabic(r.name)));
+        const existingErPhones = new Set((state.residents || []).map(r => r.phone ? formatIraqiPhoneNumber(r.phone) : '').filter(Boolean));
 
-        let availableDocs = hospResidents.filter(d => {
-            if (preselectedDocName && normalizeArabic(d.name) === normalizeArabic(preselectedDocName)) return true;
-            return !existingErNames.has(normalizeArabic(d.name));
+        let availableDocs = allHospDocs.filter(d => {
+            if (preselectedDocName && normalizeArabic(d.name) === normalizeArabic(preselectedDocName)) {
+                return true;
+            }
+            const cleanName = normalizeArabic(d.name);
+            const cleanPhone = d.phone ? formatIraqiPhoneNumber(d.phone) : '';
+            if (existingErNames.has(cleanName)) return false;
+            if (cleanPhone && existingErPhones.has(cleanPhone)) return false;
+            return true;
         });
 
         // Filter by specialty if selected
         const specFilter = document.getElementById('import-res-filter-spec')?.value || 'all';
         if (specFilter !== 'all') {
-            const cleanFilter = specFilter.trim().toLowerCase();
-            availableDocs = availableDocs.filter(d => {
-                let docEnSpec = '';
-                if (d.spec && hospObj && Array.isArray(hospObj.specialties)) {
-                    const sObj = hospObj.specialties.find(s => s.id === d.spec);
-                    if (sObj) docEnSpec = sObj.name_en || sObj.enName || sObj.name_ar || '';
-                }
-                const docSpec = (docEnSpec || d.spec || d.specialty || d.dept || d.department || '').trim().toLowerCase();
-                const canonDocSpec = canonicalizeSpecialtyName(docSpec).toLowerCase();
-                return d.spec === specFilter || docSpec === cleanFilter || canonDocSpec === cleanFilter || normalizeArabic(docSpec) === normalizeArabic(cleanFilter);
-            });
+            availableDocs = availableDocs.filter(d => isDoctorInHospitalSpecialty(d, specFilter, hospSpecs));
         }
 
-        // Filter by search query if typed
-        const searchQuery = (document.getElementById('import-res-filter-search')?.value || '').trim();
-        if (searchQuery) {
-            const cleanQ = normalizeArabic(searchQuery).toLowerCase();
-            availableDocs = availableDocs.filter(d => {
-                const cleanName = normalizeArabic(d.name || '').toLowerCase();
-                const cleanSpec = (d.spec || d.specialty || '').toLowerCase();
-                return cleanName.includes(cleanQ) || cleanSpec.includes(cleanQ);
-            });
-        }
+        currentImportAvailableDocs = availableDocs;
 
         const countBadge = document.getElementById('import-res-count-badge');
         if (countBadge) {
             countBadge.textContent = `(${availableDocs.length} متاح)`;
         }
 
-        if (availableDocs.length === 0) {
-            docSelect.innerHTML = `<option value="">-- لا يوجد أطباء مطابقين للبحث/الاختصاص المختار --</option>`;
+        const searchInput = document.getElementById('import-res-search-input');
+        const selectedIdInput = document.getElementById('import-res-selected-id');
+
+        if (preselectedDocName) {
+            const preDoc = availableDocs.find(d => normalizeArabic(d.name) === normalizeArabic(preselectedDocName)) ||
+                           allHospDocs.find(d => normalizeArabic(d.name) === normalizeArabic(preselectedDocName));
+            if (preDoc) {
+                selectImportResidentDoctor(preDoc.id || preDoc.name);
+                return;
+            }
+        }
+
+        // Render suggestions according to current search query
+        const currentQ = searchInput?.value || '';
+        filterAndRenderImportSuggestions(currentQ);
+
+        // If no doctor selected and available list is empty, clear form inputs
+        if (!selectedIdInput?.value && availableDocs.length === 0) {
             const nameInput = document.getElementById('import-res-name');
             const phoneInput = document.getElementById('import-res-phone');
             if (nameInput) nameInput.value = '';
             if (phoneInput) phoneInput.value = '';
+        }
+    }
+
+    function filterAndRenderImportSuggestions(query = '') {
+        const panel = document.getElementById('import-res-suggestions-panel');
+        const badge = document.getElementById('import-res-count-badge');
+        if (!panel) return;
+
+        const cleanQ = normalizeArabic(query.replace(/^د[\.\s]*/, '')).trim().toLowerCase();
+        const rawQ = normalizeArabic(query).trim().toLowerCase();
+        const qDigits = query.replace(/\D/g, '');
+
+        const matches = currentImportAvailableDocs.filter(d => {
+            if (!cleanQ && !rawQ) return true;
+            const dName = normalizeArabic(d.name || '').toLowerCase();
+            const dNameNoDr = normalizeArabic((d.name || '').replace(/^د[\.\s]*/, '')).toLowerCase();
+            const dPhoneDigits = (d.phone || '').replace(/\D/g, '');
+            
+            const nameMatch = dName.includes(rawQ) || dNameNoDr.includes(cleanQ) || dName.includes(cleanQ);
+            const phoneMatch = qDigits.length >= 3 && dPhoneDigits.includes(qDigits);
+            return nameMatch || phoneMatch;
+        });
+
+        if (badge) {
+            badge.textContent = `(${matches.length} متاح)`;
+        }
+
+        if (matches.length === 0) {
+            panel.innerHTML = `
+                <div class="p-3 text-center text-slate-400 text-xs font-bold">
+                    <i class="fas fa-info-circle text-teal-500 mr-1"></i> لا يوجد أطباء مطابقين للبحث / الاختصاص المختار
+                </div>
+            `;
             return;
         }
 
-        docSelect.innerHTML = availableDocs.map(d => {
-            const formatted = formatDoctorName(d.name);
-            const isMatch = preselectedDocName && (normalizeArabic(d.name) === normalizeArabic(preselectedDocName));
-            let docEnSpec = '';
-            if (d.spec && hospObj && Array.isArray(hospObj.specialties)) {
-                const sObj = hospObj.specialties.find(s => s.id === d.spec);
-                if (sObj) docEnSpec = sObj.name_en || sObj.enName || sObj.name_ar || '';
-            }
-            const canonSpec = canonicalizeSpecialtyName(docEnSpec || d.spec || d.specialty || '');
-            return `<option value="${escapeForInline(d.id || d.name)}" ${isMatch ? 'selected' : ''}>${formatted} (${canonSpec})</option>`;
-        }).join('');
+        const hospId = document.getElementById('import-res-hosp-select')?.value;
+        const hospSpecs = getHospitalSpecificSpecialties(hospId);
 
-        onImportResidentDocChanged();
+        panel.innerHTML = matches.map(d => {
+            const formatted = formatDoctorName(d.name);
+            const specObj = hospSpecs.find(s => s.id === d.spec);
+            const specAr = specObj ? (specObj.name_ar || specObj.name || '') : '';
+            const canonEn = canonicalizeSpecialtyName((specObj && (specObj.name_en || specObj.name_ar)) || d.spec || '');
+            const specLabel = specAr ? `${specAr} (${canonEn})` : canonEn;
+            const color = getSpecialtyColor(canonEn);
+
+            return `
+                <div 
+                    class="p-2.5 hover:bg-teal-50 dark:hover:bg-teal-950/50 cursor-pointer transition flex items-center justify-between gap-2 group"
+                    data-doc-id="${escapeForInline(d.id || d.name)}"
+                    onclick="selectImportResidentDoctor('${escapeForInline(d.id || d.name)}')"
+                >
+                    <div class="flex items-center gap-2 min-w-0">
+                        <div class="w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold text-teal-700 bg-teal-100 dark:bg-teal-900/60 shrink-0">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <div class="truncate">
+                            <div class="font-bold text-xs text-slate-800 dark:text-slate-100 group-hover:text-teal-600 transition truncate">
+                                ${formatted}
+                            </div>
+                            ${d.phone ? `<div class="text-[10px] text-slate-400 font-mono"><i class="fas fa-phone mr-1 text-[9px]"></i>${formatIraqiPhoneNumber(d.phone)}</div>` : ''}
+                        </div>
+                    </div>
+                    <div class="shrink-0 flex items-center gap-1.5">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold" style="background-color: ${color}20; color: ${color};">
+                            ${specLabel}
+                        </span>
+                        <i class="fas fa-arrow-left text-xs text-slate-300 group-hover:text-teal-600 transition"></i>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
 
-    function onImportResidentDocChanged() {
-        const hospSelect = document.getElementById('import-res-hosp-select');
-        const docSelect = document.getElementById('import-res-doc-select');
-        if (!hospSelect || !docSelect) return;
-
-        const hospId = hospSelect.value;
-        const docKey = docSelect.value;
-        if (!docKey) return;
-
-        let hospResidents = [];
-        let hospObj = null;
-        if (window.Hub && typeof window.Hub.getHospital === 'function') {
-            hospObj = window.Hub.getHospital(hospId);
-            if (hospObj && Array.isArray(hospObj.names)) hospResidents = hospObj.names;
-        }
-        if (hospResidents.length === 0 && window.Hub && typeof window.Hub.getResidents === 'function') {
-            hospResidents = window.Hub.getResidents(hospId) || [];
-        }
-
-        const doc = hospResidents.find(d => (d.id && d.id === docKey) || d.name === docKey);
+    function selectImportResidentDoctor(docIdOrName) {
+        const hospId = document.getElementById('import-res-hosp-select')?.value;
+        const docs = getHospitalDoctorsList(hospId);
+        const doc = docs.find(d => (d.id && d.id === docIdOrName) || d.name === docIdOrName);
         if (!doc) return;
 
+        const formatted = formatDoctorName(doc.name);
+        const searchInput = document.getElementById('import-res-search-input');
+        const selectedIdInput = document.getElementById('import-res-selected-id');
+
+        if (searchInput) searchInput.value = formatted;
+        if (selectedIdInput) selectedIdInput.value = doc.id || doc.name;
+
+        closeImportResidentSuggestions();
+        populateImportResidentFormFields(doc, hospId);
+    }
+
+    function populateImportResidentFormFields(doc, hospId) {
+        const hospObj = getHospitalRecord(hospId);
         const formattedName = formatDoctorName(doc.name);
         const formattedPhone = formatIraqiPhoneNumber(doc.phone || '');
+
         const nameInput = document.getElementById('import-res-name');
         const phoneInput = document.getElementById('import-res-phone');
         const sexSelect = document.getElementById('import-res-sex');
@@ -6919,6 +7178,56 @@
         if (notesInput) {
             const hospTitle = hospObj ? (hospObj.name_ar || hospObj.hospitalName || hospId) : hospId;
             notesInput.value = `مستورد من مستشفى (${hospTitle})`;
+        }
+    }
+
+    function onImportResidentSearchInput(val) {
+        openImportResidentSuggestions();
+        filterAndRenderImportSuggestions(val);
+    }
+
+    function openImportResidentSuggestions() {
+        const panel = document.getElementById('import-res-suggestions-panel');
+        const chevron = document.getElementById('import-res-chevron');
+        if (panel) panel.classList.remove('hidden');
+        if (chevron) chevron.classList.add('rotate-180');
+    }
+
+    function closeImportResidentSuggestions() {
+        const panel = document.getElementById('import-res-suggestions-panel');
+        const chevron = document.getElementById('import-res-chevron');
+        if (panel) panel.classList.add('hidden');
+        if (chevron) chevron.classList.remove('rotate-180');
+    }
+
+    function toggleImportResidentSuggestions(e) {
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        const panel = document.getElementById('import-res-suggestions-panel');
+        if (!panel) return;
+        if (panel.classList.contains('hidden')) {
+            openImportResidentSuggestions();
+            const currentInput = document.getElementById('import-res-search-input')?.value || '';
+            filterAndRenderImportSuggestions(currentInput);
+        } else {
+            closeImportResidentSuggestions();
+        }
+    }
+
+    function onImportResidentSearchKeydown(e) {
+        if (e.key === 'Escape') {
+            closeImportResidentSuggestions();
+        } else if (e.key === 'Enter') {
+            const panel = document.getElementById('import-res-suggestions-panel');
+            if (panel && !panel.classList.contains('hidden')) {
+                const firstItem = panel.querySelector('[data-doc-id]');
+                if (firstItem) {
+                    e.preventDefault();
+                    selectImportResidentDoctor(firstItem.getAttribute('data-doc-id'));
+                }
+            }
         }
     }
 
@@ -9045,11 +9354,22 @@
     window.closeImportResidentFromHospitalModal = closeImportResidentFromHospitalModal;
     window.onImportResidentHospChanged = onImportResidentHospChanged;
     window.onImportResidentFilterChanged = onImportResidentFilterChanged;
-    window.onImportResidentDocChanged = onImportResidentDocChanged;
+    window.onImportResidentSearchInput = onImportResidentSearchInput;
+    window.onImportResidentSearchKeydown = onImportResidentSearchKeydown;
+    window.openImportResidentSuggestions = openImportResidentSuggestions;
+    window.closeImportResidentSuggestions = closeImportResidentSuggestions;
+    window.toggleImportResidentSuggestions = toggleImportResidentSuggestions;
+    window.selectImportResidentDoctor = selectImportResidentDoctor;
     window.populateImportResidentDoctorList = populateImportResidentDoctorList;
+    window.filterAndRenderImportSuggestions = filterAndRenderImportSuggestions;
     window.handleSaveImportedResident = handleSaveImportedResident;
     window.searchHospitalResidentsForAddModal = searchHospitalResidentsForAddModal;
     window.quickFillAddResidentModal = quickFillAddResidentModal;
+    window.getHospitalSpecificSpecialties = getHospitalSpecificSpecialties;
+    window.getHospitalDoctorsList = getHospitalDoctorsList;
+    window.getAllHospitalRecords = getAllHospitalRecords;
+    window.getHospitalRecord = getHospitalRecord;
+    window.ensureHubDatabaseLoaded = ensureHubDatabaseLoaded;
 
     // Monthly Duty Checkers & Preferences Helpers
     window.getMonthlyDutyAllocationsSummary = getMonthlyDutyAllocationsSummary;

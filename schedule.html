@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <link rel="manifest" href="./manifest.webmanifest" />
-    <script src="./pwa.js"></script>
     <title>جدول الخفارات الشهري · Monthly Duty Schedule 🇮🇶</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -1523,13 +1521,22 @@
                 specs.forEach(spec => {
                     const specColor = spec.color || '#0f766e';
                     const specName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(spec.id) : (spec.name_ar || spec.id);
+                    const isClone = Boolean(spec.isClone);
+                    let cloneParentName = null;
+                    if (isClone && spec.clonedFromHospitalId) {
+                        const srcH = Hub.getHospital ? Hub.getHospital(spec.clonedFromHospitalId) : null;
+                        cloneParentName = srcH ? (srcH.name_ar || srcH.hospitalName || spec.clonedFromHospitalId) : spec.clonedFromHospitalId;
+                    }
                     headHtml += `
                         <th class="mobile-spec-th" style="--spec-color: ${specColor};">
-                            <div class="mobile-spec-header">
+                            <div class="mobile-spec-header" title="${isClone ? `مرآة حية من ${cloneParentName}` : specName}">
                                 <span class="mobile-spec-icon" style="background: ${specColor}18; color: ${specColor}; border: 1.5px solid ${specColor}40;">
                                     ${spec.icon || '🏥'}
                                 </span>
-                                <span class="mobile-spec-name" title="${specName}">${specName}</span>
+                                <span class="mobile-spec-name" title="${specName}">
+                                    ${specName}
+                                    ${isClone ? `<span class="text-[9px] text-indigo-500 font-normal block">(${cloneParentName})</span>` : ''}
+                                </span>
                             </div>
                         </th>
                     `;
@@ -1647,6 +1654,12 @@
                 specs.forEach(spec => {
                     const specColor = spec.color || '#0f766e';
                     const specName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(spec.id) : (spec.name_ar || spec.id);
+                    const isClone = Boolean(spec.isClone);
+                    let cloneParentName = null;
+                    if (isClone && spec.clonedFromHospitalId) {
+                        const srcH = Hub.getHospital ? Hub.getHospital(spec.clonedFromHospitalId) : null;
+                        cloneParentName = srcH ? (srcH.name_ar || srcH.hospitalName || spec.clonedFromHospitalId) : spec.clonedFromHospitalId;
+                    }
 
                     bodyHtml += `<tr>`;
                     bodyHtml += `
@@ -1655,7 +1668,10 @@
                                 <span class="specialty-icon-chip" style="background: ${specColor}18; color: ${specColor}; border: 1.5px solid ${specColor}40;">
                                     ${spec.icon || '🏥'}
                                 </span>
-                                <span class="specialty-name-text">${specName}</span>
+                                <span class="specialty-name-text">
+                                    ${specName}
+                                    ${isClone ? `<span class="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 block"><i class="fas fa-clone text-[9px] ml-0.5"></i> مرآة: ${cloneParentName}</span>` : ''}
+                                </span>
                             </div>
                         </td>
                     `;

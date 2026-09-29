@@ -231,6 +231,17 @@
                 const hospSpecMap = new Map();
                 (hosp.specialties || []).forEach(s => {
                     if (!s || !s.id) return;
+                    if (s.isClone) {
+                        hospSpecMap.set(s.id, {
+                            ...s,
+                            id: s.id,
+                            isClone: true,
+                            clonedFromHospitalId: s.clonedFromHospitalId,
+                            clonedFromSpecId: s.clonedFromSpecId,
+                            enabled: s.enabled !== false
+                        });
+                        return;
+                    }
                     const normId = normalizeSpecialtyId(s.id);
                     if (!validGlobalIds.has(normId)) {
                         // Register hospital custom specialty into global catalog
@@ -1074,7 +1085,13 @@
 
         // Build map from current hospital specialties, normalizing any legacy alias (e.g. F -> FM)
         const currentMap = new Map();
+        const cloneSpecs = [];
         (hosp.specialties || []).forEach(s => {
+            if (!s) return;
+            if (s.isClone) {
+                cloneSpecs.push(s);
+                return;
+            }
             const normId = normalizeSpecialtyId(s.id);
             if (!currentMap.has(normId)) {
                 currentMap.set(normId, s);
@@ -1094,8 +1111,8 @@
             if (sc.specCode) sc.specCode = normalizeSpecialtyId(sc.specCode);
         });
 
-        // Hospital specialties are strictly drawn from the Main Specialty Store
-        hosp.specialties = globals.map(g => {
+        // Hospital specialties are strictly drawn from the Main Specialty Store, plus preserved clones
+        const syncedGlobals = globals.map(g => {
             const cur = currentMap.get(g.id);
             return {
                 ...g,
@@ -1103,6 +1120,7 @@
                 color: cur?.color || g.color || '#0f766e'
             };
         });
+        hosp.specialties = [...syncedGlobals, ...cloneSpecs];
         await saveDatabase(`مزامنة تخصصات مستشفى ${hosp.name_ar || hosp.hospitalName} مع الدليل العام`);
         return hosp.specialties;
     }
@@ -1398,6 +1416,59 @@
         return hosp.specialties;
     }
 
+    async function addHospitalCloneSpecialty(targetHospitalId, sourceHospitalId, sourceSpecId, customColor = null) {
+        if (!auth.isAdmin(targetHospitalId)) {
+            throw new Error('غير مصرح لك بإضافة تخصص لهذا المستشفى. يتطلب صلاحيات مدير.');
+        }
+        if (targetHospitalId === sourceHospitalId) {
+            throw new Error('لا يمكن استنساخ تخصص من نفس المستشفى.');
+        }
+        const targetHosp = getHospital(targetHospitalId);
+        if (!targetHosp) throw new Error('المستشفى المستهدف غير موجود.');
+        const sourceHosp = getHospital(sourceHospitalId);
+        if (!sourceHosp) throw new Error('المستشفى المصدر غير موجود.');
+
+        const sourceSpec = (sourceHosp.specialties || []).find(s => s.id === sourceSpecId);
+        if (!sourceSpec) throw new Error('التخصص غير موجود في المستشفى المصدر.');
+
+        if (!Array.isArray(targetHosp.specialties)) targetHosp.specialties = [];
+
+        // Check if this specialty from this source is already cloned
+        let existingClone = targetHosp.specialties.find(s => s.isClone && s.clonedFromHospitalId === sourceHospitalId && s.clonedFromSpecId === sourceSpecId);
+        if (existingClone) {
+            existingClone.enabled = true;
+            if (customColor) existingClone.color = customColor;
+            await saveDatabase(`Re-enabled clone specialty ${sourceSpecId} from ${sourceHospitalId} into ${targetHospitalId}`);
+            return existingClone;
+        }
+
+        // Determine unique ID in target hospital
+        let newId = sourceSpecId;
+        if (targetHosp.specialties.some(s => s.id === newId)) {
+            newId = `${sourceSpecId}_${sourceHospitalId}`;
+        }
+        let counter = 1;
+        while (targetHosp.specialties.some(s => s.id === newId)) {
+            newId = `${sourceSpecId}_${sourceHospitalId}_${counter++}`;
+        }
+
+        const cloneObj = {
+            id: newId,
+            name_ar: sourceSpec.name_ar,
+            name_en: sourceSpec.name_en || sourceSpec.name_ar,
+            icon: sourceSpec.icon || '🏥',
+            color: customColor || sourceSpec.color || '#0f766e',
+            isClone: true,
+            clonedFromHospitalId: sourceHospitalId,
+            clonedFromSpecId: sourceSpecId,
+            enabled: true
+        };
+
+        targetHosp.specialties.push(cloneObj);
+        await saveDatabase(`Add clone specialty ${newId} (mirrored from ${sourceHosp.name_ar || sourceHospitalId} - ${sourceSpec.name_ar}) to ${targetHosp.name_ar || targetHospitalId}`);
+        return cloneObj;
+    }
+
     async function updateHospitalSpecialty(hospitalId, specId, updates) {
         if (!auth.isAdmin(hospitalId)) {
             throw new Error('غير مصرح لك بتعديل التخصص في هذا المستشفى.');
@@ -1426,8 +1497,9 @@
         const residents = hosp.names || [];
         const initialCount = (hosp.specialties || []).length;
 
-        // A specialty is retained if at least one resident has it as their primary specialty (spec) or assigned rotation (dept)
+        // A specialty is retained if it is a clone OR at least one resident has it as their primary specialty (spec) or assigned rotation (dept)
         hosp.specialties = (hosp.specialties || []).filter(s => {
+            if (s.isClone) return true;
             return residents.some(r => 
                 (r.spec === s.id || r.tag === s.id || r.dept === s.id || r.department === s.id)
             );
@@ -1493,6 +1565,15 @@
 
         const allSpecs = hospital.specialties || getGlobalSpecialties() || [];
         const specObj = allSpecs.find(s => s.id === specId);
+
+        // Cloned specialty: delegates to source hospital
+        if (specObj && specObj.isClone && specObj.clonedFromHospitalId) {
+            const srcHosp = getHospital(specObj.clonedFromHospitalId);
+            if (srcHosp) {
+                return getEligibleResidentsForSpecialty(srcHosp, specObj.clonedFromSpecId);
+            }
+        }
+
         const acceptPool = Array.isArray(specObj?.acceptPool) ? specObj.acceptPool : [];
         const parentSpec = specObj?.parentSpec || null;
         const childSpecIds = allSpecs.filter(s => s.parentSpec === specId).map(s => s.id);
@@ -2067,7 +2148,7 @@
         const padMonth = String(month).padStart(2, '0');
         const strYear = String(year);
 
-        return scheduleArray.filter(entry => {
+        const localEntries = scheduleArray.filter(entry => {
             if (!entry.date) return false;
             const norm = normalizeDateString(entry.date);
             const parts = norm.split('/');
@@ -2076,6 +2157,35 @@
             }
             return false;
         });
+
+        // Live Mirror: Include entries for any cloned specialties from their parent hospitals!
+        const cloneEntries = [];
+        (hosp.specialties || []).forEach(spec => {
+            if (spec.isClone && spec.clonedFromHospitalId && spec.clonedFromSpecId && spec.enabled !== false) {
+                const sourceHosp = getHospital(spec.clonedFromHospitalId);
+                if (!sourceHosp) return;
+                const srcSchedule = scheduleType === 'specialists' ? sourceHosp.specialistSchedule : sourceHosp.schedule;
+                if (!Array.isArray(srcSchedule)) return;
+                srcSchedule.forEach(entry => {
+                    if (entry.specCode === spec.clonedFromSpecId && entry.date) {
+                        const norm = normalizeDateString(entry.date);
+                        const parts = norm.split('/');
+                        if (parts.length === 3 && parts[1] === padMonth && parts[2] === strYear) {
+                            cloneEntries.push({
+                                ...entry,
+                                specCode: spec.id,
+                                isClone: true,
+                                clonedFromHospitalId: spec.clonedFromHospitalId,
+                                clonedFromSpecId: spec.clonedFromSpecId,
+                                parentHospitalName: sourceHosp.name_ar || sourceHosp.hospitalName || spec.clonedFromHospitalId
+                            });
+                        }
+                    }
+                });
+            }
+        });
+
+        return [...localEntries, ...cloneEntries];
     }
 
     // ============================================================
@@ -2607,6 +2717,7 @@
         deleteGlobalSpecialty,
         addHospitalSpecialty,
         addHospitalSpecialtyFromGlobal,
+        addHospitalCloneSpecialty,
         updateHospitalSpecialty,
         deleteHospitalSpecialty,
         deleteEmptyHospitalSpecialties,

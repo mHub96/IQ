@@ -807,10 +807,13 @@
             <!-- Tab Switcher -->
             <div class="flex p-1 mb-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
                 <button type="button" id="tab-btn-new-spec" onclick="switchAddSpecTab('new')" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-teal-600 text-white shadow-sm">
-                    <i class="fas fa-pen-to-square ml-1"></i> إنشاء تخصص جديد
+                    <i class="fas fa-pen-to-square ml-1"></i> إنشاء جديد
                 </button>
                 <button type="button" id="tab-btn-import-spec" onclick="switchAddSpecTab('import')" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-500 hover:text-slate-700 dark:hover:text-slate-200">
-                    <i class="fas fa-layer-group ml-1"></i> اختيار من المستودع العام
+                    <i class="fas fa-layer-group ml-1"></i> المستودع العام
+                </button>
+                <button type="button" id="tab-btn-clone-spec" onclick="switchAddSpecTab('clone')" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-500 hover:text-slate-700 dark:hover:text-slate-200">
+                    <i class="fas fa-clone ml-1"></i> استنساخ من مستشفى
                 </button>
             </div>
 
@@ -887,6 +890,41 @@
                         </button>
                         <button type="button" onclick="closeAddHospitalSpecModal()" class="btn-ghost">إلغاء</button>
                     </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: CLONE FROM ANOTHER HOSPITAL (LIVE MIRROR) -->
+            <div id="section-clone-hosp-spec" class="space-y-3 hidden">
+                <div class="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-200 text-xs">
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-clone text-indigo-600 dark:text-indigo-400 mt-0.5 text-sm"></i>
+                        <div class="leading-relaxed">
+                            <strong class="font-black text-[12.5px] block mb-0.5">التخصص المستنسخ (مرآة حية Live Mirror):</strong>
+                            <p class="text-slate-600 dark:text-slate-300">يظهر التخصص وجدوله فوراً في صفحة الخفارات والجدول الشهري. عند قيام مدير المستشفى الأصلي بالتعديل أو تبادل الخفارات، ينعكس التحديث هنا لحظياً. التعديل يتم حصراً في المستشفى الأصلي.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">المستشفى المصدر <span class="text-red-500">*</span></label>
+                    <select id="clone-source-hospital" class="input-field text-xs mb-2" onchange="onCloneSourceHospitalChanged()"></select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">التخصص المطلوب استنساخه <span class="text-red-500">*</span></label>
+                    <select id="clone-source-spec" class="input-field text-xs mb-2" onchange="onCloneSourceSpecChanged()"></select>
+                </div>
+
+                <div class="flex gap-2 items-center p-2 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800">
+                    <label class="text-xs font-bold text-slate-600 dark:text-slate-300 flex-1">لون عرض التخصص في الجدول:</label>
+                    <input type="color" id="clone-spec-color" value="#4f46e5" class="h-9 w-16 p-1 rounded-lg border border-slate-300 dark:border-slate-700 cursor-pointer" />
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="confirmAddCloneSpecialty()" class="flex-1 btn-gradient" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);">
+                        <i class="fas fa-clone ml-1"></i> استنساخ التخصص (مرآة حية)
+                    </button>
+                    <button type="button" onclick="closeAddHospitalSpecModal()" class="btn-ghost">إلغاء</button>
                 </div>
             </div>
         </div>
@@ -1843,6 +1881,7 @@
             let displaySpecs = specs;
             if (!showEmpty) {
                 displaySpecs = specs.filter(s => {
+                    if (s.isClone) return true;
                     return names.some(n => n.spec === s.id || n.tag === s.id || n.dept === s.id || n.department === s.id);
                 });
             }
@@ -1855,6 +1894,12 @@
             container.innerHTML = displaySpecs.map((s) => {
                 const idx = specs.indexOf(s);
                 const isEnabled = s.enabled !== false;
+                const isClone = Boolean(s.isClone);
+                let cloneSourceHospName = null;
+                if (isClone && s.clonedFromHospitalId) {
+                    const srcH = Hub.getHospital ? Hub.getHospital(s.clonedFromHospitalId) : null;
+                    cloneSourceHospName = srcH ? (srcH.name_ar || srcH.hospitalName || s.clonedFromHospitalId) : s.clonedFromHospitalId;
+                }
                 const poolCount = Array.isArray(s.acceptPool) ? s.acceptPool.length : 0;
                 const resCount = names.filter(n => n.spec === s.id || n.tag === s.id || n.dept === s.id || n.department === s.id).length;
                 const specColor = s.color || '#0f766e';
@@ -1892,9 +1937,15 @@
                             <!-- Specialty Name & Badges -->
                             <div class="flex-1 min-w-0 flex flex-wrap items-center gap-1.5">
                                 <span class="spec-name font-bold text-sm text-slate-800 dark:text-slate-100 truncate">${s.name_ar}</span>
-                                <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full" style="background: ${specColor}25; color: ${specColor};">
-                                    ${resCount} مقيم
-                                </span>
+                                ${isClone ? `
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 flex items-center gap-1">
+                                        <i class="fas fa-clone"></i> مرآة: ${cloneSourceHospName}
+                                    </span>
+                                ` : `
+                                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full" style="background: ${specColor}25; color: ${specColor};">
+                                        ${resCount} مقيم
+                                    </span>
+                                `}
                                 ${parentName ? `
                                     <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
                                         فرعي: ${parentName}
@@ -1920,6 +1971,18 @@
 
                         <!-- Tap-to-Reveal Editing Options Drawer -->
                         <div class="spec-options-drawer" onclick="event.stopPropagation()">
+                            ${isClone ? `
+                                <div class="p-2.5 mb-2 rounded-xl bg-indigo-50/90 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-800/80 text-[11.5px] text-indigo-900 dark:text-indigo-200 flex items-start gap-2">
+                                    <i class="fas fa-info-circle text-indigo-600 dark:text-indigo-400 mt-0.5 text-sm flex-shrink-0"></i>
+                                    <div>
+                                        <div class="font-bold">تخصص مستنسخ (مرآة حية Live Mirror):</div>
+                                        <div class="mt-0.5 text-slate-600 dark:text-slate-300 leading-relaxed">
+                                            هذا التخصص مستنسخ من <strong>${cloneSourceHospName}</strong>. يتم تحديث خفاراته ومواعيده تلقائياً عند قيام مدير ذلك المستشفى بالتعديل، ولا يمكن تعديل خفاراته من هذا المستشفى.
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : ''}
+
                             <!-- Row 1: Color Customization (Picker + Presets) -->
                             <div class="p-2.5 mb-2 rounded-xl bg-white/70 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 flex flex-wrap items-center justify-between gap-2">
                                 <span class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
@@ -1981,7 +2044,7 @@
 
                             <!-- Row 3: Actions (Owner Edit & Delete) -->
                             <div class="flex items-center justify-end gap-2 flex-wrap pt-1">
-                                ${isOwner ? `
+                                ${isOwner && !isClone ? `
                                     <button type="button" onclick="openGlobalSpecEditModal('${s.id}')" class="spec-action-btn text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800 hover:bg-purple-100" title="تعديل في المستودع العام للمالك 👑">
                                         <i class="fas fa-crown text-amber-500"></i> المستودع العام 👑
                                     </button>
@@ -2006,6 +2069,7 @@
             const specs = currentHospital.specialties || [];
 
             const emptySpecs = specs.filter(s => {
+                if (s.isClone) return false;
                 return !names.some(n => n.spec === s.id || n.tag === s.id || n.dept === s.id || n.department === s.id);
             });
 
@@ -2175,20 +2239,127 @@
         function switchAddSpecTab(tab) {
             const tabNewBtn = document.getElementById('tab-btn-new-spec');
             const tabImportBtn = document.getElementById('tab-btn-import-spec');
+            const tabCloneBtn = document.getElementById('tab-btn-clone-spec');
             const sectionNew = document.getElementById('section-add-new-spec');
             const sectionImport = document.getElementById('section-import-global-spec');
+            const sectionClone = document.getElementById('section-clone-hosp-spec');
+
+            const inactiveCls = 'flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-500 hover:text-slate-700 dark:hover:text-slate-200';
+            const activeCls = 'flex-1 py-2 text-xs font-bold rounded-lg transition bg-teal-600 text-white shadow-sm';
+            const activeCloneCls = 'flex-1 py-2 text-xs font-bold rounded-lg transition bg-indigo-600 text-white shadow-sm';
 
             if (tab === 'new') {
-                if (tabNewBtn) tabNewBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition bg-teal-600 text-white shadow-sm';
-                if (tabImportBtn) tabImportBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-500 hover:text-slate-700 dark:hover:text-slate-200';
+                if (tabNewBtn) tabNewBtn.className = activeCls;
+                if (tabImportBtn) tabImportBtn.className = inactiveCls;
+                if (tabCloneBtn) tabCloneBtn.className = inactiveCls;
                 if (sectionNew) sectionNew.classList.remove('hidden');
                 if (sectionImport) sectionImport.classList.add('hidden');
+                if (sectionClone) sectionClone.classList.add('hidden');
                 setTimeout(() => document.getElementById('new-spec-name-ar')?.focus(), 100);
-            } else {
-                if (tabImportBtn) tabImportBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition bg-teal-600 text-white shadow-sm';
-                if (tabNewBtn) tabNewBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-500 hover:text-slate-700 dark:hover:text-slate-200';
+            } else if (tab === 'clone') {
+                if (tabCloneBtn) tabCloneBtn.className = activeCloneCls;
+                if (tabNewBtn) tabNewBtn.className = inactiveCls;
+                if (tabImportBtn) tabImportBtn.className = inactiveCls;
+                if (sectionClone) sectionClone.classList.remove('hidden');
                 if (sectionNew) sectionNew.classList.add('hidden');
+                if (sectionImport) sectionImport.classList.add('hidden');
+                populateCloneHospitalsDropdown();
+            } else {
+                if (tabImportBtn) tabImportBtn.className = activeCls;
+                if (tabNewBtn) tabNewBtn.className = inactiveCls;
+                if (tabCloneBtn) tabCloneBtn.className = inactiveCls;
                 if (sectionImport) sectionImport.classList.remove('hidden');
+                if (sectionNew) sectionNew.classList.add('hidden');
+                if (sectionClone) sectionClone.classList.add('hidden');
+            }
+        }
+
+        function populateCloneHospitalsDropdown() {
+            const hospSelect = document.getElementById('clone-source-hospital');
+            if (!hospSelect) return;
+            const allHospitals = Hub.getHospitals ? Hub.getHospitals() : [];
+            const otherHospitals = allHospitals.filter(h => h.id !== currentHospital.id);
+
+            if (otherHospitals.length === 0) {
+                hospSelect.innerHTML = '<option value="">-- لا توجد مستشفيات أخرى متاحة --</option>';
+                onCloneSourceHospitalChanged();
+                return;
+            }
+
+            hospSelect.innerHTML = otherHospitals.map(h => `
+                <option value="${h.id}">${h.name_ar || h.hospitalName || h.id}</option>
+            `).join('');
+
+            onCloneSourceHospitalChanged();
+        }
+
+        function onCloneSourceHospitalChanged() {
+            const hospSelect = document.getElementById('clone-source-hospital');
+            const specSelect = document.getElementById('clone-source-spec');
+            if (!hospSelect || !specSelect) return;
+
+            const sourceHospitalId = hospSelect.value;
+            const sourceHosp = Hub.getHospital ? Hub.getHospital(sourceHospitalId) : null;
+            if (!sourceHosp) {
+                specSelect.innerHTML = '<option value="">-- اختر المستشفى أولاً --</option>';
+                return;
+            }
+
+            const activeSpecs = (sourceHosp.specialties || []).filter(s => s.enabled !== false);
+            if (activeSpecs.length === 0) {
+                specSelect.innerHTML = '<option value="">-- لا توجد تخصصات في هذا المستشفى --</option>';
+                return;
+            }
+
+            specSelect.innerHTML = activeSpecs.map(s => {
+                const sName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(s.id, sourceHospitalId) : (s.name_ar || s.id);
+                return `<option value="${s.id}" data-color="${s.color || '#0f766e'}">${s.icon || '🏥'} ${sName} (${s.id})</option>`;
+            }).join('');
+
+            onCloneSourceSpecChanged();
+        }
+
+        function onCloneSourceSpecChanged() {
+            const specSelect = document.getElementById('clone-source-spec');
+            const colorInput = document.getElementById('clone-spec-color');
+            if (!specSelect || !colorInput) return;
+            const selectedOpt = specSelect.options[specSelect.selectedIndex];
+            if (selectedOpt && selectedOpt.dataset.color) {
+                colorInput.value = selectedOpt.dataset.color;
+            }
+        }
+
+        async function confirmAddCloneSpecialty() {
+            const hospSelect = document.getElementById('clone-source-hospital');
+            const specSelect = document.getElementById('clone-source-spec');
+            const colorInput = document.getElementById('clone-spec-color');
+
+            const sourceHospitalId = hospSelect ? hospSelect.value : '';
+            const sourceSpecId = specSelect ? specSelect.value : '';
+            const customColor = colorInput ? colorInput.value : '#4f46e5';
+
+            if (!sourceHospitalId) {
+                showToast('الرجاء اختيار المستشفى المصدر', 'error');
+                return;
+            }
+            if (!sourceSpecId) {
+                showToast('الرجاء اختيار التخصص المطلوب استنساخه', 'error');
+                return;
+            }
+
+            closeAddHospitalSpecModal();
+
+            try {
+                await Hub.addHospitalCloneSpecialty(currentHospital.id, sourceHospitalId, sourceSpecId, customColor);
+                currentHospital = Hub.getActiveHospital();
+                renderSpecialtiesList();
+                renderResidentsAccordion({ preserveScroll: true });
+                populateSpecialtyDropdowns();
+                updateStatsBadges();
+                showToast('تم استنساخ التخصص كمرآة حية بنجاح 📋', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'خطأ أثناء استنساخ التخصص', 'error');
             }
         }
 

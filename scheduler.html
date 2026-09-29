@@ -1809,7 +1809,10 @@
                         name: specialty.name_en || specialty.name_ar || specialty.id,
                         color: specialty.color || '#60a5fa',
                         name_ar: ((window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(specialty.id) : ((specialty.id === 'Pe' || specialty.name_ar === 'الاطفال') ? 'طب الأطفال' : (specialty.name_ar || specialty.id))),
-                        icon: specialty.icon || '🏥'
+                        icon: specialty.icon || '🏥',
+                        isClone: Boolean(specialty.isClone),
+                        clonedFromHospitalId: specialty.clonedFromHospitalId,
+                        clonedFromSpecId: specialty.clonedFromSpecId
                     };
                 });
                 return;
@@ -2342,8 +2345,12 @@
 
             specialtyList.forEach(function(specialty, trackIndex) {
                 var specialtyColor = getSpecialtyColor(specialty.id);
+                var isCloneTrack = Boolean(specialty.isClone);
+                var sourceHosp = isCloneTrack && specialty.clonedFromHospitalId ? (window.Hub ? window.Hub.getHospital(specialty.clonedFromHospitalId) : null) : null;
+                var sourceHospName = sourceHosp ? (sourceHosp.name_ar || sourceHosp.hospitalName || specialty.clonedFromHospitalId) : (specialty.clonedFromHospitalId || '');
+
                 var track = document.createElement('div');
-                track.className = 'specialty-track';
+                track.className = 'specialty-track' + (isCloneTrack ? ' clone-specialty-track' : '');
                 track.style.setProperty('--specialty-color', specialtyColor);
                 track.dataset.trackIndex = trackIndex;
                 
@@ -2359,7 +2366,13 @@
                     <div class="track-header" style="border-bottom-color: ${specialtyColor};">
                         <span class="specialty-icon">${specialty.icon || '🏥'}</span>
                         <h2 style="color: ${specialtyColor};">${specialty.name_ar || specialty.name}</h2>
-                        <span class="specialty-count">${totalResidents} ${roleCountLabel}</span>
+                        ${isCloneTrack ? `
+                            <span class="specialty-count" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 9999px;" title="مرآة حية من ${sourceHospName}">
+                                <i class="fas fa-lock text-[10px] ml-1"></i> مستنسخ من: ${sourceHospName}
+                            </span>
+                        ` : `
+                            <span class="specialty-count">${totalResidents} ${roleCountLabel}</span>
+                        `}
                         ${isSingleView ? `
                             <div class="track-navigation">
                                 <button onclick="event.stopPropagation(); navigateTrack(-1)">‹</button>
@@ -2377,8 +2390,10 @@
                     var uniqueId = String(dayNumber).padStart(2, '0') + '-' + specialty.id;
                     var isWeekend = (dateObject.getDay() === 5 || dateObject.getDay() === 6);
                     
-                    var result = redistributeDayTimes(dateFull, specialty.id, null, isDayAutoRedistributionEnabled(dateFull, specialty.id));
-                    var entries = (getActiveSchedule()).filter(function(scheduleEntry) { return scheduleEntry.date === dateFull && scheduleEntry.specCode === specialty.id; });
+                    var querySpecCode = isCloneTrack ? specialty.clonedFromSpecId : specialty.id;
+                    var entriesPool = (isCloneTrack && sourceHosp) ? (schedulerMode === 'specialists' ? (sourceHosp.specialistSchedule || []) : (sourceHosp.schedule || [])) : getActiveSchedule();
+                    var result = redistributeDayTimes(dateFull, querySpecCode, null, isDayAutoRedistributionEnabled(dateFull, querySpecCode));
+                    var entries = entriesPool.filter(function(scheduleEntry) { return scheduleEntry.date === dateFull && scheduleEntry.specCode === querySpecCode; });
                     var numberOfSlots = entries.length;
                     var isSingleSlot = numberOfSlots === 1;
                     var hasGaps = result.hasGaps;
@@ -2395,26 +2410,41 @@
                     `;
                     
                     if (numberOfSlots === 0) {
-                        html += `
-                            <div class="duty-slot" data-slot-index="0">
-                                <div class="time-display single-slot" aria-label="24h">
-                                    <span class="single-slot-label">24h</span>
+                        if (isCloneTrack) {
+                            html += `
+                                <div class="duty-slot" data-slot-index="0">
+                                    <div class="time-display single-slot" aria-label="24h">
+                                        <span class="single-slot-label">24h</span>
+                                    </div>
+                                    <div class="input-wrapper" onclick="showCloneLockedToast(event, '${sourceHospName}')">
+                                        <input type="text" class="cell-input" readonly
+                                            style="caret-color: transparent; cursor: not-allowed; opacity: 0.6;"
+                                            placeholder="— غير مسجل —">
+                                    </div>
                                 </div>
-                                <div class="input-wrapper" onclick="event.stopPropagation()">
-                                    <div class="ghost-text" id="ghost-${uniqueId}-0"></div>
-                                    <input type="text" class="cell-input" id="input-${uniqueId}-0"
-                                        style="caret-color: ${specialtyColor};"
-                                        onfocus="closeAllMenus()"
-                                        oninput="handleAutocomplete(this, '${specialty.id}', '${uniqueId}-0')"
-                                        onkeydown="handleKeys(event, this, '${uniqueId}-0')"
-                                        onblur="handleBlur('${uniqueId}-0')"
-                                        data-date="${dateFull}" data-spec="${specialty.id}" data-slot="0" autocomplete="off" placeholder=" ">
-                                    <span class="dropdown-arrow" onclick="toggleMenu(event, '${uniqueId}-0', '${specialty.id}')">▼</span>
-                                    <div class="custom-menu" id="menu-${uniqueId}-0" style="border-color: ${specialtyColor};"></div>
+                            `;
+                        } else {
+                            html += `
+                                <div class="duty-slot" data-slot-index="0">
+                                    <div class="time-display single-slot" aria-label="24h">
+                                        <span class="single-slot-label">24h</span>
+                                    </div>
+                                    <div class="input-wrapper" onclick="event.stopPropagation()">
+                                        <div class="ghost-text" id="ghost-${uniqueId}-0"></div>
+                                        <input type="text" class="cell-input" id="input-${uniqueId}-0"
+                                            style="caret-color: ${specialtyColor};"
+                                            onfocus="closeAllMenus()"
+                                            oninput="handleAutocomplete(this, '${specialty.id}', '${uniqueId}-0')"
+                                            onkeydown="handleKeys(event, this, '${uniqueId}-0')"
+                                            onblur="handleBlur('${uniqueId}-0')"
+                                            data-date="${dateFull}" data-spec="${specialty.id}" data-slot="0" autocomplete="off" placeholder=" ">
+                                        <span class="dropdown-arrow" onclick="toggleMenu(event, '${uniqueId}-0', '${specialty.id}')">▼</span>
+                                        <div class="custom-menu" id="menu-${uniqueId}-0" style="border-color: ${specialtyColor};"></div>
+                                    </div>
+                                    <button class="delete-slot-button" onclick="deleteSlot('${dateFull}', '${specialty.id}', 0)" style="display:none;">✕</button>
                                 </div>
-                                <button class="delete-slot-button" onclick="deleteSlot('${dateFull}', '${specialty.id}', 0)" style="display:none;">✕</button>
-                            </div>
-                        `;
+                            `;
+                        }
                     } else {
                         entries.forEach(function(entry, index) {
                             var timeData = result.times && result.times[index] ? result.times[index] : { start: 0, end: TOTAL_MINUTES };
@@ -2438,7 +2468,7 @@
                                 `;
                             } else {
                                 timeDisplayHtml = `
-                                    <div class="time-display" onclick="openTimePicker(event, '${dateFull}', '${specialty.id}', ${index})">
+                                    <div class="time-display" ${!isCloneTrack ? `onclick="openTimePicker(event, '${dateFull}', '${specialty.id}', ${index})"` : ''}>
                                         <span class="time-start">${minutesToTimeString(displayStart)}</span>
                                         <span class="time-separator">—</span>
                                         <span class="time-end">${minutesToTimeString(displayEnd)}</span>
@@ -2446,29 +2476,46 @@
                                 `;
                             }
                             
-                            html += `
-                                <div class="duty-slot" data-slot-index="${index}">
-                                    ${timeDisplayHtml}
-                                    <div class="input-wrapper" onclick="event.stopPropagation()">
-                                        <div class="ghost-text" id="ghost-${slotUid}"></div>
-                                        <input type="text" class="cell-input ${entry.name && !isValidName ? 'invalid-name' : 'prefilled'}" 
-                                            id="input-${slotUid}"
-                                            style="caret-color: ${specialtyColor};"
-                                            onfocus="closeAllMenus()"
-                                            oninput="handleAutocomplete(this, '${specialty.id}', '${slotUid}')"
-                                            onkeydown="handleKeys(event, this, '${slotUid}')"
-                                            onblur="handleBlur('${slotUid}')"
-                                            data-date="${dateFull}" data-spec="${specialty.id}" data-slot="${index}" autocomplete="off" 
-                                            value="${entry.name || ''}">
-                                        <span class="dropdown-arrow" onclick="toggleMenu(event, '${slotUid}', '${specialty.id}')">▼</span>
-                                        <div class="custom-menu" id="menu-${slotUid}" style="border-color: ${specialtyColor};"></div>
+                            if (isCloneTrack) {
+                                html += `
+                                    <div class="duty-slot" data-slot-index="${index}">
+                                        ${timeDisplayHtml}
+                                        <div class="input-wrapper" onclick="showCloneLockedToast(event, '${sourceHospName}')">
+                                            <input type="text" class="cell-input prefilled" 
+                                                id="input-${slotUid}"
+                                                readonly
+                                                style="caret-color: transparent; cursor: not-allowed; opacity: 0.95;"
+                                                value="${entry.name || ''}"
+                                                title="مستنسخ من ${sourceHospName} - للقراءة فقط">
+                                        </div>
                                     </div>
-                                    <button class="delete-slot-button" onclick="deleteSlot('${dateFull}', '${specialty.id}', ${index})">✕</button>
-                                </div>
-                            `;
+                                `;
+                            } else {
+                                html += `
+                                    <div class="duty-slot" data-slot-index="${index}">
+                                        ${timeDisplayHtml}
+                                        <div class="input-wrapper" onclick="event.stopPropagation()">
+                                            <div class="ghost-text" id="ghost-${slotUid}"></div>
+                                            <input type="text" class="cell-input ${entry.name && !isValidName ? 'invalid-name' : 'prefilled'}" 
+                                                id="input-${slotUid}"
+                                                style="caret-color: ${specialtyColor};"
+                                                onfocus="closeAllMenus()"
+                                                oninput="handleAutocomplete(this, '${specialty.id}', '${slotUid}')"
+                                                onkeydown="handleKeys(event, this, '${slotUid}')"
+                                                onblur="handleBlur('${slotUid}')"
+                                                data-date="${dateFull}" data-spec="${specialty.id}" data-slot="${index}" autocomplete="off" 
+                                                value="${entry.name || ''}">
+                                            <span class="dropdown-arrow" onclick="toggleMenu(event, '${slotUid}', '${specialty.id}')">▼</span>
+                                            <div class="custom-menu" id="menu-${slotUid}" style="border-color: ${specialtyColor};"></div>
+                                        </div>
+                                        <button class="delete-slot-button" onclick="deleteSlot('${dateFull}', '${specialty.id}', ${index})">✕</button>
+                                    </div>
+                                `;
+                            }
                         });
-                        
-                        if (hasGaps) {
+                    }
+                    
+                    if (hasGaps && !isCloneTrack) {
                             var gapText = gaps.map(function(gap) { 
                                 return minutesToTimeString(gap.start) + ' - ' + minutesToTimeString(gap.end);
                             }).join(', ');
@@ -2824,7 +2871,17 @@
             showToast(schedulerMode === 'specialists' ? '✅ تم إضافة خفارة اختصاصي - تم توزيع الوقت' : '✅ تم إضافة خفارة مقيم - تم توزيع الوقت', 'success', 2000);
         }
 
+        function showCloneLockedToast(event, sourceHospName) {
+            if (event) event.stopPropagation();
+            showToast('هذا التخصص مستنسخ (مرآة حية) من مستشفى ' + (sourceHospName || 'المستشفى الأصلي') + '. التعديل يتم في المستشفى الأصلي فقط.', 'info', 3500);
+        }
+
         function deleteSlot(date, specialtyCode, slotIndex) {
+            var specDef = specialtyList.find(function(s) { return s.id === specialtyCode; });
+            if (specDef && specDef.isClone) {
+                showToast('هذا التخصص مستنسخ كمرآة حية. لا يمكن حذف خاناته من هنا.', 'warning');
+                return;
+            }
             var scheduleArray = getActiveSchedule();
             var entries = scheduleArray.filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
             if (slotIndex >= entries.length) return;
@@ -3159,6 +3216,11 @@
         function saveEntry(input, refreshAfterSave) {
             var date = input.dataset.date;
             var specialtyCode = input.dataset.spec;
+            var specDef = specialtyList.find(function(s) { return s.id === specialtyCode; });
+            if (specDef && specDef.isClone) {
+                showToast('هذا التخصص مستنسخ كمرآة حية. لا يمكن تعديله من هنا.', 'warning');
+                return;
+            }
             var slotIndex = parseInt(input.dataset.slot) || 0;
             var name = input.value.trim();
             

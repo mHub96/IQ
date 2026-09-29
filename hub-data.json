@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T17:03:41.359Z",
+  "lastUpdated": "2026-09-29T17:04:16.116Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -31054,10 +31054,11 @@
         {
           "date": "29/09/2026",
           "specCode": "D",
-          "name": "د. زهراء توفيق",
+          "name": "د. عمر جليل عيسى",
           "VisitCount": 1,
           "dutySlot": 0,
-          "dutyTime": "08:00AM - 08:00PM"
+          "dutyTime": "08:00AM - 08:00PM",
+          "timestamp": "20:04"
         },
         {
           "date": "30/09/2026",
@@ -33191,7 +33192,7 @@
           "date": "29/09/2026",
           "specCode": "N",
           "name": "د. علي احمد خزعل",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },

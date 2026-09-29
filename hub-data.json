@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T09:56:08.181Z",
+  "lastUpdated": "2026-09-29T09:56:58.736Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24686,6 +24686,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumi5cktzljm",
+          "name": "د. مجيد ياسين مجيد",
+          "phone": "رقم غير متوفر",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -45131,6 +45144,19 @@
     {
       "id": "res-mumi49kird3y",
       "name": "د. سارة رشيد رجه",
+      "phone": "",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumi5cktzljm",
+      "name": "د. مجيد ياسين مجيد",
       "phone": "",
       "spec": "REF",
       "tag": "REF",

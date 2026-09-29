@@ -264,6 +264,24 @@
             });
         }
 
+        // Canonicalize all resident specialties to English names matching Hospital specialties
+        (state.residents || []).forEach(r => {
+            if (r.specialty) {
+                r.specialty = canonicalizeSpecialtyName(r.specialty);
+            }
+        });
+        if (state.hospitalResidents) {
+            Object.values(state.hospitalResidents).forEach(list => {
+                if (Array.isArray(list)) {
+                    list.forEach(r => {
+                        if (r.specialty) {
+                            r.specialty = canonicalizeSpecialtyName(r.specialty);
+                        }
+                    });
+                }
+            });
+        }
+
         // Load the schedule and allocations for the determined month from store
         loadMonthScheduleFromStore(state.hospitalId, state.year, state.month);
         loadMonthAllocationsFromStore(state.hospitalId, state.year, state.month);
@@ -3175,10 +3193,34 @@
     function refreshDBView() {
         const container = getDBContainer();
         if (container) {
-            const prevScroll = container.scrollTop;
+            // Save scroll positions of container, any overflow table wrapper, and window
+            const scrollableStates = [];
+            const scrollWrappers = container.querySelectorAll('.overflow-auto, .overflow-y-auto');
+            scrollWrappers.forEach((el, idx) => {
+                scrollableStates.push({
+                    index: idx,
+                    scrollTop: el.scrollTop,
+                    scrollLeft: el.scrollLeft
+                });
+            });
+            const prevContainerScroll = container.scrollTop;
+            const prevWinScroll = window.scrollY || document.documentElement.scrollTop;
+
             renderDBView(container);
-            if (prevScroll > 0) {
-                container.scrollTop = prevScroll;
+
+            // Restore scroll positions accurately
+            const newScrollWrappers = container.querySelectorAll('.overflow-auto, .overflow-y-auto');
+            scrollableStates.forEach(item => {
+                if (newScrollWrappers[item.index]) {
+                    newScrollWrappers[item.index].scrollTop = item.scrollTop;
+                    newScrollWrappers[item.index].scrollLeft = item.scrollLeft;
+                }
+            });
+            if (prevContainerScroll > 0) {
+                container.scrollTop = prevContainerScroll;
+            }
+            if (prevWinScroll > 0) {
+                window.scrollTo({ top: prevWinScroll });
             }
         }
         const navBadge = document.getElementById('db-nav-count-badge');
@@ -3325,65 +3367,305 @@
         return colors[Math.abs(hash) % colors.length];
     }
 
+    // =========================================================================
+    // PHONE & NAME FORMATTING AND VALIDATION HELPERS
+    // =========================================================================
+
+    function formatDoctorName(rawName) {
+        if (!rawName || typeof rawName !== 'string') return '';
+        let cleaned = rawName.trim();
+        // Remove existing "د." or "د " or "Dr." or "dr." prefix variations
+        cleaned = cleaned.replace(/^(د|dr)[\.\s\:\/]+/gi, '').trim();
+        if (!cleaned) return '';
+        return `د. ${cleaned}`;
+    }
+
+    function formatIraqiPhoneNumber(rawPhone) {
+        if (!rawPhone || typeof rawPhone !== 'string') return '';
+        let p = rawPhone.trim();
+        // Convert Arabic/Persian digits to English ASCII digits
+        const arabicDigits = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+        for (let i = 0; i < 10; i++) {
+            p = p.split(arabicDigits[i]).join(String(i));
+        }
+        // Keep note if original had a plus, then strip all non-digits
+        const hasPlus = p.startsWith('+');
+        p = p.replace(/\D/g, '');
+        if (!p) return '';
+
+        // Normalize Iraqi international prefixes:
+        if (p.startsWith('00964')) {
+            p = '+964' + p.substring(5);
+        } else if (p.startsWith('964')) {
+            p = '+' + p;
+        } else if (p.startsWith('07')) {
+            // 07XXXXXXXXX (11 digits) -> +9647XXXXXXXXX
+            p = '+964' + p.substring(1);
+        } else if (p.startsWith('7') && p.length === 10) {
+            // 7XXXXXXXXX (10 digits) -> +9647XXXXXXXXX
+            p = '+964' + p;
+        } else if (hasPlus) {
+            p = '+' + p;
+        }
+
+        return p;
+    }
+
+    function isValidIraqiPhoneNumber(phone) {
+        if (!phone) return true; // Optional field
+        // Standard Iraqi mobile pattern: +9647 followed by 9 digits (total 14 chars with +)
+        return /^\+9647\d{9}$/.test(phone);
+    }
+
+    // =========================================================================
+    // SPECIALTY UNIFICATION & MAPPING (ENGLISH NAMES MATCHING HOSPITALS)
+    // =========================================================================
+
+    const SPECIALTY_AR_TO_EN_MAP = {
+        'الجراحة العامة': 'General Surgery',
+        'جراحة عامة': 'General Surgery',
+        'جراحة الصدر و الاوعية الدموية': 'Cardiothoracic Surgery',
+        'جراحة الصدر والأوعية الدموية': 'Cardiothoracic Surgery',
+        'جراحة الصدر والاوعية الدموية': 'Cardiothoracic Surgery',
+        'صدرية وقلبية': 'Cardiothoracic Surgery',
+        'صدرية': 'Cardiothoracic Surgery',
+        'جراحة الجملة العصبية': 'Neurosurgery',
+        'جملة عصبية': 'Neurosurgery',
+        'الكسور': 'Orthopaedics',
+        'كسور': 'Orthopaedics',
+        'جراحة العظام والكسور': 'Orthopaedics',
+        'جراحة المسالك البولية': 'Urosurgery',
+        'مسالك بولية': 'Urosurgery',
+        'بولية': 'Urosurgery',
+        'الأذن و الأنف و الحنجرة': 'ENT',
+        'الأذن والأنف والحنجرة': 'ENT',
+        'الاذن والانف والحنجرة': 'ENT',
+        'أنف وأذن وحنجرة': 'ENT',
+        'جراحة الوجه و الفكين': 'MaxilloFacial Surgery',
+        'جراحة الوجه والفكين': 'MaxilloFacial Surgery',
+        'وجه وفكين': 'MaxilloFacial Surgery',
+        'العيون': 'Ophthalmology',
+        'طب العيون': 'Ophthalmology',
+        'طب الأطفال': 'Paediatrics',
+        'الأطفال': 'Paediatrics',
+        'اطفال': 'Paediatrics',
+        'الباطنية': 'Internal Medicine',
+        'الطب الباطني': 'Internal Medicine',
+        'طب باطني': 'Internal Medicine',
+        'باطنية': 'Internal Medicine',
+        'النسائية و التوليد': 'Gynecology',
+        'النسائية والتوليد': 'Gynecology',
+        'نسائية وتوليد': 'Gynecology',
+        'نسائية': 'Gynecology',
+        'تخدير العناية المركزة': 'ICU Anaesthesia',
+        'تخدير العمليات': 'OT Anaesthesia',
+        'تخدير صالة الولادة': 'GYN Anaesthesia',
+        'التخدير و العناية المركزة': 'Anaesthesia & Intensive Care',
+        'تخدير': 'Anaesthesia & Intensive Care',
+        'الأشعة و السونار': 'Radiology',
+        'الأشعة والسونار': 'Radiology',
+        'أشعة وسونار': 'Radiology',
+        'أشعة': 'Radiology',
+        'الوفيات': 'Death Certificates',
+        'المعاون الاداري': 'Administrative Officer',
+        'طب الاورام': 'Oncology',
+        'الأورام': 'Oncology',
+        'اورام': 'Oncology',
+        'طب امراض الكلى': 'Nephrology',
+        'كلى': 'Nephrology',
+        'طب الجملة العصبية': 'Neuromedicine',
+        'جملة عصبية باطنية': 'Neuromedicine',
+        'النفسية': 'Psychiatry',
+        'طب نفسي': 'Psychiatry',
+        'الجلدية': 'Dermatology',
+        'جلدية': 'Dermatology',
+        'طب الطوارئ': 'Emergency Medicine',
+        'طوارئ': 'Emergency Medicine',
+        'طب الأسرة': 'Family Medicine',
+        'طب الاسرة': 'Family Medicine',
+        'ممارسين': 'General Practitioner',
+        'عام': 'General Practitioner',
+        'طب الامراض القلبية': 'Cardiology',
+        'قلبية': 'Cardiology',
+        'الجراحة التجميلية': 'Plastic Surgery',
+        'جراحة التجميل': 'Plastic Surgery',
+        'تجميل': 'Plastic Surgery',
+        'طب الامراض التنفسية': 'Respiratory Medicine',
+        'تنفسية': 'Respiratory Medicine',
+        'الاحالات': 'Referrals',
+        'أمراض الدم': 'Haematology',
+        'امراض الدم': 'Haematology'
+    };
+
+    const SPECIALTY_EN_CANONICAL_MAP = {
+        'cardiothoracic': 'Cardiothoracic Surgery',
+        'cardiothoracicsurgery': 'Cardiothoracic Surgery',
+        'cardiothoracic surgery': 'Cardiothoracic Surgery',
+        'general surgery': 'General Surgery',
+        'generalsurgery': 'General Surgery',
+        'neurosurgery': 'Neurosurgery',
+        'orthopaedics': 'Orthopaedics',
+        'orthopedics': 'Orthopaedics',
+        'urosurgery': 'Urosurgery',
+        'ent': 'ENT',
+        'maxillofacial surgery': 'MaxilloFacial Surgery',
+        'maxillofacial': 'MaxilloFacial Surgery',
+        'ophthalmology': 'Ophthalmology',
+        'paediatrics': 'Paediatrics',
+        'pediatrics': 'Paediatrics',
+        'internal medicine': 'Internal Medicine',
+        'internalmedicine': 'Internal Medicine',
+        'gynecology': 'Gynecology',
+        'obstetrics & gynecology': 'Gynecology',
+        'icu anaesthesia': 'ICU Anaesthesia',
+        'ot anaesthesia': 'OT Anaesthesia',
+        'gyn anaesthesia': 'GYN Anaesthesia',
+        'anaesthesia & intensive care': 'Anaesthesia & Intensive Care',
+        'anaesthesia': 'Anaesthesia & Intensive Care',
+        'radiology': 'Radiology',
+        'death certificates': 'Death Certificates',
+        'administrative officer': 'Administrative Officer',
+        'oncology': 'Oncology',
+        'nephrology': 'Nephrology',
+        'neuromedicine': 'Neuromedicine',
+        'psychiatry': 'Psychiatry',
+        'dermatology': 'Dermatology',
+        'emergency medicine': 'Emergency Medicine',
+        'emergency': 'Emergency Medicine',
+        'emergencymedicine': 'Emergency Medicine',
+        'family medicine': 'Family Medicine',
+        'general practitioner': 'General Practitioner',
+        'gp': 'General Practitioner',
+        'cardiology': 'Cardiology',
+        'plastic surgery': 'Plastic Surgery',
+        'plasticsurgery': 'Plastic Surgery',
+        'respiratory medicine': 'Respiratory Medicine',
+        'referrals': 'Referrals',
+        'haematology': 'Haematology',
+        'hematology': 'Haematology'
+    };
+
+    const SPECIALTY_ID_MAP = {
+        'NS': 'Neurosurgery',
+        'CT': 'Cardiothoracic Surgery',
+        'GS': 'General Surgery',
+        'OR': 'Orthopaedics',
+        'US': 'Urosurgery',
+        'ENT': 'ENT',
+        'MF': 'MaxilloFacial Surgery',
+        'O': 'Ophthalmology',
+        'Pe': 'Paediatrics',
+        'M': 'Internal Medicine',
+        'G': 'Gynecology',
+        'ICU': 'ICU Anaesthesia',
+        'OP': 'OT Anaesthesia',
+        'GA': 'GYN Anaesthesia',
+        'A': 'Anaesthesia & Intensive Care',
+        'R': 'Radiology',
+        'D': 'Death Certificates',
+        'AO': 'Administrative Officer',
+        'ON': 'Oncology',
+        'N': 'Nephrology',
+        'NM': 'Neuromedicine',
+        'P': 'Psychiatry',
+        'Der': 'Dermatology',
+        'EM': 'Emergency Medicine',
+        'FM': 'Family Medicine',
+        'GP': 'General Practitioner',
+        'H': 'Cardiology',
+        'PS': 'Plastic Surgery',
+        'RM': 'Respiratory Medicine',
+        'REFE': 'Referrals'
+    };
+
+    function canonicalizeSpecialtyName(rawName) {
+        if (!rawName || typeof rawName !== 'string') return 'General Surgery';
+        const trimmed = rawName.trim();
+        if (!trimmed) return 'General Surgery';
+
+        // 1. Direct ID match (e.g. 'GS', 'CT')
+        if (SPECIALTY_ID_MAP[trimmed]) return SPECIALTY_ID_MAP[trimmed];
+
+        // 2. Arabic name mapping
+        if (SPECIALTY_AR_TO_EN_MAP[trimmed]) return SPECIALTY_AR_TO_EN_MAP[trimmed];
+        const normAr = normalizeArabic(trimmed);
+        for (const [ar, en] of Object.entries(SPECIALTY_AR_TO_EN_MAP)) {
+            if (normalizeArabic(ar) === normAr) return en;
+        }
+
+        // 3. English canonical mapping (case-insensitive)
+        const lower = trimmed.toLowerCase();
+        if (SPECIALTY_EN_CANONICAL_MAP[lower]) return SPECIALTY_EN_CANONICAL_MAP[lower];
+
+        // 4. Return trimmed
+        return trimmed;
+    }
+
     function getHospitalSpecialties(hospId) {
         const id = hospId || state.hospitalId;
         const result = [];
         const seen = new Set();
 
         const addSpec = (nameAr, nameEn, col) => {
-            if (!nameAr || typeof nameAr !== 'string') return;
-            const cleanAr = nameAr.trim();
-            if (!cleanAr || seen.has(cleanAr.toLowerCase())) return;
-            seen.add(cleanAr.toLowerCase());
+            const canonicalEn = canonicalizeSpecialtyName(nameEn || nameAr);
+            if (!canonicalEn || seen.has(canonicalEn.toLowerCase())) return;
+            seen.add(canonicalEn.toLowerCase());
+
             result.push({
-                name: cleanAr,
-                name_en: nameEn ? nameEn.trim() : '',
-                color: col || getSpecialtyColor(cleanAr)
+                name: canonicalEn,
+                name_en: canonicalEn,
+                name_ar: nameAr && typeof nameAr === 'string' ? nameAr.trim() : '',
+                color: col || getSpecialtyColor(canonicalEn)
             });
         };
 
-        // 1. From window.Hub / hub-data
+        // 1. From window.Hub / hub-data for specified hospital
         if (window.Hub && typeof window.Hub.getHospital === 'function') {
             const hosp = window.Hub.getHospital(id);
             if (hosp && Array.isArray(hosp.specialties)) {
                 hosp.specialties.forEach(s => {
-                    addSpec(s.name_ar || s.name, s.name_en || s.enName || '', s.color);
+                    const en = s.name_en || s.enName || SPECIALTY_ID_MAP[s.id] || '';
+                    addSpec(s.name_ar || s.name, en, s.color);
                 });
             }
         }
 
-        // 2. From residents of this hospital in state
+        // 2. From residents in state (canonicalized to English)
         (state.residents || []).forEach(r => {
             if (r.specialty) {
-                addSpec(r.specialty, '', getSpecialtyColor(r.specialty));
+                const en = canonicalizeSpecialtyName(r.specialty);
+                addSpec('', en, getSpecialtyColor(en));
             }
         });
 
-        // 3. Fallback standard list if empty
+        // 3. Fallback standard list (English names matching Hospital Hub)
         const fallbackList = [
-            { ar: 'الجراحة العامة', en: 'General Surgery' },
-            { ar: 'جراحة الصدر و الاوعية الدموية', en: 'Cardiothoracic Surgery' },
-            { ar: 'جراحة الجملة العصبية', en: 'Neurosurgery' },
-            { ar: 'الكسور', en: 'Orthopaedics' },
-            { ar: 'جراحة المسالك البولية', en: 'Urosurgery' },
-            { ar: 'الأذن و الأنف و الحنجرة', en: 'ENT' },
-            { ar: 'العيون', en: 'Ophthalmology' },
-            { ar: 'جراحة التجميل', en: 'Plastic Surgery' },
-            { ar: 'الباطنية', en: 'Internal Medicine' },
-            { ar: 'طب الأطفال', en: 'Paediatrics' },
-            { ar: 'الجلدية', en: 'Dermatology' },
-            { ar: 'طب الطوارئ', en: 'Emergency Medicine' },
-            { ar: 'الأشعة والسونار', en: 'Radiology' },
-            { ar: 'الأورام', en: 'Oncology' },
-            { ar: 'أمراض الدم', en: 'Haematology' },
-            { ar: 'طب الأسرة', en: 'Family Medicine' }
+            { en: 'General Surgery', ar: 'الجراحة العامة' },
+            { en: 'Cardiothoracic Surgery', ar: 'جراحة الصدر و الاوعية الدموية' },
+            { en: 'Neurosurgery', ar: 'جراحة الجملة العصبية' },
+            { en: 'Orthopaedics', ar: 'الكسور' },
+            { en: 'Urosurgery', ar: 'جراحة المسالك البولية' },
+            { en: 'ENT', ar: 'الأذن و الأنف و الحنجرة' },
+            { en: 'MaxilloFacial Surgery', ar: 'جراحة الوجه و الفكين' },
+            { en: 'Ophthalmology', ar: 'العيون' },
+            { en: 'Plastic Surgery', ar: 'جراحة التجميل' },
+            { en: 'Internal Medicine', ar: 'الباطنية' },
+            { en: 'Paediatrics', ar: 'طب الأطفال' },
+            { en: 'Gynecology', ar: 'النسائية و التوليد' },
+            { en: 'Emergency Medicine', ar: 'طب الطوارئ' },
+            { en: 'Dermatology', ar: 'الجلدية' },
+            { en: 'Radiology', ar: 'الأشعة والسونار' },
+            { en: 'Oncology', ar: 'الأورام' },
+            { en: 'Haematology', ar: 'أمراض الدم' },
+            { en: 'Family Medicine', ar: 'طب الأسرة' },
+            { en: 'Anaesthesia & Intensive Care', ar: 'التخدير و العناية المركزة' },
+            { en: 'Cardiology', ar: 'طب الامراض القلبية' },
+            { en: 'General Practitioner', ar: 'ممارسين' }
         ];
 
-        if (result.length < 5) {
-            fallbackList.forEach(item => {
-                addSpec(item.ar, item.en, getSpecialtyColor(item.ar));
-            });
-        }
+        fallbackList.forEach(item => {
+            addSpec(item.ar, item.en, getSpecialtyColor(item.en));
+        });
 
         return result;
     }
@@ -3409,7 +3691,7 @@
                     res = (a.sex || '').localeCompare(b.sex || '');
                     break;
                 case 'specialty':
-                    res = (a.specialty || '').localeCompare(b.specialty || '', 'ar');
+                    res = (a.specialty || '').localeCompare(b.specialty || '', 'en');
                     break;
                 case 'board':
                     res = (a.board || '').localeCompare(b.board || '');
@@ -3654,7 +3936,7 @@
         const allUniqueSpecs = Array.from(new Set(
             residents.map(r => r.specialty).filter(Boolean)
                 .concat(getHospitalSpecialties(state.hospitalId).map(s => s.name))
-        )).sort((a, b) => a.localeCompare(b, 'ar'));
+        )).sort((a, b) => a.localeCompare(b, 'en'));
 
         const monthNames = [
             'كانون الثاني (1)', 'شباط (2)', 'آذار (3)', 'نيسان (4)', 'أيار (5)', 'حزيران (6)',
@@ -3719,10 +4001,10 @@
                             <span>${state.showInactiveInDB ? 'إخفاء غير النشطين' : `إظهار غير النشطين (${inactiveList.length})`}</span>
                         </button>
 
-                        <!-- Import Residents from Selected Hospital -->
-                        <button type="button" onclick="importResidentsFromHospital(state.hospitalId)" class="px-3 py-1.5 rounded-xl text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 hover:bg-teal-100 transition flex items-center gap-1.5 shadow-xs" title="استيراد وتحديث الأطباء من قاعدة المستشفى في HOSP HUB">
-                            <i class="fas fa-file-import"></i>
-                            <span>استيراد أطباء المستشفى</span>
+                        <!-- Import Resident from Hospital with Detail Review -->
+                        <button type="button" onclick="openImportResidentFromHospitalModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 hover:bg-teal-100 transition flex items-center gap-1.5 shadow-xs" title="استيراد مقيم من أي مستشفى وتعبئة تفاصيل الطوارئ">
+                            <i class="fas fa-hospital-user"></i>
+                            <span>استيراد مقيم من مستشفى</span>
                         </button>
 
                         <button type="button" onclick="openHospitalSyncModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-sky-700 bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition flex items-center gap-1.5">
@@ -3827,7 +4109,7 @@
                                     ${getSortHeaderHTML('er_target', 'نصاب ER', 'w-16', 'text-center font-bold text-rose-600')}
                                     ${getSortHeaderHTML('con_target', 'نصاب Con', 'w-16', 'text-center font-bold text-sky-600')}
                                     ${getSortHeaderHTML('dc_target', 'نصاب DC', 'w-16', 'text-center font-bold text-emerald-600')}
-                                    ${getSortHeaderHTML('rs_target', 'نصاب RS', 'w-16', 'text-center font-bold text-amber-600')}
+                                    ${state.rsEnabled ? getSortHeaderHTML('rs_target', 'نصاب RS', 'w-16', 'text-center font-bold text-amber-600') : ''}
                                     ${getSortHeaderHTML('quota', 'حالة النصاب', 'w-32', 'font-bold text-center')}
                                     ${getSortHeaderHTML('expiryMonth', 'شهر الانتهاء', 'w-28', 'font-bold text-center')}
                                     <th class="sticky top-0 z-20 bg-slate-100 dark:bg-slate-900 py-3 px-2 w-20 text-center font-bold shadow-2xs">الرغبات</th>
@@ -3863,7 +4145,7 @@
                                     ${getSortHeaderHTML('er_target', 'نصاب ER', 'w-16', 'text-center font-bold')}
                                     ${getSortHeaderHTML('con_target', 'نصاب Con', 'w-16', 'text-center font-bold')}
                                     ${getSortHeaderHTML('dc_target', 'نصاب DC', 'w-16', 'text-center font-bold')}
-                                    ${getSortHeaderHTML('rs_target', 'نصاب RS', 'w-16', 'text-center font-bold')}
+                                    ${state.rsEnabled ? getSortHeaderHTML('rs_target', 'نصاب RS', 'w-16', 'text-center font-bold') : ''}
                                     ${getSortHeaderHTML('quota', 'الحالة', 'w-32', 'font-bold text-center')}
                                     ${getSortHeaderHTML('expiryMonth', 'شهر الانتهاء', 'w-28', 'font-bold text-center')}
                                     <th class="sticky top-0 z-20 bg-slate-200 dark:bg-slate-900 py-2.5 px-2 w-20 text-center font-bold shadow-2xs">تنشيط</th>
@@ -3873,7 +4155,7 @@
                             <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60">
                                 ${inactiveList.length > 0 
                                     ? inactiveList.map((r, idx) => renderResidentRowHTML(r, idx + 1, scheduledCounts, true)).join('')
-                                    : '<tr><td colspan="14" class="py-4 text-center text-slate-400 font-bold">لا يوجد أطباء غير نشطين في هذا الشهر</td></tr>'
+                                    : `<tr><td colspan="${state.rsEnabled ? 14 : 13}" class="py-4 text-center text-slate-400 font-bold">لا يوجد أطباء غير نشطين في هذا الشهر</td></tr>`
                                 }
                             </tbody>
                         </table>
@@ -4410,10 +4692,12 @@
                     <input type="number" min="0" value="${r.dc_target || 0}" oninput="onResidentTargetChange('${r.id}', 'dc_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'dc_target', this.value)" class="db-cell-input text-center font-mono font-black text-emerald-600">
                 </td>
 
+                ${state.rsEnabled ? `
                 <!-- RS Target (Direct number input with live update) -->
                 <td class="py-1 px-2 text-center">
                     <input type="number" min="0" value="${r.rs_target || 0}" oninput="onResidentTargetChange('${r.id}', 'rs_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'rs_target', this.value)" class="db-cell-input text-center font-mono font-black text-amber-600">
                 </td>
+                ` : ''}
 
                 <!-- Status Badge -->
                 <td class="py-1 px-2 resident-status-badge-cell">
@@ -4552,7 +4836,13 @@
         const res = (state.residents || []).find(r => r.id === resId);
         if (res) {
             const oldVal = res[field];
-            res[field] = newVal.trim();
+            let val = (newVal || '').trim();
+            if (field === 'name') {
+                val = formatDoctorName(val);
+            } else if (field === 'phone') {
+                val = formatIraqiPhoneNumber(val);
+            }
+            res[field] = val;
             saveState();
             pushDBHistory(`تعديل ${field} للطبيب (${res.name})`);
 
@@ -5323,28 +5613,8 @@
     }
 
     function importSingleDoctorToER(name, spec) {
-        state.residents.push({
-            id: `er_res_${Date.now()}`,
-            name: name,
-            sex: 'M',
-            specialty: spec || 'General',
-            board: 'None',
-            stage: '1.0',
-            er_target: 2,
-            con_target: 0,
-            dc_target: 0,
-            rs_target: 0,
-            phone: '',
-            expiryMonth: '',
-            prefDays: [],
-            prefShifts: [],
-            notes: 'Imported from hospital',
-            active: true,
-            hospitals: [state.hospitalId]
-        });
-        saveState();
-        openHospitalSyncModal();
-        showNotification(`تم استيراد الطبيب: ${name} إلى الطوارئ بنجاح`, 'success');
+        closeHospitalSyncModal();
+        openImportResidentFromHospitalModal(state.hospitalId, name);
     }
 
     function importAllMissingDoctorsToER() {
@@ -5648,9 +5918,11 @@
         if (!modal) {
             modal = document.createElement('div');
             modal.id = 'add-resident-modal';
+            modal.style.zIndex = '99999';
             modal.className = 'fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print';
             document.body.appendChild(modal);
         } else {
+            modal.style.zIndex = '99999';
             modal.className = 'fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print';
         }
 
@@ -5671,7 +5943,7 @@
                 <form onsubmit="handleSaveNewResident(event)" class="p-5 space-y-3 text-xs">
                     <div>
                         <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">اسم الطبيب الرباعي <span class="text-rose-500">*</span>:</label>
-                        <input type="text" id="new-res-name" required placeholder="د. الاسم الكامل..." class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                        <input type="text" id="new-res-name" required placeholder="د. الاسم الكامل..." class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
@@ -5683,10 +5955,9 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">الاختصاص (مستشفى ${escapeForInline(state.hospitalName || '')}):</label>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">الاختصاص (English):</label>
                             <select id="new-res-spec" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold">
                                 ${hospSpecs.map(s => `<option value="${escapeForInline(s.name)}">${s.name}</option>`).join('')}
-                                <option value="عام">عام (General)</option>
                             </select>
                         </div>
                     </div>
@@ -5714,7 +5985,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-4 gap-2 pt-1">
+                    <div class="grid ${state.rsEnabled ? 'grid-cols-4' : 'grid-cols-3'} gap-2 pt-1">
                         <div>
                             <label class="block text-[11px] font-bold text-rose-600 mb-1">نصاب ER:</label>
                             <input type="number" id="new-res-er" value="2" min="0" class="w-full px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-mono font-bold">
@@ -5727,16 +5998,18 @@
                             <label class="block text-[11px] font-bold text-emerald-600 mb-1">نصاب DC:</label>
                             <input type="number" id="new-res-dc" value="0" min="0" class="w-full px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-mono font-bold">
                         </div>
+                        ${state.rsEnabled ? `
                         <div>
                             <label class="block text-[11px] font-bold text-amber-600 mb-1">نصاب RS:</label>
                             <input type="number" id="new-res-rs" value="0" min="0" class="w-full px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-mono font-bold">
                         </div>
+                        ` : ''}
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">رقم الهاتف (اختياري / مطلوب للتصدير):</label>
-                            <input type="tel" id="new-res-phone" placeholder="0770..." class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">رقم الهاتف (+964... / اختياري):</label>
+                            <input type="tel" id="new-res-phone" placeholder="07XXXXXXXXX أو +9647XXXXXXXXX" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-mono">
                         </div>
                         <div>
                             <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">شهر انتهاء الصلاحية (اختياري):</label>
@@ -5771,18 +6044,79 @@
     function handleSaveNewResident(e) {
         e.preventDefault();
         const rawName = document.getElementById('new-res-name').value.trim();
-        const formattedName = rawName.startsWith('د.') ? rawName : `د. ${rawName}`;
+        const formattedName = formatDoctorName(rawName);
+        if (!formattedName) {
+            alert('الرجاء إدخال اسم الطبيب');
+            return;
+        }
+
+        const rawPhone = (document.getElementById('new-res-phone')?.value || '').trim();
+        const formattedPhone = formatIraqiPhoneNumber(rawPhone);
+        if (rawPhone && !isValidIraqiPhoneNumber(formattedPhone)) {
+            alert('رقم الهاتف غير صالح!\nيجب أن يبدأ بـ 07 أو +964 ويتكون من 10 أرقام.\n(مثال: 07801234567 أو +9647801234567)');
+            return;
+        }
+
+        // 1. Check duplicate in ER Database
+        const normNewName = normalizeArabic(formattedName);
+        const existingErDoc = (state.residents || []).find(r => {
+            const nameMatch = normalizeArabic(r.name) === normNewName;
+            const phoneMatch = formattedPhone && r.phone && (formatIraqiPhoneNumber(r.phone) === formattedPhone);
+            return nameMatch || phoneMatch;
+        });
+
+        if (existingErDoc) {
+            alert(`تنبيه: الطبيب (${existingErDoc.name}) مسجل مسبقاً في قاعدة بيانات الطوارئ!\nلا يمكن إضافة نفس الطبيب أو نفس رقم الهاتف أكثر من مرة.`);
+            return;
+        }
+
+        // 2. Check if present in Hospital Database (Hub)
+        let hospMatch = null;
+        if (window.Hub && typeof window.Hub.getHospitals === 'function') {
+            const allHospitals = window.Hub.getHospitals();
+            for (const h of allHospitals) {
+                const names = Array.isArray(h.names) ? h.names : [];
+                const match = names.find(n => {
+                    const nameMatches = normalizeArabic(n.name) === normNewName;
+                    const phoneMatches = formattedPhone && n.phone && (formatIraqiPhoneNumber(n.phone) === formattedPhone);
+                    return nameMatches || phoneMatches;
+                });
+                if (match) {
+                    hospMatch = { resident: match, hospital: h };
+                    break;
+                }
+            }
+        }
+
+        if (hospMatch) {
+            const hospTitle = hospMatch.hospital.name_ar || hospMatch.hospital.hospitalName || hospMatch.hospital.id;
+            const confirmImport = confirm(
+                `تنبيه: اسم الطبيب (${hospMatch.resident.name}) مسجل مسبقاً في قاعدة بيانات مستشفى (${hospTitle})!\n\n` +
+                `هل ترغب في استيراد بياناته الرسمية من المستشفى وإكمال تفاصيل الطوارئ؟\n\n` +
+                `- اضغط "موافق" (OK) للانتقال إلى نافذة استيراد الطبيب من المستشفى.\n` +
+                `- اضغط "إلغاء" (Cancel) لتعديل الاسم أو الهاتف وإدخال مقيم آخر.`
+            );
+
+            if (confirmImport) {
+                closeAddResidentModal();
+                openImportResidentFromHospitalModal(hospMatch.hospital.id, hospMatch.resident.name);
+                return;
+            } else {
+                showNotification('يرجى تعديل اسم الطبيب أو رقم الهاتف لإدخال مقيم آخر', 'info');
+                return;
+            }
+        }
+
         const sex = document.getElementById('new-res-sex').value;
-        const specialty = document.getElementById('new-res-spec').value.trim() || 'General';
+        const specialty = canonicalizeSpecialtyName(document.getElementById('new-res-spec').value);
         const board = document.getElementById('new-res-board').value;
         const stage = document.getElementById('new-res-stage').value.trim() || 'الأولى';
         const er_target = parseInt(document.getElementById('new-res-er').value, 10) || 0;
         const con_target = parseInt(document.getElementById('new-res-con').value, 10) || 0;
         const dc_target = parseInt(document.getElementById('new-res-dc').value, 10) || 0;
-        const rs_target = parseInt(document.getElementById('new-res-rs').value, 10) || 0;
-        const phone = document.getElementById('new-res-phone').value.trim();
-        const expiryMonth = document.getElementById('new-res-expiry').value.trim();
-        const notes = document.getElementById('new-res-notes').value.trim();
+        const rs_target = state.rsEnabled ? (parseInt(document.getElementById('new-res-rs')?.value, 10) || 0) : 0;
+        const expiryMonth = (document.getElementById('new-res-expiry')?.value || '').trim();
+        const notes = (document.getElementById('new-res-notes')?.value || '').trim();
 
         const newDoc = {
             id: `er_res_${Date.now()}`,
@@ -5795,7 +6129,7 @@
             con_target,
             dc_target,
             rs_target,
-            phone,
+            phone: formattedPhone,
             expiryMonth,
             prefDays: [],
             prefShifts: [],
@@ -5808,6 +6142,8 @@
         state.residents.push(newDoc);
         // Auto-sort residents according to current sort column and direction
         state.residents = sortResidentsList(state.residents, state.dbSortColumn || 'name', state.dbSortDirection || 'asc');
+        state.residents.forEach((r, idx) => { r.row = idx + 1; });
+
         saveCurrentMonthAllocationsToStore();
         saveCurrentHospitalResidents();
         saveState();
@@ -5816,6 +6152,366 @@
         refreshDBView();
         updateDBUndoRedoUI();
         showNotification(`تمت إضافة وترتيب الطبيب "${formattedName}" بنجاح`, 'success');
+    }
+
+    // =========================================================================
+    // 8.5 IMPORT RESIDENT FROM HOSPITAL MODAL (WITH DETAIL REVIEW & FILLING)
+    // =========================================================================
+
+    function openImportResidentFromHospitalModal(preselectedHospId, preselectedDocName) {
+        let modal = document.getElementById('import-resident-from-hospital-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'import-resident-from-hospital-modal';
+            modal.style.zIndex = '99999';
+            modal.className = 'fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print';
+            document.body.appendChild(modal);
+        } else {
+            modal.style.zIndex = '99999';
+            modal.className = 'fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print';
+            modal.classList.remove('hidden');
+        }
+
+        let hospitals = [];
+        if (window.Hub && typeof window.Hub.getHospitals === 'function') {
+            hospitals = window.Hub.getHospitals() || [];
+        }
+        if (hospitals.length === 0) {
+            hospitals = [
+                { id: 'iraqi', name_ar: 'المستشفى العراقي التعليمي' },
+                { id: 'basra', name_ar: 'مستشفى البصرة التعليمي' },
+                { id: 'mawani', name_ar: 'مستشفى الموانئ التعليمي' }
+            ];
+        }
+
+        const selectedHospId = preselectedHospId || state.hospitalId || (hospitals[0] ? hospitals[0].id : 'iraqi');
+        const hospSpecs = getHospitalSpecialties(selectedHospId);
+
+        modal.innerHTML = `
+            <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
+                <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-black text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                            <i class="fas fa-hospital-user text-teal-600"></i>
+                            <span>استيراد مقيم من مستشفى إلى الطوارئ</span>
+                        </h3>
+                        <p class="text-[11px] text-slate-500">اختر الطبيب وأكمل أنصبته وبياناته لقاعدة خفارات الطوارئ</p>
+                    </div>
+                    <button type="button" onclick="closeImportResidentFromHospitalModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                </div>
+
+                <form onsubmit="handleSaveImportedResident(event)" class="p-5 space-y-3 text-xs max-h-[80vh] overflow-y-auto">
+                    <!-- Hospital & Doctor Selection -->
+                    <div class="p-3 bg-teal-50/60 dark:bg-teal-950/30 rounded-2xl border border-teal-200/80 dark:border-teal-800/60 space-y-2.5">
+                        <div>
+                            <label class="block font-bold text-teal-900 dark:text-teal-200 mb-1">المستشفى المصدر:</label>
+                            <select id="import-res-hosp-select" onchange="onImportResidentHospChanged()" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-teal-300 dark:border-teal-700 text-slate-800 dark:text-slate-100 font-bold">
+                                ${hospitals.map(h => `<option value="${h.id}" ${h.id === selectedHospId ? 'selected' : ''}>${h.name_ar || h.hospitalName || h.id}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-teal-900 dark:text-teal-200 mb-1">المقيم المطلوب استيراده <span class="text-rose-500">*</span>:</label>
+                            <select id="import-res-doc-select" onchange="onImportResidentDocChanged()" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-teal-300 dark:border-teal-700 text-slate-800 dark:text-slate-100 font-bold">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- ER Required Details -->
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">اسم الطبيب في الطوارئ <span class="text-rose-500">*</span>:</label>
+                        <input type="text" id="import-res-name" required placeholder="د. الاسم الكامل..." class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">الجنس:</label>
+                            <select id="import-res-sex" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold">
+                                <option value="M">ذكر</option>
+                                <option value="F">أنثى</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">الاختصاص (English):</label>
+                            <select id="import-res-spec" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold">
+                                ${hospSpecs.map(s => `<option value="${escapeForInline(s.name)}">${s.name}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">نوع البورد:</label>
+                            <select id="import-res-board" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold">
+                                <option value="None" selected>بدون بورد (None)</option>
+                                <option value="Arabic">عربي (Arabic)</option>
+                                <option value="Iraqi">عراقي (Iraqi)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">المرحلة:</label>
+                            <select id="import-res-stage" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold">
+                                <option value="الأولى" selected>الأولى</option>
+                                <option value="الثانية">الثانية</option>
+                                <option value="الثالثة">الثالثة</option>
+                                <option value="الرابعة">الرابعة</option>
+                                <option value="الخامسة">الخامسة</option>
+                                <option value="السادسة">السادسة</option>
+                                <option value="بدون">بدون</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid ${state.rsEnabled ? 'grid-cols-4' : 'grid-cols-3'} gap-2 pt-1">
+                        <div>
+                            <label class="block text-[11px] font-bold text-rose-600 mb-1">نصاب ER:</label>
+                            <input type="number" id="import-res-er" value="2" min="0" class="w-full px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-mono font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-sky-600 mb-1">نصاب Con:</label>
+                            <input type="number" id="import-res-con" value="0" min="0" class="w-full px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-mono font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-emerald-600 mb-1">نصاب DC:</label>
+                            <input type="number" id="import-res-dc" value="0" min="0" class="w-full px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-mono font-bold">
+                        </div>
+                        ${state.rsEnabled ? `
+                        <div>
+                            <label class="block text-[11px] font-bold text-amber-600 mb-1">نصاب RS:</label>
+                            <input type="number" id="import-res-rs" value="0" min="0" class="w-full px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-mono font-bold">
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">رقم الهاتف (+964... / اختياري):</label>
+                            <input type="tel" id="import-res-phone" placeholder="07XXXXXXXXX أو +9647XXXXXXXXX" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-mono">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">شهر انتهاء الصلاحية (اختياري):</label>
+                            <input type="month" id="import-res-expiry" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">ملاحظات إدارية:</label>
+                        <input type="text" id="import-res-notes" placeholder="ملاحظات..." class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
+                        <button type="button" onclick="closeImportResidentFromHospitalModal()" class="px-4 py-2 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition">
+                            إلغاء
+                        </button>
+                        <button type="submit" class="px-5 py-2 rounded-xl font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-md shadow-teal-600/20 transition flex items-center gap-1.5">
+                            <i class="fas fa-check"></i>
+                            <span>إتمام الاستيراد والحفظ</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        `;
+
+        populateImportResidentDoctorList(selectedHospId, preselectedDocName);
+    }
+
+    function closeImportResidentFromHospitalModal() {
+        const modal = document.getElementById('import-resident-from-hospital-modal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    function onImportResidentHospChanged() {
+        const hospSelect = document.getElementById('import-res-hosp-select');
+        const specSelect = document.getElementById('import-res-spec');
+        if (!hospSelect) return;
+        const hospId = hospSelect.value;
+
+        if (specSelect) {
+            const hospSpecs = getHospitalSpecialties(hospId);
+            specSelect.innerHTML = hospSpecs.map(s => `<option value="${escapeForInline(s.name)}">${s.name}</option>`).join('');
+        }
+
+        populateImportResidentDoctorList(hospId);
+    }
+
+    function populateImportResidentDoctorList(hospId, preselectedDocName) {
+        const docSelect = document.getElementById('import-res-doc-select');
+        if (!docSelect) return;
+
+        let hospResidents = [];
+        if (window.Hub && typeof window.Hub.getHospital === 'function') {
+            const h = window.Hub.getHospital(hospId);
+            if (h && Array.isArray(h.names)) hospResidents = h.names;
+        }
+        if (hospResidents.length === 0 && window.Hub && typeof window.Hub.getResidents === 'function') {
+            hospResidents = window.Hub.getResidents(hospId) || [];
+        }
+
+        const existingErNames = new Set((state.residents || []).map(r => normalizeArabic(r.name)));
+
+        const availableDocs = hospResidents.filter(d => {
+            if (preselectedDocName && normalizeArabic(d.name) === normalizeArabic(preselectedDocName)) return true;
+            return !existingErNames.has(normalizeArabic(d.name));
+        });
+
+        if (availableDocs.length === 0) {
+            docSelect.innerHTML = `<option value="">-- جميع أطباء هذا المستشفى مضافون مسبقاً في الطوارئ --</option>`;
+            const nameInput = document.getElementById('import-res-name');
+            const phoneInput = document.getElementById('import-res-phone');
+            if (nameInput) nameInput.value = '';
+            if (phoneInput) phoneInput.value = '';
+            return;
+        }
+
+        docSelect.innerHTML = availableDocs.map(d => {
+            const formatted = formatDoctorName(d.name);
+            const isMatch = preselectedDocName && (normalizeArabic(d.name) === normalizeArabic(preselectedDocName));
+            return `<option value="${escapeForInline(d.id || d.name)}" ${isMatch ? 'selected' : ''}>${formatted} (${canonicalizeSpecialtyName(d.spec || d.specialty || '')})</option>`;
+        }).join('');
+
+        onImportResidentDocChanged();
+    }
+
+    function onImportResidentDocChanged() {
+        const hospSelect = document.getElementById('import-res-hosp-select');
+        const docSelect = document.getElementById('import-res-doc-select');
+        if (!hospSelect || !docSelect) return;
+
+        const hospId = hospSelect.value;
+        const docKey = docSelect.value;
+        if (!docKey) return;
+
+        let hospResidents = [];
+        let hospObj = null;
+        if (window.Hub && typeof window.Hub.getHospital === 'function') {
+            hospObj = window.Hub.getHospital(hospId);
+            if (hospObj && Array.isArray(hospObj.names)) hospResidents = hospObj.names;
+        }
+        if (hospResidents.length === 0 && window.Hub && typeof window.Hub.getResidents === 'function') {
+            hospResidents = window.Hub.getResidents(hospId) || [];
+        }
+
+        const doc = hospResidents.find(d => (d.id && d.id === docKey) || d.name === docKey);
+        if (!doc) return;
+
+        const formattedName = formatDoctorName(doc.name);
+        const formattedPhone = formatIraqiPhoneNumber(doc.phone || '');
+        const nameInput = document.getElementById('import-res-name');
+        const phoneInput = document.getElementById('import-res-phone');
+        const sexSelect = document.getElementById('import-res-sex');
+        const specSelect = document.getElementById('import-res-spec');
+        const notesInput = document.getElementById('import-res-notes');
+
+        if (nameInput) nameInput.value = formattedName;
+        if (phoneInput) phoneInput.value = formattedPhone;
+
+        const femaleNames = ['زهراء', 'فاطمة', 'زينب', 'مريم', 'هدى', 'نور', 'سارة', 'آلاء', 'رنا', 'دعاء', 'ضحى', 'إسراء', 'تبارك', 'أبرار', 'حوراء', 'مروة', 'آية', 'تقى', 'بنين', 'شهد', 'يقين', 'أمل', 'إيناس', 'خديجة'];
+        const cleanName = formattedName.replace(/^د[\.\s]+/, '').trim();
+        const firstName = cleanName.split(/\s+/)[0];
+        const isF = femaleNames.includes(firstName) || doc.sex === 'F';
+        if (sexSelect) sexSelect.value = isF ? 'F' : 'M';
+
+        let enSpec = '';
+        if (doc.spec && hospObj && Array.isArray(hospObj.specialties)) {
+            const sObj = hospObj.specialties.find(s => s.id === doc.spec);
+            if (sObj) enSpec = sObj.name_en || sObj.enName;
+        }
+        if (!enSpec) {
+            enSpec = canonicalizeSpecialtyName(doc.spec || doc.specialty || doc.dept || doc.department || '');
+        }
+
+        if (specSelect) {
+            let foundOption = Array.from(specSelect.options).find(opt => opt.value === enSpec);
+            if (!foundOption) {
+                const newOpt = document.createElement('option');
+                newOpt.value = enSpec;
+                newOpt.textContent = enSpec;
+                specSelect.appendChild(newOpt);
+            }
+            specSelect.value = enSpec;
+        }
+
+        if (notesInput) {
+            const hospTitle = hospObj ? (hospObj.name_ar || hospObj.hospitalName || hospId) : hospId;
+            notesInput.value = `مستورد من مستشفى (${hospTitle})`;
+        }
+    }
+
+    function handleSaveImportedResident(e) {
+        e.preventDefault();
+        const rawName = document.getElementById('import-res-name').value.trim();
+        const formattedName = formatDoctorName(rawName);
+        if (!formattedName) {
+            alert('الرجاء التأكد من اسم الطبيب');
+            return;
+        }
+
+        const rawPhone = (document.getElementById('import-res-phone')?.value || '').trim();
+        const formattedPhone = formatIraqiPhoneNumber(rawPhone);
+        if (rawPhone && !isValidIraqiPhoneNumber(formattedPhone)) {
+            alert('رقم الهاتف غير صالح!\nيجب أن يبدأ بـ 07 أو +964 ويتكون من 10 أرقام.\n(مثال: 07801234567 أو +9647801234567)');
+            return;
+        }
+
+        const normName = normalizeArabic(formattedName);
+        const existingErDoc = (state.residents || []).find(r => {
+            const nameMatch = normalizeArabic(r.name) === normName;
+            const phoneMatch = formattedPhone && r.phone && (formatIraqiPhoneNumber(r.phone) === formattedPhone);
+            return nameMatch || phoneMatch;
+        });
+
+        if (existingErDoc) {
+            alert(`الطبيب (${existingErDoc.name}) مسجل مسبقاً في قاعدة بيانات الطوارئ! لا يمكن التكرار.`);
+            return;
+        }
+
+        const sourceHospId = document.getElementById('import-res-hosp-select')?.value || state.hospitalId;
+        const sex = document.getElementById('import-res-sex').value;
+        const specialty = canonicalizeSpecialtyName(document.getElementById('import-res-spec').value);
+        const board = document.getElementById('import-res-board').value;
+        const stage = document.getElementById('import-res-stage').value.trim() || 'الأولى';
+        const er_target = parseInt(document.getElementById('import-res-er').value, 10) || 0;
+        const con_target = parseInt(document.getElementById('import-res-con').value, 10) || 0;
+        const dc_target = parseInt(document.getElementById('import-res-dc').value, 10) || 0;
+        const rs_target = state.rsEnabled ? (parseInt(document.getElementById('import-res-rs')?.value, 10) || 0) : 0;
+        const expiryMonth = (document.getElementById('import-res-expiry')?.value || '').trim();
+        const notes = (document.getElementById('import-res-notes')?.value || '').trim();
+
+        const newDoc = {
+            id: `er_res_${Date.now()}`,
+            name: formattedName,
+            sex,
+            specialty,
+            board,
+            stage,
+            er_target,
+            con_target,
+            dc_target,
+            rs_target,
+            phone: formattedPhone,
+            expiryMonth,
+            prefDays: [],
+            prefShifts: [],
+            noConsecutiveDays: true,
+            notes: notes || `مستورد من ${sourceHospId}`,
+            active: true,
+            hospitals: [state.hospitalId, sourceHospId].filter((v, i, a) => a.indexOf(v) === i)
+        };
+
+        state.residents.push(newDoc);
+        state.residents = sortResidentsList(state.residents, state.dbSortColumn || 'name', state.dbSortDirection || 'asc');
+        state.residents.forEach((r, idx) => { r.row = idx + 1; });
+
+        saveCurrentMonthAllocationsToStore();
+        saveCurrentHospitalResidents();
+        saveState();
+        pushDBHistory(`استيراد الطبيب (${formattedName})`);
+        closeImportResidentFromHospitalModal();
+        refreshDBView();
+        updateDBUndoRedoUI();
+        showNotification(`تم استيراد وترتيب الطبيب "${formattedName}" بنجاح في قاعدة الطوارئ`, 'success');
     }
 
     // =========================================================================
@@ -7833,6 +8529,19 @@
     window.initEmergencyApp = initEmergencyApp;
     window.state = state;
     window.saveState = saveState;
+
+    // Import Resident from Hospital Modal Handlers
+    window.openImportResidentFromHospitalModal = openImportResidentFromHospitalModal;
+    window.closeImportResidentFromHospitalModal = closeImportResidentFromHospitalModal;
+    window.onImportResidentHospChanged = onImportResidentHospChanged;
+    window.onImportResidentDocChanged = onImportResidentDocChanged;
+    window.handleSaveImportedResident = handleSaveImportedResident;
+
+    // Doctor Name & Phone formatters & Specialty canonicalizer
+    window.formatDoctorName = formatDoctorName;
+    window.formatIraqiPhoneNumber = formatIraqiPhoneNumber;
+    window.isValidIraqiPhoneNumber = isValidIraqiPhoneNumber;
+    window.canonicalizeSpecialtyName = canonicalizeSpecialtyName;
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initEmergencyApp);

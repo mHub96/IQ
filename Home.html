@@ -2634,7 +2634,10 @@
                              onmousemove="handleCardTilt(event, this)"
                              onmouseleave="resetCardTilt(this)">
                             <div class="card-face card-front card-body">
-                                <span class="card-status ${isTrending ? 'status-trending' : ''}">
+                                <span class="card-status ${isTrending ? 'status-trending' : ''}"
+                                      onclick="event.stopPropagation(); trackResidentContact('${resident.name}', '${resident.criticalSpecCode || ''}');"
+                                      title="عدد التفاعلات والزيارات - اضغط لتسجيل تفاعل"
+                                      style="cursor: pointer;">
                                     <i class="fas fa-eye"></i> ${resident.visitCount}
                                 </span>
                                 ${icuCounterHtml}
@@ -2653,12 +2656,12 @@
                                 <div class="card-actions">
                                     <a href="${isPhoneValid ? 'whatsapp://send?phone=' + phoneClean : '#'}" 
                                        class="action-btn-sm wa ${!isPhoneValid ? 'opacity-40' : ''}"
-                                       onclick="${isPhoneValid ? `trackResidentContact('${resident.name}');` : 'event.preventDefault();'}">
+                                       onclick="${isPhoneValid ? `trackResidentContact('${resident.name}', '${resident.criticalSpecCode || ''}');` : 'event.preventDefault();'}">
                                         <i class="fab fa-whatsapp"></i> WhatsApp
                                     </a>
                                     <a href="${isPhoneValid ? 'tel:' + phoneClean : '#'}" 
                                        class="action-btn-sm call ${!isPhoneValid ? 'opacity-40' : ''}"
-                                       onclick="${isPhoneValid ? `trackResidentContact('${resident.name}');` : 'event.preventDefault();'}">
+                                       onclick="${isPhoneValid ? `trackResidentContact('${resident.name}', '${resident.criticalSpecCode || ''}');` : 'event.preventDefault();'}">
                                         <i class="fas fa-phone"></i> Call
                                     </a>
                                 </div>
@@ -2710,37 +2713,29 @@
         // ================================================================
         function getTrendingResidentForToday() {
             if (!currentHospital) return null;
-            const targetDate = Hub.getMedicalDate();
-            const todayEntries = (currentHospital.schedule || []).filter(s => s.date === targetDate);
-            if (todayEntries.length === 0) return null;
+            const residents = getAllCurrentResidents();
+            if (!residents || residents.length === 0) return null;
 
-            const visitMap = {};
-            todayEntries.forEach(entry => {
-                const name = entry.name;
-                if (!visitMap[name]) visitMap[name] = 0;
-                visitMap[name] += (entry.VisitCount || 0);
-            });
-
-            let maxVisits = 0, trendingName = null;
-            for (const [name, visits] of Object.entries(visitMap)) {
+            let maxVisits = 0, trendingRes = null;
+            residents.forEach(res => {
+                const visits = res.visitCount || 0;
                 if (visits > maxVisits) {
                     maxVisits = visits;
-                    trendingName = name;
+                    trendingRes = res;
                 }
-            }
+            });
 
-            if (!trendingName || maxVisits === 0) return null;
+            if (!trendingRes || maxVisits === 0) return null;
 
-            const resident = (currentHospital.names || []).find(n => n.name === trendingName);
-            const specCode = todayEntries.find(e => e.name === trendingName)?.specCode || "NS";
-            const specObj = (currentHospital.specialties || []).find(s => s.id === specCode);
-
+            const firstSpec = trendingRes.specs?.[0];
             return {
-                name: trendingName,
-                phone: resident?.phone || "رقم غير متوفر",
-                specName: specObj?.name_ar || specCode,
-                icon: specObj?.icon || "🏥",
-                VisitCount: maxVisits
+                name: trendingRes.name,
+                phone: trendingRes.phone || "رقم غير متوفر",
+                specName: firstSpec ? firstSpec.name : (trendingRes.criticalSpecCode || "طبيب خافر"),
+                icon: firstSpec ? (firstSpec.icon || "🏥") : "🏥",
+                VisitCount: maxVisits,
+                isClone: Boolean(trendingRes.isClone),
+                parentHospitalName: trendingRes.parentHospitalName || null
             };
         }
 
@@ -2761,7 +2756,7 @@
                         </div>
                         <div class="trending-center">
                             <div class="trending-name">${trending.name}</div>
-                            <div class="trending-spec">${trending.icon} ${trending.specName}</div>
+                            <div class="trending-spec">${trending.icon} ${trending.specName}${trending.isClone && trending.parentHospitalName ? ` <span class="text-xs opacity-80 font-normal">(${trending.parentHospitalName})</span>` : ''}</div>
                         </div>
                     </div>
                 `;
@@ -2819,6 +2814,21 @@
             const monthStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
 
             let entries = (currentHospital.schedule || []).filter(s => s.VisitCount && s.VisitCount > 0);
+
+            // Also include cloned specialties so mirrored doctors appear on leaderboard
+            const cloneSpecs = (currentHospital.specialties || []).filter(s => s && s.isClone && s.clonedFromHospitalId && s.clonedFromSpecId);
+            cloneSpecs.forEach(cs => {
+                const srcHosp = Hub.getHospital ? Hub.getHospital(cs.clonedFromHospitalId) : null;
+                if (srcHosp && Array.isArray(srcHosp.schedule)) {
+                    const clonedEntries = srcHosp.schedule.filter(s => s.specCode === cs.clonedFromSpecId && s.VisitCount && s.VisitCount > 0);
+                    entries = entries.concat(clonedEntries.map(ce => ({
+                        ...ce,
+                        specCode: cs.id,
+                        isClone: true,
+                        parentHospitalName: srcHosp.name_ar || srcHosp.hospitalName
+                    })));
+                }
+            });
             if (filter === 'today') {
                 entries = entries.filter(s => s.date === todayStr);
             } else if (filter === 'month') {
@@ -2907,7 +2917,7 @@
         // ================================================================
         // INTERACTION TRACKING
         // ================================================================
-        async function trackResidentContact(residentName) {
+        async function trackResidentContact(residentName, specCode = null) {
             const now = Date.now();
             const key = `contact_${residentName}`;
             if (clickCooldown[key] && (now - clickCooldown[key]) < COOLDOWN_TIME) {
@@ -2918,7 +2928,7 @@
 
             if (!currentHospital) return;
             try {
-                await Hub.incrementVisitCount(currentHospital.id, residentName);
+                await Hub.incrementVisitCount(currentHospital.id, residentName, specCode);
                 showToast(`✅ تم تسجيل تفاعل مع د. ${residentName}`, 'success', 2200);
                 renderRoster();
                 renderTrending();

@@ -902,18 +902,64 @@
         return exchangeDuty(hospitalId, specCode, residentName, targetDate, oldResidentName);
     }
 
-    async function incrementVisitCount(hospitalId, residentName) {
+    async function incrementVisitCount(hospitalId, residentName, specCode = null) {
         const hospital = getHospital(hospitalId);
-        if (!hospital) return false;
+        if (!hospital) return 0;
 
         const today = getMedicalDate();
-        const entry = (hospital.schedule || []).find(s => s.date === today && s.name === residentName);
+
+        // 1. Direct local schedule entry
+        let entry = (hospital.schedule || []).find(s => 
+            s.date === today && 
+            s.name === residentName && 
+            (!specCode || s.specCode === specCode)
+        );
+
         if (entry) {
             entry.VisitCount = (entry.VisitCount || 0) + 1;
-            // Debounced save
-            debounceSave(`Interaction: ${residentName} in ${hospital.hospitalName}`);
+            debounceSave(`Interaction: ${residentName} in ${hospital.name_ar || hospital.hospitalName || hospitalId}`);
             return entry.VisitCount;
         }
+
+        // 2. Cloned specialty in this hospital: delegate to source hospital live schedule
+        const cloneSpecs = (hospital.specialties || []).filter(s => s && s.isClone && s.clonedFromHospitalId && s.clonedFromSpecId);
+        for (const cs of cloneSpecs) {
+            if (specCode && cs.id !== specCode && cs.clonedFromSpecId !== specCode) {
+                continue;
+            }
+            const srcHosp = getHospital(cs.clonedFromHospitalId);
+            if (!srcHosp || !Array.isArray(srcHosp.schedule)) continue;
+
+            const srcEntry = srcHosp.schedule.find(s => 
+                s.date === today && 
+                s.name === residentName && 
+                s.specCode === cs.clonedFromSpecId
+            );
+
+            if (srcEntry) {
+                srcEntry.VisitCount = (srcEntry.VisitCount || 0) + 1;
+                debounceSave(`Interaction: ${residentName} (Mirrored in ${hospital.name_ar || hospitalId}) from ${srcHosp.name_ar || srcHosp.hospitalName || cs.clonedFromHospitalId}`);
+                return srcEntry.VisitCount;
+            }
+        }
+
+        // 3. Fallback: check across all registered hospitals if this resident has a duty entry today
+        if (db && db.hospitals) {
+            for (const otherHosp of Object.values(db.hospitals)) {
+                if (otherHosp.id === hospitalId) continue;
+                const matchEntry = (otherHosp.schedule || []).find(s => 
+                    s.date === today && 
+                    s.name === residentName && 
+                    (!specCode || s.specCode === specCode)
+                );
+                if (matchEntry) {
+                    matchEntry.VisitCount = (matchEntry.VisitCount || 0) + 1;
+                    debounceSave(`Interaction: ${residentName} in ${otherHosp.name_ar || otherHosp.hospitalName || otherHosp.id}`);
+                    return matchEntry.VisitCount;
+                }
+            }
+        }
+
         return 0;
     }
 

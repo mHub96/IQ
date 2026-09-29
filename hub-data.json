@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T05:19:56.464Z",
+  "lastUpdated": "2026-09-29T05:22:29.417Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -30237,7 +30237,7 @@
           "date": "29/09/2026",
           "specCode": "ICU",
           "name": "د. رسل عوده ساري",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0
         },

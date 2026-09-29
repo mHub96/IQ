@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-28T21:42:25.509Z",
+  "lastUpdated": "2026-09-29T03:41:11.287Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -1549,13 +1549,13 @@
         },
         {
           "id": "res-0120",
-          "name": "د. صفا كاظم حسن",
-          "phone": "+9647710888537",
+          "name": "د. زهراء غانم عبدالصاحب",
+          "phone": "+964 783 188 9389",
           "spec": "ON",
           "tag": "ON",
           "dept": "ON",
           "department": "ON",
-          "active": false,
+          "active": true,
           "hospitals": [
             "iraqi"
           ]
@@ -40502,13 +40502,13 @@
     },
     {
       "id": "res-0120",
-      "name": "د. صفا كاظم حسن",
-      "phone": "+9647710888537",
+      "name": "د. زهراء غانم عبدالصاحب",
+      "phone": "+964 783 188 9389",
       "spec": "ON",
       "tag": "ON",
       "dept": "ON",
       "department": "ON",
-      "active": false,
+      "active": true,
       "hospitals": [
         "iraqi"
       ]

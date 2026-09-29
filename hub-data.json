@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T12:47:06.143Z",
+  "lastUpdated": "2026-09-29T12:47:09.899Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24584,19 +24584,6 @@
           ]
         },
         {
-          "id": "res-mumhv1bfsbfe",
-          "name": "د. حسن علي صالح",
-          "phone": "+964 773 392 0533",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
           "id": "res-mumi1bnecht4",
           "name": "د. نور احمد شريف",
           "phone": "+964 780 191 1068",
@@ -45184,19 +45171,6 @@
       "id": "res-mumhuj6ej84v",
       "name": "د. حسن علي صالح",
       "phone": "",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-mumhv1bfsbfe",
-      "name": "د. حسن علي صالح",
-      "phone": "+964 773 392 0533",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

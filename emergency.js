@@ -3190,10 +3190,158 @@
         return document.getElementById('schedule-view-container');
     }
 
-    function refreshDBView() {
+    // Monthly Duty Allocations Summary Helper
+    function getMonthlyDutyAllocationsSummary() {
+        const daysCount = getDaysInMonth(state.year, state.month);
+        const activeDocs = (state.residents || []).filter(r => r.active && !isResidentExpired(r, state.year, state.month));
+
+        // 1. ER (4 shifts per day)
+        const erRequired = daysCount * 4;
+        const erAllocated = activeDocs.reduce((sum, r) => sum + (Number(r.er_target) || 0), 0);
+
+        // 2. Consultation (1 shift per day)
+        const conRequired = daysCount * 1;
+        const conAllocated = activeDocs.reduce((sum, r) => sum + (Number(r.con_target) || 0), 0);
+
+        // 3. Death Certificates (1 shift per day)
+        const dcRequired = daysCount * 1;
+        const dcAllocated = activeDocs.reduce((sum, r) => sum + (Number(r.dc_target) || 0), 0);
+
+        // 4. Rotators Strike (RS)
+        let rsDaysCount = 0;
+        let rsRequired = 0;
+        let rsAllocated = 0;
+        if (state.rsEnabled && state.rsStartDate && state.rsEndDate) {
+            const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
+            const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || daysCount;
+            rsDaysCount = Math.max(0, endDay - startDay + 1);
+            rsRequired = rsDaysCount * 7; // 4 ER + 3 Wards per day
+            rsAllocated = activeDocs.reduce((sum, r) => sum + (Number(r.rs_target) || 0), 0);
+        }
+
+        return {
+            daysCount,
+            er: {
+                required: erRequired,
+                allocated: erAllocated,
+                isMatch: erAllocated === erRequired,
+                diff: erAllocated - erRequired,
+                label: 'نصاب الطوارئ (ER)',
+                sublabel: `(4 وجبات × ${daysCount} يوم)`
+            },
+            con: {
+                required: conRequired,
+                allocated: conAllocated,
+                isMatch: conAllocated === conRequired,
+                diff: conAllocated - conRequired,
+                label: 'نصاب الاستشارية (Con)',
+                sublabel: `(1 وجبة × ${daysCount} يوم)`
+            },
+            dc: {
+                required: dcRequired,
+                allocated: dcAllocated,
+                isMatch: dcAllocated === dcRequired,
+                diff: dcAllocated - dcRequired,
+                label: 'نصاب الوفيات (DC)',
+                sublabel: `(1 وجبة × ${daysCount} يوم)`
+            },
+            rs: {
+                enabled: Boolean(state.rsEnabled),
+                daysCount: rsDaysCount,
+                required: rsRequired,
+                allocated: rsAllocated,
+                isMatch: rsAllocated === rsRequired,
+                diff: rsAllocated - rsRequired,
+                label: 'نصاب الإضراب (RS)',
+                sublabel: state.rsEnabled ? `(7 وجبات × ${rsDaysCount} يوم)` : 'غير مفعل'
+            }
+        };
+    }
+
+    function renderDBDutyCheckersHTML() {
+        const summary = getMonthlyDutyAllocationsSummary();
+
+        const makeCard = (item, colorTheme, icon) => {
+            const isGreen = item.isMatch;
+            const statusBorder = isGreen ? 'border-emerald-500/80 bg-emerald-500/10' : 'border-rose-500/80 bg-rose-500/10';
+            const statusBadge = isGreen
+                ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-600 text-white shadow-xs">
+                     <i class="fas fa-check-circle"></i>
+                     <span>مطابق تماماً</span>
+                   </span>`
+                : `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white shadow-xs animate-pulse">
+                     <i class="fas fa-circle-exclamation"></i>
+                     <span>${item.diff < 0 ? `نقص (${Math.abs(item.diff)})` : `فائض (+${item.diff})`}</span>
+                   </span>`;
+
+            const statusText = isGreen
+                ? `<div class="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">الأنصبة مطابقة للمطلوب (${item.allocated} / ${item.required})</div>`
+                : `<div class="text-[11px] font-bold text-rose-700 dark:text-rose-300">المنصوب: ${item.allocated} من أصل ${item.required} ${item.diff < 0 ? `(متبقي ${item.required - item.allocated})` : `(فائض +${item.diff})`}</div>`;
+
+            return `
+                <div class="p-3.5 rounded-2xl border-2 transition shadow-xs flex flex-col justify-between ${statusBorder}">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-xl flex items-center justify-center ${colorTheme} text-white shadow-xs shrink-0">
+                                <i class="fas ${icon} text-sm"></i>
+                            </div>
+                            <div>
+                                <div class="font-black text-xs text-slate-800 dark:text-slate-100">${item.label}</div>
+                                <div class="text-[10px] text-slate-500 font-mono">${item.sublabel}</div>
+                            </div>
+                        </div>
+                        <div>${statusBadge}</div>
+                    </div>
+                    <div class="flex items-baseline justify-between pt-1 border-t border-slate-200/50 dark:border-slate-800/50">
+                        <div class="font-mono font-black text-base ${isGreen ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}">
+                            ${item.allocated} <span class="text-xs font-normal text-slate-500">/ ${item.required} خفارة</span>
+                        </div>
+                        ${statusText}
+                    </div>
+                </div>
+            `;
+        };
+
+        return `
+            <div id="db-duty-checkers-container" class="space-y-2 mb-2">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-rose-600 animate-pulse"></span>
+                        <h3 class="text-xs font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                            <i class="fas fa-scale-balanced text-rose-600"></i>
+                            <span>مطابقة أنصبة الخفارات مع المطلوب لشهر (${state.monthYear})</span>
+                        </h3>
+                    </div>
+                    <span class="text-[11px] text-slate-500">الأخضر يعني مطابقة تامة · الأحمر يعني عدم مطابقة (يُمنع تجاوز المطلوب)</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:${state.rsEnabled ? 'grid-cols-4' : 'grid-cols-3'} gap-3">
+                    ${makeCard(summary.er, 'bg-rose-600', 'fa-truck-medical')}
+                    ${makeCard(summary.con, 'bg-sky-600', 'fa-stethoscope')}
+                    ${makeCard(summary.dc, 'bg-emerald-600', 'fa-file-lines')}
+                    ${state.rsEnabled ? makeCard(summary.rs, 'bg-amber-600', 'fa-triangle-exclamation') : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    function updateDBDutyCheckers() {
+        const el = document.getElementById('db-duty-checkers-container');
+        if (el) {
+            el.outerHTML = renderDBDutyCheckersHTML();
+        }
+    }
+
+    function refreshDBView(targetResidentId) {
         const container = getDBContainer();
         if (container) {
-            // Save scroll positions of container, any overflow table wrapper, and window
+            const prevContainerScroll = container.scrollTop;
+            const activeTable = document.getElementById('db-active-table-wrapper');
+            const inactiveTable = document.getElementById('db-inactive-table-wrapper');
+            const savedActiveScroll = activeTable ? activeTable.scrollTop : 0;
+            const savedActiveScrollLeft = activeTable ? activeTable.scrollLeft : 0;
+            const savedInactiveScroll = inactiveTable ? inactiveTable.scrollTop : 0;
+            const prevWinScroll = window.scrollY || document.documentElement.scrollTop;
+
             const scrollableStates = [];
             const scrollWrappers = container.querySelectorAll('.overflow-auto, .overflow-y-auto');
             scrollWrappers.forEach((el, idx) => {
@@ -3203,25 +3351,51 @@
                     scrollLeft: el.scrollLeft
                 });
             });
-            const prevContainerScroll = container.scrollTop;
-            const prevWinScroll = window.scrollY || document.documentElement.scrollTop;
 
             renderDBView(container);
 
-            // Restore scroll positions accurately
-            const newScrollWrappers = container.querySelectorAll('.overflow-auto, .overflow-y-auto');
-            scrollableStates.forEach(item => {
-                if (newScrollWrappers[item.index]) {
-                    newScrollWrappers[item.index].scrollTop = item.scrollTop;
-                    newScrollWrappers[item.index].scrollLeft = item.scrollLeft;
+            const doRestore = () => {
+                const newActiveTable = document.getElementById('db-active-table-wrapper');
+                const newInactiveTable = document.getElementById('db-inactive-table-wrapper');
+                if (newActiveTable) {
+                    if (savedActiveScroll > 0) newActiveTable.scrollTop = savedActiveScroll;
+                    if (savedActiveScrollLeft > 0) newActiveTable.scrollLeft = savedActiveScrollLeft;
                 }
+                if (newInactiveTable && savedInactiveScroll > 0) {
+                    newInactiveTable.scrollTop = savedInactiveScroll;
+                }
+
+                const newScrollWrappers = container.querySelectorAll('.overflow-auto, .overflow-y-auto');
+                scrollableStates.forEach(item => {
+                    if (newScrollWrappers[item.index]) {
+                        if (item.scrollTop > 0) newScrollWrappers[item.index].scrollTop = item.scrollTop;
+                        if (item.scrollLeft > 0) newScrollWrappers[item.index].scrollLeft = item.scrollLeft;
+                    }
+                });
+
+                if (prevContainerScroll > 0) {
+                    container.scrollTop = prevContainerScroll;
+                }
+                if (prevWinScroll > 0) {
+                    window.scrollTo({ top: prevWinScroll, behavior: 'instant' });
+                }
+
+                if (targetResidentId) {
+                    const row = container.querySelector(`tr[data-resident-id="${targetResidentId}"]`);
+                    if (row) {
+                        row.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'auto' });
+                    }
+                }
+            };
+
+            void container.offsetHeight;
+            doRestore();
+
+            requestAnimationFrame(() => {
+                doRestore();
+                setTimeout(doRestore, 25);
+                setTimeout(doRestore, 80);
             });
-            if (prevContainerScroll > 0) {
-                container.scrollTop = prevContainerScroll;
-            }
-            if (prevWinScroll > 0) {
-                window.scrollTo({ top: prevWinScroll });
-            }
         }
         const navBadge = document.getElementById('db-nav-count-badge');
         if (navBadge) {
@@ -4089,6 +4263,9 @@
                     </div>
                 </div>
 
+                <!-- Duty Allocations Dashboard Checkers (Real-Time Live Counters) -->
+                ${renderDBDutyCheckersHTML()}
+
                 <!-- 1. ACTIVE RESIDENTS SECTION -->
                 <div class="space-y-2">
                     <div class="flex items-center gap-2">
@@ -4096,7 +4273,7 @@
                         <h3 class="text-sm font-black text-slate-800 dark:text-slate-100">الأطباء النشطون لشهر (${state.monthYear}) (<span id="active-res-count">${activeList.length}</span>)</h3>
                     </div>
 
-                    <div class="overflow-auto max-h-[68vh] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative">
+                    <div id="db-active-table-wrapper" class="overflow-auto max-h-[68vh] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative">
                         <table class="w-full text-right border-collapse text-xs">
                             <thead class="sticky top-0 z-20 bg-slate-100 dark:bg-slate-900 shadow-xs">
                                 <tr class="bg-slate-100/90 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
@@ -4132,7 +4309,7 @@
                         <span class="text-[11px] text-slate-400">(تم تعطيلهم وتصفير أنصبتهم لهذا الشهر ومستبعدون من جداول خفاراته)</span>
                     </div>
 
-                    <div class="overflow-auto max-h-[50vh] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm opacity-80 relative">
+                    <div id="db-inactive-table-wrapper" class="overflow-auto max-h-[50vh] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm opacity-80 relative">
                         <table class="w-full text-right border-collapse text-xs bg-slate-50/50 dark:bg-slate-900/20">
                             <thead class="sticky top-0 z-20 bg-slate-200 dark:bg-slate-900 shadow-xs">
                                 <tr class="bg-slate-200/90 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400">
@@ -4599,6 +4776,27 @@
         selectResidentSpecialty(residentId, specName);
     }
 
+    function renderResidentPrefsButtonHTML(r) {
+        const hasPrefs = (Array.isArray(r.prefDays) && r.prefDays.length > 0) || 
+                         (Array.isArray(r.prefShifts) && r.prefShifts.length > 0) || 
+                         (r.noConsecutiveDays === false);
+        if (hasPrefs) {
+            return `
+                <button type="button" onclick="openResidentPrefsModal('${r.id}')" class="px-2.5 py-1 rounded-xl text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition shadow-2xs flex items-center justify-center gap-1 mx-auto" title="لديه رغبات محددة - انقر للتعديل">
+                    <i class="fas fa-sliders text-emerald-600"></i>
+                    <span>رغبات</span>
+                </button>
+            `;
+        } else {
+            return `
+                <button type="button" onclick="openResidentPrefsModal('${r.id}')" class="px-2.5 py-1 rounded-xl text-[10px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition shadow-2xs flex items-center justify-center gap-1 mx-auto" title="لا توجد رغبات محددة - انقر للإضافة">
+                    <i class="fas fa-sliders text-rose-500"></i>
+                    <span>رغبات</span>
+                </button>
+            `;
+        }
+    }
+
     // Render individual resident row with direct editable inputs & coloring system
     function renderResidentRowHTML(r, rowNum, scheduledCounts, isInactiveSection) {
         const cleanName = normalizeArabic(r.name);
@@ -4679,23 +4877,23 @@
 
                 <!-- ER Target (Direct number input with live update) -->
                 <td class="py-1 px-2 text-center">
-                    <input type="number" min="0" value="${r.er_target || 0}" oninput="onResidentTargetChange('${r.id}', 'er_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'er_target', this.value)" class="db-cell-input text-center font-mono font-black text-rose-600">
+                    <input type="number" min="0" data-target-field="er_target" value="${r.er_target || 0}" oninput="onResidentTargetChange('${r.id}', 'er_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'er_target', this.value)" class="db-cell-input text-center font-mono font-black text-rose-600">
                 </td>
 
                 <!-- Con Target (Direct number input with live update) -->
                 <td class="py-1 px-2 text-center">
-                    <input type="number" min="0" value="${r.con_target || 0}" oninput="onResidentTargetChange('${r.id}', 'con_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'con_target', this.value)" class="db-cell-input text-center font-mono font-black text-sky-600">
+                    <input type="number" min="0" data-target-field="con_target" value="${r.con_target || 0}" oninput="onResidentTargetChange('${r.id}', 'con_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'con_target', this.value)" class="db-cell-input text-center font-mono font-black text-sky-600">
                 </td>
 
                 <!-- DC Target (Direct number input with live update) -->
                 <td class="py-1 px-2 text-center">
-                    <input type="number" min="0" value="${r.dc_target || 0}" oninput="onResidentTargetChange('${r.id}', 'dc_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'dc_target', this.value)" class="db-cell-input text-center font-mono font-black text-emerald-600">
+                    <input type="number" min="0" data-target-field="dc_target" value="${r.dc_target || 0}" oninput="onResidentTargetChange('${r.id}', 'dc_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'dc_target', this.value)" class="db-cell-input text-center font-mono font-black text-emerald-600">
                 </td>
 
                 ${state.rsEnabled ? `
                 <!-- RS Target (Direct number input with live update) -->
                 <td class="py-1 px-2 text-center">
-                    <input type="number" min="0" value="${r.rs_target || 0}" oninput="onResidentTargetChange('${r.id}', 'rs_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'rs_target', this.value)" class="db-cell-input text-center font-mono font-black text-amber-600">
+                    <input type="number" min="0" data-target-field="rs_target" value="${r.rs_target || 0}" oninput="onResidentTargetChange('${r.id}', 'rs_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'rs_target', this.value)" class="db-cell-input text-center font-mono font-black text-amber-600">
                 </td>
                 ` : ''}
 
@@ -4711,27 +4909,8 @@
 
                 <!-- Preferences Button (if active) / Reactivate Button (if inactive) -->
                 ${!isInactiveSection ? `
-                <td class="py-1 px-2 text-center">
-                    ${(() => {
-                        const hasPrefs = (Array.isArray(r.prefDays) && r.prefDays.length > 0) || 
-                                         (Array.isArray(r.prefShifts) && r.prefShifts.length > 0) || 
-                                         (r.noConsecutiveDays === false);
-                        if (hasPrefs) {
-                            return `
-                                <button type="button" onclick="openResidentPrefsModal('${r.id}')" class="px-2.5 py-1 rounded-xl text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition shadow-2xs flex items-center justify-center gap-1 mx-auto" title="لديه رغبات محددة - انقر للتعديل">
-                                    <i class="fas fa-sliders text-emerald-600"></i>
-                                    <span>رغبات</span>
-                                </button>
-                            `;
-                        } else {
-                            return `
-                                <button type="button" onclick="openResidentPrefsModal('${r.id}')" class="px-2.5 py-1 rounded-xl text-[10px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition shadow-2xs flex items-center justify-center gap-1 mx-auto" title="لا توجد رغبات محددة - انقر للإضافة">
-                                    <i class="fas fa-sliders text-rose-500"></i>
-                                    <span>رغبات</span>
-                                </button>
-                            `;
-                        }
-                    })()}
+                <td class="py-1 px-2 text-center resident-prefs-cell">
+                    ${renderResidentPrefsButtonHTML(r)}
                 </td>
                 <td class="py-1 px-2 text-center">
                     <button type="button" onclick="deactivateResidentWithConfirmation('${r.id}')" class="w-7 h-7 rounded-xl flex items-center justify-center mx-auto text-emerald-600 bg-emerald-50 hover:bg-rose-50 hover:text-rose-600 transition" title="تعطيل الطبيب وتصفير أنصبته">
@@ -4862,19 +5041,61 @@
 
     function onResidentTargetChange(resId, targetField, newVal) {
         const res = (state.residents || []).find(r => r.id === resId);
-        if (res) {
-            const parsedVal = Math.max(0, parseInt(newVal, 10) || 0);
-            res[targetField] = parsedVal;
-            saveCurrentMonthAllocationsToStore();
-            saveState();
-            updateDutyDashboard();
-            updateResidentRowFulfillment(resId);
+        if (!res) return;
 
-            clearTimeout(dbTargetDebounceTimer);
-            dbTargetDebounceTimer = setTimeout(() => {
-                pushDBHistory(`تعديل نصاب ${targetField} للطبيب (${res.name})`);
-            }, 350);
+        const parsedVal = Math.max(0, parseInt(newVal, 10) || 0);
+        const oldVal = Number(res[targetField]) || 0;
+        if (parsedVal === oldVal) return;
+
+        // Check against monthly required quota
+        const summary = getMonthlyDutyAllocationsSummary();
+        let dutyKey = '';
+        let dutyTitle = '';
+        if (targetField === 'er_target') { dutyKey = 'er'; dutyTitle = 'خفارات الطوارئ (ER)'; }
+        else if (targetField === 'con_target') { dutyKey = 'con'; dutyTitle = 'خفارات الاستشارية (Con)'; }
+        else if (targetField === 'dc_target') { dutyKey = 'dc'; dutyTitle = 'خفارات شهادات الوفاة (DC)'; }
+        else if (targetField === 'rs_target') { dutyKey = 'rs'; dutyTitle = 'خفارات الإسناد الإضافي (RS)'; }
+
+        if (dutyKey && summary[dutyKey]) {
+            const required = summary[dutyKey].required;
+            // Sum all other active non-expired residents' targets
+            const otherAllocated = (state.residents || [])
+                .filter(r => r.active && r.id !== resId && !isResidentExpired(r, state.year, state.month))
+                .reduce((sum, r) => sum + (Number(r[targetField]) || 0), 0);
+
+            const projectedTotal = otherAllocated + parsedVal;
+            if (projectedTotal > required) {
+                const remaining = Math.max(0, required - otherAllocated);
+                // Revert input value in DOM
+                const tr = document.querySelector(`tr[data-resident-id="${resId}"]`);
+                if (tr) {
+                    const input = tr.querySelector(`input[data-target-field="${targetField}"]`) || 
+                                  tr.querySelector(`input[oninput*="${targetField}"]`);
+                    if (input) input.value = oldVal;
+                }
+                alert(
+                    `⚠️ تنبيه منع تجاوز النصاب المطلوب!\n\n` +
+                    `لا يمكن زيادة نصاب ${dutyTitle} للطبيب (${res.name}).\n` +
+                    `العدد الكلي المطلوب لشهر (${state.monthYear}) هو: ${required} خفارة.\n` +
+                    `المنصوب لبقية الأطباء: ${otherAllocated} خفارة.\n` +
+                    `الحد الأقصى المتاح للتوزيع لهذا الطبيب هو: ${remaining} خفارة فقط.\n\n` +
+                    `تم إلغاء التعديل واسترجاع النصاب السابق (${oldVal}).`
+                );
+                return;
+            }
         }
+
+        res[targetField] = parsedVal;
+        saveCurrentMonthAllocationsToStore();
+        saveState();
+        updateDutyDashboard();
+        updateDBDutyCheckers();
+        updateResidentRowFulfillment(resId);
+
+        clearTimeout(dbTargetDebounceTimer);
+        dbTargetDebounceTimer = setTimeout(() => {
+            pushDBHistory(`تعديل نصاب ${targetField} للطبيب (${res.name})`);
+        }, 350);
     }
 
     function toggleShowInactiveInDB() {
@@ -5090,7 +5311,16 @@
         saveState();
         pushDBHistory(`تعديل رغبات الطبيب (${res.name})`);
         closeResidentPrefsModal();
-        refreshDBView();
+
+        // In-place update resident row's preference cell to eliminate any scroll jump
+        const tr = document.querySelector(`tr[data-resident-id="${activePrefsResId}"]`);
+        if (tr) {
+            const prefsCell = tr.querySelector('.resident-prefs-cell');
+            if (prefsCell) prefsCell.innerHTML = renderResidentPrefsButtonHTML(res);
+        } else {
+            refreshDBView(activePrefsResId);
+        }
+
         updateDBUndoRedoUI();
         showNotification(`تم حفظ رغبات الخفارة للطبيب (${res.name}) بنجاح`, 'success');
     }
@@ -5928,6 +6158,18 @@
 
         const hospSpecs = getHospitalSpecialties(state.hospitalId);
 
+        let hospitals = [];
+        if (window.Hub && typeof window.Hub.getHospitals === 'function') {
+            hospitals = window.Hub.getHospitals() || [];
+        }
+        if (hospitals.length === 0) {
+            hospitals = [
+                { id: 'iraqi', name_ar: 'المستشفى العراقي التعليمي' },
+                { id: 'basra', name_ar: 'مستشفى البصرة التعليمي' },
+                { id: 'mawani', name_ar: 'مستشفى الموانئ التعليمي' }
+            ];
+        }
+
         modal.innerHTML = `
             <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
                 <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -5940,7 +6182,31 @@
                     </button>
                 </div>
 
-                <form onsubmit="handleSaveNewResident(event)" class="p-5 space-y-3 text-xs">
+                <form onsubmit="handleSaveNewResident(event)" class="p-5 space-y-3 text-xs max-h-[85vh] overflow-y-auto">
+                    <!-- Quick Hospital Doctor Search & Auto-Fill in Add Panel -->
+                    <div class="p-3 bg-sky-50/70 dark:bg-sky-950/40 rounded-2xl border border-sky-200 dark:border-sky-800 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-sky-900 dark:text-sky-200 flex items-center gap-1.5 text-xs">
+                                <i class="fas fa-hospital-user text-sky-600"></i>
+                                <span>بحث واستيراد سريع من مستشفى (اختياري):</span>
+                            </span>
+                            <span class="text-[10px] text-slate-500">يملأ الحقول تلقائياً</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <select id="add-modal-hosp-select" onchange="searchHospitalResidentsForAddModal()" class="w-full px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-sky-300 dark:border-sky-700 text-slate-800 dark:text-slate-100 font-bold text-xs">
+                                <option value="all">جميع المستشفيات</option>
+                                ${hospitals.map(h => `<option value="${h.id}">${h.name_ar || h.hospitalName || h.id}</option>`).join('')}
+                            </select>
+                            <div class="relative">
+                                <input type="text" id="add-modal-doc-search" oninput="searchHospitalResidentsForAddModal()" placeholder="ابحث باسم الطبيب من المستشفى..." class="w-full pr-7 pl-2 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-sky-300 dark:border-sky-700 text-slate-800 dark:text-slate-100 font-bold text-xs">
+                                <i class="fas fa-search absolute right-2.5 top-2 text-sky-600 text-xs"></i>
+                            </div>
+                        </div>
+                        <div id="add-modal-search-results" class="hidden max-h-36 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900 rounded-xl border border-sky-200 dark:border-sky-800 shadow-sm">
+                            <!-- Results populated dynamically -->
+                        </div>
+                    </div>
+
                     <div>
                         <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">اسم الطبيب الرباعي <span class="text-rose-500">*</span>:</label>
                         <input type="text" id="new-res-name" required placeholder="د. الاسم الكامل..." class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold">
@@ -6036,6 +6302,125 @@
         modal.classList.remove('hidden');
     }
 
+    function searchHospitalResidentsForAddModal() {
+        const query = (document.getElementById('add-modal-doc-search')?.value || '').trim();
+        const hospId = document.getElementById('add-modal-hosp-select')?.value || 'all';
+        const resultsEl = document.getElementById('add-modal-search-results');
+        if (!resultsEl) return;
+
+        if (!query && hospId === 'all') {
+            resultsEl.classList.add('hidden');
+            resultsEl.innerHTML = '';
+            return;
+        }
+
+        let allHospDocs = [];
+        if (window.Hub && typeof window.Hub.getHospitals === 'function') {
+            const allHosps = window.Hub.getHospitals();
+            allHosps.forEach(h => {
+                if (hospId !== 'all' && h.id !== hospId) return;
+                const names = Array.isArray(h.names) ? h.names : [];
+                names.forEach(d => {
+                    allHospDocs.push({
+                        doc: d,
+                        hospitalId: h.id,
+                        hospitalName: h.name_ar || h.hospitalName || h.id
+                    });
+                });
+            });
+        }
+
+        const cleanQ = normalizeArabic(query).toLowerCase();
+        const matches = allHospDocs.filter(item => {
+            if (!cleanQ) return true;
+            const docName = normalizeArabic(item.doc.name || '').toLowerCase();
+            const docSpec = (item.doc.spec || item.doc.specialty || '').toLowerCase();
+            return docName.includes(cleanQ) || docSpec.includes(cleanQ);
+        }).slice(0, 8);
+
+        if (matches.length === 0) {
+            resultsEl.innerHTML = `<div class="p-2 text-center text-slate-400 text-[11px]">لا توجد نتائج مطابقة في قاعدة المستشفيات</div>`;
+            resultsEl.classList.remove('hidden');
+            return;
+        }
+
+        resultsEl.innerHTML = matches.map(item => {
+            const formatted = formatDoctorName(item.doc.name);
+            const canonSpec = canonicalizeSpecialtyName(item.doc.spec || item.doc.specialty || '');
+            return `
+                <div class="p-2 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition flex items-center justify-between gap-2 cursor-pointer" onclick="quickFillAddResidentModal('${escapeForInline(item.hospitalId)}', '${escapeForInline(item.doc.id || item.doc.name)}')">
+                    <div>
+                        <div class="font-bold text-slate-800 dark:text-slate-100 text-xs">${formatted}</div>
+                        <div class="text-[10px] text-slate-500">${item.hospitalName} · <span class="text-sky-600 font-mono font-bold">${canonSpec}</span></div>
+                    </div>
+                    <button type="button" class="px-2 py-0.5 rounded-lg text-[10px] font-bold text-sky-700 bg-sky-100 dark:bg-sky-900/60 hover:bg-sky-200 transition">
+                        استيراد وتعبئة
+                    </button>
+                </div>
+            `;
+        }).join('');
+        resultsEl.classList.remove('hidden');
+    }
+
+    function quickFillAddResidentModal(hospId, docKey) {
+        let hospObj = null;
+        let hospResidents = [];
+        if (window.Hub && typeof window.Hub.getHospital === 'function') {
+            hospObj = window.Hub.getHospital(hospId);
+            if (hospObj && Array.isArray(hospObj.names)) hospResidents = hospObj.names;
+        }
+
+        const doc = hospResidents.find(d => (d.id && d.id === docKey) || d.name === docKey);
+        if (!doc) return;
+
+        const formattedName = formatDoctorName(doc.name);
+        const formattedPhone = formatIraqiPhoneNumber(doc.phone || '');
+        const nameInput = document.getElementById('new-res-name');
+        const phoneInput = document.getElementById('new-res-phone');
+        const sexSelect = document.getElementById('new-res-sex');
+        const specSelect = document.getElementById('new-res-spec');
+        const notesInput = document.getElementById('new-res-notes');
+
+        if (nameInput) nameInput.value = formattedName;
+        if (phoneInput) phoneInput.value = formattedPhone;
+
+        const femaleNames = ['زهراء', 'فاطمة', 'زينب', 'مريم', 'هدى', 'نور', 'سارة', 'آلاء', 'رنا', 'دعاء', 'ضحى', 'إسراء', 'تبارك', 'أبرار', 'حوراء', 'مروة', 'آية', 'تقى', 'بنين', 'شهد', 'يقين', 'أمل', 'إيناس', 'خديجة'];
+        const cleanName = formattedName.replace(/^د[\.\s]+/, '').trim();
+        const firstName = cleanName.split(/\s+/)[0];
+        const isF = femaleNames.includes(firstName) || doc.sex === 'F';
+        if (sexSelect) sexSelect.value = isF ? 'F' : 'M';
+
+        let enSpec = '';
+        if (doc.spec && hospObj && Array.isArray(hospObj.specialties)) {
+            const sObj = hospObj.specialties.find(s => s.id === doc.spec);
+            if (sObj) enSpec = sObj.name_en || sObj.enName;
+        }
+        if (!enSpec) {
+            enSpec = canonicalizeSpecialtyName(doc.spec || doc.specialty || doc.dept || doc.department || '');
+        }
+
+        if (specSelect) {
+            let foundOption = Array.from(specSelect.options).find(opt => opt.value === enSpec);
+            if (!foundOption) {
+                const newOpt = document.createElement('option');
+                newOpt.value = enSpec;
+                newOpt.textContent = enSpec;
+                specSelect.appendChild(newOpt);
+            }
+            specSelect.value = enSpec;
+        }
+
+        if (notesInput) {
+            const hospTitle = hospObj ? (hospObj.name_ar || hospObj.hospitalName || hospId) : hospId;
+            notesInput.value = `مستورد من مستشفى (${hospTitle})`;
+        }
+
+        const resultsEl = document.getElementById('add-modal-search-results');
+        if (resultsEl) resultsEl.classList.add('hidden');
+
+        showNotification(`تمت تعبئة بيانات الطبيب (${formattedName}) من مستشفى (${hospObj ? (hospObj.name_ar || hospId) : hospId})`, 'info');
+    }
+
     function closeAddResidentModal() {
         const modal = document.getElementById('add-resident-modal');
         if (modal) modal.classList.add('hidden');
@@ -6118,6 +6503,32 @@
         const expiryMonth = (document.getElementById('new-res-expiry')?.value || '').trim();
         const notes = (document.getElementById('new-res-notes')?.value || '').trim();
 
+        // Enforce quota limits: prevent adding duties that exceed monthly required totals
+        const summary = getMonthlyDutyAllocationsSummary();
+        const checkQuota = (targetVal, dutyKey, dutyTitle) => {
+            if (!summary[dutyKey]) return true;
+            const required = summary[dutyKey].required;
+            const currentAllocated = summary[dutyKey].allocated;
+            if (currentAllocated + targetVal > required) {
+                const remaining = Math.max(0, required - currentAllocated);
+                alert(
+                    `⚠️ تنبيه منع تجاوز النصاب المطلوب!\n\n` +
+                    `النصاب المدخل لـ ${dutyTitle} (${targetVal}) يتجاوز الحد المطلوب لهذا الشهر.\n` +
+                    `المطلوب الكلي لشهر (${state.monthYear}): ${required} خفارة.\n` +
+                    `الموزع حالياً: ${currentAllocated} خفارة.\n` +
+                    `المتبقي المتاح للتوزيع: ${remaining} خفارة فقط.\n\n` +
+                    `يرجى تعديل النصاب والمحاولة مجدداً.`
+                );
+                return false;
+            }
+            return true;
+        };
+
+        if (!checkQuota(er_target, 'er', 'الطوارئ (ER)')) return;
+        if (!checkQuota(con_target, 'con', 'الاستشارية (Con)')) return;
+        if (!checkQuota(dc_target, 'dc', 'شهادات الوفاة (DC)')) return;
+        if (state.rsEnabled && !checkQuota(rs_target, 'rs', 'الإسناد الإضافي (RS)')) return;
+
         const newDoc = {
             id: `er_res_${Date.now()}`,
             name: formattedName,
@@ -6149,7 +6560,8 @@
         saveState();
         pushDBHistory(`إضافة الطبيب (${formattedName})`);
         closeAddResidentModal();
-        refreshDBView();
+        refreshDBView(newDoc.id);
+        updateDBDutyCheckers();
         updateDBUndoRedoUI();
         showNotification(`تمت إضافة وترتيب الطبيب "${formattedName}" بنجاح`, 'success');
     }
@@ -6211,8 +6623,30 @@
                                 ${hospitals.map(h => `<option value="${h.id}" ${h.id === selectedHospId ? 'selected' : ''}>${h.name_ar || h.hospitalName || h.id}</option>`).join('')}
                             </select>
                         </div>
+
+                        <!-- Filter by Specialty & Name Search -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[11px] font-bold text-teal-800 dark:text-teal-300 mb-1">فلترة حسب الاختصاص:</label>
+                                <select id="import-res-filter-spec" onchange="onImportResidentFilterChanged()" class="w-full px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-teal-300 dark:border-teal-700 text-slate-800 dark:text-slate-100 font-bold text-xs">
+                                    <option value="all">جميع الاختصاصات (الكل)</option>
+                                    ${hospSpecs.map(s => `<option value="${escapeForInline(s.name)}">${s.name}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-teal-800 dark:text-teal-300 mb-1">بحث بالاسم:</label>
+                                <div class="relative">
+                                    <input type="text" id="import-res-filter-search" oninput="onImportResidentFilterChanged()" placeholder="اكتب اسم الطبيب للبحث..." class="w-full pr-7 pl-2 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-teal-300 dark:border-teal-700 text-slate-800 dark:text-slate-100 font-bold text-xs">
+                                    <i class="fas fa-search absolute right-2.5 top-2 text-teal-600 text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+
                         <div>
-                            <label class="block font-bold text-teal-900 dark:text-teal-200 mb-1">المقيم المطلوب استيراده <span class="text-rose-500">*</span>:</label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block font-bold text-teal-900 dark:text-teal-200">المقيم المطلوب استيراده <span class="text-rose-500">*</span>:</label>
+                                <span id="import-res-count-badge" class="text-[10px] font-mono font-bold text-teal-700 dark:text-teal-300"></span>
+                            </div>
                             <select id="import-res-doc-select" onchange="onImportResidentDocChanged()" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-teal-300 dark:border-teal-700 text-slate-800 dark:text-slate-100 font-bold">
                                 <!-- Populated dynamically -->
                             </select>
@@ -6325,15 +6759,25 @@
     function onImportResidentHospChanged() {
         const hospSelect = document.getElementById('import-res-hosp-select');
         const specSelect = document.getElementById('import-res-spec');
+        const filterSpecSelect = document.getElementById('import-res-filter-spec');
         if (!hospSelect) return;
         const hospId = hospSelect.value;
 
+        const hospSpecs = getHospitalSpecialties(hospId);
         if (specSelect) {
-            const hospSpecs = getHospitalSpecialties(hospId);
             specSelect.innerHTML = hospSpecs.map(s => `<option value="${escapeForInline(s.name)}">${s.name}</option>`).join('');
+        }
+        if (filterSpecSelect) {
+            filterSpecSelect.innerHTML = `<option value="all">جميع الاختصاصات (الكل)</option>` + hospSpecs.map(s => `<option value="${escapeForInline(s.name)}">${s.name}</option>`).join('');
         }
 
         populateImportResidentDoctorList(hospId);
+    }
+
+    function onImportResidentFilterChanged() {
+        const hospSelect = document.getElementById('import-res-hosp-select');
+        if (!hospSelect) return;
+        populateImportResidentDoctorList(hospSelect.value);
     }
 
     function populateImportResidentDoctorList(hospId, preselectedDocName) {
@@ -6341,9 +6785,10 @@
         if (!docSelect) return;
 
         let hospResidents = [];
+        let hospObj = null;
         if (window.Hub && typeof window.Hub.getHospital === 'function') {
-            const h = window.Hub.getHospital(hospId);
-            if (h && Array.isArray(h.names)) hospResidents = h.names;
+            hospObj = window.Hub.getHospital(hospId);
+            if (hospObj && Array.isArray(hospObj.names)) hospResidents = hospObj.names;
         }
         if (hospResidents.length === 0 && window.Hub && typeof window.Hub.getResidents === 'function') {
             hospResidents = window.Hub.getResidents(hospId) || [];
@@ -6351,13 +6796,45 @@
 
         const existingErNames = new Set((state.residents || []).map(r => normalizeArabic(r.name)));
 
-        const availableDocs = hospResidents.filter(d => {
+        let availableDocs = hospResidents.filter(d => {
             if (preselectedDocName && normalizeArabic(d.name) === normalizeArabic(preselectedDocName)) return true;
             return !existingErNames.has(normalizeArabic(d.name));
         });
 
+        // Filter by specialty if selected
+        const specFilter = document.getElementById('import-res-filter-spec')?.value || 'all';
+        if (specFilter !== 'all') {
+            const cleanFilter = specFilter.trim().toLowerCase();
+            availableDocs = availableDocs.filter(d => {
+                let docEnSpec = '';
+                if (d.spec && hospObj && Array.isArray(hospObj.specialties)) {
+                    const sObj = hospObj.specialties.find(s => s.id === d.spec);
+                    if (sObj) docEnSpec = sObj.name_en || sObj.enName || sObj.name_ar || '';
+                }
+                const docSpec = (docEnSpec || d.spec || d.specialty || d.dept || d.department || '').trim().toLowerCase();
+                const canonDocSpec = canonicalizeSpecialtyName(docSpec).toLowerCase();
+                return d.spec === specFilter || docSpec === cleanFilter || canonDocSpec === cleanFilter || normalizeArabic(docSpec) === normalizeArabic(cleanFilter);
+            });
+        }
+
+        // Filter by search query if typed
+        const searchQuery = (document.getElementById('import-res-filter-search')?.value || '').trim();
+        if (searchQuery) {
+            const cleanQ = normalizeArabic(searchQuery).toLowerCase();
+            availableDocs = availableDocs.filter(d => {
+                const cleanName = normalizeArabic(d.name || '').toLowerCase();
+                const cleanSpec = (d.spec || d.specialty || '').toLowerCase();
+                return cleanName.includes(cleanQ) || cleanSpec.includes(cleanQ);
+            });
+        }
+
+        const countBadge = document.getElementById('import-res-count-badge');
+        if (countBadge) {
+            countBadge.textContent = `(${availableDocs.length} متاح)`;
+        }
+
         if (availableDocs.length === 0) {
-            docSelect.innerHTML = `<option value="">-- جميع أطباء هذا المستشفى مضافون مسبقاً في الطوارئ --</option>`;
+            docSelect.innerHTML = `<option value="">-- لا يوجد أطباء مطابقين للبحث/الاختصاص المختار --</option>`;
             const nameInput = document.getElementById('import-res-name');
             const phoneInput = document.getElementById('import-res-phone');
             if (nameInput) nameInput.value = '';
@@ -6368,7 +6845,13 @@
         docSelect.innerHTML = availableDocs.map(d => {
             const formatted = formatDoctorName(d.name);
             const isMatch = preselectedDocName && (normalizeArabic(d.name) === normalizeArabic(preselectedDocName));
-            return `<option value="${escapeForInline(d.id || d.name)}" ${isMatch ? 'selected' : ''}>${formatted} (${canonicalizeSpecialtyName(d.spec || d.specialty || '')})</option>`;
+            let docEnSpec = '';
+            if (d.spec && hospObj && Array.isArray(hospObj.specialties)) {
+                const sObj = hospObj.specialties.find(s => s.id === d.spec);
+                if (sObj) docEnSpec = sObj.name_en || sObj.enName || sObj.name_ar || '';
+            }
+            const canonSpec = canonicalizeSpecialtyName(docEnSpec || d.spec || d.specialty || '');
+            return `<option value="${escapeForInline(d.id || d.name)}" ${isMatch ? 'selected' : ''}>${formatted} (${canonSpec})</option>`;
         }).join('');
 
         onImportResidentDocChanged();
@@ -6479,6 +6962,32 @@
         const expiryMonth = (document.getElementById('import-res-expiry')?.value || '').trim();
         const notes = (document.getElementById('import-res-notes')?.value || '').trim();
 
+        // Enforce quota limits: prevent importing duties that exceed monthly required totals
+        const summary = getMonthlyDutyAllocationsSummary();
+        const checkQuota = (targetVal, dutyKey, dutyTitle) => {
+            if (!summary[dutyKey]) return true;
+            const required = summary[dutyKey].required;
+            const currentAllocated = summary[dutyKey].allocated;
+            if (currentAllocated + targetVal > required) {
+                const remaining = Math.max(0, required - currentAllocated);
+                alert(
+                    `⚠️ تنبيه منع تجاوز النصاب المطلوب!\n\n` +
+                    `النصاب المدخل لـ ${dutyTitle} (${targetVal}) يتجاوز الحد المطلوب لهذا الشهر.\n` +
+                    `المطلوب الكلي لشهر (${state.monthYear}): ${required} خفارة.\n` +
+                    `الموزع حالياً: ${currentAllocated} خفارة.\n` +
+                    `المتبقي المتاح للتوزيع: ${remaining} خفارة فقط.\n\n` +
+                    `يرجى تعديل النصاب والمحاولة مجدداً.`
+                );
+                return false;
+            }
+            return true;
+        };
+
+        if (!checkQuota(er_target, 'er', 'الطوارئ (ER)')) return;
+        if (!checkQuota(con_target, 'con', 'الاستشارية (Con)')) return;
+        if (!checkQuota(dc_target, 'dc', 'شهادات الوفاة (DC)')) return;
+        if (state.rsEnabled && !checkQuota(rs_target, 'rs', 'الإسناد الإضافي (RS)')) return;
+
         const newDoc = {
             id: `er_res_${Date.now()}`,
             name: formattedName,
@@ -6509,7 +7018,8 @@
         saveState();
         pushDBHistory(`استيراد الطبيب (${formattedName})`);
         closeImportResidentFromHospitalModal();
-        refreshDBView();
+        refreshDBView(newDoc.id);
+        updateDBDutyCheckers();
         updateDBUndoRedoUI();
         showNotification(`تم استيراد وترتيب الطبيب "${formattedName}" بنجاح في قاعدة الطوارئ`, 'success');
     }
@@ -8534,8 +9044,18 @@
     window.openImportResidentFromHospitalModal = openImportResidentFromHospitalModal;
     window.closeImportResidentFromHospitalModal = closeImportResidentFromHospitalModal;
     window.onImportResidentHospChanged = onImportResidentHospChanged;
+    window.onImportResidentFilterChanged = onImportResidentFilterChanged;
     window.onImportResidentDocChanged = onImportResidentDocChanged;
+    window.populateImportResidentDoctorList = populateImportResidentDoctorList;
     window.handleSaveImportedResident = handleSaveImportedResident;
+    window.searchHospitalResidentsForAddModal = searchHospitalResidentsForAddModal;
+    window.quickFillAddResidentModal = quickFillAddResidentModal;
+
+    // Monthly Duty Checkers & Preferences Helpers
+    window.getMonthlyDutyAllocationsSummary = getMonthlyDutyAllocationsSummary;
+    window.renderDBDutyCheckersHTML = renderDBDutyCheckersHTML;
+    window.updateDBDutyCheckers = updateDBDutyCheckers;
+    window.renderResidentPrefsButtonHTML = renderResidentPrefsButtonHTML;
 
     // Doctor Name & Phone formatters & Specialty canonicalizer
     window.formatDoctorName = formatDoctorName;

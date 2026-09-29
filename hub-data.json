@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T09:15:27.293Z",
+  "lastUpdated": "2026-09-29T09:15:37.072Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24465,6 +24465,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumgo5pqhihs",
+          "name": "د. دعاء طاهر علي",
+          "phone": "رقم غير متوفر",
+          "spec": "NS",
+          "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -44694,6 +44707,19 @@
       "tag": "REF",
       "dept": "REF",
       "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumgo5pqhihs",
+      "name": "د. دعاء طاهر علي",
+      "phone": "",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
       "active": true,
       "hospitals": [
         "basra"

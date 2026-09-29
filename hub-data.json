@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T16:05:01.223Z",
+  "lastUpdated": "2026-09-29T16:06:12.606Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -19325,7 +19325,7 @@
           "date": "29/09/2026",
           "specCode": "NS",
           "name": "د. اسعد حسن فرحان",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -20480,7 +20480,9 @@
           "isClone": true,
           "clonedFromHospitalId": "iraqi",
           "clonedFromSpecId": "NS",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "CT",
@@ -20491,7 +20493,9 @@
           "isClone": true,
           "clonedFromHospitalId": "iraqi",
           "clonedFromSpecId": "CT",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "GS",
@@ -20676,7 +20680,9 @@
           "isClone": true,
           "clonedFromHospitalId": "iraqi",
           "clonedFromSpecId": "R",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "R",
@@ -45781,6 +45787,26 @@
       "name_en": "Refferral",
       "icon": "🚑",
       "color": "#0f766e",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "NS_iraqi",
+      "name_ar": "جراحة الجملة العصبية",
+      "name_en": "Neurosurgery",
+      "icon": "🧠",
+      "color": "#fea101",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "R_iraqi",
+      "name_ar": "الأشعة و السونار",
+      "name_en": "Radiology",
+      "icon": "🩻",
+      "color": "#6700e6",
       "parentSpec": null,
       "acceptPool": [],
       "enabled": true

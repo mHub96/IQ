@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T16:04:31.297Z",
+  "lastUpdated": "2026-09-29T16:04:40.456Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20718,6 +20718,16 @@
           "enabled": true
         },
         {
+          "id": "REF",
+          "name_ar": "دوري احالات",
+          "name_en": "Refferral",
+          "icon": "🚑",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true,
+          "color": "#ff0000"
+        },
+        {
           "id": "AO",
           "name_ar": "المعاون الاداري",
           "name_en": "Administrative Officer",
@@ -20766,16 +20776,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "REF",
-          "name_ar": "دوري احالات",
-          "name_en": "Refferral",
-          "icon": "🚑",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true,
-          "color": "#ff0000"
         },
         {
           "id": "NS",

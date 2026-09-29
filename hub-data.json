@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-29T08:35:10.501Z",
+  "lastUpdated": "2026-09-29T08:35:54.996Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24052,6 +24052,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mumf93oxwpiv",
+          "name": "د. علي عماد عبدالكاظم",
+          "phone": "0781 375 1807",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -43874,6 +43887,19 @@
       "id": "res-mumf85cy7a13",
       "name": "د. بتول عبدالامير عجيل",
       "phone": "0780 784 0569",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mumf93oxwpiv",
+      "name": "د. علي عماد عبدالكاظم",
+      "phone": "0781 375 1807",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T10:47:51.521Z",
+  "lastUpdated": "2026-09-30T10:55:04.511Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -32822,6 +32822,102 @@
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "D",
+          "name": "د. ايات عبدالحسين",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "D",
+          "name": "د. عمر جليل عيسى",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "D",
+          "name": "د. مريم علي محمد",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "D",
+          "name": "د. زين العابدين عبد الرحمن عباس",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "D",
+          "name": "د. ضحى جاسم محمد",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "D",
+          "name": "د. عبد العزيز وئام عبد الحميد",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "04/10/2026",
+          "specCode": "D",
+          "name": "د. غفران علي صبري",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "04/10/2026",
+          "specCode": "D",
+          "name": "د. محمد ناظم",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "D",
+          "name": "د. مها عباس",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "D",
+          "name": "د. علي قاسم عبدالله",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "06/10/2026",
+          "specCode": "D",
+          "name": "د. بان عبد الامير صمد",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/10/2026",
+          "specCode": "D",
+          "name": "",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
         }
       ],
       "rotationHeroesUrl": "",

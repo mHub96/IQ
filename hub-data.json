@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T15:59:28.647Z",
+  "lastUpdated": "2026-09-30T16:00:35.256Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -26390,22 +26390,9 @@
           ]
         },
         {
-          "id": "res-muoahqfljl7n",
-          "name": "د. رند سلمان هاشم",
-          "phone": "0782 173 9001",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-muoajdl2hqso",
-          "name": "د. تهجد اسعد حسن",
-          "phone": "0771 252 9388",
+          "id": "res-muoakszch0lf",
+          "name": "د. ABCDE",
+          "phone": "+9641234567891",
           "spec": "REF",
           "tag": "REF",
           "dept": "REF",
@@ -48602,22 +48589,9 @@
       ]
     },
     {
-      "id": "res-muoahqfljl7n",
-      "name": "د. رند سلمان هاشم",
-      "phone": "0782 173 9001",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-muoajdl2hqso",
-      "name": "د. تهجد اسعد حسن",
-      "phone": "0771 252 9388",
+      "id": "res-muoakszch0lf",
+      "name": "د. ABCDE",
+      "phone": "+9641234567891",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

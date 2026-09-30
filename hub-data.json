@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T13:29:26.892Z",
+  "lastUpdated": "2026-09-30T13:44:44.841Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -25377,6 +25377,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-muo5q42wjto7",
+          "name": "د. POIU",
+          "phone": "987687869876",
+          "spec": "NS",
+          "tag": "NS",
+          "dept": "GS",
+          "department": "GS",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -46302,6 +46315,19 @@
       "tag": "O",
       "dept": "O",
       "department": "O",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-muo5q42wjto7",
+      "name": "د. POIU",
+      "phone": "987687869876",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "GS",
+      "department": "GS",
       "active": true,
       "hospitals": [
         "basra"

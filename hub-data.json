@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:42:47.262Z",
+  "lastUpdated": "2026-09-30T18:44:35.876Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -49718,5 +49718,29 @@
       "enabled": true
     }
   ],
-  "specialists": []
+  "specialists": [
+    {
+      "id": "spec-doc-muogfq1wjdpq",
+      "name": "د. حسن هادي المحمدي",
+      "title": "استشاري / بورد عربي",
+      "spec": "NS",
+      "specName": "جراحة الجملة العصبية",
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "clinic": "بريهة \\ مجمع شناشيل الطبي",
+      "notes": "",
+      "active": true,
+      "schedule": {
+        "clinicDays": [
+          "الاثنين"
+        ],
+        "theatreDays": [
+          "السبت",
+          "الأحد"
+        ]
+      }
+    }
+  ]
 }

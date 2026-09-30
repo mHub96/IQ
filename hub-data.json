@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T12:56:07.129Z",
+  "lastUpdated": "2026-09-30T12:56:40.216Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -2885,6 +2885,19 @@
           "tag": "M",
           "dept": "ON",
           "department": "ON",
+          "active": true,
+          "hospitals": [
+            "iraqi"
+          ]
+        },
+        {
+          "id": "res-muo40aagtviu",
+          "name": "د. علي عارف ثابت",
+          "phone": "+9647700342391",
+          "spec": "NS",
+          "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -45842,6 +45855,19 @@
       "active": true,
       "hospitals": [
         "basra"
+      ]
+    },
+    {
+      "id": "res-muo40aagtviu",
+      "name": "د. علي عارف ثابت",
+      "phone": "+9647700342391",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
       ]
     }
   ],

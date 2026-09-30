@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T16:23:55.755Z",
+  "lastUpdated": "2026-09-30T16:25:13.372Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -26505,6 +26505,32 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-muobfucbs9g8",
+          "name": "د. سجاد مهدي حسين",
+          "phone": "0772 826 7000",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
+        },
+        {
+          "id": "res-muobghi2ja37",
+          "name": "د. فردوس ذيبان جابر",
+          "phone": "0772 413 5427",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -49008,6 +49034,32 @@
       "id": "res-muobetm1wdnp",
       "name": "د. ماجد مطشر عجيل",
       "phone": "0772 664 0502",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-muobfucbs9g8",
+      "name": "د. سجاد مهدي حسين",
+      "phone": "0772 826 7000",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-muobghi2ja37",
+      "name": "د. فردوس ذيبان جابر",
+      "phone": "0772 413 5427",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

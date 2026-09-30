@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T16:26:20.205Z",
+  "lastUpdated": "2026-09-30T16:27:18.790Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -26544,6 +26544,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-muobj69xknwr",
+          "name": "د. زكية زغير",
+          "phone": "0777 357 1734",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -49086,6 +49099,19 @@
       "id": "res-muobhx2kqm0p",
       "name": "د. محمد حامد عبدالنبي",
       "phone": "0770 806 9031",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-muobj69xknwr",
+      "name": "د. زكية زغير",
+      "phone": "0777 357 1734",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

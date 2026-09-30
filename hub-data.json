@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T16:12:59.919Z",
+  "lastUpdated": "2026-09-30T16:13:36.323Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -26440,6 +26440,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-muob1jnmjeqv",
+          "name": "د. ساره علي زناد",
+          "phone": "0772 823 1265",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -48774,6 +48787,19 @@
       "id": "res-muoazbjzsa87",
       "name": "د. فاطمة سالم طعمة",
       "phone": "0771 407 7005",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-muob1jnmjeqv",
+      "name": "د. ساره علي زناد",
+      "phone": "0772 823 1265",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

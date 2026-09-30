@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T13:08:31.387Z",
+  "lastUpdated": "2026-09-30T13:10:11.473Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24309,20 +24309,6 @@
           ]
         },
         {
-          "id": "res-0435",
-          "name": "د. محمد احمد",
-          "phone": "+9647730220070",
-          "spec": "MF",
-          "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
-          "active": true,
-          "hospitals": [
-            "basra",
-            "mawani"
-          ]
-        },
-        {
           "id": "res-0194",
           "name": "د. محمد باقر عبد الحسين",
           "phone": "+9647805920230",
@@ -35825,7 +35811,6 @@
           "department": "MF",
           "active": true,
           "hospitals": [
-            "basra",
             "mawani"
           ]
         },
@@ -44441,7 +44426,6 @@
       "department": "MF",
       "active": true,
       "hospitals": [
-        "basra",
         "mawani"
       ]
     },

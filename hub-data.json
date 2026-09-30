@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T05:48:12.085Z",
+  "lastUpdated": "2026-09-30T05:54:15.247Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -32502,6 +32502,13 @@
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
+        },
+        {
+          "date": "30/09/2026",
+          "specCode": "NM",
+          "name": "د. منتظر حميد",
+          "timestamp": "08:54",
+          "VisitCount": 0
         }
       ],
       "rotationHeroesUrl": "",

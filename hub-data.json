@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T13:07:55.592Z",
+  "lastUpdated": "2026-09-30T13:08:31.387Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -25095,19 +25095,6 @@
           "hospitals": [
             "basra"
           ]
-        },
-        {
-          "id": "res-muo3xizgpblo",
-          "name": "د.عبدالله وسام قاسم",
-          "phone": "07735019530",
-          "spec": "MF",
-          "tag": "MF",
-          "dept": "MF",
-          "department": "MF",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
         }
       ],
       "schedule": [
@@ -46034,19 +46021,6 @@
       "tag": "O",
       "dept": "O",
       "department": "O",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-muo3xizgpblo",
-      "name": "د.عبدالله وسام قاسم",
-      "phone": "07735019530",
-      "spec": "MF",
-      "tag": "MF",
-      "dept": "MF",
-      "department": "MF",
       "active": true,
       "hospitals": [
         "basra"

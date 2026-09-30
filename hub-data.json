@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T03:59:21.255Z",
+  "lastUpdated": "2026-09-30T04:58:55.060Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -30175,10 +30175,11 @@
         {
           "date": "30/09/2026",
           "specCode": "D",
-          "name": "د. طيبة حميد",
+          "name": "د. ضحى جاسم محمد",
           "VisitCount": 0,
           "dutySlot": 0,
-          "dutyTime": "08:00AM - 08:00PM"
+          "dutyTime": "08:00AM - 08:00PM",
+          "timestamp": "07:58"
         },
         {
           "date": "01/09/2026",

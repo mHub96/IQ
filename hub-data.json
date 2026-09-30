@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T16:16:59.798Z",
+  "lastUpdated": "2026-09-30T16:20:19.619Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -26466,6 +26466,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-muoba6u7wxcv",
+          "name": "د. يسرى عدنان مالك",
+          "phone": "0773 349 9919",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -48882,6 +48895,19 @@
       "id": "res-muob4tg25ugn",
       "name": "د. ساره خالد عبدالجبار",
       "phone": "0771 819 6266",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-muoba6u7wxcv",
+      "name": "د. يسرى عدنان مالك",
+      "phone": "0773 349 9919",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T20:01:16.748Z",
+  "lastUpdated": "2026-09-30T20:02:11.206Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -34922,49 +34922,63 @@
           "specCode": "D",
           "name": "د. زهير فائق صادق",
           "timestamp": "20:13",
-          "VisitCount": 1
+          "VisitCount": 1,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "05/09/2026",
           "specCode": "OR",
           "name": "د. علي عبد الكريم عبدالله",
           "timestamp": "08:00",
-          "VisitCount": 1
+          "VisitCount": 1,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "05/09/2026",
           "specCode": "GA",
           "name": "د. شهد عبد الله",
           "timestamp": "08:04",
-          "VisitCount": 0
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "05/09/2026",
           "specCode": "OP",
           "name": "د. غسق مصطفى",
           "timestamp": "08:04",
-          "VisitCount": 0
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "05/09/2026",
           "specCode": "MF",
           "name": "د. حسن فائق",
           "timestamp": "09:35",
-          "VisitCount": 0
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "05/09/2026",
           "specCode": "ENT",
           "name": "د. مريم علي محمد",
           "timestamp": "11:10",
-          "VisitCount": 0
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "05/09/2026",
           "specCode": "GS",
           "name": "د. حسنين كريم صالح",
           "timestamp": "12:08",
-          "VisitCount": 0
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "02/10/2026",
@@ -35107,7 +35121,9 @@
           "specCode": "NM",
           "name": "د. منتظر حميد",
           "timestamp": "08:54",
-          "VisitCount": 1
+          "VisitCount": 1,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "01/10/2026",
@@ -36858,14 +36874,16 @@
           "specCode": "G",
           "name": "د. سراء ياسين ساري",
           "timestamp": "20:08",
-          "VisitCount": 0
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "30/09/2026",
           "specCode": "M",
           "name": "د. بشير كريم",
           "VisitCount": 1,
-          "dutyTime": "08:00AM - 08:00PM",
+          "dutyTime": "",
           "dutySlot": 0,
           "timestamp": "23:01"
         }

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:08:47.542Z",
+  "lastUpdated": "2026-09-30T18:09:03.341Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -166,6 +166,16 @@
           "enabled": true
         },
         {
+          "id": "REFE",
+          "name_ar": "الاحالات",
+          "name_en": "Referrals",
+          "icon": "🚑",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": false,
+          "color": "#0f766e"
+        },
+        {
           "id": "OR",
           "name_ar": "الكسور",
           "name_en": "Orthopaedics",
@@ -236,16 +246,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "REFE",
-          "name_ar": "الاحالات",
-          "name_en": "Referrals",
-          "icon": "🚑",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false,
-          "color": "#0f766e"
         },
         {
           "id": "G",

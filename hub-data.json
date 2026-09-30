@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T16:22:19.619Z",
+  "lastUpdated": "2026-09-30T16:23:55.755Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -26479,6 +26479,32 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-muobdnnloe83",
+          "name": "د. شهد شري عبود",
+          "phone": "0780 504 9223",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
+        },
+        {
+          "id": "res-muobetm1wdnp",
+          "name": "د. ماجد مطشر عجيل",
+          "phone": "0772 664 0502",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -48956,6 +48982,32 @@
       "id": "res-muoba6u7wxcv",
       "name": "د. يسرى عدنان مالك",
       "phone": "0773 349 9919",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-muobdnnloe83",
+      "name": "د. شهد شري عبود",
+      "phone": "0780 504 9223",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-muobetm1wdnp",
+      "name": "د. ماجد مطشر عجيل",
+      "phone": "0772 664 0502",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

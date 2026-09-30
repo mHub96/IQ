@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T03:45:59.435Z",
+  "lastUpdated": "2026-09-30T03:46:28.249Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -2867,6 +2867,19 @@
           "id": "res-munkc3uzya8q",
           "name": "د. حسين عيدان",
           "phone": "+9647812949774",
+          "spec": "NS",
+          "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
+          "active": true,
+          "hospitals": [
+            "iraqi"
+          ]
+        },
+        {
+          "id": "res-munkcq3d2ngg",
+          "name": "د. نايف احمد",
+          "phone": "رقم غير متوفر",
           "spec": "NS",
           "tag": "NS",
           "dept": "NS",
@@ -43723,6 +43736,19 @@
       "id": "res-munkc3uzya8q",
       "name": "د. حسين عيدان",
       "phone": "+9647812949774",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-munkcq3d2ngg",
+      "name": "د. نايف احمد",
+      "phone": "",
       "spec": "NS",
       "tag": "NS",
       "dept": "NS",

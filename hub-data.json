@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T15:47:36.051Z",
+  "lastUpdated": "2026-09-30T15:48:45.761Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -26362,6 +26362,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-muoa5lj093l3",
+          "name": "د. امنه قحطان صالح",
+          "phone": "+964 773 005 3220",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -48426,6 +48439,19 @@
       "id": "res-muoa3ld81lt2",
       "name": "د. زينب عبيد مطرود",
       "phone": "0771 401 8809",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-muoa5lj093l3",
+      "name": "د. امنه قحطان صالح",
+      "phone": "+964 773 005 3220",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

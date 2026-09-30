@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:30:36.773Z",
+  "lastUpdated": "2026-09-30T18:31:17.964Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22051,7 +22051,9 @@
           "isClone": true,
           "clonedFromHospitalId": "iraqi",
           "clonedFromSpecId": "NS",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "CT_iraqi",
@@ -22063,7 +22065,9 @@
           "isClone": true,
           "clonedFromHospitalId": "iraqi",
           "clonedFromSpecId": "CT",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "GS",
@@ -22221,7 +22225,9 @@
           "isClone": true,
           "clonedFromHospitalId": "iraqi",
           "clonedFromSpecId": "R",
-          "enabled": true
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
         },
         {
           "id": "R",
@@ -34697,7 +34703,7 @@
           "date": "30/09/2026",
           "specCode": "D",
           "name": "د. عبدالله جبار",
-          "VisitCount": 1,
+          "VisitCount": 2,
           "dutyTime": "08:00PM - 08:00AM",
           "dutySlot": 1
         },
@@ -49858,6 +49864,36 @@
       "name_en": "Referrals",
       "icon": "🚑",
       "color": "#0f766e",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "NS_iraqi",
+      "name_ar": "جراحة الجملة العصبية",
+      "name_en": "Neurosurgery",
+      "icon": "🧠",
+      "color": "#fea101",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "CT_iraqi",
+      "name_ar": "جراحة الصدر و الاوعية الدموية",
+      "name_en": "Cardiothoracic Surgery",
+      "icon": "🫀",
+      "color": "#e05910",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "R_iraqi",
+      "name_ar": "الأشعة و السونار",
+      "name_en": "Radiology",
+      "icon": "🩻",
+      "color": "#6700e6",
       "parentSpec": null,
       "acceptPool": [],
       "enabled": true

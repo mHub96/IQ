@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T04:58:55.060Z",
+  "lastUpdated": "2026-09-30T05:21:16.113Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -32086,10 +32086,11 @@
         {
           "date": "30/09/2026",
           "specCode": "O",
-          "name": "د. مصطفى فائز",
+          "name": "د. ذو الفقار باسم",
           "VisitCount": 0,
           "dutyTime": "",
-          "dutySlot": 0
+          "dutySlot": 0,
+          "timestamp": "08:21"
         },
         {
           "date": "04/09/2026",

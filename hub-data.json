@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T10:46:19.054Z",
+  "lastUpdated": "2026-09-30T10:47:26.398Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -897,20 +897,6 @@
           "department": "OR",
           "active": false,
           "hospitals": [
-            "iraqi"
-          ]
-        },
-        {
-          "id": "res-0151",
-          "name": "د. حسنين فيصل",
-          "phone": "+9647803101498",
-          "spec": "GS",
-          "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
-          "active": false,
-          "hospitals": [
-            "basra",
             "iraqi"
           ]
         },
@@ -21864,10 +21850,9 @@
           "tag": "GS",
           "dept": "GS",
           "department": "GS",
-          "active": false,
+          "active": true,
           "hospitals": [
-            "basra",
-            "iraqi"
+            "basra"
           ]
         },
         {
@@ -39384,10 +39369,9 @@
       "tag": "GS",
       "dept": "GS",
       "department": "GS",
-      "active": false,
+      "active": true,
       "hospitals": [
-        "basra",
-        "iraqi"
+        "basra"
       ]
     },
     {

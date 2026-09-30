@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:26:19.153Z",
+  "lastUpdated": "2026-09-30T18:26:24.323Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22355,6 +22355,18 @@
           "isClone": true,
           "clonedFromHospitalId": "iraqi",
           "clonedFromSpecId": "NS",
+          "enabled": true
+        },
+        {
+          "id": "CT_iraqi",
+          "name_ar": "جراحة الصدر و الاوعية الدموية",
+          "name_en": "Cardiothoracic Surgery",
+          "icon": "🫀",
+          "prefix": "د. ",
+          "color": "#e05910",
+          "isClone": true,
+          "clonedFromHospitalId": "iraqi",
+          "clonedFromSpecId": "CT",
           "enabled": true
         }
       ],

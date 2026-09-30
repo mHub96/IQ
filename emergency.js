@@ -77,7 +77,7 @@
         year: 2026,
         orderNumber: '4821',
         orderDate: '2026-09-01',
-        headOfResidents: 'د. عادل ناصر',
+        headOfResidents: 'د. محمد راضي خضر',
         headOfHospital: 'د. علي عبد معن',
         rsEnabled: true,
         rsStartDate: '2026-09-15',
@@ -362,13 +362,9 @@
 
         // 1. Load from localStorage if present
         const saved = localStorage.getItem(STATE_KEY);
-        let hasSavedPeriod = false;
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
-                if (parsed.month && parsed.year) {
-                    hasSavedPeriod = true;
-                }
                 state = Object.assign(state, parsed);
             } catch (e) {
                 console.warn('Failed to parse saved emergency state, falling back to defaults', e);
@@ -378,27 +374,12 @@
         // Enforce: Always display ER schedule first on initial load
         state.activeTab = 'er';
 
-        // Revert month 10 to September 2026 if October has no saved schedule in localStorage
-        if (state.hospitalId === 'iraqi' && state.month === 10 && state.year === 2026) {
-            const octRaw = localStorage.getItem(MONTH_STORAGE_PREFIX + 'iraqi_2026_10');
-            if (!octRaw) {
-                state.month = 9;
-                state.year = 2026;
-                hasSavedPeriod = true;
-            }
-        }
-
-        // If no valid period was saved, use canonical data period or Day 18 rule
-        if (!hasSavedPeriod || !state.month || !state.year) {
-            if (window.DEFAULT_EMERGENCY_DATA && window.DEFAULT_EMERGENCY_DATA.month && window.DEFAULT_EMERGENCY_DATA.year) {
-                state.month = window.DEFAULT_EMERGENCY_DATA.month;
-                state.year = window.DEFAULT_EMERGENCY_DATA.year;
-            } else {
-                const initialPeriod = getDefaultPeriodByDay18Rule();
-                state.month = initialPeriod.month;
-                state.year = initialPeriod.year;
-            }
-        }
+        // Enforce: Day 18 rule for initial schedule month/year on launch
+        // If today is earlier than 18th of current month -> current month
+        // If today is 18th or later -> next month (preparing schedule for next month)
+        const initialPeriod = getDefaultPeriodByDay18Rule();
+        state.month = initialPeriod.month;
+        state.year = initialPeriod.year;
         const monthNames = [
             'كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران',
             'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'
@@ -469,31 +450,19 @@
 
         // 3. Try to fetch emergency-db.json asynchronously if fresh
         try {
-            const resp = await fetch(DB_FILE + '?t=' + Date.now());
+            const resp = await fetch(DB_FILE);
             if (resp.ok) {
                 const dbJson = await resp.json();
                 if (dbJson && Array.isArray(dbJson.residents) && dbJson.residents.length > 0) {
-                    const dbTime = new Date(dbJson.updatedAt || 0).getTime();
-                    const stateTime = new Date(state.updatedAt || 0).getTime();
-                    if (!saved || (dbTime && dbTime > stateTime) || state.headOfResidents === 'د. محمد راضي خضر') {
+                    if (!saved) {
                         state.residents = dbJson.residents;
-                        state.updatedAt = dbJson.updatedAt || new Date().toISOString();
-                        if (dbJson.headOfResidents) state.headOfResidents = dbJson.headOfResidents;
-                        if (dbJson.headOfHospital) state.headOfHospital = dbJson.headOfHospital;
-                        saveState();
+                        state.headOfResidents = dbJson.headOfResidents || state.headOfResidents;
+                        state.headOfHospital = dbJson.headOfHospital || state.headOfHospital;
                     }
                 }
             }
         } catch (err) {
             console.log('Using bundled state');
-            if (window.DEFAULT_EMERGENCY_DATA && Array.isArray(window.DEFAULT_EMERGENCY_DATA.residents)) {
-                if (!saved || state.headOfResidents === 'د. محمد راضي خضر' || !state.residents || state.residents.length === 0) {
-                    state.residents = JSON.parse(JSON.stringify(window.DEFAULT_EMERGENCY_DATA.residents));
-                    if (window.DEFAULT_EMERGENCY_DATA.headOfResidents) state.headOfResidents = window.DEFAULT_EMERGENCY_DATA.headOfResidents;
-                    if (window.DEFAULT_EMERGENCY_DATA.hospitalDirector) state.headOfHospital = window.DEFAULT_EMERGENCY_DATA.hospitalDirector;
-                    saveState();
-                }
-            }
         }
 
         // 4. Ensure schedule integrity
@@ -669,24 +638,6 @@
             });
         }
 
-        // Self-heal corrupted allocation maps (e.g. from previous bug where total ER target was <= 12)
-        if (loadedMap && hospId === 'iraqi' && year === 2026 && month === 9 && window.DEFAULT_EMERGENCY_DATA && window.DEFAULT_EMERGENCY_DATA.residents) {
-            const totalErInMap = Object.values(loadedMap).reduce((sum, v) => sum + (Number(v.er_target) || 0), 0);
-            if (totalErInMap <= 12) {
-                console.log('Self-healing corrupted month allocations from canonical dataset...');
-                window.DEFAULT_EMERGENCY_DATA.residents.forEach(r => {
-                    const existing = loadedMap[r.id] || {};
-                    loadedMap[r.id] = {
-                        active: existing.active !== undefined ? existing.active : (r.active !== false),
-                        er_target: Math.max(Number(existing.er_target) || 0, Number(r.er_target) || 0),
-                        con_target: Math.max(Number(existing.con_target) || 0, Number(r.con_target) || 0),
-                        dc_target: Math.max(Number(existing.dc_target) || 0, Number(r.dc_target) || 0),
-                        rs_target: Math.max(Number(existing.rs_target) || 0, Number(r.rs_target) || 0)
-                    };
-                });
-            }
-        }
-
         if (loadedMap) {
             // Heuristically heal if loadedMap had 0 inactives for large baseline dataset (e.g. from previous bug)
             const inactivesInMap = Object.values(loadedMap).filter(v => v.active === false).length;
@@ -708,42 +659,21 @@
                     r.rs_target = Number(loadedMap[r.id].rs_target) || 0;
                 } else {
                     r.active = getBaselineResidentActive(r.id);
-                    r.er_target = Number(r.er_target) || 0;
-                    r.con_target = Number(r.con_target) || 0;
-                    r.dc_target = Number(r.dc_target) || 0;
-                    r.rs_target = Number(r.rs_target) || 0;
+                    r.er_target = 0;
+                    r.con_target = 0;
+                    r.dc_target = 0;
+                    r.rs_target = 0;
                 }
             });
             return true;
         } else {
-            // Empty month: Try to inherit allocations from previous month if available
-            const prevAlloc = getPreviousMonthAllocations(hospId, year, month);
-            if (prevAlloc && Object.keys(prevAlloc).length > 0) {
-                loadedMap = JSON.parse(JSON.stringify(prevAlloc));
-                state.monthlyAllocations[key] = loadedMap;
-                try {
-                    localStorage.setItem(MONTH_ALLOC_PREFIX + key, JSON.stringify(loadedMap));
-                } catch (e) {}
-
-                (state.residents || []).forEach(r => {
-                    if (loadedMap[r.id]) {
-                        r.active = loadedMap[r.id].active !== undefined ? Boolean(loadedMap[r.id].active) : getBaselineResidentActive(r.id);
-                        r.er_target = Number(loadedMap[r.id].er_target) || 0;
-                        r.con_target = Number(loadedMap[r.id].con_target) || 0;
-                        r.dc_target = Number(loadedMap[r.id].dc_target) || 0;
-                        r.rs_target = Number(loadedMap[r.id].rs_target) || 0;
-                    }
-                });
-                return true;
-            }
-
-            // Genuinely unallocated month: maintain resident active status and baseline targets
+            // Empty month: All resident targets are zero/empty by default, active is baseline state
             (state.residents || []).forEach(r => {
                 r.active = getBaselineResidentActive(r.id);
-                r.er_target = Number(r.er_target) || 0;
-                r.con_target = Number(r.con_target) || 0;
-                r.dc_target = Number(r.dc_target) || 0;
-                r.rs_target = Number(r.rs_target) || 0;
+                r.er_target = 0;
+                r.con_target = 0;
+                r.dc_target = 0;
+                r.rs_target = 0;
             });
             return false;
         }
@@ -5480,37 +5410,39 @@
     }
 
     function backupResidentsDatabase() {
-        // Ensure latest allocations and hospital residents are synced into state
+        // Ensure latest in-memory state is flushed to store
         saveCurrentMonthAllocationsToStore();
-        saveCurrentMonthScheduleToStore();
         saveCurrentHospitalResidents();
+        saveCurrentMonthScheduleToStore();
 
-        // Harvest all months allocations and schedules across all years & hospitals from localStorage
-        const allMonthlyAllocations = Object.assign({}, state.monthlyAllocations || {});
-        const allMonthlySchedules = Object.assign({}, state.monthlySchedules || {});
-        try {
-            for (let i = 0; i < localStorage.length; i++) {
-                const k = localStorage.key(i);
-                if (k && k.startsWith(MONTH_ALLOC_PREFIX)) {
-                    const subKey = k.slice(MONTH_ALLOC_PREFIX.length);
-                    try {
-                        allMonthlyAllocations[subKey] = JSON.parse(localStorage.getItem(k));
-                    } catch (e) {}
-                } else if (k && k.startsWith(MONTH_STORAGE_PREFIX)) {
-                    const subKey = k.slice(MONTH_STORAGE_PREFIX.length);
-                    try {
-                        allMonthlySchedules[subKey] = JSON.parse(localStorage.getItem(k));
-                    } catch (e) {}
-                }
+        const residentsBackupList = (state.residents || []).map((r, idx) => ({
+            id: r.id || ('doc_' + Date.now() + '_' + idx),
+            row: r.row !== undefined ? r.row : (idx + 1),
+            name: r.name || '',
+            sex: (r.sex === 'F' || r.sex === 'أنثى') ? 'F' : 'M',
+            specialty: r.specialty || '',
+            board: r.board || 'None',
+            stage: normalizeStageName(r.stage),
+            active: r.active !== false,
+            er_target: Number(r.er_target) || 0,
+            con_target: Number(r.con_target) || 0,
+            dc_target: Number(r.dc_target) || 0,
+            rs_target: Number(r.rs_target) || 0,
+            expiryMonth: r.expiryMonth || '',
+            phone: r.phone || r.mobile || '',
+            notes: r.notes || '',
+            prefShifts: Array.isArray(r.prefShifts) ? [...r.prefShifts] : (r.preferences && Array.isArray(r.preferences.prefShifts) ? [...r.preferences.prefShifts] : []),
+            prefDays: Array.isArray(r.prefDays) ? [...r.prefDays] : (r.preferences && Array.isArray(r.preferences.prefDays) ? [...r.preferences.prefDays] : []),
+            noConsecutiveDays: r.noConsecutiveDays !== false,
+            preferences: r.preferences || {
+                prefShifts: Array.isArray(r.prefShifts) ? [...r.prefShifts] : [],
+                prefDays: Array.isArray(r.prefDays) ? [...r.prefDays] : []
             }
-        } catch (e) {
-            console.warn('Error harvesting all months from localStorage', e);
-        }
+        }));
 
         const backupData = {
-            format: 'emergency_database_backup',
-            version: '2.0',
-            updatedAt: new Date().toISOString(),
+            format: 'hosp_hub_emergency_full_backup',
+            version: '2.5',
             exportedAt: new Date().toISOString(),
             exportDateFormatted: new Date().toLocaleString('ar-IQ'),
             hospitalId: state.hospitalId || 'iraqi',
@@ -5518,51 +5450,23 @@
             monthYear: state.monthYear || '',
             month: state.month || 9,
             year: state.year || 2026,
-            orderNumber: state.orderNumber || '',
-            orderDate: state.orderDate || '',
             headOfResidents: state.headOfResidents || '',
             headOfHospital: state.headOfHospital || '',
-            rsEnabled: Boolean(state.rsEnabled),
+            orderNumber: state.orderNumber || '',
+            orderDate: state.orderDate || '',
+            rsEnabled: state.rsEnabled !== false,
             rsStartDate: state.rsStartDate || '',
             rsEndDate: state.rsEndDate || '',
-            totalResidents: (state.residents || []).length,
+            totalResidents: residentsBackupList.length,
+            activeResidentsCount: residentsBackupList.filter(r => r.active).length,
+            inactiveResidentsCount: residentsBackupList.filter(r => !r.active).length,
             specialtyColors: state.specialtyColors || {},
-            residents: (state.residents || []).map((r, idx) => {
-                const prefDays = Array.isArray(r.prefDays) ? r.prefDays : (r.preferences && Array.isArray(r.preferences.prefDays) ? r.preferences.prefDays : []);
-                const prefShifts = Array.isArray(r.prefShifts) ? r.prefShifts : (r.preferences && Array.isArray(r.preferences.prefShifts) ? r.preferences.prefShifts : []);
-                const noConsecutiveDays = r.noConsecutiveDays !== undefined ? Boolean(r.noConsecutiveDays) : (r.preferences && r.preferences.noConsecutiveDays !== undefined ? Boolean(r.preferences.noConsecutiveDays) : false);
-
-                return {
-                    id: r.id || `er_res_${idx + 1}`,
-                    row: r.row !== undefined ? r.row : (idx + 1),
-                    name: r.name || '',
-                    sex: r.sex || 'M',
-                    specialty: r.specialty || '',
-                    board: r.board || 'None',
-                    stage: r.stage || 'بدون',
-                    er_target: Number(r.er_target) || 0,
-                    con_target: Number(r.con_target) || 0,
-                    dc_target: Number(r.dc_target) || 0,
-                    rs_target: Number(r.rs_target) || 0,
-                    active: r.active !== false,
-                    expiryMonth: r.expiryMonth || '',
-                    notes: r.notes || '',
-                    phone: r.phone || '',
-                    hospitals: Array.isArray(r.hospitals) ? r.hospitals : [state.hospitalId || 'iraqi'],
-                    prefDays: prefDays,
-                    prefShifts: prefShifts,
-                    noConsecutiveDays: noConsecutiveDays,
-                    preferences: {
-                        prefDays: prefDays,
-                        prefShifts: prefShifts,
-                        noConsecutiveDays: noConsecutiveDays
-                    }
-                };
-            }),
-            monthlyAllocations: allMonthlyAllocations,
-            monthlySchedules: allMonthlySchedules,
+            residents: residentsBackupList,
             hospitalResidents: state.hospitalResidents || {},
-            schedules: state.schedules || {}
+            monthlyAllocations: state.monthlyAllocations || {},
+            monthlySchedules: state.monthlySchedules || {},
+            schedules: state.schedules || {},
+            prefOverrides: state.prefOverrides || {}
         };
 
         const jsonStr = JSON.stringify(backupData, null, 2);
@@ -5571,7 +5475,7 @@
         const dlAnchor = document.createElement('a');
         const hospSlug = (state.hospitalId || 'hosp').replace(/[^a-zA-Z0-9_\u0600-\u06FF]/g, '_');
         const dateStr = new Date().toISOString().slice(0, 10);
-        const fileName = `emergency_residents_backup_${hospSlug}_${dateStr}.json`;
+        const fileName = `emergency_database_full_backup_${hospSlug}_${dateStr}.json`;
 
         dlAnchor.setAttribute('href', url);
         dlAnchor.setAttribute('download', fileName);
@@ -5582,7 +5486,7 @@
             URL.revokeObjectURL(url);
         }, 500);
 
-        showNotification(`تم تنزيل النسخة الاحتياطية الشاملة بنجاح (${(state.residents || []).length} طبيب)`, 'success');
+        showNotification(`تم تنزيل النسخة الاحتياطية الشاملة بنجاح (${residentsBackupList.length} طبيب)`, 'success');
     }
 
     function triggerRestoreResidentsDatabase() {
@@ -5602,154 +5506,161 @@
     }
 
     function handleRestoreResidentsFile(event) {
-        const file = event.target.files && event.target.files[0];
+        const input = (event && event.target) || document.getElementById('db-restore-file-input');
+        const file = input && input.files && input.files[0];
         if (!file) return;
 
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
                 const parsed = JSON.parse(e.target.result);
-                let restoredResidents = null;
+                let rawResidents = null;
 
                 if (Array.isArray(parsed)) {
-                    restoredResidents = parsed;
+                    rawResidents = parsed;
                 } else if (parsed && Array.isArray(parsed.residents)) {
-                    restoredResidents = parsed.residents;
+                    rawResidents = parsed.residents;
                 } else if (parsed && parsed.state && Array.isArray(parsed.state.residents)) {
-                    restoredResidents = parsed.state.residents;
+                    rawResidents = parsed.state.residents;
                 } else if (parsed && parsed.hospitalResidents && Array.isArray(parsed.hospitalResidents[state.hospitalId])) {
-                    restoredResidents = parsed.hospitalResidents[state.hospitalId];
+                    rawResidents = parsed.hospitalResidents[state.hospitalId];
                 }
 
-                if (!restoredResidents || !Array.isArray(restoredResidents) || restoredResidents.length === 0) {
+                if (!rawResidents || !Array.isArray(rawResidents) || rawResidents.length === 0) {
                     alert('الملف المحدد لا يحتوي على قائمة أطباء صالحة للاستعادة.');
+                    if (input) input.value = '';
                     return;
                 }
 
-                const count = restoredResidents.length;
+                const cleanedResidents = rawResidents.map((r, idx) => ({
+                    id: r.id || ('doc_' + Date.now() + '_' + idx),
+                    row: r.row !== undefined ? r.row : (idx + 1),
+                    name: r.name ? formatDoctorName(r.name) : '',
+                    sex: (r.sex === 'F' || r.sex === 'أنثى') ? 'F' : 'M',
+                    specialty: r.specialty || '',
+                    board: r.board || 'None',
+                    stage: normalizeStageName(r.stage),
+                    active: r.active !== false,
+                    er_target: Math.max(0, Number(r.er_target) || 0),
+                    con_target: Math.max(0, Number(r.con_target) || 0),
+                    dc_target: Math.max(0, Number(r.dc_target) || 0),
+                    rs_target: Math.max(0, Number(r.rs_target) || 0),
+                    expiryMonth: r.expiryMonth || '',
+                    phone: r.phone || r.mobile || '',
+                    notes: r.notes || '',
+                    prefShifts: Array.isArray(r.prefShifts) ? [...r.prefShifts] : (r.preferences && Array.isArray(r.preferences.prefShifts) ? [...r.preferences.prefShifts] : []),
+                    prefDays: Array.isArray(r.prefDays) ? [...r.prefDays] : (r.preferences && Array.isArray(r.preferences.prefDays) ? [...r.preferences.prefDays] : []),
+                    noConsecutiveDays: r.noConsecutiveDays !== false,
+                    preferences: r.preferences || {
+                        prefShifts: Array.isArray(r.prefShifts) ? [...r.prefShifts] : [],
+                        prefDays: Array.isArray(r.prefDays) ? [...r.prefDays] : []
+                    }
+                })).filter(r => r.name && r.name.trim().length > 0);
+
+                if (cleanedResidents.length === 0) {
+                    alert('لم يتم العثور على أطباء بأسماء صالحة في ملف النسخة الاحتياطية.');
+                    if (input) input.value = '';
+                    return;
+                }
+
+                const count = cleanedResidents.length;
                 const backupDate = parsed.exportDateFormatted || parsed.exportedAt || parsed.updatedAt || 'غير محدد';
                 const backupHosp = parsed.hospitalName || state.hospitalName || 'المستشفى الحالي';
+                const backupMonth = parsed.monthYear || (parsed.month && parsed.year ? `${parsed.month}/${parsed.year}` : '');
 
                 const confirmMsg = `تأكيد استعادة النسخة الاحتياطية الشاملة:\n\n` +
                     `• المستشفى: ${backupHosp}\n` +
                     `• تاريخ النسخة: ${backupDate}\n` +
-                    `• عدد الأطباء: ${count} طبيب\n\n` +
-                    `سيتم استرجاع كافة بيانات الأطباء والأنصبة والمراحل والبورد وتفضيلات الخفارات وتحديث اللوحة فوراً.\n\nهل ترغب بالمتابعة؟`;
+                    (backupMonth ? `• شهر النسخة: ${backupMonth}\n` : '') +
+                    `• إجمالي الأطباء: ${count} طبيب\n` +
+                    `  - النشطون: ${cleanedResidents.filter(r => r.active).length}\n` +
+                    `  - غير النشطين: ${cleanedResidents.filter(r => !r.active).length}\n\n` +
+                    `سيتم استعادة كافة بيانات الأطباء (الأسماء، الاختصاصات، البورد، المراحل، الأنصبة، الرغبات، والحالة) فوراً.\n\n` +
+                    `هل ترغب بالمتابعة وتطبيق الاستعادة؟`;
 
-                if (!confirm(confirmMsg)) return;
+                if (!confirm(confirmMsg)) {
+                    if (input) input.value = '';
+                    return;
+                }
 
-                pushDBHistory(`استعادة قاعدة البيانات من نسخة احتياطية (${count} طبيب)`);
+                pushDBHistory(`استعادة قاعدة البيانات الشاملة (${count} طبيب)`);
 
-                // Map every resident to ensure all fields are properly hydrated
-                const hydratedResidents = restoredResidents.map((r, idx) => {
-                    const prefDays = Array.isArray(r.prefDays) ? r.prefDays : (r.preferences && Array.isArray(r.preferences.prefDays) ? r.preferences.prefDays : []);
-                    const prefShifts = Array.isArray(r.prefShifts) ? r.prefShifts : (r.preferences && Array.isArray(r.preferences.prefShifts) ? r.preferences.prefShifts : []);
-                    const noConsecutiveDays = r.noConsecutiveDays !== undefined ? Boolean(r.noConsecutiveDays) : (r.preferences && r.preferences.noConsecutiveDays !== undefined ? Boolean(r.preferences.noConsecutiveDays) : false);
+                // 1. Restore current residents
+                state.residents = JSON.parse(JSON.stringify(cleanedResidents));
 
-                    return {
-                        id: r.id || `er_res_${idx + 1}`,
-                        row: r.row !== undefined ? r.row : (idx + 1),
-                        name: r.name || '',
-                        sex: r.sex || 'M',
-                        specialty: canonicalizeSpecialtyName(r.specialty || ''),
-                        board: r.board || 'None',
-                        stage: normalizeStageName(r.stage || 'بدون'),
-                        er_target: Number(r.er_target) || 0,
-                        con_target: Number(r.con_target) || 0,
-                        dc_target: Number(r.dc_target) || 0,
-                        rs_target: Number(r.rs_target) || 0,
-                        active: r.active !== false,
-                        expiryMonth: r.expiryMonth || '',
-                        notes: r.notes || '',
-                        phone: r.phone || '',
-                        hospitals: Array.isArray(r.hospitals) ? r.hospitals : [state.hospitalId || 'iraqi'],
-                        prefDays: prefDays,
-                        prefShifts: prefShifts,
-                        noConsecutiveDays: noConsecutiveDays,
-                        preferences: {
-                            prefDays: prefDays,
-                            prefShifts: prefShifts,
-                            noConsecutiveDays: noConsecutiveDays
-                        }
-                    };
-                });
-
-                // Update current residents and metadata
-                state.residents = hydratedResidents;
-                state.updatedAt = parsed.updatedAt || new Date().toISOString();
-
-                if (parsed.headOfResidents) state.headOfResidents = parsed.headOfResidents;
-                if (parsed.headOfHospital) state.headOfHospital = parsed.headOfHospital;
-                if (parsed.orderNumber) state.orderNumber = parsed.orderNumber;
-                if (parsed.orderDate) state.orderDate = parsed.orderDate;
-                if (parsed.rsStartDate) state.rsStartDate = parsed.rsStartDate;
-                if (parsed.rsEndDate) state.rsEndDate = parsed.rsEndDate;
-                if (parsed.rsEnabled !== undefined) state.rsEnabled = Boolean(parsed.rsEnabled);
-
-                // Merge specialty colors if present
+                // 2. Restore specialty colors
                 if (parsed.specialtyColors && typeof parsed.specialtyColors === 'object') {
                     state.specialtyColors = Object.assign(state.specialtyColors || {}, parsed.specialtyColors);
                 }
 
-                // Merge monthly allocations if present and write to localStorage
+                // 3. Restore all monthly allocations
                 if (parsed.monthlyAllocations && typeof parsed.monthlyAllocations === 'object') {
-                    if (!state.monthlyAllocations) state.monthlyAllocations = {};
-                    Object.assign(state.monthlyAllocations, parsed.monthlyAllocations);
+                    state.monthlyAllocations = Object.assign(state.monthlyAllocations || {}, parsed.monthlyAllocations);
                     Object.keys(parsed.monthlyAllocations).forEach(k => {
                         try {
                             localStorage.setItem(MONTH_ALLOC_PREFIX + k, JSON.stringify(parsed.monthlyAllocations[k]));
-                        } catch (e) {}
+                        } catch (err) {}
                     });
                 }
 
-                // Merge and reinstate all monthly schedules into localStorage if present
+                // 4. Restore monthly schedules if present
                 if (parsed.monthlySchedules && typeof parsed.monthlySchedules === 'object') {
-                    if (!state.monthlySchedules) state.monthlySchedules = {};
-                    Object.assign(state.monthlySchedules, parsed.monthlySchedules);
+                    state.monthlySchedules = Object.assign(state.monthlySchedules || {}, parsed.monthlySchedules);
                     Object.keys(parsed.monthlySchedules).forEach(k => {
                         try {
                             localStorage.setItem(MONTH_STORAGE_PREFIX + k, JSON.stringify(parsed.monthlySchedules[k]));
-                        } catch (e) {}
+                        } catch (err) {}
                     });
                 }
 
-                // Update hospitalResidents store
-                if (!state.hospitalResidents) state.hospitalResidents = {};
-                if (state.hospitalId) {
-                    state.hospitalResidents[state.hospitalId] = JSON.parse(JSON.stringify(state.residents));
-                }
-                if (parsed.hospitalResidents && typeof parsed.hospitalResidents === 'object') {
-                    Object.keys(parsed.hospitalResidents).forEach(k => {
-                        if (k !== state.hospitalId && Array.isArray(parsed.hospitalResidents[k])) {
-                            state.hospitalResidents[k] = parsed.hospitalResidents[k];
+                // 5. Restore current active schedules if present and matching
+                if (parsed.schedules && typeof parsed.schedules === 'object') {
+                    ['er', 'con', 'dc', 'rs'].forEach(tab => {
+                        if (Array.isArray(parsed.schedules[tab])) {
+                            state.schedules[tab] = JSON.parse(JSON.stringify(parsed.schedules[tab]));
                         }
                     });
                 }
 
-                // Synchronize bundled fallback data as well
-                if (window.DEFAULT_EMERGENCY_DATA) {
-                    window.DEFAULT_EMERGENCY_DATA.residents = JSON.parse(JSON.stringify(state.residents));
-                    if (state.headOfResidents) window.DEFAULT_EMERGENCY_DATA.headOfResidents = state.headOfResidents;
-                    if (state.headOfHospital) window.DEFAULT_EMERGENCY_DATA.headOfHospital = state.headOfHospital;
+                // 6. Restore preference overrides if present
+                if (parsed.prefOverrides && typeof parsed.prefOverrides === 'object') {
+                    state.prefOverrides = Object.assign(state.prefOverrides || {}, parsed.prefOverrides);
                 }
 
-                // Save allocations, hospital store and full state
+                // 7. Restore signatories if present
+                if (parsed.headOfResidents) state.headOfResidents = parsed.headOfResidents;
+                if (parsed.headOfHospital) state.headOfHospital = parsed.headOfHospital;
+
+                // 8. Update hospitalResidents store
+                if (!state.hospitalResidents) state.hospitalResidents = {};
+                if (parsed.hospitalResidents && typeof parsed.hospitalResidents === 'object') {
+                    Object.keys(parsed.hospitalResidents).forEach(k => {
+                        state.hospitalResidents[k] = parsed.hospitalResidents[k];
+                    });
+                }
+                if (state.hospitalId) {
+                    state.hospitalResidents[state.hospitalId] = JSON.parse(JSON.stringify(cleanedResidents));
+                }
+
+                // 9. Save active state to store
                 saveCurrentMonthAllocationsToStore();
                 saveCurrentHospitalResidents();
+                saveCurrentMonthScheduleToStore();
                 saveState();
 
-                // Refresh UI components
-                syncMetaInputsWithState();
+                // 10. Refresh all views & checkers
                 refreshDBView();
                 updateDBDutyCheckers();
                 updateDutyDashboard();
                 renderActiveTab();
                 updateDBUndoRedoUI();
 
-                showNotification(`تمت استعادة كافة بيانات قاعدة أطباء الطوارئ بنجاح (${count} طبيب)`, 'success');
+                if (input) input.value = '';
+                showNotification(`تمت استعادة قاعدة البيانات الشاملة بنجاح (${count} طبيب)`, 'success');
             } catch (err) {
                 console.error('Error restoring backup file:', err);
-                alert('فشل قراءة الملف أو استعادته: ملف JSON غير صالح أو به أخطاء.');
+                alert('فشل قراءة الملف أو استعادته: ملف JSON غير صالح أو به أخطاء برمجية.');
+                if (input) input.value = '';
             }
         };
         reader.readAsText(file, 'utf-8');
@@ -6406,14 +6317,12 @@
     // =========================================================================
 
     function openDoctorPicker(type, dayNumber, slotKey, slotLabel) {
-        const scheduleKey = (type && type.startsWith('rs_')) ? 'rs' : type;
-        const days = state.schedules[scheduleKey] || state.schedules[type] || [];
+        const days = state.schedules[type] || [];
         const dayEntry = days.find(s => s.dayNumber === dayNumber);
         const dateStr = dayEntry ? dayEntry.date : formatDateStr(state.year, state.month, dayNumber);
         const dayName = dayEntry ? dayEntry.dayName : getArabicDayName(state.year, state.month, dayNumber);
-        const currentDoctor = (dayEntry && dayEntry[slotKey]) ? dayEntry[slotKey].trim() : '';
 
-        activeSlot = { type, scheduleKey, dayNumber, slotKey, slotLabel, dateStr, dayName, currentDoctor };
+        activeSlot = { type, dayNumber, slotKey, slotLabel, dateStr, dayName };
 
         const modal = document.getElementById('doctor-picker-modal');
         if (!modal) return;
@@ -6426,7 +6335,7 @@
         const searchInput = document.getElementById('picker-search-input');
         if (searchInput) {
             searchInput.value = '';
-            setTimeout(() => { if (typeof searchInput.focus === 'function') searchInput.focus(); }, 50);
+            setTimeout(() => searchInput.focus(), 50);
         }
 
         filterPickerList();
@@ -6459,7 +6368,7 @@
 
     /**
      * Filter Picker List:
-     * Displays residents with vacant duties first, and allows selecting fulfilled doctors for extra duty.
+     * STRICT REQUIREMENT: Only show residents with available duties (hide fulfilled residents who reached target).
      */
     function filterPickerList() {
         if (!activeSlot) return;
@@ -6476,55 +6385,45 @@
         hospitalOnCall.forEach(hd => hospDoctorMap.set(hd.cleanName, hd));
 
         // 2. Count current scheduled duties for each resident across month for this type
-        const countType = (activeSlot.type && activeSlot.type.startsWith('rs_')) ? 'rs' : activeSlot.type;
-        const scheduledCounts = countScheduledDutiesPerResident(countType);
+        const scheduledCounts = countScheduledDutiesPerResident(activeSlot.type);
 
         const targetField = activeSlot.type === 'er' ? 'er_target' :
                             activeSlot.type === 'con' ? 'con_target' :
                             activeSlot.type === 'dc' ? 'dc_target' : 'rs_target';
 
-        const currentClean = activeSlot.currentDoctor ? normalizeArabic(activeSlot.currentDoctor) : '';
+        // 3. STRICT FILTER: Only show active, non-expired residents who have NOT yet fulfilled their quota!
+        let residents = (state.residents || []).filter(r => {
+            if (!r.active) return false;
+            if (isResidentExpired(r, state.year, state.month)) return false;
 
-        // 3. Separate active, non-expired residents into Available (has quota) and Fulfilled (quota met)
-        const availableDocs = [];
-        const fulfilledDocs = [];
-
-        (state.residents || []).forEach(r => {
-            if (!r.active) return;
-            if (isResidentExpired(r, state.year, state.month)) return;
+            const target = Number(r[targetField]) || 0;
+            if (target <= 0) return false;
 
             const cleanName = normalizeArabic(r.name);
-            if (cleanQ) {
-                const matchesName = cleanName.includes(cleanQ);
-                const matchesSpec = r.specialty && r.specialty.toLowerCase().includes(query.toLowerCase());
-                if (!matchesName && !matchesSpec) return;
-            }
+            const filled = scheduledCounts[cleanName] || 0;
 
-            let filled = scheduledCounts[cleanName] || 0;
-            if (currentClean && cleanName === currentClean) {
-                filled = Math.max(0, filled - 1);
-            }
+            // STRICT: The resident who fulfilled their allocated duties should NOT appear in selections
+            return filled < target;
+        });
+
+        // Search query filter
+        if (cleanQ) {
+            residents = residents.filter(r => 
+                normalizeArabic(r.name).includes(cleanQ) || 
+                (r.specialty && r.specialty.toLowerCase().includes(query.toLowerCase()))
+            );
+        }
+
+        // Enrich with conflict & hospital on-call priority
+        const enriched = residents.map(r => {
+            const cleanName = normalizeArabic(r.name);
+            const filled = scheduledCounts[cleanName] || 0;
             const target = Number(r[targetField]) || 0;
             const remaining = target - filled;
 
-            if (target > 0 && remaining > 0) {
-                availableDocs.push(r);
-            } else {
-                fulfilledDocs.push(r);
-            }
-        });
-
-        function enrichDoc(r) {
-            const cleanName = normalizeArabic(r.name);
-            let filled = scheduledCounts[cleanName] || 0;
-            if (currentClean && cleanName === currentClean) {
-                filled = Math.max(0, filled - 1);
-            }
-            const target = Number(r[targetField]) || 0;
-            const remaining = Math.max(0, target - filled);
-
             const isHospOnCall = hospDoctorMap.has(cleanName);
             const hospDuty = hospDoctorMap.get(cleanName);
+
             const conflictEval = evaluateCellConflict(r.name, activeSlot.dateStr, activeSlot.type, activeSlot.slotKey);
 
             return {
@@ -6535,45 +6434,45 @@
                 isHospOnCall,
                 hospDuty,
                 hasConflict: conflictEval.hasConflict,
-                conflicts: conflictEval.conflicts,
-                isFulfilled: target === 0 || remaining <= 0
+                conflicts: conflictEval.conflicts
             };
-        }
+        });
 
-        function sortEnriched(list) {
-            return list.sort((a, b) => {
-                if (activeSlot.type === 'dc') {
-                    if (a.isHospOnCall && !b.isHospOnCall) return -1;
-                    if (!a.isHospOnCall && b.isHospOnCall) return 1;
-                }
-                if (!a.hasConflict && b.hasConflict) return -1;
-                if (a.hasConflict && !b.hasConflict) return 1;
-                if (b.remaining !== a.remaining) {
-                    return b.remaining - a.remaining;
-                }
-                return a.resident.name.localeCompare(b.resident.name, 'ar');
-            });
-        }
+        // Sorting: For DC, doctors with hospital duty ranked first!
+        enriched.sort((a, b) => {
+            if (activeSlot.type === 'dc') {
+                if (a.isHospOnCall && !b.isHospOnCall) return -1;
+                if (!a.isHospOnCall && b.isHospOnCall) return 1;
+            }
 
-        const enrichedAvailable = sortEnriched(availableDocs.map(enrichDoc));
-        const enrichedFulfilled = sortEnriched(fulfilledDocs.map(enrichDoc));
+            if (!a.hasConflict && b.hasConflict) return -1;
+            if (a.hasConflict && !b.hasConflict) return 1;
 
-        if (enrichedAvailable.length === 0 && enrichedFulfilled.length === 0) {
+            if (b.remaining !== a.remaining) {
+                return b.remaining - a.remaining;
+            }
+
+            return a.resident.name.localeCompare(b.resident.name, 'ar');
+        });
+
+        if (enriched.length === 0) {
             listContainer.innerHTML = `
                 <div class="py-8 text-center text-slate-400 text-xs space-y-1">
-                    <i class="fas fa-user-slash text-slate-400 text-2xl mb-1 block"></i>
-                    <div class="font-bold text-slate-700 dark:text-slate-300">لا يوجد أطباء مطابقين للبحث</div>
+                    <i class="fas fa-check-circle text-emerald-500 text-2xl mb-1 block"></i>
+                    <div class="font-bold text-slate-700 dark:text-slate-300">لا يوجد أطباء لديهم خفارات متبقية شاغرة لهذا القسم</div>
+                    <div class="text-[11px]">جميع الأطباء استوفوا أنصبتهم المقررة بالكامل أو تم إخفاؤهم لعدم توفر رصيد خفارات.</div>
                 </div>
             `;
             return;
         }
 
-        function renderCardHTML(item) {
+        let html = '';
+        enriched.forEach(item => {
             const r = item.resident;
             const isDcTopChoice = activeSlot.type === 'dc' && item.isHospOnCall;
 
             let cardBorder = 'border-slate-200 dark:border-slate-800 hover:border-rose-400';
-            let cardBg = item.isFulfilled ? 'bg-slate-50/50 dark:bg-slate-900/30 opacity-80' : 'bg-white dark:bg-slate-900/60';
+            let cardBg = 'bg-white dark:bg-slate-900/60';
 
             if (isDcTopChoice) {
                 cardBorder = 'border-emerald-300 dark:border-emerald-800/80 ring-1 ring-emerald-500/20';
@@ -6583,16 +6482,16 @@
                 cardBg = 'bg-amber-50/20 dark:bg-amber-950/10';
             }
 
-            return `
+            html += `
                 <div onclick="selectDoctorForSlot('${escapeForInline(r.name)}')" 
                     class="p-3 rounded-2xl border ${cardBorder} ${cardBg} hover:shadow-md transition cursor-pointer flex items-center justify-between gap-3">
                     
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-xl ${isDcTopChoice ? 'bg-emerald-500 text-white' : item.hasConflict ? 'bg-amber-500 text-white' : (item.isFulfilled ? 'bg-slate-200 dark:bg-slate-700 text-slate-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300')} flex items-center justify-center font-bold text-xs shrink-0">
+                        <div class="w-8 h-8 rounded-xl ${isDcTopChoice ? 'bg-emerald-500 text-white' : item.hasConflict ? 'bg-amber-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'} flex items-center justify-center font-bold text-xs shrink-0">
                             ${isDcTopChoice ? '<i class="fas fa-check"></i>' : item.hasConflict ? '⚠️' : '<i class="fas fa-user-doctor"></i>'}
                         </div>
                         <div>
-                            <div class="font-bold text-xs text-slate-800 dark:text-slate-100 flex items-center gap-2 flex-wrap">
+                            <div class="font-bold text-xs text-slate-800 dark:text-slate-100 flex items-center gap-2">
                                 <span>${r.name}</span>
                                 ${isDcTopChoice ? `
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
@@ -6604,60 +6503,26 @@
                                         ⚠️ مسجل اليوم في: ${item.conflicts.map(c => c.label).join('، ')}
                                     </span>
                                 ` : ''}
-                                ${item.isFulfilled ? `
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                                        استوفى النصاب (خفارة إضافية)
-                                    </span>
-                                ` : ''}
                             </div>
                             <div class="text-[11px] text-slate-400 mt-0.5">
-                                ${r.specialty || 'عام'} · الجنس: ${r.sex === 'F' ? 'أنثى' : 'ذكر'} · ${item.isFulfilled ? '<span class=\"text-slate-500\">مكتمل</span>' : `متبقي: <strong class=\"text-rose-600\">${item.remaining}</strong> خفارات`}
+                                ${r.specialty || 'عام'} · الجنس: ${r.sex === 'F' ? 'أنثى' : 'ذكر'} · متبقي: <strong class="text-rose-600">${item.remaining}</strong> خفارات
                             </div>
                         </div>
                     </div>
 
-                    <div class="text-left shrink-0 font-mono font-black text-xs ${item.isFulfilled ? 'text-slate-500' : 'text-emerald-600'}">
+                    <div class="text-left shrink-0 font-mono font-black text-xs text-emerald-600">
                         ${item.filled} / ${item.target}
                     </div>
                 </div>
             `;
-        }
-
-        let html = '';
-        if (enrichedAvailable.length > 0) {
-            html += enrichedAvailable.map(renderCardHTML).join('');
-            if (enrichedFulfilled.length > 0) {
-                html += `
-                    <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800">
-                        <div class="text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-2 flex items-center justify-between">
-                            <span>أطباء استوفوا أنصبتهم المقررة (خفارة إضافية)</span>
-                            <span class="text-[10px] opacity-70">${enrichedFulfilled.length} طبيب</span>
-                        </div>
-                        <div class="space-y-2">
-                            ${enrichedFulfilled.map(renderCardHTML).join('')}
-                        </div>
-                    </div>
-                `;
-            }
-        } else {
-            html += `
-                <div class="p-3 mb-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
-                    <i class="fas fa-circle-info text-amber-600 shrink-0"></i>
-                    <span>جميع الأطباء استوفوا أنصبتهم المقررة — يمكنك اختيار طبيب لخفارة إضافية أدناه:</span>
-                </div>
-                <div class="space-y-2">
-                    ${enrichedFulfilled.map(renderCardHTML).join('')}
-                </div>
-            `;
-        }
+        });
 
         listContainer.innerHTML = html;
     }
 
     function countScheduledDutiesPerResident(type) {
         const counts = {};
-        const scheduleKey = (type && type.startsWith('rs_')) ? 'rs' : type;
-        (state.schedules[scheduleKey] || state.schedules[type] || []).forEach(day => {
+        (state.schedules[type] || []).forEach(day => {
             Object.keys(day).forEach(k => {
                 if (k !== 'dayNumber' && k !== 'date' && k !== 'dayName' && k !== 'notes') {
                     const doc = day[k];
@@ -6674,8 +6539,7 @@
     function selectDoctorForSlot(doctorName) {
         if (!activeSlot) return;
 
-        const scheduleKey = activeSlot.scheduleKey || ((activeSlot.type && activeSlot.type.startsWith('rs_')) ? 'rs' : activeSlot.type);
-        const dayEntry = (state.schedules[scheduleKey] || state.schedules[activeSlot.type] || []).find(s => s.dayNumber === activeSlot.dayNumber);
+        const dayEntry = (state.schedules[activeSlot.type] || []).find(s => s.dayNumber === activeSlot.dayNumber);
         if (dayEntry) {
             pushScheduleHistory(`تعيين ${doctorName}`);
             dayEntry[activeSlot.slotKey] = doctorName;
@@ -6688,8 +6552,7 @@
 
     function clearActiveSlot() {
         if (!activeSlot) return;
-        const scheduleKey = activeSlot.scheduleKey || ((activeSlot.type && activeSlot.type.startsWith('rs_')) ? 'rs' : activeSlot.type);
-        const dayEntry = (state.schedules[scheduleKey] || state.schedules[activeSlot.type] || []).find(s => s.dayNumber === activeSlot.dayNumber);
+        const dayEntry = (state.schedules[activeSlot.type] || []).find(s => s.dayNumber === activeSlot.dayNumber);
         if (dayEntry) {
             pushScheduleHistory('تفريغ خانة الخفارة');
             dayEntry[activeSlot.slotKey] = '';
@@ -7750,7 +7613,7 @@
 
     function triggerScheduleAutoGenerate(type) {
         pendingAutoGenerateType = type;
-        const schedule = (type && type.startsWith('rs_') ? state.schedules.rs : state.schedules[type]) || [];
+        const schedule = state.schedules[type] || [];
         
         // Check if there are any existing filled entries
         let hasEntries = false;
@@ -7812,7 +7675,6 @@
      * Run Auto Distribution Algorithm with Gender Priorities & Preferences
      */
     function runAutoDistribution(type, mode) {
-        ensureScheduleIntegrity();
         const daysCount = getDaysInMonth(state.year, state.month);
         const activeDocs = (state.residents || []).filter(r => r.active && !isResidentExpired(r, state.year, state.month));
 

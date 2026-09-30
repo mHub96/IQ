@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T03:42:40.432Z",
+  "lastUpdated": "2026-09-30T03:44:12.866Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -627,11 +627,11 @@
           "id": "res-0149",
           "name": "د. الحسن حسين جبار",
           "phone": "+9647827207021",
-          "spec": "GS",
-          "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
-          "active": false,
+          "spec": "NS",
+          "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
+          "active": true,
           "hospitals": [
             "iraqi"
           ]
@@ -38191,11 +38191,11 @@
       "id": "res-0149",
       "name": "د. الحسن حسين جبار",
       "phone": "+9647827207021",
-      "spec": "GS",
-      "tag": "GS",
-      "dept": "GS",
-      "department": "GS",
-      "active": false,
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": true,
       "hospitals": [
         "iraqi"
       ]

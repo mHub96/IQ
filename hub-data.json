@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:09:41.310Z",
+  "lastUpdated": "2026-09-30T18:09:52.618Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -223,16 +223,6 @@
           "name_en": "Anaesthesia & Intensive Care",
           "icon": "💉",
           "color": "#ff8e24",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
-          "id": "G",
-          "name_ar": "النسائية و التوليد",
-          "name_en": "Gynecology",
-          "icon": "🤰",
-          "color": "#e40de7",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false

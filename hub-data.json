@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:08:15.806Z",
+  "lastUpdated": "2026-09-30T18:08:21.844Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -64,6 +64,16 @@
           "enabled": true
         },
         {
+          "id": "US",
+          "name_ar": "جراحة المسالك البولية",
+          "name_en": "Urosurgery",
+          "icon": "🫘",
+          "color": "#e66551",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
           "id": "OR",
           "name_ar": "الكسور",
           "name_en": "Orthopaedics",
@@ -112,16 +122,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "US",
-          "name_ar": "جراحة المسالك البولية",
-          "name_en": "Urosurgery",
-          "icon": "🫘",
-          "color": "#e66551",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
         },
         {
           "id": "ICU",

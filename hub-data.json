@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T11:40:52.520Z",
+  "lastUpdated": "2026-09-30T11:44:00.094Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20733,6 +20733,126 @@
           "date": "31/10/2026",
           "specCode": "CT",
           "name": "د. ايهاب عبدالكريم غالب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "GS",
+          "name": "د. براء حسن عبدالهادي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "GS",
+          "name": "د. فهد يوسف عبدالله",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "GS",
+          "name": "د. فاطمة فاضل كاظم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "04/10/2026",
+          "specCode": "GS",
+          "name": "د. ماهر محمود عبدالله",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "GS",
+          "name": "د. فهد يوسف عبدالله",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/10/2026",
+          "specCode": "GS",
+          "name": "د. براء حسن عبدالهادي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "07/10/2026",
+          "specCode": "GS",
+          "name": "د. علي جميل حنتوش",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "GS",
+          "name": "د. فاطمة فاضل كاظم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "09/10/2026",
+          "specCode": "GS",
+          "name": "د. نجم هدو راضي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "GS",
+          "name": "د. خالد ابراهيم عبدالقادر",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "11/10/2026",
+          "specCode": "GS",
+          "name": "د. براء حسن عبدالهادي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "12/10/2026",
+          "specCode": "GS",
+          "name": "د. نجم هدو راضي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "13/10/2026",
+          "specCode": "GS",
+          "name": "د. فاطمة فاضل كاظم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "14/10/2026",
+          "specCode": "GS",
+          "name": "د. خالد ابراهيم عبدالقادر",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "15/10/2026",
+          "specCode": "GS",
+          "name": "د. علي جميل حنتوش",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

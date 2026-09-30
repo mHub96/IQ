@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T09:47:19.839Z",
+  "lastUpdated": "2026-09-30T09:50:47.217Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -32510,6 +32510,13 @@
           "name": "د. منتظر حميد",
           "timestamp": "08:54",
           "VisitCount": 1
+        },
+        {
+          "date": "30/09/2026",
+          "specCode": "G",
+          "name": "د. سراء ياسين ساري",
+          "timestamp": "12:50",
+          "VisitCount": 0
         }
       ],
       "rotationHeroesUrl": "",

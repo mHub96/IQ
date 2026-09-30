@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T13:21:22.638Z",
+  "lastUpdated": "2026-09-30T13:21:32.943Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21549,6 +21549,46 @@
           "date": "01/10/2026",
           "specCode": "NS",
           "name": "د. علي مهدي منصور",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "NS",
+          "name": "د. علي مهدي منصور",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "NS",
+          "name": "د. علي مهدي منصور",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "04/10/2026",
+          "specCode": "NS",
+          "name": "د. مجيد حميد مجيد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "NS",
+          "name": "د. مجيد حميد مجيد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/10/2026",
+          "specCode": "NS",
+          "name": "د. مجيد حميد مجيد",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

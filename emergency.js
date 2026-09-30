@@ -3994,9 +3994,31 @@
         return result;
     }
 
+    // Numeric stage representation: 0 = No board / No stage, 1..6 = Stages 1 to 6
+    function getResidentStageNumber(resident) {
+        if (!resident) return 0;
+        const board = String(resident.board || '').trim();
+        if (!board || board === 'None' || board === 'none' || board === 'بدون' || board === 'لا يوجد') {
+            return 0;
+        }
+        const norm = normalizeStageName(resident.stage);
+        switch (norm) {
+            case 'الأولى': return 1;
+            case 'الثانية': return 2;
+            case 'الثالثة': return 3;
+            case 'الرابعة': return 4;
+            case 'الخامسة': return 5;
+            case 'السادسة': return 6;
+            case 'بدون': return 0;
+            default: {
+                const num = parseInt(norm, 10);
+                return isNaN(num) ? 0 : num;
+            }
+        }
+    }
+
     // Resident Sorting Algorithm
     function sortResidentsList(list, sortCol, sortDir) {
-        const stageOrder = ['الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة', 'السادسة', 'بدون'];
         const scheduledCounts = getScheduledCountsMap();
 
         return [...list].sort((a, b) => {
@@ -4021,11 +4043,14 @@
                     res = (a.board || '').localeCompare(b.board || '');
                     break;
                 case 'stage': {
-                    const normA = normalizeStageName(a.stage);
-                    const normB = normalizeStageName(b.stage);
-                    const idxA = stageOrder.indexOf(normA);
-                    const idxB = stageOrder.indexOf(normB);
-                    res = (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+                    const stageA = getResidentStageNumber(a);
+                    const stageB = getResidentStageNumber(b);
+                    res = stageA - stageB;
+                    if (res === 0) {
+                        const nameA = (a.name || '').replace(/^د\.\s*/, '').trim();
+                        const nameB = (b.name || '').replace(/^د\.\s*/, '').trim();
+                        res = nameA.localeCompare(nameB, 'ar');
+                    }
                     break;
                 }
                 case 'er_target':
@@ -4341,10 +4366,18 @@
                             <span>إضافة طبيب جديد</span>
                         </button>
 
-                        <button type="button" onclick="downloadEmergencyDbJson()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5" title="تنزيل ملف emergency-db.json">
-                            <i class="fas fa-download text-emerald-500"></i>
-                            <span>حفظ JSON</span>
+                        <!-- Backup Residents Database Button -->
+                        <button type="button" onclick="backupResidentsDatabase()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition flex items-center gap-1.5 shadow-xs" title="حفظ وتنزيل نسخة احتياطية من قاعدة بيانات أطباء الطوارئ الحالية (JSON)">
+                            <i class="fas fa-download text-emerald-600 dark:text-emerald-400"></i>
+                            <span>نسخ احتياطي</span>
                         </button>
+
+                        <!-- Restore Residents Database from Backup Button -->
+                        <button type="button" onclick="triggerRestoreResidentsDatabase()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition flex items-center gap-1.5 shadow-xs" title="استعادة قاعدة بيانات أطباء الطوارئ من ملف نسخة احتياطية سابقة (JSON)">
+                            <i class="fas fa-upload text-blue-600 dark:text-blue-400"></i>
+                            <span>استعادة نسخة</span>
+                        </button>
+                        <input type="file" id="db-restore-file-input" accept=".json,application/json" onchange="handleRestoreResidentsFile(event)" class="hidden" style="display:none;">
                     </div>
                 </div>
 
@@ -5376,23 +5409,141 @@
         showNotification('تم حذف الطبيب من قاعدة الطوارئ', 'info');
     }
 
-    function downloadEmergencyDbJson() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
-            version: '1.0',
-            updatedAt: new Date().toISOString(),
-            headOfResidents: state.headOfResidents,
-            headOfHospital: state.headOfHospital,
+    function backupResidentsDatabase() {
+        const backupData = {
+            format: 'hosp_hub_residents_backup',
+            version: '2.0',
+            exportedAt: new Date().toISOString(),
+            exportDateFormatted: new Date().toLocaleString('ar-IQ'),
+            hospitalId: state.hospitalId || 'iraqi',
+            hospitalName: state.hospitalName || 'مستشفى الصدر التعليمي',
+            monthYear: state.monthYear || '',
+            month: state.month || 9,
+            year: state.year || 2026,
+            headOfResidents: state.headOfResidents || '',
+            headOfHospital: state.headOfHospital || '',
             totalResidents: (state.residents || []).length,
-            residents: state.residents
-        }, null, 2));
+            specialtyColors: state.specialtyColors || {},
+            residents: state.residents || [],
+            hospitalResidents: state.hospitalResidents || {}
+        };
+
+        const jsonStr = JSON.stringify(backupData, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
         const dlAnchor = document.createElement('a');
-        dlAnchor.setAttribute("href", dataStr);
-        dlAnchor.setAttribute("download", "emergency-db.json");
+        const hospSlug = (state.hospitalId || 'hosp').replace(/[^a-zA-Z0-9_\u0600-\u06FF]/g, '_');
+        const dateStr = new Date().toISOString().slice(0, 10);
+        const fileName = `emergency_residents_backup_${hospSlug}_${dateStr}.json`;
+
+        dlAnchor.setAttribute('href', url);
+        dlAnchor.setAttribute('download', fileName);
         document.body.appendChild(dlAnchor);
         dlAnchor.click();
-        dlAnchor.remove();
-        showNotification('تم تنزيل ملف emergency-db.json بنجاح', 'success');
+        setTimeout(() => {
+            dlAnchor.remove();
+            URL.revokeObjectURL(url);
+        }, 500);
+
+        showNotification(`تم حفظ وتنزيل النسخة الاحتياطية بنجاح (${(state.residents || []).length} طبيب)`, 'success');
     }
+
+    function triggerRestoreResidentsDatabase() {
+        let input = document.getElementById('db-restore-file-input');
+        if (!input) {
+            input = document.createElement('input');
+            input.type = 'file';
+            input.id = 'db-restore-file-input';
+            input.accept = '.json,application/json';
+            input.className = 'hidden';
+            input.style.display = 'none';
+            input.onchange = handleRestoreResidentsFile;
+            document.body.appendChild(input);
+        }
+        input.value = '';
+        input.click();
+    }
+
+    function handleRestoreResidentsFile(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const parsed = JSON.parse(e.target.result);
+                let restoredResidents = null;
+
+                if (Array.isArray(parsed)) {
+                    restoredResidents = parsed;
+                } else if (parsed && Array.isArray(parsed.residents)) {
+                    restoredResidents = parsed.residents;
+                } else if (parsed && parsed.state && Array.isArray(parsed.state.residents)) {
+                    restoredResidents = parsed.state.residents;
+                } else if (parsed && parsed.hospitalResidents && Array.isArray(parsed.hospitalResidents[state.hospitalId])) {
+                    restoredResidents = parsed.hospitalResidents[state.hospitalId];
+                }
+
+                if (!restoredResidents || !Array.isArray(restoredResidents) || restoredResidents.length === 0) {
+                    alert('الملف المحدد لا يحتوي على قائمة أطباء صالحة للاستعادة.');
+                    return;
+                }
+
+                const count = restoredResidents.length;
+                const backupDate = parsed.exportDateFormatted || parsed.exportedAt || parsed.updatedAt || 'غير محدد';
+                const backupHosp = parsed.hospitalName || state.hospitalName || 'المستشفى الحالي';
+
+                const confirmMsg = `تأكيد استعادة النسخة الاحتياطية:\n\n` +
+                    `• المستشفى: ${backupHosp}\n` +
+                    `• تاريخ النسخة: ${backupDate}\n` +
+                    `• عدد الأطباء: ${count} طبيب\n\n` +
+                    `تحذير: سيتم استبدال قائمة أطباء الطوارئ الحالية في اللوحة بهذه النسخة الاحتياطية.\n\nهل ترغب بالمتابعة؟`;
+
+                if (!confirm(confirmMsg)) return;
+
+                pushDBHistory(`استعادة قاعدة البيانات من نسخة احتياطية (${count} طبيب)`);
+
+                // Update current residents
+                state.residents = JSON.parse(JSON.stringify(restoredResidents));
+
+                // Merge specialty colors if present
+                if (parsed.specialtyColors && typeof parsed.specialtyColors === 'object') {
+                    state.specialtyColors = Object.assign(state.specialtyColors || {}, parsed.specialtyColors);
+                }
+
+                // Update hospitalResidents store
+                if (!state.hospitalResidents) state.hospitalResidents = {};
+                if (state.hospitalId) {
+                    state.hospitalResidents[state.hospitalId] = JSON.parse(JSON.stringify(state.residents));
+                }
+                if (parsed.hospitalResidents && typeof parsed.hospitalResidents === 'object') {
+                    Object.keys(parsed.hospitalResidents).forEach(k => {
+                        if (k !== state.hospitalId && Array.isArray(parsed.hospitalResidents[k])) {
+                            state.hospitalResidents[k] = parsed.hospitalResidents[k];
+                        }
+                    });
+                }
+
+                saveCurrentMonthAllocationsToStore();
+                saveCurrentHospitalResidents();
+                saveState();
+
+                refreshDBView();
+                updateDBDutyCheckers();
+                updateDutyDashboard();
+                renderActiveTab();
+                updateDBUndoRedoUI();
+
+                showNotification(`تمت استعادة قاعدة البيانات بنجاح (${count} طبيب)`, 'success');
+            } catch (err) {
+                console.error('Error restoring backup file:', err);
+                alert('فشل قراءة الملف أو استعادته: ملف JSON غير صالح أو به أخطاء.');
+            }
+        };
+        reader.readAsText(file, 'utf-8');
+    }
+
+    const downloadEmergencyDbJson = backupResidentsDatabase;
 
     // =========================================================================
     // RESIDENT DUTY PREFERENCES MODAL
@@ -9186,6 +9337,10 @@
         saveResidentPreferences,
         deleteResident,
         downloadEmergencyDbJson,
+        backupResidentsDatabase,
+        triggerRestoreResidentsDatabase,
+        handleRestoreResidentsFile,
+        getResidentStageNumber,
         openExportResidentModal,
         closeExportResidentModal,
         handleConfirmExportResident,
@@ -9289,6 +9444,10 @@
     window.saveResidentPreferences = saveResidentPreferences;
     window.deleteResident = deleteResident;
     window.downloadEmergencyDbJson = downloadEmergencyDbJson;
+    window.backupResidentsDatabase = backupResidentsDatabase;
+    window.triggerRestoreResidentsDatabase = triggerRestoreResidentsDatabase;
+    window.handleRestoreResidentsFile = handleRestoreResidentsFile;
+    window.getResidentStageNumber = getResidentStageNumber;
     window.prepareOfficialPrint = prepareOfficialPrint;
 
     // Database Sorting, Month, Import & Specialty Management

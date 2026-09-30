@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:01:36.704Z",
+  "lastUpdated": "2026-09-30T18:07:04.568Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -64,16 +64,6 @@
           "enabled": false
         },
         {
-          "id": "US",
-          "name_ar": "جراحة المسالك البولية",
-          "name_en": "Urosurgery",
-          "icon": "🫘",
-          "color": "#e66551",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
           "id": "ENT",
           "name_ar": "الأذن و الأنف و الحنجرة",
           "name_en": "ENT",
@@ -122,6 +112,16 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
+        },
+        {
+          "id": "US",
+          "name_ar": "جراحة المسالك البولية",
+          "name_en": "Urosurgery",
+          "icon": "🫘",
+          "color": "#e66551",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "G",

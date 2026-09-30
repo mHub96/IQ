@@ -77,7 +77,7 @@
         year: 2026,
         orderNumber: '4821',
         orderDate: '2026-09-01',
-        headOfResidents: 'د. محمد راضي خضر',
+        headOfResidents: 'د. عادل ناصر',
         headOfHospital: 'د. علي عبد معن',
         rsEnabled: true,
         rsStartDate: '2026-09-15',
@@ -450,19 +450,31 @@
 
         // 3. Try to fetch emergency-db.json asynchronously if fresh
         try {
-            const resp = await fetch(DB_FILE);
+            const resp = await fetch(DB_FILE + '?t=' + Date.now());
             if (resp.ok) {
                 const dbJson = await resp.json();
                 if (dbJson && Array.isArray(dbJson.residents) && dbJson.residents.length > 0) {
-                    if (!saved) {
+                    const dbTime = new Date(dbJson.updatedAt || 0).getTime();
+                    const stateTime = new Date(state.updatedAt || 0).getTime();
+                    if (!saved || (dbTime && dbTime > stateTime) || state.headOfResidents === 'د. محمد راضي خضر') {
                         state.residents = dbJson.residents;
-                        state.headOfResidents = dbJson.headOfResidents || state.headOfResidents;
-                        state.headOfHospital = dbJson.headOfHospital || state.headOfHospital;
+                        state.updatedAt = dbJson.updatedAt || new Date().toISOString();
+                        if (dbJson.headOfResidents) state.headOfResidents = dbJson.headOfResidents;
+                        if (dbJson.headOfHospital) state.headOfHospital = dbJson.headOfHospital;
+                        saveState();
                     }
                 }
             }
         } catch (err) {
             console.log('Using bundled state');
+            if (window.DEFAULT_EMERGENCY_DATA && Array.isArray(window.DEFAULT_EMERGENCY_DATA.residents)) {
+                if (!saved || state.headOfResidents === 'د. محمد راضي خضر' || !state.residents || state.residents.length === 0) {
+                    state.residents = JSON.parse(JSON.stringify(window.DEFAULT_EMERGENCY_DATA.residents));
+                    if (window.DEFAULT_EMERGENCY_DATA.headOfResidents) state.headOfResidents = window.DEFAULT_EMERGENCY_DATA.headOfResidents;
+                    if (window.DEFAULT_EMERGENCY_DATA.hospitalDirector) state.headOfHospital = window.DEFAULT_EMERGENCY_DATA.hospitalDirector;
+                    saveState();
+                }
+            }
         }
 
         // 4. Ensure schedule integrity
@@ -5410,9 +5422,14 @@
     }
 
     function backupResidentsDatabase() {
+        // Ensure latest allocations and hospital residents are synced into state
+        saveCurrentMonthAllocationsToStore();
+        saveCurrentHospitalResidents();
+
         const backupData = {
-            format: 'hosp_hub_residents_backup',
+            format: 'emergency_database_backup',
             version: '2.0',
+            updatedAt: new Date().toISOString(),
             exportedAt: new Date().toISOString(),
             exportDateFormatted: new Date().toLocaleString('ar-IQ'),
             hospitalId: state.hospitalId || 'iraqi',
@@ -5420,12 +5437,50 @@
             monthYear: state.monthYear || '',
             month: state.month || 9,
             year: state.year || 2026,
+            orderNumber: state.orderNumber || '',
+            orderDate: state.orderDate || '',
             headOfResidents: state.headOfResidents || '',
             headOfHospital: state.headOfHospital || '',
+            rsEnabled: Boolean(state.rsEnabled),
+            rsStartDate: state.rsStartDate || '',
+            rsEndDate: state.rsEndDate || '',
             totalResidents: (state.residents || []).length,
             specialtyColors: state.specialtyColors || {},
-            residents: state.residents || [],
-            hospitalResidents: state.hospitalResidents || {}
+            residents: (state.residents || []).map((r, idx) => {
+                const prefDays = Array.isArray(r.prefDays) ? r.prefDays : (r.preferences && Array.isArray(r.preferences.prefDays) ? r.preferences.prefDays : []);
+                const prefShifts = Array.isArray(r.prefShifts) ? r.prefShifts : (r.preferences && Array.isArray(r.preferences.prefShifts) ? r.preferences.prefShifts : []);
+                const noConsecutiveDays = r.noConsecutiveDays !== undefined ? Boolean(r.noConsecutiveDays) : (r.preferences && r.preferences.noConsecutiveDays !== undefined ? Boolean(r.preferences.noConsecutiveDays) : false);
+
+                return {
+                    id: r.id || `er_res_${idx + 1}`,
+                    row: r.row !== undefined ? r.row : (idx + 1),
+                    name: r.name || '',
+                    sex: r.sex || 'M',
+                    specialty: r.specialty || '',
+                    board: r.board || 'None',
+                    stage: r.stage || 'بدون',
+                    er_target: Number(r.er_target) || 0,
+                    con_target: Number(r.con_target) || 0,
+                    dc_target: Number(r.dc_target) || 0,
+                    rs_target: Number(r.rs_target) || 0,
+                    active: r.active !== false,
+                    expiryMonth: r.expiryMonth || '',
+                    notes: r.notes || '',
+                    phone: r.phone || '',
+                    hospitals: Array.isArray(r.hospitals) ? r.hospitals : [state.hospitalId || 'iraqi'],
+                    prefDays: prefDays,
+                    prefShifts: prefShifts,
+                    noConsecutiveDays: noConsecutiveDays,
+                    preferences: {
+                        prefDays: prefDays,
+                        prefShifts: prefShifts,
+                        noConsecutiveDays: noConsecutiveDays
+                    }
+                };
+            }),
+            monthlyAllocations: state.monthlyAllocations || {},
+            hospitalResidents: state.hospitalResidents || {},
+            schedules: state.schedules || {}
         };
 
         const jsonStr = JSON.stringify(backupData, null, 2);
@@ -5445,7 +5500,7 @@
             URL.revokeObjectURL(url);
         }, 500);
 
-        showNotification(`تم حفظ وتنزيل النسخة الاحتياطية بنجاح (${(state.residents || []).length} طبيب)`, 'success');
+        showNotification(`تم تنزيل النسخة الاحتياطية الشاملة بنجاح (${(state.residents || []).length} طبيب)`, 'success');
     }
 
     function triggerRestoreResidentsDatabase() {
@@ -5493,22 +5548,71 @@
                 const backupDate = parsed.exportDateFormatted || parsed.exportedAt || parsed.updatedAt || 'غير محدد';
                 const backupHosp = parsed.hospitalName || state.hospitalName || 'المستشفى الحالي';
 
-                const confirmMsg = `تأكيد استعادة النسخة الاحتياطية:\n\n` +
+                const confirmMsg = `تأكيد استعادة النسخة الاحتياطية الشاملة:\n\n` +
                     `• المستشفى: ${backupHosp}\n` +
                     `• تاريخ النسخة: ${backupDate}\n` +
                     `• عدد الأطباء: ${count} طبيب\n\n` +
-                    `تحذير: سيتم استبدال قائمة أطباء الطوارئ الحالية في اللوحة بهذه النسخة الاحتياطية.\n\nهل ترغب بالمتابعة؟`;
+                    `سيتم استرجاع كافة بيانات الأطباء والأنصبة والمراحل والبورد وتفضيلات الخفارات وتحديث اللوحة فوراً.\n\nهل ترغب بالمتابعة؟`;
 
                 if (!confirm(confirmMsg)) return;
 
                 pushDBHistory(`استعادة قاعدة البيانات من نسخة احتياطية (${count} طبيب)`);
 
-                // Update current residents
-                state.residents = JSON.parse(JSON.stringify(restoredResidents));
+                // Map every resident to ensure all fields are properly hydrated
+                const hydratedResidents = restoredResidents.map((r, idx) => {
+                    const prefDays = Array.isArray(r.prefDays) ? r.prefDays : (r.preferences && Array.isArray(r.preferences.prefDays) ? r.preferences.prefDays : []);
+                    const prefShifts = Array.isArray(r.prefShifts) ? r.prefShifts : (r.preferences && Array.isArray(r.preferences.prefShifts) ? r.preferences.prefShifts : []);
+                    const noConsecutiveDays = r.noConsecutiveDays !== undefined ? Boolean(r.noConsecutiveDays) : (r.preferences && r.preferences.noConsecutiveDays !== undefined ? Boolean(r.preferences.noConsecutiveDays) : false);
+
+                    return {
+                        id: r.id || `er_res_${idx + 1}`,
+                        row: r.row !== undefined ? r.row : (idx + 1),
+                        name: r.name || '',
+                        sex: r.sex || 'M',
+                        specialty: canonicalizeSpecialtyName(r.specialty || ''),
+                        board: r.board || 'None',
+                        stage: normalizeStageName(r.stage || 'بدون'),
+                        er_target: Number(r.er_target) || 0,
+                        con_target: Number(r.con_target) || 0,
+                        dc_target: Number(r.dc_target) || 0,
+                        rs_target: Number(r.rs_target) || 0,
+                        active: r.active !== false,
+                        expiryMonth: r.expiryMonth || '',
+                        notes: r.notes || '',
+                        phone: r.phone || '',
+                        hospitals: Array.isArray(r.hospitals) ? r.hospitals : [state.hospitalId || 'iraqi'],
+                        prefDays: prefDays,
+                        prefShifts: prefShifts,
+                        noConsecutiveDays: noConsecutiveDays,
+                        preferences: {
+                            prefDays: prefDays,
+                            prefShifts: prefShifts,
+                            noConsecutiveDays: noConsecutiveDays
+                        }
+                    };
+                });
+
+                // Update current residents and metadata
+                state.residents = hydratedResidents;
+                state.updatedAt = parsed.updatedAt || new Date().toISOString();
+
+                if (parsed.headOfResidents) state.headOfResidents = parsed.headOfResidents;
+                if (parsed.headOfHospital) state.headOfHospital = parsed.headOfHospital;
+                if (parsed.orderNumber) state.orderNumber = parsed.orderNumber;
+                if (parsed.orderDate) state.orderDate = parsed.orderDate;
+                if (parsed.rsStartDate) state.rsStartDate = parsed.rsStartDate;
+                if (parsed.rsEndDate) state.rsEndDate = parsed.rsEndDate;
+                if (parsed.rsEnabled !== undefined) state.rsEnabled = Boolean(parsed.rsEnabled);
 
                 // Merge specialty colors if present
                 if (parsed.specialtyColors && typeof parsed.specialtyColors === 'object') {
                     state.specialtyColors = Object.assign(state.specialtyColors || {}, parsed.specialtyColors);
+                }
+
+                // Merge monthly allocations if present
+                if (parsed.monthlyAllocations && typeof parsed.monthlyAllocations === 'object') {
+                    if (!state.monthlyAllocations) state.monthlyAllocations = {};
+                    Object.assign(state.monthlyAllocations, parsed.monthlyAllocations);
                 }
 
                 // Update hospitalResidents store
@@ -5524,17 +5628,27 @@
                     });
                 }
 
+                // Synchronize bundled fallback data as well
+                if (window.DEFAULT_EMERGENCY_DATA) {
+                    window.DEFAULT_EMERGENCY_DATA.residents = JSON.parse(JSON.stringify(state.residents));
+                    if (state.headOfResidents) window.DEFAULT_EMERGENCY_DATA.headOfResidents = state.headOfResidents;
+                    if (state.headOfHospital) window.DEFAULT_EMERGENCY_DATA.headOfHospital = state.headOfHospital;
+                }
+
+                // Save allocations, hospital store and full state
                 saveCurrentMonthAllocationsToStore();
                 saveCurrentHospitalResidents();
                 saveState();
 
+                // Refresh UI components
+                syncMetaInputsWithState();
                 refreshDBView();
                 updateDBDutyCheckers();
                 updateDutyDashboard();
                 renderActiveTab();
                 updateDBUndoRedoUI();
 
-                showNotification(`تمت استعادة قاعدة البيانات بنجاح (${count} طبيب)`, 'success');
+                showNotification(`تمت استعادة كافة بيانات قاعدة أطباء الطوارئ بنجاح (${count} طبيب)`, 'success');
             } catch (err) {
                 console.error('Error restoring backup file:', err);
                 alert('فشل قراءة الملف أو استعادته: ملف JSON غير صالح أو به أخطاء.');

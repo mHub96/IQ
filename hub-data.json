@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T12:54:16.369Z",
+  "lastUpdated": "2026-09-30T12:54:38.193Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -2853,7 +2853,7 @@
         },
         {
           "id": "res-munkc3uzya8q",
-          "name": "د. حسين عيدان حنون",
+          "name": "د. حسين عيدان",
           "phone": "+9647812949774",
           "spec": "NS",
           "tag": "NS",
@@ -2866,7 +2866,7 @@
         },
         {
           "id": "res-munktajqfoux",
-          "name": "د. نايف احمد هصاري",
+          "name": "د. نايف احمد",
           "phone": "+9647816785576",
           "spec": "NS",
           "tag": "NS",
@@ -2885,19 +2885,6 @@
           "tag": "M",
           "dept": "ON",
           "department": "ON",
-          "active": true,
-          "hospitals": [
-            "iraqi"
-          ]
-        },
-        {
-          "id": "res-muo3x7apcyhi",
-          "name": "د. علي عارف ثابت",
-          "phone": "+9647700342391",
-          "spec": "NS",
-          "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -25108,6 +25095,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-muo3xizgpblo",
+          "name": "د.عبدالله وسام قاسم",
+          "phone": "07735019530",
+          "spec": "MF",
+          "tag": "MF",
+          "dept": "MF",
+          "department": "MF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -45723,7 +45723,7 @@
     },
     {
       "id": "res-munkc3uzya8q",
-      "name": "د. حسين عيدان حنون",
+      "name": "د. حسين عيدان",
       "phone": "+9647812949774",
       "spec": "NS",
       "tag": "NS",
@@ -45736,7 +45736,7 @@
     },
     {
       "id": "res-munktajqfoux",
-      "name": "د. نايف احمد هصاري",
+      "name": "د. نايف احمد",
       "phone": "+9647816785576",
       "spec": "NS",
       "tag": "NS",
@@ -45800,16 +45800,16 @@
       ]
     },
     {
-      "id": "res-muo3x7apcyhi",
-      "name": "د. علي عارف ثابت",
-      "phone": "+9647700342391",
-      "spec": "NS",
-      "tag": "NS",
-      "dept": "NS",
-      "department": "NS",
+      "id": "res-muo3xizgpblo",
+      "name": "د.عبدالله وسام قاسم",
+      "phone": "07735019530",
+      "spec": "MF",
+      "tag": "MF",
+      "dept": "MF",
+      "department": "MF",
       "active": true,
       "hospitals": [
-        "iraqi"
+        "basra"
       ]
     }
   ],

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T12:58:44.535Z",
+  "lastUpdated": "2026-09-30T13:01:14.418Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -2853,7 +2853,7 @@
         },
         {
           "id": "res-munkc3uzya8q",
-          "name": "د. حسين عيدان حنون",
+          "name": "د. حسين عيدان",
           "phone": "+9647812949774",
           "spec": "NS",
           "tag": "NS",
@@ -2866,7 +2866,7 @@
         },
         {
           "id": "res-munktajqfoux",
-          "name": "د. نايف احمد هصاري",
+          "name": "د. نايف احمد",
           "phone": "+9647816785576",
           "spec": "NS",
           "tag": "NS",
@@ -2885,19 +2885,6 @@
           "tag": "M",
           "dept": "ON",
           "department": "ON",
-          "active": true,
-          "hospitals": [
-            "iraqi"
-          ]
-        },
-        {
-          "id": "res-muo40aagtviu",
-          "name": "د. علي عارف ثابت",
-          "phone": "+9647700342391",
-          "spec": "NS",
-          "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -21557,254 +21544,6 @@
           "VisitCount": 0,
           "dutyTime": "08:00PM - 08:00AM",
           "dutySlot": 1
-        },
-        {
-          "date": "01/10/2026",
-          "specCode": "NS",
-          "name": "د. علي مهدي منصور",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "02/10/2026",
-          "specCode": "NS",
-          "name": "د. مجيد حميد مجيد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "03/10/2026",
-          "specCode": "NS",
-          "name": "د. محمد عادل محمد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "04/10/2026",
-          "specCode": "NS",
-          "name": "د. مصطفى ماجد يوسف",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "05/10/2026",
-          "specCode": "NS",
-          "name": "د. علي عارف ثابت",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "06/10/2026",
-          "specCode": "NS",
-          "name": "د. علي مهدي منصور",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "07/10/2026",
-          "specCode": "NS",
-          "name": "د. مجيد حميد مجيد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "08/10/2026",
-          "specCode": "NS",
-          "name": "د. نايف احمد هصاري",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "09/10/2026",
-          "specCode": "NS",
-          "name": "د. محمد عادل محمد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "10/10/2026",
-          "specCode": "NS",
-          "name": "د. مصطفى ماجد يوسف",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "11/10/2026",
-          "specCode": "NS",
-          "name": "د. علي عارف ثابت",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "12/10/2026",
-          "specCode": "NS",
-          "name": "د. نايف احمد هصاري",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "13/10/2026",
-          "specCode": "NS",
-          "name": "د. علي مهدي منصور",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "14/10/2026",
-          "specCode": "NS",
-          "name": "د. مجيد حميد مجيد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "15/10/2026",
-          "specCode": "NS",
-          "name": "د. محمد عادل محمد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "16/10/2026",
-          "specCode": "NS",
-          "name": "د. مصطفى ماجد يوسف",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "17/10/2026",
-          "specCode": "NS",
-          "name": "د. علي عارف ثابت",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "18/10/2026",
-          "specCode": "NS",
-          "name": "د. نايف احمد هصاري",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "19/10/2026",
-          "specCode": "NS",
-          "name": "د. احمد هاتف",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "20/10/2026",
-          "specCode": "NS",
-          "name": "د. حسين عيدان حنون",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "21/10/2026",
-          "specCode": "NS",
-          "name": "د. الحسن حسين جبار",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "22/10/2026",
-          "specCode": "NS",
-          "name": "د. نايف احمد هصاري",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "23/10/2026",
-          "specCode": "NS",
-          "name": "د. احمد هاتف",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "24/10/2026",
-          "specCode": "NS",
-          "name": "د. حسين عيدان حنون",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "25/10/2026",
-          "specCode": "NS",
-          "name": "د. الحسن حسين جبار",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "26/10/2026",
-          "specCode": "NS",
-          "name": "د. نايف احمد هصاري",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "27/10/2026",
-          "specCode": "NS",
-          "name": "د. احمد هاتف",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "28/10/2026",
-          "specCode": "NS",
-          "name": "د. حسين عيدان حنون",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "29/10/2026",
-          "specCode": "NS",
-          "name": "د. الحسن حسين جبار",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "30/10/2026",
-          "specCode": "NS",
-          "name": "د. نايف احمد هصاري",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "31/10/2026",
-          "specCode": "NS",
-          "name": "د. احمد هاتف",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
         }
       ],
       "rotationHeroesUrl": "https://khafarat-alsadr.netlify.app/",
@@ -29720,7 +29459,7 @@
         {
           "date": "01/10/2026",
           "specCode": "MF",
-          "name": "",
+          "name": "د. وضاح اكثم",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
@@ -34744,6 +34483,246 @@
           "date": "31/10/2026",
           "specCode": "AO",
           "name": "د. محمد رحيم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "MF",
+          "name": "د. تحسين فلاح",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "MF",
+          "name": "د. عبد الله صادق",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "04/10/2026",
+          "specCode": "MF",
+          "name": "د. تقى حسن",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "MF",
+          "name": "د. حسن فائق",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/10/2026",
+          "specCode": "MF",
+          "name": "د.عبدالله وسام قاسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "07/10/2026",
+          "specCode": "MF",
+          "name": "د. وضاح اكثم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "MF",
+          "name": "د. تحسين فلاح",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "09/10/2026",
+          "specCode": "MF",
+          "name": "د. عبد الله صادق",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "MF",
+          "name": "د. تقى حسن",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "11/10/2026",
+          "specCode": "MF",
+          "name": "د. حسن فائق",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "12/10/2026",
+          "specCode": "MF",
+          "name": "د.عبدالله وسام قاسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "13/10/2026",
+          "specCode": "MF",
+          "name": "د. وضاح اكثم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "14/10/2026",
+          "specCode": "MF",
+          "name": "د. تحسين فلاح",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "15/10/2026",
+          "specCode": "MF",
+          "name": "د. عبد الله صادق",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "16/10/2026",
+          "specCode": "MF",
+          "name": "د. تقى حسن",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "17/10/2026",
+          "specCode": "MF",
+          "name": "د. حسن فائق",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "18/10/2026",
+          "specCode": "MF",
+          "name": "د.عبدالله وسام قاسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "19/10/2026",
+          "specCode": "MF",
+          "name": "د. وضاح اكثم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "20/10/2026",
+          "specCode": "MF",
+          "name": "د. تحسين فلاح",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "21/10/2026",
+          "specCode": "MF",
+          "name": "د. عبد الله صادق",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "22/10/2026",
+          "specCode": "MF",
+          "name": "د. تقى حسن",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "23/10/2026",
+          "specCode": "MF",
+          "name": "د. حسن فائق",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "24/10/2026",
+          "specCode": "MF",
+          "name": "د.عبدالله وسام قاسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "25/10/2026",
+          "specCode": "MF",
+          "name": "د. وضاح اكثم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "26/10/2026",
+          "specCode": "MF",
+          "name": "د. تحسين فلاح",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "27/10/2026",
+          "specCode": "MF",
+          "name": "د. عبد الله صادق",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "28/10/2026",
+          "specCode": "MF",
+          "name": "د. تقى حسن",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "29/10/2026",
+          "specCode": "MF",
+          "name": "د. حسن فائق",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "30/10/2026",
+          "specCode": "MF",
+          "name": "د.عبدالله وسام قاسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "31/10/2026",
+          "specCode": "MF",
+          "name": "د. وضاح اكثم",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
@@ -45984,7 +45963,7 @@
     },
     {
       "id": "res-munkc3uzya8q",
-      "name": "د. حسين عيدان حنون",
+      "name": "د. حسين عيدان",
       "phone": "+9647812949774",
       "spec": "NS",
       "tag": "NS",
@@ -45997,7 +45976,7 @@
     },
     {
       "id": "res-munktajqfoux",
-      "name": "د. نايف احمد هصاري",
+      "name": "د. نايف احمد",
       "phone": "+9647816785576",
       "spec": "NS",
       "tag": "NS",
@@ -46071,19 +46050,6 @@
       "active": true,
       "hospitals": [
         "basra"
-      ]
-    },
-    {
-      "id": "res-muo40aagtviu",
-      "name": "د. علي عارف ثابت",
-      "phone": "+9647700342391",
-      "spec": "NS",
-      "tag": "NS",
-      "dept": "NS",
-      "department": "NS",
-      "active": true,
-      "hospitals": [
-        "iraqi"
       ]
     }
   ],

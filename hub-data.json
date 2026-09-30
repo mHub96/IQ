@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T03:35:52.120Z",
+  "lastUpdated": "2026-09-30T03:38:35.142Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -2820,6 +2820,19 @@
           "dept": "NS",
           "department": "NS",
           "active": false,
+          "hospitals": [
+            "iraqi"
+          ]
+        },
+        {
+          "id": "res-munk2l1i4o3r",
+          "name": "د. احمد هاتف",
+          "phone": "+9647821302058",
+          "spec": "NS",
+          "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
+          "active": true,
           "hospitals": [
             "iraqi"
           ]
@@ -43626,6 +43639,19 @@
       "active": true,
       "hospitals": [
         "basra"
+      ]
+    },
+    {
+      "id": "res-munk2l1i4o3r",
+      "name": "د. احمد هاتف",
+      "phone": "+9647821302058",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
       ]
     }
   ],

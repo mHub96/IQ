@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T13:48:12.340Z",
+  "lastUpdated": "2026-09-30T14:12:10.235Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22234,6 +22234,16 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
+        },
+        {
+          "id": "REF",
+          "name_ar": "دوري احالات",
+          "name_en": "Referrals",
+          "icon": "🚑",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true,
+          "color": "#0f766e"
         }
       ],
       "names": [
@@ -46665,6 +46675,15 @@
       "name_en": "Referrals",
       "icon": "🚑",
       "color": "#0f766e",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "REF",
+      "name_ar": "دوري احالات",
+      "name_en": "Referrals",
+      "icon": "🚑",
       "parentSpec": null,
       "acceptPool": [],
       "enabled": true

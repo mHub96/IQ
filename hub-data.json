@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T13:42:22.852Z",
+  "lastUpdated": "2026-09-30T13:29:26.892Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21792,6 +21792,54 @@
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "ON",
+          "name": "د. زهراء غانم عبدالصاحب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "ON",
+          "name": "د. زهراء غانم عبدالصاحب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "ON",
+          "name": "د. زهراء غانم عبدالصاحب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "16/10/2026",
+          "specCode": "ON",
+          "name": "د. زهراء غانم عبدالصاحب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "23/10/2026",
+          "specCode": "ON",
+          "name": "د. زهراء غانم عبدالصاحب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "29/10/2026",
+          "specCode": "ON",
+          "name": "د. زهراء غانم عبدالصاحب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
         }
       ],
       "rotationHeroesUrl": "https://khafarat-alsadr.netlify.app/",
@@ -25325,19 +25373,6 @@
           "tag": "O",
           "dept": "O",
           "department": "O",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-muo5n2ism87w",
-          "name": "د. REST AND DIGEST",
-          "phone": "12341234422",
-          "spec": "NS",
-          "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
           "active": true,
           "hospitals": [
             "basra"
@@ -46267,19 +46302,6 @@
       "tag": "O",
       "dept": "O",
       "department": "O",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-muo5n2ism87w",
-      "name": "د. REST AND DIGEST",
-      "phone": "12341234422",
-      "spec": "NS",
-      "tag": "NS",
-      "dept": "NS",
-      "department": "NS",
       "active": true,
       "hospitals": [
         "basra"

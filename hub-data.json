@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T19:54:52.334Z",
+  "lastUpdated": "2026-09-30T19:55:56.997Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -33879,23 +33879,6 @@
           "dutySlot": 1
         },
         {
-          "date": "30/09/2026",
-          "specCode": "M",
-          "name": "د. بشير كريم",
-          "VisitCount": 1,
-          "dutyTime": "08:00AM - 08:00PM",
-          "dutySlot": 0,
-          "timestamp": "22:37"
-        },
-        {
-          "date": "30/09/2026",
-          "specCode": "M",
-          "name": "د. عيسى وليد",
-          "VisitCount": 0,
-          "dutyTime": "08:00PM - 08:00AM",
-          "dutySlot": 1
-        },
-        {
           "date": "29/09/2026",
           "specCode": "M",
           "name": "د. فلاح غيدان",
@@ -36876,6 +36859,15 @@
           "name": "د. سراء ياسين ساري",
           "timestamp": "20:08",
           "VisitCount": 0
+        },
+        {
+          "date": "30/09/2026",
+          "specCode": "M",
+          "name": "د. بشير كريم",
+          "VisitCount": 1,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0,
+          "timestamp": "22:37"
         }
       ],
       "rotationHeroesUrl": "",

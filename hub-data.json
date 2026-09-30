@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:09:03.341Z",
+  "lastUpdated": "2026-09-30T18:09:37.810Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -191,16 +191,6 @@
           "name_en": "MaxilloFacial Surgery",
           "icon": "🦷",
           "color": "#d600af",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
-          "id": "O",
-          "name_ar": "العيون",
-          "name_en": "Ophthalmology",
-          "icon": "👁️",
-          "color": "#38ffe8",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false

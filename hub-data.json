@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T10:36:28.558Z",
+  "lastUpdated": "2026-09-30T10:36:49.343Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24207,6 +24207,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-munz0fum2r4o",
+          "name": "د. علي حسين عبدالرضا",
+          "phone": "07849000964",
+          "spec": "GS",
+          "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -43989,6 +44002,19 @@
       "active": true,
       "hospitals": [
         "iraqi"
+      ]
+    },
+    {
+      "id": "res-munz0fum2r4o",
+      "name": "د. علي حسين عبدالرضا",
+      "phone": "07849000964",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": true,
+      "hospitals": [
+        "basra"
       ]
     }
   ],

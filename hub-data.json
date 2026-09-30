@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T15:26:06.833Z",
+  "lastUpdated": "2026-09-30T15:26:11.173Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21942,6 +21942,16 @@
           "enabled": true
         },
         {
+          "id": "AO",
+          "name_ar": "المعاون الاداري",
+          "name_en": "Administrative Officer",
+          "icon": "🧑",
+          "color": "#2563eb",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
           "id": "US",
           "name_ar": "جراحة المسالك البولية",
           "name_en": "Urosurgery",
@@ -21987,16 +21997,6 @@
           "name_en": "Paediatrics",
           "icon": "👶",
           "color": "#3dff6e",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
-          "id": "AO",
-          "name_ar": "المعاون الاداري",
-          "name_en": "Administrative Officer",
-          "icon": "🧑",
-          "color": "#2563eb",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true

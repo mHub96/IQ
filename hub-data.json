@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T16:14:26.199Z",
+  "lastUpdated": "2026-09-30T16:15:04.624Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -36429,6 +36429,22 @@
           "date": "24/10/2026",
           "specCode": "REF",
           "name": "د. نور رضا شنيور",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "25/10/2026",
+          "specCode": "REF",
+          "name": "د. سارا علي زناد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "26/10/2026",
+          "specCode": "REF",
+          "name": "د. علا غسان حامد",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T16:11:14.195Z",
+  "lastUpdated": "2026-09-30T16:11:52.516Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -26427,6 +26427,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-muoazbjzsa87",
+          "name": "د. فاطمة سالم طعمة",
+          "phone": "0771 407 7005",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -48732,6 +48745,19 @@
       "id": "res-muoasw6vynts",
       "name": "د. تهجد اسعد حسن",
       "phone": "0771 252 9388",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-muoazbjzsa87",
+      "name": "د. فاطمة سالم طعمة",
+      "phone": "0771 407 7005",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

@@ -5424,7 +5424,30 @@
     function backupResidentsDatabase() {
         // Ensure latest allocations and hospital residents are synced into state
         saveCurrentMonthAllocationsToStore();
+        saveCurrentMonthScheduleToStore();
         saveCurrentHospitalResidents();
+
+        // Harvest all months allocations and schedules across all years & hospitals from localStorage
+        const allMonthlyAllocations = Object.assign({}, state.monthlyAllocations || {});
+        const allMonthlySchedules = Object.assign({}, state.monthlySchedules || {});
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith(MONTH_ALLOC_PREFIX)) {
+                    const subKey = k.slice(MONTH_ALLOC_PREFIX.length);
+                    try {
+                        allMonthlyAllocations[subKey] = JSON.parse(localStorage.getItem(k));
+                    } catch (e) {}
+                } else if (k && k.startsWith(MONTH_STORAGE_PREFIX)) {
+                    const subKey = k.slice(MONTH_STORAGE_PREFIX.length);
+                    try {
+                        allMonthlySchedules[subKey] = JSON.parse(localStorage.getItem(k));
+                    } catch (e) {}
+                }
+            }
+        } catch (e) {
+            console.warn('Error harvesting all months from localStorage', e);
+        }
 
         const backupData = {
             format: 'emergency_database_backup',
@@ -5478,7 +5501,8 @@
                     }
                 };
             }),
-            monthlyAllocations: state.monthlyAllocations || {},
+            monthlyAllocations: allMonthlyAllocations,
+            monthlySchedules: allMonthlySchedules,
             hospitalResidents: state.hospitalResidents || {},
             schedules: state.schedules || {}
         };
@@ -5609,10 +5633,26 @@
                     state.specialtyColors = Object.assign(state.specialtyColors || {}, parsed.specialtyColors);
                 }
 
-                // Merge monthly allocations if present
+                // Merge monthly allocations if present and write to localStorage
                 if (parsed.monthlyAllocations && typeof parsed.monthlyAllocations === 'object') {
                     if (!state.monthlyAllocations) state.monthlyAllocations = {};
                     Object.assign(state.monthlyAllocations, parsed.monthlyAllocations);
+                    Object.keys(parsed.monthlyAllocations).forEach(k => {
+                        try {
+                            localStorage.setItem(MONTH_ALLOC_PREFIX + k, JSON.stringify(parsed.monthlyAllocations[k]));
+                        } catch (e) {}
+                    });
+                }
+
+                // Merge and reinstate all monthly schedules into localStorage if present
+                if (parsed.monthlySchedules && typeof parsed.monthlySchedules === 'object') {
+                    if (!state.monthlySchedules) state.monthlySchedules = {};
+                    Object.assign(state.monthlySchedules, parsed.monthlySchedules);
+                    Object.keys(parsed.monthlySchedules).forEach(k => {
+                        try {
+                            localStorage.setItem(MONTH_STORAGE_PREFIX + k, JSON.stringify(parsed.monthlySchedules[k]));
+                        } catch (e) {}
+                    });
                 }
 
                 // Update hospitalResidents store

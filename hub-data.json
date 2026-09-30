@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T16:33:51.387Z",
+  "lastUpdated": "2026-09-30T16:35:06.952Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -26570,6 +26570,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-muobt7ibpm7n",
+          "name": "د. حيدر كريم محمد",
+          "phone": "+9647850826747",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -49250,6 +49263,19 @@
       "id": "res-muobkkpgmyog",
       "name": "د. مصطفى محمد حافظ",
       "phone": "0773 200 0432",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-muobt7ibpm7n",
+      "name": "د. حيدر كريم محمد",
+      "phone": "+9647850826747",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

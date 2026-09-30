@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T13:01:14.418Z",
+  "lastUpdated": "2026-09-30T13:04:39.889Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -30350,10 +30350,11 @@
         {
           "date": "30/09/2026",
           "specCode": "US",
-          "name": "د. عبدالله جبار",
+          "name": "د. حيدر علي",
           "VisitCount": 0,
           "dutySlot": 0,
-          "dutyTime": ""
+          "dutyTime": "",
+          "timestamp": "16:04"
         },
         {
           "date": "01/09/2026",

@@ -7,15 +7,31 @@
     <script src="./pwa.js"></script>
     <title>نظام خفارات الطوارئ والأقسام الخافرة | HOSP HUB</title>
     
-    <!-- Google Fonts & Tailwind -->
+    <!-- Google Fonts & Local Formal Arabic Fonts & Tailwind -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800;900&family=Almarai:wght@300;400;700;800&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cairo:wght@300;400;500;600;700;800;900&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Scheherazade+New:wght@400;500;600;700&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <!-- SheetJS for client-side Excel Import/Export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        @font-face {
+            font-family: 'Amiri';
+            font-style: normal;
+            font-weight: 400;
+            src: url('./fonts/Amiri-Regular.ttf') format('truetype');
+        }
+        @font-face {
+            font-family: 'Amiri';
+            font-style: normal;
+            font-weight: 700;
+            src: url('./fonts/Amiri-Bold.ttf') format('truetype');
+        }
+    </style>
+    <style id="dynamic-custom-print-font-style"></style>
 
     <script>
         tailwind.config = {
@@ -466,19 +482,35 @@
     </div>
 
     <!-- 4. Resident Duty Preferences Modal (z-[70] to overlay in front of DB modal) -->
-    <div id="resident-prefs-modal" style="z-index: 99999;" class="fixed inset-0 z-[70] bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 no-print">
-        <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
-            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <div>
-                    <h3 class="font-black text-sm text-slate-800 dark:text-slate-100">تفضيلات خفارات الطبيب</h3>
-                    <p class="text-[11px] text-slate-500" id="prefs-modal-docname">اسم الطبيب</p>
+    <div id="resident-prefs-modal" style="z-index: 99999;" class="fixed inset-0 z-[70] bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 no-print">
+        <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
+            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 flex items-center justify-center text-sm font-bold">
+                        <i class="fas fa-sliders"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-sm text-slate-800 dark:text-slate-100">تفضيلات ورغبات خفارات الطبيب</h3>
+                        <p class="text-[11px] text-slate-500" id="prefs-modal-docname">اسم الطبيب</p>
+                    </div>
                 </div>
                 <button type="button" onclick="closeResidentPrefsModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                     <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
 
-            <div class="p-5 space-y-4 text-xs">
+            <div class="p-5 space-y-4 text-xs overflow-y-auto flex-1">
+                <!-- Female Notice (Rule 1: Females never distributed to prenight or night shifts) -->
+                <div id="prefs-female-notice" class="hidden p-3 rounded-2xl bg-pink-50 dark:bg-pink-950/40 border border-pink-200 dark:border-pink-800 text-pink-700 dark:text-pink-300 flex items-start gap-2.5">
+                    <i class="fas fa-venus text-pink-500 mt-0.5 text-sm shrink-0"></i>
+                    <div>
+                        <span class="font-black block text-xs">قاعدة خفارات الطبيبات المعتمدة:</span>
+                        <p class="text-[11px] leading-relaxed text-pink-600/90 dark:text-pink-300/90 mt-0.5">
+                            يتم استبعاد وجبات <strong>البرينايت (8م - 2ص)</strong> و<strong>الليلية (2ص - 8ص)</strong> تلقائياً للطبيبات في التوزيع الآلي، ولا يتم التعيين فيها إلا يدوياً من قبلك.
+                        </p>
+                    </div>
+                </div>
+
                 <!-- Shift Preferences -->
                 <div>
                     <label class="block font-black text-slate-700 dark:text-slate-300 mb-2">الوجبات المفضلة للطوارئ:</label>
@@ -491,11 +523,11 @@
                             <input type="checkbox" value="afternoon" class="pref-shift-cb rounded text-rose-600">
                             <span class="font-bold">بعد الصباحية (2م - 8م)</span>
                         </label>
-                        <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer">
+                        <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer" id="pref-shift-wrap-prenight">
                             <input type="checkbox" value="preNight" class="pref-shift-cb rounded text-rose-600">
                             <span class="font-bold">البرينايت (8م - 2ص)</span>
                         </label>
-                        <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer">
+                        <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer" id="pref-shift-wrap-latenight">
                             <input type="checkbox" value="lateNight" class="pref-shift-cb rounded text-rose-600">
                             <span class="font-bold">الليلية (2ص - 8ص)</span>
                         </label>
@@ -537,6 +569,63 @@
                     </div>
                 </div>
 
+                <!-- 1. Specific Excluded Days of the Month (e.g. 3/10 or day 3 regardless of day name) -->
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block font-black text-slate-700 dark:text-slate-300">
+                            <i class="fas fa-calendar-xmark text-rose-500 mr-1"></i>
+                            استبعاد أيام محددة من الشهر:
+                        </label>
+                        <span class="text-[10px] text-slate-400 font-semibold" id="pref-month-days-header">أيام الشهر الحالي</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mb-2">
+                        انقر على أرقام الأيام لاستبعادها، أو أضف يوماً أو تاريخاً بصيغة (مثل: <strong>3/10</strong> أو <strong>15</strong>):
+                    </p>
+
+                    <!-- Interactive Day Grid for Current Schedule Month -->
+                    <div id="pref-days-grid" class="flex flex-wrap gap-1 p-2 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 max-h-24 overflow-y-auto">
+                        <!-- Populated dynamically via JS: 1..daysCount buttons -->
+                    </div>
+
+                    <!-- Add Custom Date String / Day Input -->
+                    <div class="flex items-center gap-2 mt-2">
+                        <input type="text" id="pref-custom-date-input" placeholder="اكتب اليوم أو التاريخ (مثال: 3/10)" class="flex-1 text-xs p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomExcludedDateFromInput();}">
+                        <button type="button" onclick="addCustomExcludedDateFromInput()" class="px-3 py-2 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 transition flex items-center gap-1 shrink-0">
+                            <i class="fas fa-plus text-[10px]"></i>
+                            <span>استبعاد هذا اليوم</span>
+                        </button>
+                    </div>
+
+                    <!-- Excluded Days Chips / Badges Container -->
+                    <div class="mt-2">
+                        <div class="text-[10px] font-bold text-slate-400 mb-1">الأيام المستبعدة حالياً لهذا الطبيب:</div>
+                        <div id="pref-excluded-dates-chips" class="flex flex-wrap gap-1.5 min-h-[28px] p-1.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                            <!-- Populated with badges: e.g. <span class="...">3/10 <i class="fas fa-times"></i></span> -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Excluded Period Intervals (Multiple intervals with start & end dates) -->
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block font-black text-slate-700 dark:text-slate-300">
+                            <i class="fas fa-calendar-days text-amber-500 mr-1"></i>
+                            استبعاد فترات زمنية / إجازات (فترات متعددة):
+                        </label>
+                        <button type="button" onclick="addPrefIntervalRow()" class="px-2.5 py-1 rounded-xl text-xs font-bold text-rose-600 hover:text-white hover:bg-rose-600 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 transition flex items-center gap-1.5 shadow-2xs">
+                            <i class="fas fa-plus text-[10px]"></i>
+                            <span>إضافة فترة استبعاد</span>
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mb-2">
+                        أضف فترات إجازة أو تفرغ بحيث يستبعد النظام الطبيب من أي خفارة خلال الفترة المحددة:
+                    </p>
+
+                    <div id="pref-intervals-list" class="space-y-2 max-h-36 overflow-y-auto pr-0.5">
+                        <!-- Dynamic Interval Rows -->
+                    </div>
+                </div>
+
                 <!-- Consecutive Days Preference -->
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
                     <label class="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer hover:bg-slate-100/60 dark:hover:bg-slate-800/40 transition">
@@ -549,11 +638,11 @@
                 </div>
 
                 <p class="text-[11px] text-slate-400">
-                    * يسعى نظام التوزيع الآلي لمطابقة هذه الرغبات، وإذا تعذر توفر شاغر مطابق يتم التعيين مع إشعار توضيحي.
+                    * يراعي التوزيع الآلي الأيام والفترات المستبعدة بدقة تامة ويمنع تكليف الطبيب فيها نهائياً.
                 </p>
             </div>
 
-            <div class="p-3 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
+            <div class="p-3 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2 shrink-0">
                 <button type="button" onclick="closeResidentPrefsModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition">
                     إلغاء
                 </button>
@@ -754,6 +843,52 @@
                             </div>
                             <span class="text-[10px] text-slate-500">طابع صحي وطبي مميز</span>
                         </button>
+                    </div>
+                </div>
+
+                <!-- Formal Arabic Fonts & Custom Font Upload -->
+                <div class="space-y-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <div class="flex items-center justify-between">
+                        <label class="block font-black text-slate-700 dark:text-slate-300">
+                            <i class="fas fa-font text-rose-500 mr-1"></i>
+                            الخط الرسمي للطباعة والأوامر الإدارية:
+                        </label>
+                        <label class="px-2.5 py-1 rounded-xl text-[11px] font-bold text-rose-600 hover:text-white hover:bg-rose-600 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 transition flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                            <i class="fas fa-cloud-arrow-up text-xs"></i>
+                            <span>رفع خط مخصص</span>
+                            <input type="file" id="print-font-upload-input" accept=".ttf,.otf,.woff,.woff2" class="hidden" onchange="handleCustomFontUpload(event)">
+                        </label>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <select id="print-opt-font-family" onchange="onPrintFontChange(this.value)" class="w-full text-xs p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-200 cursor-pointer">
+                            <option value="'Cairo', sans-serif">كايرو (Cairo) - الخط الإداري الحديث المعتمد</option>
+                            <option value="'Amiri', serif">أميري (Amiri) - الخط الوزاري الرسمي المعتمد (الكتب الرسمية والأوامر)</option>
+                            <option value="'Noto Naskh Arabic', serif">نوتو نسخ (Noto Naskh Arabic) - نسخ حكومي عالي الوضوح</option>
+                            <option value="'Scheherazade New', serif">شهرزاد (Scheherazade New) - خط نسخي رسمي تقليدي</option>
+                            <option value="'Tajawal', sans-serif">تجوال (Tajawal) - خط إداري متوازن وأنيق</option>
+                            <option value="'Almarai', sans-serif">المراعي (Almarai) - خط رسمي معاصر عالي الدقة</option>
+                            <option value="'Alexandria', sans-serif">الإسكندرية (Alexandria) - خط رسمي هندسي حديث</option>
+                            <option value="'Traditional Arabic', serif">الخط العربي التقليدي (Traditional Arabic)</option>
+                            <option value="'Simplified Arabic', sans-serif">الخط العربي المبسط (Simplified Arabic)</option>
+                            <option value="'CustomPrintFont', sans-serif" id="print-opt-custom-option" class="hidden">خط مخصص تم رفعه</option>
+                        </select>
+                        
+                        <!-- Custom Font Status / Info Badge -->
+                        <div id="custom-font-status-wrap" class="hidden flex items-center justify-between p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-[11px] text-emerald-800 dark:text-emerald-300">
+                            <div class="flex items-center gap-1.5 overflow-hidden">
+                                <i class="fas fa-circle-check text-emerald-600 shrink-0"></i>
+                                <span class="truncate">الخط المخصص الفعّال: <strong id="custom-font-name-label"></strong></span>
+                            </div>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button type="button" onclick="downloadActiveCustomFontFile()" class="text-blue-600 hover:text-blue-700 text-xs px-2 py-0.5 rounded hover:bg-blue-50 dark:hover:bg-blue-950/40 transition flex items-center gap-1" title="حفظ نسخة إلى مجلد fonts">
+                                    <i class="fas fa-download"></i> حفظ نسخة
+                                </button>
+                                <button type="button" onclick="removeCustomUploadedFont()" class="text-rose-600 hover:text-rose-700 text-xs px-2 py-0.5 rounded hover:bg-rose-50 dark:hover:bg-rose-950/40 transition flex items-center gap-1" title="إلغاء الخط المخصص">
+                                    <i class="fas fa-trash-alt"></i> إزالة
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

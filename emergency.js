@@ -169,6 +169,88 @@
             .trim();
     }
 
+    // Helper: Determine if resident is female (Rule 1: Females never auto-distributed to prenight or night shifts)
+    function isFemaleResident(r) {
+        if (!r) return false;
+        return r.sex === 'F' || r.gender === 'female' || r.sex === 'أنثى' || r.gender === 'أنثى';
+    }
+
+    // Helper: Determine if a shift key represents prenight (8PM-2AM) or night (2AM-8AM)
+    function isNightShift(shiftKey) {
+        if (!shiftKey) return false;
+        const s = String(shiftKey).toLowerCase();
+        return s === 'prenight' || s === 'latenight' || 
+               s === 'er_prenight' || s === 'er_latenight' || 
+               s.includes('night') || s.includes('ليلي') || s.includes('برينايت');
+    }
+
+    // Helper: Check if specific date or interval is excluded for a resident (Rule 2)
+    function isDateExcludedForResident(r, dayNumber, dateStr) {
+        if (!r) return false;
+
+        const dNum = Number(dayNumber);
+        const curMonth = (typeof state !== 'undefined' && state && state.month) ? Number(state.month) : (new Date().getMonth() + 1);
+        const curYear = (typeof state !== 'undefined' && state && state.year) ? Number(state.year) : new Date().getFullYear();
+        const curDateStr = dateStr || formatDateStr(curYear, curMonth, dNum);
+
+        // 1. Check specific excluded dates (e.g. 3/10, day 3, 2026-10-03)
+        if (Array.isArray(r.excludedDates) && r.excludedDates.length > 0) {
+            const dayPadded = String(dNum).padStart(2, '0');
+            const monthPadded = String(curMonth).padStart(2, '0');
+            const d_m = `${dNum}/${curMonth}`;          // e.g. "3/10"
+            const dd_mm = `${dayPadded}/${monthPadded}`; // e.g. "03/10"
+            const d_dash_m = `${dNum}-${curMonth}`;
+            const dd_dash_mm = `${dayPadded}-${monthPadded}`;
+
+            for (const item of r.excludedDates) {
+                if (item === undefined || item === null) continue;
+                const strItem = String(item).trim();
+                if (!strItem) continue;
+
+                if (strItem === String(dNum) || strItem === dayPadded) return true;
+                if (strItem === d_m || strItem === dd_mm || strItem === d_dash_m || strItem === dd_dash_mm) return true;
+                if (strItem === curDateStr) return true;
+
+                const parts = strItem.split(/[\/\-]/);
+                if (parts.length === 2) {
+                    const partD = parseInt(parts[0], 10);
+                    const partM = parseInt(parts[1], 10);
+                    if (partD === dNum && partM === curMonth) return true;
+                } else if (parts.length === 3) {
+                    if (parts[0].length === 4) {
+                        const y = parseInt(parts[0], 10);
+                        const m = parseInt(parts[1], 10);
+                        const d = parseInt(parts[2], 10);
+                        if (y === curYear && m === curMonth && d === dNum) return true;
+                    } else {
+                        const d = parseInt(parts[0], 10);
+                        const m = parseInt(parts[1], 10);
+                        const y = parseInt(parts[2], 10);
+                        if (y === curYear && m === curMonth && d === dNum) return true;
+                    }
+                }
+            }
+        }
+
+        // 2. Check period intervals (e.g. { start: '2026-10-05', end: '2026-10-10' })
+        if (Array.isArray(r.excludedIntervals) && r.excludedIntervals.length > 0) {
+            for (const interval of r.excludedIntervals) {
+                if (!interval) continue;
+                const start = interval.start ? interval.start.trim() : '';
+                const end = interval.end ? interval.end.trim() : '';
+                if (start && end) {
+                    if (curDateStr >= start && curDateStr <= end) return true;
+                } else if (start) {
+                    if (curDateStr >= start) return true;
+                } else if (end) {
+                    if (curDateStr <= end) return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     // Check if a resident is expired for the current month/year
     function isResidentExpired(resident, year, month) {
         if (!resident || !resident.expiryMonth) return false;
@@ -491,6 +573,7 @@
         updateRsVisibilityUI();
         initAutoModalListeners();
         initKeyboardShortcuts();
+        initCustomFontFromStorage();
     }
 
     function initKeyboardShortcuts() {
@@ -4993,6 +5076,8 @@
     function renderResidentPrefsButtonHTML(r) {
         const hasPrefs = (Array.isArray(r.prefDays) && r.prefDays.length > 0) || 
                          (Array.isArray(r.prefShifts) && r.prefShifts.length > 0) || 
+                         (Array.isArray(r.excludedDates) && r.excludedDates.length > 0) ||
+                         (Array.isArray(r.excludedIntervals) && r.excludedIntervals.length > 0) ||
                          (r.noConsecutiveDays === false);
         if (hasPrefs) {
             return `
@@ -5813,6 +5898,8 @@
     // =========================================================================
 
     let activePrefsResId = null;
+    let tempExcludedDates = [];
+    let tempExcludedIntervals = [];
 
     function openResidentPrefsModal(resId) {
         const res = (state.residents || []).find(r => r.id === resId);
@@ -5825,7 +5912,14 @@
         if (!modal) return;
         nameEl.textContent = `${res.name} (${res.specialty || 'عام'})`;
 
-        // Populate checkboxes
+        // Female notice check (Rule 1)
+        const isFemale = isFemaleResident(res);
+        const femaleNotice = document.getElementById('prefs-female-notice');
+        if (femaleNotice) {
+            femaleNotice.classList.toggle('hidden', !isFemale);
+        }
+
+        // Shift checkboxes
         const prefShifts = res.prefShifts || [];
         const prefDays = res.prefDays || [];
 
@@ -5843,6 +5937,21 @@
             noConsecutiveCb.checked = (res.noConsecutiveDays !== false);
         }
 
+        // Initialize temporary excluded dates and intervals
+        tempExcludedDates = Array.isArray(res.excludedDates) ? [...res.excludedDates] : [];
+        tempExcludedIntervals = Array.isArray(res.excludedIntervals) ? JSON.parse(JSON.stringify(res.excludedIntervals)) : [];
+
+        // Month context header
+        const monthDaysHeader = document.getElementById('pref-month-days-header');
+        if (monthDaysHeader) {
+            monthDaysHeader.textContent = `أيام شهر ${state.monthYear || (state.month + '/' + state.year)}`;
+        }
+
+        // Render dynamic day grid, chips, and intervals
+        renderPrefDaysGrid();
+        renderPrefExcludedDatesChips();
+        renderPrefIntervalsList();
+
         modal.classList.remove('hidden');
     }
 
@@ -5850,6 +5959,158 @@
         const modal = document.getElementById('resident-prefs-modal');
         if (modal) modal.classList.add('hidden');
         activePrefsResId = null;
+        tempExcludedDates = [];
+        tempExcludedIntervals = [];
+    }
+
+    function isDayNumberInExcludedDates(dNum) {
+        const curMonth = (state && state.month) ? Number(state.month) : (new Date().getMonth() + 1);
+        const dayPadded = String(dNum).padStart(2, '0');
+        const monthPadded = String(curMonth).padStart(2, '0');
+        const d_m = `${dNum}/${curMonth}`;
+        const dd_mm = `${dayPadded}/${monthPadded}`;
+
+        return tempExcludedDates.some(item => {
+            if (item === undefined || item === null) return false;
+            const s = String(item).trim();
+            return s === String(dNum) || s === dayPadded || s === d_m || s === dd_mm;
+        });
+    }
+
+    function renderPrefDaysGrid() {
+        const grid = document.getElementById('pref-days-grid');
+        if (!grid) return;
+
+        const curMonth = (state && state.month) ? Number(state.month) : (new Date().getMonth() + 1);
+        const curYear = (state && state.year) ? Number(state.year) : new Date().getFullYear();
+        const daysCount = getDaysInMonth(curYear, curMonth);
+
+        let html = '';
+        for (let d = 1; d <= daysCount; d++) {
+            const isEx = isDayNumberInExcludedDates(d);
+            const btnClass = isEx
+                ? 'bg-rose-600 text-white border-rose-600 shadow-xs font-black'
+                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-rose-400 font-bold';
+            const icon = isEx ? '<i class="fas fa-ban text-[8px] mr-0.5"></i>' : '';
+            html += `
+                <button type="button" onclick="togglePrefExcludedDayNumber(${d})" class="w-8 h-8 rounded-lg border text-xs flex items-center justify-center transition ${btnClass}" title="${isEx ? 'مستبعد - انقر لإلغاء الاستبعاد' : 'متاح - انقر للاستبعاد'}">
+                    ${icon}${d}
+                </button>
+            `;
+        }
+        grid.innerHTML = html;
+    }
+
+    function togglePrefExcludedDayNumber(dayNum) {
+        const curMonth = (state && state.month) ? Number(state.month) : (new Date().getMonth() + 1);
+        const dayPadded = String(dayNum).padStart(2, '0');
+        const monthPadded = String(curMonth).padStart(2, '0');
+        const d_m = `${dayNum}/${curMonth}`;
+        const dd_mm = `${dayPadded}/${monthPadded}`;
+
+        if (isDayNumberInExcludedDates(dayNum)) {
+            tempExcludedDates = tempExcludedDates.filter(item => {
+                const s = String(item).trim();
+                return !(s === String(dayNum) || s === dayPadded || s === d_m || s === dd_mm);
+            });
+        } else {
+            tempExcludedDates.push(d_m);
+        }
+
+        renderPrefDaysGrid();
+        renderPrefExcludedDatesChips();
+    }
+
+    function addCustomExcludedDateFromInput() {
+        const input = document.getElementById('pref-custom-date-input');
+        if (!input) return;
+        const val = input.value.trim();
+        if (!val) return;
+
+        if (!tempExcludedDates.some(item => String(item).trim() === val)) {
+            tempExcludedDates.push(val);
+        }
+
+        input.value = '';
+        renderPrefDaysGrid();
+        renderPrefExcludedDatesChips();
+    }
+
+    function removePrefExcludedDate(dateStr) {
+        tempExcludedDates = tempExcludedDates.filter(item => String(item).trim() !== String(dateStr).trim());
+        renderPrefDaysGrid();
+        renderPrefExcludedDatesChips();
+    }
+
+    function renderPrefExcludedDatesChips() {
+        const container = document.getElementById('pref-excluded-dates-chips');
+        if (!container) return;
+
+        if (tempExcludedDates.length === 0) {
+            container.innerHTML = '<span class="text-slate-400 text-[10px] py-0.5">لا توجد أيام مستبعدة محددة لهذا الطبيب</span>';
+            return;
+        }
+
+        let html = '';
+        tempExcludedDates.forEach(dateVal => {
+            const escaped = String(dateVal).replace(/'/g, "\\'");
+            html += `
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-black bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
+                    <i class="fas fa-calendar-xmark text-[10px]"></i>
+                    <span>${dateVal}</span>
+                    <button type="button" onclick="removePrefExcludedDate('${escaped}')" class="hover:text-rose-900 dark:hover:text-white ml-0.5 p-0.5" title="إزالة هذا اليوم">
+                        <i class="fas fa-times text-[10px]"></i>
+                    </button>
+                </span>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function renderPrefIntervalsList() {
+        const list = document.getElementById('pref-intervals-list');
+        if (!list) return;
+
+        if (tempExcludedIntervals.length === 0) {
+            list.innerHTML = '<div class="text-slate-400 text-center py-2 text-[11px] bg-slate-50 dark:bg-slate-900 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">لا توجد فترات مستبعدة مضافة</div>';
+            return;
+        }
+
+        let html = '';
+        tempExcludedIntervals.forEach((interval, idx) => {
+            html += `
+                <div class="pref-interval-row flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs">
+                    <div class="flex-1 flex items-center gap-1.5">
+                        <span class="text-slate-500 text-[10px] shrink-0 font-bold">من:</span>
+                        <input type="date" value="${interval.start || ''}" onchange="updatePrefInterval(${idx}, 'start', this.value)" class="w-full p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100">
+                    </div>
+                    <div class="flex-1 flex items-center gap-1.5">
+                        <span class="text-slate-500 text-[10px] shrink-0 font-bold">إلى:</span>
+                        <input type="date" value="${interval.end || ''}" onchange="updatePrefInterval(${idx}, 'end', this.value)" class="w-full p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100">
+                    </div>
+                    <button type="button" onclick="removePrefInterval(${idx})" class="w-7 h-7 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center justify-center transition shrink-0" title="حذف هذه الفترة">
+                        <i class="fas fa-trash-alt text-xs"></i>
+                    </button>
+                </div>
+            `;
+        });
+        list.innerHTML = html;
+    }
+
+    function addPrefIntervalRow(start = '', end = '') {
+        tempExcludedIntervals.push({ start, end });
+        renderPrefIntervalsList();
+    }
+
+    function updatePrefInterval(idx, field, val) {
+        if (tempExcludedIntervals[idx]) {
+            tempExcludedIntervals[idx][field] = val;
+        }
+    }
+
+    function removePrefInterval(idx) {
+        tempExcludedIntervals.splice(idx, 1);
+        renderPrefIntervalsList();
     }
 
     function saveResidentPreferences() {
@@ -5872,6 +6133,10 @@
             res.noConsecutiveDays = noConsecutiveCb.checked;
         }
 
+        // Save excluded dates and intervals
+        res.excludedDates = [...tempExcludedDates];
+        res.excludedIntervals = tempExcludedIntervals.filter(i => (i.start && i.start.trim()) || (i.end && i.end.trim()));
+
         saveState();
         pushDBHistory(`تعديل رغبات الطبيب (${res.name})`);
         closeResidentPrefsModal();
@@ -5886,7 +6151,7 @@
         }
 
         updateDBUndoRedoUI();
-        showNotification(`تم حفظ رغبات الخفارة للطبيب (${res.name}) بنجاح`, 'success');
+        showNotification(`تم حفظ رغبات وتفضيلات الخفارة للطبيب (${res.name}) بنجاح`, 'success');
     }
 
     // =========================================================================
@@ -8010,10 +8275,17 @@
         // Must avoid consecutive days if preferred (r.noConsecutiveDays !== false)
         function isDoctorAvailable(r, dayNumber, shiftKey, allowConsecutive = false) {
             if (!r || !hasRemainingQuota(r)) return false;
+
+            // Rule 1: Females are NEVER auto-distributed to prenight or night shifts (8PM-2AM, 2AM-8AM)
+            if (isFemaleResident(r) && isNightShift(shiftKey)) return false;
+
+            // Rule 2: Excluded specific days and period intervals
+            const dateStr = formatDateStr(state.year, state.month, dayNumber);
+            if (isDateExcludedForResident(r, dayNumber, dateStr)) return false;
+
             const clean = normalizeArabic(r.name);
             if (assignedDays[dayNumber] && assignedDays[dayNumber].has(clean)) return false;
 
-            const dateStr = formatDateStr(state.year, state.month, dayNumber);
             const conflict = evaluateCellConflict(r.name, dateStr, 'er', shiftKey);
             if (conflict && conflict.hasConflict) return false;
 
@@ -8078,8 +8350,10 @@
                 const minDay = getMinPrefDayCount(r);
 
                 // 1. Preferred shifts that currently have minimum assignments (strict variety!)
-                let candidateShifts = r.prefShifts.filter(s => getShiftCount(r, s) === minShift);
-                if (candidateShifts.length === 0) candidateShifts = r.prefShifts.slice();
+                // Rule 1: Females never receive prenight or night shifts
+                const allowedPrefShifts = isFemaleResident(r) ? r.prefShifts.filter(s => !isNightShift(s)) : r.prefShifts;
+                let candidateShifts = allowedPrefShifts.filter(s => getShiftCount(r, s) === minShift);
+                if (candidateShifts.length === 0) candidateShifts = allowedPrefShifts.slice();
                 candidateShifts = shuffleArray(candidateShifts);
 
                 // 2. Preferred days that currently have minimum assignments (strict variety!)
@@ -8167,11 +8441,12 @@
                 // Determine candidate shifts based on variety & gender rules
                 let shiftCandidates = [];
                 if (Array.isArray(r.prefShifts) && r.prefShifts.length > 0) {
+                    const allowed = isFemaleResident(r) ? r.prefShifts.filter(s => !isNightShift(s)) : r.prefShifts;
                     const minS = getMinPrefShiftCount(r);
-                    shiftCandidates = r.prefShifts.filter(s => getShiftCount(r, s) === minS);
-                    if (shiftCandidates.length === 0) shiftCandidates = r.prefShifts.slice();
-                } else if (r.sex === 'F') {
-                    shiftCandidates = ['morning', 'afternoon', 'preNight', 'lateNight'];
+                    shiftCandidates = allowed.filter(s => getShiftCount(r, s) === minS);
+                    if (shiftCandidates.length === 0) shiftCandidates = allowed.slice();
+                } else if (isFemaleResident(r)) {
+                    shiftCandidates = ['morning', 'afternoon'];
                 } else {
                     shiftCandidates = (getQuota(r) > 1) 
                         ? ['preNight', 'morning', 'afternoon', 'lateNight']
@@ -8240,8 +8515,9 @@
                 if (!hasRemainingQuota(r)) continue;
 
                 const minShift = getMinPrefShiftCount(r);
-                let eligibleShifts = r.prefShifts.filter(s => getShiftCount(r, s) === minShift);
-                if (eligibleShifts.length === 0) eligibleShifts = r.prefShifts.slice();
+                const allowedShifts = isFemaleResident(r) ? r.prefShifts.filter(s => !isNightShift(s)) : r.prefShifts;
+                let eligibleShifts = allowedShifts.filter(s => getShiftCount(r, s) === minShift);
+                if (eligibleShifts.length === 0) eligibleShifts = allowedShifts.slice();
                 eligibleShifts = shuffleArray(eligibleShifts);
 
                 let validSlots = [];
@@ -8287,8 +8563,8 @@
         // Respecting medical rules + variety:
         // - Morning (8AM-2PM): Females first, then males
         // - Afternoon (2PM-8PM): Females first, then males
-        // - Pre-Night (8PM-2AM): Males with multiple duties (>1), then any male, then any doc
-        // - Late-Night (2AM-8AM): Males with single duty (==1), then any male, then any doc
+        // - Pre-Night (8PM-2AM): Males only (Rule 1: Females NEVER distributed to prenight/night)
+        // - Late-Night (2AM-8AM): Males only (Rule 1: Females NEVER distributed to prenight/night)
         // Priority within each tier given to doctors with FEWEST OF THIS SHIFT!
         // Shuffled dates across the month ensure natural, non-linear distribution!
         // STRICT QUOTA LIMIT: IF NO CANDIDATE HAS QUOTA, LEAVE CELL EMPTY!
@@ -8357,25 +8633,19 @@
             }
         }
 
-        // 4C. Pre-Night (8PM - 2AM)
+        // 4C. Pre-Night (8PM - 2AM) - Males ONLY (Rule 1: Females NEVER distributed to prenight/night)
         for (const d of shuffledDaysForGen) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.preNight) {
-                let candidates = activeDocs.filter(r => r.sex === 'M' && getQuota(r) > 1 && isDoctorAvailable(r, d, 'preNight', false));
+                let candidates = activeDocs.filter(r => !isFemaleResident(r) && getQuota(r) > 1 && isDoctorAvailable(r, d, 'preNight', false));
                 if (candidates.length === 0) {
-                    candidates = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'preNight', false));
-                }
-                if (candidates.length === 0) {
-                    candidates = activeDocs.filter(r => isDoctorAvailable(r, d, 'preNight', false));
+                    candidates = activeDocs.filter(r => !isFemaleResident(r) && isDoctorAvailable(r, d, 'preNight', false));
                 }
                 // Fallback relaxation
                 if (candidates.length === 0) {
-                    candidates = activeDocs.filter(r => r.sex === 'M' && getQuota(r) > 1 && isDoctorAvailable(r, d, 'preNight', true));
+                    candidates = activeDocs.filter(r => !isFemaleResident(r) && getQuota(r) > 1 && isDoctorAvailable(r, d, 'preNight', true));
                     if (candidates.length === 0) {
-                        candidates = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'preNight', true));
-                    }
-                    if (candidates.length === 0) {
-                        candidates = activeDocs.filter(r => isDoctorAvailable(r, d, 'preNight', true));
+                        candidates = activeDocs.filter(r => !isFemaleResident(r) && isDoctorAvailable(r, d, 'preNight', true));
                     }
                 }
 
@@ -8394,25 +8664,19 @@
             }
         }
 
-        // 4D. Late-Night (2AM - 8AM)
+        // 4D. Late-Night (2AM - 8AM) - Males ONLY (Rule 1: Females NEVER distributed to prenight/night)
         for (const d of shuffledDaysForGen) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
             if (dayEntry && !dayEntry.lateNight) {
-                let candidates = activeDocs.filter(r => r.sex === 'M' && getQuota(r) === 1 && isDoctorAvailable(r, d, 'lateNight', false));
+                let candidates = activeDocs.filter(r => !isFemaleResident(r) && getQuota(r) === 1 && isDoctorAvailable(r, d, 'lateNight', false));
                 if (candidates.length === 0) {
-                    candidates = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'lateNight', false));
-                }
-                if (candidates.length === 0) {
-                    candidates = activeDocs.filter(r => isDoctorAvailable(r, d, 'lateNight', false));
+                    candidates = activeDocs.filter(r => !isFemaleResident(r) && isDoctorAvailable(r, d, 'lateNight', false));
                 }
                 // Fallback relaxation
                 if (candidates.length === 0) {
-                    candidates = activeDocs.filter(r => r.sex === 'M' && getQuota(r) === 1 && isDoctorAvailable(r, d, 'lateNight', true));
+                    candidates = activeDocs.filter(r => !isFemaleResident(r) && getQuota(r) === 1 && isDoctorAvailable(r, d, 'lateNight', true));
                     if (candidates.length === 0) {
-                        candidates = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'lateNight', true));
-                    }
-                    if (candidates.length === 0) {
-                        candidates = activeDocs.filter(r => isDoctorAvailable(r, d, 'lateNight', true));
+                        candidates = activeDocs.filter(r => !isFemaleResident(r) && isDoctorAvailable(r, d, 'lateNight', true));
                     }
                 }
 
@@ -8445,12 +8709,15 @@
         const assigned = countScheduledDutiesPerResident('con');
 
         function isConAvailable(r, dayNumber, allowConsecutive = false) {
+            if (!r) return false;
             const clean = normalizeArabic(r.name);
             const filled = assigned[clean] || 0;
             const target = Number(r.con_target) || 0;
             if (filled >= target) return false;
 
             const dateStr = formatDateStr(state.year, state.month, dayNumber);
+            if (isDateExcludedForResident(r, dayNumber, dateStr)) return false;
+
             const evalRes = evaluateCellConflict(r.name, dateStr, 'con', 'doctor');
             if (evalRes.hasConflict) return false;
 
@@ -8570,12 +8837,15 @@
         const assigned = countScheduledDutiesPerResident('dc');
 
         function isDCAvailable(r, dayNumber, allowConsecutive = false) {
+            if (!r) return false;
             const clean = normalizeArabic(r.name);
             const filled = assigned[clean] || 0;
             const target = Number(r.dc_target) || 0;
             if (filled >= target) return false;
 
             const dateStr = formatDateStr(state.year, state.month, dayNumber);
+            if (isDateExcludedForResident(r, dayNumber, dateStr)) return false;
+
             const evalRes = evaluateCellConflict(r.name, dateStr, 'dc', 'doctor');
             if (evalRes.hasConflict) return false;
 
@@ -8765,12 +9035,18 @@
         }
 
         function isRSAvailable(r, dayNumber, slot, allowConsecutive = false) {
+            if (!r) return false;
+            // Rule 1: Females never auto-distributed to prenight or night shifts
+            if (isFemaleResident(r) && isNightShift(slot)) return false;
+
             const clean = normalizeArabic(r.name);
             const filled = assigned[clean] || 0;
             const target = Number(r.rs_target) || 0;
             if (filled >= target) return false;
 
             const dateStr = formatDateStr(state.year, state.month, dayNumber);
+            if (isDateExcludedForResident(r, dayNumber, dateStr)) return false;
+
             const evalRes = evaluateCellConflict(r.name, dateStr, 'rs', slot);
             if (evalRes.hasConflict) return false;
 
@@ -8900,12 +9176,18 @@
         }
 
         function isRSWardsAvailable(r, dayNumber, slot, allowConsecutive = false) {
+            if (!r) return false;
+            // Rule 1: Females never auto-distributed to prenight or night shifts
+            if (isFemaleResident(r) && isNightShift(slot)) return false;
+
             const clean = normalizeArabic(r.name);
             const filled = assigned[clean] || 0;
             const target = Number(r.rs_target) || 0;
             if (filled >= target) return false;
 
             const dateStr = formatDateStr(state.year, state.month, dayNumber);
+            if (isDateExcludedForResident(r, dayNumber, dateStr)) return false;
+
             const evalRes = evaluateCellConflict(r.name, dateStr, 'rs', slot);
             if (evalRes.hasConflict) return false;
 
@@ -9235,7 +9517,7 @@
             : `<span>${arabicOrderDate}</span>`;
 
         printContainer.innerHTML = `
-            <div style="font-family: 'Cairo', Arial, sans-serif; direction: rtl; color: #000; width: 100%; box-sizing: border-box;">
+            <div style="font-family: ${opts.fontFamily || "'Cairo', sans-serif"}; direction: rtl; color: #000; width: 100%; box-sizing: border-box;">
                 
                 <!-- 1. OFFICIAL CENTERED HEADER (MATCHING MINISTERIAL PDF VERBATIM) -->
                 <div style="text-align: center; line-height: 1.25; margin-bottom: 5px;">
@@ -9344,13 +9626,16 @@
         const weekendBgInput = document.getElementById('print-opt-weekend-bg');
         const weekendTextInput = document.getElementById('print-opt-weekend-text');
         const borderInput = document.getElementById('print-opt-border-color');
+        const fontSelect = document.getElementById('print-opt-font-family');
 
         if (headerBgInput) headerBgInput.value = opts.headerBg || '#000000';
         if (headerTextInput) headerTextInput.value = opts.headerText || '#ffffff';
         if (weekendBgInput) weekendBgInput.value = opts.weekendBg || '#5ea37d';
         if (weekendTextInput) weekendTextInput.value = opts.weekendText || '#000000';
         if (borderInput) borderInput.value = opts.borderColor || '#000000';
+        if (fontSelect) fontSelect.value = opts.fontFamily || "'Cairo', sans-serif";
 
+        updateCustomFontUIStatus();
         updatePrintPreview();
         updateClearPrintMetaUI();
         modal.classList.remove('hidden');
@@ -9380,12 +9665,149 @@
         }
     }
 
+    function onPrintFontChange(fontVal) {
+        if (!state.printOptions) state.printOptions = { ...PRINT_THEME_PRESETS.official };
+        state.printOptions.fontFamily = fontVal;
+        updatePrintPreview();
+        saveState();
+    }
+
+    function handleCustomFontUpload(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const dataUrl = e.target.result;
+            try {
+                registerCustomFontData(dataUrl, file.name);
+                localStorage.setItem('emergency_custom_font_data', dataUrl);
+                localStorage.setItem('emergency_custom_font_name', file.name);
+
+                if (!state.printOptions) state.printOptions = { ...PRINT_THEME_PRESETS.official };
+                state.printOptions.fontFamily = "'CustomPrintFont', sans-serif";
+                state.printOptions.fontName = file.name;
+
+                const fontSelect = document.getElementById('print-opt-font-family');
+                if (fontSelect) {
+                    fontSelect.value = "'CustomPrintFont', sans-serif";
+                }
+
+                updateCustomFontUIStatus();
+                updatePrintPreview();
+                saveState();
+                showNotification(`تم حفظ وتفعيل الخط المخصص (${file.name}) بنجاح`, 'success');
+            } catch (err) {
+                console.error('Error loading font:', err);
+                showNotification('حدث خطأ أثناء تحميل ملف الخط', 'error');
+            }
+        };
+        reader.readAsDataURL(file);
+        event.target.value = '';
+    }
+
+    function registerCustomFontData(dataUrl, fileName) {
+        let styleEl = document.getElementById('dynamic-custom-print-font-style');
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = 'dynamic-custom-print-font-style';
+            document.head.appendChild(styleEl);
+        }
+        styleEl.textContent = `
+            @font-face {
+                font-family: 'CustomPrintFont';
+                src: url('${dataUrl}') format('truetype');
+                font-weight: normal;
+                font-style: normal;
+            }
+        `;
+
+        const customOption = document.getElementById('print-opt-custom-option');
+        if (customOption) {
+            customOption.classList.remove('hidden');
+            customOption.textContent = `خط مخصص: ${fileName || 'ملف مرفوع'}`;
+        }
+    }
+
+    function initCustomFontFromStorage() {
+        try {
+            const fontData = localStorage.getItem('emergency_custom_font_data');
+            const fontName = localStorage.getItem('emergency_custom_font_name');
+            if (fontData) {
+                registerCustomFontData(fontData, fontName);
+            }
+        } catch (e) {
+            console.warn('Error restoring custom font:', e);
+        }
+    }
+
+    function updateCustomFontUIStatus() {
+        const wrap = document.getElementById('custom-font-status-wrap');
+        const nameLabel = document.getElementById('custom-font-name-label');
+        const fontName = localStorage.getItem('emergency_custom_font_name');
+        const fontData = localStorage.getItem('emergency_custom_font_data');
+
+        if (wrap) {
+            if (fontData && fontName) {
+                wrap.classList.remove('hidden');
+                if (nameLabel) nameLabel.textContent = fontName;
+            } else {
+                wrap.classList.add('hidden');
+            }
+        }
+    }
+
+    function removeCustomUploadedFont() {
+        localStorage.removeItem('emergency_custom_font_data');
+        localStorage.removeItem('emergency_custom_font_name');
+        const styleEl = document.getElementById('dynamic-custom-print-font-style');
+        if (styleEl) styleEl.textContent = '';
+
+        const customOption = document.getElementById('print-opt-custom-option');
+        if (customOption) {
+            customOption.classList.add('hidden');
+            customOption.textContent = 'خط مخصص تم رفعه';
+        }
+
+        if (state.printOptions && state.printOptions.fontFamily === "'CustomPrintFont', sans-serif") {
+            state.printOptions.fontFamily = "'Cairo', sans-serif";
+            delete state.printOptions.fontName;
+        }
+
+        const fontSelect = document.getElementById('print-opt-font-family');
+        if (fontSelect) fontSelect.value = "'Cairo', sans-serif";
+
+        updateCustomFontUIStatus();
+        updatePrintPreview();
+        saveState();
+        showNotification('تمت إزالة الخط المخصص والعودة للخط القياسي', 'info');
+    }
+
+    function downloadActiveCustomFontFile() {
+        const fontData = localStorage.getItem('emergency_custom_font_data');
+        const fontName = localStorage.getItem('emergency_custom_font_name') || 'custom-font.ttf';
+        if (!fontData) {
+            showNotification('لا يوجد خط مخصص محفوظ للتنزيل', 'warning');
+            return;
+        }
+        const a = document.createElement('a');
+        a.href = fontData;
+        a.download = fontName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showNotification(`تم بدء تنزيل ملف الخط (${fontName}) لحفظه في مجلد fonts`, 'success');
+    }
+
     function applyPrintPreset(presetKey) {
         const preset = PRINT_THEME_PRESETS[presetKey];
         if (!preset) return;
 
+        const currentFont = (state.printOptions && state.printOptions.fontFamily) || "'Cairo', sans-serif";
+
         state.printOptions = {
             theme: presetKey,
+            fontFamily: currentFont,
             headerBg: preset.headerBg,
             headerText: preset.headerText,
             weekendBg: preset.weekendBg,
@@ -9398,12 +9820,14 @@
         const weekendBgInput = document.getElementById('print-opt-weekend-bg');
         const weekendTextInput = document.getElementById('print-opt-weekend-text');
         const borderInput = document.getElementById('print-opt-border-color');
+        const fontSelect = document.getElementById('print-opt-font-family');
 
         if (headerBgInput) headerBgInput.value = preset.headerBg;
         if (headerTextInput) headerTextInput.value = preset.headerText;
         if (weekendBgInput) weekendBgInput.value = preset.weekendBg;
         if (weekendTextInput) weekendTextInput.value = preset.weekendText;
         if (borderInput) borderInput.value = preset.borderColor;
+        if (fontSelect) fontSelect.value = currentFont;
 
         updatePrintPreview();
         saveState();
@@ -9416,9 +9840,13 @@
         const weekendBgInput = document.getElementById('print-opt-weekend-bg');
         const weekendTextInput = document.getElementById('print-opt-weekend-text');
         const borderInput = document.getElementById('print-opt-border-color');
+        const fontSelect = document.getElementById('print-opt-font-family');
+
+        const currentFont = (fontSelect && fontSelect.value) || (state.printOptions && state.printOptions.fontFamily) || "'Cairo', sans-serif";
 
         state.printOptions = {
             theme: 'custom',
+            fontFamily: currentFont,
             headerBg: headerBgInput ? headerBgInput.value : '#000000',
             headerText: headerTextInput ? headerTextInput.value : '#ffffff',
             weekendBg: weekendBgInput ? weekendBgInput.value : '#5ea37d',
@@ -9431,6 +9859,13 @@
 
     function updatePrintPreview() {
         const opts = state.printOptions || PRINT_THEME_PRESETS.official;
+        const selectedFont = (opts && opts.fontFamily) || "'Cairo', sans-serif";
+
+        const previewTable = document.getElementById('print-preview-table');
+        if (previewTable) {
+            previewTable.style.fontFamily = selectedFont;
+        }
+
         const previewHeader = document.getElementById('preview-header-row');
         const previewNormal = document.getElementById('preview-normal-row');
         const previewWeekend = document.getElementById('preview-weekend-row');
@@ -9439,33 +9874,43 @@
             previewHeader.style.backgroundColor = opts.headerBg;
             previewHeader.style.color = opts.headerText;
             previewHeader.style.borderColor = opts.borderColor;
+            previewHeader.style.fontFamily = selectedFont;
             previewHeader.querySelectorAll('th').forEach(th => {
                 th.style.borderColor = opts.borderColor;
+                th.style.fontFamily = selectedFont;
             });
         }
 
         if (previewNormal) {
             previewNormal.style.backgroundColor = '#ffffff';
             previewNormal.style.color = '#000000';
+            previewNormal.style.fontFamily = selectedFont;
             previewNormal.querySelectorAll('td').forEach(td => {
                 td.style.borderColor = opts.borderColor;
+                td.style.fontFamily = selectedFont;
             });
         }
 
         if (previewWeekend) {
             previewWeekend.style.backgroundColor = opts.weekendBg;
             previewWeekend.style.color = opts.weekendText;
+            previewWeekend.style.fontFamily = selectedFont;
             previewWeekend.querySelectorAll('td').forEach(td => {
                 td.style.borderColor = opts.borderColor;
+                td.style.fontFamily = selectedFont;
             });
         }
     }
 
     function savePrintOptions() {
+        const fontSelect = document.getElementById('print-opt-font-family');
+        if (fontSelect && state.printOptions) {
+            state.printOptions.fontFamily = fontSelect.value;
+        }
         onCustomPrintColorChange();
         saveState();
         closePrintOptionsModal();
-        showNotification('تم حفظ تخصيص ألوان الطباعة بنجاح', 'success');
+        showNotification('تم حفظ تخصيص ألوان وخطوط الطباعة بنجاح', 'success');
     }
 
     function saveAndPrintImmediately() {
@@ -9807,6 +10252,18 @@
     window.renderDBDutyCheckersHTML = renderDBDutyCheckersHTML;
     window.updateDBDutyCheckers = updateDBDutyCheckers;
     window.renderResidentPrefsButtonHTML = renderResidentPrefsButtonHTML;
+    window.togglePrefExcludedDayNumber = togglePrefExcludedDayNumber;
+    window.addCustomExcludedDateFromInput = addCustomExcludedDateFromInput;
+    window.removePrefExcludedDate = removePrefExcludedDate;
+    window.addPrefIntervalRow = addPrefIntervalRow;
+    window.updatePrefInterval = updatePrefInterval;
+    window.removePrefInterval = removePrefInterval;
+
+    // Printing Fonts & Custom Upload Handlers
+    window.onPrintFontChange = onPrintFontChange;
+    window.handleCustomFontUpload = handleCustomFontUpload;
+    window.removeCustomUploadedFont = removeCustomUploadedFont;
+    window.downloadActiveCustomFontFile = downloadActiveCustomFontFile;
 
     // Doctor Name & Phone formatters & Specialty canonicalizer
     window.formatDoctorName = formatDoctorName;

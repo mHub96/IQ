@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T10:36:49.343Z",
+  "lastUpdated": "2026-09-30T10:37:09.397Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22985,6 +22985,19 @@
           ]
         },
         {
+          "id": "res-0190",
+          "name": "د. علي حسين عبدالرضا",
+          "phone": "+9647849000964",
+          "spec": "GS",
+          "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
+          "active": false,
+          "hospitals": [
+            "basra"
+          ]
+        },
+        {
           "id": "res-0336",
           "name": "د. علي حمادي",
           "phone": "+9647706921715",
@@ -24203,19 +24216,6 @@
           "tag": "N",
           "dept": "N",
           "department": "N",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-munz0fum2r4o",
-          "name": "د. علي حسين عبدالرضا",
-          "phone": "07849000964",
-          "spec": "GS",
-          "tag": "GS",
-          "dept": "GS",
-          "department": "GS",
           "active": true,
           "hospitals": [
             "basra"
@@ -41532,6 +41532,19 @@
       ]
     },
     {
+      "id": "res-0190",
+      "name": "د. علي حسين عبدالرضا",
+      "phone": "+9647849000964",
+      "spec": "GS",
+      "tag": "GS",
+      "dept": "GS",
+      "department": "GS",
+      "active": false,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
       "id": "res-0336",
       "name": "د. علي حمادي",
       "phone": "+9647706921715",
@@ -44002,19 +44015,6 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
-    },
-    {
-      "id": "res-munz0fum2r4o",
-      "name": "د. علي حسين عبدالرضا",
-      "phone": "07849000964",
-      "spec": "GS",
-      "tag": "GS",
-      "dept": "GS",
-      "department": "GS",
-      "active": true,
-      "hospitals": [
-        "basra"
       ]
     }
   ],

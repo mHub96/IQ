@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T09:52:55.190Z",
+  "lastUpdated": "2026-09-30T09:57:30.575Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -28539,11 +28539,10 @@
         {
           "date": "30/09/2026",
           "specCode": "MF",
-          "name": "د. حسن فائق",
+          "name": "د. تقى حسن",
           "VisitCount": 0,
           "dutySlot": 0,
-          "dutyTime": "",
-          "timestamp": "11:45"
+          "dutyTime": ""
         },
         {
           "date": "01/09/2026",
@@ -30178,7 +30177,7 @@
           "date": "30/09/2026",
           "specCode": "D",
           "name": "د. ضحى جاسم محمد",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutySlot": 0,
           "dutyTime": "08:00AM - 08:00PM",
           "timestamp": "07:58"
@@ -30587,7 +30586,7 @@
           "date": "30/09/2026",
           "specCode": "OP",
           "name": "د. ايثار عدنان",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -32090,7 +32089,7 @@
           "date": "30/09/2026",
           "specCode": "O",
           "name": "د. ذو الفقار باسم",
-          "VisitCount": 2,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0,
           "timestamp": "08:21"
@@ -32315,7 +32314,7 @@
           "date": "30/09/2026",
           "specCode": "N",
           "name": "د. نور صادق",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -32510,13 +32509,6 @@
           "name": "د. منتظر حميد",
           "timestamp": "08:54",
           "VisitCount": 1
-        },
-        {
-          "date": "30/09/2026",
-          "specCode": "G",
-          "name": "د. سراء ياسين ساري",
-          "timestamp": "12:52",
-          "VisitCount": 0
         }
       ],
       "rotationHeroesUrl": "",

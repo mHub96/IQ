@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T10:29:21.348Z",
+  "lastUpdated": "2026-09-30T10:31:39.666Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20604,6 +20604,134 @@
           "date": "15/10/2026",
           "specCode": "CT",
           "name": "د. منتظر صفاء ماجد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "16/10/2026",
+          "specCode": "CT",
+          "name": "د. علي عبدالرحمن عبدالصمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "17/10/2026",
+          "specCode": "CT",
+          "name": "د. شهد كريم عبدالكاظم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "18/10/2026",
+          "specCode": "CT",
+          "name": "د. ايهاب عبدالكريم غالب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "19/10/2026",
+          "specCode": "CT",
+          "name": "د. علي عبدالرحمن عبدالصمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "20/10/2026",
+          "specCode": "CT",
+          "name": "د. منتظر صفاء ماجد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "21/10/2026",
+          "specCode": "CT",
+          "name": "د. حسين يحيى صبار",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "22/10/2026",
+          "specCode": "CT",
+          "name": "د. شهد كريم عبدالكاظم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "23/10/2026",
+          "specCode": "CT",
+          "name": "د. منتظر صفاء ماجد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "24/10/2026",
+          "specCode": "CT",
+          "name": "د. علي عبدالرحمن عبدالصمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "25/10/2026",
+          "specCode": "CT",
+          "name": "د. منتظر صفاء ماجد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "26/10/2026",
+          "specCode": "CT",
+          "name": "د. ايهاب عبدالكريم غالب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "27/10/2026",
+          "specCode": "CT",
+          "name": "د. علي عبدالرحمن عبدالصمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "28/10/2026",
+          "specCode": "CT",
+          "name": "د. حسين يحيى صبار",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "29/10/2026",
+          "specCode": "CT",
+          "name": "د. ايهاب عبدالكريم غالب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "30/10/2026",
+          "specCode": "CT",
+          "name": "د. شهد كريم عبدالكاظم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "31/10/2026",
+          "specCode": "CT",
+          "name": "د. ايهاب عبدالكريم غالب",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

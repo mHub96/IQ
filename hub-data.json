@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T15:42:27.864Z",
+  "lastUpdated": "2026-09-30T15:44:18.543Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -36093,6 +36093,46 @@
           "date": "31/10/2026",
           "specCode": "ENT",
           "name": "د. بان عبد الامير صمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "US",
+          "name": "د. حيدر علي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "US",
+          "name": "د. عبدالله جبار",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "US",
+          "name": "د. حيدر علي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "04/10/2026",
+          "specCode": "US",
+          "name": "د. عمر حسين",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "US",
+          "name": "د. حيدر علي",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

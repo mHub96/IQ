@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T13:12:27.194Z",
+  "lastUpdated": "2026-09-30T13:21:22.638Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21544,6 +21544,14 @@
           "VisitCount": 0,
           "dutyTime": "08:00PM - 08:00AM",
           "dutySlot": 1
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "NS",
+          "name": "د. علي مهدي منصور",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
         }
       ],
       "rotationHeroesUrl": "https://khafarat-alsadr.netlify.app/",

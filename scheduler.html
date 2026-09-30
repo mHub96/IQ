@@ -1406,6 +1406,10 @@
         </div>
     </div>
 
+    <!-- Scripts -->
+    <script src="pwa.js"></script>
+    <script src="./hub-core.js"></script>
+    <script src="./nav-component.js"></script>
     <script>
         // ================================================================
         // CONFIGURATION
@@ -1850,8 +1854,9 @@
 
             var residents = database.names || [];
             specialtyList.forEach(function(specialty) {
+                var eligible;
                 if (window.Hub && typeof window.Hub.getEligibleResidentsForSpecialty === 'function') {
-                    var eligible = window.Hub.getEligibleResidentsForSpecialty(database, specialty.id);
+                    eligible = window.Hub.getEligibleResidentsForSpecialty(database, specialty.id);
                     nameData[specialty.id] = eligible.map(function(resident) { return resident.name; });
                 } else {
                     var specialtyObject = database.specialties?.find(function(specialtyItem) { return specialtyItem.id === specialty.id; });
@@ -1860,7 +1865,7 @@
                     var allSpecs = database.specialties || [];
                     var childSpecIds = allSpecs.filter(function(s) { return s.parentSpec === specialty.id; }).map(function(s) { return s.id; });
 
-                    var eligible = residents.filter(function(resident) {
+                    eligible = residents.filter(function(resident) {
                         if (resident.active === false || resident.spec === 'RESERVE') return false;
                         var rDuty = resident.dept || resident.department || resident.spec || resident.tag;
                         if (rDuty === specialty.id) return true;
@@ -2535,7 +2540,6 @@
                                 </div>
                             `;
                         }
-                    }
                     
                     html += `
                             </div>
@@ -3430,8 +3434,5 @@
         window.populateSpecialtyQuickSelect = populateSpecialtyQuickSelect;
         window.syncSchedulerTheme = syncSchedulerTheme;
     </script>
-    <script src="pwa.js"></script>
-    <script src="./hub-core.js"></script>
-    <script src="./nav-component.js"></script>
 </body>
 </html>

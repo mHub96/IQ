@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:34:19.953Z",
+  "lastUpdated": "2026-09-30T18:40:48.384Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -54,14 +54,14 @@
           "enabled": true
         },
         {
-          "id": "ENT",
-          "name_ar": "الأذن و الأنف و الحنجرة",
-          "name_en": "ENT",
-          "icon": "👂",
-          "color": "#fbff00",
+          "id": "OR",
+          "name_ar": "الكسور",
+          "name_en": "Orthopaedics",
+          "icon": "🦴",
+          "color": "#ff0000",
           "parentSpec": null,
           "acceptPool": [],
-          "enabled": true
+          "enabled": false
         },
         {
           "id": "US",
@@ -74,56 +74,41 @@
           "enabled": true
         },
         {
-          "id": "ON",
-          "name_ar": "طب الاورام",
-          "name_en": "Oncology",
-          "icon": "☢️",
-          "color": "#84cc16",
+          "id": "ENT",
+          "name_ar": "الأذن و الأنف و الحنجرة",
+          "name_en": "ENT",
+          "icon": "👂",
+          "color": "#fbff00",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true
         },
         {
-          "id": "OP",
-          "name_ar": "تخدير العمليات",
-          "name_en": "OT Anaesthesia",
-          "icon": "💉",
-          "color": "#b4cc00",
-          "parentSpec": "A",
-          "acceptPool": [
-            "A"
-          ],
-          "enabled": true
-        },
-        {
-          "id": "ICU",
-          "name_ar": "تخدير العناية المركزة",
-          "name_en": "ICU Anaesthesia",
-          "icon": "💉",
-          "color": "#0f766e",
-          "parentSpec": "A",
-          "acceptPool": [
-            "A"
-          ],
-          "enabled": true,
-          "prefix": "د. "
-        },
-        {
-          "id": "R",
-          "name_ar": "الأشعة و السونار",
-          "name_en": "Radiology",
-          "icon": "🩻",
-          "color": "#6700e6",
+          "id": "MF",
+          "name_ar": "جراحة الوجه و الفكين",
+          "name_en": "MaxilloFacial Surgery",
+          "icon": "🦷",
+          "color": "#d600af",
           "parentSpec": null,
           "acceptPool": [],
-          "enabled": true
+          "enabled": false
         },
         {
-          "id": "OR",
-          "name_ar": "الكسور",
-          "name_en": "Orthopaedics",
-          "icon": "🦴",
-          "color": "#ff0000",
+          "id": "O",
+          "name_ar": "العيون",
+          "name_en": "Ophthalmology",
+          "icon": "👁️",
+          "color": "#38ffe8",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": false
+        },
+        {
+          "id": "Pe",
+          "name_ar": "طب الأطفال",
+          "name_en": "Paediatrics",
+          "icon": "👶",
+          "color": "#3dff6e",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
@@ -139,11 +124,155 @@
           "enabled": false
         },
         {
+          "id": "G",
+          "name_ar": "النسائية و التوليد",
+          "name_en": "Gynecology",
+          "icon": "🤰",
+          "color": "#e40de7",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": false
+        },
+        {
+          "id": "ICU",
+          "name_ar": "تخدير العناية المركزة",
+          "name_en": "ICU Anaesthesia",
+          "icon": "💉",
+          "color": "#c9e141",
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ],
+          "enabled": true
+        },
+        {
+          "id": "OP",
+          "name_ar": "تخدير العمليات",
+          "name_en": "OT Anaesthesia",
+          "icon": "💉",
+          "color": "#b4cc00",
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ],
+          "enabled": true
+        },
+        {
+          "id": "GA",
+          "name_ar": "تخدير صالة الولادة",
+          "name_en": "GYN Anaesthesia",
+          "icon": "🤰",
+          "color": "#fe62ad",
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ],
+          "enabled": false
+        },
+        {
           "id": "A",
           "name_ar": "التخدير و العناية المركزة",
           "name_en": "Anaesthesia & Intensive Care",
           "icon": "💉",
           "color": "#ff8e24",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": false
+        },
+        {
+          "id": "R",
+          "name_ar": "الأشعة و السونار",
+          "name_en": "Radiology",
+          "icon": "🩻",
+          "color": "#6700e6",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "D",
+          "name_ar": "الوفيات",
+          "name_en": "Death Certificates",
+          "icon": "⚰️",
+          "color": "#bababa",
+          "parentSpec": null,
+          "acceptPool": [
+            "NS",
+            "CT",
+            "GS",
+            "OR",
+            "US",
+            "ENT",
+            "MF",
+            "O",
+            "Pe",
+            "M",
+            "G",
+            "ICU",
+            "OP",
+            "GA",
+            "A",
+            "R",
+            "ON",
+            "N",
+            "NM",
+            "P",
+            "Der",
+            "EM",
+            "FM",
+            "GP",
+            "H",
+            "PS",
+            "RM"
+          ],
+          "enabled": true
+        },
+        {
+          "id": "AO",
+          "name_ar": "المعاون الاداري",
+          "name_en": "Administrative Officer",
+          "icon": "🧑",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "ON",
+          "name_ar": "طب الاورام",
+          "name_en": "Oncology",
+          "icon": "☢️",
+          "color": "#84cc16",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "N",
+          "name_ar": "طب امراض الكلى",
+          "name_en": "Nephrology",
+          "icon": "🧫",
+          "color": "#ff5ccb",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": false
+        },
+        {
+          "id": "NM",
+          "name_ar": "طب الجملة العصبية",
+          "name_en": "Neuromedicine",
+          "icon": "🧠",
+          "color": "#79e9f1",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": false
+        },
+        {
+          "id": "P",
+          "name_ar": "النفسية",
+          "name_en": "Psychiatry",
+          "icon": "🧠",
+          "color": "#fef606",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
@@ -217,6 +346,16 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
+        },
+        {
+          "id": "REFE",
+          "name_ar": "الاحالات",
+          "name_en": "Referrals",
+          "icon": "🚑",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true,
+          "color": "#0f766e"
         }
       ],
       "names": [
@@ -19272,7 +19411,7 @@
           "date": "30/09/2026",
           "specCode": "NS",
           "name": "د. محمد عبدالحسين محسن",
-          "VisitCount": 2,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -21701,254 +21840,6 @@
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
-        },
-        {
-          "date": "01/10/2026",
-          "specCode": "R",
-          "name": "د. سنا احسان علوان",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "02/10/2026",
-          "specCode": "R",
-          "name": "د. سارة عبدالحكيم",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "03/10/2026",
-          "specCode": "R",
-          "name": "د. ايات سلمان قاسم",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "04/10/2026",
-          "specCode": "R",
-          "name": "د. الحسين عبدالرحمن خويط",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "05/10/2026",
-          "specCode": "R",
-          "name": "د. زينب سلمان سعيد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "06/10/2026",
-          "specCode": "R",
-          "name": "د. محمد رائد محمد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "07/10/2026",
-          "specCode": "R",
-          "name": "د. طيف كريم خضير",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "08/10/2026",
-          "specCode": "R",
-          "name": "د. سنا احسان علوان",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "09/10/2026",
-          "specCode": "R",
-          "name": "د. سنا احسان علوان",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "10/10/2026",
-          "specCode": "R",
-          "name": "د. محمد رائد محمد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "11/10/2026",
-          "specCode": "R",
-          "name": "د. الحسين عبدالرحمن خويط",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "12/10/2026",
-          "specCode": "R",
-          "name": "د. زينب سلمان سعيد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "13/10/2026",
-          "specCode": "R",
-          "name": "د. طيف كريم خضير",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "14/10/2026",
-          "specCode": "R",
-          "name": "د. ايات سلمان قاسم",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "15/10/2026",
-          "specCode": "R",
-          "name": "د. سارة عبدالحكيم",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "16/10/2026",
-          "specCode": "R",
-          "name": "د. منتظر توفيق عبدالكريم",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "17/10/2026",
-          "specCode": "R",
-          "name": "د. زينب جبار محسن",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "18/10/2026",
-          "specCode": "R",
-          "name": "د. نازك احمد ماجد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "19/10/2026",
-          "specCode": "R",
-          "name": "د. منار رحيم عبد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "20/10/2026",
-          "specCode": "R",
-          "name": "د. نجوان براق كاظم",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "21/10/2026",
-          "specCode": "R",
-          "name": "د. عذراء محمد عبدالحي",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "22/10/2026",
-          "specCode": "R",
-          "name": "د. رسل علي عبدالباقي",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "23/10/2026",
-          "specCode": "R",
-          "name": "د. نازك احمد ماجد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "24/10/2026",
-          "specCode": "R",
-          "name": "د. نجوان براق كاظم",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "25/10/2026",
-          "specCode": "R",
-          "name": "د. منار رحيم عبد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "26/10/2026",
-          "specCode": "R",
-          "name": "د. عذراء محمد عبدالحي",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "27/10/2026",
-          "specCode": "R",
-          "name": "د. رسل علي عبدالباقي",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "28/10/2026",
-          "specCode": "R",
-          "name": "د. زينب جبار محسن",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "29/10/2026",
-          "specCode": "R",
-          "name": "د. منتظر توفيق عبدالكريم",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "30/10/2026",
-          "specCode": "R",
-          "name": "د. منار رحيم عبد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "31/10/2026",
-          "specCode": "R",
-          "name": "د. رسل علي عبدالباقي",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
         }
       ],
       "rotationHeroesUrl": "https://khafarat-alsadr.netlify.app/",
@@ -22040,34 +21931,6 @@
           "acceptPool": [],
           "enabled": true,
           "prefix": ""
-        },
-        {
-          "id": "NS_iraqi",
-          "name_ar": "جراحة الجملة العصبية",
-          "name_en": "Neurosurgery",
-          "icon": "🧠",
-          "prefix": "د. ",
-          "color": "#fea101",
-          "isClone": true,
-          "clonedFromHospitalId": "iraqi",
-          "clonedFromSpecId": "NS",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
-        },
-        {
-          "id": "CT_iraqi",
-          "name_ar": "جراحة الصدر و الاوعية الدموية",
-          "name_en": "Cardiothoracic Surgery",
-          "icon": "🫀",
-          "prefix": "د. ",
-          "color": "#e05910",
-          "isClone": true,
-          "clonedFromHospitalId": "iraqi",
-          "clonedFromSpecId": "CT",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
         },
         {
           "id": "GS",
@@ -22216,20 +22079,6 @@
           "enabled": true
         },
         {
-          "id": "R_iraqi",
-          "name_ar": "الأشعة و السونار",
-          "name_en": "Radiology",
-          "icon": "🩻",
-          "prefix": "د. ",
-          "color": "#6700e6",
-          "isClone": true,
-          "clonedFromHospitalId": "iraqi",
-          "clonedFromSpecId": "R",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
-        },
-        {
           "id": "R",
           "name_ar": "الأشعة و السونار",
           "name_en": "Radiology",
@@ -22237,7 +22086,7 @@
           "color": "#6700e6",
           "parentSpec": null,
           "acceptPool": [],
-          "enabled": false
+          "enabled": true
         },
         {
           "id": "N",
@@ -32201,7 +32050,7 @@
           "date": "30/09/2026",
           "specCode": "ENT",
           "name": "د. درر علي محمد",
-          "VisitCount": 3,
+          "VisitCount": 4,
           "dutySlot": 0,
           "dutyTime": ""
         },
@@ -34844,7 +34693,7 @@
           "date": "30/09/2026",
           "specCode": "O",
           "name": "د. ذو الفقار باسم",
-          "VisitCount": 2,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0,
           "timestamp": "08:21"
@@ -49864,36 +49713,6 @@
       "name_en": "Referrals",
       "icon": "🚑",
       "color": "#0f766e",
-      "parentSpec": null,
-      "acceptPool": [],
-      "enabled": true
-    },
-    {
-      "id": "NS_iraqi",
-      "name_ar": "جراحة الجملة العصبية",
-      "name_en": "Neurosurgery",
-      "icon": "🧠",
-      "color": "#fea101",
-      "parentSpec": null,
-      "acceptPool": [],
-      "enabled": true
-    },
-    {
-      "id": "CT_iraqi",
-      "name_ar": "جراحة الصدر و الاوعية الدموية",
-      "name_en": "Cardiothoracic Surgery",
-      "icon": "🫀",
-      "color": "#e05910",
-      "parentSpec": null,
-      "acceptPool": [],
-      "enabled": true
-    },
-    {
-      "id": "R_iraqi",
-      "name_ar": "الأشعة و السونار",
-      "name_en": "Radiology",
-      "icon": "🩻",
-      "color": "#6700e6",
       "parentSpec": null,
       "acceptPool": [],
       "enabled": true

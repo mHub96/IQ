@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:10:15.885Z",
+  "lastUpdated": "2026-09-30T18:11:49.313Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -204,6 +204,19 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
+        },
+        {
+          "id": "ICU",
+          "name_ar": "تخدير العناية المركزة",
+          "name_en": "ICU Anaesthesia",
+          "icon": "💉",
+          "color": "#0f766e",
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ],
+          "enabled": true,
+          "prefix": "د. "
         }
       ],
       "names": [

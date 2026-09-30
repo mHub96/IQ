@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T15:25:57.532Z",
+  "lastUpdated": "2026-09-30T15:26:06.833Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21992,6 +21992,16 @@
           "enabled": true
         },
         {
+          "id": "AO",
+          "name_ar": "المعاون الاداري",
+          "name_en": "Administrative Officer",
+          "icon": "🧑",
+          "color": "#2563eb",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
           "id": "M",
           "name_ar": "الباطنية",
           "name_en": "Internal Medicine",
@@ -22063,16 +22073,6 @@
           "name_en": "Neuromedicine",
           "icon": "🧠",
           "color": "#79e9f1",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
-          "id": "AO",
-          "name_ar": "المعاون الاداري",
-          "name_en": "Administrative Officer",
-          "icon": "🧑",
-          "color": "#2563eb",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true

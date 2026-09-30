@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T08:04:16.827Z",
+  "lastUpdated": "2026-09-30T08:45:34.319Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -28539,10 +28539,11 @@
         {
           "date": "30/09/2026",
           "specCode": "MF",
-          "name": "د. تقى حسن",
+          "name": "د. حسن فائق",
           "VisitCount": 0,
           "dutySlot": 0,
-          "dutyTime": ""
+          "dutyTime": "",
+          "timestamp": "11:45"
         },
         {
           "date": "01/09/2026",

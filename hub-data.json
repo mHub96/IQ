@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T12:18:19.787Z",
+  "lastUpdated": "2026-09-30T12:19:25.122Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -25056,6 +25056,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-muo2odoh97o4",
+          "name": "د. ميس ماجد",
+          "phone": "+964 772 481 5948",
+          "spec": "O",
+          "tag": "O",
+          "dept": "O",
+          "department": "O",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -45281,6 +45294,19 @@
       "active": true,
       "hospitals": [
         "iraqi"
+      ]
+    },
+    {
+      "id": "res-muo2odoh97o4",
+      "name": "د. ميس ماجد",
+      "phone": "+964 772 481 5948",
+      "spec": "O",
+      "tag": "O",
+      "dept": "O",
+      "department": "O",
+      "active": true,
+      "hospitals": [
+        "basra"
       ]
     }
   ],

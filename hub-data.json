@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T11:40:43.551Z",
+  "lastUpdated": "2026-09-30T11:40:52.520Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -2136,7 +2136,7 @@
           "tag": "GS",
           "dept": "GS",
           "department": "GS",
-          "active": false,
+          "active": true,
           "hospitals": [
             "iraqi"
           ]
@@ -42803,7 +42803,7 @@
       "tag": "GS",
       "dept": "GS",
       "department": "GS",
-      "active": false,
+      "active": true,
       "hospitals": [
         "iraqi"
       ]

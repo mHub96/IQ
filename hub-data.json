@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T11:11:43.215Z",
+  "lastUpdated": "2026-09-30T11:17:33.241Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -2872,6 +2872,19 @@
           "tag": "NS",
           "dept": "NS",
           "department": "NS",
+          "active": true,
+          "hospitals": [
+            "iraqi"
+          ]
+        },
+        {
+          "id": "res-muo0gtkpilna",
+          "name": "د. زهراء غانم عبدالصاحب",
+          "phone": "+9647831889389",
+          "spec": "M",
+          "tag": "M",
+          "dept": "ON",
+          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -44372,6 +44385,19 @@
       "tag": "NS",
       "dept": "NS",
       "department": "NS",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ]
+    },
+    {
+      "id": "res-muo0gtkpilna",
+      "name": "د. زهراء غانم عبدالصاحب",
+      "phone": "+9647831889389",
+      "spec": "M",
+      "tag": "M",
+      "dept": "ON",
+      "department": "ON",
       "active": true,
       "hospitals": [
         "iraqi"

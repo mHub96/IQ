@@ -362,9 +362,13 @@
 
         // 1. Load from localStorage if present
         const saved = localStorage.getItem(STATE_KEY);
+        let hasSavedPeriod = false;
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
+                if (parsed.month && parsed.year) {
+                    hasSavedPeriod = true;
+                }
                 state = Object.assign(state, parsed);
             } catch (e) {
                 console.warn('Failed to parse saved emergency state, falling back to defaults', e);
@@ -374,12 +378,27 @@
         // Enforce: Always display ER schedule first on initial load
         state.activeTab = 'er';
 
-        // Enforce: Day 18 rule for initial schedule month/year on launch
-        // If today is earlier than 18th of current month -> current month
-        // If today is 18th or later -> next month (preparing schedule for next month)
-        const initialPeriod = getDefaultPeriodByDay18Rule();
-        state.month = initialPeriod.month;
-        state.year = initialPeriod.year;
+        // Revert month 10 to September 2026 if October has no saved schedule in localStorage
+        if (state.hospitalId === 'iraqi' && state.month === 10 && state.year === 2026) {
+            const octRaw = localStorage.getItem(MONTH_STORAGE_PREFIX + 'iraqi_2026_10');
+            if (!octRaw) {
+                state.month = 9;
+                state.year = 2026;
+                hasSavedPeriod = true;
+            }
+        }
+
+        // If no valid period was saved, use canonical data period or Day 18 rule
+        if (!hasSavedPeriod || !state.month || !state.year) {
+            if (window.DEFAULT_EMERGENCY_DATA && window.DEFAULT_EMERGENCY_DATA.month && window.DEFAULT_EMERGENCY_DATA.year) {
+                state.month = window.DEFAULT_EMERGENCY_DATA.month;
+                state.year = window.DEFAULT_EMERGENCY_DATA.year;
+            } else {
+                const initialPeriod = getDefaultPeriodByDay18Rule();
+                state.month = initialPeriod.month;
+                state.year = initialPeriod.year;
+            }
+        }
         const monthNames = [
             'كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران',
             'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'
@@ -650,6 +669,24 @@
             });
         }
 
+        // Self-heal corrupted allocation maps (e.g. from previous bug where total ER target was <= 12)
+        if (loadedMap && hospId === 'iraqi' && year === 2026 && month === 9 && window.DEFAULT_EMERGENCY_DATA && window.DEFAULT_EMERGENCY_DATA.residents) {
+            const totalErInMap = Object.values(loadedMap).reduce((sum, v) => sum + (Number(v.er_target) || 0), 0);
+            if (totalErInMap <= 12) {
+                console.log('Self-healing corrupted month allocations from canonical dataset...');
+                window.DEFAULT_EMERGENCY_DATA.residents.forEach(r => {
+                    const existing = loadedMap[r.id] || {};
+                    loadedMap[r.id] = {
+                        active: existing.active !== undefined ? existing.active : (r.active !== false),
+                        er_target: Math.max(Number(existing.er_target) || 0, Number(r.er_target) || 0),
+                        con_target: Math.max(Number(existing.con_target) || 0, Number(r.con_target) || 0),
+                        dc_target: Math.max(Number(existing.dc_target) || 0, Number(r.dc_target) || 0),
+                        rs_target: Math.max(Number(existing.rs_target) || 0, Number(r.rs_target) || 0)
+                    };
+                });
+            }
+        }
+
         if (loadedMap) {
             // Heuristically heal if loadedMap had 0 inactives for large baseline dataset (e.g. from previous bug)
             const inactivesInMap = Object.values(loadedMap).filter(v => v.active === false).length;
@@ -671,21 +708,42 @@
                     r.rs_target = Number(loadedMap[r.id].rs_target) || 0;
                 } else {
                     r.active = getBaselineResidentActive(r.id);
-                    r.er_target = 0;
-                    r.con_target = 0;
-                    r.dc_target = 0;
-                    r.rs_target = 0;
+                    r.er_target = Number(r.er_target) || 0;
+                    r.con_target = Number(r.con_target) || 0;
+                    r.dc_target = Number(r.dc_target) || 0;
+                    r.rs_target = Number(r.rs_target) || 0;
                 }
             });
             return true;
         } else {
-            // Empty month: All resident targets are zero/empty by default, active is baseline state
+            // Empty month: Try to inherit allocations from previous month if available
+            const prevAlloc = getPreviousMonthAllocations(hospId, year, month);
+            if (prevAlloc && Object.keys(prevAlloc).length > 0) {
+                loadedMap = JSON.parse(JSON.stringify(prevAlloc));
+                state.monthlyAllocations[key] = loadedMap;
+                try {
+                    localStorage.setItem(MONTH_ALLOC_PREFIX + key, JSON.stringify(loadedMap));
+                } catch (e) {}
+
+                (state.residents || []).forEach(r => {
+                    if (loadedMap[r.id]) {
+                        r.active = loadedMap[r.id].active !== undefined ? Boolean(loadedMap[r.id].active) : getBaselineResidentActive(r.id);
+                        r.er_target = Number(loadedMap[r.id].er_target) || 0;
+                        r.con_target = Number(loadedMap[r.id].con_target) || 0;
+                        r.dc_target = Number(loadedMap[r.id].dc_target) || 0;
+                        r.rs_target = Number(loadedMap[r.id].rs_target) || 0;
+                    }
+                });
+                return true;
+            }
+
+            // Genuinely unallocated month: maintain resident active status and baseline targets
             (state.residents || []).forEach(r => {
                 r.active = getBaselineResidentActive(r.id);
-                r.er_target = 0;
-                r.con_target = 0;
-                r.dc_target = 0;
-                r.rs_target = 0;
+                r.er_target = Number(r.er_target) || 0;
+                r.con_target = Number(r.con_target) || 0;
+                r.dc_target = Number(r.dc_target) || 0;
+                r.rs_target = Number(r.rs_target) || 0;
             });
             return false;
         }
@@ -6348,12 +6406,14 @@
     // =========================================================================
 
     function openDoctorPicker(type, dayNumber, slotKey, slotLabel) {
-        const days = state.schedules[type] || [];
+        const scheduleKey = (type && type.startsWith('rs_')) ? 'rs' : type;
+        const days = state.schedules[scheduleKey] || state.schedules[type] || [];
         const dayEntry = days.find(s => s.dayNumber === dayNumber);
         const dateStr = dayEntry ? dayEntry.date : formatDateStr(state.year, state.month, dayNumber);
         const dayName = dayEntry ? dayEntry.dayName : getArabicDayName(state.year, state.month, dayNumber);
+        const currentDoctor = (dayEntry && dayEntry[slotKey]) ? dayEntry[slotKey].trim() : '';
 
-        activeSlot = { type, dayNumber, slotKey, slotLabel, dateStr, dayName };
+        activeSlot = { type, scheduleKey, dayNumber, slotKey, slotLabel, dateStr, dayName, currentDoctor };
 
         const modal = document.getElementById('doctor-picker-modal');
         if (!modal) return;
@@ -6366,7 +6426,7 @@
         const searchInput = document.getElementById('picker-search-input');
         if (searchInput) {
             searchInput.value = '';
-            setTimeout(() => searchInput.focus(), 50);
+            setTimeout(() => { if (typeof searchInput.focus === 'function') searchInput.focus(); }, 50);
         }
 
         filterPickerList();
@@ -6399,7 +6459,7 @@
 
     /**
      * Filter Picker List:
-     * STRICT REQUIREMENT: Only show residents with available duties (hide fulfilled residents who reached target).
+     * Displays residents with vacant duties first, and allows selecting fulfilled doctors for extra duty.
      */
     function filterPickerList() {
         if (!activeSlot) return;
@@ -6416,45 +6476,55 @@
         hospitalOnCall.forEach(hd => hospDoctorMap.set(hd.cleanName, hd));
 
         // 2. Count current scheduled duties for each resident across month for this type
-        const scheduledCounts = countScheduledDutiesPerResident(activeSlot.type);
+        const countType = (activeSlot.type && activeSlot.type.startsWith('rs_')) ? 'rs' : activeSlot.type;
+        const scheduledCounts = countScheduledDutiesPerResident(countType);
 
         const targetField = activeSlot.type === 'er' ? 'er_target' :
                             activeSlot.type === 'con' ? 'con_target' :
                             activeSlot.type === 'dc' ? 'dc_target' : 'rs_target';
 
-        // 3. STRICT FILTER: Only show active, non-expired residents who have NOT yet fulfilled their quota!
-        let residents = (state.residents || []).filter(r => {
-            if (!r.active) return false;
-            if (isResidentExpired(r, state.year, state.month)) return false;
+        const currentClean = activeSlot.currentDoctor ? normalizeArabic(activeSlot.currentDoctor) : '';
 
-            const target = Number(r[targetField]) || 0;
-            if (target <= 0) return false;
+        // 3. Separate active, non-expired residents into Available (has quota) and Fulfilled (quota met)
+        const availableDocs = [];
+        const fulfilledDocs = [];
+
+        (state.residents || []).forEach(r => {
+            if (!r.active) return;
+            if (isResidentExpired(r, state.year, state.month)) return;
 
             const cleanName = normalizeArabic(r.name);
-            const filled = scheduledCounts[cleanName] || 0;
+            if (cleanQ) {
+                const matchesName = cleanName.includes(cleanQ);
+                const matchesSpec = r.specialty && r.specialty.toLowerCase().includes(query.toLowerCase());
+                if (!matchesName && !matchesSpec) return;
+            }
 
-            // STRICT: The resident who fulfilled their allocated duties should NOT appear in selections
-            return filled < target;
-        });
-
-        // Search query filter
-        if (cleanQ) {
-            residents = residents.filter(r => 
-                normalizeArabic(r.name).includes(cleanQ) || 
-                (r.specialty && r.specialty.toLowerCase().includes(query.toLowerCase()))
-            );
-        }
-
-        // Enrich with conflict & hospital on-call priority
-        const enriched = residents.map(r => {
-            const cleanName = normalizeArabic(r.name);
-            const filled = scheduledCounts[cleanName] || 0;
+            let filled = scheduledCounts[cleanName] || 0;
+            if (currentClean && cleanName === currentClean) {
+                filled = Math.max(0, filled - 1);
+            }
             const target = Number(r[targetField]) || 0;
             const remaining = target - filled;
 
+            if (target > 0 && remaining > 0) {
+                availableDocs.push(r);
+            } else {
+                fulfilledDocs.push(r);
+            }
+        });
+
+        function enrichDoc(r) {
+            const cleanName = normalizeArabic(r.name);
+            let filled = scheduledCounts[cleanName] || 0;
+            if (currentClean && cleanName === currentClean) {
+                filled = Math.max(0, filled - 1);
+            }
+            const target = Number(r[targetField]) || 0;
+            const remaining = Math.max(0, target - filled);
+
             const isHospOnCall = hospDoctorMap.has(cleanName);
             const hospDuty = hospDoctorMap.get(cleanName);
-
             const conflictEval = evaluateCellConflict(r.name, activeSlot.dateStr, activeSlot.type, activeSlot.slotKey);
 
             return {
@@ -6465,45 +6535,45 @@
                 isHospOnCall,
                 hospDuty,
                 hasConflict: conflictEval.hasConflict,
-                conflicts: conflictEval.conflicts
+                conflicts: conflictEval.conflicts,
+                isFulfilled: target === 0 || remaining <= 0
             };
-        });
+        }
 
-        // Sorting: For DC, doctors with hospital duty ranked first!
-        enriched.sort((a, b) => {
-            if (activeSlot.type === 'dc') {
-                if (a.isHospOnCall && !b.isHospOnCall) return -1;
-                if (!a.isHospOnCall && b.isHospOnCall) return 1;
-            }
+        function sortEnriched(list) {
+            return list.sort((a, b) => {
+                if (activeSlot.type === 'dc') {
+                    if (a.isHospOnCall && !b.isHospOnCall) return -1;
+                    if (!a.isHospOnCall && b.isHospOnCall) return 1;
+                }
+                if (!a.hasConflict && b.hasConflict) return -1;
+                if (a.hasConflict && !b.hasConflict) return 1;
+                if (b.remaining !== a.remaining) {
+                    return b.remaining - a.remaining;
+                }
+                return a.resident.name.localeCompare(b.resident.name, 'ar');
+            });
+        }
 
-            if (!a.hasConflict && b.hasConflict) return -1;
-            if (a.hasConflict && !b.hasConflict) return 1;
+        const enrichedAvailable = sortEnriched(availableDocs.map(enrichDoc));
+        const enrichedFulfilled = sortEnriched(fulfilledDocs.map(enrichDoc));
 
-            if (b.remaining !== a.remaining) {
-                return b.remaining - a.remaining;
-            }
-
-            return a.resident.name.localeCompare(b.resident.name, 'ar');
-        });
-
-        if (enriched.length === 0) {
+        if (enrichedAvailable.length === 0 && enrichedFulfilled.length === 0) {
             listContainer.innerHTML = `
                 <div class="py-8 text-center text-slate-400 text-xs space-y-1">
-                    <i class="fas fa-check-circle text-emerald-500 text-2xl mb-1 block"></i>
-                    <div class="font-bold text-slate-700 dark:text-slate-300">لا يوجد أطباء لديهم خفارات متبقية شاغرة لهذا القسم</div>
-                    <div class="text-[11px]">جميع الأطباء استوفوا أنصبتهم المقررة بالكامل أو تم إخفاؤهم لعدم توفر رصيد خفارات.</div>
+                    <i class="fas fa-user-slash text-slate-400 text-2xl mb-1 block"></i>
+                    <div class="font-bold text-slate-700 dark:text-slate-300">لا يوجد أطباء مطابقين للبحث</div>
                 </div>
             `;
             return;
         }
 
-        let html = '';
-        enriched.forEach(item => {
+        function renderCardHTML(item) {
             const r = item.resident;
             const isDcTopChoice = activeSlot.type === 'dc' && item.isHospOnCall;
 
             let cardBorder = 'border-slate-200 dark:border-slate-800 hover:border-rose-400';
-            let cardBg = 'bg-white dark:bg-slate-900/60';
+            let cardBg = item.isFulfilled ? 'bg-slate-50/50 dark:bg-slate-900/30 opacity-80' : 'bg-white dark:bg-slate-900/60';
 
             if (isDcTopChoice) {
                 cardBorder = 'border-emerald-300 dark:border-emerald-800/80 ring-1 ring-emerald-500/20';
@@ -6513,16 +6583,16 @@
                 cardBg = 'bg-amber-50/20 dark:bg-amber-950/10';
             }
 
-            html += `
+            return `
                 <div onclick="selectDoctorForSlot('${escapeForInline(r.name)}')" 
                     class="p-3 rounded-2xl border ${cardBorder} ${cardBg} hover:shadow-md transition cursor-pointer flex items-center justify-between gap-3">
                     
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-xl ${isDcTopChoice ? 'bg-emerald-500 text-white' : item.hasConflict ? 'bg-amber-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'} flex items-center justify-center font-bold text-xs shrink-0">
+                        <div class="w-8 h-8 rounded-xl ${isDcTopChoice ? 'bg-emerald-500 text-white' : item.hasConflict ? 'bg-amber-500 text-white' : (item.isFulfilled ? 'bg-slate-200 dark:bg-slate-700 text-slate-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300')} flex items-center justify-center font-bold text-xs shrink-0">
                             ${isDcTopChoice ? '<i class="fas fa-check"></i>' : item.hasConflict ? '⚠️' : '<i class="fas fa-user-doctor"></i>'}
                         </div>
                         <div>
-                            <div class="font-bold text-xs text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                            <div class="font-bold text-xs text-slate-800 dark:text-slate-100 flex items-center gap-2 flex-wrap">
                                 <span>${r.name}</span>
                                 ${isDcTopChoice ? `
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
@@ -6534,26 +6604,60 @@
                                         ⚠️ مسجل اليوم في: ${item.conflicts.map(c => c.label).join('، ')}
                                     </span>
                                 ` : ''}
+                                ${item.isFulfilled ? `
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                                        استوفى النصاب (خفارة إضافية)
+                                    </span>
+                                ` : ''}
                             </div>
                             <div class="text-[11px] text-slate-400 mt-0.5">
-                                ${r.specialty || 'عام'} · الجنس: ${r.sex === 'F' ? 'أنثى' : 'ذكر'} · متبقي: <strong class="text-rose-600">${item.remaining}</strong> خفارات
+                                ${r.specialty || 'عام'} · الجنس: ${r.sex === 'F' ? 'أنثى' : 'ذكر'} · ${item.isFulfilled ? '<span class=\"text-slate-500\">مكتمل</span>' : `متبقي: <strong class=\"text-rose-600\">${item.remaining}</strong> خفارات`}
                             </div>
                         </div>
                     </div>
 
-                    <div class="text-left shrink-0 font-mono font-black text-xs text-emerald-600">
+                    <div class="text-left shrink-0 font-mono font-black text-xs ${item.isFulfilled ? 'text-slate-500' : 'text-emerald-600'}">
                         ${item.filled} / ${item.target}
                     </div>
                 </div>
             `;
-        });
+        }
+
+        let html = '';
+        if (enrichedAvailable.length > 0) {
+            html += enrichedAvailable.map(renderCardHTML).join('');
+            if (enrichedFulfilled.length > 0) {
+                html += `
+                    <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800">
+                        <div class="text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-2 flex items-center justify-between">
+                            <span>أطباء استوفوا أنصبتهم المقررة (خفارة إضافية)</span>
+                            <span class="text-[10px] opacity-70">${enrichedFulfilled.length} طبيب</span>
+                        </div>
+                        <div class="space-y-2">
+                            ${enrichedFulfilled.map(renderCardHTML).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+        } else {
+            html += `
+                <div class="p-3 mb-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
+                    <i class="fas fa-circle-info text-amber-600 shrink-0"></i>
+                    <span>جميع الأطباء استوفوا أنصبتهم المقررة — يمكنك اختيار طبيب لخفارة إضافية أدناه:</span>
+                </div>
+                <div class="space-y-2">
+                    ${enrichedFulfilled.map(renderCardHTML).join('')}
+                </div>
+            `;
+        }
 
         listContainer.innerHTML = html;
     }
 
     function countScheduledDutiesPerResident(type) {
         const counts = {};
-        (state.schedules[type] || []).forEach(day => {
+        const scheduleKey = (type && type.startsWith('rs_')) ? 'rs' : type;
+        (state.schedules[scheduleKey] || state.schedules[type] || []).forEach(day => {
             Object.keys(day).forEach(k => {
                 if (k !== 'dayNumber' && k !== 'date' && k !== 'dayName' && k !== 'notes') {
                     const doc = day[k];
@@ -6570,7 +6674,8 @@
     function selectDoctorForSlot(doctorName) {
         if (!activeSlot) return;
 
-        const dayEntry = (state.schedules[activeSlot.type] || []).find(s => s.dayNumber === activeSlot.dayNumber);
+        const scheduleKey = activeSlot.scheduleKey || ((activeSlot.type && activeSlot.type.startsWith('rs_')) ? 'rs' : activeSlot.type);
+        const dayEntry = (state.schedules[scheduleKey] || state.schedules[activeSlot.type] || []).find(s => s.dayNumber === activeSlot.dayNumber);
         if (dayEntry) {
             pushScheduleHistory(`تعيين ${doctorName}`);
             dayEntry[activeSlot.slotKey] = doctorName;
@@ -6583,7 +6688,8 @@
 
     function clearActiveSlot() {
         if (!activeSlot) return;
-        const dayEntry = (state.schedules[activeSlot.type] || []).find(s => s.dayNumber === activeSlot.dayNumber);
+        const scheduleKey = activeSlot.scheduleKey || ((activeSlot.type && activeSlot.type.startsWith('rs_')) ? 'rs' : activeSlot.type);
+        const dayEntry = (state.schedules[scheduleKey] || state.schedules[activeSlot.type] || []).find(s => s.dayNumber === activeSlot.dayNumber);
         if (dayEntry) {
             pushScheduleHistory('تفريغ خانة الخفارة');
             dayEntry[activeSlot.slotKey] = '';
@@ -7644,7 +7750,7 @@
 
     function triggerScheduleAutoGenerate(type) {
         pendingAutoGenerateType = type;
-        const schedule = state.schedules[type] || [];
+        const schedule = (type && type.startsWith('rs_') ? state.schedules.rs : state.schedules[type]) || [];
         
         // Check if there are any existing filled entries
         let hasEntries = false;
@@ -7706,6 +7812,7 @@
      * Run Auto Distribution Algorithm with Gender Priorities & Preferences
      */
     function runAutoDistribution(type, mode) {
+        ensureScheduleIntegrity();
         const daysCount = getDaysInMonth(state.year, state.month);
         const activeDocs = (state.residents || []).filter(r => r.active && !isResidentExpired(r, state.year, state.month));
 

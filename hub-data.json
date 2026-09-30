@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:08:30.703Z",
+  "lastUpdated": "2026-09-30T18:08:34.714Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -98,6 +98,16 @@
           "enabled": true
         },
         {
+          "id": "R",
+          "name_ar": "الأشعة و السونار",
+          "name_en": "Radiology",
+          "icon": "🩻",
+          "color": "#6700e6",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
           "id": "OR",
           "name_ar": "الكسور",
           "name_en": "Orthopaedics",
@@ -168,16 +178,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "R",
-          "name_ar": "الأشعة و السونار",
-          "name_en": "Radiology",
-          "icon": "🩻",
-          "color": "#6700e6",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
         },
         {
           "id": "ON",

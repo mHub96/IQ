@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:42:24.479Z",
+  "lastUpdated": "2026-09-30T18:42:32.427Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -49719,21 +49719,6 @@
     }
   ],
   "specialists": [
-    {
-      "id": "spec-doc-0003",
-      "name": "د. رنا كاظم الموسوي",
-      "title": "استشارية طب الأطفال وحديثي الولادة",
-      "spec": "Pe",
-      "specName": "طب الأطفال",
-      "hospitals": [
-        "basra",
-        "mawani"
-      ],
-      "phone": "+9647813456789",
-      "clinic": "استشارية الأطفال - جناح الطوارئ",
-      "notes": "مسؤولة وحدة العناية المركزة لحديثي الولادة (NICU)",
-      "active": true
-    },
     {
       "id": "spec-doc-0006",
       "name": "د. فراس عبد الجبار التميمي",

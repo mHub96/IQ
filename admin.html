@@ -645,22 +645,42 @@
             </div>
         </div>
 
-        <!-- Specialties Filter & Accordion Toolbar -->
-        <div class="glass-card p-3 mb-4 flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-2.5">
-                <label class="toggle-switch-compact" title="تفعيل لإظهار التخصصات التي لا تحتوي على أي مقيم مسجل في هذا المستشفى">
-                    <input type="checkbox" id="show-empty-specs-toggle" onchange="toggleShowEmptySpecs(this.checked)" />
-                    <span class="toggle-slider-compact"></span>
-                </label>
-                <span class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 cursor-pointer" onclick="document.getElementById('show-empty-specs-toggle').click()">
-                    <i class="fas fa-filter text-teal-600 dark:text-amber-400"></i>
-                    <span>إظهار التخصصات الفارغة (0 مقيم)</span>
-                </span>
+        <!-- Search & Specialties Filter Toolbar -->
+        <div class="glass-card p-3.5 mb-4 space-y-3">
+            <!-- Search Resident Input -->
+            <div class="relative">
+                <i class="fas fa-search absolute right-3.5 top-3.5 text-slate-400 text-sm pointer-events-none"></i>
+                <input type="text" 
+                       id="admin-resident-search" 
+                       class="input-field pr-10 pl-10 text-sm" 
+                       placeholder="ابحث بالاسم، رقم الهاتف، أو التخصص الطبي..." 
+                       oninput="onResidentSearchInput(this.value)" />
+                <button type="button" 
+                        id="admin-clear-resident-search" 
+                        onclick="clearResidentSearch()" 
+                        class="absolute left-3 top-2.5 text-slate-400 hover:text-rose-500 hidden p-1 text-sm transition-colors"
+                        title="مسح البحث">
+                    <i class="fas fa-times-circle"></i>
+                </button>
             </div>
-            <div class="flex items-center gap-2">
-                <span id="specs-filter-summary" class="text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
-                    جاري التحديث...
-                </span>
+
+            <!-- Filter Controls & Summary -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60 text-xs">
+                <div class="flex items-center gap-2.5">
+                    <label class="toggle-switch-compact" title="تفعيل لإظهار التخصصات التي لا تحتوي على أي مقيم مسجل في هذا المستشفى">
+                        <input type="checkbox" id="show-empty-specs-toggle" onchange="toggleShowEmptySpecs(this.checked)" />
+                        <span class="toggle-slider-compact"></span>
+                    </label>
+                    <span class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 cursor-pointer" onclick="document.getElementById('show-empty-specs-toggle').click()">
+                        <i class="fas fa-filter text-teal-600 dark:text-amber-400"></i>
+                        <span>إظهار التخصصات الفارغة (0 مقيم)</span>
+                    </span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="specs-filter-summary" class="font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
+                        جاري التحديث...
+                    </span>
+                </div>
             </div>
         </div>
 
@@ -1267,6 +1287,13 @@
                 const toggleModal = document.getElementById('modal-show-empty-specs-toggle');
                 if (toggleModal) toggleModal.checked = window.showEmptySpecialties;
 
+                // Reset resident search bar on hospital switch
+                const searchInput = document.getElementById('admin-resident-search');
+                if (searchInput) searchInput.value = '';
+                window.adminResidentSearchQuery = '';
+                const clearBtn = document.getElementById('admin-clear-resident-search');
+                if (clearBtn) clearBtn.classList.add('hidden');
+
                 populateSpecialtyDropdowns();
                 populateHospitalDropdowns();
                 renderResidentsAccordion();
@@ -1274,10 +1301,11 @@
 
                 // Reactive UI updates on data changes
                 window.addEventListener('hub:data-changed', () => {
+                    const curScroll = window.scrollY;
                     currentHospital = Hub.getActiveHospital();
                     renderGlobalSpecialtiesList();
                     renderSpecialtiesList();
-                    renderResidentsAccordion({ preserveScroll: true });
+                    renderResidentsAccordion({ preserveScroll: true, targetScrollY: curScroll });
                     populateSpecialtyDropdowns();
                     updateStatsBadges();
                 });
@@ -1294,7 +1322,7 @@
             if (toggleMain) toggleMain.checked = window.showEmptySpecialties;
             const toggleModal = document.getElementById('modal-show-empty-specs-toggle');
             if (toggleModal) toggleModal.checked = window.showEmptySpecialties;
-            renderResidentsAccordion();
+            renderResidentsAccordion({ preserveScroll: true });
             renderSpecialtiesList();
         }
 
@@ -1363,19 +1391,94 @@
         }
 
         window.openSpecBoxIds = window.openSpecBoxIds || new Set();
+        window.adminResidentSearchQuery = '';
+
+        function normalizeDoctorSearch(txt) {
+            if (!txt) return '';
+            return String(txt)
+                .toLowerCase()
+                .replace(/^(د\.?\s*|دكتور(ة)?\s*|dr\.?\s*)/i, '')
+                .replace(/[أإآ]/g, 'ا')
+                .replace(/ة/g, 'ه')
+                .replace(/ى/g, 'ي')
+                .replace(/[\u064B-\u065F]/g, '') // remove Arabic diacritics
+                .trim();
+        }
+
+        function residentMatchesSearch(r, queryRaw) {
+            if (!queryRaw || !queryRaw.trim()) return true;
+            const qTrim = queryRaw.trim();
+            const qNorm = normalizeDoctorSearch(qTrim);
+
+            // Match normalized name
+            const nameNorm = normalizeDoctorSearch(r.name);
+            if (qNorm && nameNorm.includes(qNorm)) return true;
+
+            // Match raw name (e.g. if user types prefix)
+            const rawName = (r.name || '').toLowerCase();
+            if (rawName.includes(qTrim.toLowerCase())) return true;
+
+            // Match phone
+            const phone = (r.phone || '').replace(/\s+/g, '');
+            if (phone.includes(qTrim.replace(/\s+/g, ''))) return true;
+
+            // Match specialty or department name/ID
+            const rSpecId = r.spec || r.tag || '';
+            const rDeptId = r.dept || r.department || '';
+            const specName = (window.Hub && Hub.getSpecialtyName ? Hub.getSpecialtyName(rSpecId) : rSpecId).toLowerCase();
+            const deptName = (window.Hub && Hub.getSpecialtyName ? Hub.getSpecialtyName(rDeptId) : rDeptId).toLowerCase();
+            if (specName.includes(qTrim.toLowerCase()) || deptName.includes(qTrim.toLowerCase())) return true;
+            if (rSpecId.toLowerCase().includes(qTrim.toLowerCase()) || rDeptId.toLowerCase().includes(qTrim.toLowerCase())) return true;
+
+            return false;
+        }
+
+        function compareResidentNames(a, b) {
+            const clean = (n) => (n?.name || '')
+                .replace(/^(د\.?\s*|دكتور(ة)?\s*|dr\.?\s*)/i, '')
+                .trim();
+            return clean(a).localeCompare(clean(b), 'ar', { sensitivity: 'base' });
+        }
+
+        function onResidentSearchInput(val) {
+            window.adminResidentSearchQuery = val || '';
+            const clearBtn = document.getElementById('admin-clear-resident-search');
+            if (clearBtn) {
+                clearBtn.classList.toggle('hidden', !val || !val.trim());
+            }
+            renderResidentsAccordion({ preserveScroll: true });
+        }
+
+        function clearResidentSearch() {
+            const input = document.getElementById('admin-resident-search');
+            if (input) input.value = '';
+            window.adminResidentSearchQuery = '';
+            const clearBtn = document.getElementById('admin-clear-resident-search');
+            if (clearBtn) clearBtn.classList.add('hidden');
+            renderResidentsAccordion({ preserveScroll: true });
+            if (input) input.focus();
+        }
 
         function renderResidentsAccordion(options = {}) {
             const container = document.getElementById('residents-accordion-list');
             if (!container || !currentHospital) return;
 
-            // Preserve scroll position
-            const prevScrollY = options.preserveScroll !== false ? window.scrollY : null;
+            // Target scroll position: prioritizes explicit targetScrollY, then preserves current scrollY
+            const targetScrollY = options.targetScrollY !== undefined
+                ? options.targetScrollY
+                : (options.preserveScroll !== false ? window.scrollY : null);
 
-            // Preserve open accordion states from DOM
+            // Active search state
+            const searchQuery = (window.adminResidentSearchQuery || '').trim();
+            const isSearching = searchQuery.length > 0;
+
+            // Preserve open accordion states from DOM (when not searching)
             if (!window.openSpecBoxIds) window.openSpecBoxIds = new Set();
-            container.querySelectorAll('.spec-content.active').forEach(el => {
-                if (el.id) window.openSpecBoxIds.add(el.id);
-            });
+            if (!isSearching) {
+                container.querySelectorAll('.spec-content.active').forEach(el => {
+                    if (el.id) window.openSpecBoxIds.add(el.id);
+                });
+            }
             if (options.forceOpenSpecId) {
                 window.openSpecBoxIds.add(`spec-box-${options.forceOpenSpecId}`);
             }
@@ -1387,21 +1490,42 @@
 
             let renderedCount = 0;
             let hiddenEmptyCount = 0;
+            let totalSearchMatches = 0;
 
             const itemsHtmlArray = specs.map(spec => {
-                const primaryResidents = names.filter(n => (n.spec === spec.id || n.tag === spec.id) && isResidentActive(n));
-                const rotatingResidents = names.filter(n => (n.dept === spec.id || n.department === spec.id) && n.spec !== spec.id && n.tag !== spec.id && isResidentActive(n));
+                // 1. Get all active residents for this specialty
+                let primaryResidents = names.filter(n => (n.spec === spec.id || n.tag === spec.id) && isResidentActive(n));
+                let rotatingResidents = names.filter(n => (n.dept === spec.id || n.department === spec.id) && n.spec !== spec.id && n.tag !== spec.id && isResidentActive(n));
+                const unfilteredTotalCount = primaryResidents.length + rotatingResidents.length;
+
+                // 2. Sort automatically by doctor name (separate for each individual category)
+                primaryResidents.sort(compareResidentNames);
+                rotatingResidents.sort(compareResidentNames);
+
+                // 3. Filter by search query if user is searching
+                if (isSearching) {
+                    primaryResidents = primaryResidents.filter(r => residentMatchesSearch(r, searchQuery));
+                    rotatingResidents = rotatingResidents.filter(r => residentMatchesSearch(r, searchQuery));
+                }
+
                 const totalCount = primaryResidents.length + rotatingResidents.length;
 
-                if (totalCount === 0) {
-                    hiddenEmptyCount++;
-                    if (!showEmpty) return '';
+                // If searching, hide specialties that have 0 matches
+                if (isSearching) {
+                    if (totalCount === 0) return '';
+                    totalSearchMatches += totalCount;
+                } else {
+                    if (totalCount === 0) {
+                        hiddenEmptyCount++;
+                        if (!showEmpty) return '';
+                    }
                 }
                 renderedCount++;
 
                 const isEnabled = spec.enabled !== false;
                 const boxId = `spec-box-${spec.id}`;
-                const isOpen = window.openSpecBoxIds.has(boxId);
+                // Auto-open during search if there are matches, otherwise respect openSpecBoxIds
+                const isOpen = isSearching ? true : window.openSpecBoxIds.has(boxId);
 
                 return `
                     <div class="mb-2">
@@ -1415,10 +1539,15 @@
                                         <i class="fas fa-rotate ml-1"></i> ${rotatingResidents.length} متناوب
                                     </span>
                                 ` : ''}
+                                ${isSearching ? `
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950/70 text-teal-800 dark:text-teal-300 font-bold">
+                                        ${totalCount} مطابق
+                                    </span>
+                                ` : ''}
                             </div>
                             <div class="flex items-center gap-2">
                                 <span class="text-xs font-bold px-2.5 py-1 rounded-full ${totalCount > 0 ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' : 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900'}">
-                                    ${totalCount} مقيم
+                                    ${isSearching ? `${totalCount} من ${unfilteredTotalCount} مقيم` : `${totalCount} مقيم`}
                                 </span>
                                 <i class="fas ${isOpen ? 'fa-chevron-up' : 'fa-chevron-down'} text-xs text-slate-400"></i>
                             </div>
@@ -1446,102 +1575,173 @@
             });
 
             // Dedicated RESERVE Category for Inactive / Reserve Residents
-            const reserveResidents = names.filter(n => !isResidentActive(n));
+            let reserveResidents = names.filter(n => !isResidentActive(n));
+            const unfilteredReserveCount = reserveResidents.length;
+
+            // Sort RESERVE residents automatically by name
+            reserveResidents.sort(compareResidentNames);
+
+            // Filter RESERVE by search query if user is searching
+            if (isSearching) {
+                reserveResidents = reserveResidents.filter(r => residentMatchesSearch(r, searchQuery));
+            }
+
             const reserveCount = reserveResidents.length;
             let reserveHtml = '';
 
-            if (reserveCount === 0) {
-                hiddenEmptyCount++;
-                if (showEmpty) {
+            if (isSearching) {
+                if (reserveCount > 0) {
+                    totalSearchMatches += reserveCount;
                     renderedCount++;
                     const boxId = 'spec-box-RESERVE';
-                    const isOpen = window.openSpecBoxIds.has(boxId);
+                    const isOpen = true; // Auto-open matching RESERVE
                     reserveHtml = `
                         <div class="mb-2">
-                            <div class="spec-header border-dashed border-amber-300 dark:border-amber-700/60 bg-amber-50/50 dark:bg-amber-950/20" onclick="toggleAccordion('${boxId}')">
+                            <div class="spec-header border border-amber-400 dark:border-amber-700/70 bg-amber-50/70 dark:bg-amber-950/30" onclick="toggleAccordion('${boxId}')">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="text-xl">⏳</span>
                                     <span class="font-bold text-amber-900 dark:text-amber-300">RESERVE (قائمة الاحتياط - الأطباء غير النشطين)</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950/70 text-teal-800 dark:text-teal-300 font-bold">
+                                        ${reserveCount} مطابق
+                                    </span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900">
-                                        0 مقيم
+                                    <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                                        ${reserveCount} من ${unfilteredReserveCount} مقيم احتياط
                                     </span>
-                                    <i class="fas ${isOpen ? 'fa-chevron-up' : 'fa-chevron-down'} text-xs text-slate-400"></i>
+                                    <i class="fas ${isOpen ? 'fa-chevron-up' : 'fa-chevron-down'} text-xs text-amber-600 dark:text-amber-400"></i>
                                 </div>
                             </div>
+
                             <div id="${boxId}" class="spec-content ${isOpen ? 'active' : ''}">
-                                <div class="text-center py-4 text-xs text-slate-400">لا يوجد أطباء في قائمة الاحتياط حالياً (0 مقيم)</div>
+                                ${reserveResidents.map(r => renderResidentCardItem(r, false, true)).join('')}
                             </div>
                         </div>
                     `;
                 }
             } else {
-                renderedCount++;
-                const boxId = 'spec-box-RESERVE';
-                const isOpen = window.openSpecBoxIds.has(boxId);
-                reserveHtml = `
-                    <div class="mb-2">
-                        <div class="spec-header border border-amber-400 dark:border-amber-700/70 bg-amber-50/70 dark:bg-amber-950/30" onclick="toggleAccordion('${boxId}')">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="text-xl">⏳</span>
-                                <span class="font-bold text-amber-900 dark:text-amber-300">RESERVE (قائمة الاحتياط - الأطباء غير النشطين)</span>
-                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-200/80 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 font-bold">
-                                    غير مشمولين بالخفارات
-                                </span>
+                if (reserveCount === 0) {
+                    hiddenEmptyCount++;
+                    if (showEmpty) {
+                        renderedCount++;
+                        const boxId = 'spec-box-RESERVE';
+                        const isOpen = window.openSpecBoxIds.has(boxId);
+                        reserveHtml = `
+                            <div class="mb-2">
+                                <div class="spec-header border-dashed border-amber-300 dark:border-amber-700/60 bg-amber-50/50 dark:bg-amber-950/20" onclick="toggleAccordion('${boxId}')">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="text-xl">⏳</span>
+                                        <span class="font-bold text-amber-900 dark:text-amber-300">RESERVE (قائمة الاحتياط - الأطباء غير النشطين)</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900">
+                                            0 مقيم
+                                        </span>
+                                        <i class="fas ${isOpen ? 'fa-chevron-up' : 'fa-chevron-down'} text-xs text-slate-400"></i>
+                                    </div>
+                                </div>
+                                <div id="${boxId}" class="spec-content ${isOpen ? 'active' : ''}">
+                                    <div class="text-center py-4 text-xs text-slate-400">لا يوجد أطباء في قائمة الاحتياط حالياً (0 مقيم)</div>
+                                </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
-                                    ${reserveCount} مقيم احتياط
-                                </span>
-                                <i class="fas ${isOpen ? 'fa-chevron-up' : 'fa-chevron-down'} text-xs text-amber-600 dark:text-amber-400"></i>
+                        `;
+                    }
+                } else {
+                    renderedCount++;
+                    const boxId = 'spec-box-RESERVE';
+                    const isOpen = window.openSpecBoxIds.has(boxId);
+                    reserveHtml = `
+                        <div class="mb-2">
+                            <div class="spec-header border border-amber-400 dark:border-amber-700/70 bg-amber-50/70 dark:bg-amber-950/30" onclick="toggleAccordion('${boxId}')">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-xl">⏳</span>
+                                    <span class="font-bold text-amber-900 dark:text-amber-300">RESERVE (قائمة الاحتياط - الأطباء غير النشطين)</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-200/80 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 font-bold">
+                                        غير مشمولين بالخفارات
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                                        ${reserveCount} مقيم احتياط
+                                    </span>
+                                    <i class="fas ${isOpen ? 'fa-chevron-up' : 'fa-chevron-down'} text-xs text-amber-600 dark:text-amber-400"></i>
+                                </div>
                             </div>
-                        </div>
 
-                        <div id="${boxId}" class="spec-content ${isOpen ? 'active' : ''}">
-                            ${reserveResidents.map(r => renderResidentCardItem(r, false, true)).join('')}
+                            <div id="${boxId}" class="spec-content ${isOpen ? 'active' : ''}">
+                                ${reserveResidents.map(r => renderResidentCardItem(r, false, true)).join('')}
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
             }
 
             const allHtml = itemsHtmlArray.filter(Boolean).join('') + reserveHtml;
 
-            container.innerHTML = allHtml || `
-                <div class="p-8 text-center text-slate-400 glass-card">
-                    <i class="fas fa-filter text-3xl mb-2 text-slate-300 dark:text-slate-600"></i>
-                    <div class="font-bold text-sm">جميع التخصصات المتبقية فارغة (0 مقيم) وتم إخفاؤها تلقائياً.</div>
-                    <div class="text-xs mt-1">يمكنك تفعيل مفتاح <strong>"إظهار التخصصات الفارغة"</strong> بالأعلى لعرضها.</div>
-                </div>
-            `;
+            // Prevent container collapse from clamping scrollY to top
+            const prevHeight = container.offsetHeight;
+            if (prevHeight > 0) {
+                container.style.minHeight = prevHeight + 'px';
+            }
 
+            if (isSearching && totalSearchMatches === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center text-slate-400 glass-card">
+                        <i class="fas fa-search text-3xl mb-3 text-slate-300 dark:text-slate-600"></i>
+                        <div class="font-bold text-sm text-slate-700 dark:text-slate-300">لا توجد نتائج مطابقة لبحثك عن "${searchQuery}"</div>
+                        <div class="text-xs mt-1 text-slate-400">تأكد من كتابة اسم المقيم أو رقم الهاتف أو التخصص بشكل صحيح.</div>
+                        <button type="button" onclick="clearResidentSearch()" class="btn-ghost text-xs mt-3.5 inline-flex items-center gap-1.5">
+                            <i class="fas fa-times-circle"></i> مسح البحث وعرض الكل
+                        </button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = allHtml || `
+                    <div class="p-8 text-center text-slate-400 glass-card">
+                        <i class="fas fa-filter text-3xl mb-2 text-slate-300 dark:text-slate-600"></i>
+                        <div class="font-bold text-sm">جميع التخصصات المتبقية فارغة (0 مقيم) وتم إخفاؤها تلقائياً.</div>
+                        <div class="text-xs mt-1">يمكنك تفعيل مفتاح <strong>"إظهار التخصصات الفارغة"</strong> بالأعلى لعرضها.</div>
+                    </div>
+                `;
+            }
+
+            // Update summary badge in toolbar
             const summaryEl = document.getElementById('specs-filter-summary');
             if (summaryEl) {
-                if (hiddenEmptyCount > 0 && !showEmpty) {
+                if (isSearching) {
+                    summaryEl.innerHTML = `<i class="fas fa-search ml-1 text-teal-600 dark:text-amber-400"></i> تم العثور على <strong>${totalSearchMatches}</strong> مقيم مطابق في <strong>${renderedCount}</strong> فئة`;
+                } else if (hiddenEmptyCount > 0 && !showEmpty) {
                     summaryEl.innerHTML = `<i class="fas fa-eye-slash ml-1 text-slate-400"></i> عرض ${renderedCount} فئة نشطة (تم إخفاء ${hiddenEmptyCount} فارغة)`;
                 } else {
                     summaryEl.innerHTML = `<i class="fas fa-list-check ml-1 text-teal-600 dark:text-amber-400"></i> عرض جميع التخصصات وفئة الاحتياط (${specs.length + 1} فئة)`;
                 }
             }
 
-            // Restore scroll position
-            if (options.preserveScroll !== false && prevScrollY !== null) {
-                window.scrollTo({ top: prevScrollY, behavior: 'instant' });
+            // Restore scroll position reliably across layout frames
+            if (targetScrollY !== null) {
+                window.scrollTo({ top: targetScrollY, behavior: 'instant' });
+                requestAnimationFrame(() => {
+                    window.scrollTo({ top: targetScrollY, behavior: 'instant' });
+                });
             }
 
-            // Highlight target card if requested
+            setTimeout(() => {
+                container.style.minHeight = '';
+                if (targetScrollY !== null) {
+                    window.scrollTo({ top: targetScrollY, behavior: 'instant' });
+                }
+            }, 60);
+
+            // Highlight target card if requested (without disruptive scroll jump)
             if (options.highlightResidentId || options.highlightResidentName) {
                 setTimeout(() => {
                     const targetEl = (options.highlightResidentId ? document.getElementById(`resident-card-${options.highlightResidentId}`) : null) ||
                                      (options.highlightResidentName ? document.querySelector(`[data-res-name="${options.highlightResidentName}"]`) : null);
                     if (targetEl) {
                         targetEl.classList.add('highlight-save-pulse');
-                        if (options.scrollIntoView) {
-                            targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                        }
                         setTimeout(() => targetEl.classList.remove('highlight-save-pulse'), 2500);
                     }
-                }, 60);
+                }, 80);
             }
         }
 
@@ -1709,6 +1909,7 @@
         }
 
         async function submitAddResident() {
+            const savedScroll = window.scrollY;
             const name = document.getElementById('new-res-name').value.trim();
             const phone = document.getElementById('new-res-phone').value.trim();
             const spec = document.getElementById('new-res-spec').value;
@@ -1763,9 +1964,9 @@
                 window.openSpecBoxIds.add(`spec-box-${targetBoxSpec}`);
                 renderResidentsAccordion({
                     preserveScroll: true,
+                    targetScrollY: savedScroll,
                     forceOpenSpecId: targetBoxSpec,
-                    highlightResidentName: formattedName,
-                    scrollIntoView: true
+                    highlightResidentName: formattedName
                 });
                 updateStatsBadges();
                 showToast(`تمت إضافة ${formattedName} بنجاح`, 'success');
@@ -1779,6 +1980,7 @@
             const r = currentHospital.names[idx];
             if (!r) return;
 
+            window.lastResidentScrollPos = window.scrollY;
             populateSpecialtyDropdowns();
 
             const sharedRes = Hub.getResident(r.id || r.name);
@@ -1814,6 +2016,7 @@
         }
 
         async function saveResidentEdit() {
+            const savedScroll = window.lastResidentScrollPos !== undefined ? window.lastResidentScrollPos : window.scrollY;
             const idx = parseInt(document.getElementById('edit-res-idx').value);
             const resId = document.getElementById('edit-res-id').value;
             const name = document.getElementById('edit-res-name').value.trim();
@@ -1875,6 +2078,7 @@
                 window.openSpecBoxIds.add(`spec-box-${targetBoxSpec}`);
                 renderResidentsAccordion({
                     preserveScroll: true,
+                    targetScrollY: savedScroll,
                     forceOpenSpecId: targetBoxSpec,
                     highlightResidentId: resId,
                     highlightResidentName: formattedName
@@ -1888,6 +2092,7 @@
         }
 
         async function deleteResident(idx, name) {
+            const savedScroll = window.scrollY;
             if (!confirm(`هل أنت متأكد من حذف المقيم "${name}"؟`)) return;
 
             try {
@@ -1904,6 +2109,7 @@
                 currentHospital = Hub.getActiveHospital();
                 renderResidentsAccordion({
                     preserveScroll: true,
+                    targetScrollY: savedScroll,
                     forceOpenSpecId: specId
                 });
                 updateStatsBadges();

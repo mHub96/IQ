@@ -582,12 +582,12 @@
             </h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">اسم المقيم</label>
-                    <input type="text" id="new-res-name" class="input-field" placeholder="مثال: د. احمد علي" />
+                    <label class="block text-xs font-bold text-slate-500 mb-1">اسم المقيم <span class="text-rose-500 font-bold">* (إلزامي)</span></label>
+                    <input type="text" id="new-res-name" class="input-field" placeholder="مثال: د. احمد علي" required />
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">رقم الهاتف (اختياري)</label>
-                    <input type="text" id="new-res-phone" class="input-field text-left font-mono" placeholder="07XXXXXXXXX" dir="ltr" />
+                    <label class="block text-xs font-bold text-slate-500 mb-1">رقم الهاتف <span class="text-rose-500 font-bold">* (إلزامي)</span></label>
+                    <input type="text" id="new-res-phone" class="input-field text-left font-mono" placeholder="07XXXXXXXXX" dir="ltr" required />
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">التخصص الأساسي (Specialty)</label>
@@ -700,12 +700,12 @@
             <input type="hidden" id="edit-res-id" />
             <div class="space-y-3">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">اسم المقيم</label>
-                    <input type="text" id="edit-res-name" class="input-field" />
+                    <label class="block text-xs font-bold text-slate-500 mb-1">اسم المقيم <span class="text-rose-500 font-bold">* (إلزامي)</span></label>
+                    <input type="text" id="edit-res-name" class="input-field" required />
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">رقم الهاتف</label>
-                    <input type="text" id="edit-res-phone" class="input-field font-mono text-left" dir="ltr" />
+                    <label class="block text-xs font-bold text-slate-500 mb-1">رقم الهاتف <span class="text-rose-500 font-bold">* (إلزامي)</span></label>
+                    <input type="text" id="edit-res-phone" class="input-field font-mono text-left" dir="ltr" required />
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
@@ -1441,10 +1441,16 @@
         }
 
         function onResidentSearchInput(val) {
+            const wasSearching = Boolean(window.adminResidentSearchQuery && window.adminResidentSearchQuery.trim());
+            const newVal = (val || '').trim();
             window.adminResidentSearchQuery = val || '';
             const clearBtn = document.getElementById('admin-clear-resident-search');
             if (clearBtn) {
-                clearBtn.classList.toggle('hidden', !val || !val.trim());
+                clearBtn.classList.toggle('hidden', !newVal);
+            }
+            // When search input is cleared, collapse all categories cleanly
+            if (wasSearching && !newVal) {
+                if (window.openSpecBoxIds) window.openSpecBoxIds.clear();
             }
             renderResidentsAccordion({ preserveScroll: true });
         }
@@ -1455,6 +1461,8 @@
             window.adminResidentSearchQuery = '';
             const clearBtn = document.getElementById('admin-clear-resident-search');
             if (clearBtn) clearBtn.classList.add('hidden');
+            // When search is cleared, collapse all categories cleanly
+            if (window.openSpecBoxIds) window.openSpecBoxIds.clear();
             renderResidentsAccordion({ preserveScroll: true });
             if (input) input.focus();
         }
@@ -1472,13 +1480,7 @@
             const searchQuery = (window.adminResidentSearchQuery || '').trim();
             const isSearching = searchQuery.length > 0;
 
-            // Preserve open accordion states from DOM (when not searching)
             if (!window.openSpecBoxIds) window.openSpecBoxIds = new Set();
-            if (!isSearching) {
-                container.querySelectorAll('.spec-content.active').forEach(el => {
-                    if (el.id) window.openSpecBoxIds.add(el.id);
-                });
-            }
             if (options.forceOpenSpecId) {
                 window.openSpecBoxIds.add(`spec-box-${options.forceOpenSpecId}`);
             }
@@ -1910,18 +1912,44 @@
 
         async function submitAddResident() {
             const savedScroll = window.scrollY;
-            const name = document.getElementById('new-res-name').value.trim();
-            const phone = document.getElementById('new-res-phone').value.trim();
-            const spec = document.getElementById('new-res-spec').value;
-            const dept = document.getElementById('new-res-dept').value || spec;
-            const active = document.getElementById('new-res-active').checked;
-            const isMulti = document.getElementById('new-res-multi-toggle').checked;
+            const nameInput = document.getElementById('new-res-name');
+            const phoneInput = document.getElementById('new-res-phone');
+            const name = (nameInput?.value || '').trim();
+            const phone = (phoneInput?.value || '').trim();
+            const spec = document.getElementById('new-res-spec')?.value;
+            const dept = document.getElementById('new-res-dept')?.value || spec;
+            const active = document.getElementById('new-res-active')?.checked ?? true;
+            const isMulti = document.getElementById('new-res-multi-toggle')?.checked;
 
-            if (!name) {
-                showToast('الرجاء إدخال اسم المقيم', 'error');
+            // 1. Mandatory Name Validation
+            const cleanName = name.replace(/^(د|dr)[\.\s\:\/]+/gi, '').trim();
+            if (!name || cleanName.length < 2) {
+                showToast('الرجاء إدخال اسم المقيم بشكل صحيح (حقل إلزامي)', 'error');
+                nameInput?.focus();
                 return;
             }
 
+            // 2. Mandatory Mobile Number Validation
+            if (!phone) {
+                showToast('الرجاء إدخال رقم هاتف المقيم (حقل إلزامي)', 'error');
+                phoneInput?.focus();
+                return;
+            }
+            const formattedPhone = formatIraqiPhoneNumber(phone);
+            const phoneDigits = formattedPhone.replace(/\D/g, '');
+            if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+                showToast('الرجاء إدخال رقم هاتف صحيح (10 أرقام على الأقل)', 'error');
+                phoneInput?.focus();
+                return;
+            }
+
+            // 3. Mandatory Specialty Validation
+            if (!spec) {
+                showToast('الرجاء اختيار التخصص الطبي للمقيم', 'error');
+                return;
+            }
+
+            // 4. Hospitals Assignment Validation
             let assignedHospitals = [];
             if (isMulti) {
                 document.querySelectorAll('input[name="new-res-hosp-cb"]:checked').forEach(cb => {
@@ -1932,16 +1960,15 @@
                     return;
                 }
             } else {
-                const singleHid = document.getElementById('new-res-hospital-single').value || Hub.getActiveHospitalId();
+                const singleHid = document.getElementById('new-res-hospital-single')?.value || Hub.getActiveHospitalId();
                 assignedHospitals = [singleHid];
             }
 
             const formattedName = formatDoctorName(name);
-            const formattedPhone = formatIraqiPhoneNumber(phone);
 
-            // Close panel immediately on save
-            document.getElementById('new-res-name').value = '';
-            document.getElementById('new-res-phone').value = '';
+            // Close panel only after all validations pass
+            if (nameInput) nameInput.value = '';
+            if (phoneInput) phoneInput.value = '';
             const deptEl = document.getElementById('new-res-dept');
             if (deptEl) delete deptEl.dataset.userModified;
             toggleAddResidentPanel(false);
@@ -2019,18 +2046,43 @@
             const savedScroll = window.lastResidentScrollPos !== undefined ? window.lastResidentScrollPos : window.scrollY;
             const idx = parseInt(document.getElementById('edit-res-idx').value);
             const resId = document.getElementById('edit-res-id').value;
-            const name = document.getElementById('edit-res-name').value.trim();
-            const phone = document.getElementById('edit-res-phone').value.trim();
-            const spec = document.getElementById('edit-res-spec').value;
-            const dept = document.getElementById('edit-res-dept').value || spec;
-            const active = document.getElementById('edit-res-active').checked;
-            const isMulti = document.getElementById('edit-res-multi-toggle').checked;
+            const nameInput = document.getElementById('edit-res-name');
+            const phoneInput = document.getElementById('edit-res-phone');
+            const name = (nameInput?.value || '').trim();
+            const phone = (phoneInput?.value || '').trim();
+            const spec = document.getElementById('edit-res-spec')?.value;
+            const dept = document.getElementById('edit-res-dept')?.value || spec;
+            const active = document.getElementById('edit-res-active')?.checked ?? true;
+            const isMulti = document.getElementById('edit-res-multi-toggle')?.checked;
 
-            if (!name || isNaN(idx) || !currentHospital.names[idx]) {
+            if (isNaN(idx) || !currentHospital.names[idx]) {
                 showToast('بيانات غير صحيحة', 'error');
                 return;
             }
 
+            // 1. Mandatory Name Validation
+            const cleanName = name.replace(/^(د|dr)[\.\s\:\/]+/gi, '').trim();
+            if (!name || cleanName.length < 2) {
+                showToast('الرجاء إدخال اسم المقيم بشكل صحيح (حقل إلزامي)', 'error');
+                nameInput?.focus();
+                return;
+            }
+
+            // 2. Mandatory Mobile Number Validation
+            if (!phone) {
+                showToast('الرجاء إدخال رقم هاتف المقيم (حقل إلزامي)', 'error');
+                phoneInput?.focus();
+                return;
+            }
+            const formattedPhone = formatIraqiPhoneNumber(phone);
+            const phoneDigits = formattedPhone.replace(/\D/g, '');
+            if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+                showToast('الرجاء إدخال رقم هاتف صحيح (10 أرقام على الأقل)', 'error');
+                phoneInput?.focus();
+                return;
+            }
+
+            // 3. Hospitals Assignment Validation
             let assignedHospitals = [];
             if (isMulti) {
                 document.querySelectorAll('input[name="edit-res-hosp-cb"]:checked').forEach(cb => {
@@ -2041,15 +2093,14 @@
                     return;
                 }
             } else {
-                const singleHid = document.getElementById('edit-res-hospital-single').value || Hub.getActiveHospitalId();
+                const singleHid = document.getElementById('edit-res-hospital-single')?.value || Hub.getActiveHospitalId();
                 assignedHospitals = [singleHid];
             }
 
             const oldName = currentHospital.names[idx].name;
             const formattedName = formatDoctorName(name);
-            const formattedPhone = formatIraqiPhoneNumber(phone);
 
-            // Close modal immediately on save
+            // Close modal only after all validations pass
             closeEditModal();
 
             try {

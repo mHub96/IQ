@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T10:44:52.294Z",
+  "lastUpdated": "2026-09-30T10:46:19.054Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -2884,19 +2884,6 @@
           "tag": "NS",
           "dept": "NS",
           "department": "NS",
-          "active": true,
-          "hospitals": [
-            "iraqi"
-          ]
-        },
-        {
-          "id": "res-munzashyeq9r",
-          "name": "د. زهراء غانم",
-          "phone": "+9647831889389",
-          "spec": "ON",
-          "tag": "ON",
-          "dept": "ON",
-          "department": "ON",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -32770,6 +32757,86 @@
           "name": "د. منتظر حميد",
           "timestamp": "08:54",
           "VisitCount": 1
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "GS",
+          "name": "د. علي حسين عبدالرضا",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "GS",
+          "name": "د. علي قاسم عبدالله",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "GS",
+          "name": "د. علي احمد محسن",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "04/10/2026",
+          "specCode": "GS",
+          "name": "د. مصطفى محمد علي الديوان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "GS",
+          "name": "د. غدير ابراهيم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/10/2026",
+          "specCode": "GS",
+          "name": "د. علي حسين عبدالرضا",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "07/10/2026",
+          "specCode": "GS",
+          "name": "د. غدير ابراهيم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "GS",
+          "name": "د. علي قاسم عبدالله",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "09/10/2026",
+          "specCode": "GS",
+          "name": "د. حسنين فلاح مهدي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "GS",
+          "name": "د. مصطفى كامل علي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
         }
       ],
       "rotationHeroesUrl": "",
@@ -44025,19 +44092,6 @@
       "tag": "NS",
       "dept": "NS",
       "department": "NS",
-      "active": true,
-      "hospitals": [
-        "iraqi"
-      ]
-    },
-    {
-      "id": "res-munzashyeq9r",
-      "name": "د. زهراء غانم",
-      "phone": "+9647831889389",
-      "spec": "ON",
-      "tag": "ON",
-      "dept": "ON",
-      "department": "ON",
       "active": true,
       "hospitals": [
         "iraqi"

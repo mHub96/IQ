@@ -902,18 +902,98 @@
         return exchangeDuty(hospitalId, specCode, residentName, targetDate, oldResidentName);
     }
 
-    async function incrementVisitCount(hospitalId, residentName) {
-        const hospital = getHospital(hospitalId);
-        if (!hospital) return false;
+    async function incrementVisitCount(hospitalId, residentName, specCode = null, sourceHospitalId = null) {
+        let hospital = getHospital(hospitalId);
+        if (!hospital && !sourceHospitalId) return 0;
 
         const today = getMedicalDate();
-        const entry = (hospital.schedule || []).find(s => s.date === today && s.name === residentName);
-        if (entry) {
-            entry.VisitCount = (entry.VisitCount || 0) + 1;
-            // Debounced save
-            debounceSave(`Interaction: ${residentName} in ${hospital.hospitalName}`);
-            return entry.VisitCount;
+
+        function namesMatch(n1, n2) {
+            if (!n1 || !n2) return false;
+            if (n1 === n2) return true;
+            const clean = s => String(s || '').replace(/^(د\.|د|dr\.|dr|mr\.|mr|ms\.|ms|أ\.|أ|م\.|م|ص\.|ص)[\s\:\/]+/gi, '').trim().replace(/\s+/g, ' ');
+            return clean(n1) === clean(n2);
         }
+
+        function datesMatch(d1, d2) {
+            if (!d1 || !d2) return false;
+            if (d1 === d2) return true;
+            return normalizeDateString(d1) === normalizeDateString(d2);
+        }
+
+        // 1. If explicit sourceHospitalId is provided (mirrored card)
+        if (sourceHospitalId && sourceHospitalId !== hospitalId) {
+            const srcHosp = getHospital(sourceHospitalId);
+            if (srcHosp) {
+                const entry = (srcHosp.schedule || []).find(s => datesMatch(s.date, today) && namesMatch(s.name, residentName));
+                if (entry) {
+                    entry.VisitCount = (entry.VisitCount || 0) + 1;
+                    debounceSave(`Interaction: ${residentName} in ${srcHosp.name_ar || srcHosp.hospitalName || sourceHospitalId}`);
+                    return entry.VisitCount;
+                }
+            }
+        }
+
+        // 2. Check if specCode in current hospital is a clone
+        if (hospital && specCode) {
+            const specObj = (hospital.specialties || []).find(s => s.id === specCode);
+            if (specObj && specObj.isClone && specObj.clonedFromHospitalId) {
+                const srcHosp = getHospital(specObj.clonedFromHospitalId);
+                if (srcHosp) {
+                    const targetSpec = specObj.clonedFromSpecId || specCode;
+                    const entry = (srcHosp.schedule || []).find(s => datesMatch(s.date, today) && namesMatch(s.name, residentName) && (!targetSpec || s.specCode === targetSpec))
+                               || (srcHosp.schedule || []).find(s => datesMatch(s.date, today) && namesMatch(s.name, residentName));
+                    if (entry) {
+                        entry.VisitCount = (entry.VisitCount || 0) + 1;
+                        debounceSave(`Interaction: ${residentName} in ${srcHosp.name_ar || srcHosp.hospitalName || specObj.clonedFromHospitalId}`);
+                        return entry.VisitCount;
+                    }
+                }
+            }
+        }
+
+        // 3. Search in current hospital's schedule
+        if (hospital) {
+            let entry = null;
+            if (specCode) {
+                entry = (hospital.schedule || []).find(s => datesMatch(s.date, today) && namesMatch(s.name, residentName) && s.specCode === specCode);
+            }
+            if (!entry) {
+                entry = (hospital.schedule || []).find(s => datesMatch(s.date, today) && namesMatch(s.name, residentName));
+            }
+            if (entry) {
+                entry.VisitCount = (entry.VisitCount || 0) + 1;
+                debounceSave(`Interaction: ${residentName} in ${hospital.name_ar || hospital.hospitalName}`);
+                return entry.VisitCount;
+            }
+
+            // 4. Check all clone specialties in this hospital
+            const cloneSpecs = (hospital.specialties || []).filter(s => s && s.isClone && s.clonedFromHospitalId);
+            for (const cs of cloneSpecs) {
+                const srcHosp = getHospital(cs.clonedFromHospitalId);
+                if (srcHosp) {
+                    const clonedEntry = (srcHosp.schedule || []).find(s => datesMatch(s.date, today) && namesMatch(s.name, residentName) && (!cs.clonedFromSpecId || s.specCode === cs.clonedFromSpecId))
+                                     || (srcHosp.schedule || []).find(s => datesMatch(s.date, today) && namesMatch(s.name, residentName));
+                    if (clonedEntry) {
+                        clonedEntry.VisitCount = (clonedEntry.VisitCount || 0) + 1;
+                        debounceSave(`Interaction: ${residentName} in ${srcHosp.name_ar || srcHosp.hospitalName || cs.clonedFromHospitalId}`);
+                        return clonedEntry.VisitCount;
+                    }
+                }
+            }
+        }
+
+        // 5. Ultimate fallback: Check ALL hospitals for this resident on duty today
+        const allHospitals = getHospitals() || [];
+        for (const h of allHospitals) {
+            const entry = (h.schedule || []).find(s => datesMatch(s.date, today) && namesMatch(s.name, residentName));
+            if (entry) {
+                entry.VisitCount = (entry.VisitCount || 0) + 1;
+                debounceSave(`Interaction: ${residentName} in ${h.name_ar || h.hospitalName}`);
+                return entry.VisitCount;
+            }
+        }
+
         return 0;
     }
 

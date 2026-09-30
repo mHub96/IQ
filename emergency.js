@@ -435,12 +435,163 @@
     }
 
     // =========================================================================
+    // OWNER AUTHENTICATION & ACCESS GUARD
+    // =========================================================================
+
+    function checkOwnerAccessOnLaunch() {
+        const isOwner = window.Hub && window.Hub.auth && window.Hub.auth.isOwner();
+        if (isOwner) {
+            unlockOwnerAuthGate();
+            return true;
+        } else {
+            showOwnerAuthGate();
+            return false;
+        }
+    }
+
+    function showOwnerAuthGate(errorMsg = null) {
+        document.body.classList.add('er-locked');
+        const guard = document.getElementById('er-auth-guard');
+        if (guard) {
+            guard.style.display = 'flex';
+        }
+        const input = document.getElementById('er-owner-pass-input');
+        if (input) {
+            input.value = '';
+            setTimeout(() => input.focus(), 150);
+        }
+        if (errorMsg) {
+            showAuthError(errorMsg);
+        } else {
+            hideAuthError();
+        }
+    }
+
+    function unlockOwnerAuthGate() {
+        document.body.classList.remove('er-locked');
+        const guard = document.getElementById('er-auth-guard');
+        if (guard) {
+            guard.style.display = 'none';
+        }
+    }
+
+    function showAuthError(msg) {
+        const errBox = document.getElementById('er-auth-error-msg');
+        const errText = document.getElementById('er-auth-error-text');
+        if (errBox && errText) {
+            errText.textContent = msg;
+            errBox.classList.remove('hidden');
+        }
+    }
+
+    function hideAuthError() {
+        const errBox = document.getElementById('er-auth-error-msg');
+        if (errBox) {
+            errBox.classList.add('hidden');
+        }
+    }
+
+    window.toggleErOwnerPassVisibility = function() {
+        const input = document.getElementById('er-owner-pass-input');
+        const eye = document.getElementById('er-owner-pass-eye');
+        if (!input || !eye) return;
+        if (input.type === 'password') {
+            input.type = 'text';
+            eye.classList.remove('fa-eye');
+            eye.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            eye.classList.remove('fa-eye-slash');
+            eye.classList.add('fa-eye');
+        }
+    };
+
+    window.submitOwnerAuth = async function() {
+        hideAuthError();
+        const input = document.getElementById('er-owner-pass-input');
+        const submitBtn = document.getElementById('er-owner-submit-btn');
+        const pwd = (input?.value || '').trim();
+        if (!pwd) {
+            showAuthError('يرجى إدخال كلمة مرور المالك للمتابعة.');
+            input?.focus();
+            return;
+        }
+
+        const remember = document.getElementById('er-remember-owner-session')?.checked !== false;
+
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
+        }
+
+        try {
+            await ensureHubDatabaseLoaded();
+
+            // Verify with Hub.auth
+            let res = window.Hub && window.Hub.auth ? window.Hub.auth.verifyPassword(pwd, 'owner') : null;
+
+            // Strict Owner validation: MUST BE role === 'owner'
+            if (res && res.success && res.role === 'owner') {
+                if (window.Hub && window.Hub.auth) {
+                    window.Hub.auth.saveSession('owner', pwd, remember, ['*']);
+                }
+                unlockOwnerAuthGate();
+                await proceedEmergencyAppInit();
+            } else {
+                if (input) {
+                    input.classList.add('animate-shake', 'border-rose-500');
+                    setTimeout(() => input.classList.remove('animate-shake'), 600);
+                    input.focus();
+                    input.select();
+                }
+                if (res && res.success && res.role !== 'owner') {
+                    showAuthError('عذراً! كلمة المرور هذه خاصة برتبة أخرى. نظام الطوارئ مخصص للمالك حصراً.');
+                } else {
+                    showAuthError('كلمة مرور المالك غير صحيحة! يرجى التأكد وإعادة المحاولة.');
+                }
+            }
+        } catch (err) {
+            console.error('Owner auth error:', err);
+            showAuthError('حدث خطأ أثناء التحقق. يرجى المحاولة مرة أخرى.');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-unlock-keyhole"></i> <span>تأكيد والدخول للنظام</span>';
+            }
+        }
+    };
+
+    window.lockOwnerERAccess = function() {
+        if (confirm('هل أنت متأكد من قفل نظام خفارات الطوارئ وتسجيل الخروج؟')) {
+            if (window.Hub && window.Hub.auth) {
+                window.Hub.auth.logout();
+            }
+            window.location.replace('./index.html');
+        }
+    };
+
+    // =========================================================================
     // INITIALIZATION & STATE PERSISTENCE
     // =========================================================================
+
+    let isEmergencyAppInitialized = false;
 
     async function initEmergencyApp() {
         console.log('Initializing Emergency System V2...');
         await ensureHubDatabaseLoaded();
+
+        // STRICT OWNER ACCESS GUARD: NONE OTHER THAN THE OWNER HAS ACCESS TO THE ER WEBSITE!
+        if (!checkOwnerAccessOnLaunch()) {
+            console.warn('ER Website Access Restricted: Owner authentication required.');
+            return; // Halt completely until owner signs in!
+        }
+
+        await proceedEmergencyAppInit();
+    }
+
+    async function proceedEmergencyAppInit() {
+        if (isEmergencyAppInitialized) return;
+        isEmergencyAppInitialized = true;
 
         // 1. Load from localStorage if present
         const saved = localStorage.getItem(STATE_KEY);

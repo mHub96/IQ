@@ -161,9 +161,111 @@
                 page-break-inside: avoid !important;
             }
         }
+
+        /* OWNER LOCK GATE */
+        body.er-locked #main-emergency-app {
+            display: none !important;
+        }
+        @keyframes erShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+        .animate-shake {
+            animation: erShake 0.4s ease-in-out;
+        }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-full transition-colors duration-200">
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-full transition-colors duration-200 er-locked">
+
+    <!-- OWNER SECURITY GATE OVERLAY (Strict Protection: Owner Password Required) -->
+    <div id="er-auth-guard" class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl" style="display: flex;">
+        <div class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden text-right">
+            <!-- Decorative gradient backgrounds -->
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-rose-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-amber-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10">
+                <!-- Icon Emblem -->
+                <div class="flex items-center justify-center mb-5">
+                    <div class="relative">
+                        <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-rose-600 via-rose-500 to-amber-500 flex items-center justify-center text-white shadow-xl shadow-rose-500/30 text-3xl">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <div class="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-slate-900 border-2 border-white dark:border-slate-800 flex items-center justify-center text-amber-400 text-xs shadow-md">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Title & Security Notice -->
+                <div class="text-center mb-6">
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 mb-2">
+                        <i class="fas fa-shield-halved"></i>
+                        <span>منطقة المالك حصراً · Owner Access Only</span>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-1.5">
+                        نظام خفارات الطوارئ
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm mx-auto">
+                        هذا النظام مشفر ومخصص لمالك التطبيق (Owner) فقط. لا يُسمح بالوصول عبر الرابط المباشر لغير المالك، يرجى إدخال كلمة مرور المالك للمتابعة.
+                    </p>
+                </div>
+
+                <!-- Password Submission Form -->
+                <form id="er-owner-auth-form" onsubmit="event.preventDefault(); submitOwnerAuth();" class="space-y-4">
+                    <div>
+                        <label for="er-owner-pass-input" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                            كلمة مرور المالك:
+                        </label>
+                        <div class="relative">
+                            <input type="password" 
+                                   id="er-owner-pass-input" 
+                                   required 
+                                   autofocus
+                                   placeholder="أدخل كلمة مرور المالك..." 
+                                   class="w-full px-4 py-3 pl-11 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 text-sm font-sans transition" />
+                            <button type="button" 
+                                    onclick="toggleErOwnerPassVisibility()" 
+                                    class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+                                    title="إظهار / إخفاء كلمة المرور">
+                                <i id="er-owner-pass-eye" class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div id="er-auth-error-msg" class="hidden text-rose-500 dark:text-rose-400 text-xs font-bold mt-2 flex items-center gap-1.5">
+                            <i class="fas fa-triangle-exclamation"></i>
+                            <span id="er-auth-error-text"></span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-1">
+                        <label class="flex items-center gap-2 cursor-pointer select-none">
+                            <input type="checkbox" id="er-remember-owner-session" checked class="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-rose-600 focus:ring-rose-500 bg-slate-100 dark:bg-slate-800">
+                            <span>تذكر جلسة المالك على هذا الجهاز</span>
+                        </label>
+                    </div>
+
+                    <div class="pt-2 space-y-2">
+                        <button type="submit" 
+                                id="er-owner-submit-btn" 
+                                class="w-full py-3 px-4 rounded-2xl font-bold text-sm text-white bg-gradient-to-r from-rose-600 via-rose-500 to-amber-600 hover:from-rose-700 hover:to-amber-700 shadow-lg shadow-rose-500/25 active:scale-[0.98] transition flex items-center justify-center gap-2">
+                            <i class="fas fa-unlock-keyhole"></i>
+                            <span>تأكيد والدخول للنظام</span>
+                        </button>
+
+                        <a href="./index.html" 
+                           class="w-full py-2.5 px-4 rounded-2xl font-bold text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition flex items-center justify-center gap-2">
+                            <i class="fas fa-arrow-right"></i>
+                            <span>العودة إلى البوابة الرئيسية</span>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application Wrapper (Hidden until owner is authenticated) -->
+    <div id="main-emergency-app" class="min-h-full flex flex-col">
 
     <!-- Top Navigation Header -->
     <header class="sticky top-0 z-40 glass-panel border-b border-slate-200/80 dark:border-slate-800 shadow-xs no-print">
@@ -224,6 +326,17 @@
                     <i class="fas fa-print text-slate-600"></i>
                     <span class="hidden md:inline">طباعة رسمية A4</span>
                 </button>
+                <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
+                <div class="flex items-center gap-1.5">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/60 shadow-xs" title="أنت مسجل بصلاحية المالك الكاملة">
+                        <i class="fas fa-crown text-amber-500"></i>
+                        <span>المالك (Owner)</span>
+                    </span>
+                    <button type="button" onclick="lockOwnerERAccess()" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/50 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-700 transition" title="قفل نظام الطوارئ">
+                        <i class="fas fa-lock"></i>
+                        <span class="hidden md:inline">قفل</span>
+                    </button>
+                </div>
                 <button type="button" onclick="toggleDarkMode()" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="تبديل الوضع الليلي">
                     <i class="fas fa-moon dark:hidden"></i>
                     <i class="fas fa-sun hidden dark:inline"></i>
@@ -987,6 +1100,7 @@
             </div>
         </div>
     </div>
+    </div><!-- #main-emergency-app -->
 
     <!-- Scripts -->
     <script src="./hub-core.js"></script>

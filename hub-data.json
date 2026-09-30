@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:26:40.000Z",
+  "lastUpdated": "2026-09-30T18:26:44.779Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22054,6 +22054,18 @@
           "enabled": true
         },
         {
+          "id": "CT_iraqi",
+          "name_ar": "جراحة الصدر و الاوعية الدموية",
+          "name_en": "Cardiothoracic Surgery",
+          "icon": "🫀",
+          "prefix": "د. ",
+          "color": "#e05910",
+          "isClone": true,
+          "clonedFromHospitalId": "iraqi",
+          "clonedFromSpecId": "CT",
+          "enabled": true
+        },
+        {
           "id": "GS",
           "name_ar": "الجراحة العامة",
           "name_en": "General Surgery",
@@ -22356,18 +22368,6 @@
           "acceptPool": [],
           "enabled": true,
           "color": "#0f766e"
-        },
-        {
-          "id": "CT_iraqi",
-          "name_ar": "جراحة الصدر و الاوعية الدموية",
-          "name_en": "Cardiothoracic Surgery",
-          "icon": "🫀",
-          "prefix": "د. ",
-          "color": "#e05910",
-          "isClone": true,
-          "clonedFromHospitalId": "iraqi",
-          "clonedFromSpecId": "CT",
-          "enabled": true
         },
         {
           "id": "R_iraqi",

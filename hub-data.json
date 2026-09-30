@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T15:48:45.761Z",
+  "lastUpdated": "2026-09-30T15:54:09.882Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -36159,6 +36159,22 @@
           "date": "05/10/2026",
           "specCode": "US",
           "name": "د. حيدر علي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "REF",
+          "name": "د. زينب عبيد مطرود",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "REF",
+          "name": "د. امنه قحطان صالح",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

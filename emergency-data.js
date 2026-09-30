@@ -12,7 +12,7 @@ window.DEFAULT_EMERGENCY_DATA = {
   "rsEnabled": true,
   "rsStartDate": "2026-09-15",
   "rsEndDate": "2026-09-20",
-  "headOfResidents": "د. محمد راضي خضر",
+  "headOfResidents": "د. عادل ناصر",
   "hospitalDirector": "د. علي عبد معن",
   "residents": [
     {
@@ -20,12 +20,12 @@ window.DEFAULT_EMERGENCY_DATA = {
       "row": 4,
       "name": "د. عماد سمير عبدالرضا",
       "sex": "M",
-      "specialty": "Cardiothoracic",
+      "specialty": "Cardiothoracic Surgery",
       "board": "Arabic",
       "stage": "الثالثة",
-      "er_target": 2,
+      "er_target": 0,
       "con_target": 0,
-      "dc_target": 2,
+      "dc_target": 0,
       "rs_target": 0,
       "notes": "END OF SERIVE is on 30/09/2026",
       "active": true,
@@ -35,20 +35,19 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": [
+        "preNight"
+      ],
+      "noConsecutiveDays": true
     },
     {
       "id": "er_res_2",
       "row": 5,
       "name": "د. شهد كريم عبدالكاظم",
       "sex": "F",
-      "specialty": "Cardiothoracic",
+      "specialty": "Cardiothoracic Surgery",
       "board": "None",
-      "stage": "الثانية",
+      "stage": "2.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -61,21 +60,17 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_3",
       "row": 6,
       "name": "د. علي حسين عبدالرضا",
       "sex": "M",
-      "specialty": "Cardiothoracic",
+      "specialty": "Cardiothoracic Surgery",
       "board": "Arabic",
       "stage": "الثانية",
-      "er_target": 2,
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -87,23 +82,19 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_4",
       "row": 7,
       "name": "د. ايهاب عبدالكريم غالب",
       "sex": "M",
-      "specialty": "Cardiothoracic",
+      "specialty": "Cardiothoracic Surgery",
       "board": "None",
       "stage": "بدون",
-      "er_target": 3,
+      "er_target": 0,
       "con_target": 0,
-      "dc_target": 2,
+      "dc_target": 0,
       "rs_target": 0,
       "notes": "",
       "active": true,
@@ -113,20 +104,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_5",
       "row": 8,
       "name": "د. رامي مهند عبدالله",
       "sex": "M",
-      "specialty": "Cardiothoracic",
+      "specialty": "Cardiothoracic Surgery",
       "board": "None",
-      "stage": "بدون",
+      "stage": "",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -139,23 +126,19 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_6",
       "row": 9,
       "name": "د. علي عبدالرحمن عبدالصمد",
       "sex": "M",
-      "specialty": "Cardiothoracic",
+      "specialty": "Cardiothoracic Surgery",
       "board": "None",
       "stage": "بدون",
-      "er_target": 3,
+      "er_target": 0,
       "con_target": 0,
-      "dc_target": 2,
+      "dc_target": 0,
       "rs_target": 0,
       "notes": "HAS EXTRA ER",
       "active": true,
@@ -165,20 +148,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_7",
       "row": 10,
       "name": "د. حسين علي عاشور",
       "sex": "M",
-      "specialty": "Cardiothoracic",
+      "specialty": "Cardiothoracic Surgery",
       "board": "None",
-      "stage": "بدون",
+      "stage": "",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -191,22 +170,18 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_8",
       "row": 11,
       "name": "د. همام حبيب عبدالله",
       "sex": "M",
-      "specialty": "Cardiothoracic",
+      "specialty": "Cardiothoracic Surgery",
       "board": "None",
-      "stage": "بدون",
+      "stage": "0.0",
       "er_target": 0,
-      "con_target": 3,
+      "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
       "notes": "",
@@ -217,23 +192,19 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_9",
       "row": 12,
       "name": "د. حسين يحيى صبار",
       "sex": "M",
-      "specialty": "Cardiothoracic",
+      "specialty": "Cardiothoracic Surgery",
       "board": "None",
-      "stage": "بدون",
-      "er_target": 3,
+      "stage": "0.0",
+      "er_target": 0,
       "con_target": 0,
-      "dc_target": 2,
+      "dc_target": 0,
       "rs_target": 0,
       "notes": "",
       "active": true,
@@ -243,23 +214,19 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_10",
       "row": 13,
       "name": "د. منتظر صفاء ماجد",
       "sex": "M",
-      "specialty": "Cardiothoracic",
+      "specialty": "Cardiothoracic Surgery",
       "board": "None",
-      "stage": "بدون",
-      "er_target": 3,
+      "stage": "0.0",
+      "er_target": 0,
       "con_target": 0,
-      "dc_target": 2,
+      "dc_target": 0,
       "rs_target": 0,
       "notes": "",
       "active": true,
@@ -269,11 +236,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_11",
@@ -282,8 +245,8 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Dermatology",
       "board": "None",
-      "stage": "الثالثة",
-      "er_target": 2,
+      "stage": "3.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -295,11 +258,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_12",
@@ -308,11 +267,11 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Dermatology",
       "board": "None",
-      "stage": "الثالثة",
+      "stage": "3.0",
       "er_target": 0,
-      "con_target": 3,
+      "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -321,11 +280,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_13",
@@ -334,11 +289,11 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Dermatology",
       "board": "None",
-      "stage": "الثالثة",
+      "stage": "3.0",
       "er_target": 0,
-      "con_target": 2,
+      "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -347,11 +302,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_14",
@@ -360,11 +311,11 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Dermatology",
       "board": "None",
-      "stage": "الثالثة",
+      "stage": "3.0",
       "er_target": 0,
-      "con_target": 2,
+      "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -373,11 +324,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_15",
@@ -386,11 +333,11 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Dermatology",
       "board": "None",
-      "stage": "الثانية",
+      "stage": "2.0",
       "er_target": 0,
-      "con_target": 3,
+      "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -399,11 +346,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_16",
@@ -412,11 +355,11 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Dermatology",
       "board": "None",
-      "stage": "الثانية",
+      "stage": "2.0",
       "er_target": 0,
-      "con_target": 3,
+      "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -425,11 +368,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_17",
@@ -438,11 +377,11 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Dermatology",
       "board": "None",
-      "stage": "الثانية",
+      "stage": "2.0",
       "er_target": 0,
-      "con_target": 3,
+      "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -451,11 +390,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_18",
@@ -464,7 +399,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "ENT",
       "board": "Arabic",
-      "stage": "الأولى",
+      "stage": "1.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -477,24 +412,20 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_19",
       "row": 22,
       "name": "د. زهراء احمد عبدالكاظم",
       "sex": "F",
-      "specialty": "Emergency",
+      "specialty": "Emergency Medicine",
       "board": "None",
-      "stage": "بدون",
-      "er_target": 8,
+      "stage": "-",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -503,11 +434,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_20",
@@ -516,7 +443,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "ENT",
       "board": "Arabic",
-      "stage": "الثانية",
+      "stage": "2.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -529,11 +456,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_21",
@@ -542,7 +465,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "ENT",
       "board": "None",
-      "stage": "الثانية",
+      "stage": "2.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -555,11 +478,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_22",
@@ -568,7 +487,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "ENT",
       "board": "None",
-      "stage": "الثانية",
+      "stage": "2.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -581,11 +500,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_23",
@@ -594,7 +509,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "ENT",
       "board": "None",
-      "stage": "الثانية",
+      "stage": "2.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -607,11 +522,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_24",
@@ -620,7 +531,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "ENT",
       "board": "Arabic",
-      "stage": "الرابعة",
+      "stage": "4.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -633,11 +544,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_25",
@@ -646,8 +553,8 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "ENT",
       "board": "Arabic",
-      "stage": "الثالثة",
-      "er_target": 1,
+      "stage": "3.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -659,11 +566,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_26",
@@ -672,7 +575,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "ENT",
       "board": "Arabic",
-      "stage": "الثانية",
+      "stage": "2.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -685,11 +588,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_27",
@@ -698,8 +597,8 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Family Medicine",
       "board": "Iraqi",
-      "stage": "الثانية",
-      "er_target": 4,
+      "stage": "2.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -711,11 +610,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_28",
@@ -724,7 +619,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Family Medicine",
       "board": "None",
-      "stage": "بدون",
+      "stage": "0.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -737,11 +632,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_29",
@@ -750,9 +641,9 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Family Medicine",
       "board": "None",
-      "stage": "بدون",
-      "er_target": 4,
-      "con_target": 2,
+      "stage": "0.0",
+      "er_target": 0,
+      "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
       "notes": "",
@@ -763,11 +654,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_30",
@@ -776,7 +663,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Family Medicine",
       "board": "None",
-      "stage": "بدون",
+      "stage": "0.0",
       "er_target": 0,
       "con_target": 4,
       "dc_target": 0,
@@ -788,22 +675,21 @@ window.DEFAULT_EMERGENCY_DATA = {
       ],
       "phone": "",
       "expiryMonth": "",
-      "prefDays": [],
+      "prefDays": [
+        "الجمعة"
+      ],
       "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "noConsecutiveDays": true
     },
     {
       "id": "er_res_31",
       "row": 34,
       "name": "د. الحسين جاسب فاخر",
       "sex": "M",
-      "specialty": "General surgery",
+      "specialty": "General Surgery",
       "board": "Iraqi",
-      "stage": "الرابعة",
-      "er_target": 1,
+      "stage": "4.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -815,21 +701,17 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_32",
       "row": 35,
       "name": "د. محمد هاشم خضير",
       "sex": "M",
-      "specialty": "General surgery",
+      "specialty": "General Surgery",
       "board": "Arabic",
-      "stage": "الرابعة",
-      "er_target": 1,
+      "stage": "4.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -841,21 +723,17 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_33",
       "row": 36,
       "name": "د. فاطمة فاضل كاظم",
       "sex": "F",
-      "specialty": "General surgery",
+      "specialty": "General Surgery",
       "board": "Iraqi",
-      "stage": "الثالثة",
-      "er_target": 1,
+      "stage": "3.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -867,21 +745,17 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_34",
       "row": 37,
       "name": "د. كرار علي زغير",
       "sex": "M",
-      "specialty": "General surgery",
+      "specialty": "General Surgery",
       "board": "Iraqi",
-      "stage": "الثالثة",
-      "er_target": 1,
+      "stage": "3.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -893,21 +767,17 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_35",
       "row": 38,
       "name": "د. نجم هدو راضي",
       "sex": "M",
-      "specialty": "General surgery",
+      "specialty": "General Surgery",
       "board": "Arabic",
-      "stage": "الثالثة",
-      "er_target": 1,
+      "stage": "3.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -919,21 +789,17 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_36",
       "row": 39,
       "name": "د. براء حسن عبدالهادي",
       "sex": "F",
-      "specialty": "General surgery",
+      "specialty": "General Surgery",
       "board": "Arabic",
-      "stage": "الثانية",
-      "er_target": 2,
+      "stage": "2.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -945,21 +811,17 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_37",
       "row": 40,
       "name": "د. علي جميل حنتوش",
       "sex": "M",
-      "specialty": "General surgery",
+      "specialty": "General Surgery",
       "board": "Arabic",
-      "stage": "الثانية",
-      "er_target": 2,
+      "stage": "2.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -971,20 +833,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_38",
       "row": 41,
       "name": "د. خالد ابراهيم عبدالقادر",
       "sex": "M",
-      "specialty": "General surgery",
+      "specialty": "General Surgery",
       "board": "Arabic",
-      "stage": "الثانية",
+      "stage": "2.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -997,11 +855,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_39",
@@ -1010,8 +864,8 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "General Surgery",
       "board": "Arabic",
-      "stage": "الثانية",
-      "er_target": 2,
+      "stage": "2.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -1023,23 +877,19 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_40",
       "row": 43,
       "name": "د. احمد الراوي",
       "sex": "M",
-      "specialty": "General surgery",
+      "specialty": "General Surgery",
       "board": "None",
-      "stage": "الأولى",
-      "er_target": 2,
+      "stage": "1.0",
+      "er_target": 6,
       "con_target": 0,
-      "dc_target": 2,
+      "dc_target": 0,
       "rs_target": 0,
       "notes": "",
       "active": true,
@@ -1050,22 +900,19 @@ window.DEFAULT_EMERGENCY_DATA = {
       "expiryMonth": "",
       "prefDays": [],
       "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "noConsecutiveDays": true
     },
     {
       "id": "er_res_41",
       "row": 44,
       "name": "د. احمد حارث عبدالمحسن",
       "sex": "M",
-      "specialty": "General surgery",
+      "specialty": "General Surgery",
       "board": "Arabic",
-      "stage": "الأولى",
-      "er_target": 2,
+      "stage": "1.0",
+      "er_target": 6,
       "con_target": 0,
-      "dc_target": 2,
+      "dc_target": 0,
       "rs_target": 0,
       "notes": "",
       "active": true,
@@ -1076,19 +923,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "expiryMonth": "",
       "prefDays": [],
       "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "noConsecutiveDays": true
     },
     {
       "id": "er_res_42",
       "row": 45,
       "name": "د. رافع احمد عاشور",
       "sex": "M",
-      "specialty": "General surgery",
+      "specialty": "General Surgery",
       "board": "Arabic",
-      "stage": "الأولى",
+      "stage": "1.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -1101,20 +945,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_43",
       "row": 46,
       "name": "د. محمد حيدر باقر",
       "sex": "M",
-      "specialty": "General surgery",
+      "specialty": "General Surgery",
       "board": "None",
-      "stage": "الأولى",
+      "stage": "1.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -1127,20 +967,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_44",
       "row": 47,
       "name": "د. محمد فتحي عبدالرزاق",
       "sex": "M",
-      "specialty": "General surgery",
+      "specialty": "General Surgery",
       "board": "None",
-      "stage": "الأولى",
+      "stage": "1.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -1153,20 +989,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_45",
       "row": 48,
       "name": "د. سعيد جندي لهمود",
       "sex": "M",
-      "specialty": "General surgery",
+      "specialty": "General Surgery",
       "board": "None",
-      "stage": "الأولى",
+      "stage": "1.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -1179,24 +1011,20 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_46",
       "row": 49,
       "name": "د. هبة سعدون مجبل",
       "sex": "F",
-      "specialty": "GP",
+      "specialty": "General Practitioner",
       "board": "None",
-      "stage": "بدون",
-      "er_target": 2,
+      "stage": "0.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -1205,24 +1033,20 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_47",
       "row": 50,
       "name": "د. وفاء عبدالعال جدوع",
       "sex": "F",
-      "specialty": "GP",
+      "specialty": "General Practitioner",
       "board": "None",
-      "stage": "بدون",
-      "er_target": 2,
+      "stage": "0.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -1231,22 +1055,18 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_48",
       "row": 51,
       "name": "د. منى عبدالباري",
       "sex": "F",
-      "specialty": "GP",
+      "specialty": "General Practitioner",
       "board": "None",
-      "stage": "بدون",
+      "stage": "0.0",
       "er_target": 0,
-      "con_target": 3,
+      "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
       "notes": "",
@@ -1257,22 +1077,18 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_49",
       "row": 52,
       "name": "د. احمد ناصرقاسم",
       "sex": "M",
-      "specialty": "GP",
+      "specialty": "General Practitioner",
       "board": "None",
-      "stage": "بدون",
+      "stage": "0.0",
       "er_target": 0,
-      "con_target": 2,
+      "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
       "notes": "",
@@ -1283,11 +1099,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_50",
@@ -1296,8 +1108,8 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Haematology",
       "board": "Arabic",
-      "stage": "الثانية",
-      "er_target": 2,
+      "stage": "2.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -1309,11 +1121,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_51",
@@ -1322,8 +1130,8 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Internal Medicine",
       "board": "None",
-      "stage": "الثانية",
-      "er_target": 2,
+      "stage": "2.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -1335,11 +1143,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_52",
@@ -1348,8 +1152,8 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Internal Medicine",
       "board": "Iraqi",
-      "stage": "الأولى",
-      "er_target": 2,
+      "stage": "1.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -1361,11 +1165,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_53",
@@ -1374,7 +1174,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Internal Medicine",
       "board": "None",
-      "stage": "بدون",
+      "stage": "0.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -1387,11 +1187,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_54",
@@ -1400,11 +1196,11 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Internal Medicine",
       "board": "Iraqi",
-      "stage": "الأولى",
-      "er_target": 1,
+      "stage": "1.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
+      "rs_target": 0,
       "notes": "In another hospital",
       "active": true,
       "hospitals": [
@@ -1413,11 +1209,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_55",
@@ -1426,7 +1218,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Neurosurgery",
       "board": "Arabic",
-      "stage": "الرابعة",
+      "stage": "4.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -1439,11 +1231,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_56",
@@ -1452,8 +1240,8 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Neurosurgery",
       "board": "Arabic",
-      "stage": "الرابعة",
-      "er_target": 1,
+      "stage": "4.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -1465,11 +1253,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_57",
@@ -1478,7 +1262,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Neurosurgery",
       "board": "Arabic",
-      "stage": "الرابعة",
+      "stage": "4.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -1491,11 +1275,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_58",
@@ -1504,8 +1284,8 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Neurosurgery",
       "board": "Arabic",
-      "stage": "الرابعة",
-      "er_target": 1,
+      "stage": "4.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -1517,11 +1297,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_59",
@@ -1530,10 +1306,10 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Neurosurgery",
       "board": "Iraqi",
-      "stage": "الثالثة",
-      "er_target": 1,
+      "stage": "3.0",
+      "er_target": 0,
       "con_target": 0,
-      "dc_target": 2,
+      "dc_target": 0,
       "rs_target": 0,
       "notes": "",
       "active": true,
@@ -1543,11 +1319,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_60",
@@ -1556,10 +1328,10 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Neurosurgery",
       "board": "Iraqi",
-      "stage": "الثالثة",
-      "er_target": 1,
+      "stage": "3.0",
+      "er_target": 0,
       "con_target": 0,
-      "dc_target": 2,
+      "dc_target": 0,
       "rs_target": 0,
       "notes": "",
       "active": true,
@@ -1569,11 +1341,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_61",
@@ -1582,7 +1350,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Neurosurgery",
       "board": "Arabic",
-      "stage": "الثالثة",
+      "stage": "3.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -1595,11 +1363,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_62",
@@ -1608,7 +1372,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Neurosurgery",
       "board": "Arabic",
-      "stage": "الثانية",
+      "stage": "2.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -1621,11 +1385,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_63",
@@ -1634,7 +1394,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Neurosurgery",
       "board": "Iraqi",
-      "stage": "الثانية",
+      "stage": "2.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -1647,11 +1407,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_64",
@@ -1660,11 +1416,11 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Neurosurgery",
       "board": "Iraqi",
-      "stage": "الثانية",
-      "er_target": 2,
+      "stage": "2.0",
+      "er_target": 0,
       "con_target": 0,
-      "dc_target": 2,
-      "rs_target": 1,
+      "dc_target": 0,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -1673,11 +1429,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_65",
@@ -1686,10 +1438,10 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Neurosurgery",
       "board": "Arabic",
-      "stage": "الثانية",
-      "er_target": 2,
+      "stage": "2.0",
+      "er_target": 0,
       "con_target": 0,
-      "dc_target": 2,
+      "dc_target": 0,
       "rs_target": 0,
       "notes": "",
       "active": true,
@@ -1699,11 +1451,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_66",
@@ -1712,11 +1460,11 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Neurosurgery",
       "board": "Iraqi",
-      "stage": "الأولى",
-      "er_target": 2,
+      "stage": "1.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -1725,11 +1473,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_67",
@@ -1738,8 +1482,8 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Oncology",
       "board": "None",
-      "stage": "الرابعة",
-      "er_target": 1,
+      "stage": "4.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -1751,11 +1495,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_68",
@@ -1764,7 +1504,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Oncology",
       "board": "None",
-      "stage": "بدون",
+      "stage": "0.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -1777,11 +1517,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_69",
@@ -1790,8 +1526,8 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Oncology",
       "board": "Arabic",
-      "stage": "الرابعة",
-      "er_target": 1,
+      "stage": "4.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -1803,11 +1539,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_70",
@@ -1816,8 +1548,8 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Oncology",
       "board": "None",
-      "stage": "بدون",
-      "er_target": 3,
+      "stage": "0.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -1829,20 +1561,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_71",
       "row": 74,
       "name": "د. هبة اياد طارق",
       "sex": "F",
-      "specialty": "Plastic surgery",
+      "specialty": "Plastic Surgery",
       "board": "Arabic",
-      "stage": "الثالثة",
+      "stage": "3.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -1855,11 +1583,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_72",
@@ -1868,8 +1592,8 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Oncology",
       "board": "None",
-      "stage": "بدون",
-      "er_target": 3,
+      "stage": "0.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -1881,21 +1605,17 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_73",
       "row": 76,
       "name": "د. حنين علي عبدالصمد",
       "sex": "F",
-      "specialty": "GP",
+      "specialty": "General Practitioner",
       "board": "None",
-      "stage": "بدون",
-      "er_target": 2,
+      "stage": "0.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -1907,20 +1627,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_74",
       "row": 77,
       "name": "د. علي ياسين محمد",
       "sex": "M",
-      "specialty": "Cardiothoracic",
+      "specialty": "Cardiothoracic Surgery",
       "board": "Iraqi",
-      "stage": "الثالثة",
+      "stage": "3.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -1933,20 +1649,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_75",
       "row": 78,
       "name": "د. عبدالحليم حسن موسى",
       "sex": "M",
-      "specialty": "Cardiothoracic",
+      "specialty": "Cardiothoracic Surgery",
       "board": "Iraqi",
-      "stage": "الثانية",
+      "stage": "2.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -1959,11 +1671,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_76",
@@ -1972,11 +1680,11 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Oncology",
       "board": "None",
-      "stage": "بدون",
-      "er_target": 3,
+      "stage": "0.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -1985,11 +1693,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_77",
@@ -1998,7 +1702,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Family Medicine",
       "board": "None",
-      "stage": "بدون",
+      "stage": "-",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2011,11 +1715,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_78",
@@ -2024,7 +1724,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Family Medicine",
       "board": "None",
-      "stage": "بدون",
+      "stage": "-",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2037,11 +1737,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_79",
@@ -2050,7 +1746,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Family Medicine",
       "board": "Iraqi",
-      "stage": "الثانية",
+      "stage": "2.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2063,11 +1759,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_80",
@@ -2076,7 +1768,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "General Surgery",
       "board": "Arabic",
-      "stage": "الثالثة",
+      "stage": "3.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2089,20 +1781,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_81",
       "row": 84,
       "name": "د. فهد يوسف عبدالله",
       "sex": "M",
-      "specialty": "General surgery",
+      "specialty": "General Surgery",
       "board": "Arabic",
-      "stage": "الثالثة",
+      "stage": "3.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2115,20 +1803,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_82",
       "row": 85,
       "name": "د. حسنين فيصل",
       "sex": "M",
-      "specialty": "General surgery",
+      "specialty": "General Surgery",
       "board": "Arabic",
-      "stage": "الثالثة",
+      "stage": "3.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2141,20 +1825,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_83",
       "row": 86,
       "name": "د. دعاء كريم",
       "sex": "F",
-      "specialty": "General surgery",
+      "specialty": "General Surgery",
       "board": "None",
-      "stage": "الثالثة",
+      "stage": "3.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2167,20 +1847,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_84",
       "row": 87,
       "name": "د. ماهر محمود عبدالله",
       "sex": "M",
-      "specialty": "General surgery",
+      "specialty": "General Surgery",
       "board": "Arabic",
-      "stage": "الثالثة",
+      "stage": "3.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2193,11 +1869,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_85",
@@ -2206,7 +1878,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "General Surgery",
       "board": "Arabic",
-      "stage": "الثالثة",
+      "stage": "3.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2219,11 +1891,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_86",
@@ -2232,8 +1900,8 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Oncology",
       "board": "None",
-      "stage": "بدون",
-      "er_target": 3,
+      "stage": "0.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -2245,11 +1913,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_87",
@@ -2258,7 +1922,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "General Surgery",
       "board": "None",
-      "stage": "بدون",
+      "stage": "",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2271,20 +1935,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_88",
       "row": 91,
       "name": "د. قنوت حيدر كاظم",
       "sex": "F",
-      "specialty": "General surgery",
+      "specialty": "General Surgery",
       "board": "Arabic",
-      "stage": "بدون",
+      "stage": "",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2297,11 +1957,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_89",
@@ -2310,7 +1966,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Internal Medicine",
       "board": "None",
-      "stage": "الثالثة",
+      "stage": "3.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2323,11 +1979,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_90",
@@ -2336,7 +1988,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Internal Medicine",
       "board": "None",
-      "stage": "الثالثة",
+      "stage": "3.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2349,20 +2001,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_91",
       "row": 94,
       "name": "د. دعاء نبيل عبدالجليل",
       "sex": "F",
-      "specialty": "Internal medicine",
+      "specialty": "Internal Medicine",
       "board": "None",
-      "stage": "الثانية",
+      "stage": "2.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2375,20 +2023,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_92",
       "row": 95,
       "name": "د. احرار غانم نوري",
       "sex": "F",
-      "specialty": "Internal medicine",
+      "specialty": "Internal Medicine",
       "board": "None",
-      "stage": "الثانية",
+      "stage": "2.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2401,11 +2045,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_93",
@@ -2414,7 +2054,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Internal Medicine",
       "board": "Iraqi",
-      "stage": "الثانية",
+      "stage": "2.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2427,11 +2067,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_94",
@@ -2440,7 +2076,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Internal Medicine",
       "board": "None",
-      "stage": "الأولى",
+      "stage": "1.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2453,11 +2089,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_95",
@@ -2466,7 +2098,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Internal Medicine",
       "board": "None",
-      "stage": "الأولى",
+      "stage": "1.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2479,11 +2111,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_96",
@@ -2492,7 +2120,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Internal Medicine",
       "board": "None",
-      "stage": "الأولى",
+      "stage": "1.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2505,11 +2133,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_97",
@@ -2518,7 +2142,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Internal Medicine",
       "board": "None",
-      "stage": "بدون",
+      "stage": "",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2531,11 +2155,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_98",
@@ -2544,7 +2164,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Internal Medicine",
       "board": "Arabic",
-      "stage": "بدون",
+      "stage": "",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2557,11 +2177,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_99",
@@ -2570,7 +2186,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Internal Medicine",
       "board": "None",
-      "stage": "بدون",
+      "stage": "",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2583,11 +2199,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_100",
@@ -2596,11 +2208,11 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Oncology",
       "board": "None",
-      "stage": "بدون",
-      "er_target": 3,
+      "stage": "0.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -2609,11 +2221,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_101",
@@ -2622,7 +2230,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Neurosurgery",
       "board": "Arabic",
-      "stage": "الثالثة",
+      "stage": "3.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2635,11 +2243,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_102",
@@ -2648,11 +2252,11 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Oncology",
       "board": "None",
-      "stage": "بدون",
-      "er_target": 3,
+      "stage": "0.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -2661,11 +2265,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_103",
@@ -2674,11 +2274,11 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Oncology",
       "board": "None",
-      "stage": "بدون",
-      "er_target": 3,
+      "stage": "0.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -2687,11 +2287,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_104",
@@ -2700,8 +2296,8 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Oncology",
       "board": "None",
-      "stage": "بدون",
-      "er_target": 4,
+      "stage": "0.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
       "rs_target": 0,
@@ -2713,11 +2309,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_105",
@@ -2726,7 +2318,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Neurosurgery",
       "board": "None",
-      "stage": "الأولى",
+      "stage": "1.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2739,11 +2331,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_106",
@@ -2752,7 +2340,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Neurosurgery",
       "board": "Arabic",
-      "stage": "الأولى",
+      "stage": "1.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2765,11 +2353,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_107",
@@ -2778,7 +2362,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Neurosurgery",
       "board": "Arabic",
-      "stage": "الأولى",
+      "stage": "1.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2791,11 +2375,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_108",
@@ -2804,11 +2384,11 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Oncology",
       "board": "Arabic",
-      "stage": "بدون",
-      "er_target": 3,
+      "stage": "",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -2817,11 +2397,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_109",
@@ -2830,7 +2406,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Neurosurgery",
       "board": "None",
-      "stage": "بدون",
+      "stage": "",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2843,11 +2419,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_110",
@@ -2856,7 +2428,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Oncology",
       "board": "None",
-      "stage": "بدون",
+      "stage": "-",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2869,11 +2441,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_111",
@@ -2882,7 +2450,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Oncology",
       "board": "Arabic",
-      "stage": "الثالثة",
+      "stage": "3.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2895,11 +2463,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_112",
@@ -2908,11 +2472,11 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Ophthalmology",
       "board": "None",
-      "stage": "بدون",
-      "er_target": 2,
+      "stage": "0.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -2921,11 +2485,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_113",
@@ -2934,11 +2494,11 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Ophthalmology",
       "board": "None",
-      "stage": "بدون",
-      "er_target": 2,
+      "stage": "0.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -2947,11 +2507,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_114",
@@ -2960,7 +2516,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Orthopaedics",
       "board": "None",
-      "stage": "بدون",
+      "stage": "-",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2973,11 +2529,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_115",
@@ -2986,7 +2538,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Orthopaedics",
       "board": "None",
-      "stage": "بدون",
+      "stage": "",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -2999,11 +2551,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_116",
@@ -3012,7 +2560,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Orthopaedics",
       "board": "None",
-      "stage": "بدون",
+      "stage": "",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -3025,11 +2573,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_117",
@@ -3038,7 +2582,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Orthopaedics",
       "board": "None",
-      "stage": "بدون",
+      "stage": "",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -3051,11 +2595,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_118",
@@ -3064,7 +2604,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Orthopaedics",
       "board": "None",
-      "stage": "بدون",
+      "stage": "",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -3077,11 +2617,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_119",
@@ -3090,7 +2626,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Orthopaedics",
       "board": "None",
-      "stage": "بدون",
+      "stage": "",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -3103,11 +2639,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_120",
@@ -3116,7 +2648,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Orthopaedics",
       "board": "None",
-      "stage": "بدون",
+      "stage": "",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -3129,20 +2661,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_121",
       "row": 124,
       "name": "د. نور خالد طارش",
       "sex": "F",
-      "specialty": "Plastic surgery",
+      "specialty": "Plastic Surgery",
       "board": "None",
-      "stage": "الثانية",
+      "stage": "2.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -3155,20 +2683,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_122",
       "row": 125,
       "name": "د. زهراء توفيق عبدالله",
       "sex": "F",
-      "specialty": "Plastic surgery",
+      "specialty": "Plastic Surgery",
       "board": "Arabic",
-      "stage": "بدون",
+      "stage": "",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -3181,20 +2705,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_123",
       "row": 126,
       "name": "د. غفران محمد خلف",
       "sex": "F",
-      "specialty": "Plastic surgery",
+      "specialty": "Plastic Surgery",
       "board": "Arabic",
-      "stage": "بدون",
+      "stage": "",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -3207,11 +2727,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_124",
@@ -3220,7 +2736,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Radiology",
       "board": "Arabic",
-      "stage": "الأولى",
+      "stage": "1.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -3233,11 +2749,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_125",
@@ -3246,7 +2758,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Radiology",
       "board": "Arabic",
-      "stage": "الأولى",
+      "stage": "1.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -3259,11 +2771,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_126",
@@ -3272,7 +2780,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Urosurgery",
       "board": "None",
-      "stage": "الخامسة",
+      "stage": "FINAL",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -3285,20 +2793,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_127",
       "row": 130,
       "name": "د. رسل منذر خليل",
       "sex": "F",
-      "specialty": "Plastic surgery",
+      "specialty": "Plastic Surgery",
       "board": "Arabic",
-      "stage": "الأولى",
+      "stage": "1.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -3311,20 +2815,16 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_128",
       "row": 131,
       "name": "د. هبة اياد طارق",
       "sex": "F",
-      "specialty": "Plastic surgery",
+      "specialty": "Plastic Surgery",
       "board": "Arabic",
-      "stage": "الأولى",
+      "stage": "1.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -3337,11 +2837,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_129",
@@ -3350,7 +2846,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Urosurgery",
       "board": "None",
-      "stage": "الثانية",
+      "stage": "2.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
@@ -3363,11 +2859,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_130",
@@ -3376,11 +2868,11 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Urosurgery",
       "board": "Arabic",
-      "stage": "الثانية",
-      "er_target": 2,
+      "stage": "2.0",
+      "er_target": 0,
       "con_target": 0,
-      "dc_target": 2,
-      "rs_target": 1,
+      "dc_target": 0,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -3389,11 +2881,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_131",
@@ -3402,10 +2890,10 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "M",
       "specialty": "Urosurgery",
       "board": "Arabic",
-      "stage": "الأولى",
-      "er_target": 2,
+      "stage": "1.0",
+      "er_target": 0,
       "con_target": 0,
-      "dc_target": 2,
+      "dc_target": 0,
       "rs_target": 0,
       "notes": "",
       "active": true,
@@ -3415,11 +2903,7 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
       "id": "er_res_132",
@@ -3428,88 +2912,10 @@ window.DEFAULT_EMERGENCY_DATA = {
       "sex": "F",
       "specialty": "Urosurgery",
       "board": "Arabic",
-      "stage": "الأولى",
-      "er_target": 2,
-      "con_target": 0,
-      "dc_target": 2,
-      "rs_target": 1,
-      "notes": "",
-      "active": true,
-      "hospitals": [
-        "iraqi"
-      ],
-      "phone": "",
-      "expiryMonth": "",
-      "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
-    },
-    {
-      "id": "er_res_133",
-      "row": 136,
-      "name": "د. علي عقيل عبد",
-      "sex": "M",
-      "specialty": "Urosurgery",
-      "board": "Arabic",
-      "stage": "الأولى",
-      "er_target": 2,
+      "stage": "1.0",
+      "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
-      "notes": "",
-      "active": true,
-      "hospitals": [
-        "iraqi"
-      ],
-      "phone": "",
-      "expiryMonth": "",
-      "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
-    },
-    {
-      "id": "er_res_134",
-      "row": 137,
-      "name": "د. علي صباح كاظم",
-      "sex": "M",
-      "specialty": "Urosurgery",
-      "board": "Arabic",
-      "stage": "الأولى",
-      "er_target": 2,
-      "con_target": 0,
-      "dc_target": 0,
-      "rs_target": 1,
-      "notes": "",
-      "active": true,
-      "hospitals": [
-        "iraqi"
-      ],
-      "phone": "",
-      "expiryMonth": "",
-      "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
-    },
-    {
-      "id": "er_res_135",
-      "row": 138,
-      "name": "د. عبدالله عبدالمجيد ماضي",
-      "sex": "M",
-      "specialty": "Urosurgery",
-      "board": "None",
-      "stage": "بدون",
-      "er_target": 3,
-      "con_target": 0,
-      "dc_target": 2,
       "rs_target": 0,
       "notes": "",
       "active": true,
@@ -3519,24 +2925,20 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
     },
     {
-      "id": "er_res_136",
-      "row": 139,
-      "name": "د. عادل ناصر",
+      "id": "er_res_133",
+      "row": 136,
+      "name": "د. علي عقيل عبد",
       "sex": "M",
-      "specialty": "Cardiothoracic",
+      "specialty": "Urosurgery",
       "board": "Arabic",
-      "stage": "الثانية",
+      "stage": "1.0",
       "er_target": 0,
       "con_target": 0,
       "dc_target": 0,
-      "rs_target": 1,
+      "rs_target": 0,
       "notes": "",
       "active": true,
       "hospitals": [
@@ -3545,11 +2947,73 @@ window.DEFAULT_EMERGENCY_DATA = {
       "phone": "",
       "expiryMonth": "",
       "prefDays": [],
-      "prefShifts": [],
-      "preferences": {
-        "prefDays": [],
-        "prefShifts": []
-      }
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_134",
+      "row": 137,
+      "name": "د. علي صباح كاظم",
+      "sex": "M",
+      "specialty": "Urosurgery",
+      "board": "Arabic",
+      "stage": "1.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_135",
+      "row": 138,
+      "name": "د. عبدالله عبدالمجيد ماضي",
+      "sex": "M",
+      "specialty": "Urosurgery",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_136",
+      "row": 139,
+      "name": "د. عادل ناصر",
+      "sex": "M",
+      "specialty": "Cardiothoracic Surgery",
+      "board": "Arabic",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
     }
   ],
   "schedules": {

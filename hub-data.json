@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:07:30.945Z",
+  "lastUpdated": "2026-09-30T18:07:39.782Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -248,6 +248,16 @@
           "enabled": true
         },
         {
+          "id": "REFE",
+          "name_ar": "الاحالات",
+          "name_en": "Referrals",
+          "icon": "🚑",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": false,
+          "color": "#0f766e"
+        },
+        {
           "id": "N",
           "name_ar": "طب امراض الكلى",
           "name_en": "Nephrology",
@@ -346,16 +356,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "REFE",
-          "name_ar": "الاحالات",
-          "name_en": "Referrals",
-          "icon": "🚑",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false,
-          "color": "#0f766e"
         }
       ],
       "names": [

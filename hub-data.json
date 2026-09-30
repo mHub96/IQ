@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T15:55:34.727Z",
+  "lastUpdated": "2026-09-30T15:56:16.407Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -26375,6 +26375,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-muoaf990lwmp",
+          "name": "د. مهدي أحمد مهدي",
+          "phone": "0780 121 8139",
+          "spec": "REF",
+          "tag": "REF",
+          "dept": "REF",
+          "department": "REF",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -48516,6 +48529,19 @@
       "id": "res-muoa5lj093l3",
       "name": "د. امنه قحطان صالح",
       "phone": "+964 773 005 3220",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-muoaf990lwmp",
+      "name": "د. مهدي أحمد مهدي",
+      "phone": "0780 121 8139",
       "spec": "REF",
       "tag": "REF",
       "dept": "REF",

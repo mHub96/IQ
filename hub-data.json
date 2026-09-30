@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T14:10:38.315Z",
+  "lastUpdated": "2026-09-30T13:48:12.340Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22234,16 +22234,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "REF",
-          "name_ar": "دوري احالات",
-          "name_en": "Referrals",
-          "icon": "🚑",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true,
-          "color": "#0f766e"
         }
       ],
       "names": [
@@ -25396,19 +25386,6 @@
           "tag": "NS",
           "dept": "GS",
           "department": "GS",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-muo6neqz6186",
-          "name": "د. QWER",
-          "phone": "+9647809998887",
-          "spec": "REF",
-          "tag": "REF",
-          "dept": "REF",
-          "department": "REF",
           "active": true,
           "hospitals": [
             "basra"
@@ -46355,19 +46332,6 @@
       "hospitals": [
         "basra"
       ]
-    },
-    {
-      "id": "res-muo6neqz6186",
-      "name": "د. QWER",
-      "phone": "+9647809998887",
-      "spec": "REF",
-      "tag": "REF",
-      "dept": "REF",
-      "department": "REF",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
     }
   ],
   "globalSpecialties": [
@@ -46698,16 +46662,6 @@
     {
       "id": "REFE",
       "name_ar": "الاحالات",
-      "name_en": "Referrals",
-      "icon": "🚑",
-      "color": "#0f766e",
-      "parentSpec": null,
-      "acceptPool": [],
-      "enabled": true
-    },
-    {
-      "id": "REF",
-      "name_ar": "دوري احالات",
       "name_en": "Referrals",
       "icon": "🚑",
       "color": "#0f766e",

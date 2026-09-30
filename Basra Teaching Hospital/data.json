@@ -4654,6 +4654,32 @@
       "hospitals": [
         "basra"
       ]
+    },
+    {
+      "id": "res-muobj69xknwr",
+      "name": "د. زكية زغير",
+      "phone": "+9647773571734",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-muobkkpgmyog",
+      "name": "د. مصطفى محمد حافظ",
+      "phone": "+9647732000432",
+      "spec": "REF",
+      "tag": "REF",
+      "dept": "REF",
+      "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
     }
   ],
   "residents": [

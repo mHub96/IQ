@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T16:06:52.665Z",
+  "lastUpdated": "2026-09-30T16:08:45.277Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -36299,6 +36299,70 @@
           "date": "11/10/2026",
           "specCode": "REF",
           "name": "د. علي عماد عبدالكاظم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "12/10/2026",
+          "specCode": "REF",
+          "name": "د. رند سلمان هاشم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "13/10/2026",
+          "specCode": "REF",
+          "name": "د. تهجد اسعد حسن",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "14/10/2026",
+          "specCode": "REF",
+          "name": "د. زينب حليم شرشاح",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "15/10/2026",
+          "specCode": "REF",
+          "name": "د. بتول عماد عبدالحافظ",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "16/10/2026",
+          "specCode": "REF",
+          "name": "د. حنين بلال احمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "17/10/2026",
+          "specCode": "REF",
+          "name": "د. اسراء فوزي فنجان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "18/10/2026",
+          "specCode": "REF",
+          "name": "د. نور رضا شنيور",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "19/10/2026",
+          "specCode": "REF",
+          "name": "د. رند سلمان هاشم",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

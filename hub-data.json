@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:08:21.844Z",
+  "lastUpdated": "2026-09-30T18:08:26.474Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -74,6 +74,18 @@
           "enabled": true
         },
         {
+          "id": "ICU",
+          "name_ar": "تخدير العناية المركزة",
+          "name_en": "ICU Anaesthesia",
+          "icon": "💉",
+          "color": "#c9e141",
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ],
+          "enabled": true
+        },
+        {
           "id": "OR",
           "name_ar": "الكسور",
           "name_en": "Orthopaedics",
@@ -122,18 +134,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "ICU",
-          "name_ar": "تخدير العناية المركزة",
-          "name_en": "ICU Anaesthesia",
-          "icon": "💉",
-          "color": "#c9e141",
-          "parentSpec": "A",
-          "acceptPool": [
-            "A"
-          ],
-          "enabled": true
         },
         {
           "id": "OP",

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T10:05:11.898Z",
+  "lastUpdated": "2026-09-30T10:05:20.837Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -37715,13 +37715,13 @@
       "rotationHeroesUrl": "",
       "specialistSchedule": [],
       "icu": {
-        "totalBeds": 10,
-        "functionalBeds": 8,
-        "occupiedBeds": 5,
-        "availableBeds": 3,
+        "totalBeds": 0,
+        "functionalBeds": 0,
+        "occupiedBeds": 0,
+        "availableBeds": 0,
         "notes": "3 أسرة جاهزة ومجهزة بأجهزة التنفس الاصطناعي لاستقبال المرضى",
-        "lastUpdated": "2026-09-19T23:38:31.489Z",
-        "updatedBy": "د. كرار - مقيم التخدير"
+        "lastUpdated": "2026-09-30T10:05:20.837Z",
+        "updatedBy": "د. فاطمة محمد حسن"
       }
     }
   },

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:09:52.618Z",
+  "lastUpdated": "2026-09-30T18:09:57.041Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -233,16 +233,6 @@
           "name_en": "Nephrology",
           "icon": "🧫",
           "color": "#ff5ccb",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
-          "id": "NM",
-          "name_ar": "طب الجملة العصبية",
-          "name_en": "Neuromedicine",
-          "icon": "🧠",
-          "color": "#79e9f1",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false

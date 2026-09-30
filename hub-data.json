@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T10:56:07.485Z",
+  "lastUpdated": "2026-09-30T10:57:26.121Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -1779,7 +1779,8 @@
           "department": "GS",
           "active": true,
           "hospitals": [
-            "iraqi"
+            "iraqi",
+            "basra"
           ]
         },
         {
@@ -22957,6 +22958,20 @@
           ]
         },
         {
+          "id": "res-0090",
+          "name": "د. علي جميل حنتوش",
+          "phone": "+9647715913508",
+          "spec": "GS",
+          "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
+          "active": true,
+          "hospitals": [
+            "iraqi",
+            "basra"
+          ]
+        },
+        {
           "id": "res-0319",
           "name": "د. علي حسن",
           "phone": "+9647732188599",
@@ -41649,7 +41664,8 @@
       "department": "GS",
       "active": true,
       "hospitals": [
-        "iraqi"
+        "iraqi",
+        "basra"
       ]
     },
     {

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T15:26:17.283Z",
+  "lastUpdated": "2026-09-30T15:26:19.256Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21922,21 +21922,21 @@
           "enabled": false
         },
         {
-          "id": "GS",
-          "name_ar": "الجراحة العامة",
-          "name_en": "General Surgery",
-          "icon": "🔪",
-          "color": "#2ac200",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
           "id": "AO",
           "name_ar": "المعاون الاداري",
           "name_en": "Administrative Officer",
           "icon": "🧑",
           "color": "#2563eb",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "GS",
+          "name_ar": "الجراحة العامة",
+          "name_en": "General Surgery",
+          "icon": "🔪",
+          "color": "#2ac200",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true

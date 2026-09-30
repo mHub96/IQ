@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T15:26:11.173Z",
+  "lastUpdated": "2026-09-30T15:26:17.283Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21932,21 +21932,21 @@
           "enabled": true
         },
         {
-          "id": "OR",
-          "name_ar": "الكسور",
-          "name_en": "Orthopaedics",
-          "icon": "🦴",
-          "color": "#ff0000",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
           "id": "AO",
           "name_ar": "المعاون الاداري",
           "name_en": "Administrative Officer",
           "icon": "🧑",
           "color": "#2563eb",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "OR",
+          "name_ar": "الكسور",
+          "name_en": "Orthopaedics",
+          "icon": "🦴",
+          "color": "#ff0000",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true

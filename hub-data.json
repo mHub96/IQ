@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T10:21:20.457Z",
+  "lastUpdated": "2026-09-30T10:29:21.348Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20487,6 +20487,126 @@
           "name": "د. علي عبدالرحمن عبدالصمد",
           "timestamp": "09:53",
           "VisitCount": 0
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "CT",
+          "name": "د. علي عبدالرحمن عبدالصمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "CT",
+          "name": "د. حسين يحيى صبار",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "CT",
+          "name": "د. عماد سمير عبدالرضا",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "04/10/2026",
+          "specCode": "CT",
+          "name": "د. عماد سمير عبدالرضا",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "CT",
+          "name": "د. منتظر صفاء ماجد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/10/2026",
+          "specCode": "CT",
+          "name": "د. حسين يحيى صبار",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "07/10/2026",
+          "specCode": "CT",
+          "name": "د. عماد سمير عبدالرضا",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "CT",
+          "name": "د. ايهاب عبدالكريم غالب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "09/10/2026",
+          "specCode": "CT",
+          "name": "د. شهد كريم عبدالكاظم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "CT",
+          "name": "د. علي عبدالرحمن عبدالصمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "11/10/2026",
+          "specCode": "CT",
+          "name": "د. عماد سمير عبدالرضا",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "12/10/2026",
+          "specCode": "CT",
+          "name": "د. شهد كريم عبدالكاظم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "13/10/2026",
+          "specCode": "CT",
+          "name": "د. حسين يحيى صبار",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "14/10/2026",
+          "specCode": "CT",
+          "name": "د. عماد سمير عبدالرضا",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "15/10/2026",
+          "specCode": "CT",
+          "name": "د. منتظر صفاء ماجد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
         }
       ],
       "rotationHeroesUrl": "https://khafarat-alsadr.netlify.app/",

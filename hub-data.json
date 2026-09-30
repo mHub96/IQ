@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T15:54:09.882Z",
+  "lastUpdated": "2026-09-30T15:55:34.727Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -36175,6 +36175,54 @@
           "date": "02/10/2026",
           "specCode": "REF",
           "name": "د. امنه قحطان صالح",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "REF",
+          "name": "د. علي عماد عبدالكاظم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "04/10/2026",
+          "specCode": "REF",
+          "name": "د. حنين عدنان مطشر",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "REF",
+          "name": "د. شيرين عماد عبدالكريم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/10/2026",
+          "specCode": "REF",
+          "name": "د. الزهراء ميثم مطر",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "07/10/2026",
+          "specCode": "REF",
+          "name": "د. منار عمار ناصر",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "REF",
+          "name": "د. حسن علي صالح",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

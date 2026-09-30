@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T13:24:41.743Z",
+  "lastUpdated": "2026-09-30T13:29:26.892Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21789,6 +21789,54 @@
           "date": "31/10/2026",
           "specCode": "NS",
           "name": "د. الحسن حسين جبار",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "ON",
+          "name": "د. زهراء غانم عبدالصاحب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "ON",
+          "name": "د. زهراء غانم عبدالصاحب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "ON",
+          "name": "د. زهراء غانم عبدالصاحب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "16/10/2026",
+          "specCode": "ON",
+          "name": "د. زهراء غانم عبدالصاحب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "23/10/2026",
+          "specCode": "ON",
+          "name": "د. زهراء غانم عبدالصاحب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "29/10/2026",
+          "specCode": "ON",
+          "name": "د. زهراء غانم عبدالصاحب",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

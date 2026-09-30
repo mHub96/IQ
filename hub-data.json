@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:10:07.911Z",
+  "lastUpdated": "2026-09-30T18:10:15.885Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -74,18 +74,6 @@
           "enabled": true
         },
         {
-          "id": "ICU",
-          "name_ar": "تخدير العناية المركزة",
-          "name_en": "ICU Anaesthesia",
-          "icon": "💉",
-          "color": "#c9e141",
-          "parentSpec": "A",
-          "acceptPool": [
-            "A"
-          ],
-          "enabled": true
-        },
-        {
           "id": "ON",
           "name_ar": "طب الاورام",
           "name_en": "Oncology",
@@ -118,79 +106,11 @@
           "enabled": true
         },
         {
-          "id": "AO",
-          "name_ar": "المعاون الاداري",
-          "name_en": "Administrative Officer",
-          "icon": "🧑",
-          "color": "#0f766e",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
-          "id": "D",
-          "name_ar": "الوفيات",
-          "name_en": "Death Certificates",
-          "icon": "⚰️",
-          "color": "#bababa",
-          "parentSpec": null,
-          "acceptPool": [
-            "NS",
-            "CT",
-            "GS",
-            "OR",
-            "US",
-            "ENT",
-            "MF",
-            "O",
-            "Pe",
-            "M",
-            "G",
-            "ICU",
-            "OP",
-            "GA",
-            "A",
-            "R",
-            "ON",
-            "N",
-            "NM",
-            "P",
-            "Der",
-            "EM",
-            "FM",
-            "GP",
-            "H",
-            "PS",
-            "RM"
-          ],
-          "enabled": true
-        },
-        {
-          "id": "REFE",
-          "name_ar": "الاحالات",
-          "name_en": "Referrals",
-          "icon": "🚑",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false,
-          "color": "#0f766e"
-        },
-        {
           "id": "OR",
           "name_ar": "الكسور",
           "name_en": "Orthopaedics",
           "icon": "🦴",
           "color": "#ff0000",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
-          "id": "MF",
-          "name_ar": "جراحة الوجه و الفكين",
-          "name_en": "MaxilloFacial Surgery",
-          "icon": "🦷",
-          "color": "#d600af",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
@@ -206,33 +126,11 @@
           "enabled": false
         },
         {
-          "id": "GA",
-          "name_ar": "تخدير صالة الولادة",
-          "name_en": "GYN Anaesthesia",
-          "icon": "🤰",
-          "color": "#fe62ad",
-          "parentSpec": "A",
-          "acceptPool": [
-            "A"
-          ],
-          "enabled": false
-        },
-        {
           "id": "A",
           "name_ar": "التخدير و العناية المركزة",
           "name_en": "Anaesthesia & Intensive Care",
           "icon": "💉",
           "color": "#ff8e24",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
-          "id": "N",
-          "name_ar": "طب امراض الكلى",
-          "name_en": "Nephrology",
-          "icon": "🧫",
-          "color": "#ff5ccb",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false

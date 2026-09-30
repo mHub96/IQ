@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:26:33.260Z",
+  "lastUpdated": "2026-09-30T18:26:40.000Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22042,6 +22042,18 @@
           "prefix": ""
         },
         {
+          "id": "NS_iraqi",
+          "name_ar": "جراحة الجملة العصبية",
+          "name_en": "Neurosurgery",
+          "icon": "🧠",
+          "prefix": "د. ",
+          "color": "#fea101",
+          "isClone": true,
+          "clonedFromHospitalId": "iraqi",
+          "clonedFromSpecId": "NS",
+          "enabled": true
+        },
+        {
           "id": "GS",
           "name_ar": "الجراحة العامة",
           "name_en": "General Surgery",
@@ -22344,18 +22356,6 @@
           "acceptPool": [],
           "enabled": true,
           "color": "#0f766e"
-        },
-        {
-          "id": "NS_iraqi",
-          "name_ar": "جراحة الجملة العصبية",
-          "name_en": "Neurosurgery",
-          "icon": "🧠",
-          "prefix": "د. ",
-          "color": "#fea101",
-          "isClone": true,
-          "clonedFromHospitalId": "iraqi",
-          "clonedFromSpecId": "NS",
-          "enabled": true
         },
         {
           "id": "CT_iraqi",

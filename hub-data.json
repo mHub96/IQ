@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T16:20:19.619Z",
+  "lastUpdated": "2026-09-30T16:22:19.619Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -36272,7 +36272,7 @@
           "specCode": "REF",
           "name": "د. زينب عبيد مطرود",
           "VisitCount": 0,
-          "dutyTime": "",
+          "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0
         },
         {
@@ -36280,7 +36280,7 @@
           "specCode": "REF",
           "name": "د. امنه قحطان صالح",
           "VisitCount": 0,
-          "dutyTime": "",
+          "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0
         },
         {
@@ -36288,7 +36288,7 @@
           "specCode": "REF",
           "name": "د. علي عماد عبدالكاظم",
           "VisitCount": 0,
-          "dutyTime": "",
+          "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0
         },
         {
@@ -36296,7 +36296,7 @@
           "specCode": "REF",
           "name": "د. حنين عدنان مطشر",
           "VisitCount": 0,
-          "dutyTime": "",
+          "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0
         },
         {
@@ -36304,13 +36304,13 @@
           "specCode": "REF",
           "name": "د. شيرين عماد عبدالكريم",
           "VisitCount": 0,
-          "dutyTime": "",
+          "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0
         },
         {
           "date": "06/10/2026",
           "specCode": "REF",
-          "name": "د. الزهراء ميثم مطر",
+          "name": "د. منتظر مزهر محمد",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
@@ -36320,7 +36320,7 @@
           "specCode": "REF",
           "name": "د. منار عمار ناصر",
           "VisitCount": 0,
-          "dutyTime": "",
+          "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0
         },
         {
@@ -36514,6 +36514,54 @@
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "REF",
+          "name": "د. يسرى عدنان مالك",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "REF",
+          "name": "د. مصطفى مبارك جحيل",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "REF",
+          "name": "د. منتظر مزهر محمد",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "04/10/2026",
+          "specCode": "REF",
+          "name": "د. محمد باقر صباح",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "REF",
+          "name": "د. عمر فاروق مطشر",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "07/10/2026",
+          "specCode": "REF",
+          "name": "",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
         }
       ],
       "rotationHeroesUrl": "",

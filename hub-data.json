@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T14:48:46.909Z",
+  "lastUpdated": "2026-09-30T15:24:08.899Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -25389,19 +25389,6 @@
           ]
         },
         {
-          "id": "res-muo5q42wjto7",
-          "name": "د. POIU",
-          "phone": "987687869876",
-          "spec": "NS",
-          "tag": "NS",
-          "dept": "GS",
-          "department": "GS",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
           "id": "res-mume7svkjcak",
           "name": "د. علي علاء",
           "phone": "0770 418 4424",
@@ -47415,19 +47402,6 @@
       "tag": "O",
       "dept": "O",
       "department": "O",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-muo5q42wjto7",
-      "name": "د. POIU",
-      "phone": "987687869876",
-      "spec": "NS",
-      "tag": "NS",
-      "dept": "GS",
-      "department": "GS",
       "active": true,
       "hospitals": [
         "basra"

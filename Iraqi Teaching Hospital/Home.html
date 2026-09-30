@@ -2476,7 +2476,7 @@
                                        onclick="${isPhoneValid ? `trackContact('${today}','${resident.name}'); event.preventDefault(); window.location.href=this.href;` : 'event.preventDefault();'}">
                                         <i class="fab fa-whatsapp"></i> WhatsApp
                                     </a>
-                                    <a href="${isPhoneValid ? 'tel:'+phoneClean : '#'}" 
+                                    <a href="${isPhoneValid ? 'tel:' + (phoneClean.startsWith('964') ? '+' + phoneClean : phoneClean) : '#'}" 
                                        class="action-btn-sm call ${!isPhoneValid ? 'opacity-40' : ''}"
                                        onclick="${isPhoneValid ? `trackContact('${today}','${resident.name}');` : 'event.preventDefault();'}">
                                         <i class="fas fa-phone"></i> Call

@@ -2385,7 +2385,10 @@
                                 </a>
                                 <a href="./admin.html?hospital=${h.id}" class="ios-btn secondary">
                                     <i class="fas fa-sliders"></i> <span>إدارة المستشفى</span>
-                                </a>` : ''}
+                                </a>
+                                <button type="button" onclick="exportHospitalBackupFromIndex('${h.id}')" class="ios-btn secondary" style="color:#059669;" title="تنزيل نسخة احتياطية لكافة بيانات وتخصصات ومقيمي هذا المستشفى">
+                                    <i class="fas fa-download"></i> <span>نسخ احتياطي</span>
+                                </button>` : ''}
                             </div>
 
                             ${isOwner ? `
@@ -2444,6 +2447,78 @@
                 if (arrowBtn) arrowBtn.setAttribute('aria-expanded', 'false');
             });
             currentlyExpandedHospId = null;
+        }
+
+        function exportHospitalBackupFromIndex(hospId) {
+            const hosp = Hub.getHospital(hospId);
+            if (!hosp) {
+                showToast('لم يتم العثور على بيانات المستشفى', 'error');
+                return;
+            }
+
+            const hospName = hosp.name_ar || hosp.hospitalName || 'المستشفى';
+            const specialties = (hosp.specialties || []).map(s => ({
+                id: s.id,
+                name_ar: s.name_ar || '',
+                name_en: s.name_en || '',
+                icon: s.icon || '🏥',
+                color: s.color || '#0f766e',
+                parentSpec: s.parentSpec !== undefined ? s.parentSpec : null,
+                acceptPool: Array.isArray(s.acceptPool) ? [...s.acceptPool] : [],
+                enabled: s.enabled !== false,
+                isCloned: !!s.isCloned,
+                sourceHospitalId: s.sourceHospitalId || null
+            }));
+
+            const residents = (hosp.names || []).map((r, idx) => ({
+                id: r.id || ('res-' + String(idx + 1).padStart(4, '0')),
+                name: r.name || '',
+                phone: r.phone || '',
+                spec: r.spec || '',
+                tag: r.tag || r.spec || '',
+                dept: r.dept || r.department || r.spec || '',
+                department: r.department || r.dept || r.spec || '',
+                active: r.active !== false,
+                hospitals: Array.isArray(r.hospitals) && r.hospitals.length ? [...r.hospitals] : [hospId]
+            }));
+
+            const backupData = {
+                format: 'hospital_hub_hospital_backup',
+                version: '3.0',
+                exportedAt: new Date().toISOString(),
+                exportDateFormatted: new Date().toLocaleString('ar-IQ'),
+                hospitalId: hospId,
+                hospitalName: hosp.hospitalName || '',
+                name_ar: hosp.name_ar || '',
+                location: hosp.location || '',
+                icon: hosp.icon || 'fa-hospital',
+                color: hosp.color || '#0f766e',
+                rotationHeroesUrl: hosp.rotationHeroesUrl || '',
+                totalSpecialties: specialties.length,
+                enabledSpecialtiesCount: specialties.filter(s => s.enabled).length,
+                totalResidents: residents.length,
+                activeResidentsCount: residents.filter(r => r.active).length,
+                inactiveResidentsCount: residents.filter(r => !r.active).length,
+                specialties: specialties,
+                residents: residents,
+                names: residents,
+                structure: {
+                    schedule: hosp.schedule || {},
+                    specialistSchedule: hosp.specialistSchedule || {},
+                    icu: hosp.icu || {}
+                }
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            const dateSlug = new Date().toISOString().slice(0, 10);
+            const safeHosp = hospId.replace(/[^a-zA-Z0-9_\u0600-\u06FF]/g, '_');
+            a.setAttribute("download", `hospital-backup-${safeHosp}-${dateSlug}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            showToast(`تم تنزيل النسخة الاحتياطية لمستشفى (${hospName}) بنجاح`, 'success');
         }
 
         // Collapse card when it loses focus (clicking outside or on another card)

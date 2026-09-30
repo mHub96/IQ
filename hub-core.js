@@ -1201,12 +1201,15 @@
             });
         }
 
+        const prefix = (updatedData.prefix !== undefined) ? updatedData.prefix : (db.globalSpecialties[idx].prefix !== undefined ? db.globalSpecialties[idx].prefix : 'د. ');
+
         // Update target item in globalSpecialties
         db.globalSpecialties[idx] = {
             id: newId,
             name_ar: nameAr,
             name_en: nameEn,
             icon: icon,
+            prefix: prefix,
             parentSpec: parentSpec,
             acceptPool: acceptPool,
             enabled: db.globalSpecialties[idx].enabled !== false
@@ -1221,10 +1224,30 @@
                     hospSpec.name_ar = nameAr;
                     hospSpec.name_en = nameEn;
                     hospSpec.icon = icon;
+                    hospSpec.prefix = prefix;
                     hospSpec.parentSpec = parentSpec;
                     hospSpec.acceptPool = acceptPool;
                 }
             });
+        }
+
+        // Cascade update to all residents belonging to this specialty if requested
+        if (updatedData.updateExistingResidents !== false) {
+            (db.residents || []).forEach(r => {
+                if (r.spec === oldId || r.spec === newId) {
+                    const oldName = r.name;
+                    const newName = formatMemberName(oldName, prefix);
+                    if (newName !== oldName) {
+                        r.name = newName;
+                        Object.values(db.hospitals || {}).forEach(h => {
+                            (h.schedule || []).forEach(sch => {
+                                if (sch.name === oldName) sch.name = newName;
+                            });
+                        });
+                    }
+                }
+            });
+            syncHospitalsWithSharedResidents();
         }
 
         await saveDatabase(`Owner update global specialty: ${oldId} -> ${newId} (${nameAr})`);
@@ -1244,6 +1267,7 @@
         const nameAr = String(specData.name_ar || '').trim();
         const nameEn = String(specData.name_en || specData.name_ar || '').trim();
         const icon = String(specData.icon || '🏥').trim() || '🏥';
+        const prefix = (specData.prefix !== undefined) ? specData.prefix : 'د. ';
         const parentSpec = specData.parentSpec ? String(specData.parentSpec).trim().toUpperCase() : null;
         const acceptPool = Array.isArray(specData.acceptPool) ? specData.acceptPool : [];
 
@@ -1259,6 +1283,7 @@
             name_ar: nameAr,
             name_en: nameEn,
             icon,
+            prefix,
             parentSpec,
             acceptPool,
             enabled: true
@@ -1351,6 +1376,8 @@
             counter++;
         }
 
+        const prefix = (specData.prefix !== undefined) ? specData.prefix : 'د. ';
+
         let existingGlobal = db.globalSpecialties.find(s => s.id === specId || s.name_ar === nameAr);
         if (!existingGlobal) {
             existingGlobal = {
@@ -1358,11 +1385,14 @@
                 name_ar: nameAr,
                 name_en: specData.name_en ? specData.name_en.trim() : nameAr,
                 icon: specData.icon ? specData.icon.trim() : '🏥',
+                prefix: prefix,
                 parentSpec: specData.parentSpec ? String(specData.parentSpec).trim().toUpperCase() : null,
                 acceptPool: Array.isArray(specData.acceptPool) ? specData.acceptPool : [],
                 enabled: true
             };
             db.globalSpecialties.push(existingGlobal);
+        } else if (specData.prefix !== undefined) {
+            existingGlobal.prefix = prefix;
         }
 
         const canonId = existingGlobal.id;
@@ -1376,10 +1406,12 @@
             existingInHosp.name_ar = existingGlobal.name_ar;
             existingInHosp.name_en = existingGlobal.name_en;
             existingInHosp.icon = existingGlobal.icon;
+            existingInHosp.prefix = prefix;
         } else {
             hosp.specialties.push({
                 ...existingGlobal,
                 color: color,
+                prefix: prefix,
                 enabled: true
             });
         }
@@ -1404,9 +1436,11 @@
         if (existing) {
             existing.enabled = true;
             existing.color = color || existing.color || '#0f766e';
+            if (g.prefix !== undefined) existing.prefix = g.prefix;
         } else {
             hosp.specialties.push({
                 ...g,
+                prefix: (g.prefix !== undefined) ? g.prefix : 'د. ',
                 color: color || '#0f766e',
                 enabled: true
             });
@@ -1457,6 +1491,7 @@
             name_ar: sourceSpec.name_ar,
             name_en: sourceSpec.name_en || sourceSpec.name_ar,
             icon: sourceSpec.icon || '🏥',
+            prefix: (sourceSpec.prefix !== undefined) ? sourceSpec.prefix : 'د. ',
             color: customColor || sourceSpec.color || '#0f766e',
             isClone: true,
             clonedFromHospitalId: sourceHospitalId,
@@ -1479,11 +1514,39 @@
         const s = (hosp.specialties || []).find(x => x.id === specId);
         if (!s) throw new Error('التخصص غير موجود في المستشفى');
 
-        // Only color and enabled are allowed to be updated at hospital level!
+        if (updates.name_ar) s.name_ar = updates.name_ar.trim();
+        if (updates.name_en) s.name_en = updates.name_en.trim();
+        if (updates.icon) s.icon = updates.icon.trim();
         if (updates.color) s.color = updates.color;
         if (updates.enabled !== undefined) s.enabled = Boolean(updates.enabled);
 
-        await saveDatabase(`Update specialty ${specId} in ${hosp.hospitalName}`);
+        if (updates.prefix !== undefined) {
+            s.prefix = updates.prefix;
+
+            // Cascade update to existing residents in this hospital if requested
+            if (updates.updateExistingResidents !== false) {
+                const newPrefix = updates.prefix;
+                (hosp.names || []).forEach(r => {
+                    if (r.spec === specId || r.tag === specId) {
+                        const oldName = r.name;
+                        const newName = formatMemberName(oldName, newPrefix);
+                        if (newName !== oldName) {
+                            r.name = newName;
+                            if (Array.isArray(db.residents)) {
+                                const master = db.residents.find(m => m.id === r.id || m.name === oldName);
+                                if (master) master.name = newName;
+                            }
+                            (hosp.schedule || []).forEach(sch => {
+                                if (sch.name === oldName) sch.name = newName;
+                            });
+                        }
+                    }
+                });
+                syncHospitalsWithSharedResidents();
+            }
+        }
+
+        await saveDatabase(`Update specialty ${specId} in ${hosp.name_ar || hosp.hospitalName}`);
         return s;
     }
 
@@ -1665,9 +1728,14 @@
     }
 
     function getResident(idOrName) {
-        if (!db) return null;
+        if (!db || !idOrName) return null;
         const list = getResidents();
-        return list.find(r => r.id === idOrName || r.name === idOrName) || null;
+        let match = list.find(r => r.id === idOrName || r.name === idOrName);
+        if (!match && typeof idOrName === 'string') {
+            const cleanTarget = idOrName.replace(/^(د\.|د|dr\.|dr|mr\.|mr|ms\.|ms|أ\.|أ|م\.|م|ص\.|ص)[\s\:\/]+/gi, '').trim();
+            match = list.find(r => (r.name || '').replace(/^(د\.|د|dr\.|dr|mr\.|mr|ms\.|ms|أ\.|أ|م\.|م|ص\.|ص)[\s\:\/]+/gi, '').trim() === cleanTarget);
+        }
+        return match || null;
     }
 
     function getAnaesthesiaResidents(hospitalId = null) {
@@ -1791,6 +1859,78 @@
         return String(entries[0].name).trim();
     }
 
+    function getSpecialtyPrefix(specId, hospitalId = null) {
+        if (!specId || !db) return 'د. ';
+        const normSpecId = normalizeSpecialtyId(specId);
+        // 1. Check hospital specialties
+        const targetHospId = hospitalId || getActiveHospitalId();
+        if (targetHospId && db.hospitals?.[targetHospId]?.specialties) {
+            const hospSpec = db.hospitals[targetHospId].specialties.find(s => s.id === normSpecId);
+            if (hospSpec && hospSpec.prefix !== undefined) {
+                return hospSpec.prefix;
+            }
+        }
+        // 2. Check global specialties
+        const globalSpec = (db.globalSpecialties || CANONICAL_SPECIALTIES).find(s => s.id === normSpecId);
+        if (globalSpec && globalSpec.prefix !== undefined) {
+            return globalSpec.prefix;
+        }
+        // 3. Fallback: check any hospital
+        for (const hid in db.hospitals || {}) {
+            const hs = (db.hospitals[hid].specialties || []).find(s => s.id === normSpecId);
+            if (hs && hs.prefix !== undefined) return hs.prefix;
+        }
+        return 'د. ';
+    }
+
+    function formatMemberName(rawName, prefix = 'د. ') {
+        if (!rawName || typeof rawName !== 'string') return '';
+        let cleaned = rawName.trim();
+        cleaned = cleaned.replace(/^(د\.|د|dr\.|dr|mr\.|mr|ms\.|ms|أ\.|أ|م\.|م|ص\.|ص)[\s\:\/]+/gi, '').trim();
+        if (!cleaned) return '';
+        if (prefix === '' || prefix === null) return cleaned;
+        const p = String(prefix).trim();
+        return p ? `${p} ${cleaned}` : cleaned;
+    }
+
+    function formatIraqiPhoneNumber(rawPhone) {
+        if (!rawPhone || typeof rawPhone !== 'string') return '';
+        let p = rawPhone.trim();
+        if (p === 'رقم غير متوفر' || p === 'غير متوفر' || p === 'N/A' || p === 'None' || p === 'بدون هاتف') return 'رقم غير متوفر';
+
+        // Convert Arabic/Persian digits to English ASCII digits
+        const arabicDigits = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+        const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+        for (let i = 0; i < 10; i++) {
+            p = p.split(arabicDigits[i]).join(String(i));
+            p = p.split(persianDigits[i]).join(String(i));
+        }
+
+        const hadPlus = p.startsWith('+');
+        let digits = p.replace(/\D/g, '');
+        if (!digits) return '';
+
+        // Handle 00964 prefix or 964 prefix
+        if (digits.startsWith('00964')) {
+            digits = digits.substring(5);
+        } else if (digits.startsWith('964')) {
+            digits = digits.substring(3);
+        }
+
+        // Now digits is without 964. If it starts with 0 (e.g. 07XXXXXXXXX), remove all leading zeros
+        while (digits.startsWith('0')) {
+            digits = digits.substring(1);
+        }
+
+        if (!digits) return '';
+
+        return '+964' + digits;
+    }
+
+    function isValidIraqiPhoneNumber(phone) {
+        if (!phone || phone === 'رقم غير متوفر') return true;
+        return /^\+9647\d{9}$/.test(phone);
+    }
 
     function syncSharedResidentsFromHospitals() {
         if (!db || !db.hospitals) return [];
@@ -1803,10 +1943,11 @@
                 if (!map.has(name)) {
                     const spec = n.spec || 'GS';
                     const dept = n.dept || n.department || spec;
+                    const cleanPhone = (n.phone && n.phone !== 'رقم غير متوفر') ? (formatIraqiPhoneNumber(n.phone) || n.phone) : '';
                     map.set(name, {
                         id: n.id || ('res-' + Math.random().toString(36).substr(2, 9)),
                         name: name,
-                        phone: (n.phone && n.phone !== 'رقم غير متوفر') ? n.phone : '',
+                        phone: cleanPhone,
                         spec: spec,
                         tag: n.tag || spec,
                         dept: dept,
@@ -1820,7 +1961,7 @@
                         existing.hospitals.push(hid);
                     }
                     if (!existing.phone && n.phone && n.phone !== 'رقم غير متوفر') {
-                        existing.phone = n.phone;
+                        existing.phone = formatIraqiPhoneNumber(n.phone) || n.phone;
                     }
                     if (n.dept && (!existing.dept || existing.dept === existing.spec)) {
                         existing.dept = n.dept;
@@ -1882,8 +2023,6 @@
         const name = (residentData.name || '').trim();
         if (!name) throw new Error('الرجاء إدخال اسم المقيم');
 
-        const formattedName = (name.startsWith('د.') || name.startsWith('د ')) ? name : `د. ${name}`;
-
         let hospitals = Array.isArray(residentData.hospitals) ? residentData.hospitals : [];
         if (hospitals.length === 0) {
             hospitals = [residentData.hospitalId || getActiveHospitalId()];
@@ -1892,10 +2031,19 @@
         const spec = normalizeSpecialtyId(residentData.spec || 'GS');
         const dept = normalizeSpecialtyId(residentData.dept || residentData.department || spec);
 
+        const targetPrefix = (residentData.prefix !== undefined) 
+            ? residentData.prefix 
+            : getSpecialtyPrefix(spec, hospitals[0]);
+        const formattedName = formatMemberName(name, targetPrefix);
+
+        const cleanPhone = (residentData.phone && residentData.phone !== 'رقم غير متوفر')
+            ? (formatIraqiPhoneNumber(residentData.phone) || String(residentData.phone).trim())
+            : (residentData.phone || '').trim();
+
         const newRes = {
             id: 'res-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4),
             name: formattedName,
-            phone: (residentData.phone || '').trim(),
+            phone: cleanPhone,
             spec: spec,
             tag: normalizeSpecialtyId(residentData.tag || spec),
             dept: dept,
@@ -1929,9 +2077,20 @@
             ...updates
         };
 
+        const targetSpec = updates.spec ? normalizeSpecialtyId(updates.spec) : updated.spec;
+        const targetPrefix = (updates.prefix !== undefined)
+            ? updates.prefix
+            : getSpecialtyPrefix(targetSpec, updated.hospitals?.[0]);
+
         if (updates.name) {
-            const n = updates.name.trim();
-            updated.name = (n.startsWith('د.') || n.startsWith('د ')) ? n : `د. ${n}`;
+            updated.name = formatMemberName(updates.name, targetPrefix);
+        } else if (updates.spec && updates.spec !== current.spec) {
+            updated.name = formatMemberName(updated.name, targetPrefix);
+        }
+
+        if (updates.phone !== undefined) {
+            const rawP = String(updates.phone || '').trim();
+            updated.phone = (rawP && rawP !== 'رقم غير متوفر') ? (formatIraqiPhoneNumber(rawP) || rawP) : rawP;
         }
 
         if (updates.spec) {
@@ -2026,13 +2185,18 @@
             specialist = db.specialists.find(s => s.id === specialistData.id);
         }
 
+        const rawSpecPhone = String(specialistData.phone || '').trim();
+        const cleanSpecPhone = (rawSpecPhone && rawSpecPhone !== 'رقم غير متوفر')
+            ? (formatIraqiPhoneNumber(rawSpecPhone) || rawSpecPhone)
+            : rawSpecPhone;
+
         if (specialist) {
             specialist.name = formattedName;
             specialist.title = (specialistData.title || 'أخصائي').trim();
             specialist.spec = spec;
             specialist.specName = specName;
             specialist.hospitals = hospitals;
-            specialist.phone = (specialistData.phone || '').trim();
+            specialist.phone = cleanSpecPhone;
             specialist.clinic = (specialistData.clinic || '').trim();
             specialist.notes = (specialistData.notes || '').trim();
             if (specialistData.active !== undefined) specialist.active = Boolean(specialistData.active);
@@ -2050,7 +2214,7 @@
                 spec: spec,
                 specName: specName,
                 hospitals: hospitals,
-                phone: (specialistData.phone || '').trim(),
+                phone: cleanSpecPhone,
                 clinic: (specialistData.clinic || '').trim(),
                 notes: (specialistData.notes || '').trim(),
                 active: specialistData.active !== false,
@@ -2736,7 +2900,12 @@
         SPECIALTY_ALIASES,
         getTheme,
         setTheme,
-        toggleTheme
+        toggleTheme,
+        getSpecialtyPrefix,
+        formatMemberName,
+        formatPhoneNumber: formatIraqiPhoneNumber,
+        formatIraqiPhoneNumber,
+        isValidIraqiPhoneNumber
     };
 
 })(window);

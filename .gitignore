@@ -1,0 +1,10 @@
+# Temporary scratch files and local backup snapshots
+scratch/
+checkpoints/
+BACKUP/
+COMPLETE_BACKUP*
+.backup*
+*.bak
+.vscode/
+.DS_Store
+Thumbs.db

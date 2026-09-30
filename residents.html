@@ -686,13 +686,21 @@
                 <input type="hidden" id="form-res-id" />
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">اسم المقيم الكامل</label>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-bold text-slate-500">اسم المقيم الكامل</label>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" onclick="pickResidentFromContactsInDirectory()" class="btn-ghost text-xs text-teal-700 dark:text-amber-400 border-teal-300 dark:border-amber-600 hover:bg-teal-50 dark:hover:bg-amber-950/30 py-0.5 px-2" title="استيراد من جهات اتصال الهاتف أو vCard">
+                                <i class="fas fa-address-book ml-1"></i> من جهات الاتصال 📱
+                            </button>
+                            <input type="file" id="directory-vcf-picker" accept=".vcf,text/vcard" class="hidden" style="display:none;" onchange="handleDirectoryVCardFile(event)" />
+                        </div>
+                    </div>
                     <input type="text" id="form-res-name" class="input-field" placeholder="مثال: د. احمد حقي" required />
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">رقم الهاتف (للتواصل السريع)</label>
-                    <input type="text" id="form-res-phone" class="input-field font-mono text-left" placeholder="07804080071" dir="ltr" />
+                    <input type="text" id="form-res-phone" class="input-field font-mono text-left" placeholder="+9647804080071" dir="ltr" />
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -795,8 +803,72 @@
             }, duration);
         }
 
+        function formatIraqiPhoneNumber(rawPhone) {
+            if (!rawPhone || typeof rawPhone !== 'string') return '';
+            let p = rawPhone.trim();
+            if (p === 'رقم غير متوفر' || p === 'غير متوفر' || p === 'N/A' || p === 'None' || p === 'بدون هاتف') return 'رقم غير متوفر';
+
+            // Convert Arabic/Persian digits to English ASCII digits
+            const arabicDigits = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+            const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+            for (let i = 0; i < 10; i++) {
+                p = p.split(arabicDigits[i]).join(String(i));
+                p = p.split(persianDigits[i]).join(String(i));
+            }
+
+            const hadPlus = p.startsWith('+');
+            let digits = p.replace(/\D/g, '');
+            if (!digits) return '';
+
+            // Handle 00964 prefix or 964 prefix
+            if (digits.startsWith('00964')) {
+                digits = digits.substring(5);
+            } else if (digits.startsWith('964')) {
+                digits = digits.substring(3);
+            }
+
+            // Now digits is without 964. If it starts with 0 (e.g. 07XXXXXXXXX), remove all leading zeros
+            while (digits.startsWith('0')) {
+                digits = digits.substring(1);
+            }
+
+            if (!digits) return '';
+
+            return '+964' + digits;
+        }
+
+        function attachPhoneAutoFormatListener(elementOrId) {
+            const el = typeof elementOrId === 'string' ? document.getElementById(elementOrId) : elementOrId;
+            if (!el || el._phoneAutoFormatBound) return;
+            el._phoneAutoFormatBound = true;
+
+            const formatField = () => {
+                const val = (el.value || '').trim();
+                if (val && val !== 'رقم غير متوفر') {
+                    const formatted = formatIraqiPhoneNumber(val);
+                    if (formatted && formatted !== val) {
+                        el.value = formatted;
+                    }
+                }
+            };
+
+            el.addEventListener('blur', formatField);
+            el.addEventListener('change', formatField);
+            el.addEventListener('paste', () => setTimeout(formatField, 40));
+            el.addEventListener('input', () => {
+                const digits = el.value.replace(/\D/g, '');
+                if ((digits.startsWith('07') && digits.length === 11) ||
+                    (digits.startsWith('7') && digits.length === 10) ||
+                    (digits.startsWith('964') && digits.length === 12) ||
+                    (digits.startsWith('00964') && digits.length === 14)) {
+                    formatField();
+                }
+            });
+        }
+
         async function initPage() {
             initUniversalNav('residents');
+            attachPhoneAutoFormatListener('form-res-phone');
 
             try {
                 await Hub.loadDatabase();
@@ -1023,7 +1095,9 @@
                 // 4. Search Query (Name or Phone or Spec)
                 if (searchQuery) {
                     const matchName = (r.name || '').toLowerCase().includes(searchQuery);
-                    const matchPhone = (r.phone || '').toLowerCase().includes(searchQuery);
+                    const qDigits = searchQuery.replace(/\D/g, '');
+                    const rPhoneDigits = (r.phone || '').replace(/\D/g, '');
+                    const matchPhone = (r.phone || '').toLowerCase().includes(searchQuery) || (qDigits.length >= 3 && rPhoneDigits.includes(qDigits));
                     const rSpecNorm = (typeof Hub !== 'undefined' && Hub.normalizeSpecialtyId) ? Hub.normalizeSpecialtyId(r.tag || r.spec) : (r.tag || r.spec);
                     const specObj = allSpecialties.find(s => s.id === rSpecNorm);
                     const matchSpec = specObj ? specObj.name_ar.toLowerCase().includes(searchQuery) : false;
@@ -1396,7 +1470,7 @@
             document.getElementById('submit-btn-text').textContent = 'حفظ التعديلات';
             document.getElementById('form-res-id').value = resident.id;
             document.getElementById('form-res-name').value = resident.name;
-            document.getElementById('form-res-phone').value = resident.phone === 'رقم غير متوفر' ? '' : resident.phone;
+            document.getElementById('form-res-phone').value = (resident.phone && resident.phone !== 'رقم غير متوفر') ? (formatIraqiPhoneNumber(resident.phone) || resident.phone) : '';
             document.getElementById('form-res-spec').value = resident.spec || resident.tag;
             document.getElementById('form-res-dept').value = resident.dept || resident.department || resident.spec || resident.tag;
             document.getElementById('form-res-active').checked = resident.active !== false && resident.spec !== 'RESERVE';
@@ -1433,7 +1507,10 @@
 
             const id = document.getElementById('form-res-id').value;
             const name = document.getElementById('form-res-name').value.trim();
-            const phone = document.getElementById('form-res-phone').value.trim();
+            const rawPhone = document.getElementById('form-res-phone').value.trim();
+            const phone = (rawPhone && rawPhone !== 'رقم غير متوفر') ? (formatIraqiPhoneNumber(rawPhone) || rawPhone) : '';
+            const phoneInput = document.getElementById('form-res-phone');
+            if (phoneInput && phone) phoneInput.value = phone;
             const spec = document.getElementById('form-res-spec').value;
             const dept = document.getElementById('form-res-dept').value || spec;
             const active = document.getElementById('form-res-active').checked;
@@ -1535,6 +1612,87 @@
                 console.error("Error deleting resident:", err);
                 showToast(err.message || "فشل حذف المقيم", "error");
             }
+        }
+
+        // Contact Picker in Residents Directory
+        async function pickResidentFromContactsInDirectory() {
+            if ('contacts' in navigator && 'ContactsManager' in window && typeof navigator.contacts.select === 'function') {
+                try {
+                    let props = ['name', 'tel'];
+                    if (typeof navigator.contacts.getProperties === 'function') {
+                        const supported = await navigator.contacts.getProperties();
+                        props = props.filter(p => supported.includes(p));
+                    }
+                    const contacts = await navigator.contacts.select(props.length ? props : ['name', 'tel'], { multiple: false });
+                    if (contacts && contacts.length > 0) {
+                        const c = contacts[0];
+                        applyContactToDirectoryForm((c.name && c.name[0]) || '', (c.tel && c.tel[0]) || '');
+                        return;
+                    }
+                } catch (err) {
+                    if (err.name === 'AbortError' || err.name === 'SecurityError') return;
+                    console.warn('Directory contact picker error:', err);
+                }
+            }
+            // Fallback: trigger vcard picker
+            const fileInput = document.getElementById('directory-vcf-picker');
+            if (fileInput) fileInput.click();
+        }
+
+        function handleDirectoryVCardFile(event) {
+            const input = (event && event.target) || document.getElementById('directory-vcf-picker');
+            const file = input && input.files && input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                let name = '';
+                let tel = '';
+                const lines = text.split(/\r?\n/);
+                for (let line of lines) {
+                    line = line.trim();
+                    if (/^FN[;:].*$/i.test(line)) {
+                        name = line.substring(line.indexOf(':') + 1).trim();
+                    } else if (!name && /^N[;:].*$/i.test(line)) {
+                        const parts = line.substring(line.indexOf(':') + 1).split(';');
+                        name = parts.filter(Boolean).reverse().join(' ').trim();
+                    } else if (/^TEL[;:].*$/i.test(line)) {
+                        if (!tel) tel = line.substring(line.indexOf(':') + 1).trim();
+                    }
+                }
+                if (!name && !tel) {
+                    showToast('لم يتم العثور على اسم أو رقم هاتف في ملف vCard', 'error');
+                } else {
+                    applyContactToDirectoryForm(name, tel);
+                }
+                if (input) input.value = '';
+            };
+            reader.readAsText(file, 'utf-8');
+        }
+
+        function applyContactToDirectoryForm(rawName, rawTel) {
+            const nameInput = document.getElementById('form-res-name');
+            const phoneInput = document.getElementById('form-res-phone');
+
+            if (rawName && nameInput) {
+                let cleaned = rawName.replace(/^(د|dr)[\.\s\:\/]+/gi, '').trim();
+                nameInput.value = cleaned ? `د. ${cleaned}` : rawName.trim();
+                nameInput.classList.add('ring-2', 'ring-teal-500');
+                setTimeout(() => nameInput.classList.remove('ring-2', 'ring-teal-500'), 2500);
+            }
+
+            if (rawTel && phoneInput) {
+                const formatted = formatIraqiPhoneNumber(rawTel);
+                phoneInput.value = formatted || rawTel.trim();
+                phoneInput.classList.add('ring-2', 'ring-teal-500');
+                setTimeout(() => phoneInput.classList.remove('ring-2', 'ring-teal-500'), 2500);
+            }
+
+            const specSelect = document.getElementById('form-res-spec');
+            if (specSelect) specSelect.focus();
+
+            showToast('تم استيراد جهة الاتصال بنجاح! أكمل تحديد التخصص والمستشفى.', 'success');
         }
 
         // Initialize on DOM ready

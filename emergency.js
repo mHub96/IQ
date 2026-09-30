@@ -3709,38 +3709,69 @@
     function formatIraqiPhoneNumber(rawPhone) {
         if (!rawPhone || typeof rawPhone !== 'string') return '';
         let p = rawPhone.trim();
+        if (p === 'رقم غير متوفر' || p === 'غير متوفر' || p === 'N/A' || p === 'None' || p === 'بدون هاتف') return 'رقم غير متوفر';
+
         // Convert Arabic/Persian digits to English ASCII digits
         const arabicDigits = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+        const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
         for (let i = 0; i < 10; i++) {
             p = p.split(arabicDigits[i]).join(String(i));
-        }
-        // Keep note if original had a plus, then strip all non-digits
-        const hasPlus = p.startsWith('+');
-        p = p.replace(/\D/g, '');
-        if (!p) return '';
-
-        // Normalize Iraqi international prefixes:
-        if (p.startsWith('00964')) {
-            p = '+964' + p.substring(5);
-        } else if (p.startsWith('964')) {
-            p = '+' + p;
-        } else if (p.startsWith('07')) {
-            // 07XXXXXXXXX (11 digits) -> +9647XXXXXXXXX
-            p = '+964' + p.substring(1);
-        } else if (p.startsWith('7') && p.length === 10) {
-            // 7XXXXXXXXX (10 digits) -> +9647XXXXXXXXX
-            p = '+964' + p;
-        } else if (hasPlus) {
-            p = '+' + p;
+            p = p.split(persianDigits[i]).join(String(i));
         }
 
-        return p;
+        const hadPlus = p.startsWith('+');
+        let digits = p.replace(/\D/g, '');
+        if (!digits) return '';
+
+        // Handle 00964 prefix or 964 prefix
+        if (digits.startsWith('00964')) {
+            digits = digits.substring(5);
+        } else if (digits.startsWith('964')) {
+            digits = digits.substring(3);
+        }
+
+        // Now digits is without 964. If it starts with 0 (e.g. 07XXXXXXXXX), remove all leading zeros
+        while (digits.startsWith('0')) {
+            digits = digits.substring(1);
+        }
+
+        if (!digits) return '';
+
+        return '+964' + digits;
     }
 
     function isValidIraqiPhoneNumber(phone) {
-        if (!phone) return true; // Optional field
-        // Standard Iraqi mobile pattern: +9647 followed by 9 digits (total 14 chars with +)
+        if (!phone || phone === 'رقم غير متوفر') return true;
         return /^\+9647\d{9}$/.test(phone);
+    }
+
+    function attachPhoneAutoFormatListener(elementOrId) {
+        const el = typeof elementOrId === 'string' ? document.getElementById(elementOrId) : elementOrId;
+        if (!el || el._phoneAutoFormatBound) return;
+        el._phoneAutoFormatBound = true;
+
+        const formatField = () => {
+            const val = (el.value || '').trim();
+            if (val && val !== 'رقم غير متوفر') {
+                const formatted = formatIraqiPhoneNumber(val);
+                if (formatted && formatted !== val) {
+                    el.value = formatted;
+                }
+            }
+        };
+
+        el.addEventListener('blur', formatField);
+        el.addEventListener('change', formatField);
+        el.addEventListener('paste', () => setTimeout(formatField, 40));
+        el.addEventListener('input', () => {
+            const digits = el.value.replace(/\D/g, '');
+            if ((digits.startsWith('07') && digits.length === 11) ||
+                (digits.startsWith('7') && digits.length === 10) ||
+                (digits.startsWith('964') && digits.length === 12) ||
+                (digits.startsWith('00964') && digits.length === 14)) {
+                formatField();
+            }
+        });
     }
 
     // =========================================================================
@@ -5414,6 +5445,58 @@
         saveCurrentMonthAllocationsToStore();
         saveCurrentHospitalResidents();
         saveCurrentMonthScheduleToStore();
+        saveState();
+
+        // 1. Gather all monthly allocations across all hospitals & months (memory + localStorage)
+        const allMonthlyAllocations = Object.assign({}, state.monthlyAllocations || {});
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith(MONTH_ALLOC_PREFIX)) {
+                    const keySuffix = k.replace(MONTH_ALLOC_PREFIX, '');
+                    if (!allMonthlyAllocations[keySuffix]) {
+                        try {
+                            allMonthlyAllocations[keySuffix] = JSON.parse(localStorage.getItem(k));
+                        } catch (e) {}
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('Error reading allocations from localStorage:', e);
+        }
+
+        // 2. Gather all monthly schedules across all hospitals & months (memory + localStorage)
+        const allMonthlySchedules = Object.assign({}, state.monthlySchedules || {});
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith(MONTH_STORAGE_PREFIX)) {
+                    const keySuffix = k.replace(MONTH_STORAGE_PREFIX, '');
+                    if (!allMonthlySchedules[keySuffix]) {
+                        try {
+                            allMonthlySchedules[keySuffix] = JSON.parse(localStorage.getItem(k));
+                        } catch (e) {}
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('Error reading schedules from localStorage:', e);
+        }
+
+        // Ensure current active month schedule is definitely saved in allMonthlySchedules
+        const currentSchedKey = `${state.hospitalId}_${state.year}_${state.month}`;
+        if (state.schedules) {
+            allMonthlySchedules[currentSchedKey] = JSON.parse(JSON.stringify(state.schedules));
+        }
+
+        // 3. Specialty Custom Colors
+        let customColors = Object.assign({}, state.specialtyColors || {});
+        try {
+            const rawColors = localStorage.getItem('hosp_hub_emergency_specialty_colors');
+            if (rawColors) {
+                customColors = Object.assign(customColors, JSON.parse(rawColors));
+            }
+        } catch (e) {}
 
         const residentsBackupList = (state.residents || []).map((r, idx) => ({
             id: r.id || ('doc_' + Date.now() + '_' + idx),
@@ -5442,7 +5525,7 @@
 
         const backupData = {
             format: 'hosp_hub_emergency_full_backup',
-            version: '2.5',
+            version: '3.0',
             exportedAt: new Date().toISOString(),
             exportDateFormatted: new Date().toLocaleString('ar-IQ'),
             hospitalId: state.hospitalId || 'iraqi',
@@ -5450,21 +5533,31 @@
             monthYear: state.monthYear || '',
             month: state.month || 9,
             year: state.year || 2026,
-            headOfResidents: state.headOfResidents || '',
-            headOfHospital: state.headOfHospital || '',
             orderNumber: state.orderNumber || '',
             orderDate: state.orderDate || '',
+            headOfResidents: state.headOfResidents || '',
+            headOfHospital: state.headOfHospital || '',
             rsEnabled: state.rsEnabled !== false,
             rsStartDate: state.rsStartDate || '',
             rsEndDate: state.rsEndDate || '',
+            clearPrintMeta: !!state.clearPrintMeta,
+            activeTab: state.activeTab || 'er',
+            printOptions: state.printOptions || {
+                theme: 'official',
+                headerBg: '#000000',
+                headerText: '#ffffff',
+                weekendBg: '#5ea37d',
+                weekendText: '#000000',
+                borderColor: '#000000'
+            },
+            specialtyColors: customColors,
             totalResidents: residentsBackupList.length,
             activeResidentsCount: residentsBackupList.filter(r => r.active).length,
             inactiveResidentsCount: residentsBackupList.filter(r => !r.active).length,
-            specialtyColors: state.specialtyColors || {},
             residents: residentsBackupList,
             hospitalResidents: state.hospitalResidents || {},
-            monthlyAllocations: state.monthlyAllocations || {},
-            monthlySchedules: state.monthlySchedules || {},
+            monthlyAllocations: allMonthlyAllocations,
+            monthlySchedules: allMonthlySchedules,
             schedules: state.schedules || {},
             prefOverrides: state.prefOverrides || {}
         };
@@ -5475,7 +5568,7 @@
         const dlAnchor = document.createElement('a');
         const hospSlug = (state.hospitalId || 'hosp').replace(/[^a-zA-Z0-9_\u0600-\u06FF]/g, '_');
         const dateStr = new Date().toISOString().slice(0, 10);
-        const fileName = `emergency_database_full_backup_${hospSlug}_${dateStr}.json`;
+        const fileName = `emergency_full_system_backup_${hospSlug}_${dateStr}.json`;
 
         dlAnchor.setAttribute('href', url);
         dlAnchor.setAttribute('download', fileName);
@@ -5486,15 +5579,15 @@
             URL.revokeObjectURL(url);
         }, 500);
 
-        showNotification(`تم تنزيل النسخة الاحتياطية الشاملة بنجاح (${residentsBackupList.length} طبيب)`, 'success');
+        showNotification(`تم تنزيل النسخة الاحتياطية الشاملة لكافة جداول وبيانات وإعدادات الطوارئ (${residentsBackupList.length} طبيب)`, 'success');
     }
 
     function triggerRestoreResidentsDatabase() {
-        let input = document.getElementById('db-restore-file-input');
+        let input = document.getElementById('emergency-header-restore-input') || document.getElementById('db-restore-file-input');
         if (!input) {
             input = document.createElement('input');
             input.type = 'file';
-            input.id = 'db-restore-file-input';
+            input.id = 'emergency-header-restore-input';
             input.accept = '.json,application/json';
             input.className = 'hidden';
             input.style.display = 'none';
@@ -5506,7 +5599,7 @@
     }
 
     function handleRestoreResidentsFile(event) {
-        const input = (event && event.target) || document.getElementById('db-restore-file-input');
+        const input = (event && event.target) || document.getElementById('emergency-header-restore-input') || document.getElementById('db-restore-file-input');
         const file = input && input.files && input.files[0];
         if (!file) return;
 
@@ -5524,10 +5617,12 @@
                     rawResidents = parsed.state.residents;
                 } else if (parsed && parsed.hospitalResidents && Array.isArray(parsed.hospitalResidents[state.hospitalId])) {
                     rawResidents = parsed.hospitalResidents[state.hospitalId];
+                } else if (parsed && Array.isArray(parsed.names)) {
+                    rawResidents = parsed.names;
                 }
 
-                if (!rawResidents || !Array.isArray(rawResidents) || rawResidents.length === 0) {
-                    alert('الملف المحدد لا يحتوي على قائمة أطباء صالحة للاستعادة.');
+                if (!rawResidents || !Array.isArray(rawResidents)) {
+                    alert('الملف المحدد لا يحتوي على بيانات صالحة للاستعادة.');
                     if (input) input.value = '';
                     return;
                 }
@@ -5546,7 +5641,7 @@
                     dc_target: Math.max(0, Number(r.dc_target) || 0),
                     rs_target: Math.max(0, Number(r.rs_target) || 0),
                     expiryMonth: r.expiryMonth || '',
-                    phone: r.phone || r.mobile || '',
+                    phone: (r.phone || r.mobile) ? (formatIraqiPhoneNumber(r.phone || r.mobile) || (r.phone || r.mobile)) : '',
                     notes: r.notes || '',
                     prefShifts: Array.isArray(r.prefShifts) ? [...r.prefShifts] : (r.preferences && Array.isArray(r.preferences.prefShifts) ? [...r.preferences.prefShifts] : []),
                     prefDays: Array.isArray(r.prefDays) ? [...r.prefDays] : (r.preferences && Array.isArray(r.preferences.prefDays) ? [...r.preferences.prefDays] : []),
@@ -5557,26 +5652,21 @@
                     }
                 })).filter(r => r.name && r.name.trim().length > 0);
 
-                if (cleanedResidents.length === 0) {
-                    alert('لم يتم العثور على أطباء بأسماء صالحة في ملف النسخة الاحتياطية.');
-                    if (input) input.value = '';
-                    return;
-                }
-
                 const count = cleanedResidents.length;
                 const backupDate = parsed.exportDateFormatted || parsed.exportedAt || parsed.updatedAt || 'غير محدد';
                 const backupHosp = parsed.hospitalName || state.hospitalName || 'المستشفى الحالي';
                 const backupMonth = parsed.monthYear || (parsed.month && parsed.year ? `${parsed.month}/${parsed.year}` : '');
+                const hasSchedules = !!(parsed.monthlySchedules || parsed.schedules);
 
-                const confirmMsg = `تأكيد استعادة النسخة الاحتياطية الشاملة:\n\n` +
+                const confirmMsg = `تأكيد استعادة النسخة الاحتياطية الشاملة للطوارئ:\n\n` +
                     `• المستشفى: ${backupHosp}\n` +
                     `• تاريخ النسخة: ${backupDate}\n` +
-                    (backupMonth ? `• شهر النسخة: ${backupMonth}\n` : '') +
+                    (backupMonth ? `• شهر الجدول: ${backupMonth}\n` : '') +
                     `• إجمالي الأطباء: ${count} طبيب\n` +
-                    `  - النشطون: ${cleanedResidents.filter(r => r.active).length}\n` +
-                    `  - غير النشطين: ${cleanedResidents.filter(r => !r.active).length}\n\n` +
-                    `سيتم استعادة كافة بيانات الأطباء (الأسماء، الاختصاصات، البورد، المراحل، الأنصبة، الرغبات، والحالة) فوراً.\n\n` +
-                    `هل ترغب بالمتابعة وتطبيق الاستعادة؟`;
+                    (hasSchedules ? `• جداول الخفارات: متوفرة ومشمولة بالاستعادة بالكامل ✓\n` : '') +
+                    (parsed.orderNumber ? `• الأمر الإداري: رقم ${parsed.orderNumber} بتاريخ ${parsed.orderDate || ''}\n` : '') +
+                    `\nسيتم استعادة كافة بيانات الأطباء وجداول الخفارات وإعدادات النظام والأنصبة فوراً.\n\n` +
+                    `هل ترغب بالمتابعة وتطبيق الاستعادة الشاملة؟`;
 
                 if (!confirm(confirmMsg)) {
                     if (input) input.value = '';
@@ -5588,12 +5678,33 @@
                 // 1. Restore current residents
                 state.residents = JSON.parse(JSON.stringify(cleanedResidents));
 
-                // 2. Restore specialty colors
-                if (parsed.specialtyColors && typeof parsed.specialtyColors === 'object') {
-                    state.specialtyColors = Object.assign(state.specialtyColors || {}, parsed.specialtyColors);
+                // 2. Restore hospital & administrative metadata
+                if (parsed.hospitalId) state.hospitalId = parsed.hospitalId;
+                if (parsed.hospitalName) state.hospitalName = parsed.hospitalName;
+                if (parsed.month) state.month = Number(parsed.month);
+                if (parsed.year) state.year = Number(parsed.year);
+                if (parsed.monthYear) state.monthYear = parsed.monthYear;
+                if (parsed.orderNumber !== undefined) state.orderNumber = parsed.orderNumber;
+                if (parsed.orderDate !== undefined) state.orderDate = parsed.orderDate;
+                if (parsed.headOfResidents !== undefined) state.headOfResidents = parsed.headOfResidents;
+                if (parsed.headOfHospital !== undefined) state.headOfHospital = parsed.headOfHospital;
+                if (parsed.rsEnabled !== undefined) state.rsEnabled = !!parsed.rsEnabled;
+                if (parsed.rsStartDate !== undefined) state.rsStartDate = parsed.rsStartDate;
+                if (parsed.rsEndDate !== undefined) state.rsEndDate = parsed.rsEndDate;
+                if (parsed.clearPrintMeta !== undefined) state.clearPrintMeta = !!parsed.clearPrintMeta;
+                if (parsed.printOptions && typeof parsed.printOptions === 'object') {
+                    state.printOptions = Object.assign(state.printOptions || {}, parsed.printOptions);
                 }
 
-                // 3. Restore all monthly allocations
+                // 3. Restore specialty colors
+                if (parsed.specialtyColors && typeof parsed.specialtyColors === 'object') {
+                    state.specialtyColors = Object.assign(state.specialtyColors || {}, parsed.specialtyColors);
+                    try {
+                        localStorage.setItem('hosp_hub_emergency_specialty_colors', JSON.stringify(state.specialtyColors));
+                    } catch (err) {}
+                }
+
+                // 4. Restore ALL monthly allocations (and persist to localStorage)
                 if (parsed.monthlyAllocations && typeof parsed.monthlyAllocations === 'object') {
                     state.monthlyAllocations = Object.assign(state.monthlyAllocations || {}, parsed.monthlyAllocations);
                     Object.keys(parsed.monthlyAllocations).forEach(k => {
@@ -5603,7 +5714,7 @@
                     });
                 }
 
-                // 4. Restore monthly schedules if present
+                // 5. Restore ALL monthly schedules (and persist to localStorage)
                 if (parsed.monthlySchedules && typeof parsed.monthlySchedules === 'object') {
                     state.monthlySchedules = Object.assign(state.monthlySchedules || {}, parsed.monthlySchedules);
                     Object.keys(parsed.monthlySchedules).forEach(k => {
@@ -5613,25 +5724,26 @@
                     });
                 }
 
-                // 5. Restore current active schedules if present and matching
+                // 6. Restore current active schedules
                 if (parsed.schedules && typeof parsed.schedules === 'object') {
                     ['er', 'con', 'dc', 'rs'].forEach(tab => {
                         if (Array.isArray(parsed.schedules[tab])) {
                             state.schedules[tab] = JSON.parse(JSON.stringify(parsed.schedules[tab]));
                         }
                     });
+                } else {
+                    const currentSchedKey = `${state.hospitalId}_${state.year}_${state.month}`;
+                    if (state.monthlySchedules && state.monthlySchedules[currentSchedKey]) {
+                        state.schedules = JSON.parse(JSON.stringify(state.monthlySchedules[currentSchedKey]));
+                    }
                 }
 
-                // 6. Restore preference overrides if present
+                // 7. Restore preference overrides
                 if (parsed.prefOverrides && typeof parsed.prefOverrides === 'object') {
                     state.prefOverrides = Object.assign(state.prefOverrides || {}, parsed.prefOverrides);
                 }
 
-                // 7. Restore signatories if present
-                if (parsed.headOfResidents) state.headOfResidents = parsed.headOfResidents;
-                if (parsed.headOfHospital) state.headOfHospital = parsed.headOfHospital;
-
-                // 8. Update hospitalResidents store
+                // 8. Restore hospitalResidents store
                 if (!state.hospitalResidents) state.hospitalResidents = {};
                 if (parsed.hospitalResidents && typeof parsed.hospitalResidents === 'object') {
                     Object.keys(parsed.hospitalResidents).forEach(k => {
@@ -5642,13 +5754,41 @@
                     state.hospitalResidents[state.hospitalId] = JSON.parse(JSON.stringify(cleanedResidents));
                 }
 
-                // 9. Save active state to store
+                // 9. Flush and save active state to store
                 saveCurrentMonthAllocationsToStore();
                 saveCurrentHospitalResidents();
                 saveCurrentMonthScheduleToStore();
                 saveState();
 
-                // 10. Refresh all views & checkers
+                // 10. Update all UI input controls in the DOM
+                try {
+                    if (document.getElementById('meta-hosp-select')) document.getElementById('meta-hosp-select').value = state.hospitalId || 'iraqi';
+                    if (document.getElementById('meta-month-select')) document.getElementById('meta-month-select').value = String(state.month || 9);
+                    if (document.getElementById('meta-year-input')) document.getElementById('meta-year-input').value = String(state.year || 2026);
+                    if (document.getElementById('meta-order-number')) document.getElementById('meta-order-number').value = state.orderNumber || '';
+                    if (document.getElementById('meta-order-date')) document.getElementById('meta-order-date').value = state.orderDate || '';
+                    if (document.getElementById('meta-head-residents')) document.getElementById('meta-head-residents').value = state.headOfResidents || '';
+                    if (document.getElementById('meta-head-hospital')) document.getElementById('meta-head-hospital').value = state.headOfHospital || '';
+                    if (document.getElementById('meta-rs-start')) document.getElementById('meta-rs-start').value = state.rsStartDate || '';
+                    if (document.getElementById('meta-rs-end')) document.getElementById('meta-rs-end').value = state.rsEndDate || '';
+                    const rsBar = document.getElementById('rs-settings-bar');
+                    const rsBadge = document.getElementById('rs-toggle-badge');
+                    if (rsBar && rsBadge) {
+                        if (state.rsEnabled) {
+                            rsBar.style.display = 'flex';
+                            rsBadge.className = 'text-[10px] bg-amber-500 text-white px-2 py-0.5 rounded-full font-bold';
+                            rsBadge.textContent = 'مفعّل';
+                        } else {
+                            rsBar.style.display = 'none';
+                            rsBadge.className = 'text-[10px] bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400 px-2 py-0.5 rounded-full font-bold';
+                            rsBadge.textContent = 'معطّل';
+                        }
+                    }
+                } catch (domErr) {
+                    console.warn('DOM sync warning during restore:', domErr);
+                }
+
+                // 11. Refresh all views, checkers, and tables
                 refreshDBView();
                 updateDBDutyCheckers();
                 updateDutyDashboard();
@@ -5656,7 +5796,7 @@
                 updateDBUndoRedoUI();
 
                 if (input) input.value = '';
-                showNotification(`تمت استعادة قاعدة البيانات الشاملة بنجاح (${count} طبيب)`, 'success');
+                showNotification(`تمت استعادة كافة جداول وبيانات وإعدادات الطوارئ بنجاح (${count} طبيب)`, 'success');
             } catch (err) {
                 console.error('Error restoring backup file:', err);
                 alert('فشل قراءة الملف أو استعادته: ملف JSON غير صالح أو به أخطاء برمجية.');
@@ -5881,7 +6021,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">رقم الهاتف <span class="text-rose-500 font-normal">(إلزامي)</span></label>
-                            <input type="tel" id="exp-res-phone" value="${escapeForInline(res.phone || '')}" required class="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-mono font-bold text-xs text-left focus:ring-2 focus:ring-teal-500 outline-none" placeholder="07XXXXXXXXX" dir="ltr" />
+                            <input type="tel" id="exp-res-phone" value="${escapeForInline(res.phone ? (formatIraqiPhoneNumber(res.phone) || res.phone) : '')}" required class="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-mono font-bold text-xs text-left focus:ring-2 focus:ring-teal-500 outline-none" placeholder="+9647XXXXXXXXX" dir="ltr" />
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">التخصص الأساسي (Specialty)</label>
@@ -5951,6 +6091,7 @@
             </div>
         `;
         modal.classList.remove('hidden');
+        attachPhoneAutoFormatListener('exp-res-phone');
     }
 
     function closeExportResidentModal() {
@@ -5984,7 +6125,9 @@
         }
 
         // Strict Phone Validation (Required, at least 10 digits)
-        const cleanDigits = phone.replace(/[^0-9]/g, '');
+        const formattedPhone = formatIraqiPhoneNumber(phone);
+        if (phoneInput && formattedPhone) phoneInput.value = formattedPhone;
+        const cleanDigits = formattedPhone.replace(/[^0-9]/g, '');
         if (!phone || cleanDigits.length < 10) {
             alert('رقم الهاتف حقل إلزامي لتصدير الطبيب لقاعدة المستشفى الرسمية (يجب أن يتكون من 10 أرقام على الأقل).');
             if (phoneInput) phoneInput.focus();
@@ -6008,7 +6151,7 @@
         const formattedName = (name.startsWith('د.') || name.startsWith('د ')) ? name : `د. ${name}`;
 
         res.name = formattedName;
-        res.phone = phone;
+        res.phone = formattedPhone;
         res.specialty = spec;
         saveState();
 
@@ -6019,7 +6162,7 @@
                 try {
                     await window.Hub.addResident({
                         name: formattedName,
-                        phone: phone,
+                        phone: formattedPhone,
                         spec: spec,
                         tag: spec,
                         dept: dept,
@@ -6699,7 +6842,7 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">رقم الهاتف (+964... / اختياري):</label>
-                            <input type="tel" id="new-res-phone" placeholder="07XXXXXXXXX أو +9647XXXXXXXXX" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-mono">
+                            <input type="tel" id="new-res-phone" placeholder="+9647XXXXXXXXX" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-mono">
                         </div>
                         <div>
                             <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">شهر انتهاء الصلاحية (اختياري):</label>
@@ -6724,6 +6867,7 @@
             </div>
         `;
         modal.classList.remove('hidden');
+        attachPhoneAutoFormatListener('new-res-phone');
     }
 
     function searchHospitalResidentsForAddModal() {
@@ -6854,7 +6998,9 @@
         }
 
         const rawPhone = (document.getElementById('new-res-phone')?.value || '').trim();
-        const formattedPhone = formatIraqiPhoneNumber(rawPhone);
+        const formattedPhone = (rawPhone && rawPhone !== 'رقم غير متوفر') ? (formatIraqiPhoneNumber(rawPhone) || rawPhone) : '';
+        const phoneInput = document.getElementById('new-res-phone');
+        if (phoneInput && formattedPhone) phoneInput.value = formattedPhone;
         if (rawPhone && !isValidIraqiPhoneNumber(formattedPhone)) {
             alert('رقم الهاتف غير صالح!\nيجب أن يبدأ بـ 07 أو +964 ويتكون من 10 أرقام.\n(مثال: 07801234567 أو +9647801234567)');
             return;
@@ -7169,7 +7315,7 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">رقم الهاتف (+964... / اختياري):</label>
-                            <input type="tel" id="import-res-phone" placeholder="07XXXXXXXXX أو +9647XXXXXXXXX" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-mono">
+                            <input type="tel" id="import-res-phone" placeholder="+9647XXXXXXXXX" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-mono">
                         </div>
                         <div>
                             <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">شهر انتهاء الصلاحية (اختياري):</label>
@@ -7209,6 +7355,7 @@
         }
 
         populateImportResidentDoctorList(selectedHospId, preselectedDocName);
+        attachPhoneAutoFormatListener('import-res-phone');
     }
 
     function closeImportResidentFromHospitalModal() {
@@ -7515,7 +7662,9 @@
         }
 
         const rawPhone = (document.getElementById('import-res-phone')?.value || '').trim();
-        const formattedPhone = formatIraqiPhoneNumber(rawPhone);
+        const formattedPhone = (rawPhone && rawPhone !== 'رقم غير متوفر') ? (formatIraqiPhoneNumber(rawPhone) || rawPhone) : '';
+        const phoneInput = document.getElementById('import-res-phone');
+        if (phoneInput && formattedPhone) phoneInput.value = formattedPhone;
         if (rawPhone && !isValidIraqiPhoneNumber(formattedPhone)) {
             alert('رقم الهاتف غير صالح!\nيجب أن يبدأ بـ 07 أو +964 ويتكون من 10 أرقام.\n(مثال: 07801234567 أو +9647801234567)');
             return;
@@ -9663,7 +9812,11 @@
     window.formatDoctorName = formatDoctorName;
     window.formatIraqiPhoneNumber = formatIraqiPhoneNumber;
     window.isValidIraqiPhoneNumber = isValidIraqiPhoneNumber;
+    window.attachPhoneAutoFormatListener = attachPhoneAutoFormatListener;
     window.canonicalizeSpecialtyName = canonicalizeSpecialtyName;
+    window.backupResidentsDatabase = backupResidentsDatabase;
+    window.triggerRestoreResidentsDatabase = triggerRestoreResidentsDatabase;
+    window.handleRestoreResidentsFile = handleRestoreResidentsFile;
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initEmergencyApp);

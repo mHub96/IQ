@@ -5,8 +5,9 @@
   "icon": "fa-anchor",
   "color": "#b45309",
   "passwords": {
-    "owner": "MrjBth1996*",
-    "admin": "MawaniAdmin1996*",
+    "owner": "Mrj!",
+    "admin": "Mawani$",
+    "anaesthesia": "ICU$",
     "user": "1234"
   },
   "specialties": [
@@ -21,16 +22,6 @@
       "enabled": true
     },
     {
-      "id": "CT",
-      "name_ar": "جراحة الصدر و الاوعية الدموية",
-      "name_en": "Cardiothoracic Surgery",
-      "icon": "🫀",
-      "color": "#e05910",
-      "parentSpec": null,
-      "acceptPool": [],
-      "enabled": false
-    },
-    {
       "id": "GS",
       "name_ar": "الجراحة العامة",
       "name_en": "General Surgery",
@@ -39,6 +30,16 @@
       "parentSpec": null,
       "acceptPool": [],
       "enabled": true
+    },
+    {
+      "id": "CT",
+      "name_ar": "جراحة الصدر و الاوعية الدموية",
+      "name_en": "Cardiothoracic Surgery",
+      "icon": "🫀",
+      "color": "#e05910",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": false
     },
     {
       "id": "OR",
@@ -92,7 +93,7 @@
     },
     {
       "id": "Pe",
-      "name_ar": "الاطفال",
+      "name_ar": "طب الأطفال",
       "name_en": "Paediatrics",
       "icon": "👶",
       "color": "#3dff6e",
@@ -221,35 +222,7 @@
       "icon": "🧑",
       "color": "#2563eb",
       "parentSpec": null,
-      "acceptPool": [
-        "NS",
-        "CT",
-        "GS",
-        "OR",
-        "US",
-        "ENT",
-        "MF",
-        "O",
-        "Pe",
-        "M",
-        "G",
-        "ICU",
-        "OP",
-        "GA",
-        "A",
-        "R",
-        "ON",
-        "N",
-        "NM",
-        "P",
-        "Der",
-        "EM",
-        "FM",
-        "GP",
-        "H",
-        "PS",
-        "RM"
-      ],
+      "acceptPool": [],
       "enabled": true
     },
     {
@@ -361,6 +334,16 @@
       "parentSpec": null,
       "acceptPool": [],
       "enabled": false
+    },
+    {
+      "id": "REFE",
+      "name_ar": "الاحالات",
+      "name_en": "Referrals",
+      "icon": "🚑",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true,
+      "color": "#0f766e"
     }
   ],
   "names": [
@@ -467,7 +450,6 @@
       "department": "NS",
       "active": false,
       "hospitals": [
-        "iraqi",
         "mawani"
       ]
     },
@@ -663,7 +645,7 @@
       "tag": "NS",
       "dept": "NS",
       "department": "NS",
-      "active": true,
+      "active": false,
       "hospitals": [
         "mawani"
       ]
@@ -919,6 +901,19 @@
       ]
     },
     {
+      "id": "res-0157",
+      "name": "د. علي عارف",
+      "phone": "+9647700342391",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": false,
+      "hospitals": [
+        "mawani"
+      ]
+    },
+    {
       "id": "res-0439",
       "name": "د. علي عبد الحسين",
       "phone": "+9647704303025",
@@ -1100,7 +1095,6 @@
       "department": "MF",
       "active": true,
       "hospitals": [
-        "basra",
         "mawani"
       ]
     },
@@ -1118,20 +1112,6 @@
       ]
     },
     {
-      "id": "res-0160",
-      "name": "د. محمد رياض جعفر",
-      "phone": "+9647805195075",
-      "spec": "NS",
-      "tag": "NS",
-      "dept": "NS",
-      "department": "NS",
-      "active": false,
-      "hospitals": [
-        "iraqi",
-        "mawani"
-      ]
-    },
-    {
       "id": "res-0460",
       "name": "د. محمد عبد الحي",
       "phone": "+9647705674831",
@@ -1141,20 +1121,6 @@
       "department": "AO",
       "active": true,
       "hospitals": [
-        "mawani"
-      ]
-    },
-    {
-      "id": "res-0161",
-      "name": "د. محمد عبدالحسين محسن",
-      "phone": "+9647707334546",
-      "spec": "NS",
-      "tag": "NS",
-      "dept": "NS",
-      "department": "NS",
-      "active": false,
-      "hospitals": [
-        "iraqi",
         "mawani"
       ]
     },
@@ -1298,6 +1264,19 @@
       "dept": "M",
       "department": "M",
       "active": true,
+      "hospitals": [
+        "mawani"
+      ]
+    },
+    {
+      "id": "res-0293",
+      "name": "د. وعد سمير باسم",
+      "phone": "+9647833288508",
+      "spec": "Pe",
+      "tag": "Pe",
+      "dept": "Pe",
+      "department": "Pe",
+      "active": false,
       "hospitals": [
         "mawani"
       ]
@@ -4729,7 +4708,7 @@
     {
       "date": "01/09/2026",
       "specCode": "AO",
-      "name": "علي مكي كامل",
+      "name": "د. علي مكي كامل",
       "VisitCount": 1,
       "dutyTime": "",
       "dutySlot": 0
@@ -4737,7 +4716,7 @@
     {
       "date": "02/09/2026",
       "specCode": "AO",
-      "name": "محمد عبد الحي",
+      "name": "د. محمد عبد الحي",
       "VisitCount": 2,
       "dutyTime": "",
       "dutySlot": 0
@@ -4745,7 +4724,7 @@
     {
       "date": "03/09/2026",
       "specCode": "AO",
-      "name": "ايهاب خضير",
+      "name": "د. ايهاب خضير",
       "VisitCount": 2,
       "dutyTime": "",
       "dutySlot": 0
@@ -4753,7 +4732,7 @@
     {
       "date": "04/09/2026",
       "specCode": "AO",
-      "name": "علي عبد الحسين",
+      "name": "د. علي عبد الحسين",
       "VisitCount": 3,
       "dutyTime": "",
       "dutySlot": 0
@@ -5210,7 +5189,7 @@
       "date": "25/09/2026",
       "specCode": "ICU",
       "name": "د. روان عدنان حسين",
-      "VisitCount": 0,
+      "VisitCount": 1,
       "dutyTime": "",
       "dutySlot": 0
     },
@@ -5449,7 +5428,7 @@
     {
       "date": "05/09/2026",
       "specCode": "AO",
-      "name": "علي مكي كامل",
+      "name": "د. علي مكي كامل",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5457,7 +5436,7 @@
     {
       "date": "06/09/2026",
       "specCode": "AO",
-      "name": "محمد عبد الحي",
+      "name": "د. محمد عبد الحي",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5465,7 +5444,7 @@
     {
       "date": "07/09/2026",
       "specCode": "AO",
-      "name": "ايهاب خضير",
+      "name": "د. ايهاب خضير",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5473,7 +5452,7 @@
     {
       "date": "08/09/2026",
       "specCode": "AO",
-      "name": "علي عبد الحسين",
+      "name": "د. علي عبد الحسين",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5481,7 +5460,7 @@
     {
       "date": "09/09/2026",
       "specCode": "AO",
-      "name": "علي مكي كامل",
+      "name": "د. علي مكي كامل",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5489,7 +5468,7 @@
     {
       "date": "10/09/2026",
       "specCode": "AO",
-      "name": "محمد عبد الحي",
+      "name": "د. محمد عبد الحي",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5497,7 +5476,7 @@
     {
       "date": "11/09/2026",
       "specCode": "AO",
-      "name": "ايهاب خضير",
+      "name": "د. ايهاب خضير",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5505,7 +5484,7 @@
     {
       "date": "12/09/2026",
       "specCode": "AO",
-      "name": "علي عبد الحسين",
+      "name": "د. علي عبد الحسين",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5513,7 +5492,7 @@
     {
       "date": "13/09/2026",
       "specCode": "AO",
-      "name": "علي مكي كامل",
+      "name": "د. علي مكي كامل",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5521,7 +5500,7 @@
     {
       "date": "14/09/2026",
       "specCode": "AO",
-      "name": "محمد عبد الحي",
+      "name": "د. محمد عبد الحي",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5529,7 +5508,7 @@
     {
       "date": "15/09/2026",
       "specCode": "AO",
-      "name": "ايهاب خضير",
+      "name": "د. ايهاب خضير",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5537,7 +5516,7 @@
     {
       "date": "16/09/2026",
       "specCode": "AO",
-      "name": "علي عبد الحسين",
+      "name": "د. علي عبد الحسين",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5545,7 +5524,7 @@
     {
       "date": "17/09/2026",
       "specCode": "AO",
-      "name": "علي مكي كامل",
+      "name": "د. علي مكي كامل",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5553,7 +5532,7 @@
     {
       "date": "18/09/2026",
       "specCode": "AO",
-      "name": "محمد عبد الحي",
+      "name": "د. محمد عبد الحي",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5561,7 +5540,7 @@
     {
       "date": "19/09/2026",
       "specCode": "AO",
-      "name": "ايهاب خضير",
+      "name": "د. ايهاب خضير",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5569,7 +5548,7 @@
     {
       "date": "20/09/2026",
       "specCode": "AO",
-      "name": "علي عبد الحسين",
+      "name": "د. علي عبد الحسين",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5577,7 +5556,7 @@
     {
       "date": "21/09/2026",
       "specCode": "AO",
-      "name": "علي مكي كامل",
+      "name": "د. علي مكي كامل",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5585,7 +5564,7 @@
     {
       "date": "22/09/2026",
       "specCode": "AO",
-      "name": "محمد عبد الحي",
+      "name": "د. محمد عبد الحي",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5593,7 +5572,7 @@
     {
       "date": "23/09/2026",
       "specCode": "AO",
-      "name": "ايهاب خضير",
+      "name": "د. ايهاب خضير",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5601,7 +5580,7 @@
     {
       "date": "24/09/2026",
       "specCode": "AO",
-      "name": "علي عبد الحسين",
+      "name": "د. علي عبد الحسين",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5609,7 +5588,7 @@
     {
       "date": "25/09/2026",
       "specCode": "AO",
-      "name": "علي مكي كامل",
+      "name": "د. علي مكي كامل",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5617,7 +5596,7 @@
     {
       "date": "26/09/2026",
       "specCode": "AO",
-      "name": "محمد عبد الحي",
+      "name": "د. محمد عبد الحي",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5625,7 +5604,7 @@
     {
       "date": "27/09/2026",
       "specCode": "AO",
-      "name": "ايهاب خضير",
+      "name": "د. ايهاب خضير",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5633,7 +5612,7 @@
     {
       "date": "28/09/2026",
       "specCode": "AO",
-      "name": "علي عبد الحسين",
+      "name": "د. علي عبد الحسين",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5641,7 +5620,7 @@
     {
       "date": "29/09/2026",
       "specCode": "AO",
-      "name": "علي مكي كامل",
+      "name": "د. علي مكي كامل",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0
@@ -5649,7 +5628,7 @@
     {
       "date": "30/09/2026",
       "specCode": "AO",
-      "name": "محمد عبد الحي",
+      "name": "د. محمد عبد الحي",
       "VisitCount": 0,
       "dutyTime": "",
       "dutySlot": 0

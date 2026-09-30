@@ -2427,7 +2427,13 @@
                     if (remainingMinutes > TOTAL_MINUTES) remainingMinutes = TOTAL_MINUTES;
 
                     if (!resultMap[key]) {
-                        const phone = (hospToQuery.names || []).find(n => n.name === resident.name)?.phone || "رقم غير متوفر";
+                        let phone = (hospToQuery.names || []).find(n => n.name === resident.name)?.phone;
+                        if (!phone) {
+                            const cleanResName = resident.name.replace(/^(د\.|د|dr\.|dr|mr\.|mr|ms\.|ms|أ\.|أ|م\.|م|ص\.|ص)[\s\:\/]+/gi, '').trim();
+                            const matchedDoc = (hospToQuery.names || []).find(n => (n.name || '').replace(/^(د\.|د|dr\.|dr|mr\.|mr|ms\.|ms|أ\.|أ|م\.|م|ص\.|ص)[\s\:\/]+/gi, '').trim() === cleanResName)
+                                            || (window.Hub && Hub.getResidents ? Hub.getResidents().find(r => (r.name || '').replace(/^(د\.|د|dr\.|dr|mr\.|mr|ms\.|ms|أ\.|أ|م\.|م|ص\.|ص)[\s\:\/]+/gi, '').trim() === cleanResName) : null);
+                            phone = matchedDoc?.phone || "رقم غير متوفر";
+                        }
                         const visitEntries = (hospToQuery.schedule || []).filter(s => s.date === today && s.name === resident.name);
                         const totalVisits = visitEntries.reduce((sum, entry) => sum + (entry.VisitCount || 0), 0);
                         resultMap[key] = {
@@ -2659,7 +2665,7 @@
                                        onclick="${isPhoneValid ? `trackResidentContact('${resident.name}', '${resident.criticalSpecCode || ''}');` : 'event.preventDefault();'}">
                                         <i class="fab fa-whatsapp"></i> WhatsApp
                                     </a>
-                                    <a href="${isPhoneValid ? 'tel:' + phoneClean : '#'}" 
+                                    <a href="${isPhoneValid ? 'tel:' + (phoneClean.startsWith('964') ? '+' + phoneClean : phoneClean) : '#'}" 
                                        class="action-btn-sm call ${!isPhoneValid ? 'opacity-40' : ''}"
                                        onclick="${isPhoneValid ? `trackResidentContact('${resident.name}', '${resident.criticalSpecCode || ''}');` : 'event.preventDefault();'}">
                                         <i class="fas fa-phone"></i> Call

@@ -547,8 +547,17 @@
                     <button type="button" onclick="openSpecialtiesModal()" class="btn-ghost text-xs">
                         <i class="fas fa-tags"></i> إدارة التخصصات
                     </button>
-                    <button type="button" onclick="openImportModal()" class="btn-ghost text-xs">
-                        <i class="fas fa-file-import"></i> نسخ احتياطي / استيراد
+                    <!-- Hospital Backup & Restore Buttons -->
+                    <button type="button" onclick="exportHospitalBackupFile()" class="btn-ghost text-xs text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100" title="تنزيل نسخة احتياطية كاملة للمستشفى الحالي (كافة التخصصات، المقيمين، وهيكلية المستشفى)">
+                        <i class="fas fa-download text-emerald-600 dark:text-emerald-400"></i> نسخ احتياطي للمستشفى
+                    </button>
+                    <button type="button" onclick="triggerRestoreHospitalFilePicker()" class="btn-ghost text-xs text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100" title="استعادة بيانات وهيكلية وتخصصات ومقيمي المستشفى من ملف نسخة احتياطية">
+                        <i class="fas fa-upload text-blue-600 dark:text-blue-400"></i> استعادة من نسخة احتياطية
+                    </button>
+                    <input type="file" id="hosp-restore-file-input" accept=".json,application/json" onchange="handleHospitalBackupFileInput(event)" class="hidden" style="display:none;" />
+
+                    <button type="button" onclick="openImportModal()" class="btn-ghost text-xs" title="مركز خيارات النسخ الاحتياطي والاستيراد المتقدم">
+                        <i class="fas fa-file-import"></i> خيارات النسخ
                     </button>
                     <button type="button" id="main-save-btn" onclick="saveToGitHub()" class="btn-gradient text-xs">
                         <i class="fas fa-cloud-upload-alt"></i> حفظ في السيرفر
@@ -566,28 +575,44 @@
         </div>
 
         <!-- Add Resident Action Button -->
-        <div class="flex justify-between items-center mb-4">
+        <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
             <h2 class="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2">
                 <i class="fas fa-user-doctor text-teal-600 dark:text-amber-400"></i> قائمة المقيمين حسب الاختصاص
             </h2>
-            <button type="button" onclick="toggleAddResidentPanel()" class="btn-gradient text-xs">
-                <i class="fas fa-user-plus"></i> إضافة مقيم جديد
-            </button>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="openAddResidentWithContacts()" class="btn-ghost text-xs text-teal-700 dark:text-amber-400 border-teal-300 dark:border-amber-600 hover:bg-teal-50 dark:hover:bg-amber-950/30" title="إضافة مقيم جديد مباشرة من جهات اتصال الهاتف أو ملف vCard">
+                    <i class="fas fa-address-book text-teal-600 dark:text-amber-400 ml-1"></i> إضافة من جهات الاتصال 📱
+                </button>
+                <button type="button" onclick="toggleAddResidentPanel()" class="btn-gradient text-xs">
+                    <i class="fas fa-user-plus"></i> إضافة مقيم جديد
+                </button>
+            </div>
         </div>
 
         <!-- Add Resident Panel (Collapsible) -->
         <div id="add-resident-panel" class="glass-card p-5 mb-6 hidden">
-            <h3 class="text-md font-bold mb-3 flex items-center gap-2">
-                <i class="fas fa-plus-circle text-teal-600 dark:text-amber-400"></i> بيانات المقيم الجديد
-            </h3>
+            <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="text-md font-bold flex items-center gap-2">
+                    <i class="fas fa-plus-circle text-teal-600 dark:text-amber-400"></i> بيانات المقيم الجديد
+                </h3>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="pickResidentFromContacts()" class="btn-ghost text-xs text-teal-700 dark:text-amber-400 border-teal-300 dark:border-amber-600 hover:bg-teal-50 dark:hover:bg-amber-950/30" title="استيراد الاسم ورقم الهاتف من جهات اتصال الهاتف أو ملف vCard">
+                        <i class="fas fa-address-book text-teal-600 dark:text-amber-400 ml-1"></i> استيراد من جهات الاتصال 📱
+                    </button>
+                    <input type="file" id="contact-vcf-picker" accept=".vcf,text/vcard" class="hidden" style="display:none;" onchange="handleVCardFile(event)" />
+                </div>
+            </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">اسم المقيم <span class="text-rose-500 font-bold">* (إلزامي)</span></label>
+                    <label class="block text-xs font-bold text-slate-500 mb-1 flex items-center justify-between">
+                        <span>اسم المقيم <span class="text-rose-500 font-bold">* (إلزامي)</span></span>
+                        <span id="new-res-prefix-hint" class="text-[10px] text-teal-600 dark:text-amber-400 font-semibold">(البادئة: د.)</span>
+                    </label>
                     <input type="text" id="new-res-name" class="input-field" placeholder="مثال: د. احمد علي" required />
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">رقم الهاتف <span class="text-rose-500 font-bold">* (إلزامي)</span></label>
-                    <input type="text" id="new-res-phone" class="input-field text-left font-mono" placeholder="07XXXXXXXXX" dir="ltr" required />
+                    <input type="text" id="new-res-phone" class="input-field text-left font-mono" placeholder="+9647XXXXXXXXX" dir="ltr" required />
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">التخصص الأساسي (Specialty)</label>
@@ -700,17 +725,20 @@
             <input type="hidden" id="edit-res-id" />
             <div class="space-y-3">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">اسم المقيم <span class="text-rose-500 font-bold">* (إلزامي)</span></label>
+                    <label class="block text-xs font-bold text-slate-500 mb-1 flex items-center justify-between">
+                        <span>اسم المقيم <span class="text-rose-500 font-bold">* (إلزامي)</span></span>
+                        <span id="edit-res-prefix-hint" class="text-[10px] text-teal-600 dark:text-amber-400 font-semibold"></span>
+                    </label>
                     <input type="text" id="edit-res-name" class="input-field" required />
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">رقم الهاتف <span class="text-rose-500 font-bold">* (إلزامي)</span></label>
-                    <input type="text" id="edit-res-phone" class="input-field font-mono text-left" dir="ltr" required />
+                    <input type="text" id="edit-res-phone" class="input-field font-mono text-left" placeholder="+9647XXXXXXXXX" dir="ltr" required />
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1">التخصص الأساسي (Specialty)</label>
-                        <select id="edit-res-spec" class="input-field"></select>
+                        <select id="edit-res-spec" class="input-field" onchange="onEditResSpecChanged(this.value)"></select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1 flex items-center justify-between">
@@ -861,6 +889,24 @@
                     </div>
                 </div>
 
+                <div class="p-2.5 rounded-xl bg-teal-50/60 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-800">
+                    <label class="block text-xs font-bold text-teal-800 dark:text-teal-200 mb-1 flex items-center justify-between">
+                        <span><i class="fas fa-id-badge text-teal-600 dark:text-amber-400 ml-1"></i> لقب / بادئة المنتسبين (Prefix):</span>
+                        <span class="text-[10px] text-teal-600/70 dark:text-teal-300/70 font-normal">يسبق اسم المنتسب في هذا التخصص</span>
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <select id="new-spec-prefix-select" onchange="onSpecPrefixSelectChange('new-spec')" class="input-field text-xs">
+                            <option value="د. ">د. (طبيب - الافتراضي)</option>
+                            <option value="">بدون لقب (فارغ)</option>
+                            <option value="Mr. ">Mr. (مستر)</option>
+                            <option value="م. ">م. (مهندس / تقني)</option>
+                            <option value="أ. ">أ. (أستاذ / إداري)</option>
+                            <option value="__custom__">مخصص (أدخل لقب من اختيارك)...</option>
+                        </select>
+                        <input type="text" id="new-spec-prefix-custom" placeholder="مثال: Mr. أو Dr. أو ص." class="input-field text-xs font-mono text-center hidden" />
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-xs font-bold text-purple-700 dark:text-purple-300 mb-1 flex items-center gap-1">
                         <i class="fas fa-diagram-project"></i> التخصص الأب (اختياري - إذا كان فرعياً):
@@ -950,6 +996,69 @@
         </div>
     </div>
 
+    <!-- EDIT HOSPITAL SPECIALTY MODAL -->
+    <div id="edit-hospital-spec-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 520px;">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-lg font-black flex items-center gap-2" id="edit-hosp-spec-modal-title">
+                    <i class="fas fa-pen-to-square text-teal-600 dark:text-amber-400"></i> تعديل التخصص والبادئة
+                </h3>
+                <button type="button" onclick="closeEditHospitalSpecModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <input type="hidden" id="edit-hosp-spec-id" />
+
+            <div class="space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">اسم التخصص بالعربية</label>
+                        <input type="text" id="edit-hosp-spec-name-ar" class="input-field" required />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">الأيقونة (Emoji)</label>
+                        <input type="text" id="edit-hosp-spec-icon" class="input-field text-center text-lg" maxlength="4" />
+                    </div>
+                </div>
+
+                <div class="p-2.5 rounded-xl bg-teal-50/60 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-800">
+                    <label class="block text-xs font-bold text-teal-800 dark:text-teal-200 mb-1 flex items-center justify-between">
+                        <span><i class="fas fa-id-badge text-teal-600 dark:text-amber-400 ml-1"></i> لقب / بادئة المنتسبين (Prefix):</span>
+                        <span class="text-[10px] text-teal-600/70 dark:text-teal-300/70 font-normal">اللقب الذي يسبق الأسماء</span>
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <select id="edit-hosp-spec-prefix-select" onchange="onSpecPrefixSelectChange('edit-hosp-spec')" class="input-field text-xs">
+                            <option value="د. ">د. (طبيب - الافتراضي)</option>
+                            <option value="">بدون لقب (فارغ)</option>
+                            <option value="Mr. ">Mr. (مستر)</option>
+                            <option value="م. ">م. (مهندس / تقني)</option>
+                            <option value="أ. ">أ. (أستاذ / إداري)</option>
+                            <option value="__custom__">مخصص (أدخل لقب من اختيارك)...</option>
+                        </select>
+                        <input type="text" id="edit-hosp-spec-prefix-custom" placeholder="مثال: Mr. أو Dr. أو ص." class="input-field text-xs font-mono text-center hidden" />
+                    </div>
+                    <label class="flex items-center gap-1.5 mt-2 cursor-pointer select-none text-[11px] text-teal-900 dark:text-teal-200">
+                        <input type="checkbox" id="edit-hosp-spec-update-existing" checked class="w-3.5 h-3.5 rounded accent-teal-600" />
+                        <span>تحديث البادئة لكافة منتسبي هذا التخصص الحاليين في المستشفى وجداولهم فوراً</span>
+                    </label>
+                </div>
+
+                <div class="flex gap-2 items-center p-2 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800">
+                    <label class="text-xs font-bold text-slate-600 dark:text-slate-300 flex-1">لون عرض التخصص في الجدول:</label>
+                    <input type="color" id="edit-hosp-spec-color" value="#0f766e" class="h-9 w-16 p-1 rounded-lg border border-slate-300 dark:border-slate-700 cursor-pointer" />
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="submitEditHospitalSpecialty()" class="flex-1 btn-gradient">
+                        <i class="fas fa-check ml-1"></i> حفظ التعديلات
+                    </button>
+                    <button type="button" onclick="closeEditHospitalSpecModal()" class="btn-ghost">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- OWNER MAIN SPECIALTY STORE MODAL (GENERAL SPECIALTIES) -->
     <div id="global-specialties-modal" class="modal-overlay">
         <div class="modal-card" style="max-width: 760px;">
@@ -1026,6 +1135,28 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">الاسم بالإنجليزية (اختياري)</label>
                     <input type="text" id="global-spec-name-en" class="input-field font-mono text-left" placeholder="مثال: Orthopaedic Surgery" dir="ltr" />
+                </div>
+
+                <div class="p-2.5 rounded-xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800">
+                    <label class="block text-xs font-bold text-purple-900 dark:text-purple-200 mb-1 flex items-center justify-between">
+                        <span><i class="fas fa-id-badge text-purple-600 ml-1"></i> لقب / بادئة المنتسبين (Prefix):</span>
+                        <span class="text-[10px] text-purple-600/70 dark:text-purple-300/70 font-normal">يسبق اسم المنتسب في الجداول</span>
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <select id="global-spec-prefix-select" onchange="onSpecPrefixSelectChange('global-spec')" class="input-field text-xs">
+                            <option value="د. ">د. (طبيب - الافتراضي)</option>
+                            <option value="">بدون لقب (فارغ)</option>
+                            <option value="Mr. ">Mr. (مستر)</option>
+                            <option value="م. ">م. (مهندس / تقني)</option>
+                            <option value="أ. ">أ. (أستاذ / إداري)</option>
+                            <option value="__custom__">مخصص (أدخل لقب من اختيارك)...</option>
+                        </select>
+                        <input type="text" id="global-spec-prefix-custom" placeholder="مثال: Mr. أو Dr. أو ص." class="input-field text-xs font-mono text-center hidden" />
+                    </div>
+                    <label class="flex items-center gap-1.5 mt-2 cursor-pointer select-none text-[11px] text-purple-900 dark:text-purple-200">
+                        <input type="checkbox" id="global-spec-update-existing-residents" checked class="w-3.5 h-3.5 rounded accent-purple-600" />
+                        <span>تحديث البادئة تلقائياً لكافة الأطباء/المنتسبين الحاليين لهذا التخصص في المستشفيات وجداولهم</span>
+                    </label>
                 </div>
 
                 <div>
@@ -1142,31 +1273,121 @@
         </div>
     </div>
 
-    <!-- BACKUP & IMPORT MODAL -->
+    <!-- BACKUP & RESTORE CENTER MODAL -->
     <div id="import-modal" class="modal-overlay">
-        <div class="modal-card">
-            <h3 class="text-xl font-black mb-2 flex items-center gap-2">
-                <i class="fas fa-file-import text-teal-600 dark:text-amber-400"></i> النسخ الاحتياطي والاستيراد
-            </h3>
-            <p class="text-xs text-slate-500 mb-4">يمكنك تنزيل نسخة احتياطية كاملة أو استيراد ملف JSON.</p>
-            
-            <div class="flex gap-2 mb-4">
-                <button type="button" onclick="exportBackupFile()" class="btn-ghost flex-1 text-xs">
-                    <i class="fas fa-download"></i> تنزيل نسخة احتياطية JSON
+        <div class="modal-card" style="max-width: 620px;">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-xl font-black flex items-center gap-2">
+                    <i class="fas fa-boxes-packing text-teal-600 dark:text-amber-400"></i>
+                    <span>مركز النسخ الاحتياطي والاستعادة الشاملة</span>
+                </h3>
+                <button type="button" onclick="closeImportModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
+            <p class="text-xs text-slate-500 mb-4">
+                تنزيل واستعادة النسخ الاحتياطية لكافة التخصصات الطبية، فئاتها وألوانها، والمقيمين بكافة بياناتهم، وهيكلية المستشفى.
+            </p>
 
-            <label class="block text-xs font-bold text-slate-500 mb-1">أو الصق محتوى ملف JSON هنا للاستيراد:</label>
-            <textarea id="import-json-area" class="input-field font-mono text-xs" rows="8" placeholder='{"names": [], "specialties": []}' dir="ltr"></textarea>
+            <!-- Export Options -->
+            <div class="p-3.5 mb-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 space-y-2.5">
+                <h4 class="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                    <i class="fas fa-download text-emerald-600 dark:text-emerald-400"></i>
+                    <span>تنزيل نسخة احتياطية (JSON)</span>
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <button type="button" onclick="exportHospitalBackupFile()" class="p-3 rounded-xl border border-emerald-200 dark:border-emerald-800/80 bg-white dark:bg-slate-800 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/40 text-right transition flex items-center justify-between group shadow-xs">
+                        <div>
+                            <div class="text-xs font-black text-emerald-800 dark:text-emerald-300">نسخة المستشفى الحالي</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">التخصصات، المقيمين، والهيكلية</div>
+                        </div>
+                        <i class="fas fa-hospital text-emerald-600 text-lg group-hover:scale-110 transition-transform"></i>
+                    </button>
+                    <button type="button" onclick="exportFullSystemBackupFile()" class="p-3 rounded-xl border border-teal-200 dark:border-teal-800/80 bg-white dark:bg-slate-800 hover:bg-teal-50/60 dark:hover:bg-teal-950/40 text-right transition flex items-center justify-between group shadow-xs">
+                        <div>
+                            <div class="text-xs font-black text-teal-800 dark:text-teal-300">نسخة المنظومة الشاملة</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">كافة المستشفيات والبيانات العامة</div>
+                        </div>
+                        <i class="fas fa-network-wired text-teal-600 text-lg group-hover:scale-110 transition-transform"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Restore from File -->
+            <div class="p-3.5 mb-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 space-y-3">
+                <h4 class="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                    <i class="fas fa-upload text-blue-600 dark:text-blue-400"></i>
+                    <span>استعادة من ملف نسخة احتياطية (JSON)</span>
+                </h4>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="triggerRestoreHospitalFilePicker()" class="flex-1 py-3 px-4 rounded-xl border-2 border-dashed border-blue-300 dark:border-blue-700 hover:border-blue-500 bg-white dark:bg-slate-800 text-xs font-bold text-blue-700 dark:text-blue-300 text-center transition flex items-center justify-center gap-2">
+                        <i class="fas fa-file-arrow-up text-base"></i>
+                        <span>اختر ملف النسخة الاحتياطية (.json) للاستعادة المباشرة</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Manual JSON Paste (Collapsible) -->
+            <details class="mb-3 text-xs">
+                <summary class="font-bold text-slate-500 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300 select-none pb-1">
+                    أو الصق محتوى كود JSON يدوياً (متقدم)
+                </summary>
+                <div class="mt-2 space-y-2">
+                    <textarea id="import-json-area" class="input-field font-mono text-[11px]" rows="5" placeholder='{"specialties": [...], "residents": [...] }' dir="ltr"></textarea>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="executeImport('replace')" class="btn-ghost text-xs text-rose-600 border-rose-300 dark:border-rose-800 hover:bg-rose-50 flex-1">
+                            <i class="fas fa-arrows-rotate ml-1"></i> استبدال كامل بالكود الملصق
+                        </button>
+                        <button type="button" onclick="executeImport('merge')" class="btn-ghost text-xs text-teal-700 border-teal-300 dark:border-teal-800 hover:bg-teal-50 flex-1">
+                            <i class="fas fa-code-merge ml-1"></i> دمج المقيمين الجدد
+                        </button>
+                    </div>
+                </div>
+            </details>
+
+            <div class="flex justify-end pt-2 border-t border-slate-200 dark:border-slate-800">
+                <button type="button" onclick="closeImportModal()" class="btn-ghost text-xs">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTACT PICKER FALLBACK MODAL -->
+    <div id="contact-fallback-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 480px;">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-lg font-black flex items-center gap-2">
+                    <i class="fas fa-address-book text-teal-600 dark:text-amber-400"></i>
+                    <span>إضافة جهة اتصال من الهاتف 📱</span>
+                </h3>
+                <button type="button" onclick="closeContactFallbackModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
             
-            <div class="flex gap-3 mt-4">
-                <button type="button" onclick="executeImport('merge')" class="flex-1 btn-gradient text-xs">
-                    <i class="fas fa-code-merge"></i> دمج المقيمين
+            <div class="p-3 mb-3 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 text-xs text-teal-900 dark:text-teal-200 leading-relaxed">
+                <p class="font-bold mb-1"><i class="fas fa-info-circle ml-1"></i> استيراد جهات الاتصال:</p>
+                <p>ميزة فتح جهات الاتصال مباشرة تعمل تلقائياً على الهواتف المتوافقة (مثل متصفح Chrome أو Edge على أندرويد). كما يمكنك على الآيفون والكمبيوتر رفع ملف <strong>vCard (.vcf)</strong> تم تصديره أو مشاركته من جهات اتصال هاتفك ليتم استخراج الاسم والرقم تلقائياً.</p>
+            </div>
+
+            <div class="space-y-3">
+                <button type="button" onclick="document.getElementById('contact-vcf-picker').click()" class="w-full btn-gradient text-xs py-3">
+                    <i class="fas fa-file-arrow-up ml-1 text-base"></i>
+                    <span>اختيار ملف جهة اتصال (.vcf) من الهاتف</span>
                 </button>
-                <button type="button" onclick="executeImport('replace')" class="btn-ghost text-xs text-red-500 border-red-200">
-                    <i class="fas fa-arrows-rotate"></i> استبدال كامل
-                </button>
-                <button type="button" onclick="closeImportModal()" class="btn-ghost text-xs">إلغاء</button>
+
+                <div class="text-center text-xs text-slate-400 font-bold">أو</div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">الصق نص جهة الاتصال أو رقمها:</label>
+                    <textarea id="contact-manual-text" class="input-field text-xs font-mono" rows="2" placeholder="مثال: د. احمد علي 07801234567"></textarea>
+                    <button type="button" onclick="extractFromManualContactText()" class="mt-2 w-full btn-ghost text-xs">
+                        <i class="fas fa-wand-magic-sparkles ml-1"></i> استخراج وتعبئة الحقول
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-3 mt-3 border-t border-slate-200 dark:border-slate-800">
+                <button type="button" onclick="closeContactFallbackModal()" class="btn-ghost text-xs">إلغاء</button>
             </div>
         </div>
     </div>
@@ -1299,6 +1520,10 @@
                 renderResidentsAccordion();
                 updateStatsBadges();
 
+                // Attach real-time phone auto-formatting
+                attachPhoneAutoFormatListener('new-res-phone');
+                attachPhoneAutoFormatListener('edit-res-phone');
+
                 // Reactive UI updates on data changes
                 window.addEventListener('hub:data-changed', () => {
                     const curScroll = window.scrollY;
@@ -1363,6 +1588,33 @@
             if (editSpecSelect) editSpecSelect.innerHTML = globalHtml;
             if (newDeptSelect) newDeptSelect.innerHTML = deptHtml;
             if (editDeptSelect) editDeptSelect.innerHTML = deptHtml;
+
+            updateNewResPrefixHint();
+            updateEditResPrefixHint();
+        }
+
+        function updateNewResPrefixHint() {
+            const specId = document.getElementById('new-res-spec')?.value;
+            const hintEl = document.getElementById('new-res-prefix-hint');
+            if (!hintEl) return;
+            const prefix = getSpecialtyPrefix(specId);
+            if (prefix === '') {
+                hintEl.textContent = '(بدون لقب)';
+            } else {
+                hintEl.textContent = `(سيبدأ بـ "${prefix.trim()}")`;
+            }
+        }
+
+        function updateEditResPrefixHint() {
+            const specId = document.getElementById('edit-res-spec')?.value;
+            const hintEl = document.getElementById('edit-res-prefix-hint');
+            if (!hintEl) return;
+            const prefix = getSpecialtyPrefix(specId);
+            if (prefix === '') {
+                hintEl.textContent = '(بدون لقب)';
+            } else {
+                hintEl.textContent = `(سيبدأ بـ "${prefix.trim()}")`;
+            }
         }
 
         function onNewResSpecChanged(specId) {
@@ -1370,6 +1622,11 @@
             if (deptSelect && !deptSelect.dataset.userModified) {
                 deptSelect.value = specId;
             }
+            updateNewResPrefixHint();
+        }
+
+        function onEditResSpecChanged(specId) {
+            updateEditResPrefixHint();
         }
 
         function onNewResDeptChanged() {
@@ -1418,7 +1675,10 @@
             const rawName = (r.name || '').toLowerCase();
             if (rawName.includes(qTrim.toLowerCase())) return true;
 
-            // Match phone
+            // Match phone (raw substring or digits matching)
+            const qDigits = qTrim.replace(/\D/g, '');
+            const rPhoneDigits = (r.phone || '').replace(/\D/g, '');
+            if (qDigits.length >= 3 && rPhoneDigits.includes(qDigits)) return true;
             const phone = (r.phone || '').replace(/\s+/g, '');
             if (phone.includes(qTrim.replace(/\s+/g, ''))) return true;
 
@@ -1878,36 +2138,137 @@
             document.getElementById('edit-res-hosp-multi-wrap').classList.toggle('hidden', !isMulti);
         }
 
-        function formatDoctorName(rawName) {
+        function getSpecialtyPrefix(specId, hospId) {
+            if (!specId) return "د. ";
+            if (typeof Hub !== 'undefined' && Hub.getSpecialtyPrefix) {
+                return Hub.getSpecialtyPrefix(specId, hospId || currentHospital?.id);
+            }
+            if (currentHospital && currentHospital.specialties) {
+                const s = currentHospital.specialties.find(x => x.id === specId);
+                if (s && s.prefix !== undefined) return s.prefix;
+            }
+            return "د. ";
+        }
+
+        function formatDoctorName(rawName, prefix) {
+            if (typeof Hub !== 'undefined' && Hub.formatMemberName) {
+                return Hub.formatMemberName(rawName, prefix);
+            }
             if (!rawName || typeof rawName !== 'string') return '';
             let cleaned = rawName.trim();
-            cleaned = cleaned.replace(/^(د|dr)[\.\s\:\/]+/gi, '').trim();
+            cleaned = cleaned.replace(/^(د|dr|mr|mrs|ms|أ|م|ص)[\.\s\:\/]+/gi, '').trim();
             if (!cleaned) return '';
-            return `د. ${cleaned}`;
+            const p = prefix !== undefined ? prefix : 'د. ';
+            return p ? `${p}${cleaned}` : cleaned;
+        }
+
+        function onSpecPrefixSelectChange(prefixKey) {
+            const sel = document.getElementById(`${prefixKey}-prefix-select`);
+            const customInput = document.getElementById(`${prefixKey}-prefix-custom`);
+            if (!sel || !customInput) return;
+            if (sel.value === '__custom__') {
+                customInput.classList.remove('hidden');
+                customInput.focus();
+            } else {
+                customInput.classList.add('hidden');
+            }
+        }
+
+        function getSelectedSpecPrefix(prefixKey) {
+            const sel = document.getElementById(`${prefixKey}-prefix-select`);
+            const customInput = document.getElementById(`${prefixKey}-prefix-custom`);
+            if (!sel) return "د. ";
+            if (sel.value === '__custom__') {
+                const val = (customInput ? customInput.value : '').trim();
+                if (!val) return '';
+                return (val.endsWith(' ') || val.endsWith('.')) ? (val.endsWith('.') ? val + ' ' : val) : val + ' ';
+            }
+            return sel.value;
+        }
+
+        function setSpecPrefixControls(prefixKey, prefixVal) {
+            const sel = document.getElementById(`${prefixKey}-prefix-select`);
+            const customInput = document.getElementById(`${prefixKey}-prefix-custom`);
+            if (!sel || !customInput) return;
+            const standard = ["د. ", "", "Mr. ", "م. ", "أ. "];
+            const p = prefixVal !== undefined ? prefixVal : "د. ";
+            if (standard.includes(p)) {
+                sel.value = p;
+                customInput.value = '';
+                customInput.classList.add('hidden');
+            } else {
+                sel.value = '__custom__';
+                customInput.value = p;
+                customInput.classList.remove('hidden');
+            }
         }
 
         function formatIraqiPhoneNumber(rawPhone) {
             if (!rawPhone || typeof rawPhone !== 'string') return '';
             let p = rawPhone.trim();
+            if (p === 'رقم غير متوفر' || p === 'غير متوفر' || p === 'N/A' || p === 'None' || p === 'بدون هاتف') return 'رقم غير متوفر';
+
+            // Convert Arabic/Persian digits to English ASCII digits
             const arabicDigits = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+            const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
             for (let i = 0; i < 10; i++) {
                 p = p.split(arabicDigits[i]).join(String(i));
+                p = p.split(persianDigits[i]).join(String(i));
             }
-            const hasPlus = p.startsWith('+');
-            p = p.replace(/\D/g, '');
-            if (!p) return '';
-            if (p.startsWith('00964')) {
-                p = '+964' + p.substring(5);
-            } else if (p.startsWith('964')) {
-                p = '+' + p;
-            } else if (p.startsWith('07')) {
-                p = '+964' + p.substring(1);
-            } else if (p.startsWith('7') && p.length === 10) {
-                p = '+964' + p;
-            } else if (hasPlus) {
-                p = '+' + p;
+
+            const hadPlus = p.startsWith('+');
+            let digits = p.replace(/\D/g, '');
+            if (!digits) return '';
+
+            // Handle 00964 prefix or 964 prefix
+            if (digits.startsWith('00964')) {
+                digits = digits.substring(5);
+            } else if (digits.startsWith('964')) {
+                digits = digits.substring(3);
             }
-            return p;
+
+            // Now digits is without 964. If it starts with 0 (e.g. 07XXXXXXXXX), remove all leading zeros
+            while (digits.startsWith('0')) {
+                digits = digits.substring(1);
+            }
+
+            if (!digits) return '';
+
+            return '+964' + digits;
+        }
+
+        function isValidIraqiPhoneNumber(phone) {
+            if (!phone || phone === 'رقم غير متوفر') return true;
+            return /^\+9647\d{9}$/.test(phone);
+        }
+
+        function attachPhoneAutoFormatListener(elementOrId) {
+            const el = typeof elementOrId === 'string' ? document.getElementById(elementOrId) : elementOrId;
+            if (!el || el._phoneAutoFormatBound) return;
+            el._phoneAutoFormatBound = true;
+
+            const formatField = () => {
+                const val = (el.value || '').trim();
+                if (val && val !== 'رقم غير متوفر') {
+                    const formatted = formatIraqiPhoneNumber(val);
+                    if (formatted && formatted !== val) {
+                        el.value = formatted;
+                    }
+                }
+            };
+
+            el.addEventListener('blur', formatField);
+            el.addEventListener('change', formatField);
+            el.addEventListener('paste', () => setTimeout(formatField, 40));
+            el.addEventListener('input', () => {
+                const digits = el.value.replace(/\D/g, '');
+                if ((digits.startsWith('07') && digits.length === 11) ||
+                    (digits.startsWith('7') && digits.length === 10) ||
+                    (digits.startsWith('964') && digits.length === 12) ||
+                    (digits.startsWith('00964') && digits.length === 14)) {
+                    formatField();
+                }
+            });
         }
 
         async function submitAddResident() {
@@ -1922,7 +2283,7 @@
             const isMulti = document.getElementById('new-res-multi-toggle')?.checked;
 
             // 1. Mandatory Name Validation
-            const cleanName = name.replace(/^(د|dr)[\.\s\:\/]+/gi, '').trim();
+            const cleanName = name.replace(/^(د|dr|mr|mrs|ms|أ|م|ص)[\.\s\:\/]+/gi, '').trim();
             if (!name || cleanName.length < 2) {
                 showToast('الرجاء إدخال اسم المقيم بشكل صحيح (حقل إلزامي)', 'error');
                 nameInput?.focus();
@@ -1936,6 +2297,7 @@
                 return;
             }
             const formattedPhone = formatIraqiPhoneNumber(phone);
+            if (phoneInput) phoneInput.value = formattedPhone;
             const phoneDigits = formattedPhone.replace(/\D/g, '');
             if (phoneDigits.length < 10 || phoneDigits.length > 15) {
                 showToast('الرجاء إدخال رقم هاتف صحيح (10 أرقام على الأقل)', 'error');
@@ -1964,7 +2326,8 @@
                 assignedHospitals = [singleHid];
             }
 
-            const formattedName = formatDoctorName(name);
+            const specPrefix = getSpecialtyPrefix(spec);
+            const formattedName = formatDoctorName(name, specPrefix);
 
             // Close panel only after all validations pass
             if (nameInput) nameInput.value = '';
@@ -2017,10 +2380,13 @@
             document.getElementById('edit-res-idx').value = idx;
             document.getElementById('edit-res-id').value = sharedRes?.id || r.id || '';
             document.getElementById('edit-res-name').value = r.name;
-            document.getElementById('edit-res-phone').value = r.phone === 'رقم غير متوفر' ? '' : r.phone;
+            const editPhoneVal = (r.phone && r.phone !== 'رقم غير متوفر') ? (formatIraqiPhoneNumber(r.phone) || r.phone) : '';
+            document.getElementById('edit-res-phone').value = editPhoneVal;
+            attachPhoneAutoFormatListener('edit-res-phone');
             document.getElementById('edit-res-spec').value = r.spec || r.tag;
             document.getElementById('edit-res-dept').value = r.dept || r.department || r.spec || r.tag;
             document.getElementById('edit-res-active').checked = r.active !== false && r.spec !== 'RESERVE';
+            updateEditResPrefixHint();
 
             const multiToggle = document.getElementById('edit-res-multi-toggle');
             if (multiToggle) {
@@ -2061,7 +2427,7 @@
             }
 
             // 1. Mandatory Name Validation
-            const cleanName = name.replace(/^(د|dr)[\.\s\:\/]+/gi, '').trim();
+            const cleanName = name.replace(/^(د|dr|mr|mrs|ms|أ|م|ص)[\.\s\:\/]+/gi, '').trim();
             if (!name || cleanName.length < 2) {
                 showToast('الرجاء إدخال اسم المقيم بشكل صحيح (حقل إلزامي)', 'error');
                 nameInput?.focus();
@@ -2075,6 +2441,7 @@
                 return;
             }
             const formattedPhone = formatIraqiPhoneNumber(phone);
+            if (phoneInput) phoneInput.value = formattedPhone;
             const phoneDigits = formattedPhone.replace(/\D/g, '');
             if (phoneDigits.length < 10 || phoneDigits.length > 15) {
                 showToast('الرجاء إدخال رقم هاتف صحيح (10 أرقام على الأقل)', 'error');
@@ -2098,7 +2465,8 @@
             }
 
             const oldName = currentHospital.names[idx].name;
-            const formattedName = formatDoctorName(name);
+            const specPrefix = getSpecialtyPrefix(spec);
+            const formattedName = formatDoctorName(name, specPrefix);
 
             // Close modal only after all validations pass
             closeEditModal();
@@ -2314,6 +2682,9 @@
                                         فرعي: ${parentName}
                                     </span>
                                 ` : ''}
+                                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700" title="بادئة اسم المنتسب">
+                                    ${s.prefix !== undefined ? (s.prefix === '' ? 'بدون لقب' : `لقب: ${s.prefix.trim()}`) : 'لقب: د.'}
+                                </span>
                                 ${poolCount > 0 ? `
                                     <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                                         يسحب: ${poolCount}
@@ -2407,6 +2778,11 @@
 
                             <!-- Row 3: Actions (Owner Edit & Delete) -->
                             <div class="flex items-center justify-end gap-2 flex-wrap pt-1">
+                                ${!isClone ? `
+                                    <button type="button" onclick="openEditHospitalSpecModal('${s.id}')" class="spec-action-btn text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40 border-teal-200 dark:border-teal-800 hover:bg-teal-100" title="تعديل خصائص هذا التخصص واللقب">
+                                        <i class="fas fa-edit"></i> تعديل التخصص
+                                    </button>
+                                ` : ''}
                                 ${isOwner && !isClone ? `
                                     <button type="button" onclick="openGlobalSpecEditModal('${s.id}')" class="spec-action-btn text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800 hover:bg-purple-100" title="تعديل في المستودع العام للمالك 👑">
                                         <i class="fas fa-crown text-amber-500"></i> المستودع العام 👑
@@ -2781,6 +3157,7 @@
             if (document.getElementById('new-spec-icon')) document.getElementById('new-spec-icon').value = '🏥';
             if (document.getElementById('new-spec-color')) document.getElementById('new-spec-color').value = '#0f766e';
             if (document.getElementById('add-hosp-spec-color')) document.getElementById('add-hosp-spec-color').value = '#0f766e';
+            setSpecPrefixControls('new-spec', 'د. ');
 
             document.getElementById('add-hospital-spec-modal').classList.add('active');
         }
@@ -2795,6 +3172,7 @@
             const specId = (document.getElementById('new-spec-id')?.value || '').trim();
             const icon = (document.getElementById('new-spec-icon')?.value || '').trim() || '🏥';
             const color = document.getElementById('new-spec-color')?.value || '#0f766e';
+            const prefix = getSelectedSpecPrefix('new-spec');
             const parentSpec = document.getElementById('new-spec-parent')?.value || null;
 
             if (!nameAr) {
@@ -2812,6 +3190,7 @@
                     name_en: nameEn,
                     icon: icon,
                     color: color,
+                    prefix: prefix,
                     parentSpec: parentSpec
                 });
                 currentHospital = Hub.getActiveHospital();
@@ -2823,6 +3202,65 @@
             } catch (err) {
                 console.error(err);
                 showToast(err.message || 'خطأ أثناء إضافة التخصص', 'error');
+            }
+        }
+
+        function openEditHospitalSpecModal(specId) {
+            const spec = (currentHospital?.specialties || []).find(s => s.id === specId);
+            if (!spec) {
+                showToast('لم يتم العثور على التخصص المحدد', 'error');
+                return;
+            }
+            document.getElementById('edit-hosp-spec-id').value = spec.id;
+            document.getElementById('edit-hosp-spec-name-ar').value = spec.name_ar || '';
+            document.getElementById('edit-hosp-spec-name-en').value = spec.name_en || '';
+            document.getElementById('edit-hosp-spec-icon').value = spec.icon || '🏥';
+            document.getElementById('edit-hosp-spec-color').value = spec.color || '#0f766e';
+            setSpecPrefixControls('edit-hosp-spec', spec.prefix !== undefined ? spec.prefix : 'د. ');
+            const updateCheck = document.getElementById('edit-hosp-spec-update-existing');
+            if (updateCheck) updateCheck.checked = true;
+
+            document.getElementById('edit-hospital-spec-modal').classList.add('active');
+        }
+
+        function closeEditHospitalSpecModal() {
+            document.getElementById('edit-hospital-spec-modal').classList.remove('active');
+        }
+
+        async function submitEditHospitalSpecialty() {
+            const specId = (document.getElementById('edit-hosp-spec-id')?.value || '').trim();
+            const nameAr = (document.getElementById('edit-hosp-spec-name-ar')?.value || '').trim();
+            const nameEn = (document.getElementById('edit-hosp-spec-name-en')?.value || '').trim();
+            const icon = (document.getElementById('edit-hosp-spec-icon')?.value || '').trim() || '🏥';
+            const color = document.getElementById('edit-hosp-spec-color')?.value || '#0f766e';
+            const prefix = getSelectedSpecPrefix('edit-hosp-spec');
+            const updateResidents = document.getElementById('edit-hosp-spec-update-existing')?.checked === true;
+
+            if (!specId || !nameAr) {
+                showToast('الرجاء إدخال اسم التخصص', 'error');
+                return;
+            }
+
+            closeEditHospitalSpecModal();
+
+            try {
+                await Hub.updateHospitalSpecialty(currentHospital.id, specId, {
+                    name_ar: nameAr,
+                    name_en: nameEn,
+                    icon: icon,
+                    color: color,
+                    prefix: prefix,
+                    updateResidentsPrefix: updateResidents
+                });
+                currentHospital = Hub.getActiveHospital();
+                renderSpecialtiesList();
+                renderResidentsAccordion({ preserveScroll: true });
+                populateSpecialtyDropdowns();
+                updateStatsBadges();
+                showToast(`تم تحديث تخصص "${nameAr}" بنجاح ✨`, 'success');
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'خطأ أثناء تحديث التخصص', 'error');
             }
         }
 
@@ -2950,6 +3388,9 @@
             document.getElementById('global-spec-name-ar').value = target ? target.name_ar : '';
             document.getElementById('global-spec-name-en').value = target ? (target.name_en || '') : '';
             document.getElementById('global-spec-icon').value = target ? (target.icon || '🏥') : '🏥';
+            setSpecPrefixControls('global-spec', target && target.prefix !== undefined ? target.prefix : 'د. ');
+            const updateCheck = document.getElementById('global-spec-update-existing-residents');
+            if (updateCheck) updateCheck.checked = true;
 
             const titleEl = document.getElementById('global-spec-modal-title');
             const alertEl = document.getElementById('global-spec-cascade-alert');
@@ -3015,7 +3456,9 @@
             const nameAr = document.getElementById('global-spec-name-ar').value.trim();
             const nameEn = document.getElementById('global-spec-name-en').value.trim() || nameAr;
             const icon = document.getElementById('global-spec-icon').value.trim() || '🏥';
+            const prefix = getSelectedSpecPrefix('global-spec');
             const parentSpec = document.getElementById('global-spec-parent').value || null;
+            const updateResidents = document.getElementById('global-spec-update-existing-residents')?.checked === true;
 
             const checkedBoxes = document.querySelectorAll('.global-pool-checkbox:checked');
             const acceptPool = Array.from(checkedBoxes).map(cb => cb.value);
@@ -3040,8 +3483,10 @@
                         name_ar: nameAr,
                         name_en: nameEn,
                         icon,
+                        prefix,
                         parentSpec,
-                        acceptPool
+                        acceptPool,
+                        updateResidentsPrefix: updateResidents
                     });
                     showToast(`تم تحديث التخصص "${nameAr}" في المستودع العام وتحديث كافة المراجع بنجاح`, 'success');
                 } else {
@@ -3050,6 +3495,7 @@
                         name_ar: nameAr,
                         name_en: nameEn,
                         icon,
+                        prefix,
                         parentSpec,
                         acceptPool
                     });
@@ -3270,7 +3716,7 @@
         }
 
         // ============================================================
-        // BACKUP & IMPORT
+        // HOSPITAL BACKUP & RESTORE SYSTEM
         // ============================================================
         function openImportModal() {
             document.getElementById('import-json-area').value = '';
@@ -3281,51 +3727,455 @@
             document.getElementById('import-modal').classList.remove('active');
         }
 
-        function exportBackupFile() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(Hub.getDatabase(), null, 2));
+        function exportHospitalBackupFile() {
+            if (!currentHospital) {
+                showToast('لا يوجد مستشفى محدد للنسخ الاحتياطي', 'error');
+                return;
+            }
+
+            const hospId = currentHospital.id || Hub.getActiveHospitalId();
+            const hospName = currentHospital.name_ar || currentHospital.hospitalName || 'المستشفى';
+
+            // Preserve all specialties and their full category structures and properties
+            const specialties = (currentHospital.specialties || []).map(s => ({
+                id: s.id,
+                name_ar: s.name_ar || '',
+                name_en: s.name_en || '',
+                icon: s.icon || '🏥',
+                color: s.color || '#0f766e',
+                parentSpec: s.parentSpec !== undefined ? s.parentSpec : null,
+                acceptPool: Array.isArray(s.acceptPool) ? [...s.acceptPool] : [],
+                enabled: s.enabled !== false,
+                isCloned: !!s.isCloned,
+                sourceHospitalId: s.sourceHospitalId || null
+            }));
+
+            // Preserve all residents and all their properties
+            const residents = (currentHospital.names || []).map((r, idx) => ({
+                id: r.id || ('res-' + String(idx + 1).padStart(4, '0')),
+                name: r.name || '',
+                phone: r.phone || '',
+                spec: r.spec || '',
+                tag: r.tag || r.spec || '',
+                dept: r.dept || r.department || r.spec || '',
+                department: r.department || r.dept || r.spec || '',
+                active: r.active !== false,
+                hospitals: Array.isArray(r.hospitals) && r.hospitals.length ? [...r.hospitals] : [hospId]
+            }));
+
+            const backupData = {
+                format: 'hospital_hub_hospital_backup',
+                version: '3.0',
+                exportedAt: new Date().toISOString(),
+                exportDateFormatted: new Date().toLocaleString('ar-IQ'),
+                hospitalId: hospId,
+                hospitalName: currentHospital.hospitalName || '',
+                name_ar: currentHospital.name_ar || '',
+                location: currentHospital.location || '',
+                icon: currentHospital.icon || 'fa-hospital',
+                color: currentHospital.color || '#0f766e',
+                rotationHeroesUrl: currentHospital.rotationHeroesUrl || '',
+                totalSpecialties: specialties.length,
+                enabledSpecialtiesCount: specialties.filter(s => s.enabled).length,
+                totalResidents: residents.length,
+                activeResidentsCount: residents.filter(r => r.active).length,
+                inactiveResidentsCount: residents.filter(r => !r.active).length,
+                specialties: specialties,
+                residents: residents,
+                names: residents,
+                structure: {
+                    schedule: currentHospital.schedule || {},
+                    specialistSchedule: currentHospital.specialistSchedule || {},
+                    icu: currentHospital.icu || {}
+                }
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
             const a = document.createElement('a');
             a.setAttribute("href", dataStr);
-            a.setAttribute("download", `hospital-hub-backup-${Date.now()}.json`);
+            const dateSlug = new Date().toISOString().slice(0, 10);
+            const safeHosp = hospId.replace(/[^a-zA-Z0-9_\u0600-\u06FF]/g, '_');
+            a.setAttribute("download", `hospital-backup-${safeHosp}-${dateSlug}.json`);
             document.body.appendChild(a);
             a.click();
             a.remove();
-            showToast('تم تنزيل النسخة الاحتياطية', 'success');
+            showToast(`تم تنزيل النسخة الاحتياطية لمستشفى (${hospName}) بنجاح (${residents.length} مقيم - ${specialties.length} تخصص)`, 'success');
+        }
+
+        function exportFullSystemBackupFile() {
+            const dbObj = Hub.getDatabase();
+            if (!dbObj) {
+                showToast('قاعدة البيانات غير محملة', 'error');
+                return;
+            }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dbObj, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            const dateSlug = new Date().toISOString().slice(0, 10);
+            a.setAttribute("download", `hospital-hub-full-backup-${dateSlug}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            showToast('تم تنزيل النسخة الاحتياطية الشاملة لكافة مستشفيات المنظومة بنجاح', 'success');
+        }
+
+        function triggerRestoreHospitalFilePicker() {
+            let input = document.getElementById('hosp-restore-file-input');
+            if (!input) {
+                input = document.createElement('input');
+                input.type = 'file';
+                input.id = 'hosp-restore-file-input';
+                input.accept = '.json,application/json';
+                input.className = 'hidden';
+                input.style.display = 'none';
+                input.onchange = handleHospitalBackupFileInput;
+                document.body.appendChild(input);
+            }
+            input.value = '';
+            input.click();
+        }
+
+        function handleHospitalBackupFileInput(event) {
+            const input = (event && event.target) || document.getElementById('hosp-restore-file-input');
+            const file = input && input.files && input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    await promptAndExecuteRestore(parsed);
+                    if (input) input.value = '';
+                } catch (err) {
+                    console.error('JSON parse error during hospital restore:', err);
+                    alert('فشل قراءة الملف: ملف JSON غير صالح أو به أخطاء برمجية.');
+                    if (input) input.value = '';
+                }
+            };
+            reader.readAsText(file, 'utf-8');
+        }
+
+        async function promptAndExecuteRestore(parsed) {
+            if (!currentHospital) {
+                showToast('لا يوجد مستشفى نشط للاستعادة إليه', 'error');
+                return;
+            }
+
+            // Detect source of specialties & residents
+            let targetSpecialties = null;
+            let targetResidents = null;
+            let targetStructure = null;
+            let backupHospName = parsed.name_ar || parsed.hospitalName || '';
+            const backupDate = parsed.exportDateFormatted || parsed.exportedAt || parsed.lastUpdated || 'غير محدد';
+
+            if (parsed.format === 'hospital_hub_hospital_backup') {
+                targetSpecialties = parsed.specialties;
+                targetResidents = parsed.residents || parsed.names;
+                targetStructure = parsed.structure;
+            } else if (parsed.hospitals && currentHospital.id && parsed.hospitals[currentHospital.id]) {
+                const h = parsed.hospitals[currentHospital.id];
+                targetSpecialties = h.specialties;
+                targetResidents = h.names;
+                targetStructure = { schedule: h.schedule, specialistSchedule: h.specialistSchedule, icu: h.icu };
+                backupHospName = h.name_ar || h.hospitalName || backupHospName;
+            } else if (parsed.specialties || parsed.names || Array.isArray(parsed)) {
+                targetSpecialties = parsed.specialties || null;
+                targetResidents = parsed.residents || parsed.names || (Array.isArray(parsed) ? parsed : null);
+            }
+
+            const specsCount = Array.isArray(targetSpecialties) ? targetSpecialties.length : 0;
+            const resCount = Array.isArray(targetResidents) ? targetResidents.length : 0;
+
+            if (specsCount === 0 && resCount === 0) {
+                alert('الملف لا يحتوي على تخصصات أو مقيمين صالحين للاستعادة.');
+                return;
+            }
+
+            const currentHospTitle = currentHospital.name_ar || currentHospital.hospitalName || 'المستشفى الحالي';
+            const msg = `تأكيد استعادة النسخة الاحتياطية للمستشفى:\n\n` +
+                `• المستشفى الهدف: ${currentHospTitle}\n` +
+                (backupHospName ? `• مصدر النسخة: ${backupHospName}\n` : '') +
+                `• تاريخ النسخة: ${backupDate}\n` +
+                `• عدد التخصصات الطبية: ${specsCount} تخصص\n` +
+                `• عدد الأطباء المقيمين: ${resCount} طبيب\n` +
+                (targetStructure ? `• جداول وهيكلية المستشفى: متوفرة للاستعادة ✓\n` : '') +
+                `\nاضغط [موافق / OK] للمتابعة واختيار نمط الاستعادة.`;
+
+            if (!confirm(msg)) return;
+
+            // Ask if replace or merge
+            const replaceMode = confirm(`هل ترغب بـ (استبدال شامل لكافة التخصصات والمقيمين)؟\n\nاضغط [موافق] للاستبدال الشامل وإعادة الهيكلية بالكامل كما كانت في النسخة الاحتياطية.\nاضغط [إلغاء] لدمج التخصصات والمقيمين الجدد مع الإبقاء على البيانات الحالية.`);
+
+            const mode = replaceMode ? 'replace' : 'merge';
+            await executeRestoreHospital({
+                specialties: targetSpecialties,
+                residents: targetResidents,
+                structure: targetStructure,
+                format: parsed.format,
+                name_ar: backupHospName
+            }, mode);
+        }
+
+        async function executeRestoreHospital(data, mode = 'replace') {
+            if (!currentHospital) return;
+
+            try {
+                // 1. Restore Specialties (Categories, hierarchy, acceptPool, colors, icons, enabled)
+                if (Array.isArray(data.specialties) && data.specialties.length > 0) {
+                    const cleanedSpecs = data.specialties.map(s => ({
+                        id: String(s.id).trim(),
+                        name_ar: String(s.name_ar || s.id).trim(),
+                        name_en: String(s.name_en || '').trim(),
+                        icon: s.icon || '🏥',
+                        color: s.color || '#0f766e',
+                        parentSpec: s.parentSpec || null,
+                        acceptPool: Array.isArray(s.acceptPool) ? [...s.acceptPool] : [],
+                        enabled: s.enabled !== false,
+                        isCloned: !!s.isCloned,
+                        sourceHospitalId: s.sourceHospitalId || null
+                    }));
+
+                    if (mode === 'replace') {
+                        currentHospital.specialties = cleanedSpecs;
+                    } else {
+                        if (!currentHospital.specialties) currentHospital.specialties = [];
+                        cleanedSpecs.forEach(newSpec => {
+                            const idx = currentHospital.specialties.findIndex(s => s.id === newSpec.id);
+                            if (idx >= 0) {
+                                currentHospital.specialties[idx] = Object.assign({}, currentHospital.specialties[idx], newSpec);
+                            } else {
+                                currentHospital.specialties.push(newSpec);
+                            }
+                        });
+                    }
+                }
+
+                // 2. Restore Residents (Name, phone, specialty, rotation department, active status, hospitals)
+                if (Array.isArray(data.residents)) {
+                    const cleanedResidents = data.residents.map((r, idx) => ({
+                        id: r.id || ('res-' + Date.now() + '_' + idx),
+                        name: formatDoctorName(r.name) || String(r.name || '').trim(),
+                        phone: formatIraqiPhoneNumber(r.phone) || String(r.phone || '').trim(),
+                        spec: String(r.spec || r.tag || '').trim(),
+                        tag: String(r.tag || r.spec || '').trim(),
+                        dept: String(r.dept || r.department || r.spec || '').trim(),
+                        department: String(r.department || r.dept || r.spec || '').trim(),
+                        active: r.active !== false,
+                        hospitals: Array.isArray(r.hospitals) && r.hospitals.length ? [...r.hospitals] : [currentHospital.id]
+                    })).filter(r => r.name.length > 0);
+
+                    if (mode === 'replace') {
+                        currentHospital.names = cleanedResidents;
+                    } else {
+                        if (!currentHospital.names) currentHospital.names = [];
+                        let added = 0;
+                        cleanedResidents.forEach(newRes => {
+                            const idx = currentHospital.names.findIndex(r => r.name === newRes.name);
+                            if (idx >= 0) {
+                                currentHospital.names[idx] = Object.assign({}, currentHospital.names[idx], newRes);
+                            } else {
+                                currentHospital.names.push(newRes);
+                                added++;
+                            }
+                        });
+                    }
+                }
+
+                // 3. Restore Structure (schedules, ICU, etc.) if replace mode
+                if (mode === 'replace' && data.structure) {
+                    if (data.structure.schedule && typeof data.structure.schedule === 'object') {
+                        currentHospital.schedule = data.structure.schedule;
+                    }
+                    if (data.structure.specialistSchedule && typeof data.structure.specialistSchedule === 'object') {
+                        currentHospital.specialistSchedule = data.structure.specialistSchedule;
+                    }
+                    if (data.structure.icu && typeof data.structure.icu === 'object') {
+                        currentHospital.icu = data.structure.icu;
+                    }
+                }
+
+                // 4. Save to Hub Database & GitHub API
+                await Hub.saveDatabase(`Restored backup for ${currentHospital.name_ar || currentHospital.hospitalName} (${mode})`);
+
+                // 5. Refresh UI Views
+                renderResidentsAccordion();
+                updateStatsBadges();
+                renderSpecialtiesList();
+                populateSpecDropdowns();
+
+                closeImportModal();
+                showToast(`تمت استعادة بيانات المستشفى بنجاح (${mode === 'replace' ? 'استبدال كامل شامل' : 'دمج'})!`, 'success');
+
+            } catch (err) {
+                console.error('Error executing restore:', err);
+                showToast('خطأ أثناء الاستعادة: ' + (err.message || ''), 'error');
+            }
         }
 
         async function executeImport(mode = 'merge') {
             const text = document.getElementById('import-json-area').value.trim();
             if (!text) {
-                showToast('الرجاء لصق بيانات JSON', 'error');
+                showToast('الرجاء لصق بيانات JSON أولاً', 'error');
                 return;
             }
 
             try {
                 const parsed = JSON.parse(text);
-                const importedNames = parsed.names || (Array.isArray(parsed) ? parsed : []);
-
-                if (mode === 'replace') {
-                    if (!confirm('تحذير: سيتم استبدال جميع المقيمين الحاليين بالبيانات الجديدة. هل أنت متأكد؟')) return;
-                    currentHospital.names = importedNames;
-                } else {
-                    // Merge
-                    let added = 0;
-                    importedNames.forEach(n => {
-                        if (!currentHospital.names.some(existing => existing.name === n.name)) {
-                            currentHospital.names.push(n);
-                            added++;
-                        }
-                    });
-                    showToast(`تم دمج ${added} مقيم جديد`, 'success');
-                }
-
-                closeImportModal();
-                renderResidentsAccordion();
-                updateStatsBadges();
-                await Hub.saveDatabase(`Import data (${mode})`);
-
+                await promptAndExecuteRestore(parsed);
             } catch (err) {
                 showToast('صيغة JSON غير صالحة', 'error');
             }
+        }
+
+        // ============================================================
+        // CONTACT PICKER & VCARD EXTRACTION SYSTEM
+        // ============================================================
+        function openAddResidentWithContacts() {
+            toggleAddResidentPanel(true);
+            pickResidentFromContacts();
+        }
+
+        async function pickResidentFromContacts() {
+            // Check for native Web Contact Picker API (Chrome / Edge / mobile browsers)
+            if ('contacts' in navigator && 'ContactsManager' in window && typeof navigator.contacts.select === 'function') {
+                try {
+                    let props = ['name', 'tel'];
+                    if (typeof navigator.contacts.getProperties === 'function') {
+                        const supported = await navigator.contacts.getProperties();
+                        props = props.filter(p => supported.includes(p));
+                    }
+                    const contacts = await navigator.contacts.select(props.length ? props : ['name', 'tel'], { multiple: false });
+                    if (contacts && contacts.length > 0) {
+                        const c = contacts[0];
+                        const rawName = (c.name && c.name[0]) ? c.name[0] : '';
+                        const rawTel = (c.tel && c.tel[0]) ? c.tel[0] : '';
+                        applyExtractedContact(rawName, rawTel);
+                        return;
+                    }
+                } catch (err) {
+                    if (err.name === 'AbortError' || err.name === 'SecurityError') {
+                        // User cancelled picker
+                        return;
+                    }
+                    console.warn('Native contact picker error, opening fallback modal:', err);
+                }
+            }
+
+            // Fallback for browsers without Contact Picker API (Desktop, iOS Safari)
+            openContactFallbackModal();
+        }
+
+        function openContactFallbackModal() {
+            const modal = document.getElementById('contact-fallback-modal');
+            if (modal) modal.classList.add('active');
+        }
+
+        function closeContactFallbackModal() {
+            const modal = document.getElementById('contact-fallback-modal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function applyExtractedContact(rawName, rawTel) {
+            if (!rawName && !rawTel) {
+                showToast('لم يتم العثور على اسم أو رقم هاتف في جهة الاتصال', 'error');
+                return;
+            }
+
+            // Ensure Add Resident Panel is visible
+            toggleAddResidentPanel(true);
+
+            const nameInput = document.getElementById('new-res-name');
+            const phoneInput = document.getElementById('new-res-phone');
+            const specSelect = document.getElementById('new-res-spec');
+            const currentSpecId = specSelect ? specSelect.value : null;
+            const specPrefix = getSpecialtyPrefix(currentSpecId);
+
+            let formattedName = rawName ? rawName.trim() : '';
+            if (formattedName) {
+                formattedName = formatDoctorName(formattedName, specPrefix) || formattedName;
+                if (nameInput) nameInput.value = formattedName;
+            }
+
+            let formattedPhone = rawTel ? rawTel.trim() : '';
+            if (formattedPhone) {
+                formattedPhone = formatIraqiPhoneNumber(formattedPhone) || formattedPhone;
+                if (phoneInput) phoneInput.value = formattedPhone;
+            }
+
+            // Visual feedback & Focus on specialty
+            [nameInput, phoneInput].forEach(inp => {
+                if (inp) {
+                    inp.classList.add('ring-2', 'ring-teal-500');
+                    setTimeout(() => inp.classList.remove('ring-2', 'ring-teal-500'), 2500);
+                }
+            });
+
+            if (specSelect) {
+                specSelect.focus();
+            }
+
+            closeContactFallbackModal();
+            showToast(`تم استيراد جهة الاتصال (${formattedName || formattedPhone}) بنجاح! أكمل اختيار التخصص والمستشفى.`, 'success');
+        }
+
+        function handleVCardFile(event) {
+            const input = (event && event.target) || document.getElementById('contact-vcf-picker');
+            const file = input && input.files && input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const { name, tel } = parseVCardText(text);
+                if (!name && !tel) {
+                    showToast('لم يتم العثور على اسم أو رقم هاتف صالح داخل ملف vCard', 'error');
+                    if (input) input.value = '';
+                    return;
+                }
+                applyExtractedContact(name, tel);
+                if (input) input.value = '';
+            };
+            reader.readAsText(file, 'utf-8');
+        }
+
+        function parseVCardText(vcfText) {
+            let name = '';
+            let tel = '';
+            const lines = vcfText.split(/\r?\n/);
+            for (let line of lines) {
+                line = line.trim();
+                if (/^FN[;:].*$/i.test(line)) {
+                    name = line.substring(line.indexOf(':') + 1).trim();
+                } else if (!name && /^N[;:].*$/i.test(line)) {
+                    const parts = line.substring(line.indexOf(':') + 1).split(';');
+                    name = parts.filter(Boolean).reverse().join(' ').trim();
+                } else if (/^TEL[;:].*$/i.test(line)) {
+                    if (!tel) {
+                        tel = line.substring(line.indexOf(':') + 1).trim();
+                    }
+                }
+            }
+            return { name, tel };
+        }
+
+        function extractFromManualContactText() {
+            const area = document.getElementById('contact-manual-text');
+            const text = (area?.value || '').trim();
+            if (!text) {
+                showToast('يرجى كتابة أو لصق نص جهة الاتصال', 'error');
+                return;
+            }
+
+            // Extract phone digits if present
+            const phoneMatch = text.match(/(?:\+?964|00964|0)?7[0-9]{9}/) || text.match(/[0-9]{10,14}/);
+            const phone = phoneMatch ? phoneMatch[0] : '';
+            let name = text.replace(phone, '').replace(/[,\-:|]/g, ' ').trim();
+            if (name.length < 2 && !phone) {
+                showToast('تعذر استخراج الاسم أو الرقم من النص المدخل', 'error');
+                return;
+            }
+            applyExtractedContact(name, phone);
+            if (area) area.value = '';
         }
 
         async function saveToGitHub() {

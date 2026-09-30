@@ -863,7 +863,7 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">رقم الهاتف (للتواصل السريع وواتساب)</label>
-                    <input type="text" id="form-spec-phone" class="input-field font-mono text-left" placeholder="07801234567" dir="ltr" />
+                    <input type="text" id="form-spec-phone" class="input-field font-mono text-left" placeholder="+9647801234567" dir="ltr" />
                 </div>
 
                 <div>
@@ -977,9 +977,73 @@
             { id: 'fri', name: 'الجمعة' }
         ];
 
+        function formatIraqiPhoneNumber(rawPhone) {
+            if (!rawPhone || typeof rawPhone !== 'string') return '';
+            let p = rawPhone.trim();
+            if (p === 'رقم غير متوفر' || p === 'غير متوفر' || p === 'N/A' || p === 'None' || p === 'بدون هاتف') return 'رقم غير متوفر';
+
+            // Convert Arabic/Persian digits to English ASCII digits
+            const arabicDigits = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+            const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+            for (let i = 0; i < 10; i++) {
+                p = p.split(arabicDigits[i]).join(String(i));
+                p = p.split(persianDigits[i]).join(String(i));
+            }
+
+            const hadPlus = p.startsWith('+');
+            let digits = p.replace(/\D/g, '');
+            if (!digits) return '';
+
+            // Handle 00964 prefix or 964 prefix
+            if (digits.startsWith('00964')) {
+                digits = digits.substring(5);
+            } else if (digits.startsWith('964')) {
+                digits = digits.substring(3);
+            }
+
+            // Now digits is without 964. If it starts with 0 (e.g. 07XXXXXXXXX), remove all leading zeros
+            while (digits.startsWith('0')) {
+                digits = digits.substring(1);
+            }
+
+            if (!digits) return '';
+
+            return '+964' + digits;
+        }
+
+        function attachPhoneAutoFormatListener(elementOrId) {
+            const el = typeof elementOrId === 'string' ? document.getElementById(elementOrId) : elementOrId;
+            if (!el || el._phoneAutoFormatBound) return;
+            el._phoneAutoFormatBound = true;
+
+            const formatField = () => {
+                const val = (el.value || '').trim();
+                if (val && val !== 'رقم غير متوفر') {
+                    const formatted = formatIraqiPhoneNumber(val);
+                    if (formatted && formatted !== val) {
+                        el.value = formatted;
+                    }
+                }
+            };
+
+            el.addEventListener('blur', formatField);
+            el.addEventListener('change', formatField);
+            el.addEventListener('paste', () => setTimeout(formatField, 40));
+            el.addEventListener('input', () => {
+                const digits = el.value.replace(/\D/g, '');
+                if ((digits.startsWith('07') && digits.length === 11) ||
+                    (digits.startsWith('7') && digits.length === 10) ||
+                    (digits.startsWith('964') && digits.length === 12) ||
+                    (digits.startsWith('00964') && digits.length === 14)) {
+                    formatField();
+                }
+            });
+        }
+
         async function initPage() {
             await Hub.loadDatabase();
             initUniversalNav('specialists');
+            attachPhoneAutoFormatListener('form-spec-phone');
 
             // Set hospital from query param if available
             const urlParams = new URLSearchParams(window.location.search);
@@ -1157,8 +1221,12 @@
                     const phone = (doc.phone || '').toLowerCase();
                     const notes = (doc.notes || '').toLowerCase();
 
+                    const qDigits = query.replace(/\D/g, '');
+                    const phoneDigits = (doc.phone || '').replace(/\D/g, '');
+                    const matchPhone = phone.includes(query) || (qDigits.length >= 3 && phoneDigits.includes(qDigits));
+
                     if (!name.includes(query) && !title.includes(query) && !specName.includes(query) && 
-                        !clinic.includes(query) && !phone.includes(query) && !notes.includes(query)) {
+                        !clinic.includes(query) && !matchPhone && !notes.includes(query)) {
                         return false;
                     }
                 }
@@ -1805,7 +1873,9 @@
             document.getElementById('form-spec-name').value = doc.name || '';
             document.getElementById('form-spec-title').value = doc.title || 'استشاري / بورد';
             document.getElementById('form-spec-code').value = doc.spec || '';
-            document.getElementById('form-spec-phone').value = doc.phone || '';
+            const specPhoneVal = (doc.phone && doc.phone !== 'رقم غير متوفر') ? (formatIraqiPhoneNumber(doc.phone) || doc.phone) : '';
+            document.getElementById('form-spec-phone').value = specPhoneVal;
+            attachPhoneAutoFormatListener('form-spec-phone');
             document.getElementById('form-spec-clinic').value = doc.clinic || '';
             document.getElementById('form-spec-active').checked = doc.active !== false;
 
@@ -1857,12 +1927,17 @@
             const clinicDays = Array.from(document.querySelectorAll('input[name="form-clinic-day"]:checked')).map(cb => cb.value);
             const theatreDays = isSurg ? Array.from(document.querySelectorAll('input[name="form-theatre-day"]:checked')).map(cb => cb.value) : [];
 
+            const rawSpecPhone = document.getElementById('form-spec-phone').value.trim();
+            const formattedSpecPhone = (rawSpecPhone && rawSpecPhone !== 'رقم غير متوفر') ? (formatIraqiPhoneNumber(rawSpecPhone) || rawSpecPhone) : '';
+            const phoneInput = document.getElementById('form-spec-phone');
+            if (phoneInput && formattedSpecPhone) phoneInput.value = formattedSpecPhone;
+
             const specData = {
                 name: document.getElementById('form-spec-name').value.trim(),
                 title: document.getElementById('form-spec-title').value.trim(),
                 spec: specCode,
                 specName: (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(specCode) : (specObj ? specObj.name_ar : specCode),
-                phone: document.getElementById('form-spec-phone').value.trim(),
+                phone: formattedSpecPhone,
                 clinic: document.getElementById('form-spec-clinic').value.trim(),
                 hospitals: checkedHosps.length > 0 ? checkedHosps : [Hub.getActiveHospitalId()],
                 active: document.getElementById('form-spec-active').checked,

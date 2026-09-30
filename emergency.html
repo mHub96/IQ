@@ -180,6 +180,18 @@
 
             <!-- Top Actions -->
             <div class="flex items-center gap-2">
+                <!-- Full Emergency Backup Button -->
+                <button type="button" onclick="backupResidentsDatabase()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition shadow-xs" title="حفظ وتنزيل نسخة احتياطية شاملة لكافة بيانات وجداول وإعدادات الطوارئ (JSON)">
+                    <i class="fas fa-download text-emerald-600 dark:text-emerald-400"></i>
+                    <span class="hidden sm:inline">نسخ احتياطي شامل</span>
+                </button>
+                <!-- Full Emergency Restore Button -->
+                <button type="button" onclick="triggerRestoreResidentsDatabase()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 transition shadow-xs" title="استعادة النسخة الاحتياطية الشاملة لكافة الجداول والبيانات والإعدادات (JSON)">
+                    <i class="fas fa-upload text-blue-600 dark:text-blue-400"></i>
+                    <span class="hidden sm:inline">استعادة نسخة</span>
+                </button>
+                <input type="file" id="emergency-header-restore-input" accept=".json,application/json" onchange="handleRestoreResidentsFile(event)" class="hidden" style="display:none;">
+
                 <button type="button" onclick="openHospitalSyncModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 transition shadow-xs" title="مزامنة وتطابق أسماء الأطباء مع سجلات المستشفى">
                     <i class="fas fa-arrows-rotate"></i>
                     <span class="hidden lg:inline">مزامنة المستشفى</span>

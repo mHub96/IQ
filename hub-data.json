@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T11:04:23.193Z",
+  "lastUpdated": "2026-09-30T11:04:46.397Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -2573,7 +2573,8 @@
           "department": "GS",
           "active": true,
           "hospitals": [
-            "iraqi"
+            "iraqi",
+            "basra"
           ]
         },
         {
@@ -20352,7 +20353,7 @@
           "date": "30/09/2026",
           "specCode": "ICU",
           "name": "د. صفا كاظم",
-          "VisitCount": 4,
+          "VisitCount": 2,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -23958,6 +23959,20 @@
           "hospitals": [
             "basra",
             "iraqi"
+          ]
+        },
+        {
+          "id": "res-0097",
+          "name": "د. نجم هدو راضي",
+          "phone": "+9647757449886",
+          "spec": "GS",
+          "tag": "GS",
+          "dept": "GS",
+          "department": "GS",
+          "active": true,
+          "hospitals": [
+            "iraqi",
+            "basra"
           ]
         },
         {
@@ -32929,7 +32944,87 @@
         {
           "date": "06/10/2026",
           "specCode": "D",
-          "name": "",
+          "name": "د. علي جميل حنتوش",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "07/10/2026",
+          "specCode": "D",
+          "name": "د. دعاء ناظم اسماعيل",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "07/10/2026",
+          "specCode": "D",
+          "name": "د. علي حسن",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "D",
+          "name": "د. درر علي محمد",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "D",
+          "name": "د. نجم هدو راضي",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "09/10/2026",
+          "specCode": "D",
+          "name": "د. زمن مصطفى",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "09/10/2026",
+          "specCode": "D",
+          "name": "د. علي احمد محسن",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "D",
+          "name": "د. براء عباس",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "D",
+          "name": "د. جمال كريم",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "11/10/2026",
+          "specCode": "D",
+          "name": "د. مريم حسن",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "11/10/2026",
+          "specCode": "D",
+          "name": "د. المصطفى سعد عبد الصمد",
           "VisitCount": 0,
           "dutyTime": "08:00PM - 08:00AM",
           "dutySlot": 1
@@ -43539,7 +43634,8 @@
       "department": "GS",
       "active": true,
       "hospitals": [
-        "iraqi"
+        "iraqi",
+        "basra"
       ]
     },
     {

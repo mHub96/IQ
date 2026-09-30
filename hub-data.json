@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:09:57.041Z",
+  "lastUpdated": "2026-09-30T18:10:07.911Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -233,16 +233,6 @@
           "name_en": "Nephrology",
           "icon": "🧫",
           "color": "#ff5ccb",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
-          "id": "P",
-          "name_ar": "النفسية",
-          "name_en": "Psychiatry",
-          "icon": "🧠",
-          "color": "#fef606",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false

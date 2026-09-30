@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T13:24:17.580Z",
+  "lastUpdated": "2026-09-30T13:24:41.743Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21757,6 +21757,38 @@
           "date": "27/10/2026",
           "specCode": "NS",
           "name": "د. حسين عيدان حنون",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "28/10/2026",
+          "specCode": "NS",
+          "name": "د. الحسن حسين جبار",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "29/10/2026",
+          "specCode": "NS",
+          "name": "د. احمد هاتف",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "30/10/2026",
+          "specCode": "NS",
+          "name": "د. حسين عيدان حنون",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "31/10/2026",
+          "specCode": "NS",
+          "name": "د. الحسن حسين جبار",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

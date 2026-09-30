@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T11:07:09.627Z",
+  "lastUpdated": "2026-09-30T11:07:16.115Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20973,6 +20973,17 @@
           "enabled": true
         },
         {
+          "id": "R_iraqi",
+          "name_ar": "الأشعة و السونار",
+          "name_en": "Radiology",
+          "icon": "🩻",
+          "color": "#6700e6",
+          "isClone": true,
+          "clonedFromHospitalId": "iraqi",
+          "clonedFromSpecId": "R",
+          "enabled": true
+        },
+        {
           "id": "R",
           "name_ar": "الأشعة و السونار",
           "name_en": "Radiology",
@@ -21139,17 +21150,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "R_iraqi",
-          "name_ar": "الأشعة و السونار",
-          "name_en": "Radiology",
-          "icon": "🩻",
-          "color": "#6700e6",
-          "isClone": true,
-          "clonedFromHospitalId": "iraqi",
-          "clonedFromSpecId": "R",
-          "enabled": true
         }
       ],
       "names": [

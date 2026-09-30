@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T05:21:16.113Z",
+  "lastUpdated": "2026-09-30T05:27:18.984Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -31264,10 +31264,11 @@
         {
           "date": "30/09/2026",
           "specCode": "M",
-          "name": "د. امنه شبير",
+          "name": "د. فاديا ثائر",
           "VisitCount": 0,
           "dutyTime": "08:00AM - 08:00PM",
-          "dutySlot": 0
+          "dutySlot": 0,
+          "timestamp": "08:27"
         },
         {
           "date": "30/09/2026",

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T17:58:25.704Z",
+  "lastUpdated": "2026-09-30T18:01:11.913Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21840,6 +21840,254 @@
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "R",
+          "name": "د. سنا احسان علوان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "R",
+          "name": "د. سارة عبدالحكيم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "R",
+          "name": "د. ايات سلمان قاسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "04/10/2026",
+          "specCode": "R",
+          "name": "د. الحسين عبدالرحمن خويط",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "R",
+          "name": "د. زينب سلمان سعيد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/10/2026",
+          "specCode": "R",
+          "name": "د. محمد رائد محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "07/10/2026",
+          "specCode": "R",
+          "name": "د. طيف كريم خضير",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "R",
+          "name": "د. سنا احسان علوان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "09/10/2026",
+          "specCode": "R",
+          "name": "د. سنا احسان علوان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "R",
+          "name": "د. محمد رائد محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "11/10/2026",
+          "specCode": "R",
+          "name": "د. الحسين عبدالرحمن خويط",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "12/10/2026",
+          "specCode": "R",
+          "name": "د. زينب سلمان سعيد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "13/10/2026",
+          "specCode": "R",
+          "name": "د. طيف كريم خضير",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "14/10/2026",
+          "specCode": "R",
+          "name": "د. ايات سلمان قاسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "15/10/2026",
+          "specCode": "R",
+          "name": "د. سارة عبدالحكيم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "16/10/2026",
+          "specCode": "R",
+          "name": "د. منتظر توفيق عبدالكريم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "17/10/2026",
+          "specCode": "R",
+          "name": "د. زينب جبار محسن",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "18/10/2026",
+          "specCode": "R",
+          "name": "د. نازك احمد ماجد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "19/10/2026",
+          "specCode": "R",
+          "name": "د. منار رحيم عبد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "20/10/2026",
+          "specCode": "R",
+          "name": "د. نجوان براق كاظم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "21/10/2026",
+          "specCode": "R",
+          "name": "د. عذراء محمد عبدالحي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "22/10/2026",
+          "specCode": "R",
+          "name": "د. رسل علي عبدالباقي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "23/10/2026",
+          "specCode": "R",
+          "name": "د. نازك احمد ماجد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "24/10/2026",
+          "specCode": "R",
+          "name": "د. نجوان براق كاظم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "25/10/2026",
+          "specCode": "R",
+          "name": "د. منار رحيم عبد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "26/10/2026",
+          "specCode": "R",
+          "name": "د. عذراء محمد عبدالحي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "27/10/2026",
+          "specCode": "R",
+          "name": "د. رسل علي عبدالباقي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "28/10/2026",
+          "specCode": "R",
+          "name": "د. زينب جبار محسن",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "29/10/2026",
+          "specCode": "R",
+          "name": "د. منتظر توفيق عبدالكريم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "30/10/2026",
+          "specCode": "R",
+          "name": "د. منار رحيم عبد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "31/10/2026",
+          "specCode": "R",
+          "name": "د. رسل علي عبدالباقي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
         }
       ],
       "rotationHeroesUrl": "https://khafarat-alsadr.netlify.app/",
@@ -32419,7 +32667,7 @@
           "date": "30/09/2026",
           "specCode": "Pe",
           "name": "د مسره شهاب",
-          "VisitCount": 3,
+          "VisitCount": 2,
           "dutySlot": 0,
           "dutyTime": "",
           "timestamp": "15:31"

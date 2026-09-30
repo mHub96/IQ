@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-09-30T18:07:46.326Z",
+  "lastUpdated": "2026-09-30T18:08:05.825Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -122,16 +122,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true
-        },
-        {
-          "id": "G",
-          "name_ar": "النسائية و التوليد",
-          "name_en": "Gynecology",
-          "icon": "🤰",
-          "color": "#e40de7",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
         },
         {
           "id": "ICU",
@@ -256,6 +246,16 @@
           "acceptPool": [],
           "enabled": false,
           "color": "#0f766e"
+        },
+        {
+          "id": "G",
+          "name_ar": "النسائية و التوليد",
+          "name_en": "Gynecology",
+          "icon": "🤰",
+          "color": "#e40de7",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "N",

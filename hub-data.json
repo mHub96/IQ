@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T08:03:07.737Z",
+  "lastUpdated": "2026-10-01T08:07:24.691Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -120,11 +120,8 @@
           "icon": "💊",
           "color": "#a1e972",
           "parentSpec": null,
-          "acceptPool": [
-            "NM"
-          ],
-          "enabled": false,
-          "prefix": "د. "
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "G",
@@ -251,7 +248,7 @@
           "enabled": true
         },
         {
-          "id": "M_BASRA",
+          "id": "M_basra",
           "name_ar": "الباطنية",
           "name_en": "Internal Medicine",
           "icon": "💊",
@@ -262,9 +259,7 @@
           "clonedFromSpecId": "M",
           "enabled": true,
           "parentSpec": null,
-          "acceptPool": [
-            "NM"
-          ]
+          "acceptPool": []
         },
         {
           "id": "OR_basra",
@@ -311,12 +306,8 @@
           "icon": "🧠",
           "color": "#79e9f1",
           "parentSpec": null,
-          "acceptPool": [
-            "M",
-            "M_BASRA"
-          ],
-          "enabled": false,
-          "prefix": "د. "
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "P",
@@ -22076,11 +22067,8 @@
           "icon": "💊",
           "color": "#a1e972",
           "parentSpec": null,
-          "acceptPool": [
-            "NM"
-          ],
-          "enabled": true,
-          "prefix": "د. "
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "G",
@@ -22145,12 +22133,8 @@
           "icon": "🧠",
           "color": "#79e9f1",
           "parentSpec": null,
-          "acceptPool": [
-            "M",
-            "M_BASRA"
-          ],
-          "enabled": true,
-          "prefix": "د. "
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "R_iraqi",
@@ -22314,7 +22298,7 @@
         },
         {
           "id": "res-0279",
-          "name": "د. مها عباس جابر",
+          "name": "د مها عباس جابر",
           "phone": "+9647717806124",
           "spec": "M",
           "tag": "M",
@@ -30776,7 +30760,7 @@
         {
           "date": "27/08/2026",
           "specCode": "M",
-          "name": "د. مها عباس جابر",
+          "name": "د مها عباس جابر",
           "timestamp": "09:38",
           "VisitCount": 5
         },
@@ -36980,6 +36964,190 @@
           "VisitCount": 0,
           "dutyTime": "08:00PM - 08:00AM",
           "dutySlot": 1
+        },
+        {
+          "date": "06/10/2026",
+          "specCode": "M",
+          "name": "د. ضحى جاسم محمد",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/10/2026",
+          "specCode": "M",
+          "name": "د. علي اعتدال",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "07/10/2026",
+          "specCode": "M",
+          "name": "د. فلاح غيدان",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "07/10/2026",
+          "specCode": "M",
+          "name": "د. زين العابدين عبد الرحمن عباس",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "M",
+          "name": "",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "M",
+          "name": "د. حسين جليل كاظم الساعدي",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "09/10/2026",
+          "specCode": "M",
+          "name": "د. مها عباس",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "09/10/2026",
+          "specCode": "M",
+          "name": "د. علي اعتدال",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 12:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "09/10/2026",
+          "specCode": "M",
+          "name": "د. محمد بشير",
+          "VisitCount": 0,
+          "dutyTime": "12:00AM - 08:00AM",
+          "dutySlot": 2
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "M",
+          "name": "د. ضحى جاسم محمد",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "M",
+          "name": "د. نزار سليم",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "11/10/2026",
+          "specCode": "M",
+          "name": "د. مها عباس",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 02:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "11/10/2026",
+          "specCode": "M",
+          "name": "د. زين العابدين عبد الرحمن عباس",
+          "VisitCount": 0,
+          "dutyTime": "02:00PM - 08:00PM",
+          "dutySlot": 1
+        },
+        {
+          "date": "11/10/2026",
+          "specCode": "M",
+          "name": "د. مصطفى فرات",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 2
+        },
+        {
+          "date": "12/10/2026",
+          "specCode": "M",
+          "name": "د. فلاح غيدان",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "12/10/2026",
+          "specCode": "M",
+          "name": "د. نزار سليم",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 12:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "12/10/2026",
+          "specCode": "M",
+          "name": "د. مصطفى فرات",
+          "VisitCount": 0,
+          "dutyTime": "12:00AM - 08:00AM",
+          "dutySlot": 2
+        },
+        {
+          "date": "13/10/2026",
+          "specCode": "M",
+          "name": "",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "13/10/2026",
+          "specCode": "M",
+          "name": "د. محمد بشير",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "14/10/2026",
+          "specCode": "M",
+          "name": "",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "14/10/2026",
+          "specCode": "M",
+          "name": "د. منتظر حميد هاشم",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "15/10/2026",
+          "specCode": "M",
+          "name": "د. مصطفى فرات",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "15/10/2026",
+          "specCode": "M",
+          "name": "د. حسين جليل كاظم الساعدي",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
         }
       ],
       "rotationHeroesUrl": "",
@@ -37105,11 +37273,8 @@
           "icon": "💊",
           "color": "#2563eb",
           "parentSpec": null,
-          "acceptPool": [
-            "NM"
-          ],
-          "enabled": true,
-          "prefix": "د. "
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "G",
@@ -37252,12 +37417,8 @@
           "icon": "🧠",
           "color": "#79e9f1",
           "parentSpec": null,
-          "acceptPool": [
-            "M",
-            "M_BASRA"
-          ],
-          "enabled": false,
-          "prefix": "د. "
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "P",
@@ -42231,7 +42392,7 @@
     },
     {
       "id": "res-0279",
-      "name": "د. مها عباس جابر",
+      "name": "د مها عباس جابر",
       "phone": "+9647717806124",
       "spec": "M",
       "tag": "M",
@@ -49591,11 +49752,9 @@
       "name_ar": "الباطنية",
       "name_en": "Internal Medicine",
       "icon": "💊",
-      "prefix": "د. ",
+      "color": "#0f766e",
       "parentSpec": null,
-      "acceptPool": [
-        "NM"
-      ],
+      "acceptPool": [],
       "enabled": true
     },
     {
@@ -49737,12 +49896,9 @@
       "name_ar": "طب الجملة العصبية",
       "name_en": "Neuromedicine",
       "icon": "🧠",
-      "prefix": "د. ",
+      "color": "#0f766e",
       "parentSpec": null,
-      "acceptPool": [
-        "M",
-        "M_BASRA"
-      ],
+      "acceptPool": [],
       "enabled": true
     },
     {
@@ -49846,15 +50002,13 @@
       "enabled": true
     },
     {
-      "id": "M_BASRA",
+      "id": "M_basra",
       "name_ar": "الباطنية",
       "name_en": "Internal Medicine",
       "icon": "💊",
-      "prefix": "د. ",
+      "color": "#a1e972",
       "parentSpec": null,
-      "acceptPool": [
-        "NM"
-      ],
+      "acceptPool": [],
       "enabled": true
     },
     {

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T09:10:44.017Z",
+  "lastUpdated": "2026-10-01T09:11:07.745Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -37482,6 +37482,13 @@
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "OR",
+          "name": "د. علي مطشر ابو كحيله",
+          "timestamp": "12:11",
+          "VisitCount": 0
         }
       ],
       "rotationHeroesUrl": "",

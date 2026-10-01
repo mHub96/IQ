@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T08:44:45.759Z",
+  "lastUpdated": "2026-10-01T08:45:02.346Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22060,21 +22060,21 @@
           "enabled": true
         },
         {
-          "id": "Pe",
-          "name_ar": "طب الأطفال",
-          "name_en": "Paediatrics",
-          "icon": "👶",
-          "color": "#3dff6e",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
           "id": "G",
           "name_ar": "النسائية و التوليد",
           "name_en": "Gynecology",
           "icon": "🤰",
           "color": "#e40de7",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "Pe",
+          "name_ar": "طب الأطفال",
+          "name_en": "Paediatrics",
+          "icon": "👶",
+          "color": "#3dff6e",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true

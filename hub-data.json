@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T03:33:33.331Z",
+  "lastUpdated": "2026-10-01T03:33:41.484Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -367,6 +367,18 @@
           "isClone": true,
           "clonedFromHospitalId": "basra",
           "clonedFromSpecId": "OR",
+          "enabled": true
+        },
+        {
+          "id": "M_basra",
+          "name_ar": "الباطنية",
+          "name_en": "Internal Medicine",
+          "icon": "💊",
+          "prefix": "د. ",
+          "color": "#a1e972",
+          "isClone": true,
+          "clonedFromHospitalId": "basra",
+          "clonedFromSpecId": "M",
           "enabled": true
         }
       ],

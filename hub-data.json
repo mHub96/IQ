@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T08:45:17.392Z",
+  "lastUpdated": "2026-10-01T08:45:20.433Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22116,21 +22116,21 @@
           "enabled": false
         },
         {
-          "id": "Pe",
-          "name_ar": "طب الأطفال",
-          "name_en": "Paediatrics",
-          "icon": "👶",
-          "color": "#3dff6e",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
           "id": "NM",
           "name_ar": "طب الجملة العصبية",
           "name_en": "Neuromedicine",
           "icon": "🧠",
           "color": "#79e9f1",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "Pe",
+          "name_ar": "طب الأطفال",
+          "name_en": "Paediatrics",
+          "icon": "👶",
+          "color": "#3dff6e",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true

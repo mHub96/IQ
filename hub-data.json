@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T07:37:53.269Z",
+  "lastUpdated": "2026-10-01T07:37:58.651Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -120,11 +120,8 @@
           "icon": "💊",
           "color": "#a1e972",
           "parentSpec": null,
-          "acceptPool": [
-            "NM"
-          ],
-          "enabled": false,
-          "prefix": "د. "
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "G",
@@ -22090,11 +22087,8 @@
           "icon": "💊",
           "color": "#a1e972",
           "parentSpec": null,
-          "acceptPool": [
-            "NM"
-          ],
-          "enabled": true,
-          "prefix": "د. "
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "G",
@@ -22374,7 +22368,7 @@
         },
         {
           "id": "res-0279",
-          "name": "د. مها عباس جابر",
+          "name": "د مها عباس جابر",
           "phone": "+9647717806124",
           "spec": "M",
           "tag": "M",
@@ -26674,8 +26668,8 @@
           "id": "res-mup7z4ucwm2e",
           "name": "د. علي حسن",
           "phone": "+9647732188599",
-          "spec": "NM",
-          "tag": "NM",
+          "spec": "M_basra",
+          "tag": "M_basra",
           "dept": "M_basra",
           "department": "M_basra",
           "active": true,
@@ -30844,7 +30838,7 @@
         {
           "date": "27/08/2026",
           "specCode": "M",
-          "name": "د. مها عباس جابر",
+          "name": "د مها عباس جابر",
           "timestamp": "09:38",
           "VisitCount": 5
         },
@@ -37173,11 +37167,8 @@
           "icon": "💊",
           "color": "#2563eb",
           "parentSpec": null,
-          "acceptPool": [
-            "NM"
-          ],
-          "enabled": true,
-          "prefix": "د. "
+          "acceptPool": [],
+          "enabled": true
         },
         {
           "id": "G",
@@ -42295,7 +42286,7 @@
     },
     {
       "id": "res-0279",
-      "name": "د. مها عباس جابر",
+      "name": "د مها عباس جابر",
       "phone": "+9647717806124",
       "spec": "M",
       "tag": "M",
@@ -49549,8 +49540,8 @@
       "id": "res-mup7z4ucwm2e",
       "name": "د. علي حسن",
       "phone": "+9647732188599",
-      "spec": "NM",
-      "tag": "NM",
+      "spec": "M_basra",
+      "tag": "M_basra",
       "dept": "M_basra",
       "department": "M_basra",
       "active": true,
@@ -49655,11 +49646,9 @@
       "name_ar": "الباطنية",
       "name_en": "Internal Medicine",
       "icon": "💊",
-      "prefix": "د. ",
+      "color": "#0f766e",
       "parentSpec": null,
-      "acceptPool": [
-        "NM"
-      ],
+      "acceptPool": [],
       "enabled": true
     },
     {

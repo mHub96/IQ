@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T08:45:09.413Z",
+  "lastUpdated": "2026-10-01T08:45:12.345Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22082,16 +22082,6 @@
           "enabled": true
         },
         {
-          "id": "Pe",
-          "name_ar": "طب الأطفال",
-          "name_en": "Paediatrics",
-          "icon": "👶",
-          "color": "#3dff6e",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
           "id": "OP",
           "name_ar": "تخدير العمليات",
           "name_en": "OT Anaesthesia",
@@ -22101,6 +22091,16 @@
           "acceptPool": [
             "A"
           ],
+          "enabled": true
+        },
+        {
+          "id": "Pe",
+          "name_ar": "طب الأطفال",
+          "name_en": "Paediatrics",
+          "icon": "👶",
+          "color": "#3dff6e",
+          "parentSpec": null,
+          "acceptPool": [],
           "enabled": true
         },
         {

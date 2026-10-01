@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T08:45:20.433Z",
+  "lastUpdated": "2026-10-01T08:46:23.975Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22136,6 +22136,16 @@
           "enabled": true
         },
         {
+          "id": "N",
+          "name_ar": "طب امراض الكلى",
+          "name_en": "Nephrology",
+          "icon": "🧫",
+          "color": "#ff5ccb",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
           "id": "R_iraqi",
           "name_ar": "الأشعة و السونار",
           "name_en": "Radiology",
@@ -22158,16 +22168,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "N",
-          "name_ar": "طب امراض الكلى",
-          "name_en": "Nephrology",
-          "icon": "🧫",
-          "color": "#ff5ccb",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
         },
         {
           "id": "P",

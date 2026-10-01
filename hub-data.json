@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T08:02:59.554Z",
+  "lastUpdated": "2026-10-01T08:03:07.737Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -311,8 +311,12 @@
           "icon": "🧠",
           "color": "#79e9f1",
           "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
+          "acceptPool": [
+            "M",
+            "M_BASRA"
+          ],
+          "enabled": false,
+          "prefix": "د. "
         },
         {
           "id": "P",
@@ -22141,8 +22145,12 @@
           "icon": "🧠",
           "color": "#79e9f1",
           "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
+          "acceptPool": [
+            "M",
+            "M_BASRA"
+          ],
+          "enabled": true,
+          "prefix": "د. "
         },
         {
           "id": "R_iraqi",
@@ -37244,8 +37252,12 @@
           "icon": "🧠",
           "color": "#79e9f1",
           "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
+          "acceptPool": [
+            "M",
+            "M_BASRA"
+          ],
+          "enabled": false,
+          "prefix": "د. "
         },
         {
           "id": "P",
@@ -49725,9 +49737,12 @@
       "name_ar": "طب الجملة العصبية",
       "name_en": "Neuromedicine",
       "icon": "🧠",
-      "color": "#0f766e",
+      "prefix": "د. ",
       "parentSpec": null,
-      "acceptPool": [],
+      "acceptPool": [
+        "M",
+        "M_BASRA"
+      ],
       "enabled": true
     },
     {

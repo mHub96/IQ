@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T09:25:05.158Z",
+  "lastUpdated": "2026-10-01T09:28:40.223Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -25096,19 +25096,6 @@
           ]
         },
         {
-          "id": "res-0377",
-          "name": "د. مها عباس",
-          "phone": "+9647717806124",
-          "spec": "M",
-          "tag": "M",
-          "dept": "M",
-          "department": "M",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
           "id": "res-0044",
           "name": "د. ميسم اكرم",
           "phone": "+9647707055130",
@@ -48219,19 +48206,6 @@
       "tag": "OR",
       "dept": "OR",
       "department": "OR",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-0377",
-      "name": "د. مها عباس",
-      "phone": "+9647717806124",
-      "spec": "M",
-      "tag": "M",
-      "dept": "M",
-      "department": "M",
       "active": true,
       "hospitals": [
         "basra"

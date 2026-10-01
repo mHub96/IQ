@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T07:23:00.526Z",
+  "lastUpdated": "2026-10-01T07:26:46.826Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -36955,7 +36955,9 @@
           "specCode": "M",
           "name": "د. نزار سليم",
           "timestamp": "08:24",
-          "VisitCount": 0
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": "08:00AM - 08:00PM"
         },
         {
           "date": "01/10/2026",
@@ -36971,7 +36973,65 @@
           "specCode": "ICU",
           "name": "د. ايثار عدنان",
           "timestamp": "10:08",
-          "VisitCount": 0
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": ""
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "M",
+          "name": "د. منتظر حميد هاشم",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "M",
+          "name": "د. عبدالله ستار",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "M",
+          "name": "د. زين العابدين عبد الرحمن عباس",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "M",
+          "name": "د. محمد بشير",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "M",
+          "name": "د. علي اعتدال",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "04/10/2026",
+          "specCode": "M",
+          "name": "د. مها عباس",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "04/10/2026",
+          "specCode": "M",
+          "name": "د. عبدالله ستار",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
         }
       ],
       "rotationHeroesUrl": "",

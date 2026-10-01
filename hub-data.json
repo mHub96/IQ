@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T08:00:25.171Z",
+  "lastUpdated": "2026-10-01T08:02:35.908Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -120,8 +120,11 @@
           "icon": "💊",
           "color": "#a1e972",
           "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
+          "acceptPool": [
+            "NM"
+          ],
+          "enabled": false,
+          "prefix": "د. "
         },
         {
           "id": "G",
@@ -22067,8 +22070,11 @@
           "icon": "💊",
           "color": "#a1e972",
           "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
+          "acceptPool": [
+            "NM"
+          ],
+          "enabled": true,
+          "prefix": "د. "
         },
         {
           "id": "G",
@@ -22298,7 +22304,7 @@
         },
         {
           "id": "res-0279",
-          "name": "د مها عباس جابر",
+          "name": "د. مها عباس جابر",
           "phone": "+9647717806124",
           "spec": "M",
           "tag": "M",
@@ -30760,7 +30766,7 @@
         {
           "date": "27/08/2026",
           "specCode": "M",
-          "name": "د مها عباس جابر",
+          "name": "د. مها عباس جابر",
           "timestamp": "09:38",
           "VisitCount": 5
         },
@@ -37089,8 +37095,11 @@
           "icon": "💊",
           "color": "#2563eb",
           "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
+          "acceptPool": [
+            "NM"
+          ],
+          "enabled": true,
+          "prefix": "د. "
         },
         {
           "id": "G",
@@ -42208,7 +42217,7 @@
     },
     {
       "id": "res-0279",
-      "name": "د مها عباس جابر",
+      "name": "د. مها عباس جابر",
       "phone": "+9647717806124",
       "spec": "M",
       "tag": "M",
@@ -49568,9 +49577,11 @@
       "name_ar": "الباطنية",
       "name_en": "Internal Medicine",
       "icon": "💊",
-      "color": "#0f766e",
+      "prefix": "د. ",
       "parentSpec": null,
-      "acceptPool": [],
+      "acceptPool": [
+        "NM"
+      ],
       "enabled": true
     },
     {

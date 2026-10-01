@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T06:28:14.638Z",
+  "lastUpdated": "2026-10-01T06:28:39.473Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -35207,14 +35207,6 @@
           "VisitCount": 1
         },
         {
-          "date": "01/10/2026",
-          "specCode": "GS",
-          "name": "د. علي حسين عبدالرضا",
-          "VisitCount": 2,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
           "date": "02/10/2026",
           "specCode": "GS",
           "name": "د. علي قاسم عبدالله",
@@ -36963,6 +36955,15 @@
           "name": "د. نزار سليم",
           "timestamp": "08:24",
           "VisitCount": 0
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "GS",
+          "name": "د. علي قاسم عبدالله",
+          "VisitCount": 2,
+          "dutyTime": "",
+          "dutySlot": 0,
+          "timestamp": "09:26"
         }
       ],
       "rotationHeroesUrl": "",

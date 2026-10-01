@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T15:11:10.074Z",
+  "lastUpdated": "2026-10-01T15:13:48.019Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -38008,6 +38008,54 @@
           "date": "10/10/2026",
           "specCode": "G",
           "name": "د. زهراء جاسم حمدان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "11/10/2026",
+          "specCode": "G",
+          "name": "د. وديان فرات كمال",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "12/10/2026",
+          "specCode": "G",
+          "name": "د. سراء ياسين ساري",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "13/10/2026",
+          "specCode": "G",
+          "name": "د. وديان فرات كمال",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "14/10/2026",
+          "specCode": "G",
+          "name": "د. سراء ياسين ساري",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "15/10/2026",
+          "specCode": "G",
+          "name": "د. رند عبد الكريم عبد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "16/10/2026",
+          "specCode": "G",
+          "name": "د. وديان فرات كمال",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T03:34:38.631Z",
+  "lastUpdated": "2026-10-01T03:34:44.118Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -250,6 +250,18 @@
           "enabled": true
         },
         {
+          "id": "MF_basra",
+          "name_ar": "جراحة الوجه و الفكين",
+          "name_en": "MaxilloFacial Surgery",
+          "icon": "🦷",
+          "prefix": "د. ",
+          "color": "#d600af",
+          "isClone": true,
+          "clonedFromHospitalId": "basra",
+          "clonedFromSpecId": "MF",
+          "enabled": true
+        },
+        {
           "id": "ON",
           "name_ar": "طب الاورام",
           "name_en": "Oncology",
@@ -379,18 +391,6 @@
           "isClone": true,
           "clonedFromHospitalId": "basra",
           "clonedFromSpecId": "M",
-          "enabled": true
-        },
-        {
-          "id": "MF_basra",
-          "name_ar": "جراحة الوجه و الفكين",
-          "name_en": "MaxilloFacial Surgery",
-          "icon": "🦷",
-          "prefix": "د. ",
-          "color": "#d600af",
-          "isClone": true,
-          "clonedFromHospitalId": "basra",
-          "clonedFromSpecId": "MF",
           "enabled": true
         }
       ],

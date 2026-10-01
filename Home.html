@@ -1565,7 +1565,7 @@
 
         <!-- Nav Row with Rotation Heroes (Initially Locked) -->
         <div class="nav-row">
-            <a href="https://khafarat-alsadr.netlify.app/" target="_blank" class="nav-btn locked" id="btn-rotation-heroes"><i class="fas fa-user-md"></i><span>Rotation Heroes</span></a>
+            <a href="https://khafarat-alsadr.netlify.app/" class="nav-btn locked" id="btn-rotation-heroes"><i class="fas fa-user-md"></i><span>Rotation Heroes</span></a>
         </div>
 
         <!-- Trending Resident Panel -->
@@ -3116,8 +3116,8 @@
                 const existingBadge = btnRotation.querySelector('.badge-soon');
                 if (heroesUrl) {
                     btnRotation.href = heroesUrl;
-                    btnRotation.target = "_blank";
-                    btnRotation.rel = "noopener noreferrer";
+                    btnRotation.removeAttribute('target');
+                    btnRotation.removeAttribute('rel');
                     btnRotation.classList.remove('disabled');
                     btnRotation.removeAttribute('aria-disabled');
                     btnRotation.title = "الانتقال إلى منصة Rotation Heroes";

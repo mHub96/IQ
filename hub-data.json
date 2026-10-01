@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T09:28:40.223Z",
+  "lastUpdated": "2026-10-01T09:30:01.980Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -26631,6 +26631,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mupc2eewt2pb",
+          "name": "د. منتظر حميد",
+          "phone": "+9647827925226",
+          "spec": "M",
+          "tag": "M",
+          "dept": "M",
+          "department": "M",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -50185,6 +50198,19 @@
       "tag": "NM",
       "dept": "NM",
       "department": "NM",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mupc2eewt2pb",
+      "name": "د. منتظر حميد",
+      "phone": "+9647827925226",
+      "spec": "M",
+      "tag": "M",
+      "dept": "M",
+      "department": "M",
       "active": true,
       "hospitals": [
         "basra"

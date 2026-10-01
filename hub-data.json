@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T08:51:10.709Z",
+  "lastUpdated": "2026-10-01T08:52:33.345Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -37397,6 +37397,22 @@
           "date": "31/10/2026",
           "specCode": "OP",
           "name": "د. صافي إبراهيم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "ICU",
+          "name": "د. ايثار عدنان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "ICU",
+          "name": "د. فاطمة عباس",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

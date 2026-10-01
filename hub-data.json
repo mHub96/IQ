@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T14:58:34.600Z",
+  "lastUpdated": "2026-10-01T14:58:49.001Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -23568,19 +23568,6 @@
           ]
         },
         {
-          "id": "res-0251",
-          "name": "د. زينب حاكم فيصل",
-          "phone": "+9647703024761",
-          "spec": "G",
-          "tag": "G",
-          "dept": "G",
-          "department": "G",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
           "id": "res-0023",
           "name": "د. زينب عبد الرزاق",
           "phone": "+9647727916014",
@@ -45301,19 +45288,6 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
-    },
-    {
-      "id": "res-0251",
-      "name": "د. زينب حاكم فيصل",
-      "phone": "+9647703024761",
-      "spec": "G",
-      "tag": "G",
-      "dept": "G",
-      "department": "G",
-      "active": true,
-      "hospitals": [
-        "basra"
       ]
     },
     {

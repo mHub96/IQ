@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T08:00:07.729Z",
+  "lastUpdated": "2026-10-01T08:00:19.606Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22254,16 +22254,6 @@
           "name_en": "Cardiology",
           "icon": "🫀",
           "color": "#c91d70",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
-          "id": "RM",
-          "name_ar": "طب الامراض التنفسية",
-          "name_en": "Respiratory Medicine",
-          "icon": "🫁",
-          "color": "#3bb8f7",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false

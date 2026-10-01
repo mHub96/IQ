@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T07:59:54.945Z",
+  "lastUpdated": "2026-10-01T08:00:07.729Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22217,16 +22217,6 @@
             "RM"
           ],
           "enabled": true
-        },
-        {
-          "id": "Der",
-          "name_ar": "الجلدية",
-          "name_en": "Dermatology",
-          "icon": "🏥",
-          "color": "#e27ef6",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
         },
         {
           "id": "EM",

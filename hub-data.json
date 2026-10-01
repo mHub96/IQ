@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T07:53:45.355Z",
+  "lastUpdated": "2026-10-01T07:58:10.680Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -23845,10 +23845,10 @@
           "id": "res-0320",
           "name": "د. صبا ياسين",
           "phone": "+9647717560394",
-          "spec": "M",
-          "tag": "M",
-          "dept": "M",
-          "department": "M",
+          "spec": "NM",
+          "tag": "NM",
+          "dept": "NM",
+          "department": "NM",
           "active": true,
           "hospitals": [
             "basra"
@@ -45143,10 +45143,10 @@
       "id": "res-0320",
       "name": "د. صبا ياسين",
       "phone": "+9647717560394",
-      "spec": "M",
-      "tag": "M",
-      "dept": "M",
-      "department": "M",
+      "spec": "NM",
+      "tag": "NM",
+      "dept": "NM",
+      "department": "NM",
       "active": true,
       "hospitals": [
         "basra"

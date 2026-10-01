@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T03:33:41.484Z",
+  "lastUpdated": "2026-10-01T03:33:55.694Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -379,6 +379,18 @@
           "isClone": true,
           "clonedFromHospitalId": "basra",
           "clonedFromSpecId": "M",
+          "enabled": true
+        },
+        {
+          "id": "MF_basra",
+          "name_ar": "جراحة الوجه و الفكين",
+          "name_en": "MaxilloFacial Surgery",
+          "icon": "🦷",
+          "prefix": "د. ",
+          "color": "#d600af",
+          "isClone": true,
+          "clonedFromHospitalId": "basra",
+          "clonedFromSpecId": "MF",
           "enabled": true
         }
       ],

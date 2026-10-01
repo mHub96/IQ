@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T08:07:24.691Z",
+  "lastUpdated": "2026-10-01T08:08:17.726Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -37148,6 +37148,30 @@
           "VisitCount": 0,
           "dutyTime": "08:00PM - 08:00AM",
           "dutySlot": 1
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "M",
+          "name": "",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "M",
+          "name": "د. منتظر حميد هاشم",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 12:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "M",
+          "name": "د. حسين جليل كاظم الساعدي",
+          "VisitCount": 0,
+          "dutyTime": "12:00AM - 08:00AM",
+          "dutySlot": 2
         }
       ],
       "rotationHeroesUrl": "",

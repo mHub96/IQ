@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T07:41:55.043Z",
+  "lastUpdated": "2026-10-01T07:44:41.367Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -306,10 +306,7 @@
           "icon": "🧠",
           "color": "#79e9f1",
           "parentSpec": null,
-          "acceptPool": [
-            "M",
-            "M_basra"
-          ],
+          "acceptPool": [],
           "enabled": false
         },
         {
@@ -22156,10 +22153,7 @@
           "icon": "🧠",
           "color": "#79e9f1",
           "parentSpec": null,
-          "acceptPool": [
-            "M",
-            "M_basra"
-          ],
+          "acceptPool": [],
           "enabled": true
         },
         {
@@ -23861,8 +23855,8 @@
           "id": "res-0320",
           "name": "د. صبا ياسين",
           "phone": "+9647717560394",
-          "spec": "M_basra",
-          "tag": "M_basra",
+          "spec": "NM",
+          "tag": "NM",
           "dept": "M_basra",
           "department": "M_basra",
           "active": true,
@@ -37317,10 +37311,7 @@
           "icon": "🧠",
           "color": "#79e9f1",
           "parentSpec": null,
-          "acceptPool": [
-            "M",
-            "M_basra"
-          ],
+          "acceptPool": [],
           "enabled": false
         },
         {
@@ -45162,8 +45153,8 @@
       "id": "res-0320",
       "name": "د. صبا ياسين",
       "phone": "+9647717560394",
-      "spec": "M_basra",
-      "tag": "M_basra",
+      "spec": "NM",
+      "tag": "NM",
       "dept": "M_basra",
       "department": "M_basra",
       "active": true,
@@ -49799,11 +49790,9 @@
       "name_ar": "طب الجملة العصبية",
       "name_en": "Neuromedicine",
       "icon": "🧠",
+      "color": "#0f766e",
       "parentSpec": null,
-      "acceptPool": [
-        "M",
-        "M_basra"
-      ],
+      "acceptPool": [],
       "enabled": true
     },
     {

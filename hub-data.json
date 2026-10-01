@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T07:59:26.757Z",
+  "lastUpdated": "2026-10-01T07:59:26.057Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21952,16 +21952,6 @@
       },
       "specialties": [
         {
-          "id": "NS",
-          "name_ar": "جراحة الجملة العصبية",
-          "name_en": "Neurosurgery",
-          "icon": "🧠",
-          "color": "#fea101",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
           "id": "AO",
           "name_ar": "المعاون الاداري",
           "name_en": "Administrative Officer",
@@ -26669,14 +26659,6 @@
         }
       ],
       "schedule": [
-        {
-          "date": "18/04/2026",
-          "specCode": "NS",
-          "name": "د. علي جواد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
         {
           "date": "20/07/2026",
           "specCode": "MF",
@@ -36963,7 +36945,7 @@
           "date": "01/10/2026",
           "specCode": "GS",
           "name": "د. علي قاسم عبدالله",
-          "VisitCount": 4,
+          "VisitCount": 3,
           "dutyTime": "",
           "dutySlot": 0,
           "timestamp": "09:26"

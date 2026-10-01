@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T14:57:23.100Z",
+  "lastUpdated": "2026-10-01T14:58:34.600Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -26644,6 +26644,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mupnswrrimuo",
+          "name": "د. رند عبد الكريم عبد",
+          "phone": "+9647838055932",
+          "spec": "G",
+          "tag": "G",
+          "dept": "G",
+          "department": "G",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -50211,6 +50224,19 @@
       "tag": "M",
       "dept": "M",
       "department": "M",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mupnswrrimuo",
+      "name": "د. رند عبد الكريم عبد",
+      "phone": "+9647838055932",
+      "spec": "G",
+      "tag": "G",
+      "dept": "G",
+      "department": "G",
       "active": true,
       "hospitals": [
         "basra"

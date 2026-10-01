@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T03:34:44.118Z",
+  "lastUpdated": "2026-10-01T03:34:47.771Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -238,6 +238,16 @@
           "enabled": true
         },
         {
+          "id": "ON",
+          "name_ar": "طب الاورام",
+          "name_en": "Oncology",
+          "icon": "☢️",
+          "color": "#84cc16",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
           "id": "OR_basra",
           "name_ar": "الكسور",
           "name_en": "Orthopaedics",
@@ -259,16 +269,6 @@
           "isClone": true,
           "clonedFromHospitalId": "basra",
           "clonedFromSpecId": "MF",
-          "enabled": true
-        },
-        {
-          "id": "ON",
-          "name_ar": "طب الاورام",
-          "name_en": "Oncology",
-          "icon": "☢️",
-          "color": "#84cc16",
-          "parentSpec": null,
-          "acceptPool": [],
           "enabled": true
         },
         {

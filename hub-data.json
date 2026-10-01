@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T08:08:17.726Z",
+  "lastUpdated": "2026-10-01T08:12:56.109Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -25005,19 +25005,6 @@
           ]
         },
         {
-          "id": "res-0397",
-          "name": "د. منتظر حميد",
-          "phone": "+9647827925226",
-          "spec": "NM",
-          "tag": "NM",
-          "dept": "NM",
-          "department": "NM",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
           "id": "res-0105",
           "name": "د. منتظر حميد هاشم",
           "phone": "+9647827925226",
@@ -47593,19 +47580,6 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
-    },
-    {
-      "id": "res-0397",
-      "name": "د. منتظر حميد",
-      "phone": "+9647827925226",
-      "spec": "NM",
-      "tag": "NM",
-      "dept": "NM",
-      "department": "NM",
-      "active": true,
-      "hospitals": [
-        "basra"
       ]
     },
     {

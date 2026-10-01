@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T09:12:26.328Z",
+  "lastUpdated": "2026-10-01T09:12:57.554Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -1551,14 +1551,14 @@
           "id": "res-0446",
           "name": "د. صافي إبراهيم",
           "phone": "+9647739468124",
-          "spec": "OP",
-          "tag": "OP",
-          "dept": "OP",
-          "department": "OP",
+          "spec": "A",
+          "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
-            "basra",
             "iraqi",
+            "basra",
             "mawani"
           ]
         },
@@ -23835,14 +23835,14 @@
           "id": "res-0446",
           "name": "د. صافي إبراهيم",
           "phone": "+9647739468124",
-          "spec": "OP",
-          "tag": "OP",
-          "dept": "OP",
-          "department": "OP",
+          "spec": "A",
+          "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
-            "basra",
             "iraqi",
+            "basra",
             "mawani"
           ]
         },
@@ -38304,14 +38304,14 @@
           "id": "res-0446",
           "name": "د. صافي إبراهيم",
           "phone": "+9647739468124",
-          "spec": "OP",
-          "tag": "OP",
-          "dept": "OP",
-          "department": "OP",
+          "spec": "A",
+          "tag": "A",
+          "dept": "A",
+          "department": "A",
           "active": true,
           "hospitals": [
-            "basra",
             "iraqi",
+            "basra",
             "mawani"
           ]
         },
@@ -45572,14 +45572,14 @@
       "id": "res-0446",
       "name": "د. صافي إبراهيم",
       "phone": "+9647739468124",
-      "spec": "OP",
-      "tag": "OP",
-      "dept": "OP",
-      "department": "OP",
+      "spec": "A",
+      "tag": "A",
+      "dept": "A",
+      "department": "A",
       "active": true,
       "hospitals": [
-        "basra",
         "iraqi",
+        "basra",
         "mawani"
       ]
     },

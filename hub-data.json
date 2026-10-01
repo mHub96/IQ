@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T07:34:42.642Z",
+  "lastUpdated": "2026-10-01T07:35:01.210Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21592,7 +21592,7 @@
           "date": "01/10/2026",
           "specCode": "NS",
           "name": "د. علي مهدي منصور",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -24193,19 +24193,6 @@
           ]
         },
         {
-          "id": "res-0319",
-          "name": "د. علي حسن",
-          "phone": "+9647732188599",
-          "spec": "M_basra",
-          "tag": "M_basra",
-          "dept": "M_basra",
-          "department": "M_basra",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
           "id": "res-0190",
           "name": "د. علي حسين عبدالرضا",
           "phone": "+9647849000964",
@@ -25281,7 +25268,7 @@
           "tag": "M",
           "dept": "M",
           "department": "M",
-          "active": true,
+          "active": false,
           "hospitals": [
             "basra"
           ]
@@ -25385,7 +25372,7 @@
           "tag": "M",
           "dept": "M",
           "department": "M",
-          "active": true,
+          "active": false,
           "hospitals": [
             "basra"
           ]
@@ -45790,19 +45777,6 @@
       ]
     },
     {
-      "id": "res-0319",
-      "name": "د. علي حسن",
-      "phone": "+9647732188599",
-      "spec": "M_basra",
-      "tag": "M_basra",
-      "dept": "M_basra",
-      "department": "M_basra",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
       "id": "res-0060",
       "name": "د. علي حسن خريبط",
       "phone": "رقم غير متوفر",
@@ -47854,7 +47828,7 @@
       "tag": "M",
       "dept": "M",
       "department": "M",
-      "active": true,
+      "active": false,
       "hospitals": [
         "basra"
       ]
@@ -48088,7 +48062,7 @@
       "tag": "M",
       "dept": "M",
       "department": "M",
-      "active": true,
+      "active": false,
       "hospitals": [
         "basra"
       ]

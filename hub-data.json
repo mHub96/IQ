@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T07:52:06.840Z",
+  "lastUpdated": "2026-10-01T07:53:45.355Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22299,21 +22299,21 @@
           "enabled": false
         },
         {
-          "id": "PS",
-          "name_ar": "الجراحة التجميلية",
-          "name_en": "Plastic Surgery",
-          "icon": "🪡",
-          "color": "#2563eb",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
           "id": "RM",
           "name_ar": "طب الامراض التنفسية",
           "name_en": "Respiratory Medicine",
           "icon": "🫁",
           "color": "#3bb8f7",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": false
+        },
+        {
+          "id": "PS",
+          "name_ar": "الجراحة التجميلية",
+          "name_en": "Plastic Surgery",
+          "icon": "🪡",
+          "color": "#2563eb",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T07:35:01.210Z",
+  "lastUpdated": "2026-10-01T07:35:31.142Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -26663,6 +26663,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mup7z4ucwm2e",
+          "name": "د. علي حسن",
+          "phone": "+9647732188599",
+          "spec": "NM",
+          "tag": "NM",
+          "dept": "M_basra",
+          "department": "M_basra",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -49518,6 +49531,19 @@
       "tag": "REF",
       "dept": "REF",
       "department": "REF",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mup7z4ucwm2e",
+      "name": "د. علي حسن",
+      "phone": "+9647732188599",
+      "spec": "NM",
+      "tag": "NM",
+      "dept": "M_basra",
+      "department": "M_basra",
       "active": true,
       "hospitals": [
         "basra"

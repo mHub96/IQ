@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T15:13:48.019Z",
+  "lastUpdated": "2026-10-01T15:14:10.968Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -38054,6 +38054,22 @@
         },
         {
           "date": "16/10/2026",
+          "specCode": "G",
+          "name": "د. وديان فرات كمال",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "17/10/2026",
+          "specCode": "G",
+          "name": "د. رند عبد الكريم عبد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "18/10/2026",
           "specCode": "G",
           "name": "د. وديان فرات كمال",
           "VisitCount": 0,

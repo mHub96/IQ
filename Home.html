@@ -2398,10 +2398,11 @@
                 const resident = getCurrentResidentForSpecialty(specCode);
                 if (resident) {
                     const key = resident.name;
+                    const specObj = (currentHospital.specialties || []).find(s => s.id === specCode);
                     let dutyTime = resident.dutyTime;
                     let timeData = null;
                     const hospToQuery = resident.sourceHospital || currentHospital;
-                    const querySpecCode = resident.isClone ? (resident.clonedFromSpecId || (currentHospital.specialties || []).find(s => s.id === specCode)?.clonedFromSpecId || specCode) : specCode;
+                    const querySpecCode = resident.isClone ? (resident.clonedFromSpecId || specObj?.clonedFromSpecId || specCode) : specCode;
 
                     if (!dutyTime) {
                         const entriesForDay = (hospToQuery.schedule || []).filter(s => s.date === today && s.specCode === querySpecCode);
@@ -2467,7 +2468,6 @@
                         }
                     }
 
-                    const specObj = (currentHospital.specialties || []).find(s => s.id === specCode);
                     const resolvedName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(specCode, currentHospital.id) : (specObj?.name_ar || specCode);
                     const specName = (specObj?.name_ar === 'الاطفال' || specCode === 'Pe') ? 'طب الأطفال' : (specObj?.name_ar || resolvedName);
                     const specIcon = specObj?.icon || "🏥";
@@ -2935,7 +2935,7 @@
             if (!currentHospital) return;
             try {
                 await Hub.incrementVisitCount(currentHospital.id, residentName, specCode, sourceHospitalId);
-                showToast(`✅ تم تسجيل تفاعل مع د. ${residentName}`, 'success', 2200);
+                showToast(`✅ تم تسجيل تفاعل مع ${residentName}`, 'success', 2200);
                 renderRoster();
                 renderTrending();
                 fireConfettiFromPosition(window.innerWidth / 2, window.innerHeight * 0.7);

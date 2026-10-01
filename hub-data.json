@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T08:02:35.908Z",
+  "lastUpdated": "2026-10-01T08:02:52.655Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -251,7 +251,7 @@
           "enabled": true
         },
         {
-          "id": "M_basra",
+          "id": "M_BASRA",
           "name_ar": "الباطنية",
           "name_en": "Internal Medicine",
           "icon": "💊",
@@ -262,7 +262,9 @@
           "clonedFromSpecId": "M",
           "enabled": true,
           "parentSpec": null,
-          "acceptPool": []
+          "acceptPool": [
+            "NM"
+          ]
         },
         {
           "id": "OR_basra",
@@ -49829,13 +49831,15 @@
       "enabled": true
     },
     {
-      "id": "M_basra",
+      "id": "M_BASRA",
       "name_ar": "الباطنية",
       "name_en": "Internal Medicine",
       "icon": "💊",
-      "color": "#a1e972",
+      "prefix": "د. ",
       "parentSpec": null,
-      "acceptPool": [],
+      "acceptPool": [
+        "NM"
+      ],
       "enabled": true
     },
     {

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T01:34:52.720Z",
+  "lastUpdated": "2026-10-01T01:34:56.920Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21912,6 +21912,17 @@
           "enabled": false
         },
         {
+          "id": "AO",
+          "name_ar": "المعاون الاداري",
+          "name_en": "Administrative Officer",
+          "icon": "🧑",
+          "color": "#2563eb",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true,
+          "prefix": ""
+        },
+        {
           "id": "NS_iraqi",
           "name_ar": "جراحة الجملة العصبية",
           "name_en": "Neurosurgery",
@@ -21944,17 +21955,6 @@
           "clonedFromHospitalId": "iraqi",
           "clonedFromSpecId": "CT",
           "enabled": true
-        },
-        {
-          "id": "AO",
-          "name_ar": "المعاون الاداري",
-          "name_en": "Administrative Officer",
-          "icon": "🧑",
-          "color": "#2563eb",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true,
-          "prefix": ""
         },
         {
           "id": "GS",

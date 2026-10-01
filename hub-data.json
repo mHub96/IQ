@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T18:17:37.904Z",
+  "lastUpdated": "2026-10-01T18:43:06.063Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -26645,6 +26645,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mupvtnf0ju2z",
+          "name": "د. احزان جواد",
+          "phone": "+9647730128554",
+          "spec": "Pe",
+          "tag": "Pe",
+          "dept": "Pe",
+          "department": "Pe",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -50564,6 +50577,19 @@
       "tag": "G",
       "dept": "G",
       "department": "G",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mupvtnf0ju2z",
+      "name": "د. احزان جواد",
+      "phone": "+9647730128554",
+      "spec": "Pe",
+      "tag": "Pe",
+      "dept": "Pe",
+      "department": "Pe",
       "active": true,
       "hospitals": [
         "basra"

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T06:28:39.473Z",
+  "lastUpdated": "2026-10-01T06:42:00.115Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20903,7 +20903,7 @@
           "date": "01/10/2026",
           "specCode": "ICU",
           "name": "د. سماء علي",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T01:35:10.889Z",
+  "lastUpdated": "2026-10-01T03:33:33.331Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -356,6 +356,18 @@
           "acceptPool": [],
           "enabled": true,
           "color": "#0f766e"
+        },
+        {
+          "id": "OR_basra",
+          "name_ar": "الكسور",
+          "name_en": "Orthopaedics",
+          "icon": "🦴",
+          "prefix": "د. ",
+          "color": "#ff0000",
+          "isClone": true,
+          "clonedFromHospitalId": "basra",
+          "clonedFromSpecId": "OR",
+          "enabled": true
         }
       ],
       "names": [

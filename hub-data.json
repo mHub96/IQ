@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T15:05:49.431Z",
+  "lastUpdated": "2026-10-01T15:11:10.074Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -37928,6 +37928,86 @@
           "date": "18/10/2027",
           "specCode": "G",
           "name": "د. وديان فرات كمال",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "G",
+          "name": "د. رند عبد الكريم عبد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "G",
+          "name": "د. زهراء جاسم حمدان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "G",
+          "name": "د. رند عبد الكريم عبد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "04/10/2026",
+          "specCode": "G",
+          "name": "د. سراء ياسين ساري",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "G",
+          "name": "د. رند عبد الكريم عبد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/10/2026",
+          "specCode": "G",
+          "name": "د. زهراء جاسم حمدان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "07/10/2026",
+          "specCode": "G",
+          "name": "د. سراء ياسين ساري",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "G",
+          "name": "د. زهراء جاسم حمدان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "09/10/2026",
+          "specCode": "G",
+          "name": "د. وديان فرات كمال",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "G",
+          "name": "د. زهراء جاسم حمدان",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

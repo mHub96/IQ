@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T01:32:31.607Z",
+  "lastUpdated": "2026-10-01T01:34:39.996Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22098,7 +22098,7 @@
           "color": "#6700e6",
           "parentSpec": null,
           "acceptPool": [],
-          "enabled": true
+          "enabled": false
         },
         {
           "id": "N",

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T07:59:26.057Z",
+  "lastUpdated": "2026-10-01T07:59:54.945Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21977,16 +21977,6 @@
           "acceptPool": []
         },
         {
-          "id": "CT",
-          "name_ar": "جراحة الصدر و الاوعية الدموية",
-          "name_en": "Cardiothoracic Surgery",
-          "icon": "🫀",
-          "color": "#e05910",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
           "id": "CT_iraqi",
           "name_ar": "جراحة الصدر و الاوعية الدموية",
           "name_en": "Cardiothoracic Surgery",
@@ -22227,16 +22217,6 @@
             "RM"
           ],
           "enabled": true
-        },
-        {
-          "id": "ON",
-          "name_ar": "طب الاورام",
-          "name_en": "Oncology",
-          "icon": "☢️",
-          "color": "#84cc16",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
         },
         {
           "id": "Der",

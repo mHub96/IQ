@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T07:27:29.415Z",
+  "lastUpdated": "2026-10-01T07:27:42.964Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -23857,8 +23857,8 @@
           "phone": "+9647717560394",
           "spec": "NM",
           "tag": "NM",
-          "dept": "NM",
-          "department": "NM",
+          "dept": "M_basra",
+          "department": "M_basra",
           "active": true,
           "hospitals": [
             "basra"
@@ -45155,8 +45155,8 @@
       "phone": "+9647717560394",
       "spec": "NM",
       "tag": "NM",
-      "dept": "NM",
-      "department": "NM",
+      "dept": "M_basra",
+      "department": "M_basra",
       "active": true,
       "hospitals": [
         "basra"

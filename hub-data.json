@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T08:44:36.915Z",
+  "lastUpdated": "2026-10-01T08:44:45.759Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22050,21 +22050,21 @@
           "enabled": true
         },
         {
-          "id": "Pe",
-          "name_ar": "طب الأطفال",
-          "name_en": "Paediatrics",
-          "icon": "👶",
-          "color": "#3dff6e",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
           "id": "M",
           "name_ar": "الباطنية",
           "name_en": "Internal Medicine",
           "icon": "💊",
           "color": "#a1e972",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "Pe",
+          "name_ar": "طب الأطفال",
+          "name_en": "Paediatrics",
+          "icon": "👶",
+          "color": "#3dff6e",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true

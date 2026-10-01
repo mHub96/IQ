@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T14:58:49.001Z",
+  "lastUpdated": "2026-10-01T15:05:35.975Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -37723,6 +37723,214 @@
           "VisitCount": 0,
           "dutyTime": "08:00PM - 08:00AM",
           "dutySlot": 1
+        },
+        {
+          "date": "01/11/2026",
+          "specCode": "G",
+          "name": "د. رند عبد الكريم عبد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/11/2026",
+          "specCode": "G",
+          "name": "د. زهراء جاسم حمدان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "03/11/2026",
+          "specCode": "G",
+          "name": "د. رند عبد الكريم عبد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "04/11/2026",
+          "specCode": "G",
+          "name": "د. سراء ياسين ساري",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "05/11/2026",
+          "specCode": "G",
+          "name": "د. رند عبد الكريم عبد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/11/2026",
+          "specCode": "G",
+          "name": "",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/11/2026",
+          "specCode": "G",
+          "name": "د. زهراء جاسم حمدان",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "01/11/2027",
+          "specCode": "G",
+          "name": "د. رند عبد الكريم عبد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "01/10/2027",
+          "specCode": "G",
+          "name": "د. رند عبد الكريم عبد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2027",
+          "specCode": "G",
+          "name": "د. زهراء جاسم حمدان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "03/10/2027",
+          "specCode": "G",
+          "name": "د. رند عبد الكريم عبد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "04/10/2027",
+          "specCode": "G",
+          "name": "د. سراء ياسين ساري",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "05/10/2027",
+          "specCode": "G",
+          "name": "د. رند عبد الكريم عبد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/10/2027",
+          "specCode": "G",
+          "name": "د. زهراء جاسم حمدان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "07/10/2027",
+          "specCode": "G",
+          "name": "د. سراء ياسين ساري",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "08/10/2027",
+          "specCode": "G",
+          "name": "د. زهراء جاسم حمدان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "09/10/2027",
+          "specCode": "G",
+          "name": "د. وديان فرات كمال",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/10/2027",
+          "specCode": "G",
+          "name": "د. زهراء جاسم حمدان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "11/10/2027",
+          "specCode": "G",
+          "name": "د. وديان فرات كمال",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "12/10/2027",
+          "specCode": "G",
+          "name": "د. زهراء جاسم حمدان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "13/10/2027",
+          "specCode": "G",
+          "name": "د. وديان فرات كمال",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "14/10/2027",
+          "specCode": "G",
+          "name": "د. سراء ياسين ساري",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "15/10/2027",
+          "specCode": "G",
+          "name": "د. وديان فرات كمال",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "16/10/2027",
+          "specCode": "G",
+          "name": "د. رند عبد الكريم عبد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "17/10/2027",
+          "specCode": "G",
+          "name": "د. رند عبد الكريم عبد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "18/10/2027",
+          "specCode": "G",
+          "name": "د. وديان فرات كمال",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
         }
       ],
       "rotationHeroesUrl": "",

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T08:41:28.854Z",
+  "lastUpdated": "2026-10-01T08:43:00.050Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -2509,8 +2509,7 @@
           "department": "M_basra",
           "active": true,
           "hospitals": [
-            "iraqi",
-            "basra"
+            "iraqi"
           ]
         },
         {
@@ -22267,16 +22266,6 @@
           "acceptPool": [],
           "enabled": true,
           "color": "#0f766e"
-        },
-        {
-          "id": "M_basra",
-          "name_ar": "الباطنية",
-          "name_en": "Internal Medicine",
-          "icon": "💊",
-          "color": "#a1e972",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
         }
       ],
       "names": [
@@ -25011,20 +25000,6 @@
           "department": "R",
           "active": true,
           "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-0105",
-          "name": "د. منتظر حميد هاشم",
-          "phone": "+9647827925226",
-          "spec": "M_basra",
-          "tag": "M_basra",
-          "dept": "M_basra",
-          "department": "M_basra",
-          "active": true,
-          "hospitals": [
-            "iraqi",
             "basra"
           ]
         },
@@ -47602,8 +47577,7 @@
       "department": "M_basra",
       "active": true,
       "hospitals": [
-        "iraqi",
-        "basra"
+        "iraqi"
       ]
     },
     {

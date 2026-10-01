@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T08:12:56.109Z",
+  "lastUpdated": "2026-10-01T08:13:10.339Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -2503,14 +2503,14 @@
           "id": "res-0105",
           "name": "د. منتظر حميد هاشم",
           "phone": "+9647827925226",
-          "spec": "H",
-          "tag": "H",
-          "dept": "M",
-          "department": "M",
+          "spec": "M_basra",
+          "tag": "M_basra",
+          "dept": "M_basra",
+          "department": "M_basra",
           "active": true,
           "hospitals": [
-            "basra",
-            "iraqi"
+            "iraqi",
+            "basra"
           ]
         },
         {
@@ -22267,6 +22267,16 @@
           "acceptPool": [],
           "enabled": true,
           "color": "#0f766e"
+        },
+        {
+          "id": "M_basra",
+          "name_ar": "الباطنية",
+          "name_en": "Internal Medicine",
+          "icon": "💊",
+          "color": "#a1e972",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
         }
       ],
       "names": [
@@ -25008,14 +25018,14 @@
           "id": "res-0105",
           "name": "د. منتظر حميد هاشم",
           "phone": "+9647827925226",
-          "spec": "H",
-          "tag": "H",
-          "dept": "M",
-          "department": "M",
+          "spec": "M_basra",
+          "tag": "M_basra",
+          "dept": "M_basra",
+          "department": "M_basra",
           "active": true,
           "hospitals": [
-            "basra",
-            "iraqi"
+            "iraqi",
+            "basra"
           ]
         },
         {
@@ -47586,14 +47596,14 @@
       "id": "res-0105",
       "name": "د. منتظر حميد هاشم",
       "phone": "+9647827925226",
-      "spec": "H",
-      "tag": "H",
-      "dept": "M",
-      "department": "M",
+      "spec": "M_basra",
+      "tag": "M_basra",
+      "dept": "M_basra",
+      "department": "M_basra",
       "active": true,
       "hospitals": [
-        "basra",
-        "iraqi"
+        "iraqi",
+        "basra"
       ]
     },
     {

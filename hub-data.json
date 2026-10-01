@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T06:50:35.097Z",
+  "lastUpdated": "2026-10-01T07:07:36.217Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -36965,6 +36965,13 @@
           "dutyTime": "",
           "dutySlot": 0,
           "timestamp": "09:26"
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "ICU",
+          "name": "د. ايات فلاح",
+          "timestamp": "10:07",
+          "VisitCount": 0
         }
       ],
       "rotationHeroesUrl": "",

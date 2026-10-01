@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-01T08:43:00.050Z",
+  "lastUpdated": "2026-10-01T08:44:36.915Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22030,21 +22030,21 @@
           "enabled": true
         },
         {
-          "id": "MF",
-          "name_ar": "جراحة الوجه و الفكين",
-          "name_en": "MaxilloFacial Surgery",
-          "icon": "🦷",
-          "color": "#d600af",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
-        },
-        {
           "id": "O",
           "name_ar": "العيون",
           "name_en": "Ophthalmology",
           "icon": "👁️",
           "color": "#38ffe8",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "MF",
+          "name_ar": "جراحة الوجه و الفكين",
+          "name_en": "MaxilloFacial Surgery",
+          "icon": "🦷",
+          "color": "#d600af",
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true

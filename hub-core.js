@@ -109,6 +109,117 @@
         'FMED': 'FM'
     };
 
+    function normalizeArabicSpecName(name) {
+        if (!name) return '';
+        return String(name).trim()
+            .replace(/[\u064B-\u065F\u0670]/g, '') // remove tashkeel
+            .replace(/[أإآ]/g, 'ا')
+            .replace(/ة/g, 'ه')
+            .replace(/[\s\-_]+/g, '');
+    }
+
+    // Precomputed normalized Arabic names to Canonical IDs
+    const AR_CANONICAL_SYNONYMS = {
+        'جراحة الجملة العصبية': 'NS',
+        'جراحة الاعصاب': 'NS',
+        'الجملة العصبية': 'NS',
+        'جملة عصبية': 'NS',
+        'الجراحة العامة': 'GS',
+        'جراحة عامة': 'GS',
+        'الكسور': 'OR',
+        'جراحة الكسور': 'OR',
+        'جراحة العظام و الكسور': 'OR',
+        'جراحة العظام': 'OR',
+        'كسور': 'OR',
+        'الباطنية': 'M',
+        'باطنية': 'M',
+        'الطب الباطني': 'M',
+        'الاشعة و السونار': 'R',
+        'اشعة و سونار': 'R',
+        'الاشعة': 'R',
+        'اشعة': 'R',
+        'الاشعة والتصوير الطبي': 'R',
+        'جراحة الصدر و الاوعية الدموية': 'CT',
+        'جراحة الصدر و الاوعية': 'CT',
+        'جراحة الصدر': 'CT',
+        'صدر و وعائية': 'CT',
+        'جراحة الصدر و اوعية دموية': 'CT',
+        'جراحة القلب و الصدر و الاوعية': 'CT',
+        'جراحة المسالك البولية': 'US',
+        'المسالك البولية': 'US',
+        'مسالك': 'US',
+        'الأذن و الأنف و الحنجرة': 'ENT',
+        'الاذن و الانف و الحنجرة': 'ENT',
+        'انف و اذن و حنجرة': 'ENT',
+        'انف و اذن': 'ENT',
+        'جراحة الوجه و الفكين': 'MF',
+        'الوجه و الفكين': 'MF',
+        'وجه و فكين': 'MF',
+        'العيون': 'O',
+        'طب و جراحة العيون': 'O',
+        'طب الأطفال': 'Pe',
+        'طب الاطفال': 'Pe',
+        'الاطفال': 'Pe',
+        'النسائية و التوليد': 'G',
+        'النسائية': 'G',
+        'توليد': 'G',
+        'نسائية': 'G',
+        'المعاون الاداري': 'AO',
+        'المعاون الإداري': 'AO',
+        'معاون اداري': 'AO',
+        'طب الاورام': 'ON',
+        'الاورام': 'ON',
+        'اورام': 'ON',
+        'طب الامراض القلبية': 'H',
+        'امراض القلب': 'H',
+        'قلبية': 'H',
+        'طب الامراض التنفسية': 'RM',
+        'امراض التنفس': 'RM',
+        'تنفسية': 'RM',
+        'طب الجملة العصبية': 'NM',
+        'عصبية باطنية': 'NM',
+        'طب امراض الكلى': 'N',
+        'طب الامراض الكلوية': 'N',
+        'طب الكلى': 'N',
+        'امراض الكلى': 'N',
+        'كلى': 'N',
+        'النفسية': 'P',
+        'طب النفسية': 'P',
+        'طب نفسي': 'P',
+        'الجراحة التجميلية': 'PS',
+        'تجميلية': 'PS',
+        'التخدير و العناية المركزة': 'A',
+        'التخدير': 'A',
+        'تخدير': 'A',
+        'تخدير العناية المركزة': 'ICU',
+        'تخدير العمليات': 'OP',
+        'تخدير صالة الولادة': 'GA',
+        'طب الأسرة': 'FM',
+        'طب الاسرة': 'FM',
+        'الاسرة': 'FM',
+        'الأسرة': 'FM',
+        'طب اسرة': 'FM',
+        'طب الطوارئ': 'EM',
+        'طوارئ': 'EM',
+        'طوارىء': 'EM',
+        'طوارى': 'EM',
+        'الجلدية': 'Der',
+        'جلدية': 'Der',
+        'الوفيات': 'D',
+        'شهادات الوفيات': 'D',
+        'ممارسين': 'GP'
+    };
+
+    const NORMALIZED_AR_SPECIALTIES = {};
+    for (const [name, code] of Object.entries(AR_CANONICAL_SYNONYMS)) {
+        NORMALIZED_AR_SPECIALTIES[normalizeArabicSpecName(name)] = code;
+    }
+    CANONICAL_SPECIALTIES.forEach(s => {
+        if (s.name_ar) {
+            NORMALIZED_AR_SPECIALTIES[normalizeArabicSpecName(s.name_ar)] = s.id;
+        }
+    });
+
     function normalizeSpecialtyId(id) {
         if (!id) return id;
         const trimmed = String(id).trim();
@@ -117,16 +228,11 @@
         if (SPECIALTY_ALIASES[upper]) return SPECIALTY_ALIASES[upper];
 
         // Match common Arabic text names directly to canonical IDs
-        const cleanAr = trimmed.replace(/[\u064B-\u065F\u0670]/g, '')
-                               .replace(/[أإآ]/g, 'ا')
-                               .replace(/ة/g, 'ه')
-                               .replace(/\s+/g, '');
-        if (cleanAr === 'طبالاسره' || cleanAr === 'الاسره' || cleanAr === 'طباسره') return 'FM';
-        if (cleanAr === 'طبالطوارئ' || cleanAr === 'طوارئ' || cleanAr === 'طوارىء' || cleanAr === 'طبالطواريء') return 'EM';
-        if (cleanAr === 'الباطنيه' || cleanAr === 'باطنيه') return 'M';
-        if (cleanAr === 'الجلديه' || cleanAr === 'جلديه') return 'Der';
-        if (cleanAr === 'الوفيات' || cleanAr === 'شهاداتالوفيات') return 'D';
-        
+        const cleanAr = normalizeArabicSpecName(trimmed);
+        if (NORMALIZED_AR_SPECIALTIES[cleanAr]) {
+            return NORMALIZED_AR_SPECIALTIES[cleanAr];
+        }
+
         // Exact match check against CANONICAL_SPECIALTIES (case-insensitive)
         const matched = CANONICAL_SPECIALTIES.find(s => s.id.toUpperCase() === upper);
         if (matched) return matched.id;
@@ -184,8 +290,13 @@
             targetDb.globalSpecialties = JSON.parse(JSON.stringify(CANONICAL_SPECIALTIES));
         } else {
             const cleanMap = new Map();
+            const nameToIdMap = new Map();
+
             targetDb.globalSpecialties.forEach(s => {
                 if (!s || !s.id) return;
+                // Never allow clone specialties into global catalog
+                if (s.isClone || s.clonedFromHospitalId || /_(iraqi|basra|mawani)$/i.test(s.id)) return;
+
                 const normId = normalizeSpecialtyId(s.id);
                 const canon = CANONICAL_SPECIALTIES.find(c => c.id === normId);
 
@@ -194,28 +305,31 @@
                     nameAr = 'طب الأطفال';
                 }
 
-                if (!cleanMap.has(normId)) {
+                const normName = normalizeArabicSpecName(nameAr);
+                const existingIdByName = normName ? nameToIdMap.get(normName) : null;
+                const effectiveId = existingIdByName || normId;
+
+                if (!cleanMap.has(effectiveId)) {
                     // PRESERVE user's custom properties, only fallback to canon defaults if missing!
-                    cleanMap.set(normId, {
-                        id: normId,
+                    cleanMap.set(effectiveId, {
+                        id: effectiveId,
                         name_ar: nameAr,
-                        name_en: s.name_en || (canon ? canon.name_en : (s.name_ar || normId)),
+                        name_en: s.name_en || (canon ? canon.name_en : (s.name_ar || effectiveId)),
                         icon: s.icon || (canon ? canon.icon : '🏥'),
+                        prefix: (s.prefix !== undefined) ? s.prefix : (canon && canon.prefix !== undefined ? canon.prefix : 'د. '),
                         color: s.color || (canon ? canon.color : '#0f766e'),
                         parentSpec: s.parentSpec || (canon ? canon.parentSpec : null),
                         acceptPool: Array.isArray(s.acceptPool) ? s.acceptPool : (canon && Array.isArray(canon.acceptPool) ? [...canon.acceptPool] : []),
                         enabled: s.enabled !== false
                     });
+                    if (normName) nameToIdMap.set(normName, effectiveId);
                 } else {
-                    // Deduplicating legacy entry (e.g. merging F into FM)
-                    const existing = cleanMap.get(normId);
+                    const existing = cleanMap.get(effectiveId);
                     if (normId === 'Pe') existing.name_ar = 'طب الأطفال';
                     else if (!existing.name_ar && s.name_ar) existing.name_ar = s.name_ar;
                     if (!existing.name_en && s.name_en) existing.name_en = s.name_en;
                     if (!existing.icon && s.icon) existing.icon = s.icon;
-                    if (Array.isArray(s.acceptPool) && s.acceptPool.length > 0) {
-                        existing.acceptPool = Array.from(new Set([...existing.acceptPool, ...s.acceptPool]));
-                    }
+                    if (s.prefix !== undefined && existing.prefix === undefined) existing.prefix = s.prefix;
                 }
             });
             targetDb.globalSpecialties = Array.from(cleanMap.values());
@@ -243,22 +357,29 @@
                         return;
                     }
                     const normId = normalizeSpecialtyId(s.id);
-                    if (!validGlobalIds.has(normId)) {
+                    const normName = normalizeArabicSpecName(s.name_ar);
+                    const matchingGlobal = targetDb.globalSpecialties.find(g => 
+                        g.id === normId || (normName && normalizeArabicSpecName(g.name_ar) === normName)
+                    );
+                    const finalGlobalId = matchingGlobal ? matchingGlobal.id : normId;
+
+                    if (!matchingGlobal && !validGlobalIds.has(finalGlobalId)) {
                         // Register hospital custom specialty into global catalog
                         const newGlobal = {
-                            id: normId,
-                            name_ar: s.name_ar || normId,
-                            name_en: s.name_en || s.name_ar || normId,
+                            id: finalGlobalId,
+                            name_ar: s.name_ar || finalGlobalId,
+                            name_en: s.name_en || s.name_ar || finalGlobalId,
                             icon: s.icon || '🏥',
+                            prefix: (s.prefix !== undefined) ? s.prefix : 'د. ',
                             color: s.color || '#0f766e',
                             parentSpec: s.parentSpec || null,
                             acceptPool: Array.isArray(s.acceptPool) ? s.acceptPool : [],
                             enabled: true
                         };
                         targetDb.globalSpecialties.push(newGlobal);
-                        validGlobalIds.add(normId);
+                        validGlobalIds.add(finalGlobalId);
                     }
-                    const globalDef = targetDb.globalSpecialties.find(g => g.id === normId);
+                    const globalDef = targetDb.globalSpecialties.find(g => g.id === finalGlobalId);
                     if (!hospSpecMap.has(normId)) {
                         hospSpecMap.set(normId, {
                             ...s,
@@ -591,6 +712,64 @@
             console.error("Save to GitHub error:", err);
             throw err;
         }
+    }
+
+    async function restoreFullDatabase(payload) {
+        if (!auth.isOwner()) {
+            throw new Error('الاستعادة الشاملة للمنظومة مخصصة للمالك (Owner) حصراً.');
+        }
+        let targetDb = payload;
+        if (payload && payload.hubDatabase) {
+            targetDb = payload.hubDatabase;
+        } else if (payload && payload.data && typeof payload.data === 'object' && payload.data.hospitals) {
+            targetDb = payload.data;
+        }
+
+        if (!targetDb || typeof targetDb !== 'object' || !targetDb.hospitals) {
+            throw new Error('ملف النسخة الاحتياطية لا يحتوي على قاعدة بيانات مستشفيات صالحة للاستعادة.');
+        }
+
+        // Sanitize and migrate database structure
+        db = sanitizeAndMigrateDatabase(targetDb);
+
+        // Restore emergency state if present in payload
+        if (payload.emergencyState) {
+            try {
+                localStorage.setItem('hosp_hub_emergency_state_v3', typeof payload.emergencyState === 'string' ? payload.emergencyState : JSON.stringify(payload.emergencyState));
+            } catch (e) {}
+        }
+        if (payload.emergencyAllocations && typeof payload.emergencyAllocations === 'object') {
+            Object.keys(payload.emergencyAllocations).forEach(k => {
+                try {
+                    localStorage.setItem('hosp_hub_emergency_alloc_' + k, typeof payload.emergencyAllocations[k] === 'string' ? payload.emergencyAllocations[k] : JSON.stringify(payload.emergencyAllocations[k]));
+                } catch (e) {}
+            });
+        }
+        if (payload.emergencySchedules && typeof payload.emergencySchedules === 'object') {
+            Object.keys(payload.emergencySchedules).forEach(k => {
+                try {
+                    localStorage.setItem('hosp_hub_emergency_sched_' + k, typeof payload.emergencySchedules[k] === 'string' ? payload.emergencySchedules[k] : JSON.stringify(payload.emergencySchedules[k]));
+                } catch (e) {}
+            });
+        }
+        if (payload.emergencyColors) {
+            try {
+                localStorage.setItem('hosp_hub_emergency_specialty_colors', typeof payload.emergencyColors === 'string' ? payload.emergencyColors : JSON.stringify(payload.emergencyColors));
+            } catch (e) {}
+        }
+        if (payload.allLocalStorage && typeof payload.allLocalStorage === 'object') {
+            Object.keys(payload.allLocalStorage).forEach(k => {
+                if (k.startsWith('hosp_hub_') && k !== 'hosp_hub_token') {
+                    try {
+                        localStorage.setItem(k, typeof payload.allLocalStorage[k] === 'string' ? payload.allLocalStorage[k] : JSON.stringify(payload.allLocalStorage[k]));
+                    } catch (e) {}
+                }
+            });
+        }
+
+        // Persist to local cache and sync to server
+        await saveDatabase("Full system database restore from backup 🏥");
+        return db;
     }
 
     function dispatchDataChanged() {
@@ -1051,14 +1230,33 @@
             specs = JSON.parse(JSON.stringify(CANONICAL_SPECIALTIES));
         }
 
-        // Deduplicate by normalized canonical ID
-        const seen = new Set();
-        return specs.filter(s => {
-            const canonId = normalizeSpecialtyId(s.id);
-            if (seen.has(canonId)) return false;
-            seen.add(canonId);
-            return true;
-        });
+        // Deduplicate strictly by canonical ID AND normalized Arabic name!
+        // Never include clones or legacy clone IDs in the global store.
+        const seenIds = new Set();
+        const seenNames = new Set();
+        const deduplicated = [];
+
+        for (const s of specs) {
+            if (!s || !s.id) continue;
+            // Never include hospital clone specialties in global catalog
+            if (s.isClone || s.clonedFromHospitalId || /_(iraqi|basra|mawani)$/i.test(s.id)) continue;
+
+            let canonId = normalizeSpecialtyId(s.id);
+            const canonByName = s.name_ar ? normalizeSpecialtyId(s.name_ar) : null;
+            if (canonByName && CANONICAL_SPECIALTIES.some(cs => cs.id === canonByName)) {
+                canonId = canonByName;
+            }
+            const normName = normalizeArabicSpecName(s.name_ar);
+
+            if (seenIds.has(canonId)) continue;
+            if (normName && seenNames.has(normName)) continue;
+
+            seenIds.add(canonId);
+            if (normName) seenNames.add(normName);
+            deduplicated.push(s);
+        }
+
+        return deduplicated;
     }
 
     /**
@@ -1306,7 +1504,6 @@
                     hospSpec.icon = icon;
                     hospSpec.prefix = prefix;
                     hospSpec.parentSpec = parentSpec;
-                    hospSpec.acceptPool = acceptPool;
                 }
             });
         }
@@ -1599,6 +1796,7 @@
         if (updates.icon) s.icon = updates.icon.trim();
         if (updates.color) s.color = updates.color;
         if (updates.enabled !== undefined) s.enabled = Boolean(updates.enabled);
+        if (updates.acceptPool !== undefined) s.acceptPool = Array.isArray(updates.acceptPool) ? updates.acceptPool : [];
 
         if (updates.prefix !== undefined) {
             s.prefix = updates.prefix;
@@ -2959,6 +3157,7 @@
         updateGlobalSpecialty,
         addGlobalSpecialty,
         deleteGlobalSpecialty,
+        restoreFullDatabase,
         addHospitalSpecialty,
         addHospitalSpecialtyFromGlobal,
         addHospitalCloneSpecialty,

@@ -184,6 +184,35 @@
                s.includes('night') || s.includes('ليلي') || s.includes('برينايت');
     }
 
+    // Parse arbitrary date string (YYYY-MM-DD, DD/MM/YYYY, etc.) to UTC/local timestamp
+    function parseDateToTimestamp(str) {
+        if (!str) return null;
+        const s = String(str).trim();
+        if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(s)) {
+            const parts = s.split('-').map(Number);
+            return new Date(parts[0], parts[1] - 1, parts[2]).getTime();
+        }
+        if (/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}$/.test(s)) {
+            const parts = s.split(/[\/\-]/).map(Number);
+            return new Date(parts[2], parts[1] - 1, parts[0]).getTime();
+        }
+        const d = new Date(s);
+        return isNaN(d.getTime()) ? null : d.getTime();
+    }
+
+    function isTimestampInInterval(targetTs, startStr, endStr) {
+        const sTs = parseDateToTimestamp(startStr);
+        const eTs = parseDateToTimestamp(endStr);
+        if (sTs !== null && eTs !== null) {
+            const min = Math.min(sTs, eTs);
+            const max = Math.max(sTs, eTs);
+            return targetTs >= min && targetTs <= max;
+        }
+        if (sTs !== null) return targetTs >= sTs;
+        if (eTs !== null) return targetTs <= eTs;
+        return false;
+    }
+
     // Helper: Check if specific date or interval is excluded for a resident (Rule 2)
     function isDateExcludedForResident(r, dayNumber, dateStr) {
         if (!r) return false;
@@ -192,58 +221,66 @@
         const curMonth = (typeof state !== 'undefined' && state && state.month) ? Number(state.month) : (new Date().getMonth() + 1);
         const curYear = (typeof state !== 'undefined' && state && state.year) ? Number(state.year) : new Date().getFullYear();
         const curDateStr = dateStr || formatDateStr(curYear, curMonth, dNum);
+        const targetTs = parseDateToTimestamp(curDateStr) || new Date(curYear, curMonth - 1, dNum).getTime();
 
-        // 1. Check specific excluded dates (e.g. 3/10, day 3, 2026-10-03)
-        if (Array.isArray(r.excludedDates) && r.excludedDates.length > 0) {
-            const dayPadded = String(dNum).padStart(2, '0');
-            const monthPadded = String(curMonth).padStart(2, '0');
-            const d_m = `${dNum}/${curMonth}`;          // e.g. "3/10"
-            const dd_mm = `${dayPadded}/${monthPadded}`; // e.g. "03/10"
-            const d_dash_m = `${dNum}-${curMonth}`;
-            const dd_dash_mm = `${dayPadded}-${monthPadded}`;
+        // 1. Check specific days of the month (only if mode is 'exclude')
+        const prefDaysMode = r.prefDaysMode || 'exclude';
+        if (prefDaysMode === 'exclude') {
+            const specificDays = Array.isArray(r.specificDays) ? r.specificDays.map(Number) : [];
+            if (specificDays.includes(dNum)) return true;
 
-            for (const item of r.excludedDates) {
-                if (item === undefined || item === null) continue;
-                const strItem = String(item).trim();
-                if (!strItem) continue;
+            if (Array.isArray(r.excludedDates) && r.excludedDates.length > 0) {
+                const dayPadded = String(dNum).padStart(2, '0');
+                const monthPadded = String(curMonth).padStart(2, '0');
+                const d_m = `${dNum}/${curMonth}`;
+                const dd_mm = `${dayPadded}/${monthPadded}`;
+                const d_dash_m = `${dNum}-${curMonth}`;
+                const dd_dash_mm = `${dayPadded}-${monthPadded}`;
 
-                if (strItem === String(dNum) || strItem === dayPadded) return true;
-                if (strItem === d_m || strItem === dd_mm || strItem === d_dash_m || strItem === dd_dash_mm) return true;
-                if (strItem === curDateStr) return true;
+                for (const item of r.excludedDates) {
+                    if (item === undefined || item === null) continue;
+                    const strItem = String(item).trim();
+                    if (!strItem) continue;
 
-                const parts = strItem.split(/[\/\-]/);
-                if (parts.length === 2) {
-                    const partD = parseInt(parts[0], 10);
-                    const partM = parseInt(parts[1], 10);
-                    if (partD === dNum && partM === curMonth) return true;
-                } else if (parts.length === 3) {
-                    if (parts[0].length === 4) {
-                        const y = parseInt(parts[0], 10);
-                        const m = parseInt(parts[1], 10);
-                        const d = parseInt(parts[2], 10);
-                        if (y === curYear && m === curMonth && d === dNum) return true;
-                    } else {
-                        const d = parseInt(parts[0], 10);
-                        const m = parseInt(parts[1], 10);
-                        const y = parseInt(parts[2], 10);
-                        if (y === curYear && m === curMonth && d === dNum) return true;
+                    if (strItem === String(dNum) || strItem === dayPadded) return true;
+                    if (strItem === d_m || strItem === dd_mm || strItem === d_dash_m || strItem === dd_dash_mm) return true;
+                    if (strItem === curDateStr) return true;
+
+                    const parts = strItem.split(/[\/\-]/);
+                    if (parts.length === 2) {
+                        const partD = parseInt(parts[0], 10);
+                        const partM = parseInt(parts[1], 10);
+                        if (partD === dNum && partM === curMonth) return true;
+                    } else if (parts.length === 3) {
+                        if (parts[0].length === 4) {
+                            const y = parseInt(parts[0], 10);
+                            const m = parseInt(parts[1], 10);
+                            const d = parseInt(parts[2], 10);
+                            if (y === curYear && m === curMonth && d === dNum) return true;
+                        } else {
+                            const d = parseInt(parts[0], 10);
+                            const m = parseInt(parts[1], 10);
+                            const y = parseInt(parts[2], 10);
+                            if (y === curYear && m === curMonth && d === dNum) return true;
+                        }
                     }
                 }
             }
         }
 
-        // 2. Check period intervals (e.g. { start: '2026-10-05', end: '2026-10-10' })
+        // 2. Check period intervals (supports Exclude mode vs Strictly Within mode)
         if (Array.isArray(r.excludedIntervals) && r.excludedIntervals.length > 0) {
-            for (const interval of r.excludedIntervals) {
-                if (!interval) continue;
-                const start = interval.start ? interval.start.trim() : '';
-                const end = interval.end ? interval.end.trim() : '';
-                if (start && end) {
-                    if (curDateStr >= start && curDateStr <= end) return true;
-                } else if (start) {
-                    if (curDateStr >= start) return true;
-                } else if (end) {
-                    if (curDateStr <= end) return true;
+            const validIntervals = r.excludedIntervals.filter(i => i && ((i.start && i.start.trim()) || (i.end && i.end.trim())));
+            if (validIntervals.length > 0) {
+                const intervalMode = r.intervalMode || 'exclude';
+                const inAnyInterval = validIntervals.some(i => isTimestampInInterval(targetTs, i.start, i.end));
+
+                if (intervalMode === 'strictly_within') {
+                    // Strictly within: any date OUTSIDE all specified intervals is EXCLUDED!
+                    if (!inAnyInterval) return true;
+                } else {
+                    // Exclude mode: any date INSIDE any specified interval is EXCLUDED!
+                    if (inAnyInterval) return true;
                 }
             }
         }
@@ -5227,6 +5264,7 @@
     function renderResidentPrefsButtonHTML(r) {
         const hasPrefs = (Array.isArray(r.prefDays) && r.prefDays.length > 0) || 
                          (Array.isArray(r.prefShifts) && r.prefShifts.length > 0) || 
+                         (Array.isArray(r.specificDays) && r.specificDays.length > 0) ||
                          (Array.isArray(r.excludedDates) && r.excludedDates.length > 0) ||
                          (Array.isArray(r.excludedIntervals) && r.excludedIntervals.length > 0) ||
                          (r.noConsecutiveDays === false);
@@ -5753,6 +5791,11 @@
             prefShifts: Array.isArray(r.prefShifts) ? [...r.prefShifts] : (r.preferences && Array.isArray(r.preferences.prefShifts) ? [...r.preferences.prefShifts] : []),
             prefDays: Array.isArray(r.prefDays) ? [...r.prefDays] : (r.preferences && Array.isArray(r.preferences.prefDays) ? [...r.preferences.prefDays] : []),
             noConsecutiveDays: r.noConsecutiveDays !== false,
+            prefDaysMode: r.prefDaysMode || 'exclude',
+            specificDays: Array.isArray(r.specificDays) ? [...r.specificDays] : [],
+            excludedDates: Array.isArray(r.excludedDates) ? [...r.excludedDates] : [],
+            intervalMode: r.intervalMode || 'exclude',
+            excludedIntervals: Array.isArray(r.excludedIntervals) ? JSON.parse(JSON.stringify(r.excludedIntervals)) : [],
             preferences: r.preferences || {
                 prefShifts: Array.isArray(r.prefShifts) ? [...r.prefShifts] : [],
                 prefDays: Array.isArray(r.prefDays) ? [...r.prefDays] : []
@@ -5882,6 +5925,11 @@
                     prefShifts: Array.isArray(r.prefShifts) ? [...r.prefShifts] : (r.preferences && Array.isArray(r.preferences.prefShifts) ? [...r.preferences.prefShifts] : []),
                     prefDays: Array.isArray(r.prefDays) ? [...r.prefDays] : (r.preferences && Array.isArray(r.preferences.prefDays) ? [...r.preferences.prefDays] : []),
                     noConsecutiveDays: r.noConsecutiveDays !== false,
+                    prefDaysMode: r.prefDaysMode || 'exclude',
+                    specificDays: Array.isArray(r.specificDays) ? [...r.specificDays] : [],
+                    excludedDates: Array.isArray(r.excludedDates) ? [...r.excludedDates] : [],
+                    intervalMode: r.intervalMode || 'exclude',
+                    excludedIntervals: Array.isArray(r.excludedIntervals) ? JSON.parse(JSON.stringify(r.excludedIntervals)) : [],
                     preferences: r.preferences || {
                         prefShifts: Array.isArray(r.prefShifts) ? [...r.prefShifts] : [],
                         prefDays: Array.isArray(r.prefDays) ? [...r.prefDays] : []
@@ -6088,19 +6136,28 @@
             noConsecutiveCb.checked = (res.noConsecutiveDays !== false);
         }
 
-        // Initialize temporary excluded dates and intervals
-        tempExcludedDates = Array.isArray(res.excludedDates) ? [...res.excludedDates] : [];
-        tempExcludedIntervals = Array.isArray(res.excludedIntervals) ? JSON.parse(JSON.stringify(res.excludedIntervals)) : [];
+        // Initialize temporary days mode, specific calendar days, interval mode, and intervals
+        tempDaysMode = res.prefDaysMode || 'exclude';
+        tempSpecificDays = Array.isArray(res.specificDays) 
+            ? [...res.specificDays] 
+            : (Array.isArray(res.excludedDates) 
+                ? [...res.excludedDates].map(d => parseInt(String(d).split(/[\/\-]/)[0], 10)).filter(n => !isNaN(n)) 
+                : []);
+        tempIntervalMode = res.intervalMode || 'exclude';
+        tempIntervals = Array.isArray(res.excludedIntervals) ? JSON.parse(JSON.stringify(res.excludedIntervals)) : [];
 
         // Month context header
+        const curMonth = (state && state.month) ? Number(state.month) : (new Date().getMonth() + 1);
+        const curYear = (state && state.year) ? Number(state.year) : new Date().getFullYear();
         const monthDaysHeader = document.getElementById('pref-month-days-header');
         if (monthDaysHeader) {
-            monthDaysHeader.textContent = `أيام شهر ${state.monthYear || (state.month + '/' + state.year)}`;
+            monthDaysHeader.textContent = `تقويم شهر ${state.monthYear || (curMonth + '/' + curYear)}`;
         }
 
-        // Render dynamic day grid, chips, and intervals
-        renderPrefDaysGrid();
-        renderPrefExcludedDatesChips();
+        // Apply switch states and render calendar + intervals
+        updatePrefDaysModeUI();
+        updatePrefIntervalModeUI();
+        renderPrefCalendarGrid();
         renderPrefIntervalsList();
 
         modal.classList.remove('hidden');
@@ -6110,127 +6167,156 @@
         const modal = document.getElementById('resident-prefs-modal');
         if (modal) modal.classList.add('hidden');
         activePrefsResId = null;
-        tempExcludedDates = [];
-        tempExcludedIntervals = [];
+        tempSpecificDays = [];
+        tempIntervals = [];
     }
 
-    function isDayNumberInExcludedDates(dNum) {
-        const curMonth = (state && state.month) ? Number(state.month) : (new Date().getMonth() + 1);
-        const dayPadded = String(dNum).padStart(2, '0');
-        const monthPadded = String(curMonth).padStart(2, '0');
-        const d_m = `${dNum}/${curMonth}`;
-        const dd_mm = `${dayPadded}/${monthPadded}`;
-
-        return tempExcludedDates.some(item => {
-            if (item === undefined || item === null) return false;
-            const s = String(item).trim();
-            return s === String(dNum) || s === dayPadded || s === d_m || s === dd_mm;
-        });
+    function setPrefDaysMode(mode) {
+        tempDaysMode = (mode === 'prefer') ? 'prefer' : 'exclude';
+        updatePrefDaysModeUI();
+        renderPrefCalendarGrid();
     }
 
-    function renderPrefDaysGrid() {
-        const grid = document.getElementById('pref-days-grid');
+    function updatePrefDaysModeUI() {
+        const exBtn = document.getElementById('pref-days-mode-exclude-btn');
+        const prBtn = document.getElementById('pref-days-mode-prefer-btn');
+        const descEl = document.getElementById('pref-days-mode-desc');
+
+        if (tempDaysMode === 'prefer') {
+            if (prBtn) {
+                prBtn.className = 'px-2.5 py-1 rounded-lg transition flex items-center gap-1 bg-emerald-600 text-white shadow-2xs font-black';
+            }
+            if (exBtn) {
+                exBtn.className = 'px-2.5 py-1 rounded-lg transition flex items-center gap-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold';
+            }
+            if (descEl) {
+                descEl.className = 'text-[10px] font-bold text-emerald-600 dark:text-emerald-400';
+                descEl.textContent = 'الوضع: أيام مفضلة للخفارة (أخضر)';
+            }
+        } else {
+            if (exBtn) {
+                exBtn.className = 'px-2.5 py-1 rounded-lg transition flex items-center gap-1 bg-rose-600 text-white shadow-2xs font-black';
+            }
+            if (prBtn) {
+                prBtn.className = 'px-2.5 py-1 rounded-lg transition flex items-center gap-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold';
+            }
+            if (descEl) {
+                descEl.className = 'text-[10px] font-bold text-rose-600 dark:text-rose-400';
+                descEl.textContent = 'الوضع: أيام مستبعدة من الخفارات (أحمر)';
+            }
+        }
+    }
+
+    function setPrefIntervalMode(mode) {
+        tempIntervalMode = (mode === 'strictly_within') ? 'strictly_within' : 'exclude';
+        updatePrefIntervalModeUI();
+    }
+
+    function updatePrefIntervalModeUI() {
+        const exBtn = document.getElementById('pref-interval-mode-exclude-btn');
+        const stBtn = document.getElementById('pref-interval-mode-strict-btn');
+        const descEl = document.getElementById('pref-interval-mode-desc');
+
+        if (tempIntervalMode === 'strictly_within') {
+            if (stBtn) {
+                stBtn.className = 'px-2.5 py-1 rounded-lg transition flex items-center gap-1 bg-emerald-600 text-white shadow-2xs font-black';
+            }
+            if (exBtn) {
+                exBtn.className = 'px-2.5 py-1 rounded-lg transition flex items-center gap-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold';
+            }
+            if (descEl) {
+                descEl.innerHTML = '<span class="text-emerald-700 dark:text-emerald-400 font-bold"><i class="fas fa-check-circle mr-1"></i>حصر الخفارات:</span> يُمنع تكليف الطبيب بأي خفارة خارج هذه الفترات نهائياً.';
+            }
+        } else {
+            if (exBtn) {
+                exBtn.className = 'px-2.5 py-1 rounded-lg transition flex items-center gap-1 bg-rose-600 text-white shadow-2xs font-black';
+            }
+            if (stBtn) {
+                stBtn.className = 'px-2.5 py-1 rounded-lg transition flex items-center gap-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold';
+            }
+            if (descEl) {
+                descEl.innerHTML = '<span class="text-rose-600 dark:text-rose-400 font-bold"><i class="fas fa-ban mr-1"></i>استبعاد الفترات:</span> يستبعد النظام الطبيب من أي خفارة خلال هذه الفترات (إجازة / تفرغ).';
+            }
+        }
+    }
+
+    function togglePrefDayNumber(dayNum) {
+        const d = Number(dayNum);
+        const idx = tempSpecificDays.indexOf(d);
+        if (idx !== -1) {
+            tempSpecificDays.splice(idx, 1);
+        } else {
+            tempSpecificDays.push(d);
+        }
+        renderPrefCalendarGrid();
+    }
+
+    function renderPrefCalendarGrid() {
+        const grid = document.getElementById('pref-days-calendar-grid');
         if (!grid) return;
 
         const curMonth = (state && state.month) ? Number(state.month) : (new Date().getMonth() + 1);
         const curYear = (state && state.year) ? Number(state.year) : new Date().getFullYear();
         const daysCount = getDaysInMonth(curYear, curMonth);
 
+        // Day of week calculation for day 1 of month
+        // Arabic hospital week starts on Saturday: Saturday=0, Sunday=1, ..., Friday=6
+        const firstDayObj = new Date(curYear, curMonth - 1, 1);
+        const jsDay = firstDayObj.getDay(); // 0 is Sunday, 6 is Saturday
+        const startOffset = (jsDay + 1) % 7; // Saturday(6) -> 0, Sunday(0) -> 1, ...
+
         let html = '';
+
+        // Empty offset cells before day 1
+        for (let i = 0; i < startOffset; i++) {
+            html += '<div class="h-9 rounded-xl bg-transparent"></div>';
+        }
+
+        // Calendar days 1..daysCount
         for (let d = 1; d <= daysCount; d++) {
-            const isEx = isDayNumberInExcludedDates(d);
-            const btnClass = isEx
-                ? 'bg-rose-600 text-white border-rose-600 shadow-xs font-black'
-                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-rose-400 font-bold';
-            const icon = isEx ? '<i class="fas fa-ban text-[8px] mr-0.5"></i>' : '';
+            const isSelected = tempSpecificDays.includes(d);
+            let btnClass = '';
+            let icon = '';
+
+            if (isSelected) {
+                if (tempDaysMode === 'prefer') {
+                    btnClass = 'bg-emerald-600 text-white border-emerald-600 shadow-xs font-black';
+                    icon = '<i class="fas fa-check text-[9px] mr-1"></i>';
+                } else {
+                    btnClass = 'bg-rose-600 text-white border-rose-600 shadow-xs font-black';
+                    icon = '<i class="fas fa-ban text-[8px] mr-1"></i>';
+                }
+            } else {
+                btnClass = 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-slate-400 font-bold';
+            }
+
+            const title = isSelected 
+                ? (tempDaysMode === 'prefer' ? `اليوم ${d} مفضل للخفارة - انقر للإلغاء` : `اليوم ${d} مستبعد - انقر لإلغاء الاستبعاد`)
+                : `انقر لتحديد اليوم ${d}`;
+
             html += `
-                <button type="button" onclick="togglePrefExcludedDayNumber(${d})" class="w-8 h-8 rounded-lg border text-xs flex items-center justify-center transition ${btnClass}" title="${isEx ? 'مستبعد - انقر لإلغاء الاستبعاد' : 'متاح - انقر للاستبعاد'}">
+                <button type="button" onclick="togglePrefDayNumber(${d})" class="h-9 rounded-xl border text-xs flex items-center justify-center transition ${btnClass}" title="${title}">
                     ${icon}${d}
                 </button>
             `;
         }
+
         grid.innerHTML = html;
-    }
-
-    function togglePrefExcludedDayNumber(dayNum) {
-        const curMonth = (state && state.month) ? Number(state.month) : (new Date().getMonth() + 1);
-        const dayPadded = String(dayNum).padStart(2, '0');
-        const monthPadded = String(curMonth).padStart(2, '0');
-        const d_m = `${dayNum}/${curMonth}`;
-        const dd_mm = `${dayPadded}/${monthPadded}`;
-
-        if (isDayNumberInExcludedDates(dayNum)) {
-            tempExcludedDates = tempExcludedDates.filter(item => {
-                const s = String(item).trim();
-                return !(s === String(dayNum) || s === dayPadded || s === d_m || s === dd_mm);
-            });
-        } else {
-            tempExcludedDates.push(d_m);
-        }
-
-        renderPrefDaysGrid();
-        renderPrefExcludedDatesChips();
-    }
-
-    function addCustomExcludedDateFromInput() {
-        const input = document.getElementById('pref-custom-date-input');
-        if (!input) return;
-        const val = input.value.trim();
-        if (!val) return;
-
-        if (!tempExcludedDates.some(item => String(item).trim() === val)) {
-            tempExcludedDates.push(val);
-        }
-
-        input.value = '';
-        renderPrefDaysGrid();
-        renderPrefExcludedDatesChips();
-    }
-
-    function removePrefExcludedDate(dateStr) {
-        tempExcludedDates = tempExcludedDates.filter(item => String(item).trim() !== String(dateStr).trim());
-        renderPrefDaysGrid();
-        renderPrefExcludedDatesChips();
-    }
-
-    function renderPrefExcludedDatesChips() {
-        const container = document.getElementById('pref-excluded-dates-chips');
-        if (!container) return;
-
-        if (tempExcludedDates.length === 0) {
-            container.innerHTML = '<span class="text-slate-400 text-[10px] py-0.5">لا توجد أيام مستبعدة محددة لهذا الطبيب</span>';
-            return;
-        }
-
-        let html = '';
-        tempExcludedDates.forEach(dateVal => {
-            const escaped = String(dateVal).replace(/'/g, "\\'");
-            html += `
-                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-black bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
-                    <i class="fas fa-calendar-xmark text-[10px]"></i>
-                    <span>${dateVal}</span>
-                    <button type="button" onclick="removePrefExcludedDate('${escaped}')" class="hover:text-rose-900 dark:hover:text-white ml-0.5 p-0.5" title="إزالة هذا اليوم">
-                        <i class="fas fa-times text-[10px]"></i>
-                    </button>
-                </span>
-            `;
-        });
-        container.innerHTML = html;
     }
 
     function renderPrefIntervalsList() {
         const list = document.getElementById('pref-intervals-list');
         if (!list) return;
 
-        if (tempExcludedIntervals.length === 0) {
-            list.innerHTML = '<div class="text-slate-400 text-center py-2 text-[11px] bg-slate-50 dark:bg-slate-900 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">لا توجد فترات مستبعدة مضافة</div>';
+        if (tempIntervals.length === 0) {
+            list.innerHTML = '<div class="text-slate-400 text-center py-2 text-[11px] bg-slate-50 dark:bg-slate-900 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">لا توجد فترات زمنية مضافة حالياً لهذا الطبيب</div>';
             return;
         }
 
         let html = '';
-        tempExcludedIntervals.forEach((interval, idx) => {
+        tempIntervals.forEach((interval, idx) => {
             html += `
-                <div class="pref-interval-row flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs">
+                <div class="pref-interval-row flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs shadow-2xs">
                     <div class="flex-1 flex items-center gap-1.5">
                         <span class="text-slate-500 text-[10px] shrink-0 font-bold">من:</span>
                         <input type="date" value="${interval.start || ''}" onchange="updatePrefInterval(${idx}, 'start', this.value)" class="w-full p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100">
@@ -6249,18 +6335,18 @@
     }
 
     function addPrefIntervalRow(start = '', end = '') {
-        tempExcludedIntervals.push({ start, end });
+        tempIntervals.push({ start, end });
         renderPrefIntervalsList();
     }
 
     function updatePrefInterval(idx, field, val) {
-        if (tempExcludedIntervals[idx]) {
-            tempExcludedIntervals[idx][field] = val;
+        if (tempIntervals[idx]) {
+            tempIntervals[idx][field] = val;
         }
     }
 
     function removePrefInterval(idx) {
-        tempExcludedIntervals.splice(idx, 1);
+        tempIntervals.splice(idx, 1);
         renderPrefIntervalsList();
     }
 
@@ -6284,9 +6370,16 @@
             res.noConsecutiveDays = noConsecutiveCb.checked;
         }
 
-        // Save excluded dates and intervals
-        res.excludedDates = [...tempExcludedDates];
-        res.excludedIntervals = tempExcludedIntervals.filter(i => (i.start && i.start.trim()) || (i.end && i.end.trim()));
+        const curMonth = (state && state.month) ? Number(state.month) : (new Date().getMonth() + 1);
+
+        // Save days mode and specific calendar days
+        res.prefDaysMode = tempDaysMode;
+        res.specificDays = tempSpecificDays.map(Number).sort((a, b) => a - b);
+        res.excludedDates = (tempDaysMode === 'exclude') ? res.specificDays.map(d => `${d}/${curMonth}`) : [];
+
+        // Save interval mode and intervals
+        res.intervalMode = tempIntervalMode;
+        res.excludedIntervals = tempIntervals.filter(i => (i.start && i.start.trim()) || (i.end && i.end.trim()));
 
         saveState();
         pushDBHistory(`تعديل رغبات الطبيب (${res.name})`);
@@ -8474,6 +8567,51 @@
         }
 
         // -----------------------------------------------------------------
+        // PASS 0: SPECIFIC CALENDAR DAYS PREFERENCE MATCH (prefDaysMode === 'prefer')
+        // Doctors who specifically requested exact calendar days to have duties on!
+        // -----------------------------------------------------------------
+        const specificDayPrefDocs = activeDocs.filter(r => {
+            return hasRemainingQuota(r) &&
+                r.prefDaysMode === 'prefer' &&
+                Array.isArray(r.specificDays) && r.specificDays.length > 0;
+        });
+
+        if (specificDayPrefDocs.length > 0) {
+            const docsOrder = shuffleArray(specificDayPrefDocs);
+            for (const r of docsOrder) {
+                if (!hasRemainingQuota(r)) continue;
+                const targetDays = shuffleArray(r.specificDays.map(Number).filter(d => d >= 1 && d <= daysCount));
+
+                for (const d of targetDays) {
+                    if (!hasRemainingQuota(r)) break;
+                    const dayEntry = schedule.find(s => s.dayNumber === d);
+                    if (!dayEntry) continue;
+
+                    // Shifts candidate for this doctor (respecting female rule)
+                    const allowedPrefShifts = isFemaleResident(r) 
+                        ? (Array.isArray(r.prefShifts) && r.prefShifts.length > 0 ? r.prefShifts.filter(s => !isNightShift(s)) : ['morning', 'afternoon'])
+                        : (Array.isArray(r.prefShifts) && r.prefShifts.length > 0 ? r.prefShifts : SHIFTS);
+
+                    // Try doctor's preferred shifts first
+                    let candidateShifts = allowedPrefShifts.filter(s => !dayEntry[s] && isDoctorAvailable(r, d, s, false));
+                    if (candidateShifts.length === 0) {
+                        // Fallback: any available shift on this day (respecting female rule)
+                        candidateShifts = SHIFTS.filter(s => {
+                            if (isFemaleResident(r) && isNightShift(s)) return false;
+                            return !dayEntry[s] && isDoctorAvailable(r, d, s, false);
+                        });
+                    }
+
+                    if (candidateShifts.length > 0) {
+                        const chosenShift = shuffleArray(candidateShifts)[0];
+                        assignSlot(dayEntry, chosenShift, r, d);
+                        auditLog.push(`[Pass 0] Assigned ${r.name} to Day ${d} (${chosenShift}) via preferred calendar day`);
+                    }
+                }
+            }
+        }
+
+        // -----------------------------------------------------------------
         // PASS 1: HIGHEST PRIORITY - Exact Preference Match (Both Day & Shift)
         // Doctor-Centric Round-Robin: Guarantees maximum duty variety across
         // preferred shifts and days (e.g. 1 afternoon, 1 preNight, 1 lateNight
@@ -8914,6 +9052,20 @@
 
         const shuffledDaysCon = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
 
+        // Pass 0: Specific Calendar Days Preference (prefDaysMode === 'prefer')
+        const conSpecificDayDocs = conCandidates.filter(r => r.prefDaysMode === 'prefer' && Array.isArray(r.specificDays) && r.specificDays.length > 0);
+        for (const r of shuffleArray(conSpecificDayDocs)) {
+            const clean = normalizeArabic(r.name);
+            if ((assigned[clean] || 0) >= (Number(r.con_target) || 0)) continue;
+            for (const d of shuffleArray(r.specificDays.map(Number).filter(d => d >= 1 && d <= daysCount))) {
+                if ((assigned[clean] || 0) >= (Number(r.con_target) || 0)) break;
+                const dayEntry = schedule.find(s => s.dayNumber === d);
+                if (dayEntry && !dayEntry.doctor && isConAvailable(r, d, false)) {
+                    assignCon(dayEntry, r);
+                }
+            }
+        }
+
         // Pass 1: Preferences (Doctors who prefer this day)
         for (const d of shuffledDaysCon) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
@@ -9041,6 +9193,20 @@
         }
 
         const shuffledDaysDC = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
+
+        // Pass 0: Specific Calendar Days Preference (prefDaysMode === 'prefer')
+        const dcSpecificDayDocs = dcCandidates.filter(r => r.prefDaysMode === 'prefer' && Array.isArray(r.specificDays) && r.specificDays.length > 0);
+        for (const r of shuffleArray(dcSpecificDayDocs)) {
+            const clean = normalizeArabic(r.name);
+            if ((assigned[clean] || 0) >= (Number(r.dc_target) || 0)) continue;
+            for (const d of shuffleArray(r.specificDays.map(Number).filter(d => d >= 1 && d <= daysCount))) {
+                if ((assigned[clean] || 0) >= (Number(r.dc_target) || 0)) break;
+                const dayEntry = schedule.find(s => s.dayNumber === d);
+                if (dayEntry && !dayEntry.doctor && isDCAvailable(r, d, false)) {
+                    assignDC(dayEntry, r);
+                }
+            }
+        }
 
         // Pass 1: Preferences (Doctors who prefer this day)
         for (const d of shuffledDaysDC) {

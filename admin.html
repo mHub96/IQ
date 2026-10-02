@@ -552,9 +552,18 @@
                         <i class="fas fa-download text-emerald-600 dark:text-emerald-400"></i> نسخ احتياطي للمستشفى
                     </button>
                     <button type="button" onclick="triggerRestoreHospitalFilePicker()" class="btn-ghost text-xs text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100" title="استعادة بيانات وهيكلية وتخصصات ومقيمي المستشفى من ملف نسخة احتياطية">
-                        <i class="fas fa-upload text-blue-600 dark:text-blue-400"></i> استعادة من نسخة احتياطية
+                        <i class="fas fa-upload text-blue-600 dark:text-blue-400"></i> استعادة المستشفى
                     </button>
                     <input type="file" id="hosp-restore-file-input" accept=".json,application/json" onchange="handleHospitalBackupFileInput(event)" class="hidden" style="display:none;" />
+
+                    <!-- Full System Backup & Restore Buttons (Owner) -->
+                    <button type="button" id="admin-owner-full-backup-btn" onclick="exportFullSystemBackupFile()" class="btn-ghost text-xs text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100" style="display:none;" title="تنزيل نسخة احتياطية شاملة لكامل الموقع (كافة المستشفيات، المقيمين، الجداول، موقع الطوارئ، والإعدادات)">
+                        <i class="fas fa-cloud-arrow-down text-purple-600 dark:text-purple-400"></i> نسخ شامل للموقع 👑
+                    </button>
+                    <button type="button" id="admin-owner-full-restore-btn" onclick="triggerRestoreFullSystemFilePicker()" class="btn-ghost text-xs text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100" style="display:none;" title="استعادة شاملة لكامل بيانات وإعدادات ومستشفيات الموقع من ملف نسخة احتياطية">
+                        <i class="fas fa-cloud-arrow-up text-indigo-600 dark:text-indigo-400"></i> استعادة شاملة للموقع 👑
+                    </button>
+                    <input type="file" id="full-system-restore-file-input" accept=".json,application/json" onchange="handleFullSystemBackupFileInput(event)" class="hidden" style="display:none;" />
 
                     <button type="button" onclick="openImportModal()" class="btn-ghost text-xs" title="مركز خيارات النسخ الاحتياطي والاستيراد المتقدم">
                         <i class="fas fa-file-import"></i> خيارات النسخ
@@ -1054,6 +1063,29 @@
                     <input type="color" id="edit-hosp-spec-color" value="#0f766e" class="h-9 w-16 p-1 rounded-lg border border-slate-300 dark:border-slate-700 cursor-pointer" />
                 </div>
 
+                <!-- Hospital-Specific Accept Pool (Drawing Selector) -->
+                <div class="p-2.5 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-bold text-blue-700 dark:text-blue-300 flex items-center gap-1">
+                            <i class="fas fa-users-viewfinder"></i> مصادر سحب واستعارة الأطباء (Accept Pool):
+                        </label>
+                        <div class="flex gap-1">
+                            <button type="button" onclick="selectAllHospitalPool()" class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                تحديد الكل
+                            </button>
+                            <button type="button" onclick="clearAllHospitalPool()" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
+                                إلغاء التحديد
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
+                        حدد التخصصات الأخرى في هذا المستشفى التي يمكن لهذا التخصص سحب أطباء منها لتغطية الخفارات (إعداد خاص بهذا المستشفى فقط):
+                    </p>
+                    <div id="edit-hosp-spec-pool-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-40 overflow-y-auto p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60">
+                        <!-- Populated dynamically with checkboxes of other specialties in this hospital -->
+                    </div>
+                </div>
+
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="submitEditHospitalSpecialty()" class="flex-1 btn-gradient">
                         <i class="fas fa-check ml-1"></i> حفظ التعديلات
@@ -1174,28 +1206,6 @@
                     <p class="text-[11px] text-slate-500 mt-1">
                         عند اختيار تخصص أب (مثل التخدير A)، يصبح أطباء التخصص الأب مؤهلين تلقائياً لتغطية خفارات هذا التخصص في الجداول وبدائل الخفارة.
                     </p>
-                </div>
-
-                <div>
-                    <div class="flex justify-between items-center mb-1">
-                        <label class="block text-xs font-bold text-blue-700 dark:text-blue-300 flex items-center gap-1">
-                            <i class="fas fa-users-viewfinder"></i> مصادر سحب واستعارة الأطباء (Accept Pool):
-                        </label>
-                        <div class="flex gap-1">
-                            <button type="button" onclick="selectAllGlobalPool()" class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                                تحديد الكل
-                            </button>
-                            <button type="button" onclick="clearAllGlobalPool()" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
-                                إلغاء التحديد
-                            </button>
-                        </div>
-                    </div>
-                    <p class="text-[11px] text-slate-500 mb-2">
-                        حدد التخصصات التي يمكن لهذا التخصص سحب أطباء منها لتغطية الخفارات (مثل شهادات الوفيات D والمعاون الإداري AO):
-                    </p>
-                    <div id="global-spec-pool-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-44 overflow-y-auto p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40">
-                        <!-- Populated dynamically with checkboxes -->
-                    </div>
                 </div>
 
                 <div class="flex gap-3 pt-3">
@@ -1324,10 +1334,20 @@
                     <i class="fas fa-upload text-blue-600 dark:text-blue-400"></i>
                     <span>استعادة من ملف نسخة احتياطية (JSON)</span>
                 </h4>
-                <div class="flex items-center gap-2">
-                    <button type="button" onclick="triggerRestoreHospitalFilePicker()" class="flex-1 py-3 px-4 rounded-xl border-2 border-dashed border-blue-300 dark:border-blue-700 hover:border-blue-500 bg-white dark:bg-slate-800 text-xs font-bold text-blue-700 dark:text-blue-300 text-center transition flex items-center justify-center gap-2">
-                        <i class="fas fa-file-arrow-up text-base"></i>
-                        <span>اختر ملف النسخة الاحتياطية (.json) للاستعادة المباشرة</span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <button type="button" onclick="triggerRestoreHospitalFilePicker()" class="p-3 rounded-xl border-2 border-dashed border-blue-300 dark:border-blue-700 hover:border-blue-500 bg-white dark:bg-slate-800 text-xs font-bold text-blue-700 dark:text-blue-300 text-right transition flex items-center justify-between group shadow-xs">
+                        <div>
+                            <div class="text-xs font-black text-blue-800 dark:text-blue-300">استعادة المستشفى الحالي</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">تخصصات ومقيمي المستشفى الحالي</div>
+                        </div>
+                        <i class="fas fa-hospital text-blue-600 text-lg group-hover:scale-110 transition-transform"></i>
+                    </button>
+                    <button type="button" onclick="triggerRestoreFullSystemFilePicker()" class="p-3 rounded-xl border-2 border-dashed border-indigo-300 dark:border-indigo-700 hover:border-indigo-500 bg-white dark:bg-slate-800 text-xs font-bold text-indigo-700 dark:text-indigo-300 text-right transition flex items-center justify-between group shadow-xs">
+                        <div>
+                            <div class="text-xs font-black text-indigo-800 dark:text-indigo-300">استعادة المنظومة الشاملة 👑</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">كافة المستشفيات والجداول والطوارئ</div>
+                        </div>
+                        <i class="fas fa-network-wired text-indigo-600 text-lg group-hover:scale-110 transition-transform"></i>
                     </button>
                 </div>
             </div>
@@ -1504,6 +1524,14 @@
                 const hospOwnerStoreBtn = document.getElementById('hosp-modal-owner-store-btn');
                 if (hospOwnerStoreBtn) {
                     hospOwnerStoreBtn.style.display = isOwner ? 'inline-flex' : 'none';
+                }
+                const ownerFullBackupBtn = document.getElementById('admin-owner-full-backup-btn');
+                if (ownerFullBackupBtn) {
+                    ownerFullBackupBtn.style.display = isOwner ? 'inline-flex' : 'none';
+                }
+                const ownerFullRestoreBtn = document.getElementById('admin-owner-full-restore-btn');
+                if (ownerFullRestoreBtn) {
+                    ownerFullRestoreBtn.style.display = isOwner ? 'inline-flex' : 'none';
                 }
 
                 // Empty specialties display state (default false = hidden by default)
@@ -3234,12 +3262,40 @@
             const updateCheck = document.getElementById('edit-hosp-spec-update-existing');
             if (updateCheck) updateCheck.checked = true;
 
+            // Populate Hospital-Specific Accept Pool Checkbox Grid
+            const poolGrid = document.getElementById('edit-hosp-spec-pool-grid');
+            if (poolGrid && currentHospital) {
+                const hospSpecs = currentHospital.specialties || [];
+                const currentPool = Array.isArray(spec.acceptPool) ? spec.acceptPool : [];
+                let poolHtml = '';
+                hospSpecs.forEach(otherSpec => {
+                    if (otherSpec.id !== spec.id) {
+                        const checked = currentPool.includes(otherSpec.id) ? 'checked' : '';
+                        poolHtml += `
+                            <label class="flex items-center gap-1.5 p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 hover:border-blue-400 cursor-pointer text-[11px] font-semibold select-none">
+                                <input type="checkbox" value="${otherSpec.id}" ${checked} class="w-3.5 h-3.5 rounded accent-blue-600 hosp-pool-checkbox" />
+                                <span class="truncate">${otherSpec.icon || '🏥'} ${otherSpec.name_ar}</span>
+                            </label>
+                        `;
+                    }
+                });
+                poolGrid.innerHTML = poolHtml || '<div class="col-span-full text-center text-slate-400 text-xs py-2">لا توجد تخصصات أخرى في هذا المستشفى</div>';
+            }
+
             const modal = document.getElementById('edit-hospital-spec-modal');
             if (modal) modal.classList.add('active');
         }
 
         function closeEditHospitalSpecModal() {
             document.getElementById('edit-hospital-spec-modal').classList.remove('active');
+        }
+
+        function selectAllHospitalPool() {
+            document.querySelectorAll('.hosp-pool-checkbox').forEach(cb => cb.checked = true);
+        }
+
+        function clearAllHospitalPool() {
+            document.querySelectorAll('.hosp-pool-checkbox').forEach(cb => cb.checked = false);
         }
 
         async function submitEditHospitalSpecialty() {
@@ -3250,6 +3306,9 @@
             const color = document.getElementById('edit-hosp-spec-color')?.value || '#0f766e';
             const prefix = getSelectedSpecPrefix('edit-hosp-spec');
             const updateResidents = document.getElementById('edit-hosp-spec-update-existing')?.checked === true;
+
+            const poolBoxes = document.querySelectorAll('.hosp-pool-checkbox:checked');
+            const acceptPool = Array.from(poolBoxes).map(cb => cb.value);
 
             if (!specId || !nameAr) {
                 showToast('الرجاء إدخال اسم التخصص', 'error');
@@ -3265,6 +3324,7 @@
                     icon: icon,
                     color: color,
                     prefix: prefix,
+                    acceptPool: acceptPool,
                     updateResidentsPrefix: updateResidents
                 });
                 currentHospital = Hub.getActiveHospital();
@@ -3348,12 +3408,32 @@
                 return;
             }
 
+            const allHospitals = Hub.getHospitals ? Hub.getHospitals() : [];
             const globalMap = new Map(globals.map(s => [s.id, s]));
 
             container.innerHTML = filtered.map(s => {
                 const parentObj = s.parentSpec ? globalMap.get(s.parentSpec) : null;
                 const parentLabel = parentObj ? parentObj.name_ar : s.parentSpec;
-                const poolCount = Array.isArray(s.acceptPool) ? s.acceptPool.length : 0;
+
+                // Determine which hospital(s) use this specialty
+                const usingHospitals = allHospitals.filter(h => {
+                    const hasSpec = (h.specialties || []).some(sp => sp.id === s.id || sp.clonedFromSpecId === s.id || Hub.normalizeSpecialtyId(sp.id) === s.id);
+                    const hasDoctor = (h.names || []).some(r => r.spec === s.id || r.tag === s.id || r.dept === s.id || r.department === s.id || (Array.isArray(r.specs) && r.specs.includes(s.id)));
+                    const hasSchedule = (h.schedule || []).some(entry => entry.specCode === s.id);
+                    return hasSpec || hasDoctor || hasSchedule;
+                });
+
+                let hospBadgesHtml = '';
+                if (usingHospitals.length > 0) {
+                    hospBadgesHtml = usingHospitals.map(h => {
+                        let colorClass = 'bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800';
+                        if (h.id === 'basra') colorClass = 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800';
+                        else if (h.id === 'mawani') colorClass = 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800';
+                        return `<span class="text-[10px] px-2 py-0.5 rounded-full font-bold border ${colorClass}"><i class="fas fa-hospital ml-1 text-[9px]"></i>${h.name_ar || h.hospitalName}</span>`;
+                    }).join('');
+                } else {
+                    hospBadgesHtml = '<span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700"><i class="fas fa-circle-info ml-1 text-[9px]"></i>غير مستخدم في أي مستشفى</span>';
+                }
 
                 return `
                     <div class="specialty-item flex items-center justify-between gap-3 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/50">
@@ -3362,6 +3442,9 @@
                             <div class="min-w-0 flex-1">
                                 <div class="font-bold text-xs text-slate-800 dark:text-white truncate">${s.name_ar}</div>
                                 <div class="text-[10px] text-slate-400 font-mono truncate" dir="ltr">${s.name_en || ''}</div>
+                                <div class="flex items-center gap-1 flex-wrap mt-1">
+                                    ${hospBadgesHtml}
+                                </div>
                             </div>
                         </div>
 
@@ -3369,11 +3452,6 @@
                             ${s.parentSpec ? `
                                 <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800" title="فئة فرعية من التخصص الأب">
                                     <i class="fas fa-diagram-project ml-1"></i> فرعي من ${parentLabel}
-                                </span>
-                            ` : ''}
-                            ${poolCount > 0 ? `
-                                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800" title="يسحب أطباء من ${poolCount} تخصص">
-                                    <i class="fas fa-users-viewfinder ml-1"></i> يسحب من ${poolCount}
                                 </span>
                             ` : ''}
 
@@ -3428,36 +3506,11 @@
             });
             parentSelect.innerHTML = parentHtml;
 
-            // Populate Accept Pool Checkbox Grid (no IDs displayed!)
-            const poolGrid = document.getElementById('global-spec-pool-grid');
-            const targetPool = (target && Array.isArray(target.acceptPool)) ? target.acceptPool : [];
-            let poolHtml = '';
-            globals.forEach(g => {
-                if (!target || g.id !== target.id) {
-                    const checked = targetPool.includes(g.id) ? 'checked' : '';
-                    poolHtml += `
-                        <label class="flex items-center gap-1.5 p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 hover:border-purple-400 cursor-pointer text-[11px] font-semibold select-none">
-                            <input type="checkbox" value="${g.id}" ${checked} class="w-3.5 h-3.5 rounded accent-purple-600 global-pool-checkbox" />
-                            <span class="truncate">${g.icon || '🏥'} ${g.name_ar}</span>
-                        </label>
-                    `;
-                }
-            });
-            poolGrid.innerHTML = poolHtml;
-
             document.getElementById('global-spec-edit-modal').classList.add('active');
         }
 
         function closeGlobalSpecEditModal() {
             document.getElementById('global-spec-edit-modal').classList.remove('active');
-        }
-
-        function selectAllGlobalPool() {
-            document.querySelectorAll('.global-pool-checkbox').forEach(cb => cb.checked = true);
-        }
-
-        function clearAllGlobalPool() {
-            document.querySelectorAll('.global-pool-checkbox').forEach(cb => cb.checked = false);
         }
 
         async function saveGlobalSpecEdit() {
@@ -3474,9 +3527,6 @@
             const prefix = getSelectedSpecPrefix('global-spec');
             const parentSpec = document.getElementById('global-spec-parent').value || null;
             const updateResidents = document.getElementById('global-spec-update-existing-residents')?.checked === true;
-
-            const checkedBoxes = document.querySelectorAll('.global-pool-checkbox:checked');
-            const acceptPool = Array.from(checkedBoxes).map(cb => cb.value);
 
             if (!nameAr) {
                 showToast('اسم التخصص بالعربية حقل مطلوب', 'error');
@@ -3500,7 +3550,6 @@
                         icon,
                         prefix,
                         parentSpec,
-                        acceptPool,
                         updateResidentsPrefix: updateResidents
                     });
                     showToast(`تم تحديث التخصص "${nameAr}" في المستودع العام وتحديث كافة المراجع بنجاح`, 'success');
@@ -3511,8 +3560,7 @@
                         name_en: nameEn,
                         icon,
                         prefix,
-                        parentSpec,
-                        acceptPool
+                        parentSpec
                     });
                     showToast(`تمت إضافة التخصص "${nameAr}" إلى المستودع العام بنجاح`, 'success');
                 }
@@ -3823,15 +3871,149 @@
                 showToast('قاعدة البيانات غير محملة', 'error');
                 return;
             }
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dbObj, null, 2));
+
+            // Gather Emergency state & schedules & allocations from localStorage
+            let emergencyState = null;
+            try {
+                const rawEm = localStorage.getItem('hosp_hub_emergency_state_v3');
+                if (rawEm) emergencyState = JSON.parse(rawEm);
+            } catch (e) {}
+
+            const emergencyAllocations = {};
+            const emergencySchedules = {};
+            const allLocalStorage = {};
+
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (!key) continue;
+                    const val = localStorage.getItem(key);
+                    if (key.startsWith('hosp_hub_emergency_alloc_')) {
+                        try { emergencyAllocations[key.replace('hosp_hub_emergency_alloc_', '')] = JSON.parse(val); } catch (e) { emergencyAllocations[key.replace('hosp_hub_emergency_alloc_', '')] = val; }
+                    } else if (key.startsWith('hosp_hub_emergency_sched_')) {
+                        try { emergencySchedules[key.replace('hosp_hub_emergency_sched_', '')] = JSON.parse(val); } catch (e) { emergencySchedules[key.replace('hosp_hub_emergency_sched_', '')] = val; }
+                    } else if (key.startsWith('hosp_hub_') && key !== 'hosp_hub_token') {
+                        allLocalStorage[key] = val;
+                    }
+                }
+            } catch (e) {
+                console.warn('Error bundling emergency data for full backup:', e);
+            }
+
+            let emergencyColors = null;
+            try {
+                emergencyColors = JSON.parse(localStorage.getItem('hosp_hub_emergency_specialty_colors') || 'null');
+            } catch (e) {}
+
+            const fullBackupData = {
+                format: 'hosp_hub_full_system_backup',
+                version: '3.5',
+                exportedAt: new Date().toISOString(),
+                exportDateFormatted: new Date().toLocaleString('ar-IQ'),
+                hubDatabase: dbObj,
+                emergencyState: emergencyState,
+                emergencyAllocations: emergencyAllocations,
+                emergencySchedules: emergencySchedules,
+                emergencyColors: emergencyColors,
+                allLocalStorage: allLocalStorage
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullBackupData, null, 2));
             const a = document.createElement('a');
             a.setAttribute("href", dataStr);
             const dateSlug = new Date().toISOString().slice(0, 10);
-            a.setAttribute("download", `hospital-hub-full-backup-${dateSlug}.json`);
+            a.setAttribute("download", `hosp-hub-FULL-SYSTEM-backup-${dateSlug}.json`);
             document.body.appendChild(a);
             a.click();
             a.remove();
-            showToast('تم تنزيل النسخة الاحتياطية الشاملة لكافة مستشفيات المنظومة بنجاح', 'success');
+            showToast('تم تنزيل النسخة الاحتياطية الشاملة لكافة بيانات وإعدادات ومستشفيات المنظومة بنجاح ✓', 'success');
+        }
+
+        function triggerRestoreFullSystemFilePicker() {
+            if (!Hub.auth.isOwner()) {
+                showToast('الاستعادة الشاملة للمنظومة مخصصة للمالك (Owner) حصراً', 'error');
+                return;
+            }
+            let input = document.getElementById('full-system-restore-file-input');
+            if (!input) {
+                input = document.createElement('input');
+                input.type = 'file';
+                input.id = 'full-system-restore-file-input';
+                input.accept = '.json,application/json';
+                input.className = 'hidden';
+                input.style.display = 'none';
+                input.onchange = handleFullSystemBackupFileInput;
+                document.body.appendChild(input);
+            }
+            input.value = '';
+            input.click();
+        }
+
+        async function handleFullSystemBackupFileInput(event) {
+            const input = (event && event.target) || document.getElementById('full-system-restore-file-input');
+            const file = input && input.files && input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    await promptAndExecuteFullSystemRestore(parsed);
+                    if (input) input.value = '';
+                } catch (err) {
+                    console.error('Full system backup restore error:', err);
+                    alert('فشل قراءة الملف: ملف JSON غير صالح أو به أخطاء.');
+                    if (input) input.value = '';
+                }
+            };
+            reader.readAsText(file, 'utf-8');
+        }
+
+        async function promptAndExecuteFullSystemRestore(parsed) {
+            if (!Hub.auth.isOwner()) {
+                showToast('الاستعادة الشاملة للمنظومة مخصصة للمالك (Owner) حصراً', 'error');
+                return;
+            }
+
+            const dbObj = (parsed && parsed.hubDatabase) ? parsed.hubDatabase : (parsed && parsed.hospitals ? parsed : null);
+            if (!dbObj || !dbObj.hospitals) {
+                alert('الملف المحدد لا يحتوي على بيانات صالحة للاستعادة الشاملة للمنظومة.');
+                return;
+            }
+
+            const hospCount = Object.keys(dbObj.hospitals || {}).length;
+            const hospNames = Object.values(dbObj.hospitals || {}).map(h => h.name_ar || h.hospitalName).join('، ');
+            let totalDocs = 0;
+            Object.values(dbObj.hospitals || {}).forEach(h => {
+                totalDocs += (h.names || []).length;
+            });
+
+            const backupDate = parsed.exportDateFormatted || parsed.exportedAt || 'غير محدد';
+            const hasEmergency = !!(parsed.emergencyState || parsed.emergencySchedules);
+
+            const confirmMsg = `تأكيد استعادة النسخة الاحتياطية الشاملة لكامل الموقع:\n\n` +
+                `• تاريخ النسخة: ${backupDate}\n` +
+                `• عدد المستشفيات: ${hospCount} (${hospNames})\n` +
+                `• إجمالي الأطباء: ${totalDocs} طبيب\n` +
+                `• جداول الخفارات لكافة المستشفيات: مشمولة بالكامل ✓\n` +
+                (hasEmergency ? `• بيانات وإعدادات موقع الطوارئ (ER): متوفرة ومشمولة بالكامل ✓\n` : '') +
+                `• إعدادات الخطوط والمظهر والتفضيلات: مشمولة بالكامل ✓\n\n` +
+                `تحذير: هذه العملية ستعيد الموقع بالكامل بكافة مستشفياته وتخصصاته وأطبائه وإعداداته إلى حالتها في النسخة الاحتياطية.\n\n` +
+                `هل ترغب بالمتابعة وتطبيق الاستعادة الشاملة الآن؟`;
+
+            if (!confirm(confirmMsg)) return;
+
+            try {
+                showToast('جارٍ تطبيق الاستعادة الشاملة وحفظ البيانات في السيرفر...', 'info');
+                await Hub.restoreFullDatabase(parsed);
+                showToast('تمت استعادة كافة بيانات وإعدادات المنظومة بالكامل بنجاح ✨', 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1200);
+            } catch (err) {
+                console.error(err);
+                alert('خطأ أثناء الاستعادة الشاملة: ' + (err.message || err));
+            }
         }
 
         function triggerRestoreHospitalFilePicker() {
@@ -3876,6 +4058,16 @@
                 return;
             }
 
+            // Check if user uploaded a full system backup into hospital restore picker
+            if (parsed.format === 'hosp_hub_full_system_backup' || (parsed.hubDatabase && parsed.hubDatabase.hospitals)) {
+                if (Hub.auth.isOwner()) {
+                    const wantFull = confirm('الملف الذي اخترته هو نسخة احتياطية شاملة لكامل المنظومة (كافة المستشفيات والجداول وموقع الطوارئ).\n\nهل ترغب باستعادة المنظومة الشاملة بالكامل الآن؟\n\n[موافق / OK] = استعادة المنظومة الشاملة بالكامل.\n[إلغاء / Cancel] = استعادة بيانات المستشفى الحالي فقط من داخل الملف.');
+                    if (wantFull) {
+                        return await promptAndExecuteFullSystemRestore(parsed);
+                    }
+                }
+            }
+
             // Detect source of specialties & residents
             let targetSpecialties = null;
             let targetResidents = null;
@@ -3887,6 +4079,12 @@
                 targetSpecialties = parsed.specialties;
                 targetResidents = parsed.residents || parsed.names;
                 targetStructure = parsed.structure;
+            } else if (parsed.hubDatabase && parsed.hubDatabase.hospitals && currentHospital.id && parsed.hubDatabase.hospitals[currentHospital.id]) {
+                const h = parsed.hubDatabase.hospitals[currentHospital.id];
+                targetSpecialties = h.specialties;
+                targetResidents = h.names;
+                targetStructure = { schedule: h.schedule, specialistSchedule: h.specialistSchedule, icu: h.icu };
+                backupHospName = h.name_ar || h.hospitalName || backupHospName;
             } else if (parsed.hospitals && currentHospital.id && parsed.hospitals[currentHospital.id]) {
                 const h = parsed.hospitals[currentHospital.id];
                 targetSpecialties = h.specialties;

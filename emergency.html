@@ -682,57 +682,78 @@
                     </div>
                 </div>
 
-                <!-- 1. Specific Excluded Days of the Month (e.g. 3/10 or day 3 regardless of day name) -->
+                <!-- 1. Specific Days of the Month (Calendar View with Exclude/Prefer Switch) -->
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label class="block font-black text-slate-700 dark:text-slate-300">
-                            <i class="fas fa-calendar-xmark text-rose-500 mr-1"></i>
-                            استبعاد أيام محددة من الشهر:
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                        <label class="block font-black text-slate-700 dark:text-slate-300 text-xs flex items-center gap-1.5">
+                            <i class="fas fa-calendar-alt text-teal-600 dark:text-teal-400"></i>
+                            <span>تحديد أيام معينة من الشهر:</span>
                         </label>
-                        <span class="text-[10px] text-slate-400 font-semibold" id="pref-month-days-header">أيام الشهر الحالي</span>
-                    </div>
-                    <p class="text-[11px] text-slate-500 mb-2">
-                        انقر على أرقام الأيام لاستبعادها، أو أضف يوماً أو تاريخاً بصيغة (مثل: <strong>3/10</strong> أو <strong>15</strong>):
-                    </p>
-
-                    <!-- Interactive Day Grid for Current Schedule Month -->
-                    <div id="pref-days-grid" class="flex flex-wrap gap-1 p-2 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 max-h-24 overflow-y-auto">
-                        <!-- Populated dynamically via JS: 1..daysCount buttons -->
-                    </div>
-
-                    <!-- Add Custom Date String / Day Input -->
-                    <div class="flex items-center gap-2 mt-2">
-                        <input type="text" id="pref-custom-date-input" placeholder="اكتب اليوم أو التاريخ (مثال: 3/10)" class="flex-1 text-xs p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomExcludedDateFromInput();}">
-                        <button type="button" onclick="addCustomExcludedDateFromInput()" class="px-3 py-2 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 transition flex items-center gap-1 shrink-0">
-                            <i class="fas fa-plus text-[10px]"></i>
-                            <span>استبعاد هذا اليوم</span>
-                        </button>
+                        <!-- Switch for Days Mode: Exclude vs Prefer -->
+                        <div class="inline-flex rounded-xl p-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-bold">
+                            <button type="button" id="pref-days-mode-exclude-btn" onclick="setPrefDaysMode('exclude')" class="px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                <i class="fas fa-ban text-[10px]"></i>
+                                <span>استبعاد الأيام</span>
+                            </button>
+                            <button type="button" id="pref-days-mode-prefer-btn" onclick="setPrefDaysMode('prefer')" class="px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                <i class="fas fa-check text-[10px]"></i>
+                                <span>أيام مفضلة للخفارة</span>
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Excluded Days Chips / Badges Container -->
-                    <div class="mt-2">
-                        <div class="text-[10px] font-bold text-slate-400 mb-1">الأيام المستبعدة حالياً لهذا الطبيب:</div>
-                        <div id="pref-excluded-dates-chips" class="flex flex-wrap gap-1.5 min-h-[28px] p-1.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
-                            <!-- Populated with badges: e.g. <span class="...">3/10 <i class="fas fa-times"></i></span> -->
+                    <!-- Month Calendar Title Display -->
+                    <div class="flex items-center justify-between px-3 py-1.5 mb-2 rounded-xl bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700">
+                        <span class="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                            <i class="far fa-calendar text-slate-500"></i>
+                            <span id="pref-month-days-header">تقويم شهر تشرين الأول 2026</span>
+                        </span>
+                        <span id="pref-days-mode-desc" class="text-[10px] font-bold"></span>
+                    </div>
+
+                    <!-- Month Calendar Grid with 7 Weekday Headers -->
+                    <div class="p-2.5 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+                        <div class="grid grid-cols-7 gap-1 text-center font-bold text-[10px] text-slate-400 dark:text-slate-500 mb-1.5 pb-1 border-b border-slate-200 dark:border-slate-800">
+                            <div>السبت</div>
+                            <div>الأحد</div>
+                            <div>الإثنين</div>
+                            <div>الثلاثاء</div>
+                            <div>الأربعاء</div>
+                            <div>الخميس</div>
+                            <div>الجمعة</div>
+                        </div>
+                        <div id="pref-days-calendar-grid" class="grid grid-cols-7 gap-1">
+                            <!-- Populated dynamically via JS matching month's days and start weekday -->
                         </div>
                     </div>
                 </div>
 
-                <!-- 2. Excluded Period Intervals (Multiple intervals with start & end dates) -->
+                <!-- 2. Period Intervals (with Exclude vs Strictly Within Switch) -->
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label class="block font-black text-slate-700 dark:text-slate-300">
-                            <i class="fas fa-calendar-days text-amber-500 mr-1"></i>
-                            استبعاد فترات زمنية / إجازات (فترات متعددة):
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                        <label class="block font-black text-slate-700 dark:text-slate-300 text-xs flex items-center gap-1.5">
+                            <i class="fas fa-calendar-days text-amber-500"></i>
+                            <span>فترات زمنية محددة:</span>
                         </label>
-                        <button type="button" onclick="addPrefIntervalRow()" class="px-2.5 py-1 rounded-xl text-xs font-bold text-rose-600 hover:text-white hover:bg-rose-600 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 transition flex items-center gap-1.5 shadow-2xs">
+                        <!-- Switch for Interval Mode: Exclude vs Strictly Within -->
+                        <div class="inline-flex rounded-xl p-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-bold">
+                            <button type="button" id="pref-interval-mode-exclude-btn" onclick="setPrefIntervalMode('exclude')" class="px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                <i class="fas fa-ban text-[10px]"></i>
+                                <span>استبعاد الفترة</span>
+                            </button>
+                            <button type="button" id="pref-interval-mode-strict-btn" onclick="setPrefIntervalMode('strictly_within')" class="px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                <i class="fas fa-arrows-to-dot text-[10px]"></i>
+                                <span>حصر الخفارات ضمنها</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span id="pref-interval-mode-desc" class="text-[11px] text-slate-500 font-medium"></span>
+                        <button type="button" onclick="addPrefIntervalRow()" class="px-2.5 py-1 rounded-xl text-xs font-bold text-teal-600 hover:text-white hover:bg-teal-600 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 transition flex items-center gap-1.5 shadow-2xs">
                             <i class="fas fa-plus text-[10px]"></i>
-                            <span>إضافة فترة استبعاد</span>
+                            <span>إضافة فترة زمنية</span>
                         </button>
                     </div>
-                    <p class="text-[11px] text-slate-500 mb-2">
-                        أضف فترات إجازة أو تفرغ بحيث يستبعد النظام الطبيب من أي خفارة خلال الفترة المحددة:
-                    </p>
 
                     <div id="pref-intervals-list" class="space-y-2 max-h-36 overflow-y-auto pr-0.5">
                         <!-- Dynamic Interval Rows -->

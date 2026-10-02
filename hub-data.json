@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-02T21:04:55.495Z",
+  "lastUpdated": "2026-10-02T21:05:20.992Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -36659,10 +36659,11 @@
         {
           "date": "02/10/2026",
           "specCode": "REF",
-          "name": "د. امنه قحطان صالح",
+          "name": "د. احمد محمد فراي",
           "VisitCount": 21,
           "dutyTime": "08:00AM - 08:00PM",
-          "dutySlot": 0
+          "dutySlot": 0,
+          "timestamp": "00:05"
         },
         {
           "date": "03/10/2026",

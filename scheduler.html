@@ -532,6 +532,8 @@
         }
 
         .day-box {
+            content-visibility: auto;
+            contain-intrinsic-size: 1px 75px;
             background: var(--day-box-bg);
             margin-bottom: 0.35rem;
             border-radius: 1rem;
@@ -2100,8 +2102,8 @@
         // ================================================================
         // REDISTRIBUTION FUNCTIONS
         // ================================================================
-        function redistributeDayTimes(date, specialtyCode, editedSlotIndex, useAuto) {
-            var entries = (getActiveSchedule()).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+        function redistributeDayTimes(date, specialtyCode, editedSlotIndex, useAuto, precomputedEntries) {
+            var entries = precomputedEntries || (getActiveSchedule()).filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
             entries.sort(function(a, b) { return (a.dutySlot || 0) - (b.dutySlot || 0); });
             entries.forEach(function(entry, index) { entry.dutySlot = index; });
 
@@ -2347,6 +2349,65 @@
 
             var isSingleView = currentView === 'single';
 
+            // High Performance Pre-indexing & Metadata Caching:
+            // 1. Fast O(1) Indexing of active schedule: key = dateFull + '|' + specCode
+            var scheduleIndex = new Map();
+            var activeSched = getActiveSchedule();
+            for (var sIdx = 0; sIdx < activeSched.length; sIdx++) {
+                var sEntry = activeSched[sIdx];
+                var sKey = sEntry.date + '|' + sEntry.specCode;
+                var sList = scheduleIndex.get(sKey);
+                if (!sList) {
+                    sList = [];
+                    scheduleIndex.set(sKey, sList);
+                }
+                sList.push(sEntry);
+            }
+
+            // 2. Cache for cloned hospital schedules (indexed on demand per hospital)
+            var cloneHospIndices = new Map();
+            function getCloneScheduleList(sourceHospital, queryDate, querySpec) {
+                if (!sourceHospital) return [];
+                var hospId = sourceHospital.id || sourceHospital.hospitalName;
+                var idx = cloneHospIndices.get(hospId);
+                if (!idx) {
+                    idx = new Map();
+                    var sourceSched = schedulerMode === 'specialists' ? (sourceHospital.specialistSchedule || []) : (sourceHospital.schedule || []);
+                    for (var k = 0; k < sourceSched.length; k++) {
+                        var cEntry = sourceSched[k];
+                        var cKey = cEntry.date + '|' + cEntry.specCode;
+                        var cList = idx.get(cKey);
+                        if (!cList) {
+                            cList = [];
+                            idx.set(cKey, cList);
+                        }
+                        cList.push(cEntry);
+                    }
+                    cloneHospIndices.set(hospId, idx);
+                }
+                return idx.get(queryDate + '|' + querySpec) || [];
+            }
+
+            // 3. Pre-calculate month days metadata once (avoids 500+ Intl.DateTimeFormat instantiations!)
+            var AR_WEEKDAYS = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            var monthDaysMeta = [];
+            for (var d = 1; d <= days; d++) {
+                var dateObj = new Date(year, month - 1, d);
+                var dow = dateObj.getDay();
+                var dPadded = String(d).padStart(2, '0');
+                var mPadded = String(month).padStart(2, '0');
+                var dFull = dPadded + '/' + mPadded + '/' + year;
+                monthDaysMeta.push({
+                    dayNumber: d,
+                    dateFull: dFull,
+                    datePrefix: dPadded + '/' + mPadded,
+                    dayName: AR_WEEKDAYS[dow],
+                    isWeekend: (dow === 5 || dow === 6)
+                });
+            }
+
+            var fragment = document.createDocumentFragment();
+
             specialtyList.forEach(function(specialty, trackIndex) {
                 var specialtyColor = getSpecialtyColor(specialty.id);
                 var isCloneTrack = Boolean(specialty.isClone);
@@ -2387,17 +2448,20 @@
                     <div class="days-list">
                 `;
                 
-                for (var dayNumber = 1; dayNumber <= days; dayNumber++) {
-                    var dateObject = new Date(year, month - 1, dayNumber);
-                    var dayName = new Intl.DateTimeFormat('ar-IQ', { weekday: 'short' }).format(dateObject);
-                    var dateFull = String(dayNumber).padStart(2, '0') + '/' + String(month).padStart(2, '0') + '/' + year;
+                for (var dayIdx = 0; dayIdx < monthDaysMeta.length; dayIdx++) {
+                    var dayMeta = monthDaysMeta[dayIdx];
+                    var dayNumber = dayMeta.dayNumber;
+                    var dayName = dayMeta.dayName;
+                    var dateFull = dayMeta.dateFull;
                     var uniqueId = String(dayNumber).padStart(2, '0') + '-' + specialty.id;
-                    var isWeekend = (dateObject.getDay() === 5 || dateObject.getDay() === 6);
+                    var isWeekend = dayMeta.isWeekend;
                     
                     var querySpecCode = isCloneTrack ? specialty.clonedFromSpecId : specialty.id;
-                    var entriesPool = (isCloneTrack && sourceHosp) ? (schedulerMode === 'specialists' ? (sourceHosp.specialistSchedule || []) : (sourceHosp.schedule || [])) : getActiveSchedule();
-                    var result = redistributeDayTimes(dateFull, querySpecCode, null, isDayAutoRedistributionEnabled(dateFull, querySpecCode));
-                    var entries = entriesPool.filter(function(scheduleEntry) { return scheduleEntry.date === dateFull && scheduleEntry.specCode === querySpecCode; });
+                    var entries = (isCloneTrack && sourceHosp) 
+                        ? getCloneScheduleList(sourceHosp, dateFull, querySpecCode)
+                        : (scheduleIndex.get(dateFull + '|' + querySpecCode) || []);
+
+                    var result = redistributeDayTimes(dateFull, querySpecCode, null, isDayAutoRedistributionEnabled(dateFull, querySpecCode), entries);
                     var numberOfSlots = entries.length;
                     var isSingleSlot = numberOfSlots === 1;
                     var hasGaps = result.hasGaps;
@@ -2550,9 +2614,10 @@
                 }
                 
                 track.innerHTML = html + '</div>';
-                board.appendChild(track);
+                fragment.appendChild(track);
             });
 
+            board.appendChild(fragment);
             updateIndicators();
         }
 
@@ -2961,7 +3026,6 @@
             
             requestAnimationFrame(function() {
                 generateBoard();
-                renderData();
                 
                 if (currentView === 'single') {
                     var container = document.getElementById('board-container');

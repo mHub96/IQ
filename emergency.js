@@ -89,6 +89,7 @@
         scheduleDoctorFilter: '',
         scheduleEmptyOnly: false,
         scheduleConflictOnly: false,
+        highlightedResident: '',
         dbSearchQuery: '',
         scheduleShiftFilter: 'all',
         scheduleDayFilter: 'all',
@@ -2727,68 +2728,174 @@
     // SEARCH & FILTER BAR FOR SCHEDULES (REAL-TIME NO-FOCUS-LOSS FILTERING)
     // =========================================================================
 
-    function renderScheduleFilterBar(type, shiftOptions) {
-        const eligibleDocs = (state.residents || [])
-            .filter(r => r.active && !isResidentExpired(r, state.year, state.month))
+    function getDoctorsCurrentlyInSchedule(type) {
+        const list = (state.schedules && state.schedules[type]) || [];
+        const counts = {};
+        const excludedKeys = new Set(['day', 'dayNumber', 'dayName', 'date', 'isWeekend']);
+        list.forEach(day => {
+            Object.entries(day).forEach(([key, val]) => {
+                if (excludedKeys.has(key)) return;
+                if (typeof val === 'string' && val.trim()) {
+                    const name = val.trim();
+                    counts[name] = (counts[name] || 0) + 1;
+                }
+            });
+        });
+        return Object.keys(counts)
+            .map(name => ({ name, count: counts[name] }))
             .sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+    }
+
+    function getDoctorScheduledCountInSchedule(type, docName) {
+        if (!docName) return 0;
+        const cleanTarget = normalizeArabic(docName).toLowerCase();
+        const list = (state.schedules && state.schedules[type]) || [];
+        let count = 0;
+        const excludedKeys = new Set(['day', 'dayNumber', 'dayName', 'date', 'isWeekend']);
+        list.forEach(day => {
+            Object.entries(day).forEach(([key, val]) => {
+                if (excludedKeys.has(key)) return;
+                if (typeof val === 'string' && val.trim()) {
+                    if (normalizeArabic(val).toLowerCase() === cleanTarget) {
+                        count++;
+                    }
+                }
+            });
+        });
+        return count;
+    }
+
+    function onHighlightResidentChange(val) {
+        state.highlightedResident = val || '';
+        updateScheduleCellHighlights();
+    }
+
+    function clearHighlightedResident() {
+        state.highlightedResident = '';
+        const select = document.getElementById('sched-highlight-resident');
+        if (select) select.value = '';
+        updateScheduleCellHighlights();
+    }
+
+    function updateScheduleCellHighlights() {
+        const cleanTarget = normalizeArabic(state.highlightedResident || '').toLowerCase();
+        const cells = document.querySelectorAll('#schedule-view-container td[data-slot]');
+        let count = 0;
+        cells.forEach(td => {
+            const docName = td.getAttribute('data-doc') || '';
+            const cleanDoc = normalizeArabic(docName).toLowerCase();
+            const isMatch = Boolean(cleanTarget && cleanDoc && cleanDoc === cleanTarget);
+            const cardDiv = td.querySelector('.sched-cell-card') || td.querySelector('div');
+            const docSpan = td.querySelector('.doc-name-span');
+
+            if (isMatch) {
+                count++;
+                if (cardDiv) {
+                    cardDiv.classList.add('sched-highlight-card', 'ring-2', 'ring-amber-500', 'bg-amber-100', 'dark:bg-amber-950/80', 'border-amber-400', 'dark:border-amber-500', 'shadow-md');
+                }
+                if (docSpan) {
+                    docSpan.classList.add('sched-highlight-name', 'bg-amber-300', 'dark:bg-amber-400', 'text-amber-950', 'dark:text-amber-950', 'font-black', 'px-1.5', 'py-0.5', 'rounded');
+                }
+            } else {
+                if (cardDiv) {
+                    cardDiv.classList.remove('sched-highlight-card', 'ring-2', 'ring-amber-500', 'bg-amber-100', 'dark:bg-amber-950/80', 'border-amber-400', 'dark:border-amber-500', 'shadow-md');
+                }
+                if (docSpan) {
+                    docSpan.classList.remove('sched-highlight-name', 'bg-amber-300', 'dark:bg-amber-400', 'text-amber-950', 'dark:text-amber-950', 'font-black', 'px-1.5', 'py-0.5', 'rounded');
+                }
+            }
+        });
+
+        const badge = document.getElementById('sched-highlight-count-badge');
+        if (badge) {
+            if (state.highlightedResident && count > 0) {
+                badge.innerHTML = `<i class="fas fa-eye text-amber-500 ml-1"></i><span>تم تظليل ${count} خفارة لـ ${escapeForInline(state.highlightedResident)} في هذا الجدول</span>`;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+    }
+
+    function renderScheduleFilterBar(type, shiftOptions) {
+        const scheduledDocs = getDoctorsCurrentlyInSchedule(type);
+        const highlightedCount = state.highlightedResident ? getDoctorScheduledCountInSchedule(type, state.highlightedResident) : 0;
 
         return `
-            <div class="p-3 mb-4 rounded-2xl bg-slate-100/70 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2 text-xs no-print">
-                <!-- Search input (Real-time live filtering without re-rendering) -->
-                <div class="relative flex-1 min-w-[220px]">
-                    <i class="fas fa-search absolute right-3 top-2.5 text-slate-400 text-xs"></i>
-                    <input type="text" id="sched-search-input" value="${escapeForInline(state.scheduleSearchQuery || '')}" 
-                        oninput="applyScheduleLiveFilter(this.value)" 
-                        placeholder="بحث باسم الطبيب في الجدول أو اليوم..." 
-                        class="w-full pr-8 pl-8 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20 font-bold">
-                    ${state.scheduleSearchQuery ? `
-                        <button type="button" onclick="clearScheduleSearch()" class="absolute left-2.5 top-2 text-slate-400 hover:text-rose-600 text-xs" title="مسح البحث">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    ` : ''}
+            <div class="p-3 mb-4 rounded-2xl bg-slate-100/70 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 flex flex-col gap-2.5 text-xs no-print">
+                <!-- Filters Row -->
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <!-- Search input (Real-time live filtering without re-rendering) -->
+                    <div class="relative flex-1 min-w-[220px]">
+                        <i class="fas fa-search absolute right-3 top-2.5 text-slate-400 text-xs"></i>
+                        <input type="text" id="sched-search-input" value="${escapeForInline(state.scheduleSearchQuery || '')}" 
+                            oninput="applyScheduleLiveFilter(this.value)" 
+                            placeholder="بحث باسم الطبيب في الجدول أو اليوم..." 
+                            class="w-full pr-8 pl-8 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20 font-bold">
+                        ${state.scheduleSearchQuery ? `
+                            <button type="button" onclick="clearScheduleSearch()" class="absolute left-2.5 top-2 text-slate-400 hover:text-rose-600 text-xs" title="مسح البحث">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <!-- Shift Filter -->
+                        ${shiftOptions ? `
+                        <select id="sched-shift-filter" onchange="onScheduleShiftFilter(this.value)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs">
+                            <option value="all" ${state.scheduleShiftFilter === 'all' ? 'selected' : ''}>كافة الوجبات</option>
+                            ${shiftOptions.map(s => `<option value="${s.key}" ${state.scheduleShiftFilter === s.key ? 'selected' : ''}>${s.label}</option>`).join('')}
+                        </select>
+                        ` : ''}
+
+                        <!-- Day Filter -->
+                        <select id="sched-day-filter" onchange="onScheduleDayFilter(this.value)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs">
+                            <option value="all" ${state.scheduleDayFilter === 'all' ? 'selected' : ''}>جميع الأيام</option>
+                            <option value="weekend" ${state.scheduleDayFilter === 'weekend' ? 'selected' : ''}>عطل نهاية الأسبوع (الجمعة/السبت)</option>
+                            <option value="weekday" ${state.scheduleDayFilter === 'weekday' ? 'selected' : ''}>أيام الدوام الرسمي (أحد - خميس)</option>
+                        </select>
+
+                        <!-- Empty Slots Only Toggle -->
+                        <label class="flex items-center gap-1.5 cursor-pointer text-slate-600 dark:text-slate-300 select-none text-xs font-bold px-1.5 py-1 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800/50">
+                            <input type="checkbox" id="sched-empty-filter" ${state.scheduleEmptyOnly ? 'checked' : ''} onchange="onScheduleEmptyToggle(this.checked)" class="rounded text-rose-600">
+                            <span>خانات شاغرة</span>
+                        </label>
+
+                        <!-- Conflict Slots Only Toggle -->
+                        <label class="flex items-center gap-1.5 cursor-pointer text-amber-700 dark:text-amber-400 select-none text-xs font-bold px-1.5 py-1 rounded-lg hover:bg-amber-100/50 dark:hover:bg-amber-950/30">
+                            <input type="checkbox" id="sched-conflict-filter" ${state.scheduleConflictOnly ? 'checked' : ''} onchange="onScheduleConflictToggle(this.checked)" class="rounded text-amber-600">
+                            <span>التعارضات ⚠️</span>
+                        </label>
+
+                        <!-- Live Counter Badge -->
+                        <span id="sched-filter-count-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300"></span>
+                    </div>
                 </div>
 
-                <div class="flex items-center gap-2 flex-wrap">
-                    <!-- Doctor Selector Dropdown -->
-                    <select id="sched-doctor-filter" onchange="onScheduleDoctorFilter(this.value)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs">
-                        <option value="">-- تصفية بحسب الطبيب --</option>
-                        ${eligibleDocs.map(d => `<option value="${escapeForInline(d.name)}" ${state.scheduleDoctorFilter === d.name ? 'selected' : ''}>${d.name} (${d.specialty || 'مقيم'})</option>`).join('')}
-                    </select>
-
-                    <!-- Shift Filter -->
-                    ${shiftOptions ? `
-                    <select id="sched-shift-filter" onchange="onScheduleShiftFilter(this.value)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs">
-                        <option value="all" ${state.scheduleShiftFilter === 'all' ? 'selected' : ''}>كافة الوجبات</option>
-                        ${shiftOptions.map(s => `<option value="${s.key}" ${state.scheduleShiftFilter === s.key ? 'selected' : ''}>${s.label}</option>`).join('')}
-                    </select>
+                <!-- Resident Highlighter Section (Below filters - ONLY highlights cells and resident name without filtering rows) -->
+                <div class="pt-2.5 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between flex-wrap gap-2 text-xs">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                            <i class="fas fa-highlighter text-amber-500"></i>
+                            <span>تحديد اسم المقيم (تظليل وتمييز الخفارات):</span>
+                        </span>
+                        <select id="sched-highlight-resident" onchange="onHighlightResidentChange(this.value)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-600/80 text-slate-800 dark:text-slate-100 font-bold text-xs focus:ring-2 focus:ring-amber-500/30">
+                            <option value="">-- اختر طبيباً لتمييز خفاراته في الجدول --</option>
+                            ${scheduledDocs.map(d => `<option value="${escapeForInline(d.name)}" ${state.highlightedResident === d.name ? 'selected' : ''}>${d.name} (${d.count} خفارة)</option>`).join('')}
+                        </select>
+                        ${state.highlightedResident ? `
+                            <button type="button" onclick="clearHighlightedResident()" class="px-2.5 py-1 rounded-lg text-xs font-bold text-amber-800 dark:text-amber-200 bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/70 dark:hover:bg-amber-900/80 transition flex items-center gap-1" title="إلغاء التمييز">
+                                <i class="fas fa-times text-[10px]"></i>
+                                <span>إلغاء التمييز</span>
+                            </button>
+                        ` : ''}
+                    </div>
+                    ${state.highlightedResident && highlightedCount > 0 ? `
+                        <span id="sched-highlight-count-badge" class="font-bold text-[11px] px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-800 flex items-center gap-1">
+                            <i class="fas fa-eye text-amber-500 ml-1"></i>
+                            <span>تم تظليل ${highlightedCount} خفارة لـ ${escapeForInline(state.highlightedResident)} في هذا الجدول</span>
+                        </span>
                     ` : ''}
-
-                    <!-- Day Filter -->
-                    <select id="sched-day-filter" onchange="onScheduleDayFilter(this.value)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs">
-                        <option value="all" ${state.scheduleDayFilter === 'all' ? 'selected' : ''}>جميع الأيام</option>
-                        <option value="weekend" ${state.scheduleDayFilter === 'weekend' ? 'selected' : ''}>عطل نهاية الأسبوع (الجمعة/السبت)</option>
-                        <option value="weekday" ${state.scheduleDayFilter === 'weekday' ? 'selected' : ''}>أيام الدوام الرسمي (أحد - خميس)</option>
-                    </select>
-
-                    <!-- Empty Slots Only Toggle -->
-                    <label class="flex items-center gap-1.5 cursor-pointer text-slate-600 dark:text-slate-300 select-none text-xs font-bold px-1.5 py-1 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800/50">
-                        <input type="checkbox" id="sched-empty-filter" ${state.scheduleEmptyOnly ? 'checked' : ''} onchange="onScheduleEmptyToggle(this.checked)" class="rounded text-rose-600">
-                        <span>خانات شاغرة</span>
-                    </label>
-
-                    <!-- Conflict Slots Only Toggle -->
-                    <label class="flex items-center gap-1.5 cursor-pointer text-amber-700 dark:text-amber-400 select-none text-xs font-bold px-1.5 py-1 rounded-lg hover:bg-amber-100/50 dark:hover:bg-amber-950/30">
-                        <input type="checkbox" id="sched-conflict-filter" ${state.scheduleConflictOnly ? 'checked' : ''} onchange="onScheduleConflictToggle(this.checked)" class="rounded text-amber-600">
-                        <span>التعارضات ⚠️</span>
-                    </label>
-
-                    <!-- Reset Filters Button -->
-                    <button type="button" onclick="resetScheduleFilters('${type}')" class="text-xs text-rose-600 hover:text-rose-800 font-bold px-2 py-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition">
-                        إعادة ضبط
-                    </button>
-
-                    <!-- Live Counter Badge -->
-                    <span id="sched-filter-count-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300"></span>
                 </div>
             </div>
         `;
@@ -3598,15 +3705,22 @@
 
         const cleanQ = normalizeArabic(state.scheduleSearchQuery || '').toLowerCase();
         const cleanDocFilter = normalizeArabic(state.scheduleDoctorFilter || '').toLowerCase();
+        const cleanHighlight = normalizeArabic(state.highlightedResident || '').toLowerCase();
         const cleanDocName = normalizeArabic(assignedDoctor).toLowerCase();
-        const isHighlight = (cleanQ && cleanDocName.includes(cleanQ)) || (cleanDocFilter && cleanDocName === cleanDocFilter);
-        const highlightClasses = isHighlight ? ' bg-amber-300 dark:bg-amber-500/40 text-amber-950 dark:text-amber-100 ring-2 ring-amber-500 shadow-xs px-1.5 py-0.5 rounded-md font-black' : '';
+        
+        const isHighlight = Boolean(cleanHighlight && cleanDocName === cleanHighlight);
+        const isSearchMatch = (cleanQ && cleanDocName.includes(cleanQ)) || (cleanDocFilter && cleanDocName === cleanDocFilter);
+        
+        const cardHighlightClass = isHighlight ? ' sched-highlight-card ring-2 ring-amber-500 bg-amber-100 dark:bg-amber-950/80 border-amber-400 dark:border-amber-500 shadow-md' : '';
+        const nameHighlightClass = isHighlight 
+            ? ' sched-highlight-name bg-amber-300 dark:bg-amber-400 text-amber-950 dark:text-amber-950 font-black px-1.5 py-0.5 rounded shadow-xs' 
+            : (isSearchMatch ? ' bg-amber-300 dark:bg-amber-500/40 text-amber-950 dark:text-amber-100 ring-2 ring-amber-500 shadow-xs px-1.5 py-0.5 rounded-md font-black' : '');
 
         return `
             <td class="py-2 px-3 border-l border-slate-200 dark:border-slate-800" data-slot="${slotKey}" data-doc="${escapeForInline(assignedDoctor)}" data-conflict="${conflictInfo.hasConflict ? 'true' : 'false'}" data-outside-pref="${hasPrefOverride ? 'true' : 'false'}">
-                <div class="flex items-center justify-between group py-1 px-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 hover:border-slate-400 transition">
+                <div class="sched-cell-card flex items-center justify-between group py-1 px-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 hover:border-slate-400 transition${cardHighlightClass}">
                     <div class="flex items-center truncate cursor-pointer flex-1" onclick="openDoctorPicker('${tableType}', ${dayNumber}, '${slotKey}', '${slotKey}')">
-                        <span class="doc-name-span font-bold text-slate-800 dark:text-slate-100 truncate${highlightClasses}">${assignedDoctor}</span>
+                        <span class="doc-name-span font-bold text-slate-800 dark:text-slate-100 truncate ${nameHighlightClass}">${assignedDoctor}</span>
                         ${badgeHTML}
                         ${overrideBadge}
                     </div>
@@ -8516,35 +8630,13 @@
             return (assignedDayNameCounts[clean] && assignedDayNameCounts[clean][dn]) || 0;
         }
 
-        function getMinPrefShiftCount(r) {
-            if (!Array.isArray(r.prefShifts) || r.prefShifts.length === 0) return 0;
-            return Math.min(...r.prefShifts.map(s => getShiftCount(r, s)));
-        }
-
-        function getMinPrefDayCount(r) {
-            if (!Array.isArray(r.prefDays) || r.prefDays.length === 0) return 0;
-            return Math.min(...r.prefDays.map(dn => getDayNameCount(r, dn)));
-        }
-
-        // Variety helpers: Ensure doctors with multiple preferences do not repeat
-        // the same shift or day while other preferred shifts or days have fewer assignments
-        function isShiftVarietySatisfied(r, shiftKey) {
-            if (!Array.isArray(r.prefShifts) || r.prefShifts.length <= 1) return true;
-            if (!r.prefShifts.includes(shiftKey)) return true;
-            return getShiftCount(r, shiftKey) <= getMinPrefShiftCount(r);
-        }
-
-        function isDayVarietySatisfied(r, dayName) {
-            if (!Array.isArray(r.prefDays) || r.prefDays.length <= 1) return true;
-            if (!r.prefDays.includes(dayName)) return true;
-            return getDayNameCount(r, dayName) <= getMinPrefDayCount(r);
-        }
-
         // Strict availability check:
         // Must NEVER exceed quota!
-        // Must NEVER duplicate doctor on same day!
-        // Must NOT conflict with other schedules!
-        // Must avoid consecutive days if preferred (r.noConsecutiveDays !== false)
+        // Rule 1: Females NEVER distributed to prenight or night shifts (8PM-2AM, 2AM-8AM) - strictly enforced!
+        // Rule 2: Excluded specific days and period intervals (strictly_within or exclude modes)
+        // Rule 3: Must NEVER duplicate doctor on same day!
+        // Rule 4: Must NOT conflict with other schedules!
+        // Rule 5: Must avoid consecutive days if preferred (r.noConsecutiveDays !== false)
         function isDoctorAvailable(r, dayNumber, shiftKey, allowConsecutive = false) {
             if (!r || !hasRemainingQuota(r)) return false;
 
@@ -8555,12 +8647,15 @@
             const dateStr = formatDateStr(state.year, state.month, dayNumber);
             if (isDateExcludedForResident(r, dayNumber, dateStr)) return false;
 
+            // Rule 3: Single duty per day
             const clean = normalizeArabic(r.name);
             if (assignedDays[dayNumber] && assignedDays[dayNumber].has(clean)) return false;
 
+            // Rule 4: Conflict check
             const conflict = evaluateCellConflict(r.name, dateStr, 'er', shiftKey);
             if (conflict && conflict.hasConflict) return false;
 
+            // Rule 5: Consecutive days avoidance
             if (!allowConsecutive && r.noConsecutiveDays !== false) {
                 if (hasDoctorDutyOnAdjacentDay(clean, dayNumber, daysCount)) return false;
             }
@@ -8594,421 +8689,327 @@
             }
         }
 
-        // -----------------------------------------------------------------
-        // PASS 0: SPECIFIC CALENDAR DAYS PREFERENCE MATCH (prefDaysMode === 'prefer')
-        // Doctors who specifically requested exact calendar days to have duties on!
-        // -----------------------------------------------------------------
-        const specificDayPrefDocs = activeDocs.filter(r => {
-            return hasRemainingQuota(r) &&
-                r.prefDaysMode === 'prefer' &&
-                Array.isArray(r.specificDays) && r.specificDays.length > 0;
-        });
+        // Helper: get candidate shifts respecting female exclusion and preferred shifts
+        function getAllowedShifts(r, respectPrefShifts = true) {
+            const isF = isFemaleResident(r);
+            const baseShifts = isF ? ['morning', 'afternoon'] : shifts;
+            if (respectPrefShifts && Array.isArray(r.prefShifts) && r.prefShifts.length > 0) {
+                const filtered = r.prefShifts.filter(s => baseShifts.includes(s));
+                if (filtered.length > 0) return filtered;
+            }
+            return baseShifts;
+        }
 
-        if (specificDayPrefDocs.length > 0) {
-            const docsOrder = shuffleArray(specificDayPrefDocs);
-            for (const r of docsOrder) {
+        // -----------------------------------------------------------------
+        // PHASE 1: EXACT CALENDAR DAYS PREFERENCE (prefDaysMode === 'prefer')
+        // Doctors who specifically requested exact calendar days
+        // -----------------------------------------------------------------
+        const specificDayDocs = activeDocs.filter(r => 
+            hasRemainingQuota(r) && r.prefDaysMode === 'prefer' && Array.isArray(r.specificDays) && r.specificDays.length > 0
+        );
+
+        let p1Progress = true;
+        let p1Guard = 0;
+        while (p1Progress && p1Guard < 500) {
+            p1Guard++;
+            p1Progress = false;
+
+            const candidates = specificDayDocs.filter(r => hasRemainingQuota(r));
+            if (candidates.length === 0) break;
+            candidates.sort((a, b) => getAssigned(a) - getAssigned(b));
+
+            for (const r of candidates) {
                 if (!hasRemainingQuota(r)) continue;
                 const targetDays = shuffleArray(r.specificDays.map(Number).filter(d => d >= 1 && d <= daysCount));
+                const candidateShifts = shuffleArray(getAllowedShifts(r, true));
 
+                let assignedOne = false;
                 for (const d of targetDays) {
-                    if (!hasRemainingQuota(r)) break;
                     const dayEntry = schedule.find(s => s.dayNumber === d);
                     if (!dayEntry) continue;
 
-                    // Shifts candidate for this doctor (respecting female rule)
-                    const allowedPrefShifts = isFemaleResident(r) 
-                        ? (Array.isArray(r.prefShifts) && r.prefShifts.length > 0 ? r.prefShifts.filter(s => !isNightShift(s)) : ['morning', 'afternoon'])
-                        : (Array.isArray(r.prefShifts) && r.prefShifts.length > 0 ? r.prefShifts : SHIFTS);
-
-                    // Try doctor's preferred shifts first
-                    let candidateShifts = allowedPrefShifts.filter(s => !dayEntry[s] && isDoctorAvailable(r, d, s, false));
-                    if (candidateShifts.length === 0) {
-                        // Fallback: any available shift on this day (respecting female rule)
-                        candidateShifts = SHIFTS.filter(s => {
-                            if (isFemaleResident(r) && isNightShift(s)) return false;
-                            return !dayEntry[s] && isDoctorAvailable(r, d, s, false);
-                        });
+                    for (const s of candidateShifts) {
+                        if (!dayEntry[s] && isDoctorAvailable(r, d, s, false)) {
+                            assignSlot(dayEntry, s, r, d);
+                            assignedOne = true;
+                            p1Progress = true;
+                            break;
+                        }
                     }
-
-                    if (candidateShifts.length > 0) {
-                        const chosenShift = shuffleArray(candidateShifts)[0];
-                        assignSlot(dayEntry, chosenShift, r, d);
-                        auditLog.push(`[Pass 0] Assigned ${r.name} to Day ${d} (${chosenShift}) via preferred calendar day`);
-                    }
+                    if (assignedOne) break;
                 }
+                if (assignedOne) break; // Break to re-sort candidates by lowest assigned count!
             }
         }
 
         // -----------------------------------------------------------------
-        // PASS 1: HIGHEST PRIORITY - Exact Preference Match (Both Day & Shift)
-        // Doctor-Centric Round-Robin: Guarantees maximum duty variety across
-        // preferred shifts and days (e.g. 1 afternoon, 1 preNight, 1 lateNight
-        // across Sunday, Tuesday, Thursday) with randomized date selection!
+        // PHASE 2: STRICTLY WITHIN INTERVALS (intervalMode === 'strictly_within')
+        // Must schedule these doctors within their limited window first!
         // -----------------------------------------------------------------
-        let pass1Progress = true;
-        let guard1 = 0;
-        while (pass1Progress && guard1 < 200) {
-            guard1++;
-            pass1Progress = false;
+        const intervalDocs = activeDocs.filter(r => 
+            hasRemainingQuota(r) && r.intervalMode === 'strictly_within' && Array.isArray(r.excludedIntervals) && r.excludedIntervals.length > 0
+        );
 
-            const candidateDocs = activeDocs.filter(r => {
-                return hasRemainingQuota(r) &&
-                    Array.isArray(r.prefDays) && r.prefDays.length > 0 &&
-                    Array.isArray(r.prefShifts) && r.prefShifts.length > 0;
-            });
+        let p2Progress = true;
+        let p2Guard = 0;
+        while (p2Progress && p2Guard < 500) {
+            p2Guard++;
+            p2Progress = false;
 
-            // Randomize doctor order each round for fair distribution across runs
-            const docsOrder = shuffleArray(candidateDocs);
+            const candidates = intervalDocs.filter(r => hasRemainingQuota(r));
+            if (candidates.length === 0) break;
+            candidates.sort((a, b) => getAssigned(a) - getAssigned(b));
 
-            for (const r of docsOrder) {
+            for (const r of candidates) {
                 if (!hasRemainingQuota(r)) continue;
+                const candidateShifts = shuffleArray(getAllowedShifts(r, true));
+                const daysOrder = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
 
-                const minShift = getMinPrefShiftCount(r);
-                const minDay = getMinPrefDayCount(r);
+                let assignedOne = false;
+                for (const d of daysOrder) {
+                    const dayEntry = schedule.find(s => s.dayNumber === d);
+                    if (!dayEntry) continue;
+                    if (Array.isArray(r.prefDays) && r.prefDays.length > 0 && !r.prefDays.includes(dayEntry.dayName)) continue;
 
-                // 1. Preferred shifts that currently have minimum assignments (strict variety!)
-                // Rule 1: Females never receive prenight or night shifts
-                const allowedPrefShifts = isFemaleResident(r) ? r.prefShifts.filter(s => !isNightShift(s)) : r.prefShifts;
-                let candidateShifts = allowedPrefShifts.filter(s => getShiftCount(r, s) === minShift);
-                if (candidateShifts.length === 0) candidateShifts = allowedPrefShifts.slice();
-                candidateShifts = shuffleArray(candidateShifts);
-
-                // 2. Preferred days that currently have minimum assignments (strict variety!)
-                let candidateDays = r.prefDays.filter(dn => getDayNameCount(r, dn) === minDay);
-                if (candidateDays.length === 0) candidateDays = r.prefDays.slice();
-                candidateDays = shuffleArray(candidateDays);
-
-                // Tier 1: Non-consecutive slots matching candidateShifts & candidateDays
-                let validSlots = [];
-                for (const shiftKey of candidateShifts) {
-                    for (let d = 1; d <= daysCount; d++) {
-                        const dayEntry = schedule.find(s => s.dayNumber === d);
-                        if (dayEntry && !dayEntry[shiftKey] && candidateDays.includes(dayEntry.dayName)) {
-                            if (isDoctorAvailable(r, d, shiftKey, false)) {
-                                validSlots.push({ d, dayEntry, shiftKey, consecutive: false });
-                            }
+                    for (const s of candidateShifts) {
+                        if (!dayEntry[s] && isDoctorAvailable(r, d, s, false)) {
+                            assignSlot(dayEntry, s, r, d);
+                            assignedOne = true;
+                            p2Progress = true;
+                            break;
                         }
                     }
+                    if (assignedOne) break;
                 }
-
-                // Tier 2: Non-consecutive slots matching candidateShifts on any preferred day (relaxed day variety)
-                if (validSlots.length === 0) {
-                    for (const shiftKey of candidateShifts) {
-                        for (let d = 1; d <= daysCount; d++) {
-                            const dayEntry = schedule.find(s => s.dayNumber === d);
-                            if (dayEntry && !dayEntry[shiftKey] && r.prefDays.includes(dayEntry.dayName)) {
-                                if (isDoctorAvailable(r, d, shiftKey, false)) {
-                                    validSlots.push({ d, dayEntry, shiftKey, consecutive: false });
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Tier 3: Consecutive fallback relaxation if required
-                if (validSlots.length === 0) {
-                    for (const shiftKey of candidateShifts) {
-                        for (let d = 1; d <= daysCount; d++) {
-                            const dayEntry = schedule.find(s => s.dayNumber === d);
-                            if (dayEntry && !dayEntry[shiftKey] && r.prefDays.includes(dayEntry.dayName)) {
-                                if (isDoctorAvailable(r, d, shiftKey, true)) {
-                                    validSlots.push({ d, dayEntry, shiftKey, consecutive: true });
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (validSlots.length > 0) {
-                    // Pick a random slot among the valid candidates for date distribution randomness!
-                    validSlots = shuffleArray(validSlots);
-                    const chosen = validSlots[0];
-                    assignSlot(chosen.dayEntry, chosen.shiftKey, r, chosen.d);
-                    pass1Progress = true;
-                }
+                if (assignedOne) break;
             }
         }
 
         // -----------------------------------------------------------------
-        // PASS 2: DAY PREFERENCE MATCH (Doctors with Day prefs, no shift prefs)
-        // Doctor requested this day; try candidate shifts in order of FEWEST ASSIGNED
-        // first to ensure maximum variety across all shifts, with randomized dates!
+        // PHASE 3: DUAL PREFERENCE (BOTH Day & Shift Preferences)
         // -----------------------------------------------------------------
-        let pass2Progress = true;
-        let guard2 = 0;
-        while (pass2Progress && guard2 < 200) {
-            guard2++;
-            pass2Progress = false;
+        const dualPrefDocs = activeDocs.filter(r => 
+            hasRemainingQuota(r) && Array.isArray(r.prefDays) && r.prefDays.length > 0 && Array.isArray(r.prefShifts) && r.prefShifts.length > 0
+        );
 
-            const dayPrefDocs = activeDocs.filter(r => {
-                return hasRemainingQuota(r) &&
-                    Array.isArray(r.prefDays) && r.prefDays.length > 0;
-            });
+        let p3Progress = true;
+        let p3Guard = 0;
+        while (p3Progress && p3Guard < 500) {
+            p3Guard++;
+            p3Progress = false;
 
-            const docsOrder = shuffleArray(dayPrefDocs);
+            const candidates = dualPrefDocs.filter(r => hasRemainingQuota(r));
+            if (candidates.length === 0) break;
+            candidates.sort((a, b) => getAssigned(a) - getAssigned(b));
 
-            for (const r of docsOrder) {
+            for (const r of candidates) {
                 if (!hasRemainingQuota(r)) continue;
+                const allowedPrefShifts = getAllowedShifts(r, true);
+                allowedPrefShifts.sort((s1, s2) => getShiftCount(r, s1) - getShiftCount(r, s2));
 
-                const minDay = getMinPrefDayCount(r);
-                let candidateDays = r.prefDays.filter(dn => getDayNameCount(r, dn) === minDay);
-                if (candidateDays.length === 0) candidateDays = r.prefDays.slice();
-                candidateDays = shuffleArray(candidateDays);
+                const daysOrder = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
+                let assignedOne = false;
 
-                // Determine candidate shifts based on variety & gender rules
-                let shiftCandidates = [];
-                if (Array.isArray(r.prefShifts) && r.prefShifts.length > 0) {
-                    const allowed = isFemaleResident(r) ? r.prefShifts.filter(s => !isNightShift(s)) : r.prefShifts;
-                    const minS = getMinPrefShiftCount(r);
-                    shiftCandidates = allowed.filter(s => getShiftCount(r, s) === minS);
-                    if (shiftCandidates.length === 0) shiftCandidates = allowed.slice();
-                } else if (isFemaleResident(r)) {
-                    shiftCandidates = ['morning', 'afternoon'];
-                } else {
-                    shiftCandidates = (getQuota(r) > 1) 
-                        ? ['preNight', 'morning', 'afternoon', 'lateNight']
-                        : ['lateNight', 'preNight', 'afternoon', 'morning'];
+                for (const s of allowedPrefShifts) {
+                    for (const d of daysOrder) {
+                        const dayEntry = schedule.find(entry => entry.dayNumber === d);
+                        if (dayEntry && !dayEntry[s] && r.prefDays.includes(dayEntry.dayName) && isDoctorAvailable(r, d, s, false)) {
+                            assignSlot(dayEntry, s, r, d);
+                            assignedOne = true;
+                            p3Progress = true;
+                            break;
+                        }
+                    }
+                    if (assignedOne) break;
                 }
+                if (assignedOne) break;
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // PHASE 4A: PREFERRED SHIFTS ONLY (any day of month)
+        // -----------------------------------------------------------------
+        const shiftPrefDocs = activeDocs.filter(r => 
+            hasRemainingQuota(r) && Array.isArray(r.prefShifts) && r.prefShifts.length > 0 && (!r.prefDays || r.prefDays.length === 0)
+        );
+
+        let p4aProgress = true;
+        let p4aGuard = 0;
+        while (p4aProgress && p4aGuard < 500) {
+            p4aGuard++;
+            p4aProgress = false;
+
+            const candidates = shiftPrefDocs.filter(r => hasRemainingQuota(r));
+            if (candidates.length === 0) break;
+            candidates.sort((a, b) => getAssigned(a) - getAssigned(b));
+
+            for (const r of candidates) {
+                if (!hasRemainingQuota(r)) continue;
+                const allowedPrefShifts = getAllowedShifts(r, true);
+                allowedPrefShifts.sort((s1, s2) => getShiftCount(r, s1) - getShiftCount(r, s2));
+
+                const daysOrder = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
+                let assignedOne = false;
+
+                for (const s of allowedPrefShifts) {
+                    for (const d of daysOrder) {
+                        const dayEntry = schedule.find(entry => entry.dayNumber === d);
+                        if (dayEntry && !dayEntry[s] && isDoctorAvailable(r, d, s, false)) {
+                            assignSlot(dayEntry, s, r, d);
+                            assignedOne = true;
+                            p4aProgress = true;
+                            break;
+                        }
+                    }
+                    if (assignedOne) break;
+                }
+                if (assignedOne) break;
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // PHASE 4B: PREFERRED DAYS ONLY (any allowed shift)
+        // -----------------------------------------------------------------
+        const dayPrefDocs = activeDocs.filter(r => 
+            hasRemainingQuota(r) && Array.isArray(r.prefDays) && r.prefDays.length > 0 && (!r.prefShifts || r.prefShifts.length === 0)
+        );
+
+        let p4bProgress = true;
+        let p4bGuard = 0;
+        while (p4bProgress && p4bGuard < 500) {
+            p4bGuard++;
+            p4bProgress = false;
+
+            const candidates = dayPrefDocs.filter(r => hasRemainingQuota(r));
+            if (candidates.length === 0) break;
+            candidates.sort((a, b) => getAssigned(a) - getAssigned(b));
+
+            for (const r of candidates) {
+                if (!hasRemainingQuota(r)) continue;
+                const isF = isFemaleResident(r);
+                let shiftCandidates = isF 
+                    ? ['morning', 'afternoon']
+                    : ['preNight', 'lateNight', 'morning', 'afternoon'];
                 shiftCandidates.sort((s1, s2) => getShiftCount(r, s1) - getShiftCount(r, s2));
 
-                let validSlots = [];
-                // First try non-consecutive
-                for (const shiftKey of shiftCandidates) {
-                    for (let d = 1; d <= daysCount; d++) {
-                        const dayEntry = schedule.find(s => s.dayNumber === d);
-                        if (dayEntry && !dayEntry[shiftKey] && candidateDays.includes(dayEntry.dayName)) {
-                            if (isDoctorAvailable(r, d, shiftKey, false)) {
-                                validSlots.push({ d, dayEntry, shiftKey, consecutive: false });
+                const daysOrder = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
+                let assignedOne = false;
+
+                for (const d of daysOrder) {
+                    const dayEntry = schedule.find(entry => entry.dayNumber === d);
+                    if (dayEntry && r.prefDays.includes(dayEntry.dayName)) {
+                        for (const s of shiftCandidates) {
+                            if (!dayEntry[s] && isDoctorAvailable(r, d, s, false)) {
+                                assignSlot(dayEntry, s, r, d);
+                                assignedOne = true;
+                                p4bProgress = true;
+                                break;
                             }
                         }
                     }
-                    if (validSlots.length > 0) break;
+                    if (assignedOne) break;
                 }
-
-                // Fallback consecutive relaxation
-                if (validSlots.length === 0) {
-                    for (const shiftKey of shiftCandidates) {
-                        for (let d = 1; d <= daysCount; d++) {
-                            const dayEntry = schedule.find(s => s.dayNumber === d);
-                            if (dayEntry && !dayEntry[shiftKey] && candidateDays.includes(dayEntry.dayName)) {
-                                if (isDoctorAvailable(r, d, shiftKey, true)) {
-                                    validSlots.push({ d, dayEntry, shiftKey, consecutive: true });
-                                }
-                            }
-                        }
-                        if (validSlots.length > 0) break;
-                    }
-                }
-
-                if (validSlots.length > 0) {
-                    validSlots = shuffleArray(validSlots);
-                    const chosen = validSlots[0];
-                    assignSlot(chosen.dayEntry, chosen.shiftKey, r, chosen.d);
-                    pass2Progress = true;
-                }
+                if (assignedOne) break;
             }
         }
 
         // -----------------------------------------------------------------
-        // PASS 3: SHIFT PREFERENCE MATCH (Doctor preferred specific shifts)
-        // Rotates shifts in round-robin fashion so doctors with multiple
-        // preferences receive varied duties with least possible similarities!
-        // (e.g. 1 morning, 1 afternoon, 1 prenight for a doctor with 3 duties)
+        // PHASE 5: PROPORTIONAL FAIR ROUND-ROBIN FOR ALL REMAINING QUOTAS
+        // Guarantees NO RESIDENT IS LEFT WITH 0 DUTIES!
+        // Females strictly daytime (morning/afternoon).
+        // Males steered to nights first to preserve daytime for females.
+        // Lowest assigned count ALWAYS scheduled first!
         // -----------------------------------------------------------------
-        let pass3Progress = true;
-        let guard3 = 0;
-        while (pass3Progress && guard3 < 200) {
-            guard3++;
-            pass3Progress = false;
+        let p5Progress = true;
+        let p5Guard = 0;
+        while (p5Progress && p5Guard < 1500) {
+            p5Guard++;
+            p5Progress = false;
 
-            const shiftPrefDocs = activeDocs.filter(r => {
-                return hasRemainingQuota(r) &&
-                    Array.isArray(r.prefShifts) && r.prefShifts.length > 0;
+            const needyDocs = activeDocs.filter(r => hasRemainingQuota(r));
+            if (needyDocs.length === 0) break;
+
+            // Sort by lowest assigned count!
+            needyDocs.sort((a, b) => {
+                const diff = getAssigned(a) - getAssigned(b);
+                if (diff !== 0) return diff;
+                // Females prioritized for morning/afternoon since they have fewer choices (2 vs 4)
+                if (isFemaleResident(a) && !isFemaleResident(b)) return -1;
+                if (!isFemaleResident(a) && isFemaleResident(b)) return 1;
+                return Math.random() - 0.5;
             });
 
-            const docsOrder = shuffleArray(shiftPrefDocs);
-
-            for (const r of docsOrder) {
+            for (const r of needyDocs) {
                 if (!hasRemainingQuota(r)) continue;
 
-                const minShift = getMinPrefShiftCount(r);
-                const allowedShifts = isFemaleResident(r) ? r.prefShifts.filter(s => !isNightShift(s)) : r.prefShifts;
-                let eligibleShifts = allowedShifts.filter(s => getShiftCount(r, s) === minShift);
-                if (eligibleShifts.length === 0) eligibleShifts = allowedShifts.slice();
-                eligibleShifts = shuffleArray(eligibleShifts);
+                const isF = isFemaleResident(r);
+                let candidateShifts = getAllowedShifts(r, true);
 
-                let validSlots = [];
-                for (const shiftKey of eligibleShifts) {
-                    for (let d = 1; d <= daysCount; d++) {
-                        const dayEntry = schedule.find(s => s.dayNumber === d);
-                        if (dayEntry && !dayEntry[shiftKey] && isDoctorAvailable(r, d, shiftKey, false)) {
-                            validSlots.push({ d, dayEntry, shiftKey, consecutive: false });
+                // If male without shift prefs, prioritize night shifts to preserve day slots for females
+                if (!isF && (!r.prefShifts || r.prefShifts.length === 0)) {
+                    candidateShifts = ['preNight', 'lateNight', 'morning', 'afternoon'];
+                }
+                candidateShifts.sort((s1, s2) => getShiftCount(r, s1) - getShiftCount(r, s2));
+
+                const daysOrder = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
+                let assignedOne = false;
+
+                for (const s of candidateShifts) {
+                    for (const d of daysOrder) {
+                        const dayEntry = schedule.find(entry => entry.dayNumber === d);
+                        if (dayEntry && !dayEntry[s] && isDoctorAvailable(r, d, s, false)) {
+                            assignSlot(dayEntry, s, r, d);
+                            assignedOne = true;
+                            p5Progress = true;
+                            break;
                         }
                     }
-                    if (validSlots.length > 0) break;
+                    if (assignedOne) break;
                 }
 
-                if (validSlots.length === 0) {
-                    for (const shiftKey of eligibleShifts) {
-                        for (let d = 1; d <= daysCount; d++) {
-                            const dayEntry = schedule.find(s => s.dayNumber === d);
-                            if (dayEntry && !dayEntry[shiftKey] && isDoctorAvailable(r, d, shiftKey, true)) {
-                                validSlots.push({ d, dayEntry, shiftKey, consecutive: true });
-                            }
-                        }
-                        if (validSlots.length > 0) break;
-                    }
-                }
-
-                if (validSlots.length > 0) {
-                    // Sort valid slots to prioritize days of week doctor has worked fewest times,
-                    // with a random tie-breaker for date variety across runs
-                    validSlots.sort((a, b) => {
-                        const dayCountDiff = getDayNameCount(r, a.dayEntry.dayName) - getDayNameCount(r, b.dayEntry.dayName);
-                        if (dayCountDiff !== 0) return dayCountDiff;
-                        return Math.random() - 0.5;
-                    });
-                    const chosen = validSlots[0];
-                    assignSlot(chosen.dayEntry, chosen.shiftKey, r, chosen.d);
-                    pass3Progress = true;
-                }
+                if (assignedOne) break; // Break to re-sort needyDocs by lowest assigned count!
             }
         }
 
         // -----------------------------------------------------------------
-        // PASS 4: GENERAL DISTRIBUTION FOR REMAINING SLOTS
-        // Respecting medical rules + variety:
-        // - Morning (8AM-2PM): Females first, then males
-        // - Afternoon (2PM-8PM): Females first, then males
-        // - Pre-Night (8PM-2AM): Males only (Rule 1: Females NEVER distributed to prenight/night)
-        // - Late-Night (2AM-8AM): Males only (Rule 1: Females NEVER distributed to prenight/night)
-        // Priority within each tier given to doctors with FEWEST OF THIS SHIFT!
-        // Shuffled dates across the month ensure natural, non-linear distribution!
-        // STRICT QUOTA LIMIT: IF NO CANDIDATE HAS QUOTA, LEAVE CELL EMPTY!
+        // PHASE 6: CONSECUTIVE RELAXATION FALLBACK (ONLY IF STRICTLY NEEDED)
+        // Absolute rules (Female night ban, date exclusions) STILL 100% ENFORCED.
         // -----------------------------------------------------------------
-        const shuffledDaysForGen = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
+        let p6Progress = true;
+        let p6Guard = 0;
+        while (p6Progress && p6Guard < 500) {
+            p6Guard++;
+            p6Progress = false;
 
-        // 4A. Morning
-        for (const d of shuffledDaysForGen) {
-            const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (dayEntry && !dayEntry.morning) {
-                let candidates = activeDocs.filter(r => r.sex === 'F' && isDoctorAvailable(r, d, 'morning', false));
-                if (candidates.length === 0) {
-                    candidates = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'morning', false));
+            const needyDocs = activeDocs.filter(r => hasRemainingQuota(r));
+            if (needyDocs.length === 0) break;
+            needyDocs.sort((a, b) => getAssigned(a) - getAssigned(b));
+
+            for (const r of needyDocs) {
+                if (!hasRemainingQuota(r)) continue;
+                const isF = isFemaleResident(r);
+                let candidateShifts = getAllowedShifts(r, true);
+                if (!isF && (!r.prefShifts || r.prefShifts.length === 0)) {
+                    candidateShifts = ['preNight', 'lateNight', 'morning', 'afternoon'];
                 }
-                // Fallback relaxation if no non-consecutive candidate has quota
-                if (candidates.length === 0) {
-                    candidates = activeDocs.filter(r => r.sex === 'F' && isDoctorAvailable(r, d, 'morning', true));
-                    if (candidates.length === 0) {
-                        candidates = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'morning', true));
+                candidateShifts.sort((s1, s2) => getShiftCount(r, s1) - getShiftCount(r, s2));
+
+                const daysOrder = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
+                let assignedOne = false;
+
+                for (const s of candidateShifts) {
+                    for (const d of daysOrder) {
+                        const dayEntry = schedule.find(entry => entry.dayNumber === d);
+                        if (dayEntry && !dayEntry[s] && isDoctorAvailable(r, d, s, true)) {
+                            assignSlot(dayEntry, s, r, d);
+                            assignedOne = true;
+                            p6Progress = true;
+                            break;
+                        }
                     }
+                    if (assignedOne) break;
                 }
-
-                if (candidates.length > 0) {
-                    candidates.sort((a, b) => {
-                        const sDiff = getShiftCount(a, 'morning') - getShiftCount(b, 'morning');
-                        if (sDiff !== 0) return sDiff;
-                        const dDiff = getDayNameCount(a, dayEntry.dayName) - getDayNameCount(b, dayEntry.dayName);
-                        if (dDiff !== 0) return dDiff;
-                        const assignedDiff = getAssigned(a) - getAssigned(b);
-                        if (assignedDiff !== 0) return assignedDiff;
-                        return Math.random() - 0.5;
-                    });
-                    assignSlot(dayEntry, 'morning', candidates[0], d);
-                }
-            }
-        }
-
-        // 4B. Afternoon
-        for (const d of shuffledDaysForGen) {
-            const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (dayEntry && !dayEntry.afternoon) {
-                let candidates = activeDocs.filter(r => r.sex === 'F' && isDoctorAvailable(r, d, 'afternoon', false));
-                if (candidates.length === 0) {
-                    candidates = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'afternoon', false));
-                }
-                // Fallback relaxation
-                if (candidates.length === 0) {
-                    candidates = activeDocs.filter(r => r.sex === 'F' && isDoctorAvailable(r, d, 'afternoon', true));
-                    if (candidates.length === 0) {
-                        candidates = activeDocs.filter(r => r.sex === 'M' && isDoctorAvailable(r, d, 'afternoon', true));
-                    }
-                }
-
-                if (candidates.length > 0) {
-                    candidates.sort((a, b) => {
-                        const sDiff = getShiftCount(a, 'afternoon') - getShiftCount(b, 'afternoon');
-                        if (sDiff !== 0) return sDiff;
-                        const dDiff = getDayNameCount(a, dayEntry.dayName) - getDayNameCount(b, dayEntry.dayName);
-                        if (dDiff !== 0) return dDiff;
-                        const assignedDiff = getAssigned(a) - getAssigned(b);
-                        if (assignedDiff !== 0) return assignedDiff;
-                        return Math.random() - 0.5;
-                    });
-                    assignSlot(dayEntry, 'afternoon', candidates[0], d);
-                }
-            }
-        }
-
-        // 4C. Pre-Night (8PM - 2AM) - Males ONLY (Rule 1: Females NEVER distributed to prenight/night)
-        for (const d of shuffledDaysForGen) {
-            const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (dayEntry && !dayEntry.preNight) {
-                let candidates = activeDocs.filter(r => !isFemaleResident(r) && getQuota(r) > 1 && isDoctorAvailable(r, d, 'preNight', false));
-                if (candidates.length === 0) {
-                    candidates = activeDocs.filter(r => !isFemaleResident(r) && isDoctorAvailable(r, d, 'preNight', false));
-                }
-                // Fallback relaxation
-                if (candidates.length === 0) {
-                    candidates = activeDocs.filter(r => !isFemaleResident(r) && getQuota(r) > 1 && isDoctorAvailable(r, d, 'preNight', true));
-                    if (candidates.length === 0) {
-                        candidates = activeDocs.filter(r => !isFemaleResident(r) && isDoctorAvailable(r, d, 'preNight', true));
-                    }
-                }
-
-                if (candidates.length > 0) {
-                    candidates.sort((a, b) => {
-                        const sDiff = getShiftCount(a, 'preNight') - getShiftCount(b, 'preNight');
-                        if (sDiff !== 0) return sDiff;
-                        const dDiff = getDayNameCount(a, dayEntry.dayName) - getDayNameCount(b, dayEntry.dayName);
-                        if (dDiff !== 0) return dDiff;
-                        const assignedDiff = getAssigned(a) - getAssigned(b);
-                        if (assignedDiff !== 0) return assignedDiff;
-                        return Math.random() - 0.5;
-                    });
-                    assignSlot(dayEntry, 'preNight', candidates[0], d);
-                }
-            }
-        }
-
-        // 4D. Late-Night (2AM - 8AM) - Males ONLY (Rule 1: Females NEVER distributed to prenight/night)
-        for (const d of shuffledDaysForGen) {
-            const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (dayEntry && !dayEntry.lateNight) {
-                let candidates = activeDocs.filter(r => !isFemaleResident(r) && getQuota(r) === 1 && isDoctorAvailable(r, d, 'lateNight', false));
-                if (candidates.length === 0) {
-                    candidates = activeDocs.filter(r => !isFemaleResident(r) && isDoctorAvailable(r, d, 'lateNight', false));
-                }
-                // Fallback relaxation
-                if (candidates.length === 0) {
-                    candidates = activeDocs.filter(r => !isFemaleResident(r) && getQuota(r) === 1 && isDoctorAvailable(r, d, 'lateNight', true));
-                    if (candidates.length === 0) {
-                        candidates = activeDocs.filter(r => !isFemaleResident(r) && isDoctorAvailable(r, d, 'lateNight', true));
-                    }
-                }
-
-                if (candidates.length > 0) {
-                    candidates.sort((a, b) => {
-                        const sDiff = getShiftCount(a, 'lateNight') - getShiftCount(b, 'lateNight');
-                        if (sDiff !== 0) return sDiff;
-                        const dDiff = getDayNameCount(a, dayEntry.dayName) - getDayNameCount(b, dayEntry.dayName);
-                        if (dDiff !== 0) return dDiff;
-                        const assignedDiff = getAssigned(a) - getAssigned(b);
-                        if (assignedDiff !== 0) return assignedDiff;
-                        return Math.random() - 0.5;
-                    });
-                    assignSlot(dayEntry, 'lateNight', candidates[0], d);
-                }
+                if (assignedOne) break;
             }
         }
     }
@@ -10536,6 +10537,8 @@
     window.onScheduleConflictToggle = onScheduleConflictToggle;
     window.quickFilterByShift = quickFilterByShift;
     window.clearScheduleSearch = clearScheduleSearch;
+    window.onHighlightResidentChange = onHighlightResidentChange;
+    window.clearHighlightedResident = clearHighlightedResident;
     window.applyDBLiveFilter = applyDBLiveFilter;
     window.clearDBSearch = clearDBSearch;
     window.resetDBFilters = resetDBFilters;

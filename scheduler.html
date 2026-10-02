@@ -532,8 +532,6 @@
         }
 
         .day-box {
-            content-visibility: auto;
-            contain-intrinsic-size: 1px 75px;
             background: var(--day-box-bg);
             margin-bottom: 0.35rem;
             border-radius: 1rem;
@@ -543,9 +541,26 @@
         }
 
         .day-box:focus-within {
+            position: relative;
+            z-index: 50;
             border-color: var(--specialty-color);
             background: var(--card-hover-background-color);
             box-shadow: 0 0 0 1px var(--specialty-color);
+        }
+
+        .day-box.menu-open {
+            position: relative !important;
+            z-index: 1000 !important;
+        }
+
+        .duty-slot.menu-open {
+            position: relative !important;
+            z-index: 1000 !important;
+        }
+
+        .duty-slot .input-wrapper.menu-open {
+            position: relative !important;
+            z-index: 1000 !important;
         }
 
         .day-box.weekend {
@@ -790,7 +805,7 @@
             background: var(--custom-menu-bg);
             border: 1.5px solid var(--specialty-color, #2563eb);
             border-radius: 0.8rem;
-            z-index: 1000;
+            z-index: 9999;
             display: none;
             box-shadow: var(--popup-shadow);
             backdrop-filter: blur(8px);
@@ -1676,6 +1691,7 @@
 
         function closeAllMenus() {
             document.querySelectorAll('.custom-menu').forEach(function(element) { element.style.display = 'none'; });
+            document.querySelectorAll('.menu-open').forEach(function(element) { element.classList.remove('menu-open'); });
         }
 
         function closeTimePicker() {
@@ -3195,6 +3211,7 @@
         function toggleMenu(event, uniqueId, specialtyId) {
             event.stopPropagation();
             var menu = document.getElementById('menu-' + uniqueId);
+            if (!menu) return;
             var isOpen = menu.style.display === "block";
             closeAllMenus();
             if (!isOpen) {
@@ -3208,6 +3225,14 @@
                         return '<div onmousedown="selectName(\'' + uniqueId + '\', \'' + name + '\')">' + name + '</div>';
                     }).join('');
                 }
+
+                var inputWrapper = menu.closest('.input-wrapper');
+                if (inputWrapper) inputWrapper.classList.add('menu-open');
+                var dutySlot = menu.closest('.duty-slot');
+                if (dutySlot) dutySlot.classList.add('menu-open');
+                var dayBox = menu.closest('.day-box');
+                if (dayBox) dayBox.classList.add('menu-open');
+
                 menu.style.display = "block";
             }
         }

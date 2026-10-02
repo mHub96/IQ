@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-02T09:52:34.968Z",
+  "lastUpdated": "2026-10-02T10:37:25.490Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -388,16 +388,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "REFE",
-          "name_ar": "الاحالات",
-          "name_en": "Referrals",
-          "icon": "🚑",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true,
-          "color": "#0f766e"
         }
       ],
       "names": [
@@ -20542,7 +20532,7 @@
           "date": "02/10/2026",
           "specCode": "CT",
           "name": "د. حسين يحيى صبار",
-          "VisitCount": 2,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -36445,7 +36435,7 @@
           "date": "02/10/2026",
           "specCode": "REF",
           "name": "د. امنه قحطان صالح",
-          "VisitCount": 2,
+          "VisitCount": 0,
           "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0
         },
@@ -37231,7 +37221,7 @@
           "date": "02/10/2026",
           "specCode": "OP",
           "name": "د. صافي إبراهيم",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -38746,16 +38736,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "REFE",
-          "name_ar": "الاحالات",
-          "name_en": "Referrals",
-          "icon": "🚑",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true,
-          "color": "#0f766e"
         }
       ],
       "names": [
@@ -51222,16 +51202,6 @@
       "name_ar": "طب الامراض التنفسية",
       "name_en": "Respiratory Medicine",
       "icon": "🫁",
-      "color": "#0f766e",
-      "parentSpec": null,
-      "acceptPool": [],
-      "enabled": true
-    },
-    {
-      "id": "REFE",
-      "name_ar": "الاحالات",
-      "name_en": "Referrals",
-      "icon": "🚑",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],

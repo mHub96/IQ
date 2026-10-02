@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-02T01:05:09.464Z",
+  "lastUpdated": "2026-10-02T05:16:44.310Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -35194,10 +35194,11 @@
         {
           "date": "02/10/2026",
           "specCode": "GS",
-          "name": "د. علي قاسم عبدالله",
+          "name": "د. علي حسين عبدالرضا",
           "VisitCount": 0,
           "dutyTime": "",
-          "dutySlot": 0
+          "dutySlot": 0,
+          "timestamp": "08:16"
         },
         {
           "date": "03/10/2026",

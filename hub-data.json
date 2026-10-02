@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-02T06:40:50.274Z",
+  "lastUpdated": "2026-10-02T06:52:47.611Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20542,7 +20542,7 @@
           "date": "02/10/2026",
           "specCode": "CT",
           "name": "د. حسين يحيى صبار",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },

@@ -90,6 +90,7 @@
         scheduleEmptyOnly: false,
         scheduleConflictOnly: false,
         highlightedResident: '',
+        highlightSex: '',
         dbSearchQuery: '',
         scheduleShiftFilter: 'all',
         scheduleDayFilter: 'all',
@@ -176,6 +177,13 @@
         return r.sex === 'F' || r.gender === 'female' || r.sex === 'أنثى' || r.gender === 'أنثى';
     }
 
+    // Helper: Find resident by name in state.residents
+    function getResidentByName(name) {
+        if (!name) return null;
+        const clean = normalizeArabic(name).toLowerCase();
+        return (state.residents || []).find(r => normalizeArabic(r.name).toLowerCase() === clean) || null;
+    }
+
     // Helper: Determine if a shift key represents prenight (8PM-2AM) or night (2AM-8AM)
     function isNightShift(shiftKey) {
         if (!shiftKey) return false;
@@ -201,17 +209,26 @@
         return isNaN(d.getTime()) ? null : d.getTime();
     }
 
+    // Robust ISO Date string comparison for calendar intervals
+    function isDateInInterval(targetDateStr, startStr, endStr) {
+        let s = (startStr || '').trim();
+        let e = (endStr || '').trim();
+        if (!s && !e) return false;
+        if (!s) s = e;
+        if (!e) e = s;
+        if (s > e) { const tmp = s; s = e; e = tmp; }
+        return targetDateStr >= s && targetDateStr <= e;
+    }
+
     function isTimestampInInterval(targetTs, startStr, endStr) {
-        const sTs = parseDateToTimestamp(startStr);
-        const eTs = parseDateToTimestamp(endStr);
-        if (sTs !== null && eTs !== null) {
-            const min = Math.min(sTs, eTs);
-            const max = Math.max(sTs, eTs);
-            return targetTs >= min && targetTs <= max;
-        }
-        if (sTs !== null) return targetTs >= sTs;
-        if (eTs !== null) return targetTs <= eTs;
-        return false;
+        let sTs = parseDateToTimestamp(startStr);
+        let eTs = parseDateToTimestamp(endStr);
+        if (sTs === null && eTs === null) return false;
+        if (sTs === null) sTs = eTs;
+        if (eTs === null) eTs = sTs;
+        const min = Math.min(sTs, eTs);
+        const max = Math.max(sTs, eTs);
+        return targetTs >= min && targetTs <= max;
     }
 
     // Helper: Check if specific date or interval is excluded for a resident (Rule 2)
@@ -273,15 +290,35 @@
         if (Array.isArray(r.excludedIntervals) && r.excludedIntervals.length > 0) {
             const validIntervals = r.excludedIntervals.filter(i => i && ((i.start && i.start.trim()) || (i.end && i.end.trim())));
             if (validIntervals.length > 0) {
-                const intervalMode = r.intervalMode || 'exclude';
-                const inAnyInterval = validIntervals.some(i => isTimestampInInterval(targetTs, i.start, i.end));
+                const daysInCurMonth = getDaysInMonth(curYear, curMonth);
+                const monthStartStr = formatDateStr(curYear, curMonth, 1);
+                const monthEndStr = formatDateStr(curYear, curMonth, daysInCurMonth);
 
-                if (intervalMode === 'strictly_within') {
-                    // Strictly within: any date OUTSIDE all specified intervals is EXCLUDED!
-                    if (!inAnyInterval) return true;
-                } else {
-                    // Exclude mode: any date INSIDE any specified interval is EXCLUDED!
-                    if (inAnyInterval) return true;
+                // Filter to intervals that overlap with the current month being scheduled
+                const overlappingIntervals = validIntervals.filter(i => {
+                    let s = (i.start || i.end || '').trim();
+                    let e = (i.end || i.start || '').trim();
+                    if (!s && !e) return false;
+                    if (!s) s = e;
+                    if (!e) e = s;
+                    if (s > e) { const tmp = s; s = e; e = tmp; }
+                    return s <= monthEndStr && e >= monthStartStr;
+                });
+
+                // Only enforce interval restrictions if there are intervals overlapping this month
+                if (overlappingIntervals.length > 0) {
+                    const intervalMode = r.intervalMode || 'exclude';
+                    const inAnyInterval = overlappingIntervals.some(i => 
+                        isDateInInterval(curDateStr, i.start, i.end) || isTimestampInInterval(targetTs, i.start, i.end)
+                    );
+
+                    if (intervalMode === 'strictly_within') {
+                        // Strictly within: any date OUTSIDE all overlapping intervals is EXCLUDED!
+                        if (!inAnyInterval) return true;
+                    } else {
+                        // Exclude mode: any date INSIDE any overlapping interval is EXCLUDED!
+                        if (inAnyInterval) return true;
+                    }
                 }
             }
         }
@@ -2777,43 +2814,102 @@
         updateScheduleCellHighlights();
     }
 
+    function setHighlightSex(sex) {
+        state.highlightSex = (sex === 'female' || sex === 'male') ? sex : '';
+        const container = document.getElementById('sched-sex-highlight-btns');
+        if (container) {
+            const btns = container.querySelectorAll('button');
+            btns.forEach(b => {
+                const bSex = b.getAttribute('data-sex') || '';
+                if (bSex === state.highlightSex) {
+                    if (bSex === 'female') {
+                        b.className = 'px-2.5 py-1 rounded-lg transition flex items-center gap-1 bg-pink-600 text-white shadow-2xs font-black';
+                    } else if (bSex === 'male') {
+                        b.className = 'px-2.5 py-1 rounded-lg transition flex items-center gap-1 bg-sky-600 text-white shadow-2xs font-black';
+                    } else {
+                        b.className = 'px-2.5 py-1 rounded-lg transition bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-2xs font-black';
+                    }
+                } else {
+                    if (bSex === 'female') {
+                        b.className = 'px-2.5 py-1 rounded-lg transition flex items-center gap-1 text-pink-600 dark:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-950/40 font-bold';
+                    } else if (bSex === 'male') {
+                        b.className = 'px-2.5 py-1 rounded-lg transition flex items-center gap-1 text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 font-bold';
+                    } else {
+                        b.className = 'px-2.5 py-1 rounded-lg transition text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold';
+                    }
+                }
+            });
+        }
+        updateScheduleCellHighlights();
+    }
+
     function updateScheduleCellHighlights() {
         const cleanTarget = normalizeArabic(state.highlightedResident || '').toLowerCase();
         const cells = document.querySelectorAll('#schedule-view-container td[data-slot]');
-        let count = 0;
+        let resCount = 0;
+        let sexCount = 0;
+
         cells.forEach(td => {
             const docName = td.getAttribute('data-doc') || '';
-            const cleanDoc = normalizeArabic(docName).toLowerCase();
-            const isMatch = Boolean(cleanTarget && cleanDoc && cleanDoc === cleanTarget);
             const cardDiv = td.querySelector('.sched-cell-card') || td.querySelector('div');
             const docSpan = td.querySelector('.doc-name-span');
+            if (!cardDiv) return;
 
-            if (isMatch) {
-                count++;
-                if (cardDiv) {
-                    cardDiv.classList.add('sched-highlight-card', 'ring-2', 'ring-amber-500', 'bg-amber-100', 'dark:bg-amber-950/80', 'border-amber-400', 'dark:border-amber-500', 'shadow-md');
-                }
-                if (docSpan) {
-                    docSpan.classList.add('sched-highlight-name', 'bg-amber-300', 'dark:bg-amber-400', 'text-amber-950', 'dark:text-amber-950', 'font-black', 'px-1.5', 'py-0.5', 'rounded');
-                }
-            } else {
-                if (cardDiv) {
-                    cardDiv.classList.remove('sched-highlight-card', 'ring-2', 'ring-amber-500', 'bg-amber-100', 'dark:bg-amber-950/80', 'border-amber-400', 'dark:border-amber-500', 'shadow-md');
-                }
-                if (docSpan) {
-                    docSpan.classList.remove('sched-highlight-name', 'bg-amber-300', 'dark:bg-amber-400', 'text-amber-950', 'dark:text-amber-950', 'font-black', 'px-1.5', 'py-0.5', 'rounded');
+            // Remove previous slab and legacy highlight classes
+            cardDiv.classList.remove(
+                'sched-slab-resident', 'sched-slab-female', 'sched-slab-male',
+                'sched-highlight-card', 'ring-2', 'ring-amber-500', 'bg-amber-100', 
+                'dark:bg-amber-950/80', 'border-amber-400', 'dark:border-amber-500', 'shadow-md'
+            );
+            if (docSpan) {
+                docSpan.classList.remove('sched-highlight-name', 'bg-amber-300', 'dark:bg-amber-400', 'text-amber-950', 'dark:text-amber-950', 'shadow-xs');
+            }
+
+            if (!docName || !docName.trim()) return;
+
+            const cleanDoc = normalizeArabic(docName).toLowerCase();
+            const isDocMatch = Boolean(cleanTarget && cleanDoc === cleanTarget);
+
+            if (isDocMatch) {
+                resCount++;
+                cardDiv.classList.add('sched-slab-resident');
+            } else if (state.highlightSex) {
+                const res = getResidentByName(docName);
+                if (state.highlightSex === 'female' && res && isFemaleResident(res)) {
+                    sexCount++;
+                    cardDiv.classList.add('sched-slab-female');
+                } else if (state.highlightSex === 'male' && res && !isFemaleResident(res)) {
+                    sexCount++;
+                    cardDiv.classList.add('sched-slab-male');
                 }
             }
         });
 
-        const badge = document.getElementById('sched-highlight-count-badge');
-        if (badge) {
-            if (state.highlightedResident && count > 0) {
-                badge.innerHTML = `<i class="fas fa-eye text-amber-500 ml-1"></i><span>تم تظليل ${count} خفارة لـ ${escapeForInline(state.highlightedResident)} في هذا الجدول</span>`;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
+        // Update highlight badges
+        const badgeWrap = document.getElementById('sched-highlight-count-badge-wrap');
+        if (badgeWrap) {
+            let html = '';
+            if (state.highlightedResident && resCount > 0) {
+                html += `
+                    <span class="font-bold text-[11px] px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-800 flex items-center gap-1 shadow-2xs">
+                        <i class="fas fa-highlighter text-amber-500 ml-1"></i>
+                        <span>تم تظليل ${resCount} خفارة لـ ${escapeForInline(state.highlightedResident)}</span>
+                    </span>
+                `;
             }
+            if (state.highlightSex && sexCount > 0) {
+                const isF = state.highlightSex === 'female';
+                const bg = isF ? 'bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-200 border-rose-300 dark:border-rose-800' : 'bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-200 border-sky-300 dark:border-sky-800';
+                const icon = isF ? 'fa-venus text-rose-500' : 'fa-mars text-sky-500';
+                const label = isF ? `تم تظليل ${sexCount} خفارة للطبيبات (إناث 👩)` : `تم تظليل ${sexCount} خفارة للأطباء (ذكور 👨)`;
+                html += `
+                    <span class="font-bold text-[11px] px-2.5 py-1 rounded-full ${bg} border flex items-center gap-1 shadow-2xs">
+                        <i class="fas ${icon} ml-1"></i>
+                        <span>${label}</span>
+                    </span>
+                `;
+            }
+            badgeWrap.innerHTML = html;
         }
     }
 
@@ -2872,30 +2968,56 @@
                     </div>
                 </div>
 
-                <!-- Resident Highlighter Section (Below filters - ONLY highlights cells and resident name without filtering rows) -->
+                <!-- Resident & Sex Highlighter Section (Below filters - ONLY highlights cells as 3D colored slabs without filtering rows) -->
                 <div class="pt-2.5 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between flex-wrap gap-2 text-xs">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <span class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                            <i class="fas fa-highlighter text-amber-500"></i>
-                            <span>تحديد اسم المقيم (تظليل وتمييز الخفارات):</span>
-                        </span>
-                        <select id="sched-highlight-resident" onchange="onHighlightResidentChange(this.value)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-600/80 text-slate-800 dark:text-slate-100 font-bold text-xs focus:ring-2 focus:ring-amber-500/30">
-                            <option value="">-- اختر طبيباً لتمييز خفاراته في الجدول --</option>
-                            ${scheduledDocs.map(d => `<option value="${escapeForInline(d.name)}" ${state.highlightedResident === d.name ? 'selected' : ''}>${d.name} (${d.count} خفارة)</option>`).join('')}
-                        </select>
-                        ${state.highlightedResident ? `
-                            <button type="button" onclick="clearHighlightedResident()" class="px-2.5 py-1 rounded-lg text-xs font-bold text-amber-800 dark:text-amber-200 bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/70 dark:hover:bg-amber-900/80 transition flex items-center gap-1" title="إلغاء التمييز">
-                                <i class="fas fa-times text-[10px]"></i>
-                                <span>إلغاء التمييز</span>
-                            </button>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <!-- Resident Highlighter -->
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                <i class="fas fa-highlighter text-amber-500"></i>
+                                <span>تمييز طبيب:</span>
+                            </span>
+                            <select id="sched-highlight-resident" onchange="onHighlightResidentChange(this.value)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-600/80 text-slate-800 dark:text-slate-100 font-bold text-xs focus:ring-2 focus:ring-amber-500/30">
+                                <option value="">-- اختر طبيباً لتمييز خفاراته (3D Slab) --</option>
+                                ${scheduledDocs.map(d => `<option value="${escapeForInline(d.name)}" ${state.highlightedResident === d.name ? 'selected' : ''}>${d.name} (${d.count} خفارة)</option>`).join('')}
+                            </select>
+                            ${state.highlightedResident ? `
+                                <button type="button" onclick="clearHighlightedResident()" class="px-2 py-1 rounded-lg text-xs font-bold text-amber-800 dark:text-amber-200 bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/70 dark:hover:bg-amber-900/80 transition flex items-center gap-1" title="إلغاء التمييز">
+                                    <i class="fas fa-times text-[10px]"></i>
+                                    <span>إلغاء</span>
+                                </button>
+                            ` : ''}
+                        </div>
+
+                        <!-- Sex Highlighter -->
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                <i class="fas fa-venus-mars text-indigo-500"></i>
+                                <span>تمييز الجنس:</span>
+                            </span>
+                            <div id="sched-sex-highlight-btns" class="inline-flex rounded-xl p-0.5 bg-slate-200/80 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold">
+                                <button type="button" data-sex="" onclick="setHighlightSex('')" class="px-2.5 py-1 rounded-lg transition ${!state.highlightSex ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-2xs font-black' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'}">الكل</button>
+                                <button type="button" data-sex="female" onclick="setHighlightSex('female')" class="px-2.5 py-1 rounded-lg transition flex items-center gap-1 ${state.highlightSex === 'female' ? 'bg-pink-600 text-white shadow-2xs font-black' : 'text-pink-600 dark:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-950/40'}">
+                                    <i class="fas fa-venus text-[10px]"></i>
+                                    <span>إناث 👩</span>
+                                </button>
+                                <button type="button" data-sex="male" onclick="setHighlightSex('male')" class="px-2.5 py-1 rounded-lg transition flex items-center gap-1 ${state.highlightSex === 'male' ? 'bg-sky-600 text-white shadow-2xs font-black' : 'text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40'}">
+                                    <i class="fas fa-mars text-[10px]"></i>
+                                    <span>ذكور 👨</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Highlight Badges Container -->
+                    <div id="sched-highlight-count-badge-wrap" class="flex items-center gap-2 flex-wrap">
+                        ${state.highlightedResident && highlightedCount > 0 ? `
+                            <span class="font-bold text-[11px] px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-800 flex items-center gap-1 shadow-2xs">
+                                <i class="fas fa-highlighter text-amber-500 ml-1"></i>
+                                <span>تم تظليل ${highlightedCount} خفارة لـ ${escapeForInline(state.highlightedResident)}</span>
+                            </span>
                         ` : ''}
                     </div>
-                    ${state.highlightedResident && highlightedCount > 0 ? `
-                        <span id="sched-highlight-count-badge" class="font-bold text-[11px] px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-800 flex items-center gap-1">
-                            <i class="fas fa-eye text-amber-500 ml-1"></i>
-                            <span>تم تظليل ${highlightedCount} خفارة لـ ${escapeForInline(state.highlightedResident)} في هذا الجدول</span>
-                        </span>
-                    ` : ''}
                 </div>
             </div>
         `;
@@ -3709,16 +3831,27 @@
         const cleanDocName = normalizeArabic(assignedDoctor).toLowerCase();
         
         const isHighlight = Boolean(cleanHighlight && cleanDocName === cleanHighlight);
+        const resObj = assignedDoctor ? getResidentByName(assignedDoctor) : null;
+        const isFemale = resObj ? isFemaleResident(resObj) : false;
+        const isMale = resObj ? !isFemaleResident(resObj) : false;
+
+        let slabClass = '';
+        if (isHighlight) {
+            slabClass = ' sched-slab-resident';
+        } else if (state.highlightSex === 'female' && isFemale) {
+            slabClass = ' sched-slab-female';
+        } else if (state.highlightSex === 'male' && isMale) {
+            slabClass = ' sched-slab-male';
+        }
+
         const isSearchMatch = (cleanQ && cleanDocName.includes(cleanQ)) || (cleanDocFilter && cleanDocName === cleanDocFilter);
-        
-        const cardHighlightClass = isHighlight ? ' sched-highlight-card ring-2 ring-amber-500 bg-amber-100 dark:bg-amber-950/80 border-amber-400 dark:border-amber-500 shadow-md' : '';
-        const nameHighlightClass = isHighlight 
-            ? ' sched-highlight-name bg-amber-300 dark:bg-amber-400 text-amber-950 dark:text-amber-950 font-black px-1.5 py-0.5 rounded shadow-xs' 
-            : (isSearchMatch ? ' bg-amber-300 dark:bg-amber-500/40 text-amber-950 dark:text-amber-100 ring-2 ring-amber-500 shadow-xs px-1.5 py-0.5 rounded-md font-black' : '');
+        const nameHighlightClass = (!slabClass && isSearchMatch) 
+            ? ' bg-amber-300 dark:bg-amber-500/40 text-amber-950 dark:text-amber-100 ring-2 ring-amber-500 shadow-xs px-1.5 py-0.5 rounded-md font-black' 
+            : '';
 
         return `
             <td class="py-2 px-3 border-l border-slate-200 dark:border-slate-800" data-slot="${slotKey}" data-doc="${escapeForInline(assignedDoctor)}" data-conflict="${conflictInfo.hasConflict ? 'true' : 'false'}" data-outside-pref="${hasPrefOverride ? 'true' : 'false'}">
-                <div class="sched-cell-card flex items-center justify-between group py-1 px-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 hover:border-slate-400 transition${cardHighlightClass}">
+                <div class="sched-cell-card flex items-center justify-between group py-1 px-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 hover:border-slate-400 transition${slabClass}">
                     <div class="flex items-center truncate cursor-pointer flex-1" onclick="openDoctorPicker('${tableType}', ${dayNumber}, '${slotKey}', '${slotKey}')">
                         <span class="doc-name-span font-bold text-slate-800 dark:text-slate-100 truncate ${nameHighlightClass}">${assignedDoctor}</span>
                         ${badgeHTML}
@@ -6449,6 +6582,12 @@
         const list = document.getElementById('pref-intervals-list');
         if (!list) return;
 
+        const curMonth = (state && state.month) ? Number(state.month) : (new Date().getMonth() + 1);
+        const curYear = (state && state.year) ? Number(state.year) : new Date().getFullYear();
+        const daysCount = getDaysInMonth(curYear, curMonth);
+        const minDate = formatDateStr(curYear, curMonth, 1);
+        const maxDate = formatDateStr(curYear, curMonth, daysCount);
+
         if (tempIntervals.length === 0) {
             list.innerHTML = '<div class="text-slate-400 text-center py-2 text-[11px] bg-slate-50 dark:bg-slate-900 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">لا توجد فترات زمنية مضافة حالياً لهذا الطبيب</div>';
             return;
@@ -6460,11 +6599,11 @@
                 <div class="pref-interval-row flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs shadow-2xs">
                     <div class="flex-1 flex items-center gap-1.5">
                         <span class="text-slate-500 text-[10px] shrink-0 font-bold">من:</span>
-                        <input type="date" value="${interval.start || ''}" onchange="updatePrefInterval(${idx}, 'start', this.value)" class="w-full p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100">
+                        <input type="date" value="${interval.start || ''}" min="${minDate}" max="${maxDate}" oninput="updatePrefInterval(${idx}, 'start', this.value)" onchange="updatePrefInterval(${idx}, 'start', this.value)" class="w-full p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100">
                     </div>
                     <div class="flex-1 flex items-center gap-1.5">
                         <span class="text-slate-500 text-[10px] shrink-0 font-bold">إلى:</span>
-                        <input type="date" value="${interval.end || ''}" onchange="updatePrefInterval(${idx}, 'end', this.value)" class="w-full p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100">
+                        <input type="date" value="${interval.end || ''}" min="${minDate}" max="${maxDate}" oninput="updatePrefInterval(${idx}, 'end', this.value)" onchange="updatePrefInterval(${idx}, 'end', this.value)" class="w-full p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100">
                     </div>
                     <button type="button" onclick="removePrefInterval(${idx})" class="w-7 h-7 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center justify-center transition shrink-0" title="حذف هذه الفترة">
                         <i class="fas fa-trash-alt text-xs"></i>
@@ -6476,6 +6615,11 @@
     }
 
     function addPrefIntervalRow(start = '', end = '') {
+        const curMonth = (state && state.month) ? Number(state.month) : (new Date().getMonth() + 1);
+        const curYear = (state && state.year) ? Number(state.year) : new Date().getFullYear();
+        const daysCount = getDaysInMonth(curYear, curMonth);
+        if (!start) start = formatDateStr(curYear, curMonth, 1);
+        if (!end) end = formatDateStr(curYear, curMonth, Math.min(10, daysCount));
         tempIntervals.push({ start, end });
         renderPrefIntervalsList();
     }
@@ -6519,7 +6663,23 @@
         res.specificDays = tempSpecificDays.map(Number).sort((a, b) => a - b);
         res.excludedDates = (tempDaysMode === 'exclude') ? res.specificDays.map(d => `${d}/${curMonth}`) : [];
 
-        // Save interval mode and intervals
+        // Save interval mode and intervals (directly scrape DOM for 100% sync)
+        const rowInputs = modal.querySelectorAll('.pref-interval-row');
+        if (rowInputs.length > 0) {
+            tempIntervals = [];
+            rowInputs.forEach(row => {
+                const dates = row.querySelectorAll('input[type="date"]');
+                if (dates.length >= 2) {
+                    let sVal = (dates[0].value || '').trim();
+                    let eVal = (dates[1].value || '').trim();
+                    if (!sVal && eVal) sVal = eVal;
+                    if (!eVal && sVal) eVal = sVal;
+                    if (sVal || eVal) {
+                        tempIntervals.push({ start: sVal, end: eVal });
+                    }
+                }
+            });
+        }
         res.intervalMode = tempIntervalMode;
         res.excludedIntervals = tempIntervals.filter(i => (i.start && i.start.trim()) || (i.end && i.end.trim()));
 
@@ -8743,16 +8903,17 @@
         }
 
         // -----------------------------------------------------------------
-        // PHASE 2: STRICTLY WITHIN INTERVALS (intervalMode === 'strictly_within')
-        // Must schedule these doctors within their limited window first!
+        // PHASE 2: TIME INTERVALS & RESTRICTED AVAILABILITY DOCTORS
+        // Must schedule doctors with interval constraints (strictly_within or exclude)
+        // within their limited window first so other doctors don't starve them!
         // -----------------------------------------------------------------
         const intervalDocs = activeDocs.filter(r => 
-            hasRemainingQuota(r) && r.intervalMode === 'strictly_within' && Array.isArray(r.excludedIntervals) && r.excludedIntervals.length > 0
+            hasRemainingQuota(r) && Array.isArray(r.excludedIntervals) && r.excludedIntervals.length > 0
         );
 
         let p2Progress = true;
         let p2Guard = 0;
-        while (p2Progress && p2Guard < 500) {
+        while (p2Progress && p2Guard < 600) {
             p2Guard++;
             p2Progress = false;
 
@@ -8766,6 +8927,8 @@
                 const daysOrder = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
 
                 let assignedOne = false;
+
+                // Step 2A: Try with preferred shifts & preferred days of week
                 for (const d of daysOrder) {
                     const dayEntry = schedule.find(s => s.dayNumber === d);
                     if (!dayEntry) continue;
@@ -8781,7 +8944,44 @@
                     }
                     if (assignedOne) break;
                 }
-                if (assignedOne) break;
+
+                // Step 2B: If preferred weekdays yielded no slot within the interval, relax prefDays within their allowed interval
+                if (!assignedOne) {
+                    for (const d of daysOrder) {
+                        const dayEntry = schedule.find(s => s.dayNumber === d);
+                        if (!dayEntry) continue;
+
+                        for (const s of candidateShifts) {
+                            if (!dayEntry[s] && isDoctorAvailable(r, d, s, false)) {
+                                assignSlot(dayEntry, s, r, d);
+                                assignedOne = true;
+                                p2Progress = true;
+                                break;
+                            }
+                        }
+                        if (assignedOne) break;
+                    }
+                }
+
+                // Step 2C: If still needy and non-consecutive constraint prevented assignment, relax consecutive
+                if (!assignedOne && hasRemainingQuota(r)) {
+                    for (const d of daysOrder) {
+                        const dayEntry = schedule.find(s => s.dayNumber === d);
+                        if (!dayEntry) continue;
+
+                        for (const s of candidateShifts) {
+                            if (!dayEntry[s] && isDoctorAvailable(r, d, s, true)) {
+                                assignSlot(dayEntry, s, r, d);
+                                assignedOne = true;
+                                p2Progress = true;
+                                break;
+                            }
+                        }
+                        if (assignedOne) break;
+                    }
+                }
+
+                if (assignedOne) break; // Break to re-sort candidates by lowest assigned count!
             }
         }
 
@@ -10539,6 +10739,8 @@
     window.clearScheduleSearch = clearScheduleSearch;
     window.onHighlightResidentChange = onHighlightResidentChange;
     window.clearHighlightedResident = clearHighlightedResident;
+    window.setHighlightSex = setHighlightSex;
+    window.updateScheduleCellHighlights = updateScheduleCellHighlights;
     window.applyDBLiveFilter = applyDBLiveFilter;
     window.clearDBSearch = clearDBSearch;
     window.resetDBFilters = resetDBFilters;

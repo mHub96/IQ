@@ -3266,11 +3266,11 @@
             const poolGrid = document.getElementById('edit-hosp-spec-pool-grid');
             if (poolGrid && currentHospital) {
                 const hospSpecs = currentHospital.specialties || [];
-                const currentPool = Array.isArray(spec.acceptPool) ? spec.acceptPool : [];
+                const currentPool = new Set((Array.isArray(spec.acceptPool) ? spec.acceptPool : []).map(p => String(p).trim().toUpperCase()));
                 let poolHtml = '';
                 hospSpecs.forEach(otherSpec => {
-                    if (otherSpec.id !== spec.id) {
-                        const checked = currentPool.includes(otherSpec.id) ? 'checked' : '';
+                    if (String(otherSpec.id).trim().toUpperCase() !== String(spec.id).trim().toUpperCase()) {
+                        const checked = currentPool.has(String(otherSpec.id).trim().toUpperCase()) ? 'checked' : '';
                         poolHtml += `
                             <label class="flex items-center gap-1.5 p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 hover:border-blue-400 cursor-pointer text-[11px] font-semibold select-none">
                                 <input type="checkbox" value="${otherSpec.id}" ${checked} class="w-3.5 h-3.5 rounded accent-blue-600 hosp-pool-checkbox" />
@@ -3308,7 +3308,7 @@
             const updateResidents = document.getElementById('edit-hosp-spec-update-existing')?.checked === true;
 
             const poolBoxes = document.querySelectorAll('.hosp-pool-checkbox:checked');
-            const acceptPool = Array.from(poolBoxes).map(cb => cb.value);
+            const acceptPool = Array.from(poolBoxes).map(cb => cb.value.trim());
 
             if (!specId || !nameAr) {
                 showToast('الرجاء إدخال اسم التخصص', 'error');

@@ -388,7 +388,7 @@
                             name_en: globalDef ? globalDef.name_en : s.name_en,
                             icon: globalDef ? globalDef.icon : (s.icon || '🏥'),
                             parentSpec: globalDef ? globalDef.parentSpec : (s.parentSpec || null),
-                            acceptPool: globalDef && Array.isArray(globalDef.acceptPool) ? globalDef.acceptPool : (s.acceptPool || [])
+                            acceptPool: Array.isArray(s.acceptPool) ? s.acceptPool.map(normalizeSpecialtyId) : (globalDef && Array.isArray(globalDef.acceptPool) ? globalDef.acceptPool.map(normalizeSpecialtyId) : [])
                         });
                     }
                 });

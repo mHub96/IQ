@@ -133,6 +133,65 @@
             scrollbar-width: none;
         }
 
+        /* 3D COLORED SLAB SCHEDULE CELL HIGHLIGHTS */
+        .sched-slab-resident {
+            background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%) !important;
+            border-color: #d97706 !important;
+            border-bottom: 2.5px solid #b45309 !important;
+            border-right: 2px solid #b45309 !important;
+            box-shadow: 0 2px 5px rgba(180, 83, 9, 0.28) !important;
+            color: #451a03 !important;
+        }
+        .dark .sched-slab-resident {
+            background: linear-gradient(180deg, #78350f 0%, #451a03 100%) !important;
+            border-color: #f59e0b !important;
+            border-bottom: 2.5px solid #d97706 !important;
+            border-right: 2px solid #d97706 !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.45) !important;
+            color: #fef3c7 !important;
+        }
+
+        .sched-slab-female {
+            background: linear-gradient(180deg, #ffe4e6 0%, #fecdd3 100%) !important;
+            border-color: #f43f5e !important;
+            border-bottom: 2.5px solid #e11d48 !important;
+            border-right: 2px solid #e11d48 !important;
+            box-shadow: 0 2px 5px rgba(225, 29, 72, 0.25) !important;
+            color: #4c0519 !important;
+        }
+        .dark .sched-slab-female {
+            background: linear-gradient(180deg, #881337 0%, #4c0519 100%) !important;
+            border-color: #fb7185 !important;
+            border-bottom: 2.5px solid #f43f5e !important;
+            border-right: 2px solid #f43f5e !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.45) !important;
+            color: #ffe4e6 !important;
+        }
+
+        .sched-slab-male {
+            background: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 100%) !important;
+            border-color: #0284c7 !important;
+            border-bottom: 2.5px solid #0369a1 !important;
+            border-right: 2px solid #0369a1 !important;
+            box-shadow: 0 2px 5px rgba(3, 105, 161, 0.25) !important;
+            color: #082f49 !important;
+        }
+        .dark .sched-slab-male {
+            background: linear-gradient(180deg, #0c4a6e 0%, #082f49 100%) !important;
+            border-color: #38bdf8 !important;
+            border-bottom: 2.5px solid #0284c7 !important;
+            border-right: 2px solid #0284c7 !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.45) !important;
+            color: #e0f2fe !important;
+        }
+
+        .sched-slab-resident .doc-name-span,
+        .sched-slab-female .doc-name-span,
+        .sched-slab-male .doc-name-span {
+            color: inherit !important;
+            font-weight: 900 !important;
+        }
+
         /* PRINT STYLES - STRICT SINGLE A4 PORTRAIT PAGE */
         @media print {
             * {

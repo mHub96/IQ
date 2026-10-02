@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-02T11:29:03.483Z",
+  "lastUpdated": "2026-10-02T11:29:21.453Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21894,11 +21894,10 @@
         {
           "date": "02/10/2026",
           "specCode": "ENT",
-          "name": "د. مايا عادل عبدالهادي",
+          "name": "د. ام البنين عيدان كاظم",
           "VisitCount": 1,
           "dutyTime": "",
-          "dutySlot": 0,
-          "timestamp": "14:29"
+          "dutySlot": 0
         },
         {
           "date": "03/10/2026",
@@ -36436,7 +36435,7 @@
           "date": "02/10/2026",
           "specCode": "REF",
           "name": "د. امنه قحطان صالح",
-          "VisitCount": 7,
+          "VisitCount": 8,
           "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0
         },

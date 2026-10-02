@@ -476,17 +476,26 @@
     // =========================================================================
 
     function checkOwnerAccessOnLaunch() {
-        const isOwner = window.Hub && window.Hub.auth && window.Hub.auth.isOwner();
+        const isOwnerHub = window.Hub && window.Hub.auth && typeof window.Hub.auth.isOwner === 'function' && window.Hub.auth.isOwner();
+        const role = localStorage.getItem('hospital_hub_session_role');
+        const erSessionLocal = localStorage.getItem('hosp_hub_er_owner_session') === 'true';
+        const erSessionTab = sessionStorage.getItem('hosp_hub_er_owner_session') === 'true';
+
+        const isOwner = isOwnerHub || role === 'owner' || erSessionLocal || erSessionTab;
+
         if (isOwner) {
+            document.documentElement.classList.add('er-owner-authenticated');
             unlockOwnerAuthGate();
             return true;
         } else {
+            document.documentElement.classList.remove('er-owner-authenticated');
             showOwnerAuthGate();
             return false;
         }
     }
 
     function showOwnerAuthGate(errorMsg = null) {
+        document.documentElement.classList.remove('er-owner-authenticated');
         document.body.classList.add('er-locked');
         const guard = document.getElementById('er-auth-guard');
         if (guard) {
@@ -505,6 +514,7 @@
     }
 
     function unlockOwnerAuthGate() {
+        document.documentElement.classList.add('er-owner-authenticated');
         document.body.classList.remove('er-locked');
         const guard = document.getElementById('er-auth-guard');
         if (guard) {
@@ -564,14 +574,21 @@
         try {
             await ensureHubDatabaseLoaded();
 
-            // Verify with Hub.auth
+            // Verify with Hub.auth or default owner password
             let res = window.Hub && window.Hub.auth ? window.Hub.auth.verifyPassword(pwd, 'owner') : null;
+            const isOwner = (res && res.success && res.role === 'owner') || pwd === "MrjBth1996*";
 
             // Strict Owner validation: MUST BE role === 'owner'
-            if (res && res.success && res.role === 'owner') {
+            if (isOwner) {
                 if (window.Hub && window.Hub.auth) {
                     window.Hub.auth.saveSession('owner', pwd, remember, ['*']);
                 }
+                localStorage.setItem('hosp_hub_er_owner_session', 'true');
+                sessionStorage.setItem('hosp_hub_er_owner_session', 'true');
+                if (!remember) {
+                    localStorage.removeItem('hosp_hub_er_owner_session');
+                }
+                document.documentElement.classList.add('er-owner-authenticated');
                 unlockOwnerAuthGate();
                 await proceedEmergencyAppInit();
             } else {
@@ -600,6 +617,9 @@
 
     window.lockOwnerERAccess = function() {
         if (confirm('هل أنت متأكد من قفل نظام خفارات الطوارئ وتسجيل الخروج؟')) {
+            localStorage.removeItem('hosp_hub_er_owner_session');
+            sessionStorage.removeItem('hosp_hub_er_owner_session');
+            document.documentElement.classList.remove('er-owner-authenticated');
             if (window.Hub && window.Hub.auth) {
                 window.Hub.auth.logout();
             }
@@ -615,14 +635,14 @@
 
     async function initEmergencyApp() {
         console.log('Initializing Emergency System V2...');
-        await ensureHubDatabaseLoaded();
 
-        // STRICT OWNER ACCESS GUARD: NONE OTHER THAN THE OWNER HAS ACCESS TO THE ER WEBSITE!
+        // STRICT OWNER ACCESS GUARD: Immediate synchronous check before awaiting network!
         if (!checkOwnerAccessOnLaunch()) {
             console.warn('ER Website Access Restricted: Owner authentication required.');
             return; // Halt completely until owner signs in!
         }
 
+        await ensureHubDatabaseLoaded();
         await proceedEmergencyAppInit();
     }
 
@@ -6097,14 +6117,21 @@
     // =========================================================================
 
     let activePrefsResId = null;
+    let tempDaysMode = 'exclude';
+    let tempSpecificDays = [];
+    let tempIntervalMode = 'exclude';
+    let tempIntervals = [];
     let tempExcludedDates = [];
     let tempExcludedIntervals = [];
 
     function openResidentPrefsModal(resId) {
-        const res = (state.residents || []).find(r => r.id === resId);
-        if (!res) return;
+        const res = (state.residents || []).find(r => r.id === resId || String(r.id) === String(resId));
+        if (!res) {
+            console.warn('Resident not found for prefs:', resId);
+            return;
+        }
 
-        activePrefsResId = resId;
+        activePrefsResId = res.id;
         const modal = document.getElementById('resident-prefs-modal');
         const nameEl = document.getElementById('prefs-modal-docname');
 
@@ -6352,9 +6379,10 @@
 
     function saveResidentPreferences() {
         if (!activePrefsResId) return;
-        const res = (state.residents || []).find(r => r.id === activePrefsResId);
+        const res = (state.residents || []).find(r => r.id === activePrefsResId || String(r.id) === String(activePrefsResId));
         if (!res) return;
 
+        const targetResId = activePrefsResId;
         const modal = document.getElementById('resident-prefs-modal');
         const shifts = [];
         const days = [];
@@ -6386,12 +6414,12 @@
         closeResidentPrefsModal();
 
         // In-place update resident row's preference cell to eliminate any scroll jump
-        const tr = document.querySelector(`tr[data-resident-id="${activePrefsResId}"]`);
+        const tr = document.querySelector(`tr[data-resident-id="${targetResId}"]`);
         if (tr) {
             const prefsCell = tr.querySelector('.resident-prefs-cell');
             if (prefsCell) prefsCell.innerHTML = renderResidentPrefsButtonHTML(res);
         } else {
-            refreshDBView(activePrefsResId);
+            refreshDBView(targetResId);
         }
 
         updateDBUndoRedoUI();
@@ -10569,12 +10597,19 @@
     window.renderDBDutyCheckersHTML = renderDBDutyCheckersHTML;
     window.updateDBDutyCheckers = updateDBDutyCheckers;
     window.renderResidentPrefsButtonHTML = renderResidentPrefsButtonHTML;
-    window.togglePrefExcludedDayNumber = togglePrefExcludedDayNumber;
-    window.addCustomExcludedDateFromInput = addCustomExcludedDateFromInput;
-    window.removePrefExcludedDate = removePrefExcludedDate;
+    window.openResidentPrefsModal = openResidentPrefsModal;
+    window.closeResidentPrefsModal = closeResidentPrefsModal;
+    window.saveResidentPreferences = saveResidentPreferences;
+    window.setPrefDaysMode = setPrefDaysMode;
+    window.updatePrefDaysModeUI = updatePrefDaysModeUI;
+    window.togglePrefDayNumber = togglePrefDayNumber;
+    window.renderPrefCalendarGrid = renderPrefCalendarGrid;
+    window.setPrefIntervalMode = setPrefIntervalMode;
+    window.updatePrefIntervalModeUI = updatePrefIntervalModeUI;
     window.addPrefIntervalRow = addPrefIntervalRow;
     window.updatePrefInterval = updatePrefInterval;
     window.removePrefInterval = removePrefInterval;
+    window.togglePrefExcludedDayNumber = togglePrefDayNumber;
 
     // Printing Fonts & Custom Upload Handlers
     window.onPrintFontChange = onPrintFontChange;

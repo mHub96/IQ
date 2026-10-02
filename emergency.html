@@ -32,6 +32,25 @@
         }
     </style>
     <style id="dynamic-custom-print-font-style"></style>
+    <script>
+        (function() {
+            try {
+                const role = localStorage.getItem('hospital_hub_session_role');
+                const erSession = localStorage.getItem('hosp_hub_er_owner_session') === 'true' || sessionStorage.getItem('hosp_hub_er_owner_session') === 'true';
+                if (role === 'owner' || erSession) {
+                    document.documentElement.classList.add('er-owner-authenticated');
+                }
+            } catch(e) {}
+        })();
+    </script>
+    <style>
+        html.er-owner-authenticated #er-auth-guard {
+            display: none !important;
+        }
+        html.er-owner-authenticated body.er-locked {
+            overflow: auto !important;
+        }
+    </style>
 
     <script>
         tailwind.config = {
@@ -179,7 +198,7 @@
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-full transition-colors duration-200 er-locked">
 
     <!-- OWNER SECURITY GATE OVERLAY (Strict Protection: Owner Password Required) -->
-    <div id="er-auth-guard" class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl" style="display: flex;">
+    <div id="er-auth-guard" class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl">
         <div class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden text-right">
             <!-- Decorative gradient backgrounds -->
             <div class="absolute -top-24 -right-24 w-48 h-48 bg-rose-500/20 rounded-full blur-3xl pointer-events-none"></div>

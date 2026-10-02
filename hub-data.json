@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-02T15:09:14.496Z",
+  "lastUpdated": "2026-10-02T15:18:05.292Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21894,10 +21894,11 @@
         {
           "date": "02/10/2026",
           "specCode": "ENT",
-          "name": "د. ام البنين عيدان كاظم",
+          "name": "د. مايا عادل عبدالهادي",
           "VisitCount": 1,
           "dutyTime": "",
-          "dutySlot": 0
+          "dutySlot": 0,
+          "timestamp": "18:18"
         },
         {
           "date": "03/10/2026",

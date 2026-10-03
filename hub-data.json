@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-03T08:19:30.860Z",
+  "lastUpdated": "2026-10-03T08:34:55.597Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -37194,7 +37194,7 @@
           "date": "03/10/2026",
           "specCode": "M",
           "name": "د. محمد بشير",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0
         },

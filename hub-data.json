@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-03T06:03:55.059Z",
+  "lastUpdated": "2026-10-03T06:05:11.040Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -35554,23 +35554,6 @@
           "dutySlot": 1
         },
         {
-          "date": "03/10/2026",
-          "specCode": "D",
-          "name": "د. مها عباس جابر",
-          "VisitCount": 0,
-          "dutyTime": "08:00AM - 08:00PM",
-          "dutySlot": 0,
-          "timestamp": "09:03"
-        },
-        {
-          "date": "03/10/2026",
-          "specCode": "D",
-          "name": "د. عبد العزيز وئام عبد الحميد",
-          "VisitCount": 0,
-          "dutyTime": "08:00PM - 08:00AM",
-          "dutySlot": 1
-        },
-        {
           "date": "04/10/2026",
           "specCode": "D",
           "name": "د. غفران علي صبري",
@@ -38889,6 +38872,23 @@
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "D",
+          "name": "د. مها عباس جابر",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0,
+          "timestamp": "09:03"
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "D",
+          "name": "د. عبد العزيز وئام عبد الحميد",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
         }
       ],
       "rotationHeroesUrl": "",

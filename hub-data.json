@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-04T11:35:59.607Z",
+  "lastUpdated": "2026-10-04T11:54:35.787Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21945,6 +21945,14 @@
           "date": "08/10/2026",
           "specCode": "ENT",
           "name": "د. ام البنين عيدان كاظم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "04/10/2026",
+          "specCode": "R",
+          "name": "د. الحسين عبدالرحمن خويط",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

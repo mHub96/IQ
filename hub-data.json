@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-04T13:01:19.072Z",
+  "lastUpdated": "2026-10-04T13:06:15.469Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21913,7 +21913,7 @@
           "date": "04/10/2026",
           "specCode": "ENT",
           "name": "د. ام البنين عيدان كاظم",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -36021,7 +36021,7 @@
           "date": "04/10/2026",
           "specCode": "AO",
           "name": "حيدر صدام",
-          "VisitCount": 2,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },

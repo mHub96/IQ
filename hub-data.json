@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-04T11:58:02.477Z",
+  "lastUpdated": "2026-10-04T12:08:42.567Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -38177,10 +38177,11 @@
         {
           "date": "04/10/2026",
           "specCode": "G",
-          "name": "د. سراء ياسين ساري",
+          "name": "د. زهراء جاسم حمدان",
           "VisitCount": 0,
           "dutyTime": "",
-          "dutySlot": 0
+          "dutySlot": 0,
+          "timestamp": "15:08"
         },
         {
           "date": "05/10/2026",

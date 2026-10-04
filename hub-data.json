@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-04T19:24:30.015Z",
+  "lastUpdated": "2026-10-04T19:26:23.866Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -37729,7 +37729,7 @@
           "date": "04/10/2026",
           "specCode": "ICU",
           "name": "د. صافي إبراهيم",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -38653,7 +38653,7 @@
           "date": "04/10/2026",
           "specCode": "OR",
           "name": "د. محمد ناظم",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-04T13:44:44.990Z",
+  "lastUpdated": "2026-10-04T13:45:31.371Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -26903,6 +26903,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-mutviinb5gt4",
+          "name": "د. سجاد ماجد",
+          "phone": "+9647705776371",
+          "spec": "OR",
+          "tag": "OR",
+          "dept": "OR",
+          "department": "OR",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -51186,6 +51199,19 @@
       "id": "res-mutvhiuzjukl",
       "name": "د. رافع احمد",
       "phone": "+9647812507841",
+      "spec": "OR",
+      "tag": "OR",
+      "dept": "OR",
+      "department": "OR",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-mutviinb5gt4",
+      "name": "د. سجاد ماجد",
+      "phone": "+9647705776371",
       "spec": "OR",
       "tag": "OR",
       "dept": "OR",

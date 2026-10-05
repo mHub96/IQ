@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-05T15:21:44.722Z",
+  "lastUpdated": "2026-10-05T15:21:47.953Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21616,7 +21616,7 @@
           "date": "05/10/2026",
           "specCode": "NS",
           "name": "د. مجيد حميد مجيد",
-          "VisitCount": 11,
+          "VisitCount": 15,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -26926,19 +26926,6 @@
           "tag": "OR",
           "dept": "OR",
           "department": "OR",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-muvee09ei2yq",
-          "name": "د. وائل موحان",
-          "phone": "+9647814015308",
-          "spec": "N",
-          "tag": "N",
-          "dept": "N",
-          "department": "N",
           "active": true,
           "hospitals": [
             "basra"
@@ -51434,19 +51421,6 @@
       "tag": "OR",
       "dept": "OR",
       "department": "OR",
-      "active": true,
-      "hospitals": [
-        "basra"
-      ]
-    },
-    {
-      "id": "res-muvee09ei2yq",
-      "name": "د. وائل موحان",
-      "phone": "+9647814015308",
-      "spec": "N",
-      "tag": "N",
-      "dept": "N",
-      "department": "N",
       "active": true,
       "hospitals": [
         "basra"

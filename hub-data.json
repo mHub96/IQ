@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-05T15:25:14.356Z",
+  "lastUpdated": "2026-10-05T15:26:11.807Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -26930,6 +26930,19 @@
           "hospitals": [
             "basra"
           ]
+        },
+        {
+          "id": "res-muveju58nmte",
+          "name": "د. وائل موحان",
+          "phone": "+9647814015308",
+          "spec": "N",
+          "tag": "N",
+          "dept": "N",
+          "department": "N",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
         }
       ],
       "schedule": [
@@ -51421,6 +51434,19 @@
       "tag": "OR",
       "dept": "OR",
       "department": "OR",
+      "active": true,
+      "hospitals": [
+        "basra"
+      ]
+    },
+    {
+      "id": "res-muveju58nmte",
+      "name": "د. وائل موحان",
+      "phone": "+9647814015308",
+      "spec": "N",
+      "tag": "N",
+      "dept": "N",
+      "department": "N",
       "active": true,
       "hospitals": [
         "basra"

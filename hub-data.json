@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-05T10:40:13.737Z",
+  "lastUpdated": "2026-10-05T10:43:11.836Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -38884,6 +38884,13 @@
           "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0,
           "timestamp": "20:16"
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "GA",
+          "name": "د. رسل عوده ساري",
+          "timestamp": "13:43",
+          "VisitCount": 0
         }
       ],
       "rotationHeroesUrl": "",

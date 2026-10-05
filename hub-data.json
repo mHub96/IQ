@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-05T15:26:11.807Z",
+  "lastUpdated": "2026-10-05T15:30:04.015Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -38894,7 +38894,7 @@
           "specCode": "D",
           "name": "د. محمد ناظم",
           "VisitCount": 3,
-          "dutyTime": "08:00AM - 08:00PM",
+          "dutyTime": "",
           "dutySlot": 0,
           "timestamp": "20:16"
         },
@@ -38903,7 +38903,201 @@
           "specCode": "GA",
           "name": "د. رسل عوده ساري",
           "timestamp": "13:43",
-          "VisitCount": 0
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": ""
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "N",
+          "name": "د. بشير كريم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/10/2026",
+          "specCode": "N",
+          "name": "د. ايات عبدالحسين",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "07/10/2026",
+          "specCode": "N",
+          "name": "د. المصطفى محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "N",
+          "name": "د. ايمان نعيم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "09/10/2026",
+          "specCode": "N",
+          "name": "د. اسيل علي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "N",
+          "name": "د. بشير كريم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "11/10/2026",
+          "specCode": "N",
+          "name": "د. ايات عبدالحسين",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "12/10/2026",
+          "specCode": "N",
+          "name": "د. ايمان نعيم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "14/10/2026",
+          "specCode": "N",
+          "name": "د. اسيل علي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "15/10/2026",
+          "specCode": "N",
+          "name": "د. المصطفى محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "16/10/2026",
+          "specCode": "N",
+          "name": "د. ايات عبدالحسين",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "16/10/2026",
+          "specCode": "N",
+          "name": "د. بشير كريم",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "16/10/2026",
+          "specCode": "N",
+          "name": "د. وائل موحان",
+          "VisitCount": 0,
+          "dutyTime": "12:00AM - 08:00AM",
+          "dutySlot": 2
+        },
+        {
+          "date": "18/10/2026",
+          "specCode": "N",
+          "name": "د. بشير كريم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "19/10/2026",
+          "specCode": "N",
+          "name": "د. وائل موحان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "20/10/2026",
+          "specCode": "N",
+          "name": "د. اسيل علي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "22/10/2026",
+          "specCode": "N",
+          "name": "د. بشير كريم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "23/10/2026",
+          "specCode": "N",
+          "name": "د. المصطفى محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "24/10/2026",
+          "specCode": "N",
+          "name": "د. وائل موحان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "26/10/2026",
+          "specCode": "N",
+          "name": "د. ايمان نعيم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "27/10/2026",
+          "specCode": "N",
+          "name": "د. اسيل علي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "28/10/2026",
+          "specCode": "N",
+          "name": "د. المصطفى محمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "29/10/2026",
+          "specCode": "N",
+          "name": "د. وائل موحان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "31/10/2026",
+          "specCode": "N",
+          "name": "د. ايمان نعيم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
         }
       ],
       "rotationHeroesUrl": "",

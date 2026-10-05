@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-05T15:38:32.473Z",
+  "lastUpdated": "2026-10-05T15:41:21.692Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -39005,7 +39005,7 @@
           "specCode": "N",
           "name": "د. ايات عبدالحسين",
           "VisitCount": 0,
-          "dutyTime": "08:00AM - 08:00PM",
+          "dutyTime": "08:00AM - 04:00PM",
           "dutySlot": 0
         },
         {
@@ -39013,7 +39013,7 @@
           "specCode": "N",
           "name": "د. بشير كريم",
           "VisitCount": 0,
-          "dutyTime": "08:00PM - 08:00AM",
+          "dutyTime": "04:00PM - 12:00AM",
           "dutySlot": 1
         },
         {
@@ -39108,6 +39108,62 @@
           "date": "31/10/2026",
           "specCode": "N",
           "name": "د. ايمان نعيم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "30/10/2026",
+          "specCode": "N",
+          "name": "د. اسيل علي",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 04:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "30/10/2026",
+          "specCode": "N",
+          "name": "د. علا طالب",
+          "VisitCount": 0,
+          "dutyTime": "04:00PM - 12:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "30/10/2026",
+          "specCode": "N",
+          "name": "د. المصطفى محمد",
+          "VisitCount": 0,
+          "dutyTime": "12:00AM - 08:00AM",
+          "dutySlot": 2
+        },
+        {
+          "date": "25/10/2026",
+          "specCode": "N",
+          "name": "د. علا طالب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "21/10/2026",
+          "specCode": "N",
+          "name": "د. علا طالب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "17/10/2026",
+          "specCode": "N",
+          "name": "د. علا طالب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "13/10/2026",
+          "specCode": "N",
+          "name": "د. علا طالب",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

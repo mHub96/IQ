@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-05T15:51:33.764Z",
+  "lastUpdated": "2026-10-05T15:51:42.506Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -36322,7 +36322,7 @@
           "date": "05/10/2026",
           "specCode": "MF",
           "name": "د. حسن فائق",
-          "VisitCount": 3,
+          "VisitCount": 2,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -39164,6 +39164,86 @@
           "date": "13/10/2026",
           "specCode": "N",
           "name": "د. علا طالب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/10/2026",
+          "specCode": "US",
+          "name": "د. كرار حسن",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "07/10/2026",
+          "specCode": "US",
+          "name": "د. حيدر علي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "US",
+          "name": "د. كرار حسن",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "09/10/2026",
+          "specCode": "US",
+          "name": "د. عبدالله جبار",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "US",
+          "name": "د. عمر حسين",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "11/10/2026",
+          "specCode": "US",
+          "name": "د. حيدر علي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "12/10/2026",
+          "specCode": "US",
+          "name": "د. كرار حسن",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "13/10/2026",
+          "specCode": "US",
+          "name": "د. عمر حسين",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "14/10/2026",
+          "specCode": "US",
+          "name": "د. عبدالله جبار",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "15/10/2026",
+          "specCode": "US",
+          "name": "د. كرار حسن",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

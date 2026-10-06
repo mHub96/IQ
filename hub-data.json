@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-06T18:38:52.625Z",
+  "lastUpdated": "2026-10-06T18:44:16.258Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -44515,6 +44515,246 @@
           "date": "30/09/2026",
           "specCode": "OP",
           "name": "د. آلاء إسماعيل",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "01/11/2026",
+          "specCode": "NS",
+          "name": "د. علي جواد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/11/2026",
+          "specCode": "NS",
+          "name": "د. حيدر قاسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "03/11/2026",
+          "specCode": "NS",
+          "name": "د. فراس عباس",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "04/11/2026",
+          "specCode": "NS",
+          "name": "د. تبارك عبد العزيز",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "05/11/2026",
+          "specCode": "NS",
+          "name": "د. حيدر قاسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/11/2026",
+          "specCode": "NS",
+          "name": "د. فراس عباس",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "07/11/2026",
+          "specCode": "NS",
+          "name": "د. تبارك عبد العزيز",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "08/11/2026",
+          "specCode": "NS",
+          "name": "د. حيدر قاسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "09/11/2026",
+          "specCode": "NS",
+          "name": "د. فراس عباس",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/11/2026",
+          "specCode": "NS",
+          "name": "د. تبارك عبد العزيز",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "11/11/2026",
+          "specCode": "NS",
+          "name": "د. علي جواد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "12/11/2026",
+          "specCode": "NS",
+          "name": "د. فراس عباس",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "13/11/2026",
+          "specCode": "NS",
+          "name": "د. تبارك عبد العزيز",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "14/11/2026",
+          "specCode": "NS",
+          "name": "د. فراس عباس",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "15/11/2026",
+          "specCode": "NS",
+          "name": "د. تبارك عبد العزيز",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "16/11/2026",
+          "specCode": "NS",
+          "name": "د. حيدر قاسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "17/11/2026",
+          "specCode": "NS",
+          "name": "د. علي جواد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "18/11/2026",
+          "specCode": "NS",
+          "name": "د. حيدر قاسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "19/11/2026",
+          "specCode": "NS",
+          "name": "د. علي جواد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "20/11/2026",
+          "specCode": "NS",
+          "name": "د. فراس عباس",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "21/11/2026",
+          "specCode": "NS",
+          "name": "د. حيدر قاسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "22/11/2026",
+          "specCode": "NS",
+          "name": "د. فراس عباس",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "23/11/2026",
+          "specCode": "NS",
+          "name": "د. تبارك عبد العزيز",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "24/11/2026",
+          "specCode": "NS",
+          "name": "د. علي جواد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "25/11/2026",
+          "specCode": "NS",
+          "name": "د. حيدر قاسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "26/11/2026",
+          "specCode": "NS",
+          "name": "د. تبارك عبد العزيز",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "27/11/2026",
+          "specCode": "NS",
+          "name": "د. علي جواد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "28/11/2026",
+          "specCode": "NS",
+          "name": "د. حيدر قاسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "29/11/2026",
+          "specCode": "NS",
+          "name": "د. تبارك عبد العزيز",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "30/11/2026",
+          "specCode": "NS",
+          "name": "د. علي جواد",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

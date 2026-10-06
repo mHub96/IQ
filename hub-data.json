@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-06T19:28:43.808Z",
+  "lastUpdated": "2026-10-06T19:31:57.766Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -43626,7 +43626,7 @@
         {
           "date": "04/10/2026",
           "specCode": "ICU",
-          "name": "د. روان عدنان حسين",
+          "name": "د. فاطمة سلطان",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
@@ -43634,7 +43634,7 @@
         {
           "date": "05/10/2026",
           "specCode": "ICU",
-          "name": "د. اسماء مطشر حسين",
+          "name": "د. روان عدنان حسين",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
@@ -43642,7 +43642,7 @@
         {
           "date": "06/10/2026",
           "specCode": "ICU",
-          "name": "د. فاطمة محمد حسن",
+          "name": "د. اسماء مطشر حسين",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
@@ -43650,7 +43650,7 @@
         {
           "date": "07/10/2026",
           "specCode": "ICU",
-          "name": "د. روان عدنان حسين",
+          "name": "د. فاطمة محمد حسن",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
@@ -43682,7 +43682,7 @@
         {
           "date": "11/10/2026",
           "specCode": "ICU",
-          "name": "د. اسماء مطشر حسين",
+          "name": "د. روان عدنان حسين",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
@@ -43690,7 +43690,7 @@
         {
           "date": "12/10/2026",
           "specCode": "ICU",
-          "name": "د. فاطمة محمد حسن",
+          "name": "د. فاطمة سلطان",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
@@ -43714,7 +43714,7 @@
         {
           "date": "15/10/2026",
           "specCode": "ICU",
-          "name": "د. اسماء مطشر حسين",
+          "name": "د. روان عدنان حسين",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
@@ -43722,7 +43722,7 @@
         {
           "date": "16/10/2026",
           "specCode": "ICU",
-          "name": "د. روان عدنان حسين",
+          "name": "د. اسماء مطشر حسين",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
@@ -43730,7 +43730,7 @@
         {
           "date": "17/10/2026",
           "specCode": "ICU",
-          "name": "د. اسماء مطشر حسين",
+          "name": "د. روان عدنان حسين",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
@@ -43738,7 +43738,7 @@
         {
           "date": "18/10/2026",
           "specCode": "ICU",
-          "name": "د. فاطمة محمد حسن",
+          "name": "د. اسماء مطشر حسين",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
@@ -43746,7 +43746,7 @@
         {
           "date": "19/10/2026",
           "specCode": "ICU",
-          "name": "د. اسماء مطشر حسين",
+          "name": "د. روان عدنان حسين",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
@@ -43754,7 +43754,7 @@
         {
           "date": "20/10/2026",
           "specCode": "ICU",
-          "name": "د. فاطمة محمد حسن",
+          "name": "د. اسماء مطشر حسين",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
@@ -43778,7 +43778,7 @@
         {
           "date": "23/10/2026",
           "specCode": "ICU",
-          "name": "د. روان عدنان حسين",
+          "name": "د. اسماء مطشر حسين",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
@@ -47054,6 +47054,54 @@
           "VisitCount": 0,
           "dutyTime": "08:00PM - 08:00AM",
           "dutySlot": 1
+        },
+        {
+          "date": "27/10/2026",
+          "specCode": "ICU",
+          "name": "د. اسماء مطشر حسين",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "28/10/2026",
+          "specCode": "ICU",
+          "name": "د. فاطمة محمد حسن",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "29/10/2026",
+          "specCode": "ICU",
+          "name": "د. اسماء مطشر حسين",
+          "VisitCount": 0,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0
+        },
+        {
+          "date": "29/10/2026",
+          "specCode": "ICU",
+          "name": "د. روان عدنان حسين",
+          "VisitCount": 0,
+          "dutyTime": "08:00PM - 08:00AM",
+          "dutySlot": 1
+        },
+        {
+          "date": "30/10/2026",
+          "specCode": "ICU",
+          "name": "د. اسماء مطشر حسين",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "31/10/2026",
+          "specCode": "ICU",
+          "name": "د. فاطمة محمد حسن",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
         }
       ],
       "rotationHeroesUrl": "",

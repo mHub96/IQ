@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-06T18:07:04.168Z",
+  "lastUpdated": "2026-10-06T18:12:20.721Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -39955,7 +39955,7 @@
           "tag": "NS",
           "dept": "NS",
           "department": "NS",
-          "active": false,
+          "active": true,
           "hospitals": [
             "mawani"
           ]
@@ -46204,7 +46204,7 @@
       "tag": "NS",
       "dept": "NS",
       "department": "NS",
-      "active": false,
+      "active": true,
       "hospitals": [
         "mawani"
       ]

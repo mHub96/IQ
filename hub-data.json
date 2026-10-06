@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-06T19:01:06.904Z",
+  "lastUpdated": "2026-10-06T19:04:32.291Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -45251,6 +45251,174 @@
           "date": "31/10/2026",
           "specCode": "GS",
           "name": "د. علي عبد الناصر",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "OR",
+          "name": "د. ذو الفقار صارم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "OR",
+          "name": "د. محمد فاضل",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "OR",
+          "name": "د. ذو الفقار صارم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "04/10/2026",
+          "specCode": "OR",
+          "name": "د. مصطفى باسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "OR",
+          "name": "د. محمد فاضل",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/10/2026",
+          "specCode": "OR",
+          "name": "د. مصطفى باسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "07/10/2026",
+          "specCode": "OR",
+          "name": "د. محمد فاضل",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "OR",
+          "name": "د. ذو الفقار صارم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "09/10/2026",
+          "specCode": "OR",
+          "name": "د. محمد فاضل",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "OR",
+          "name": "د. مصطفى باسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "11/10/2026",
+          "specCode": "OR",
+          "name": "د. ذو الفقار صارم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "12/10/2026",
+          "specCode": "OR",
+          "name": "د. مصطفى باسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "13/10/2026",
+          "specCode": "OR",
+          "name": "د. ذو الفقار صارم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "14/10/2026",
+          "specCode": "OR",
+          "name": "د. مصطفى باسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "15/10/2026",
+          "specCode": "OR",
+          "name": "د. ذو الفقار صارم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "16/10/2026",
+          "specCode": "OR",
+          "name": "د. محمد فاضل",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "17/10/2026",
+          "specCode": "OR",
+          "name": "د. مصطفى باسم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "18/10/2026",
+          "specCode": "OR",
+          "name": "د. محمد فاضل",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "19/10/2026",
+          "specCode": "OR",
+          "name": "د. ذو الفقار صارم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "20/10/2026",
+          "specCode": "OR",
+          "name": "د. محمد فاضل",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "21/10/2026",
+          "specCode": "OR",
+          "name": "د. جبار جليل",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

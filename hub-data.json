@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-06T18:12:36.212Z",
+  "lastUpdated": "2026-10-06T18:15:34.265Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -40085,7 +40085,7 @@
           "tag": "Pe",
           "dept": "Pe",
           "department": "Pe",
-          "active": true,
+          "active": false,
           "hospitals": [
             "mawani"
           ]
@@ -47261,7 +47261,7 @@
       "tag": "Pe",
       "dept": "Pe",
       "department": "Pe",
-      "active": true,
+      "active": false,
       "hospitals": [
         "mawani"
       ]

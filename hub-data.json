@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-06T13:47:01.534Z",
+  "lastUpdated": "2026-10-06T13:54:10.840Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21625,7 +21625,7 @@
           "date": "06/10/2026",
           "specCode": "NS",
           "name": "د. مجيد حميد مجيد",
-          "VisitCount": 2,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -21987,7 +21987,7 @@
           "date": "06/10/2026",
           "specCode": "R",
           "name": "د. ايات سلمان قاسم",
-          "VisitCount": 4,
+          "VisitCount": 3,
           "dutyTime": "",
           "dutySlot": 0,
           "timestamp": "13:49"
@@ -36333,7 +36333,7 @@
           "date": "06/10/2026",
           "specCode": "MF",
           "name": "د. عبد الله وسام",
-          "VisitCount": 2,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -36749,7 +36749,7 @@
           "date": "06/10/2026",
           "specCode": "REF",
           "name": "د. الزهراء ميثم مطر",
-          "VisitCount": 4,
+          "VisitCount": 0,
           "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0
         },
@@ -37271,7 +37271,7 @@
           "date": "06/10/2026",
           "specCode": "M",
           "name": "د. ضحى جاسم محمد",
-          "VisitCount": 4,
+          "VisitCount": 2,
           "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0
         },
@@ -37519,7 +37519,7 @@
           "date": "06/10/2026",
           "specCode": "OP",
           "name": "د. ايثار عدنان",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -38394,7 +38394,7 @@
           "date": "06/10/2026",
           "specCode": "Pe",
           "name": "د. زينب فلاح عبد المهدي",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0
         },
@@ -39264,7 +39264,7 @@
           "specCode": "GA",
           "name": "د. ايات فيصل",
           "timestamp": "11:30",
-          "VisitCount": 1
+          "VisitCount": 0
         }
       ],
       "rotationHeroesUrl": "",

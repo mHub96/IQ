@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-06T18:16:39.779Z",
+  "lastUpdated": "2026-10-06T18:17:22.036Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -40590,6 +40590,19 @@
           "hospitals": [
             "mawani"
           ]
+        },
+        {
+          "id": "res-mux03tdgpt40",
+          "name": "د. ايات سعد",
+          "phone": "+9647712051479",
+          "spec": "Pe",
+          "tag": "Pe",
+          "dept": "Pe",
+          "department": "Pe",
+          "active": true,
+          "hospitals": [
+            "mawani"
+          ]
         }
       ],
       "schedule": [
@@ -51836,6 +51849,19 @@
       "active": true,
       "hospitals": [
         "basra"
+      ]
+    },
+    {
+      "id": "res-mux03tdgpt40",
+      "name": "د. ايات سعد",
+      "phone": "+9647712051479",
+      "spec": "Pe",
+      "tag": "Pe",
+      "dept": "Pe",
+      "department": "Pe",
+      "active": true,
+      "hospitals": [
+        "mawani"
       ]
     }
   ],

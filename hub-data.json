@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-06T14:28:06.114Z",
+  "lastUpdated": "2026-10-06T14:28:49.811Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -21168,7 +21168,7 @@
           "date": "06/10/2026",
           "specCode": "OP",
           "name": "د. علياء عباس",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -36091,7 +36091,7 @@
           "date": "06/10/2026",
           "specCode": "AO",
           "name": "منير تعبان",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -36333,7 +36333,7 @@
           "date": "06/10/2026",
           "specCode": "MF",
           "name": "د. عبد الله وسام",
-          "VisitCount": 2,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },

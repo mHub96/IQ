@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-06T18:15:34.265Z",
+  "lastUpdated": "2026-10-06T18:15:37.363Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24919,13 +24919,13 @@
         },
         {
           "id": "res-0456",
-          "name": "د. محمد أحمد",
-          "phone": "+9647717578678",
-          "spec": "M",
-          "tag": "M",
-          "dept": "M",
-          "department": "M",
-          "active": true,
+          "name": "د. نور عبد الله",
+          "phone": "+9647732153718",
+          "spec": "Pe",
+          "tag": "Pe",
+          "dept": "Pe",
+          "department": "Pe",
+          "active": false,
           "hospitals": [
             "basra"
           ]
@@ -48973,13 +48973,13 @@
     },
     {
       "id": "res-0456",
-      "name": "د. محمد أحمد",
-      "phone": "+9647717578678",
-      "spec": "M",
-      "tag": "M",
-      "dept": "M",
-      "department": "M",
-      "active": true,
+      "name": "د. نور عبد الله",
+      "phone": "+9647732153718",
+      "spec": "Pe",
+      "tag": "Pe",
+      "dept": "Pe",
+      "department": "Pe",
+      "active": false,
       "hospitals": [
         "basra"
       ]

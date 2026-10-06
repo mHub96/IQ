@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-06T18:16:12.512Z",
+  "lastUpdated": "2026-10-06T18:16:39.779Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -24918,19 +24918,6 @@
           ]
         },
         {
-          "id": "res-0456",
-          "name": "د. نور عبد الله",
-          "phone": "+9647732153718",
-          "spec": "Pe",
-          "tag": "Pe",
-          "dept": "Pe",
-          "department": "Pe",
-          "active": false,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
           "id": "res-0194",
           "name": "د. محمد باقر عبد الحسين",
           "phone": "+9647805920230",
@@ -48969,19 +48956,6 @@
       "active": true,
       "hospitals": [
         "iraqi"
-      ]
-    },
-    {
-      "id": "res-0456",
-      "name": "د. نور عبد الله",
-      "phone": "+9647732153718",
-      "spec": "Pe",
-      "tag": "Pe",
-      "dept": "Pe",
-      "department": "Pe",
-      "active": false,
-      "hospitals": [
-        "basra"
       ]
     },
     {

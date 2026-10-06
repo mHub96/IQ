@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-06T04:49:19.604Z",
+  "lastUpdated": "2026-10-06T05:12:34.417Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -39247,6 +39247,13 @@
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
+        },
+        {
+          "date": "06/10/2026",
+          "specCode": "R_iraqi",
+          "name": "د. ايات سلمان قاسم",
+          "timestamp": "08:12",
+          "VisitCount": 0
         }
       ],
       "rotationHeroesUrl": "",

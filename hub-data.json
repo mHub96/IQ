@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-06T08:30:40.677Z",
+  "lastUpdated": "2026-10-06T08:42:28.463Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20935,7 +20935,7 @@
           "date": "06/10/2026",
           "specCode": "ICU",
           "name": "د. ايناس عدنان",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },

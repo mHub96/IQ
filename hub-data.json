@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-06T18:18:35.323Z",
+  "lastUpdated": "2026-10-06T18:19:56.388Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -40629,6 +40629,19 @@
           "hospitals": [
             "mawani"
           ]
+        },
+        {
+          "id": "res-mux074gz1b7f",
+          "name": "د. صفاء كاظم",
+          "phone": "+9647710888537",
+          "spec": "M",
+          "tag": "M",
+          "dept": "M",
+          "department": "M",
+          "active": true,
+          "hospitals": [
+            "mawani"
+          ]
         }
       ],
       "schedule": [
@@ -51911,6 +51924,19 @@
       "tag": "Pe",
       "dept": "Pe",
       "department": "Pe",
+      "active": true,
+      "hospitals": [
+        "mawani"
+      ]
+    },
+    {
+      "id": "res-mux074gz1b7f",
+      "name": "د. صفاء كاظم",
+      "phone": "+9647710888537",
+      "spec": "M",
+      "tag": "M",
+      "dept": "M",
+      "department": "M",
       "active": true,
       "hospitals": [
         "mawani"

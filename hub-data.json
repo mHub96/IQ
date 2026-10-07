@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-07T18:05:57.933Z",
+  "lastUpdated": "2026-10-07T18:07:44.941Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -35643,7 +35643,7 @@
           "date": "07/10/2026",
           "specCode": "GS",
           "name": "د. مصطفى محمد علي الديوان",
-          "VisitCount": 4,
+          "VisitCount": 3,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -38488,7 +38488,7 @@
           "date": "07/10/2026",
           "specCode": "Pe",
           "name": "د. لينا نجم عبد",
-          "VisitCount": 3,
+          "VisitCount": 1,
           "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0
         },
@@ -38796,7 +38796,7 @@
           "date": "07/10/2026",
           "specCode": "OR",
           "name": "د. محمد ناظم",
-          "VisitCount": 4,
+          "VisitCount": 3,
           "dutyTime": "",
           "dutySlot": 0,
           "timestamp": "19:38"
@@ -39031,7 +39031,7 @@
           "date": "07/10/2026",
           "specCode": "N",
           "name": "د. المصطفى محمد",
-          "VisitCount": 4,
+          "VisitCount": 2,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -39271,7 +39271,7 @@
           "date": "07/10/2026",
           "specCode": "US",
           "name": "د. حيدر علي",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -39382,8 +39382,8 @@
         "occupiedBeds": 9,
         "availableBeds": 0,
         "notes": "العناية المركزة ممتلئة بالكامل حالياً - لا توجد أسرة شاغرة",
-        "lastUpdated": "2026-10-07T17:58:16.639Z",
-        "updatedBy": "د. اديان محمد"
+        "lastUpdated": "2026-10-07T09:05:18.798Z",
+        "updatedBy": "د. آياد فالح"
       }
     },
     "mawani": {

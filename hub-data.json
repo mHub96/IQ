@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-07T05:52:34.044Z",
+  "lastUpdated": "2026-10-07T06:19:32.474Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -36863,10 +36863,11 @@
         {
           "date": "07/10/2026",
           "specCode": "REF",
-          "name": "د. منار عمار ناصر",
+          "name": "د. ارو",
           "VisitCount": 1,
           "dutyTime": "08:00AM - 08:00PM",
-          "dutySlot": 0
+          "dutySlot": 0,
+          "timestamp": "09:19"
         },
         {
           "date": "08/10/2026",

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-07T19:43:34.617Z",
+  "lastUpdated": "2026-10-07T19:43:56.314Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -47590,12 +47590,12 @@
         "user": "1234"
       },
       "icu": {
-        "totalBeds": 12,
-        "functionalBeds": 10,
-        "occupiedBeds": 6,
-        "availableBeds": 4,
+        "totalBeds": 0,
+        "functionalBeds": 0,
+        "occupiedBeds": 0,
+        "availableBeds": 0,
         "notes": "",
-        "lastUpdated": "2026-10-07T19:43:34.617Z",
+        "lastUpdated": "2026-10-07T19:43:56.314Z",
         "updatedBy": "مقيم التخدير"
       },
       "specialties": [
@@ -47935,7 +47935,8 @@
         }
       ],
       "names": [],
-      "schedule": []
+      "schedule": [],
+      "specialistSchedule": []
     }
   },
   "residents": [

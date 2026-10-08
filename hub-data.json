@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-08T06:59:41.144Z",
+  "lastUpdated": "2026-10-08T07:00:50.857Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20865,10 +20865,11 @@
         {
           "date": "08/10/2026",
           "specCode": "GS",
-          "name": "د. فاطمة فاضل كاظم",
+          "name": "د. خالد ابراهيم عبدالقادر",
           "VisitCount": 1,
           "dutyTime": "",
-          "dutySlot": 0
+          "dutySlot": 0,
+          "timestamp": "10:00"
         },
         {
           "date": "09/10/2026",

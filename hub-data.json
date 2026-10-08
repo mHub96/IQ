@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-08T06:18:49.430Z",
+  "lastUpdated": "2026-10-08T06:31:11.906Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -39376,6 +39376,13 @@
           "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0,
           "timestamp": "20:04"
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "GA",
+          "name": "د. ايات فيصل",
+          "timestamp": "09:31",
+          "VisitCount": 0
         }
       ],
       "rotationHeroesUrl": "",

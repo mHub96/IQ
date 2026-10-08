@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-08T20:48:05.721Z",
+  "lastUpdated": "2026-10-08T21:06:07.954Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -36461,7 +36461,7 @@
           "date": "08/10/2026",
           "specCode": "MF",
           "name": "د. تحسين فلاح",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -39286,7 +39286,7 @@
           "date": "08/10/2026",
           "specCode": "US",
           "name": "د. كرار حسن",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },

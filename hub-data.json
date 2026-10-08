@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-08T19:43:12.225Z",
+  "lastUpdated": "2026-10-08T19:44:23.440Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20618,7 +20618,7 @@
           "date": "08/10/2026",
           "specCode": "CT",
           "name": "د. منتظر صفاء ماجد",
-          "VisitCount": 5,
+          "VisitCount": 6,
           "dutyTime": "",
           "dutySlot": 0,
           "timestamp": "12:58"
@@ -20990,7 +20990,7 @@
           "date": "08/10/2026",
           "specCode": "ICU",
           "name": "د. سماء علي",
-          "VisitCount": 2,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -38812,7 +38812,7 @@
           "date": "08/10/2026",
           "specCode": "OR",
           "name": "د. علي مطشر ابو كحيله",
-          "VisitCount": 2,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },

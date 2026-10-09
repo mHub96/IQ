@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-09T16:11:43.221Z",
+  "lastUpdated": "2026-10-09T16:12:00.623Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -18,8 +18,8 @@
       "color": "#0f766e",
       "passwords": {
         "owner": "Mrj!",
-        "admin": "Iraqi*",
-        "anaesthesia": "ICU*",
+        "admin": "Iadmin",
+        "anaesthesia": "IICU",
         "user": "1234"
       },
       "specialties": [

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-09T12:11:50.762Z",
+  "lastUpdated": "2026-10-09T12:12:27.380Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -2080,7 +2080,9 @@
           "department": "A",
           "active": true,
           "hospitals": [
-            "iraqi"
+            "iraqi",
+            "basra",
+            "mawani"
           ]
         },
         {
@@ -24872,6 +24874,21 @@
           ]
         },
         {
+          "id": "res-0038",
+          "name": "د. فاطمة محمود",
+          "phone": "+9647719794237",
+          "spec": "A",
+          "tag": "A",
+          "dept": "A",
+          "department": "A",
+          "active": true,
+          "hospitals": [
+            "iraqi",
+            "basra",
+            "mawani"
+          ]
+        },
+        {
           "id": "res-0366",
           "name": "د. فرح رحيم",
           "phone": "+9647707376328",
@@ -40484,6 +40501,21 @@
           ]
         },
         {
+          "id": "res-0038",
+          "name": "د. فاطمة محمود",
+          "phone": "+9647719794237",
+          "spec": "A",
+          "tag": "A",
+          "dept": "A",
+          "department": "A",
+          "active": true,
+          "hospitals": [
+            "iraqi",
+            "basra",
+            "mawani"
+          ]
+        },
+        {
           "id": "res-0404",
           "name": "د. فراس عباس",
           "phone": "+9647706225649",
@@ -47263,54 +47295,6 @@
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
-        },
-        {
-          "date": "02/10/2026",
-          "specCode": "OP",
-          "name": "د. اياد فالح",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "03/10/2026",
-          "specCode": "OP",
-          "name": "د. آلاء إسماعيل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "04/10/2026",
-          "specCode": "OP",
-          "name": "د. مسره سعد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "05/10/2026",
-          "specCode": "OP",
-          "name": "د. آلاء إسماعيل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "06/10/2026",
-          "specCode": "OP",
-          "name": "د. حسين عويد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "07/10/2026",
-          "specCode": "OP",
-          "name": "د. مسره سعد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
         }
       ],
       "rotationHeroesUrl": "",
@@ -52279,7 +52263,9 @@
       "department": "A",
       "active": true,
       "hospitals": [
-        "iraqi"
+        "iraqi",
+        "basra",
+        "mawani"
       ]
     },
     {

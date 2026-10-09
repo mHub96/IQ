@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-09T14:56:01.199Z",
+  "lastUpdated": "2026-10-09T14:57:42.912Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22255,13 +22255,13 @@
         }
       ],
       "icu": {
-        "totalBeds": 0,
-        "functionalBeds": 0,
-        "occupiedBeds": 0,
-        "availableBeds": 0,
+        "totalBeds": 16,
+        "functionalBeds": 14,
+        "occupiedBeds": 12,
+        "availableBeds": 2,
         "notes": "حالة الاستقرار جيدة وتتوفر أدوية التخدير والمستهلكات بالكامل",
-        "lastUpdated": "2026-09-30T10:04:54.265Z",
-        "updatedBy": "د. صفا كاظم"
+        "lastUpdated": "2026-10-09T14:57:42.912Z",
+        "updatedBy": "د. فاطمة عباس"
       }
     },
     "basra": {

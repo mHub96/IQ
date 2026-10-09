@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-09T18:02:04.975Z",
+  "lastUpdated": "2026-10-09T19:18:57.811Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -37373,7 +37373,7 @@
           "date": "09/10/2026",
           "specCode": "M",
           "name": "د. علي اعتدال",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "08:00PM - 12:00AM",
           "dutySlot": 1
         },

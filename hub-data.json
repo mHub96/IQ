@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-09T14:55:30.860Z",
+  "lastUpdated": "2026-10-09T14:56:01.199Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -39317,13 +39317,13 @@
       "rotationHeroesUrl": "",
       "specialistSchedule": [],
       "icu": {
-        "totalBeds": 0,
-        "functionalBeds": 0,
-        "occupiedBeds": 0,
-        "availableBeds": 0,
+        "totalBeds": 10,
+        "functionalBeds": 8,
+        "occupiedBeds": 7,
+        "availableBeds": 1,
         "notes": "العناية المركزة ممتلئة بالكامل حالياً - لا توجد أسرة شاغرة",
-        "lastUpdated": "2026-09-30T10:05:11.898Z",
-        "updatedBy": "د. فاطمة عباس"
+        "lastUpdated": "2026-10-09T14:56:01.199Z",
+        "updatedBy": "د. زينب عبد الرزاق"
       }
     },
     "mawani": {

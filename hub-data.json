@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-09T12:39:20.928Z",
+  "lastUpdated": "2026-10-09T12:47:06.175Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -39342,7 +39342,7 @@
           "date": "09/10/2026",
           "specCode": "US",
           "name": "د. عبدالله جبار",
-          "VisitCount": 1,
+          "VisitCount": 3,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -47831,254 +47831,6 @@
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
-        },
-        {
-          "date": "01/10/2026",
-          "specCode": "AO",
-          "name": "ايهاب خضير",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "02/10/2026",
-          "specCode": "AO",
-          "name": "علي عبد الحسين",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "03/10/2026",
-          "specCode": "AO",
-          "name": "علي مكي كامل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "04/10/2026",
-          "specCode": "AO",
-          "name": "محمد عبد الحي",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "05/10/2026",
-          "specCode": "AO",
-          "name": "ايهاب خضير",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "06/10/2026",
-          "specCode": "AO",
-          "name": "علي عبد الحسين",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "07/10/2026",
-          "specCode": "AO",
-          "name": "علي مكي كامل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "08/10/2026",
-          "specCode": "AO",
-          "name": "محمد عبد الحي",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "09/10/2026",
-          "specCode": "AO",
-          "name": "ايهاب خضير",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "10/10/2026",
-          "specCode": "AO",
-          "name": "علي عبد الحسين",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "11/10/2026",
-          "specCode": "AO",
-          "name": "علي مكي كامل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "12/10/2026",
-          "specCode": "AO",
-          "name": "محمد عبد الحي",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "13/10/2026",
-          "specCode": "AO",
-          "name": "ايهاب خضير",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "14/10/2026",
-          "specCode": "AO",
-          "name": "علي عبد الحسين",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "15/10/2026",
-          "specCode": "AO",
-          "name": "علي مكي كامل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "16/10/2026",
-          "specCode": "AO",
-          "name": "محمد عبد الحي",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "17/10/2026",
-          "specCode": "AO",
-          "name": "ايهاب خضير",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "18/10/2026",
-          "specCode": "AO",
-          "name": "علي عبد الحسين",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "19/10/2026",
-          "specCode": "AO",
-          "name": "علي مكي كامل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "20/10/2026",
-          "specCode": "AO",
-          "name": "محمد عبد الحي",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "21/10/2026",
-          "specCode": "AO",
-          "name": "ايهاب خضير",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "22/10/2026",
-          "specCode": "AO",
-          "name": "علي عبد الحسين",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "23/10/2026",
-          "specCode": "AO",
-          "name": "علي مكي كامل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "24/10/2026",
-          "specCode": "AO",
-          "name": "محمد عبد الحي",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "25/10/2026",
-          "specCode": "AO",
-          "name": "ايهاب خضير",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "26/10/2026",
-          "specCode": "AO",
-          "name": "علي عبد الحسين",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "27/10/2026",
-          "specCode": "AO",
-          "name": "علي مكي كامل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "28/10/2026",
-          "specCode": "AO",
-          "name": "محمد عبد الحي",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "29/10/2026",
-          "specCode": "AO",
-          "name": "ايهاب خضير",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "30/10/2026",
-          "specCode": "AO",
-          "name": "علي عبد الحسين",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "31/10/2026",
-          "specCode": "AO",
-          "name": "محمد عبد الحي",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
         }
       ],
       "rotationHeroesUrl": "",
@@ -56226,7 +55978,6 @@
       "name_ar": "جراحة الجملة العصبية",
       "name_en": "Neurosurgery",
       "icon": "🧠",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56237,7 +55988,6 @@
       "name_ar": "جراحة الصدر و الاوعية الدموية",
       "name_en": "Cardiothoracic Surgery",
       "icon": "🫀",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56248,7 +55998,6 @@
       "name_ar": "الجراحة العامة",
       "name_en": "General Surgery",
       "icon": "🔪",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56259,7 +56008,6 @@
       "name_ar": "الكسور",
       "name_en": "Orthopaedics",
       "icon": "🦴",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56270,7 +56018,6 @@
       "name_ar": "جراحة المسالك البولية",
       "name_en": "Urosurgery",
       "icon": "🫘",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56281,7 +56028,6 @@
       "name_ar": "الأذن و الأنف و الحنجرة",
       "name_en": "ENT",
       "icon": "👂",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56292,7 +56038,6 @@
       "name_ar": "جراحة الوجه و الفكين",
       "name_en": "MaxilloFacial Surgery",
       "icon": "🦷",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56303,7 +56048,6 @@
       "name_ar": "العيون",
       "name_en": "Ophthalmology",
       "icon": "👁️",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56314,7 +56058,6 @@
       "name_ar": "طب الأطفال",
       "name_en": "Paediatrics",
       "icon": "👶",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56325,7 +56068,6 @@
       "name_ar": "الباطنية",
       "name_en": "Internal Medicine",
       "icon": "💊",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56336,7 +56078,6 @@
       "name_ar": "النسائية و التوليد",
       "name_en": "Gynecology",
       "icon": "🤰",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56347,7 +56088,6 @@
       "name_ar": "تخدير العناية المركزة",
       "name_en": "ICU Anaesthesia",
       "icon": "💉",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": "A",
       "acceptPool": [
@@ -56360,7 +56100,6 @@
       "name_ar": "تخدير العمليات",
       "name_en": "OT Anaesthesia",
       "icon": "💉",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": "A",
       "acceptPool": [
@@ -56373,7 +56112,6 @@
       "name_ar": "تخدير صالة الولادة",
       "name_en": "GYN Anaesthesia",
       "icon": "🤰",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": "A",
       "acceptPool": [
@@ -56386,7 +56124,6 @@
       "name_ar": "التخدير و العناية المركزة",
       "name_en": "Anaesthesia & Intensive Care",
       "icon": "💉",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56397,7 +56134,6 @@
       "name_ar": "الأشعة و السونار",
       "name_en": "Radiology",
       "icon": "🩻",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56408,7 +56144,6 @@
       "name_ar": "الوفيات",
       "name_en": "Death Certificates",
       "icon": "⚰️",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [
@@ -56447,7 +56182,6 @@
       "name_ar": "المعاون الاداري",
       "name_en": "Administrative Officer",
       "icon": "🧑",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56458,7 +56192,6 @@
       "name_ar": "طب الاورام",
       "name_en": "Oncology",
       "icon": "☢️",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56469,7 +56202,6 @@
       "name_ar": "طب امراض الكلى",
       "name_en": "Nephrology",
       "icon": "🧫",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56480,7 +56212,6 @@
       "name_ar": "طب الجملة العصبية",
       "name_en": "Neuromedicine",
       "icon": "🧠",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56491,7 +56222,6 @@
       "name_ar": "النفسية",
       "name_en": "Psychiatry",
       "icon": "🧠",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56502,7 +56232,6 @@
       "name_ar": "الجلدية",
       "name_en": "Dermatology",
       "icon": "🏥",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56513,7 +56242,6 @@
       "name_ar": "طب الطوارئ",
       "name_en": "Emergency Medicine",
       "icon": "🏥",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56524,7 +56252,6 @@
       "name_ar": "طب الأسرة",
       "name_en": "Family Medicine",
       "icon": "👨",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56535,7 +56262,6 @@
       "name_ar": "ممارسين",
       "name_en": "General Practitioner",
       "icon": "🏥",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56546,7 +56272,6 @@
       "name_ar": "طب الامراض القلبية",
       "name_en": "Cardiology",
       "icon": "🫀",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56557,7 +56282,6 @@
       "name_ar": "الجراحة التجميلية",
       "name_en": "Plastic Surgery",
       "icon": "🪡",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56568,7 +56292,6 @@
       "name_ar": "طب الامراض التنفسية",
       "name_en": "Respiratory Medicine",
       "icon": "🫁",
-      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -56579,8 +56302,67 @@
       "name_ar": "دوري احالات",
       "name_en": "Referrals",
       "icon": "🚑",
-      "prefix": "د. ",
       "color": "#0f766e",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "M_basra",
+      "name_ar": "الباطنية",
+      "name_en": "Internal Medicine",
+      "icon": "💊",
+      "color": "#a1e972",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "OR_basra",
+      "name_ar": "الكسور",
+      "name_en": "Orthopaedics",
+      "icon": "🦴",
+      "color": "#ff0000",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "MF_basra",
+      "name_ar": "جراحة الوجه و الفكين",
+      "name_en": "MaxilloFacial Surgery",
+      "icon": "🦷",
+      "color": "#d600af",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "NS_iraqi",
+      "name_ar": "جراحة الجملة العصبية",
+      "name_en": "Neurosurgery",
+      "icon": "🧠",
+      "color": "#fea101",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "CT_iraqi",
+      "name_ar": "جراحة الصدر و الاوعية الدموية",
+      "name_en": "Cardiothoracic Surgery",
+      "icon": "🫀",
+      "color": "#e05910",
+      "parentSpec": null,
+      "acceptPool": [],
+      "enabled": true
+    },
+    {
+      "id": "R_iraqi",
+      "name_ar": "الأشعة و السونار",
+      "name_en": "Radiology",
+      "icon": "🩻",
+      "color": "#6700e6",
       "parentSpec": null,
       "acceptPool": [],
       "enabled": true

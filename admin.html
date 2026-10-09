@@ -1249,6 +1249,15 @@
                     <input type="url" id="hosp-setting-heroes-url" class="input-field font-mono text-xs" placeholder="https://... (اتركه فارغاً لإظهار شارة SOON)" dir="ltr" />
                     <p class="text-[11px] text-slate-400 mt-1">إذا تُرك فارغاً، سيظهر زر Rotation Heroes في جدول الخفارات مع شارة "SOON" ويكون معطلاً.</p>
                 </div>
+                <!-- Rotation Heroes Click Threshold (Owner Only) -->
+                <div id="hosp-owner-heroes-clicks-container" class="p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30">
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1 flex items-center justify-between">
+                        <span><i class="fas fa-hand-pointer text-sky-600 dark:text-sky-400 ml-1"></i> عدد ضغطات شعار المستشفى لتفعيل الزر</span>
+                        <span id="hosp-heroes-clicks-badge" class="text-[10px] text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/40 px-2 py-0.5 rounded-full font-semibold">صلاحية المالك 👑</span>
+                    </label>
+                    <input type="number" id="hosp-setting-heroes-clicks" class="input-field font-mono text-xs" min="0" max="25" placeholder="5 (ضع 0 لجعله مفعلاً وظاهراً مباشرة للجميع)" dir="ltr" />
+                    <p class="text-[11px] text-slate-400 mt-1">اضبط عدد المرات المطلوبة للنقر على شعار المستشفى لإظهار الزر. إذا وضعته <strong>0</strong>، فسيكون الزر مفعلاً وظاهراً للجميع فور فتح الصفحة دون أي نقرات سرية.</p>
+                </div>
                 <!-- Passwords Section (Owner Only) -->
                 <div id="hosp-owner-passwords-container">
                     <div class="p-3 mb-2 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
@@ -1310,20 +1319,13 @@
                     <i class="fas fa-download text-emerald-600 dark:text-emerald-400"></i>
                     <span>تنزيل نسخة احتياطية (JSON)</span>
                 </h4>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div class="grid grid-cols-1 gap-2.5">
                     <button type="button" onclick="exportHospitalBackupFile()" class="p-3 rounded-xl border border-emerald-200 dark:border-emerald-800/80 bg-white dark:bg-slate-800 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/40 text-right transition flex items-center justify-between group shadow-xs">
                         <div>
                             <div class="text-xs font-black text-emerald-800 dark:text-emerald-300">نسخة المستشفى الحالي</div>
-                            <div class="text-[10px] text-slate-500 mt-0.5">التخصصات، المقيمين، والهيكلية</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">التخصصات، المقيمين، وهيكلية المستشفى الحالي</div>
                         </div>
                         <i class="fas fa-hospital text-emerald-600 text-lg group-hover:scale-110 transition-transform"></i>
-                    </button>
-                    <button type="button" onclick="exportFullSystemBackupFile()" class="p-3 rounded-xl border border-teal-200 dark:border-teal-800/80 bg-white dark:bg-slate-800 hover:bg-teal-50/60 dark:hover:bg-teal-950/40 text-right transition flex items-center justify-between group shadow-xs">
-                        <div>
-                            <div class="text-xs font-black text-teal-800 dark:text-teal-300">نسخة المنظومة الشاملة</div>
-                            <div class="text-[10px] text-slate-500 mt-0.5">كافة المستشفيات والبيانات العامة</div>
-                        </div>
-                        <i class="fas fa-network-wired text-teal-600 text-lg group-hover:scale-110 transition-transform"></i>
                     </button>
                 </div>
             </div>
@@ -1334,21 +1336,18 @@
                     <i class="fas fa-upload text-blue-600 dark:text-blue-400"></i>
                     <span>استعادة من ملف نسخة احتياطية (JSON)</span>
                 </h4>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div class="grid grid-cols-1 gap-2.5">
                     <button type="button" onclick="triggerRestoreHospitalFilePicker()" class="p-3 rounded-xl border-2 border-dashed border-blue-300 dark:border-blue-700 hover:border-blue-500 bg-white dark:bg-slate-800 text-xs font-bold text-blue-700 dark:text-blue-300 text-right transition flex items-center justify-between group shadow-xs">
                         <div>
                             <div class="text-xs font-black text-blue-800 dark:text-blue-300">استعادة المستشفى الحالي</div>
-                            <div class="text-[10px] text-slate-500 mt-0.5">تخصصات ومقيمي المستشفى الحالي</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">تخصصات ومقيمي وهيكلية المستشفى الحالي</div>
                         </div>
                         <i class="fas fa-hospital text-blue-600 text-lg group-hover:scale-110 transition-transform"></i>
                     </button>
-                    <button type="button" onclick="triggerRestoreFullSystemFilePicker()" class="p-3 rounded-xl border-2 border-dashed border-indigo-300 dark:border-indigo-700 hover:border-indigo-500 bg-white dark:bg-slate-800 text-xs font-bold text-indigo-700 dark:text-indigo-300 text-right transition flex items-center justify-between group shadow-xs">
-                        <div>
-                            <div class="text-xs font-black text-indigo-800 dark:text-indigo-300">استعادة المنظومة الشاملة 👑</div>
-                            <div class="text-[10px] text-slate-500 mt-0.5">كافة المستشفيات والجداول والطوارئ</div>
-                        </div>
-                        <i class="fas fa-network-wired text-indigo-600 text-lg group-hover:scale-110 transition-transform"></i>
-                    </button>
+                </div>
+                <div class="text-[11px] text-slate-400 dark:text-slate-500 flex items-center gap-1.5 px-1">
+                    <i class="fas fa-crown text-amber-500"></i>
+                    <span>ملاحظة للمالك: النسخ الاحتياطي الشامل لكامل المنظومة متاح في صفحة الواجهة الرئيسية (Hub).</span>
                 </div>
             </div>
 
@@ -3614,6 +3613,8 @@
             const passLocked = document.getElementById('hosp-admin-passwords-locked');
             const heroesInput = document.getElementById('hosp-setting-heroes-url');
             const heroesBadge = document.getElementById('hosp-heroes-badge');
+            const clicksInput = document.getElementById('hosp-setting-heroes-clicks');
+            const clicksBadge = document.getElementById('hosp-heroes-clicks-badge');
 
             if (heroesInput) {
                 heroesInput.value = currentHospital.rotationHeroesUrl || '';
@@ -3623,6 +3624,18 @@
                 } else {
                     heroesInput.setAttribute('disabled', 'true');
                     if (heroesBadge) heroesBadge.textContent = 'للمالك فقط 🔒';
+                }
+            }
+
+            if (clicksInput) {
+                const currentClicks = (currentHospital.heroesUnlockClicks !== undefined) ? currentHospital.heroesUnlockClicks : 5;
+                clicksInput.value = currentClicks;
+                if (isOwner) {
+                    clicksInput.removeAttribute('disabled');
+                    if (clicksBadge) clicksBadge.textContent = 'صلاحية المالك 👑';
+                } else {
+                    clicksInput.setAttribute('disabled', 'true');
+                    if (clicksBadge) clicksBadge.textContent = 'للمالك فقط 🔒';
                 }
             }
 
@@ -3677,6 +3690,9 @@
             if (Hub.auth.isOwner()) {
                 const heroesUrl = (document.getElementById('hosp-setting-heroes-url')?.value || '').trim();
                 currentHospital.rotationHeroesUrl = heroesUrl;
+                const rawClicks = document.getElementById('hosp-setting-heroes-clicks')?.value;
+                const clicksVal = rawClicks !== undefined && rawClicks !== '' ? Math.max(0, parseInt(rawClicks, 10)) : 5;
+                currentHospital.heroesUnlockClicks = isNaN(clicksVal) ? 5 : clicksVal;
             }
 
             currentHospital.name_ar = nameAr;

@@ -1239,6 +1239,9 @@
             <button type="button" class="owner-chip-btn text-white" style="background:linear-gradient(135deg,#7c3aed,#9333ea);" onclick="openGlobalSpecialtiesModal()">
                 <i class="fas fa-crown text-amber-300"></i> مستودع التخصصات العام 👑
             </button>
+            <button type="button" class="owner-chip-btn text-white" style="background:linear-gradient(135deg,#0d9488,#0f766e);" onclick="openFullSystemBackupModal()">
+                <i class="fas fa-database text-amber-300"></i> النسخ الاحتياطي الشامل 👑
+            </button>
             <button type="button" class="owner-chip-btn text-white" style="background:linear-gradient(135deg,#d97706,#b45309);" onclick="openAllPasswordsModalNav()">
                 <i class="fas fa-key"></i> تعديل كلمات المرور
             </button>
@@ -1756,6 +1759,79 @@
         </div>
     </div>
 
+    <!-- FULL SYSTEM BACKUP & RESTORE MODAL (Owner Exclusive) -->
+    <div id="full-system-backup-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width:480px; text-align:right;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:40px; height:40px; border-radius:12px; background:rgba(13,148,136,0.15); display:flex; align-items:center; justify-content:center; color:#0d9488; font-size:1.25rem;">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size:1.15rem; font-weight:800; margin:0; color:#1e293b;" class="dark:text-white">النسخ الاحتياطي الشامل للمنظومة</h3>
+                        <span style="font-size:0.75rem; color:#b45309; font-weight:700;"><i class="fas fa-crown text-amber-500 ml-1"></i> صلاحية المالك حصراً</span>
+                    </div>
+                </div>
+                <button type="button" onclick="closeFullSystemBackupModal()" style="background:none; border:none; font-size:1.2rem; color:#94a3b8; cursor:pointer;" aria-label="إغلاق">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <p style="font-size:0.8rem; color:#64748b; margin-bottom:16px; line-height:1.5;">
+                تنزيل واستعادة النسخة الاحتياطية الشاملة لكامل المنظومة (كافة المستشفيات، التخصصات، الأطباء، جداول الخفارات، بيانات طوارئ ER، والإعدادات).
+            </p>
+
+            <!-- Export Full System Card -->
+            <div style="background:rgba(241,245,249,0.7); border:1px solid #cbd5e1; border-radius:16px; padding:14px; margin-bottom:12px;">
+                <h4 style="font-size:0.8rem; font-weight:800; color:#1e293b; margin:0 0 10px; display:flex; align-items:center; gap:6px;">
+                    <i class="fas fa-download text-teal-600"></i>
+                    <span>تنزيل النسخة الاحتياطية الشاملة</span>
+                </h4>
+                <button type="button" onclick="exportFullSystemBackupFile()" style="width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(13,148,136,0.3); background:#ffffff; color:#0f766e; font-weight:800; font-size:0.82rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" class="hover:bg-teal-50 transition shadow-xs">
+                    <div style="text-align:right;">
+                        <div style="font-size:0.85rem; font-weight:800;">نسخة المنظومة الشاملة (JSON)</div>
+                        <div style="font-size:0.7rem; color:#64748b; margin-top:2px;">كافة المستشفيات والجداول وإعدادات الطوارئ</div>
+                    </div>
+                    <i class="fas fa-network-wired text-lg text-teal-600"></i>
+                </button>
+            </div>
+
+            <!-- Restore Full System Card -->
+            <div style="background:rgba(241,245,249,0.7); border:1px solid #cbd5e1; border-radius:16px; padding:14px; margin-bottom:16px;">
+                <h4 style="font-size:0.8rem; font-weight:800; color:#1e293b; margin:0 0 10px; display:flex; align-items:center; gap:6px;">
+                    <i class="fas fa-upload text-indigo-600"></i>
+                    <span>استعادة المنظومة من ملف نسخة احتياطية</span>
+                </h4>
+                <button type="button" onclick="triggerRestoreFullSystemFilePicker()" style="width:100%; padding:12px 14px; border-radius:12px; border:2px dashed rgba(99,102,241,0.4); background:#ffffff; color:#4338ca; font-weight:800; font-size:0.82rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" class="hover:bg-indigo-50 transition shadow-xs">
+                    <div style="text-align:right;">
+                        <div style="font-size:0.85rem; font-weight:800;">استعادة المنظومة الشاملة 👑</div>
+                        <div style="font-size:0.7rem; color:#64748b; margin-top:2px;">استعادة كاملة لقاعدة البيانات والمنظومة</div>
+                    </div>
+                    <i class="fas fa-cloud-arrow-up text-lg text-indigo-600"></i>
+                </button>
+            </div>
+
+            <!-- Local Safety Snapshots Section -->
+            <div style="background:rgba(254,243,199,0.4); border:1px solid rgba(245,158,11,0.3); border-radius:14px; padding:12px; margin-bottom:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <span style="font-size:0.78rem; font-weight:800; color:#92400e; display:flex; align-items:center; gap:6px;">
+                        <i class="fas fa-shield-halved text-amber-600"></i>
+                        <span>النسخ الآمنة التلقائية الحديثة (Snapshots)</span>
+                    </span>
+                </div>
+                <div id="safety-snapshots-list" style="font-size:0.72rem; color:#78350f;">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end;">
+                <button type="button" onclick="closeFullSystemBackupModal()" class="ios-btn secondary" style="padding:8px 18px; font-size:0.8rem;">
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="./hub-core.js"></script>
     <script src="./nav-component.js"></script>
@@ -2094,9 +2170,9 @@
             let grantHospitals = [];
             if (res.role === 'owner') {
                 grantRole = targetRole === 'owner' ? 'owner' : targetRole;
-                grantHospitals = (grantRole === 'owner') ? ['*'] : [currentActive];
+                grantHospitals = (grantRole === 'owner') ? ['*'] : ((res.adminHospitals && res.adminHospitals.length > 0) ? res.adminHospitals : ['*']);
             } else if (grantRole === 'anaesthesia') {
-                grantHospitals = (res.adminHospitals && res.adminHospitals.length > 0 && !res.adminHospitals.includes('*'))
+                grantHospitals = (res.adminHospitals && res.adminHospitals.length > 0)
                     ? res.adminHospitals
                     : [currentActive];
             } else {
@@ -2110,10 +2186,11 @@
             renderHubDashboard();
             closeRoleSwitcherModal();
             const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
+            const isGlobal = grantHospitals.includes('*');
             const titles = {
                 owner: 'مالك المنظومة 👑',
-                admin: `مدير مستشفى (${hName || 'المستشفى'}) 🛡️`,
-                anaesthesia: `مقيم تخدير (${hName || 'العناية'}) 💉`,
+                admin: isGlobal ? 'المدير العام (كافة المستشفيات) 👑' : `مدير مستشفى (${hName || 'المستشفى'}) 🛡️`,
+                anaesthesia: isGlobal ? 'مقيم التخدير العام (كافة المستشفيات) 💉' : `مقيم تخدير (${hName || 'العناية'}) 💉`,
                 user: 'مستخدم عادي 👨‍⚕️'
             };
             showToast(`تم التبديل بنجاح إلى: ${titles[grantRole] || grantRole}`, 'success');
@@ -2142,13 +2219,15 @@
             } else if (isAdmin) {
                 pill.className = 'ios-role-pill admin';
                 icon.className = 'fas fa-shield-halved';
+                const isGlobal = Hub.auth.getAdminHospitalIds().includes('*');
                 const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : 'مدير';
-                text.textContent = hName.length > 16 ? 'مدير' : hName;
+                text.textContent = isGlobal ? 'المدير العام 🛡️' : (hName.length > 16 ? 'مدير' : hName);
             } else if (role === 'anaesthesia') {
                 pill.className = 'ios-role-pill anaesthesia';
                 icon.className = 'fas fa-syringe';
+                const isGlobal = Hub.auth.getAdminHospitalIds().includes('*');
                 const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
-                text.textContent = hName ? `تخدير (${hName})` : 'مقيم تخدير';
+                text.textContent = isGlobal ? 'مقيم التخدير العام 💉' : (hName ? `تخدير (${hName})` : 'مقيم تخدير');
             } else if (Hub.auth.isLoggedIn()) {
                 pill.className = 'ios-role-pill user';
                 icon.className = 'fas fa-user-check';
@@ -2519,6 +2598,201 @@
             a.click();
             a.remove();
             showToast(`تم تنزيل النسخة الاحتياطية لمستشفى (${hospName}) بنجاح`, 'success');
+        }
+
+        // ============================================================
+        // FULL SYSTEM BACKUP & RESTORE (OWNER EXCLUSIVE)
+        // ============================================================
+        function openFullSystemBackupModal() {
+            if (!Hub.auth.isOwner()) {
+                showToast('النسخ الاحتياطي الشامل مخصص للمالك (Owner) حصراً 👑', 'error');
+                return;
+            }
+            const modal = document.getElementById('full-system-backup-modal');
+            if (modal) {
+                modal.classList.add('active');
+                renderSafetySnapshotsList();
+            }
+        }
+
+        function closeFullSystemBackupModal() {
+            const modal = document.getElementById('full-system-backup-modal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function renderSafetySnapshotsList() {
+            const listEl = document.getElementById('safety-snapshots-list');
+            if (!listEl) return;
+            const snaps = Hub.getSafetySnapshots ? Hub.getSafetySnapshots() : [];
+            if (!snaps || snaps.length === 0) {
+                listEl.innerHTML = '<span class="text-slate-400">لا توجد نسخ أمان محلية بعد. تُحفظ تلقائياً مع كل عملية حفظ.</span>';
+                return;
+            }
+            listEl.innerHTML = snaps.map((s, idx) => `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px dashed rgba(245,158,11,0.25);">
+                    <div>
+                        <div style="font-weight:700;">نسخة #${idx + 1} · ${new Date(s.timestamp).toLocaleString('ar-IQ')}</div>
+                        <div style="font-size:0.68rem; color:#64748b;">${s.note || 'حفظ تلقائي'}</div>
+                    </div>
+                    <button type="button" onclick="restoreSnapshotIndex(${idx + 1})" class="ios-btn secondary" style="padding:3px 8px; font-size:0.7rem; color:#d97706;">استعادة</button>
+                </div>
+            `).join('');
+        }
+
+        async function restoreSnapshotIndex(idx) {
+            if (!confirm(`هل أنت متأكد من استعادة النسخة الآمنة #${idx}؟ ستتم إعادة قاعدة البيانات لحالتها عند هذا الحفظ.`)) return;
+            try {
+                showToast('جارٍ استعادة النسخة الآمنة...', 'info');
+                await Hub.restoreSafetySnapshot(idx);
+                showToast('تمت استعادة النسخة الآمنة بنجاح ✨', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } catch (e) {
+                showToast(e.message || 'فشلت الاستعادة', 'error');
+            }
+        }
+
+        function exportFullSystemBackupFile() {
+            if (!Hub.auth.isOwner()) {
+                showToast('النسخ الاحتياطي الشامل للمنظومة مخصص للمالك (Owner) حصراً', 'error');
+                return;
+            }
+            const dbObj = currentDb;
+            if (!dbObj || !dbObj.hospitals) {
+                showToast('قاعدة البيانات غير محملة بعد', 'error');
+                return;
+            }
+
+            let emergencyState = null;
+            try {
+                const rawEm = localStorage.getItem('hosp_hub_emergency_state_v3');
+                if (rawEm) emergencyState = JSON.parse(rawEm);
+            } catch (e) {}
+
+            const emergencyAllocations = {};
+            const emergencySchedules = {};
+            const allLocalStorage = {};
+
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (!key) continue;
+                    const val = localStorage.getItem(key);
+                    if (key.startsWith('hosp_hub_emergency_alloc_')) {
+                        try { emergencyAllocations[key.replace('hosp_hub_emergency_alloc_', '')] = JSON.parse(val); } catch (e) { emergencyAllocations[key.replace('hosp_hub_emergency_alloc_', '')] = val; }
+                    } else if (key.startsWith('hosp_hub_emergency_sched_')) {
+                        try { emergencySchedules[key.replace('hosp_hub_emergency_sched_', '')] = JSON.parse(val); } catch (e) { emergencySchedules[key.replace('hosp_hub_emergency_sched_', '')] = val; }
+                    } else if (key.startsWith('hosp_hub_') && key !== 'hosp_hub_token') {
+                        allLocalStorage[key] = val;
+                    }
+                }
+            } catch (e) {}
+
+            const fullBackupData = {
+                format: 'hosp_hub_full_system_backup',
+                version: '3.5',
+                exportedAt: new Date().toISOString(),
+                exportDateFormatted: new Date().toLocaleString('ar-IQ'),
+                hubDatabase: dbObj,
+                emergencyState: emergencyState,
+                emergencyAllocations: emergencyAllocations,
+                emergencySchedules: emergencySchedules,
+                allLocalStorage: allLocalStorage
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullBackupData, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            const dateSlug = new Date().toISOString().slice(0, 10);
+            a.setAttribute("download", `hosp-hub-FULL-SYSTEM-backup-${dateSlug}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            showToast('تم تنزيل النسخة الاحتياطية الشاملة لكافة بيانات ومستشفيات المنظومة بنجاح ✓', 'success');
+        }
+
+        function triggerRestoreFullSystemFilePicker() {
+            if (!Hub.auth.isOwner()) {
+                showToast('الاستعادة الشاملة للمنظومة مخصصة للمالك (Owner) حصراً', 'error');
+                return;
+            }
+            let input = document.getElementById('full-system-restore-file-input');
+            if (!input) {
+                input = document.createElement('input');
+                input.type = 'file';
+                input.id = 'full-system-restore-file-input';
+                input.accept = '.json,application/json';
+                input.style.display = 'none';
+                input.onchange = handleFullSystemBackupFileInput;
+                document.body.appendChild(input);
+            }
+            input.value = '';
+            input.click();
+        }
+
+        async function handleFullSystemBackupFileInput(event) {
+            const input = (event && event.target) || document.getElementById('full-system-restore-file-input');
+            const file = input && input.files && input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    await promptAndExecuteFullSystemRestore(parsed);
+                    if (input) input.value = '';
+                } catch (err) {
+                    console.error('Full system backup restore error:', err);
+                    alert('فشل قراءة الملف: ملف JSON غير صالح أو به أخطاء.');
+                    if (input) input.value = '';
+                }
+            };
+            reader.readAsText(file, 'utf-8');
+        }
+
+        async function promptAndExecuteFullSystemRestore(parsed) {
+            if (!Hub.auth.isOwner()) {
+                showToast('الاستعادة الشاملة للمنظومة مخصصة للمالك (Owner) حصراً', 'error');
+                return;
+            }
+
+            const dbObj = (parsed && parsed.hubDatabase) ? parsed.hubDatabase : (parsed && parsed.hospitals ? parsed : null);
+            if (!dbObj || !dbObj.hospitals) {
+                alert('الملف المحدد لا يحتوي على بيانات صالحة للاستعادة الشاملة للمنظومة.');
+                return;
+            }
+
+            const hospCount = Object.keys(dbObj.hospitals || {}).length;
+            const hospNames = Object.values(dbObj.hospitals || {}).map(h => h.name_ar || h.hospitalName).join('، ');
+            let totalDocs = 0;
+            Object.values(dbObj.hospitals || {}).forEach(h => {
+                totalDocs += (h.names || []).length;
+            });
+
+            const backupDate = parsed.exportDateFormatted || parsed.exportedAt || 'غير محدد';
+            const hasEmergency = !!(parsed.emergencyState || parsed.emergencySchedules);
+
+            const confirmMsg = `تأكيد استعادة النسخة الاحتياطية الشاملة لكامل المنظومة:\n\n` +
+                `• تاريخ النسخة: ${backupDate}\n` +
+                `• عدد المستشفيات: ${hospCount} (${hospNames})\n` +
+                `• إجمالي الأطباء: ${totalDocs} طبيب\n` +
+                `• جداول الخفارات لكافة المستشفيات: مشمولة بالكامل ✓\n` +
+                (hasEmergency ? `• بيانات وإعدادات موقع الطوارئ (ER): متوفرة ومشمولة بالكامل ✓\n` : '') +
+                `\nتحذير: هذه العملية ستعيد الموقع بالكامل بكافة مستشفياته وتخصصاته وأطبائه إلى حالتها في النسخة الاحتياطية.\n\n` +
+                `هل ترغب بالمتابعة وتطبيق الاستعادة الشاملة الآن؟`;
+
+            if (!confirm(confirmMsg)) return;
+
+            try {
+                showToast('جارٍ تطبيق الاستعادة الشاملة وحفظ البيانات في السيرفر...', 'info');
+                await Hub.restoreFullDatabase(parsed);
+                showToast('تمت استعادة كافة بيانات وإعدادات المنظومة بالكامل بنجاح ✨', 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1200);
+            } catch (err) {
+                console.error(err);
+                alert('خطأ أثناء الاستعادة الشاملة: ' + (err.message || err));
+            }
         }
 
         // Collapse card when it loses focus (clicking outside or on another card)

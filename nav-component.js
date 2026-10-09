@@ -52,18 +52,20 @@
             badgeIcon = 'fa-crown';
             badgeText = '👑 المالك';
             badgeTitle = 'صلاحيات المالك الكاملة مفعلة';
-        } else if (role === 'admin' && isCurrentHospAdmin) {
+        } else if (role === 'admin' && (isCurrentHospAdmin || (window.Hub.auth.getAdminHospitalIds && window.Hub.auth.getAdminHospitalIds().includes('*')))) {
             const adminHospName = window.Hub.auth.getAdminHospitalName ? window.Hub.auth.getAdminHospitalName() : '';
+            const isGlobal = window.Hub.auth.getAdminHospitalIds ? window.Hub.auth.getAdminHospitalIds().includes('*') : false;
             badgeClass = 'admin';
             badgeIcon = 'fa-shield-halved';
-            badgeText = (adminHospName && adminHospName !== 'جميع المستشفيات') ? `🛡️ مدير (${adminHospName})` : '🛡️ مدير النظام';
-            badgeTitle = 'صلاحيات المدير مفعلة لهذا المستشفى (اضغط للترقية إلى المالك)';
+            badgeText = isGlobal ? '👑 المدير العام' : ((adminHospName && adminHospName !== 'جميع المستشفيات') ? `🛡️ مدير (${adminHospName})` : '🛡️ مدير النظام');
+            badgeTitle = isGlobal ? 'صلاحيات المدير العام لكافة المستشفيات مفعلة' : 'صلاحيات المدير مفعلة لهذا المستشفى (اضغط للترقية إلى المالك)';
         } else if (role === 'anaesthesia') {
             const adminHospName = window.Hub.auth.getAdminHospitalName ? window.Hub.auth.getAdminHospitalName() : '';
+            const isGlobal = window.Hub.auth.getAdminHospitalIds ? window.Hub.auth.getAdminHospitalIds().includes('*') : false;
             badgeClass = 'anaesthesia';
             badgeIcon = 'fa-syringe';
-            badgeText = (adminHospName && adminHospName !== 'جميع المستشفيات') ? `💉 مقيم تخدير (${adminHospName})` : '💉 مقيم تخدير (العناية)';
-            badgeTitle = 'صلاحية تعديل موقف أسرة العناية المركزة مفعلة (اضغط للترقية)';
+            badgeText = isGlobal ? '💉 مقيم التخدير العام' : ((adminHospName && adminHospName !== 'جميع المستشفيات') ? `💉 مقيم تخدير (${adminHospName})` : '💉 مقيم تخدير (العناية)');
+            badgeTitle = isGlobal ? 'صلاحية تعديل موقف أسرة العناية المركزة لكافة المستشفيات مفعلة' : 'صلاحية تعديل موقف أسرة العناية المركزة مفعلة (اضغط للترقية)';
         } else if (isLoggedIn) {
             badgeClass = 'user';
             badgeIcon = 'fa-user';
@@ -788,7 +790,7 @@
         if (grantRole === 'owner') {
             grantHospitals = ['*'];
         } else if (grantRole === 'anaesthesia') {
-            grantHospitals = (verify.adminHospitals && verify.adminHospitals.length > 0 && !verify.adminHospitals.includes('*'))
+            grantHospitals = (verify.adminHospitals && verify.adminHospitals.length > 0)
                 ? verify.adminHospitals
                 : [currentActive];
         } else {
@@ -803,10 +805,11 @@
         closeRoleSwitcherModal();
 
         const hName = (window.Hub && window.Hub.auth.getAdminHospitalName) ? window.Hub.auth.getAdminHospitalName() : '';
+        const isGlobal = grantHospitals.includes('*');
         let roleTitle = 'مستخدم عادي 👨‍⚕️';
         if (grantRole === 'owner') roleTitle = 'مالك المنظومة 👑';
-        else if (grantRole === 'admin') roleTitle = `مدير مستشفى (${hName || 'المستشفى'}) 🛡️`;
-        else if (grantRole === 'anaesthesia') roleTitle = `مقيم تخدير (${hName || 'العناية'}) 💉`;
+        else if (grantRole === 'admin') roleTitle = isGlobal ? 'المدير العام (كافة المستشفيات) 👑' : `مدير مستشفى (${hName || 'المستشفى'}) 🛡️`;
+        else if (grantRole === 'anaesthesia') roleTitle = isGlobal ? 'مقيم التخدير العام (كافة المستشفيات) 💉' : `مقيم تخدير (${hName || 'العناية'}) 💉`;
         showNavToast(`تم التبديل بنجاح إلى: ${roleTitle}`, 'success');
 
         if (pendingAdminUrl) {

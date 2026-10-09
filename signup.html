@@ -709,8 +709,10 @@
                 holder.style.color = '#94a3b8';
                 targetWrap.style.display = 'none';
                 selectedOldResidentName = null;
-                document.getElementById('name-input-label').textContent = 'اسم المقيم الخفر الجديد:';
-                document.getElementById('update-btn-text').textContent = 'تثبيت الخفارة';
+                const labelEl = document.getElementById('name-input-label');
+                if (labelEl) labelEl.textContent = 'اسم المقيم الخفر الجديد:';
+                const btnTextEl = document.getElementById('update-btn-text');
+                if (btnTextEl) btnTextEl.textContent = 'تثبيت الخفارة';
 
             } else if (matchingDuties.length === 1) {
                 // Exactly one resident on duty
@@ -719,8 +721,10 @@
                 holder.style.color = '#0f766e';
                 targetWrap.style.display = 'none';
                 selectedOldResidentName = resident.name;
-                document.getElementById('name-input-label').textContent = `اسم المقيم البديل (ليحل محل ${resident.name}):`;
-                document.getElementById('update-btn-text').textContent = `تأكيد التبديل مع ${resident.name}`;
+                const labelEl = document.getElementById('name-input-label');
+                if (labelEl) labelEl.textContent = `اسم المقيم البديل (ليحل محل ${resident.name}):`;
+                const btnTextEl = document.getElementById('update-btn-text');
+                if (btnTextEl) btnTextEl.textContent = `تأكيد التبديل مع ${resident.name}`;
 
             } else {
                 // More than one resident on duty: User selects which one to switch with!
@@ -733,8 +737,10 @@
                 ).join('');
 
                 selectedOldResidentName = targetSelect.value;
-                document.getElementById('name-input-label').textContent = `اسم المقيم البديل (ليحل محل ${selectedOldResidentName}):`;
-                document.getElementById('update-btn-text').textContent = `تأكيد التبديل مع ${selectedOldResidentName}`;
+                const labelEl = document.getElementById('name-input-label');
+                if (labelEl) labelEl.textContent = `اسم المقيم البديل (ليحل محل ${selectedOldResidentName}):`;
+                const btnTextEl = document.getElementById('update-btn-text');
+                if (btnTextEl) btnTextEl.textContent = `تأكيد التبديل مع ${selectedOldResidentName}`;
             }
 
             nameInput.focus();
@@ -892,7 +898,7 @@
             const formattedName = (name.startsWith('د.') || name.startsWith('د ')) ? name : `د. ${name}`;
 
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> جاري حفظ التبديل في السيرفر...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> <span id="update-btn-text">جاري حفظ التبديل في السيرفر...</span>';
 
             try {
                 await Hub.exchangeDuty(hospId, specId, formattedName, medDate, selectedOldResidentName);
@@ -901,18 +907,21 @@
                 msg.innerHTML = `<span style="color:#10b981;font-weight:700;">✅ تم تثبيت تبديل الخفارة بنجاح بتاريخ ${medDate} إلى: ${formattedName}</span>`;
                 showToast(`تم تبديل الخفارة بنجاح: ${formattedName}`, 'success');
 
+                btn.innerHTML = '<i class="fas fa-check-circle ml-2"></i> <span id="update-btn-text">تم التثبيت بنجاح!</span>';
+
                 setTimeout(() => {
-                    inspectDutyAndRender();
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-check-circle"></i> <span>تأكيد وتثبيت تبديل الخفارة</span>';
-                }, 1200);
+                    btn.innerHTML = '<i class="fas fa-check-circle ml-1"></i> <span id="update-btn-text">تأكيد وتثبيت تبديل الخفارة</span>';
+                    inspectDutyAndRender();
+                }, 1000);
 
             } catch (err) {
                 console.error(err);
                 msg.innerHTML = `<span style="color:#ef4444;font-weight:700;">❌ فشل تبديل الخفارة: ${err.message || ''}</span>`;
                 showToast(err.message || 'فشل حفظ الخفر على السيرفر', 'error');
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-check-circle"></i> <span>تأكيد وتثبيت تبديل الخفارة</span>';
+                btn.innerHTML = '<i class="fas fa-check-circle ml-1"></i> <span id="update-btn-text">تأكيد وتثبيت تبديل الخفارة</span>';
+                inspectDutyAndRender();
             }
         }
 

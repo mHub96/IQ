@@ -2043,7 +2043,7 @@
             if (activationConfirmationTimer) { clearTimeout(activationConfirmationTimer); activationConfirmationTimer = null; }
         }
 
-        function activateSecretButtons() {
+        function activateSecretButtons(silent = false) {
             if (symbolUnlocked) return;
             symbolUnlocked = true;
             const hospitalSymbol = document.getElementById('hospital-symbol');
@@ -2051,20 +2051,29 @@
             const btnExchange = document.getElementById('btn-duty-exchange');
 
             if (hospitalSymbol) {
-                hospitalSymbol.classList.add('shimmer-golden');
-                hospitalSymbol.addEventListener('animationend', function onAnimationEnd() {
-                    hospitalSymbol.classList.remove('shimmer-golden');
+                if (!silent) {
+                    hospitalSymbol.classList.add('shimmer-golden');
+                    hospitalSymbol.addEventListener('animationend', function onAnimationEnd() {
+                        hospitalSymbol.classList.remove('shimmer-golden');
+                        hospitalSymbol.style.background = 'linear-gradient(135deg, #fbbf24, #f59e0b)';
+                        hospitalSymbol.style.boxShadow = '0 0 0 8px rgba(251,191,36,0.2), 0 12px 26px rgba(251,191,36,0.3)';
+                        const icon = hospitalSymbol.querySelector('i');
+                        if (icon) icon.style.color = '#1a2332';
+                        hospitalSymbol.removeEventListener('animationend', onAnimationEnd);
+                    });
+                } else {
                     hospitalSymbol.style.background = 'linear-gradient(135deg, #fbbf24, #f59e0b)';
                     hospitalSymbol.style.boxShadow = '0 0 0 8px rgba(251,191,36,0.2), 0 12px 26px rgba(251,191,36,0.3)';
                     const icon = hospitalSymbol.querySelector('i');
                     if (icon) icon.style.color = '#1a2332';
-                    hospitalSymbol.removeEventListener('animationend', onAnimationEnd);
-                });
+                }
             }
             if (btnRotation) btnRotation.classList.remove('locked');
             if (btnExchange) btnExchange.classList.remove('locked');
 
-            showToast('🌟 تم تفعيل الميزات السرية: Rotation Heroes و Duty Exchange!', 'success', 4000);
+            if (!silent) {
+                showToast('🌟 تم تفعيل الميزات: Rotation Heroes و Duty Exchange!', 'success', 4000);
+            }
         }
 
         function setupEasterEgg() {
@@ -2113,13 +2122,21 @@
                 if (clickResetTimer) { clearTimeout(clickResetTimer); clickResetTimer = null; }
                 if (activationConfirmationTimer) { clearTimeout(activationConfirmationTimer); activationConfirmationTimer = null; }
                 
+                const rawClicks = currentHospital?.heroesUnlockClicks;
+                const reqClicks = (rawClicks !== undefined && rawClicks !== null && rawClicks !== '') ? Math.max(0, parseInt(rawClicks, 10)) : 5;
+
+                if (reqClicks <= 0) {
+                    activateSecretButtons(true);
+                    return;
+                }
+
                 symbolClickCount++;
-                if (symbolClickCount === 5) {
+                if (symbolClickCount === reqClicks) {
                     activationConfirmationTimer = setTimeout(function() {
-                        activateSecretButtons();
+                        activateSecretButtons(false);
                         resetSecretClickCounter();
                     }, 400);
-                } else if (symbolClickCount > 5) {
+                } else if (symbolClickCount > reqClicks) {
                     resetSecretClickCounter();
                 } else {
                     clickResetTimer = setTimeout(function() { resetSecretClickCounter(); }, 500);

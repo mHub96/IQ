@@ -562,18 +562,8 @@
                     }
 
                     if (remoteDb && remoteDb.hospitals) {
-                        // Anti-reversion check: Protect recent local changes from any CDN/proxy lag
-                        const localUpdated = (db && db.lastUpdated) ? new Date(db.lastUpdated).getTime() : 0;
-                        const remoteUpdated = (remoteDb && remoteDb.lastUpdated) ? new Date(remoteDb.lastUpdated).getTime() : 0;
-
-                        if (localUpdated > remoteUpdated && (localUpdated - remoteUpdated < 600000)) {
-                            console.warn("Local database has newer changes than remote snapshot. Retaining local data and syncing to remote...");
-                            saveDatabase("Sync newer local changes to GitHub").catch(console.warn);
-                            isLoaded = true;
-                            return db;
-                        }
-
                         db = sanitizeAndMigrateDatabase(remoteDb);
+                        saveLocalSafetySnapshot(db, "Remote GitHub sync snapshot");
                         localStorage.setItem(CACHE_KEY, JSON.stringify(db));
                         isLoaded = true;
                         dispatchDataChanged();
@@ -586,7 +576,7 @@
                 console.warn("GitHub API fetch error:", err);
             }
 
-            // 3. Fallback: Load local hub-data.json if remote failed
+            // 3. Fallback: Load local hub-data.json if remote failed (strictly read-only)
             if (!db || !db.hospitals || Object.keys(db.hospitals).length === 0) {
                 try {
                     const localRes = await fetch('./hub-data.json?t=' + Date.now());
@@ -596,8 +586,6 @@
                             db = sanitizeAndMigrateDatabase(localDb);
                             localStorage.setItem(CACHE_KEY, JSON.stringify(db));
                             isLoaded = true;
-                            // Attempt to initialize GitHub with this local copy in the background
-                            saveDatabase("Initial Hub Setup").catch(console.warn);
                             return db;
                         }
                     }
@@ -622,6 +610,214 @@
         })();
 
         return loadPromise;
+    }
+
+    // ============================================================
+    // ADVANCED PERSISTENCE & SMART MERGE ENGINE (ZERO DATA-LOSS)
+    // ============================================================
+    const syncChannel = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('hosp_hub_sync_channel') : null;
+    if (syncChannel) {
+        syncChannel.onmessage = (event) => {
+            if (event.data && event.data.type === 'hub:data-updated') {
+                try {
+                    const updatedStr = localStorage.getItem(CACHE_KEY);
+                    if (updatedStr) {
+                        db = sanitizeAndMigrateDatabase(JSON.parse(updatedStr));
+                        window.dispatchEvent(new CustomEvent('hub:data-changed', { detail: { db, crossTab: true } }));
+                    }
+                } catch (e) {}
+            }
+        };
+    }
+
+    window.addEventListener('storage', (event) => {
+        if (event.key === CACHE_KEY && event.newValue) {
+            try {
+                db = sanitizeAndMigrateDatabase(JSON.parse(event.newValue));
+                window.dispatchEvent(new CustomEvent('hub:data-changed', { detail: { db, crossTab: true } }));
+            } catch (e) {}
+        }
+    });
+
+    function saveLocalSafetySnapshot(dbObj, note = '') {
+        try {
+            const snapKey = 'hosp_hub_safety_snap_';
+            const s2 = localStorage.getItem(snapKey + '2');
+            if (s2) localStorage.setItem(snapKey + '3', s2);
+            const s1 = localStorage.getItem(snapKey + '1');
+            if (s1) localStorage.setItem(snapKey + '2', s1);
+            const snapshot = {
+                timestamp: new Date().toISOString(),
+                note: String(note || '').slice(0, 120),
+                data: dbObj
+            };
+            localStorage.setItem(snapKey + '1', JSON.stringify(snapshot));
+        } catch (e) {
+            console.warn("Safety snapshot warning:", e);
+        }
+    }
+
+    function getSafetySnapshots() {
+        const snaps = [];
+        for (let i = 1; i <= 3; i++) {
+            try {
+                const raw = localStorage.getItem('hosp_hub_safety_snap_' + i);
+                if (raw) snaps.push(JSON.parse(raw));
+            } catch (e) {}
+        }
+        return snaps;
+    }
+
+    async function restoreSafetySnapshot(index = 1) {
+        if (!auth.isOwner()) {
+            throw new Error('استعادة النسخ الاحتياطية مخصصة للمالك حصراً.');
+        }
+        const snaps = getSafetySnapshots();
+        const target = snaps[index - 1];
+        if (!target || !target.data) {
+            throw new Error('النسخة الاحتياطية المحددة غير موجودة.');
+        }
+        db = sanitizeAndMigrateDatabase(target.data);
+        await saveDatabase(`Restored from local safety snapshot #${index} (${target.timestamp})`);
+        return db;
+    }
+
+    async function fetchRemoteDatabase() {
+        try {
+            const url = `https://api.github.com/repos/${CONFIG.user}/${CONFIG.repo}/contents/${CONFIG.path}?t=${Date.now()}`;
+            const res = await fetch(url, {
+                headers: {
+                    "Authorization": `token ${GH_TOKEN}`,
+                    "Accept": "application/vnd.github.v3+json"
+                }
+            });
+            if (!res.ok) return null;
+            const jsonRes = await res.json();
+            const sha = jsonRes.sha;
+            let remoteDb = null;
+            if (typeof jsonRes.content === 'string' && jsonRes.content.trim()) {
+                const binaryStr = atob(jsonRes.content.replace(/\s/g, ''));
+                const bytes = new Uint8Array(binaryStr.length);
+                for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+                remoteDb = JSON.parse(new TextDecoder('utf-8').decode(bytes));
+            } else if (jsonRes.git_url) {
+                const blobRes = await fetch(jsonRes.git_url, {
+                    headers: {
+                        "Authorization": `token ${GH_TOKEN}`,
+                        "Accept": "application/vnd.github.v3+json"
+                    }
+                });
+                if (blobRes.ok) {
+                    const blobData = await blobRes.json();
+                    const binaryStr = atob(blobData.content.replace(/\s/g, ''));
+                    const bytes = new Uint8Array(binaryStr.length);
+                    for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+                    remoteDb = JSON.parse(new TextDecoder('utf-8').decode(bytes));
+                }
+            } else if (jsonRes.download_url) {
+                const dlRes = await fetch(jsonRes.download_url + (jsonRes.download_url.includes('?') ? '&' : '?') + 't=' + Date.now());
+                if (dlRes.ok) {
+                    remoteDb = await dlRes.json();
+                }
+            }
+            if (remoteDb && remoteDb.hospitals) {
+                return { db: sanitizeAndMigrateDatabase(remoteDb), sha: sha };
+            }
+        } catch (err) {
+            console.warn("fetchRemoteDatabase error:", err);
+        }
+        return null;
+    }
+
+    function smartMergeDatabases(local, remote, commitMessage = '') {
+        if (!remote || !remote.hospitals) return local;
+        if (!local || !local.hospitals) return remote;
+
+        const merged = JSON.parse(JSON.stringify(local));
+
+        // 1. Merge Hospitals
+        for (const [hId, remoteHosp] of Object.entries(remote.hospitals)) {
+            if (!merged.hospitals[hId]) {
+                merged.hospitals[hId] = JSON.parse(JSON.stringify(remoteHosp));
+                continue;
+            }
+
+            const localHosp = merged.hospitals[hId];
+
+            // A. Preserve Passwords
+            if (remoteHosp.passwords) {
+                localHosp.passwords = Object.assign({}, remoteHosp.passwords, localHosp.passwords || {});
+            }
+
+            // B. Preserve Residents (names)
+            if (Array.isArray(remoteHosp.names) && Array.isArray(localHosp.names)) {
+                const localNamesSet = new Set(localHosp.names.map(n => (n.name || '').trim()));
+                for (const rRes of remoteHosp.names) {
+                    const rName = (rRes.name || '').trim();
+                    if (rName && !localNamesSet.has(rName)) {
+                        localHosp.names.push(JSON.parse(JSON.stringify(rRes)));
+                        localNamesSet.add(rName);
+                    }
+                }
+            }
+
+            // C. Preserve Specialties
+            if (Array.isArray(remoteHosp.specialties) && Array.isArray(localHosp.specialties)) {
+                const localSpecIds = new Set(localHosp.specialties.map(s => s.id));
+                for (const rSpec of remoteHosp.specialties) {
+                    if (rSpec && rSpec.id && !localSpecIds.has(rSpec.id)) {
+                        localHosp.specialties.push(JSON.parse(JSON.stringify(rSpec)));
+                        localSpecIds.add(rSpec.id);
+                    }
+                }
+            }
+
+            // D. Preserve Schedules: Non-overlapping duty slots from remote remain untouched
+            if (Array.isArray(remoteHosp.schedule) && Array.isArray(localHosp.schedule)) {
+                const makeSlotKey = (s) => `${s.date}_${s.specCode || ''}_${s.subSpec || ''}`;
+                const localSlotKeys = new Set(localHosp.schedule.map(makeSlotKey));
+                for (const rSched of remoteHosp.schedule) {
+                    const key = makeSlotKey(rSched);
+                    if (!localSlotKeys.has(key)) {
+                        localHosp.schedule.push(JSON.parse(JSON.stringify(rSched)));
+                        localSlotKeys.add(key);
+                    }
+                }
+            }
+
+            // E. ICU Beds merge
+            const isIcuCommit = /icu|عناية|أسرة/i.test(commitMessage);
+            if (!isIcuCommit && remoteHosp.icu) {
+                const localIcuDate = localHosp.icu?.lastUpdated ? new Date(localHosp.icu.lastUpdated).getTime() : 0;
+                const remoteIcuDate = remoteHosp.icu?.lastUpdated ? new Date(remoteHosp.icu.lastUpdated).getTime() : 0;
+                if (remoteIcuDate >= localIcuDate) {
+                    localHosp.icu = JSON.parse(JSON.stringify(remoteHosp.icu));
+                }
+            }
+        }
+
+        // 2. Merge Global Specialties (union by ID)
+        if (Array.isArray(remote.globalSpecialties) && Array.isArray(merged.globalSpecialties)) {
+            const localGlobalIds = new Set(merged.globalSpecialties.map(s => s.id));
+            for (const rgs of remote.globalSpecialties) {
+                if (rgs && rgs.id && !localGlobalIds.has(rgs.id)) {
+                    merged.globalSpecialties.push(JSON.parse(JSON.stringify(rgs)));
+                    localGlobalIds.add(rgs.id);
+                }
+            }
+        }
+
+        // 3. Merge Global Passwords
+        if (remote.globalPasswords) {
+            merged.globalPasswords = Object.assign({}, remote.globalPasswords, merged.globalPasswords || {});
+        }
+
+        // 4. Merge Emergency Data if present in remote
+        if (remote.emergency && !merged.emergency) {
+            merged.emergency = JSON.parse(JSON.stringify(remote.emergency));
+        }
+
+        return merged;
     }
 
     async function refreshFileSha() {
@@ -649,33 +845,47 @@
     async function saveDatabase(commitMessage = "Hospital Hub Data Update 🏥") {
         if (!db) return false;
 
+        // 1. Fetch fresh remote database & SHA to prevent concurrent overwrite
+        try {
+            const remoteInfo = await fetchRemoteDatabase();
+            if (remoteInfo) {
+                fileSha = remoteInfo.sha;
+                db = smartMergeDatabases(db, remoteInfo.db, commitMessage);
+            }
+        } catch (fetchErr) {
+            console.warn("Pre-save remote check bypassed due to network:", fetchErr);
+        }
+
         db.lastUpdated = new Date().toISOString();
         const jsonString = JSON.stringify(db, null, 2);
 
-        // Instant local update & reactive notification
+        // 2. Save local safety snapshot and update local cache instantly
+        saveLocalSafetySnapshot(db, commitMessage);
         localStorage.setItem(CACHE_KEY, jsonString);
         dispatchDataChanged();
 
-        try {
-            // Ensure we have a valid SHA before PUT
-            if (!fileSha) {
-                await refreshFileSha();
-            }
+        // 3. Push to GitHub with retry loop on conflict (409) or SHA mismatch (422)
+        const maxRetries = 3;
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                if (!fileSha) {
+                    await refreshFileSha();
+                }
 
-            const sendPut = async (shaToUse) => {
                 const base64Content = (typeof btoa !== 'undefined')
                     ? btoa(unescape(encodeURIComponent(jsonString)))
                     : ((typeof Buffer !== 'undefined') ? Buffer.from(jsonString, 'utf8').toString('base64') : '');
+                
                 const body = {
                     message: commitMessage,
                     content: base64Content
                 };
-                if (shaToUse) {
-                    body.sha = shaToUse;
+                if (fileSha) {
+                    body.sha = fileSha;
                 }
 
                 const url = `https://api.github.com/repos/${CONFIG.user}/${CONFIG.repo}/contents/${CONFIG.path}`;
-                return await fetch(url, {
+                const res = await fetch(url, {
                     method: "PUT",
                     headers: {
                         "Authorization": `token ${GH_TOKEN}`,
@@ -684,34 +894,43 @@
                     },
                     body: JSON.stringify(body)
                 });
-            };
 
-            let res = await sendPut(fileSha);
-
-            // If 409 (Conflict) or 422 (Missing SHA), refresh SHA from GitHub and automatically retry
-            if (res.status === 409 || res.status === 422) {
-                console.warn(`GitHub PUT returned ${res.status}. Refreshing SHA and retrying save...`);
-                await refreshFileSha();
-                if (fileSha) {
-                    res = await sendPut(fileSha);
+                if (res.ok) {
+                    const responseData = await res.json();
+                    if (responseData && responseData.content && responseData.content.sha) {
+                        fileSha = responseData.content.sha;
+                    }
+                    return true;
                 }
-            }
 
-            if (res.ok) {
-                const responseData = await res.json();
-                if (responseData && responseData.content && responseData.content.sha) {
-                    fileSha = responseData.content.sha;
+                if (res.status === 409 || res.status === 422) {
+                    console.warn(`GitHub PUT attempt ${attempt} returned ${res.status}. Refreshing and merging remote before retry...`);
+                    await new Promise(r => setTimeout(r, 400 * attempt));
+                    const freshRemote = await fetchRemoteDatabase();
+                    if (freshRemote) {
+                        fileSha = freshRemote.sha;
+                        db = smartMergeDatabases(db, freshRemote.db, commitMessage);
+                        db.lastUpdated = new Date().toISOString();
+                        const remergedJson = JSON.stringify(db, null, 2);
+                        localStorage.setItem(CACHE_KEY, remergedJson);
+                    } else {
+                        await refreshFileSha();
+                    }
+                    continue;
                 }
-                return true;
-            } else {
+
                 const errText = await res.text();
-                console.error("GitHub save failed:", errText);
+                console.error(`GitHub save error (status ${res.status}):`, errText);
                 throw new Error("خطأ في مزامنة GitHub: " + errText);
+            } catch (err) {
+                if (attempt === maxRetries) {
+                    console.error("Save to GitHub error after all retries:", err);
+                    throw err;
+                }
+                await new Promise(r => setTimeout(r, 500));
             }
-        } catch (err) {
-            console.error("Save to GitHub error:", err);
-            throw err;
         }
+        return false;
     }
 
     async function restoreFullDatabase(payload) {
@@ -1107,7 +1326,6 @@
                 const entry = (srcHosp.schedule || []).find(s => datesMatch(s.date, today) && namesMatch(s.name, residentName));
                 if (entry) {
                     entry.VisitCount = (entry.VisitCount || 0) + 1;
-                    debounceSave(`Interaction: ${residentName} in ${srcHosp.name_ar || srcHosp.hospitalName || sourceHospitalId}`);
                     return entry.VisitCount;
                 }
             }
@@ -1124,7 +1342,6 @@
                                || (srcHosp.schedule || []).find(s => datesMatch(s.date, today) && namesMatch(s.name, residentName));
                     if (entry) {
                         entry.VisitCount = (entry.VisitCount || 0) + 1;
-                        debounceSave(`Interaction: ${residentName} in ${srcHosp.name_ar || srcHosp.hospitalName || specObj.clonedFromHospitalId}`);
                         return entry.VisitCount;
                     }
                 }
@@ -1142,7 +1359,6 @@
             }
             if (entry) {
                 entry.VisitCount = (entry.VisitCount || 0) + 1;
-                debounceSave(`Interaction: ${residentName} in ${hospital.name_ar || hospital.hospitalName}`);
                 return entry.VisitCount;
             }
 
@@ -1155,7 +1371,6 @@
                                      || (srcHosp.schedule || []).find(s => datesMatch(s.date, today) && namesMatch(s.name, residentName));
                     if (clonedEntry) {
                         clonedEntry.VisitCount = (clonedEntry.VisitCount || 0) + 1;
-                        debounceSave(`Interaction: ${residentName} in ${srcHosp.name_ar || srcHosp.hospitalName || cs.clonedFromHospitalId}`);
                         return clonedEntry.VisitCount;
                     }
                 }
@@ -1168,20 +1383,11 @@
             const entry = (h.schedule || []).find(s => datesMatch(s.date, today) && namesMatch(s.name, residentName));
             if (entry) {
                 entry.VisitCount = (entry.VisitCount || 0) + 1;
-                debounceSave(`Interaction: ${residentName} in ${h.name_ar || h.hospitalName}`);
                 return entry.VisitCount;
             }
         }
 
         return 0;
-    }
-
-    let debounceTimer = null;
-    function debounceSave(message) {
-        if (debounceTimer) clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-            saveDatabase(message).catch(console.warn);
-        }, 4000);
     }
 
     async function resetStatistics(hospitalId, range = 'today') {
@@ -2740,8 +2946,7 @@
                 return { success: true, role: 'admin', adminHospitals: ['*'] };
             }
             if (pwd === globalAnaesthesia) {
-                const activeHId = getActiveHospitalId() || 'iraqi';
-                return { success: true, role: 'anaesthesia', adminHospitals: [activeHId] };
+                return { success: true, role: 'anaesthesia', adminHospitals: ['*'] };
             }
             if (pwd === globalUser) {
                 return { success: true, role: 'user', adminHospitals: [] };
@@ -2961,10 +3166,12 @@
             // Admin and regular users CANNOT edit ICU! Only the anaesthesia resident of the respective hospital can edit
             if (role !== 'anaesthesia') return false;
 
+            const adminHospList = this.getAdminHospitalIds();
+            if (adminHospList.includes('*')) return true;
+
             const target = targetHospitalId || getActiveHospitalId();
             if (!target) return false;
 
-            const adminHospList = this.getAdminHospitalIds();
             return adminHospList.includes(target);
         },
 
@@ -2992,6 +3199,17 @@
                 this.saveSession('owner', pwd, true, ['*']);
                 return { success: true, role: 'owner', adminHospitals: ['*'] };
             }
+
+            // Check global passwords FIRST before local hospital passwords so general passwords grant wildcard access across all hospitals!
+            if (db?.globalPasswords?.admin && pwd === db.globalPasswords.admin) {
+                this.saveSession('admin', pwd, true, ['*']);
+                return { success: true, role: 'admin', adminHospitals: ['*'] };
+            }
+
+            if (db?.globalPasswords?.anaesthesia && pwd === db.globalPasswords.anaesthesia) {
+                this.saveSession('anaesthesia', pwd, true, ['*']);
+                return { success: true, role: 'anaesthesia', adminHospitals: ['*'] };
+            }
             
             if (adminPass && pwd === adminPass) {
                 const hId = currentHosp ? currentHosp.id : '*';
@@ -2999,20 +3217,10 @@
                 return { success: true, role: 'admin', adminHospitals: [hId] };
             }
 
-            if (db?.globalPasswords?.admin && pwd === db.globalPasswords.admin) {
-                this.saveSession('admin', pwd, true, ['*']);
-                return { success: true, role: 'admin', adminHospitals: ['*'] };
-            }
-
             if (anaesthesiaPass && pwd === anaesthesiaPass) {
                 const hId = currentHosp ? currentHosp.id : '*';
                 this.saveSession('anaesthesia', pwd, true, [hId]);
                 return { success: true, role: 'anaesthesia', adminHospitals: [hId] };
-            }
-
-            if (db?.globalPasswords?.anaesthesia && pwd === db.globalPasswords.anaesthesia) {
-                this.saveSession('anaesthesia', pwd, true, ['*']);
-                return { success: true, role: 'anaesthesia', adminHospitals: ['*'] };
             }
 
             if (db?.hospitals) {
@@ -3158,6 +3366,9 @@
         addGlobalSpecialty,
         deleteGlobalSpecialty,
         restoreFullDatabase,
+        getSafetySnapshots,
+        restoreSafetySnapshot,
+        saveLocalSafetySnapshot,
         addHospitalSpecialty,
         addHospitalSpecialtyFromGlobal,
         addHospitalCloneSpecialty,

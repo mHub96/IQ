@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-09T16:12:00.623Z",
+  "lastUpdated": "2026-10-09T16:12:19.902Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -22274,7 +22274,7 @@
       "passwords": {
         "owner": "Mrj!",
         "admin": "Basra",
-        "anaesthesia": "ICU",
+        "anaesthesia": "BICU",
         "user": "1234"
       },
       "specialties": [

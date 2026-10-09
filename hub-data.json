@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-09T12:14:25.559Z",
+  "lastUpdated": "2026-10-09T12:14:56.273Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -2449,7 +2449,9 @@
           "department": "A",
           "active": true,
           "hospitals": [
-            "iraqi"
+            "iraqi",
+            "basra",
+            "mawani"
           ]
         },
         {
@@ -25243,6 +25245,21 @@
           ]
         },
         {
+          "id": "res-0043",
+          "name": "د. مصطفى علي",
+          "phone": "+9647819237146",
+          "spec": "A",
+          "tag": "A",
+          "dept": "A",
+          "department": "A",
+          "active": true,
+          "hospitals": [
+            "iraqi",
+            "basra",
+            "mawani"
+          ]
+        },
+        {
           "id": "res-0236",
           "name": "د. مصطفى فائز",
           "phone": "+9647809888070",
@@ -40659,6 +40676,21 @@
           ]
         },
         {
+          "id": "res-0043",
+          "name": "د. مصطفى علي",
+          "phone": "+9647819237146",
+          "spec": "A",
+          "tag": "A",
+          "dept": "A",
+          "department": "A",
+          "active": true,
+          "hospitals": [
+            "iraqi",
+            "basra",
+            "mawani"
+          ]
+        },
+        {
           "id": "res-0407",
           "name": "د. نور امجد",
           "phone": "+9647827088919",
@@ -47295,206 +47327,6 @@
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
-        },
-        {
-          "date": "02/10/2026",
-          "specCode": "OP",
-          "name": "د. اياد فالح",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "03/10/2026",
-          "specCode": "OP",
-          "name": "د. آلاء إسماعيل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "04/10/2026",
-          "specCode": "OP",
-          "name": "د. مسره سعد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "05/10/2026",
-          "specCode": "OP",
-          "name": "د. آلاء إسماعيل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "06/10/2026",
-          "specCode": "OP",
-          "name": "د. حسين عويد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "07/10/2026",
-          "specCode": "OP",
-          "name": "د. مسره سعد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "08/10/2026",
-          "specCode": "OP",
-          "name": "د. فاطمة محمود",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "09/10/2026",
-          "specCode": "OP",
-          "name": "د. مسره سعد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "10/10/2026",
-          "specCode": "OP",
-          "name": "د. حسين عويد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "11/10/2026",
-          "specCode": "OP",
-          "name": "د. فاطمة محمود",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "12/10/2026",
-          "specCode": "OP",
-          "name": "د. حسين عويد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "13/10/2026",
-          "specCode": "OP",
-          "name": "د. مسره سعد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "14/10/2026",
-          "specCode": "OP",
-          "name": "د. آلاء إسماعيل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "15/10/2026",
-          "specCode": "OP",
-          "name": "د. اياد فالح",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "16/10/2026",
-          "specCode": "OP",
-          "name": "د. شيرين سمير",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "17/10/2026",
-          "specCode": "OP",
-          "name": "د. آلاء إسماعيل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "18/10/2026",
-          "specCode": "OP",
-          "name": "د. اياد فالح",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "19/10/2026",
-          "specCode": "OP",
-          "name": "د. آلاء إسماعيل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "20/10/2026",
-          "specCode": "OP",
-          "name": "د. اياد فالح",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "21/10/2026",
-          "specCode": "OP",
-          "name": "د. آلاء إسماعيل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "22/10/2026",
-          "specCode": "OP",
-          "name": "د. شيرين سمير",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "23/10/2026",
-          "specCode": "OP",
-          "name": "د. مسره سعد",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "24/10/2026",
-          "specCode": "OP",
-          "name": "د. آلاء إسماعيل",
-          "VisitCount": 0,
-          "dutyTime": "",
-          "dutySlot": 0
-        },
-        {
-          "date": "25/10/2026",
-          "specCode": "OP",
-          "name": "د. حسين عويد",
-          "VisitCount": 0,
-          "dutyTime": "08:00AM - 08:00PM",
-          "dutySlot": 0
-        },
-        {
-          "date": "25/10/2026",
-          "specCode": "OP",
-          "name": "د. مسره سعد",
-          "VisitCount": 0,
-          "dutyTime": "08:00PM - 08:00AM",
-          "dutySlot": 1
         }
       ],
       "rotationHeroesUrl": "",
@@ -53287,7 +53119,9 @@
       "department": "A",
       "active": true,
       "hospitals": [
-        "iraqi"
+        "iraqi",
+        "basra",
+        "mawani"
       ]
     },
     {

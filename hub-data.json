@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-09T13:31:12.565Z",
+  "lastUpdated": "2026-10-09T13:32:58.707Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -20978,7 +20978,7 @@
           "date": "09/10/2026",
           "specCode": "ICU",
           "name": "د. ايناس عدنان",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -44897,7 +44897,8 @@
         }
       ],
       "names": [],
-      "schedule": []
+      "schedule": [],
+      "specialistSchedule": []
     },
     "fayhaa": {
       "id": "fayhaa",
@@ -45289,7 +45290,8 @@
         }
       ],
       "names": [],
-      "schedule": []
+      "schedule": [],
+      "specialistSchedule": []
     }
   },
   "residents": [

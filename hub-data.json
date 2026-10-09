@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-09T14:57:42.912Z",
+  "lastUpdated": "2026-10-09T14:58:16.069Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -22255,13 +22255,13 @@
         }
       ],
       "icu": {
-        "totalBeds": 16,
-        "functionalBeds": 14,
-        "occupiedBeds": 12,
-        "availableBeds": 2,
+        "totalBeds": 0,
+        "functionalBeds": 0,
+        "occupiedBeds": 0,
+        "availableBeds": 0,
         "notes": "حالة الاستقرار جيدة وتتوفر أدوية التخدير والمستهلكات بالكامل",
-        "lastUpdated": "2026-10-09T14:57:42.912Z",
-        "updatedBy": "د. فاطمة عباس"
+        "lastUpdated": "2026-09-30T10:04:54.265Z",
+        "updatedBy": "د. صفا كاظم"
       }
     },
     "basra": {
@@ -44502,6 +44502,13 @@
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
+        },
+        {
+          "date": "09/10/2026",
+          "specCode": "ENT",
+          "name": "د. هبة الله مسلم",
+          "timestamp": "17:58",
+          "VisitCount": 0
         }
       ],
       "rotationHeroesUrl": "",

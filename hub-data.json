@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-09T13:27:32.371Z",
+  "lastUpdated": "2026-10-09T13:27:38.652Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -1282,8 +1282,7 @@
           "department": "ENT",
           "active": true,
           "hospitals": [
-            "iraqi",
-            "basra"
+            "iraqi"
           ]
         },
         {
@@ -23819,20 +23818,6 @@
           "department": "M",
           "active": true,
           "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-0067",
-          "name": "د. زين العابدين مصطفى محمد",
-          "phone": "+9647703100283",
-          "spec": "ENT",
-          "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
-          "active": true,
-          "hospitals": [
-            "iraqi",
             "basra"
           ]
         },
@@ -46846,8 +46831,7 @@
       "department": "ENT",
       "active": true,
       "hospitals": [
-        "iraqi",
-        "basra"
+        "iraqi"
       ]
     },
     {

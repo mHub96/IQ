@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-09T16:12:41.780Z",
+  "lastUpdated": "2026-10-09T16:19:29.142Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -20608,7 +20608,7 @@
           "date": "09/10/2026",
           "specCode": "CT",
           "name": "د. شهد كريم عبدالكاظم",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },

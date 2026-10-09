@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-09T13:27:20.742Z",
+  "lastUpdated": "2026-10-09T13:27:32.371Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -1278,11 +1278,12 @@
           "phone": "+9647703100283",
           "spec": "ENT",
           "tag": "ENT",
-          "dept": "GS",
-          "department": "GS",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
-            "iraqi"
+            "iraqi",
+            "basra"
           ]
         },
         {
@@ -23818,6 +23819,20 @@
           "department": "M",
           "active": true,
           "hospitals": [
+            "basra"
+          ]
+        },
+        {
+          "id": "res-0067",
+          "name": "د. زين العابدين مصطفى محمد",
+          "phone": "+9647703100283",
+          "spec": "ENT",
+          "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
+          "active": true,
+          "hospitals": [
+            "iraqi",
             "basra"
           ]
         },
@@ -46827,11 +46842,12 @@
       "phone": "+9647703100283",
       "spec": "ENT",
       "tag": "ENT",
-      "dept": "GS",
-      "department": "GS",
+      "dept": "ENT",
+      "department": "ENT",
       "active": true,
       "hospitals": [
-        "iraqi"
+        "iraqi",
+        "basra"
       ]
     },
     {

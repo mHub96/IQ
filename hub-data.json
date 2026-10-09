@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-09T16:43:21.449Z",
+  "lastUpdated": "2026-10-09T16:54:06.359Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -37842,23 +37842,6 @@
           "dutySlot": 0
         },
         {
-          "date": "09/10/2026",
-          "specCode": "ICU",
-          "name": "د. زينب عبد الرزاق",
-          "VisitCount": 1,
-          "dutyTime": "08:00AM - 08:00PM",
-          "dutySlot": 0,
-          "timestamp": "17:50"
-        },
-        {
-          "date": "09/10/2026",
-          "specCode": "ICU",
-          "name": "د. فاطمة سلطان",
-          "VisitCount": 0,
-          "dutyTime": "08:00PM - 08:00AM",
-          "dutySlot": 1
-        },
-        {
           "date": "10/10/2026",
           "specCode": "ICU",
           "name": "د. غسق مصطفى",
@@ -39313,6 +39296,15 @@
           "VisitCount": 0,
           "dutySlot": 0,
           "dutyTime": ""
+        },
+        {
+          "date": "09/10/2026",
+          "specCode": "ICU",
+          "name": "د. فاطمة سلطان",
+          "VisitCount": 1,
+          "dutyTime": "08:00AM - 08:00PM",
+          "dutySlot": 0,
+          "timestamp": "19:54"
         }
       ],
       "rotationHeroesUrl": "",

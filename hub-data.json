@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-09T13:30:40.087Z",
+  "lastUpdated": "2026-10-09T13:31:12.565Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -44528,6 +44528,398 @@
         "availableBeds": 4,
         "notes": "",
         "lastUpdated": "2026-10-09T13:30:40.087Z",
+        "updatedBy": "مقيم التخدير"
+      },
+      "specialties": [
+        {
+          "id": "NS",
+          "name_ar": "جراحة الجملة العصبية",
+          "name_en": "Neurosurgery",
+          "icon": "🧠",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "CT",
+          "name_ar": "جراحة الصدر و الاوعية الدموية",
+          "name_en": "Cardiothoracic Surgery",
+          "icon": "🫀",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "GS",
+          "name_ar": "الجراحة العامة",
+          "name_en": "General Surgery",
+          "icon": "🔪",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "OR",
+          "name_ar": "الكسور",
+          "name_en": "Orthopaedics",
+          "icon": "🦴",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "US",
+          "name_ar": "جراحة المسالك البولية",
+          "name_en": "Urosurgery",
+          "icon": "🫘",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "ENT",
+          "name_ar": "الأذن و الأنف و الحنجرة",
+          "name_en": "ENT",
+          "icon": "👂",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "MF",
+          "name_ar": "جراحة الوجه و الفكين",
+          "name_en": "MaxilloFacial Surgery",
+          "icon": "🦷",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "O",
+          "name_ar": "العيون",
+          "name_en": "Ophthalmology",
+          "icon": "👁️",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "Pe",
+          "name_ar": "طب الأطفال",
+          "name_en": "Paediatrics",
+          "icon": "👶",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "M",
+          "name_ar": "الباطنية",
+          "name_en": "Internal Medicine",
+          "icon": "💊",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "G",
+          "name_ar": "النسائية و التوليد",
+          "name_en": "Gynecology",
+          "icon": "🤰",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "ICU",
+          "name_ar": "تخدير العناية المركزة",
+          "name_en": "ICU Anaesthesia",
+          "icon": "💉",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ],
+          "enabled": true
+        },
+        {
+          "id": "OP",
+          "name_ar": "تخدير العمليات",
+          "name_en": "OT Anaesthesia",
+          "icon": "💉",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ],
+          "enabled": true
+        },
+        {
+          "id": "GA",
+          "name_ar": "تخدير صالة الولادة",
+          "name_en": "GYN Anaesthesia",
+          "icon": "🤰",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": "A",
+          "acceptPool": [
+            "A"
+          ],
+          "enabled": true
+        },
+        {
+          "id": "A",
+          "name_ar": "التخدير و العناية المركزة",
+          "name_en": "Anaesthesia & Intensive Care",
+          "icon": "💉",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "R",
+          "name_ar": "الأشعة و السونار",
+          "name_en": "Radiology",
+          "icon": "🩻",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "D",
+          "name_ar": "الوفيات",
+          "name_en": "Death Certificates",
+          "icon": "⚰️",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [
+            "NS",
+            "CT",
+            "GS",
+            "OR",
+            "US",
+            "ENT",
+            "MF",
+            "O",
+            "Pe",
+            "M",
+            "G",
+            "ICU",
+            "OP",
+            "GA",
+            "A",
+            "R",
+            "ON",
+            "N",
+            "NM",
+            "P",
+            "Der",
+            "EM",
+            "FM",
+            "GP",
+            "H",
+            "PS",
+            "RM"
+          ],
+          "enabled": true
+        },
+        {
+          "id": "AO",
+          "name_ar": "المعاون الاداري",
+          "name_en": "Administrative Officer",
+          "icon": "🧑",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "ON",
+          "name_ar": "طب الاورام",
+          "name_en": "Oncology",
+          "icon": "☢️",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "N",
+          "name_ar": "طب امراض الكلى",
+          "name_en": "Nephrology",
+          "icon": "🧫",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "NM",
+          "name_ar": "طب الجملة العصبية",
+          "name_en": "Neuromedicine",
+          "icon": "🧠",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "P",
+          "name_ar": "النفسية",
+          "name_en": "Psychiatry",
+          "icon": "🧠",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "Der",
+          "name_ar": "الجلدية",
+          "name_en": "Dermatology",
+          "icon": "🏥",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "EM",
+          "name_ar": "طب الطوارئ",
+          "name_en": "Emergency Medicine",
+          "icon": "🏥",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "FM",
+          "name_ar": "طب الأسرة",
+          "name_en": "Family Medicine",
+          "icon": "👨",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "GP",
+          "name_ar": "ممارسين",
+          "name_en": "General Practitioner",
+          "icon": "🏥",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "H",
+          "name_ar": "طب الامراض القلبية",
+          "name_en": "Cardiology",
+          "icon": "🫀",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "PS",
+          "name_ar": "الجراحة التجميلية",
+          "name_en": "Plastic Surgery",
+          "icon": "🪡",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "RM",
+          "name_ar": "طب الامراض التنفسية",
+          "name_en": "Respiratory Medicine",
+          "icon": "🫁",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
+          "id": "REF",
+          "name_ar": "دوري احالات",
+          "name_en": "Referrals",
+          "icon": "🚑",
+          "prefix": "د. ",
+          "color": "#0f766e",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        }
+      ],
+      "names": [],
+      "schedule": []
+    },
+    "fayhaa": {
+      "id": "fayhaa",
+      "hospitalName": "Al-Fayhaa Teaching Hospital",
+      "name_ar": "مستشفى الفيحاء التعليمي",
+      "location": "Basra · Iraq",
+      "icon": "fa-hospital",
+      "color": "#0f766e",
+      "rotationHeroesUrl": "",
+      "passwords": {
+        "owner": "Mrj!",
+        "admin": "Admin1996*",
+        "anaesthesia": "FICU",
+        "user": "1234"
+      },
+      "icu": {
+        "totalBeds": 12,
+        "functionalBeds": 10,
+        "occupiedBeds": 6,
+        "availableBeds": 4,
+        "notes": "",
+        "lastUpdated": "2026-10-09T13:31:12.564Z",
         "updatedBy": "مقيم التخدير"
       },
       "specialties": [

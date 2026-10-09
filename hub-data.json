@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-09T18:01:06.645Z",
+  "lastUpdated": "2026-10-09T18:02:04.975Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -38304,7 +38304,7 @@
           "date": "09/10/2026",
           "specCode": "G",
           "name": "د. وديان فرات كمال",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },

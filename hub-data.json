@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-09T12:09:04.982Z",
+  "lastUpdated": "2026-10-09T12:10:41.830Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -421,7 +421,7 @@
         },
         {
           "id": "res-0338",
-          "name": "د. آياد فالح",
+          "name": "د. اياد فالح",
           "phone": "+9647811352828",
           "spec": "A",
           "tag": "A",
@@ -429,8 +429,9 @@
           "department": "A",
           "active": true,
           "hospitals": [
+            "iraqi",
             "basra",
-            "iraqi"
+            "mawani"
           ]
         },
         {
@@ -22675,7 +22676,7 @@
         },
         {
           "id": "res-0338",
-          "name": "د. آياد فالح",
+          "name": "د. اياد فالح",
           "phone": "+9647811352828",
           "spec": "A",
           "tag": "A",
@@ -22683,8 +22684,9 @@
           "department": "A",
           "active": true,
           "hospitals": [
+            "iraqi",
             "basra",
-            "iraqi"
+            "mawani"
           ]
         },
         {
@@ -39796,6 +39798,21 @@
           ]
         },
         {
+          "id": "res-0338",
+          "name": "د. اياد فالح",
+          "phone": "+9647811352828",
+          "spec": "A",
+          "tag": "A",
+          "dept": "A",
+          "department": "A",
+          "active": true,
+          "hospitals": [
+            "iraqi",
+            "basra",
+            "mawani"
+          ]
+        },
+        {
           "id": "res-0414",
           "name": "د. احمد حسن رحيم",
           "phone": "+9647700052061",
@@ -48070,7 +48087,7 @@
     },
     {
       "id": "res-0338",
-      "name": "د. آياد فالح",
+      "name": "د. اياد فالح",
       "phone": "+9647811352828",
       "spec": "A",
       "tag": "A",
@@ -48078,8 +48095,9 @@
       "department": "A",
       "active": true,
       "hospitals": [
+        "iraqi",
         "basra",
-        "iraqi"
+        "mawani"
       ]
     },
     {

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-09T12:10:41.830Z",
+  "lastUpdated": "2026-10-09T12:11:39.256Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin1996*",
@@ -2080,7 +2080,8 @@
           "department": "A",
           "active": true,
           "hospitals": [
-            "iraqi"
+            "iraqi",
+            "mawani"
           ]
         },
         {
@@ -40484,6 +40485,20 @@
           ]
         },
         {
+          "id": "res-0038",
+          "name": "د. فاطمة محمود",
+          "phone": "+9647719794237",
+          "spec": "A",
+          "tag": "A",
+          "dept": "A",
+          "department": "A",
+          "active": true,
+          "hospitals": [
+            "iraqi",
+            "mawani"
+          ]
+        },
+        {
           "id": "res-0404",
           "name": "د. فراس عباس",
           "phone": "+9647706225649",
@@ -52231,7 +52246,8 @@
       "department": "A",
       "active": true,
       "hospitals": [
-        "iraqi"
+        "iraqi",
+        "mawani"
       ]
     },
     {

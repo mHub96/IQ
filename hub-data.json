@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T13:14:26.723Z",
+  "lastUpdated": "2026-10-10T13:36:13.448Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -38769,7 +38769,7 @@
           "date": "10/10/2026",
           "specCode": "OR",
           "name": "د. علي خضير",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },

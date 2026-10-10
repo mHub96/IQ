@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T23:00:15.750Z",
+  "lastUpdated": "2026-10-10T23:00:45.789Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -41501,6 +41501,19 @@
           "hospitals": [
             "mawani"
           ]
+        },
+        {
+          "id": "res-mv2zzna8lqto",
+          "name": "د. TRANSFER TEST",
+          "phone": "+9648902234422",
+          "spec": "NS",
+          "tag": "NS",
+          "dept": "NS",
+          "department": "NS",
+          "active": true,
+          "hospitals": [
+            "mawani"
+          ]
         }
       ],
       "schedule": [
@@ -53556,6 +53569,19 @@
       "active": true,
       "hospitals": [
         "basra"
+      ]
+    },
+    {
+      "id": "res-mv2zzna8lqto",
+      "name": "د. TRANSFER TEST",
+      "phone": "+9648902234422",
+      "spec": "NS",
+      "tag": "NS",
+      "dept": "NS",
+      "department": "NS",
+      "active": true,
+      "hospitals": [
+        "mawani"
       ]
     }
   ],

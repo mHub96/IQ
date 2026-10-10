@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T07:08:10.658Z",
+  "lastUpdated": "2026-10-10T07:08:35.206Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -37601,7 +37601,7 @@
           "date": "10/10/2026",
           "specCode": "OP",
           "name": "د. ايثار عدنان",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -38315,10 +38315,11 @@
         {
           "date": "10/10/2026",
           "specCode": "G",
-          "name": "د. زهراء جاسم حمدان",
+          "name": "د. سراء ياسين ساري",
           "VisitCount": 0,
           "dutyTime": "",
-          "dutySlot": 0
+          "dutySlot": 0,
+          "timestamp": "10:08"
         },
         {
           "date": "11/10/2026",

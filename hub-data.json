@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T07:26:44.652Z",
+  "lastUpdated": "2026-10-10T07:47:05.726Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -20987,7 +20987,7 @@
           "date": "10/10/2026",
           "specCode": "ICU",
           "name": "د. زينب عبد الرزاق",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },

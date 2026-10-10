@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T12:21:48.484Z",
+  "lastUpdated": "2026-10-10T12:21:46.261Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -35605,7 +35605,7 @@
           "date": "10/10/2026",
           "specCode": "GS",
           "name": "د. مصطفى كامل علي",
-          "VisitCount": 3,
+          "VisitCount": 2,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -37850,7 +37850,7 @@
           "date": "10/10/2026",
           "specCode": "ICU",
           "name": "د. غسق مصطفى",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "",
           "dutySlot": 0
         },

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T05:39:43.219Z",
+  "lastUpdated": "2026-10-10T05:41:17.093Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -20978,7 +20978,7 @@
           "date": "09/10/2026",
           "specCode": "ICU",
           "name": "د. فاطمة عباس",
-          "VisitCount": 3,
+          "VisitCount": 4,
           "dutyTime": "",
           "dutySlot": 0,
           "timestamp": "16:45"
@@ -35605,7 +35605,7 @@
           "date": "10/10/2026",
           "specCode": "GS",
           "name": "د. مصطفى كامل علي",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -35727,11 +35727,10 @@
         {
           "date": "10/10/2026",
           "specCode": "D",
-          "name": "د. درر علي محمد",
+          "name": "د. براء عباس",
           "VisitCount": 0,
           "dutyTime": "08:00AM - 08:00PM",
-          "dutySlot": 0,
-          "timestamp": "08:01"
+          "dutySlot": 0
         },
         {
           "date": "10/10/2026",
@@ -35920,11 +35919,10 @@
         {
           "date": "10/10/2026",
           "specCode": "O",
-          "name": "د. نور الهدى علي",
+          "name": "د. سنا خالد",
           "VisitCount": 0,
           "dutyTime": "",
-          "dutySlot": 0,
-          "timestamp": "08:34"
+          "dutySlot": 0
         },
         {
           "date": "11/10/2026",
@@ -36411,11 +36409,10 @@
         {
           "date": "10/10/2026",
           "specCode": "MF",
-          "name": "د. حسن فائق",
+          "name": "د. تقى حسن",
           "VisitCount": 0,
           "dutyTime": "",
-          "dutySlot": 0,
-          "timestamp": "08:39"
+          "dutySlot": 0
         },
         {
           "date": "11/10/2026",

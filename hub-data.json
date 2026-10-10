@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T20:49:36.771Z",
+  "lastUpdated": "2026-10-10T20:49:41.687Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -345,6 +345,18 @@
           "enabled": true
         },
         {
+          "id": "G_basra",
+          "name_ar": "النسائية و التوليد",
+          "name_en": "Gynecology",
+          "icon": "🤰",
+          "prefix": "د. ",
+          "color": "#e40de7",
+          "isClone": true,
+          "clonedFromHospitalId": "basra",
+          "clonedFromSpecId": "G",
+          "enabled": true
+        },
+        {
           "id": "Der",
           "name_ar": "الجلدية",
           "name_en": "Dermatology",
@@ -413,18 +425,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "G_basra",
-          "name_ar": "النسائية و التوليد",
-          "name_en": "Gynecology",
-          "icon": "🤰",
-          "prefix": "د. ",
-          "color": "#e40de7",
-          "isClone": true,
-          "clonedFromHospitalId": "basra",
-          "clonedFromSpecId": "G",
-          "enabled": true
         }
       ],
       "names": [

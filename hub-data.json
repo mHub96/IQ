@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T22:51:22.507Z",
+  "lastUpdated": "2026-10-10T22:51:11.261Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -23145,6 +23145,16 @@
           "enabled": true
         },
         {
+          "id": "O",
+          "name_ar": "العيون",
+          "name_en": "Ophthalmology",
+          "icon": "👁️",
+          "color": "#38ffe8",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": true
+        },
+        {
           "id": "R_iraqi",
           "name_ar": "الأشعة و السونار",
           "name_en": "Radiology",
@@ -23157,16 +23167,6 @@
           "enabled": true,
           "parentSpec": null,
           "acceptPool": []
-        },
-        {
-          "id": "O",
-          "name_ar": "العيون",
-          "name_en": "Ophthalmology",
-          "icon": "👁️",
-          "color": "#38ffe8",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": true
         },
         {
           "id": "MF",

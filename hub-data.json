@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T19:54:39.023Z",
+  "lastUpdated": "2026-10-10T19:54:41.747Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -45444,7 +45444,8 @@
       ],
       "names": [],
       "schedule": [],
-      "specialistSchedule": []
+      "specialistSchedule": [],
+      "erEnabled": true
     },
     "fayhaa": {
       "id": "fayhaa",

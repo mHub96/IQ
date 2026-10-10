@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T05:41:24.175Z",
+  "lastUpdated": "2026-10-10T05:51:11.962Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -39313,6 +39313,13 @@
           "specCode": "GA",
           "name": "د. ايات فيصل",
           "timestamp": "21:01",
+          "VisitCount": 0
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "GA",
+          "name": "د. علي خالد",
+          "timestamp": "08:51",
           "VisitCount": 0
         }
       ],

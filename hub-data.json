@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T22:51:02.288Z",
+  "lastUpdated": "2026-10-10T22:51:10.941Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -23155,6 +23155,20 @@
           "enabled": true
         },
         {
+          "id": "R_iraqi",
+          "name_ar": "الأشعة و السونار",
+          "name_en": "Radiology",
+          "icon": "🩻",
+          "prefix": "د. ",
+          "color": "#6700e6",
+          "isClone": true,
+          "clonedFromHospitalId": "iraqi",
+          "clonedFromSpecId": "R",
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
           "id": "MF",
           "name_ar": "جراحة الوجه و الفكين",
           "name_en": "MaxilloFacial Surgery",
@@ -23183,20 +23197,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true
-        },
-        {
-          "id": "R_iraqi",
-          "name_ar": "الأشعة و السونار",
-          "name_en": "Radiology",
-          "icon": "🩻",
-          "prefix": "د. ",
-          "color": "#6700e6",
-          "isClone": true,
-          "clonedFromHospitalId": "iraqi",
-          "clonedFromSpecId": "R",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
         },
         {
           "id": "ICU",

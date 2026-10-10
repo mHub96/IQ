@@ -1437,16 +1437,26 @@
 
         const scheduledCounts = getScheduledCountsMap();
         const cleanName = normalizeArabic(res.name);
-        const stats = scheduledCounts[cleanName] || { normalScheduled: 0, extraScheduled: 0, erFilled: 0 };
-        const normalTarget = (Number(res.er_target) || 0) + (Number(res.con_target) || 0) + (Number(res.dc_target) || 0);
-        const isFulfilled = (stats.normalScheduled >= normalTarget) && normalTarget > 0;
+        const stats = scheduledCounts[cleanName] || { normalScheduled: 0, extraScheduled: 0, erFilled: 0, conFilled: 0, dcFilled: 0 };
+        const erTarget = Number(res.er_target) || 0;
+        const conTarget = Number(res.con_target) || 0;
+        const dcTarget = Number(res.dc_target) || 0;
+        const normalTarget = erTarget + conTarget + dcTarget;
+
+        const isOverTotal = stats.normalScheduled > normalTarget;
+        const isOverER = stats.erFilled > erTarget;
+        const isOverCon = stats.conFilled > conTarget;
+        const isOverDC = stats.dcFilled > dcTarget;
+        const isExceeded = isOverTotal || isOverER || isOverCon || isOverDC;
+        const isFulfilled = !isExceeded && (stats.normalScheduled === normalTarget) && normalTarget > 0;
         const isExpired = isResidentExpired(res, state.year, state.month);
 
         const tr = document.querySelector(`tr[data-resident-id="${resId}"]`);
         if (!tr) return;
 
         const hasActiveRS = state.rsEnabled && (stats.extraScheduled > 0 || (Number(res.rs_target) || 0) > 0);
-        tr.setAttribute('data-quota-status', isFulfilled ? 'fulfilled' : 'unfulfilled');
+        const quotaStatusAttr = isExceeded ? 'exceeded' : (isFulfilled ? 'fulfilled' : 'unfulfilled');
+        tr.setAttribute('data-quota-status', quotaStatusAttr);
         tr.setAttribute('data-has-extra', hasActiveRS ? 'true' : 'false');
 
         // Update RS dot badge beside doctor name
@@ -1464,22 +1474,71 @@
             }
         }
 
+        // Clean previous border and background classes
+        tr.classList.remove(
+            'border-l-4', 'border-l-emerald-500', 'border-l-rose-400', 'border-l-amber-500',
+            'bg-emerald-50/40', 'dark:bg-emerald-950/15',
+            'bg-rose-50/30', 'dark:bg-rose-950/10',
+            'bg-amber-50/40', 'dark:bg-amber-950/20'
+        );
+
         let statusBadge = '';
         if (!res.active) {
-            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400">معطّل</span>`;
-        } else if (isExpired) {
+            if (stats.normalScheduled > 0) {
+                tr.classList.add('border-l-4', 'border-l-amber-500', 'bg-amber-50/40', 'dark:bg-amber-950/20');
+                statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border-2 border-amber-500 dark:bg-amber-950/90 dark:text-amber-200 dark:border-amber-500 shadow-xs" title="معطّل ولكن مجدول له ${stats.normalScheduled} خفارة!"><i class="fas fa-triangle-exclamation text-amber-600 dark:text-amber-400"></i> معطّل ومجدول (${stats.normalScheduled})</span>`;
+            } else {
+                statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400">معطّل</span>`;
+            }
+        } else if (isExpired && stats.normalScheduled === 0) {
             statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">منتهي الإقامة</span>`;
+        } else if (isExceeded) {
+            tr.classList.add('border-l-4', 'border-l-amber-500', 'bg-amber-50/40', 'dark:bg-amber-950/20');
+            const excess = stats.normalScheduled - normalTarget;
+            const badgeLabel = isOverTotal
+                ? `تجاوز النصاب (+${excess}) (${stats.normalScheduled}/${normalTarget})`
+                : `تجاوز بالتوزيع (${stats.normalScheduled}/${normalTarget})`;
+            statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border-2 border-amber-500 dark:bg-amber-950/90 dark:text-amber-200 dark:border-amber-500 shadow-xs" title="تجاوز النصاب: مجدول ${stats.normalScheduled} من أصل ${normalTarget} (ER: ${stats.erFilled}/${erTarget}, Con: ${stats.conFilled}/${conTarget}, DC: ${stats.dcFilled}/${dcTarget})"><i class="fas fa-triangle-exclamation text-amber-600 dark:text-amber-400"></i> ${badgeLabel}</span>`;
         } else if (isFulfilled) {
-            tr.className = tr.className.replace(/border-l-rose-400 bg-rose-50\/\d+/g, '').replace(/border-l-emerald-500 bg-emerald-50\/\d+/g, '') + ' bg-emerald-50/40 dark:bg-emerald-950/15 border-l-4 border-l-emerald-500';
+            tr.classList.add('border-l-4', 'border-l-emerald-500', 'bg-emerald-50/40', 'dark:bg-emerald-950/15');
             statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">مكتمل (${stats.normalScheduled}/${normalTarget})</span>`;
         } else {
-            tr.className = tr.className.replace(/border-l-emerald-500 bg-emerald-50\/\d+/g, '').replace(/border-l-rose-400 bg-rose-50\/\d+/g, '') + ' bg-rose-50/30 dark:bg-rose-950/10 border-l-4 border-l-rose-400';
+            tr.classList.add('border-l-4', 'border-l-rose-400', 'bg-rose-50/30', 'dark:bg-rose-950/10');
             statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">غير مكتمل (${stats.normalScheduled}/${normalTarget})</span>`;
         }
 
         const badgeCell = tr.querySelector('.resident-status-badge-cell');
         if (badgeCell) {
             badgeCell.innerHTML = `<div>${statusBadge}</div>`;
+        }
+
+        // Update individual target input tooltips and warning rings
+        const erInput = tr.querySelector('input[data-target-field="er_target"]');
+        if (erInput) {
+            erInput.title = `مجدول في الطوارئ: ${stats.erFilled} / النصاب: ${erTarget}`;
+            if (isOverER) {
+                erInput.classList.add('ring-2', 'ring-amber-500', 'rounded-md');
+            } else {
+                erInput.classList.remove('ring-2', 'ring-amber-500', 'rounded-md');
+            }
+        }
+        const conInput = tr.querySelector('input[data-target-field="con_target"]');
+        if (conInput) {
+            conInput.title = `مجدول في الاستشارية: ${stats.conFilled} / النصاب: ${conTarget}`;
+            if (isOverCon) {
+                conInput.classList.add('ring-2', 'ring-amber-500', 'rounded-md');
+            } else {
+                conInput.classList.remove('ring-2', 'ring-amber-500', 'rounded-md');
+            }
+        }
+        const dcInput = tr.querySelector('input[data-target-field="dc_target"]');
+        if (dcInput) {
+            dcInput.title = `مجدول في شهادات الوفاة: ${stats.dcFilled} / النصاب: ${dcTarget}`;
+            if (isOverDC) {
+                dcInput.classList.add('ring-2', 'ring-amber-500', 'rounded-md');
+            } else {
+                dcInput.classList.remove('ring-2', 'ring-amber-500', 'rounded-md');
+            }
         }
     }
 
@@ -4637,11 +4696,15 @@
                 case 'quota': {
                     const normA = (Number(a.er_target) || 0) + (Number(a.con_target) || 0) + (Number(a.dc_target) || 0);
                     const normB = (Number(b.er_target) || 0) + (Number(b.con_target) || 0) + (Number(b.dc_target) || 0);
-                    const countA = (scheduledCounts[normalizeArabic(a.name)] || {}).normalScheduled || 0;
-                    const countB = (scheduledCounts[normalizeArabic(b.name)] || {}).normalScheduled || 0;
-                    const fulA = normA > 0 && countA >= normA ? 1 : 0;
-                    const fulB = normB > 0 && countB >= normB ? 1 : 0;
-                    res = fulA - fulB;
+                    const statsA = scheduledCounts[normalizeArabic(a.name)] || {};
+                    const statsB = scheduledCounts[normalizeArabic(b.name)] || {};
+                    const countA = statsA.normalScheduled || 0;
+                    const countB = statsB.normalScheduled || 0;
+                    const isExceededA = countA > normA || (statsA.erFilled > (Number(a.er_target)||0)) || (statsA.conFilled > (Number(a.con_target)||0)) || (statsA.dcFilled > (Number(a.dc_target)||0));
+                    const isExceededB = countB > normB || (statsB.erFilled > (Number(b.er_target)||0)) || (statsB.conFilled > (Number(b.con_target)||0)) || (statsB.dcFilled > (Number(b.dc_target)||0));
+                    const scoreA = isExceededA ? 2 : (countA === normA && normA > 0 ? 1 : 0);
+                    const scoreB = isExceededB ? 2 : (countB === normB && normB > 0 ? 1 : 0);
+                    res = scoreA - scoreB;
                     break;
                 }
                 case 'expiryMonth':
@@ -5004,6 +5067,7 @@
                             <option value="all">حالة النصاب: الكل</option>
                             <option value="fulfilled">مكتمل النصاب</option>
                             <option value="unfulfilled">غير مكتمل النصاب</option>
+                            <option value="exceeded">⚠️ متجاوز النصاب / فائض</option>
                             <option value="extra">لديه إسناد إضافي (RS)</option>
                         </select>
 
@@ -5133,6 +5197,7 @@
             if (stageFilter !== 'all' && stage !== stageFilter) { tr.style.display = 'none'; return; }
             if (quotaFilter === 'fulfilled' && quotaStatus !== 'fulfilled') { tr.style.display = 'none'; return; }
             if (quotaFilter === 'unfulfilled' && quotaStatus !== 'unfulfilled') { tr.style.display = 'none'; return; }
+            if (quotaFilter === 'exceeded' && quotaStatus !== 'exceeded') { tr.style.display = 'none'; return; }
             if (quotaFilter === 'extra' && !hasExtra) { tr.style.display = 'none'; return; }
 
             if (cleanQ) {
@@ -5555,25 +5620,46 @@
     // Render individual resident row with direct editable inputs & coloring system
     function renderResidentRowHTML(r, rowNum, scheduledCounts, isInactiveSection) {
         const cleanName = normalizeArabic(r.name);
-        const stats = scheduledCounts[cleanName] || { normalScheduled: 0, extraScheduled: 0, erFilled: 0 };
-        const normalTarget = (Number(r.er_target) || 0) + (Number(r.con_target) || 0) + (Number(r.dc_target) || 0);
+        const stats = scheduledCounts[cleanName] || { normalScheduled: 0, extraScheduled: 0, erFilled: 0, conFilled: 0, dcFilled: 0 };
+        const erTarget = Number(r.er_target) || 0;
+        const conTarget = Number(r.con_target) || 0;
+        const dcTarget = Number(r.dc_target) || 0;
+        const normalTarget = erTarget + conTarget + dcTarget;
 
         // Color System:
         // 1. Fulfilled (Green)
         // 2. Unfulfilled (Red)
-        // 3. Extra Duties (Orange dot beside the name - NO comments included)
-        const isFulfilled = (stats.normalScheduled >= normalTarget) && normalTarget > 0;
+        // 3. Exceeded / Overallocated Alarm (Amber/Orange)
+        // 4. Extra Duties (Orange dot beside the name - NO comments included)
+        const isOverTotal = stats.normalScheduled > normalTarget;
+        const isOverER = stats.erFilled > erTarget;
+        const isOverCon = stats.conFilled > conTarget;
+        const isOverDC = stats.dcFilled > dcTarget;
+        const isExceeded = isOverTotal || isOverER || isOverCon || isOverDC;
+        const isFulfilled = !isExceeded && (stats.normalScheduled === normalTarget) && normalTarget > 0;
         const isExpired = isResidentExpired(r, state.year, state.month);
 
         let rowBgClass = '';
         let statusBadge = '';
 
         if (isInactiveSection) {
-            rowBgClass = 'bg-slate-100/40 dark:bg-slate-900/40 text-slate-500';
-            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400">معطّل</span>`;
-        } else if (isExpired) {
+            if (stats.normalScheduled > 0) {
+                rowBgClass = 'bg-amber-50/40 dark:bg-amber-950/20 border-l-4 border-l-amber-500';
+                statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border-2 border-amber-500 dark:bg-amber-950/90 dark:text-amber-200 dark:border-amber-500 shadow-xs" title="معطّل ولكن مجدول له ${stats.normalScheduled} خفارة!"><i class="fas fa-triangle-exclamation text-amber-600 dark:text-amber-400"></i> معطّل ومجدول (${stats.normalScheduled})</span>`;
+            } else {
+                rowBgClass = 'bg-slate-100/40 dark:bg-slate-900/40 text-slate-500';
+                statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400">معطّل</span>`;
+            }
+        } else if (isExpired && stats.normalScheduled === 0) {
             rowBgClass = 'bg-amber-50/20 text-slate-500';
             statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">منتهي الإقامة</span>`;
+        } else if (isExceeded) {
+            rowBgClass = 'bg-amber-50/40 dark:bg-amber-950/20 border-l-4 border-l-amber-500';
+            const excess = stats.normalScheduled - normalTarget;
+            const badgeLabel = isOverTotal
+                ? `تجاوز النصاب (+${excess}) (${stats.normalScheduled}/${normalTarget})`
+                : `تجاوز بالتوزيع (${stats.normalScheduled}/${normalTarget})`;
+            statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border-2 border-amber-500 dark:bg-amber-950/90 dark:text-amber-200 dark:border-amber-500 shadow-xs" title="تجاوز النصاب: مجدول ${stats.normalScheduled} من أصل ${normalTarget} (ER: ${stats.erFilled}/${erTarget}, Con: ${stats.conFilled}/${conTarget}, DC: ${stats.dcFilled}/${dcTarget})"><i class="fas fa-triangle-exclamation text-amber-600 dark:text-amber-400"></i> ${badgeLabel}</span>`;
         } else if (isFulfilled) {
             rowBgClass = 'bg-emerald-50/40 dark:bg-emerald-950/15 border-l-4 border-l-emerald-500';
             statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">مكتمل (${stats.normalScheduled}/${normalTarget})</span>`;
@@ -5589,6 +5675,7 @@
         ` : '';
 
         const normalizedStage = normalizeStageName(r.stage) || 'بدون';
+        const quotaStatusAttr = isExceeded ? 'exceeded' : (isFulfilled ? 'fulfilled' : 'unfulfilled');
 
         return `
             <tr data-resident-id="${r.id}" 
@@ -5596,7 +5683,7 @@
                 data-sex="${r.sex}" 
                 data-board="${r.board || 'None'}" 
                 data-stage="${normalizedStage}" 
-                data-quota-status="${isFulfilled ? 'fulfilled' : 'unfulfilled'}" 
+                data-quota-status="${quotaStatusAttr}" 
                 data-has-extra="${hasActiveRS ? 'true' : 'false'}" 
                 data-spec="${escapeForInline(r.specialty || '')}"
                 class="hover:bg-slate-100/60 dark:hover:bg-slate-800/40 transition ${rowBgClass}">
@@ -5632,23 +5719,23 @@
 
                 <!-- ER Target (Direct number input with live update) -->
                 <td class="py-1 px-2 text-center">
-                    <input type="number" min="0" data-target-field="er_target" value="${r.er_target || 0}" oninput="onResidentTargetChange('${r.id}', 'er_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'er_target', this.value)" class="db-cell-input text-center font-mono font-black text-rose-600">
+                    <input type="number" min="0" data-target-field="er_target" value="${r.er_target || 0}" oninput="onResidentTargetChange('${r.id}', 'er_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'er_target', this.value)" class="db-cell-input text-center font-mono font-black text-rose-600 ${isOverER ? 'ring-2 ring-amber-500 rounded-md' : ''}" title="مجدول في الطوارئ: ${stats.erFilled} / النصاب: ${erTarget}">
                 </td>
 
                 <!-- Con Target (Direct number input with live update) -->
                 <td class="py-1 px-2 text-center">
-                    <input type="number" min="0" data-target-field="con_target" value="${r.con_target || 0}" oninput="onResidentTargetChange('${r.id}', 'con_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'con_target', this.value)" class="db-cell-input text-center font-mono font-black text-sky-600">
+                    <input type="number" min="0" data-target-field="con_target" value="${r.con_target || 0}" oninput="onResidentTargetChange('${r.id}', 'con_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'con_target', this.value)" class="db-cell-input text-center font-mono font-black text-sky-600 ${isOverCon ? 'ring-2 ring-amber-500 rounded-md' : ''}" title="مجدول في الاستشارية: ${stats.conFilled} / النصاب: ${conTarget}">
                 </td>
 
                 <!-- DC Target (Direct number input with live update) -->
                 <td class="py-1 px-2 text-center">
-                    <input type="number" min="0" data-target-field="dc_target" value="${r.dc_target || 0}" oninput="onResidentTargetChange('${r.id}', 'dc_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'dc_target', this.value)" class="db-cell-input text-center font-mono font-black text-emerald-600">
+                    <input type="number" min="0" data-target-field="dc_target" value="${r.dc_target || 0}" oninput="onResidentTargetChange('${r.id}', 'dc_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'dc_target', this.value)" class="db-cell-input text-center font-mono font-black text-emerald-600 ${isOverDC ? 'ring-2 ring-amber-500 rounded-md' : ''}" title="مجدول في شهادات الوفاة: ${stats.dcFilled} / النصاب: ${dcTarget}">
                 </td>
 
                 ${state.rsEnabled ? `
                 <!-- RS Target (Direct number input with live update) -->
                 <td class="py-1 px-2 text-center">
-                    <input type="number" min="0" data-target-field="rs_target" value="${r.rs_target || 0}" oninput="onResidentTargetChange('${r.id}', 'rs_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'rs_target', this.value)" class="db-cell-input text-center font-mono font-black text-amber-600">
+                    <input type="number" min="0" data-target-field="rs_target" value="${r.rs_target || 0}" oninput="onResidentTargetChange('${r.id}', 'rs_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'rs_target', this.value)" class="db-cell-input text-center font-mono font-black text-amber-600" title="مجدول في الإسناد الإضافي: ${stats.extraScheduled} / النصاب: ${r.rs_target || 0}">
                 </td>
                 ` : ''}
 

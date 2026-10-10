@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T06:06:53.253Z",
+  "lastUpdated": "2026-10-10T06:16:49.162Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -20978,7 +20978,7 @@
           "date": "09/10/2026",
           "specCode": "ICU",
           "name": "د. فاطمة عباس",
-          "VisitCount": 4,
+          "VisitCount": 3,
           "dutyTime": "",
           "dutySlot": 0,
           "timestamp": "16:45"
@@ -35727,10 +35727,11 @@
         {
           "date": "10/10/2026",
           "specCode": "D",
-          "name": "د. براء عباس",
+          "name": "د. درر علي محمد",
           "VisitCount": 0,
           "dutyTime": "08:00AM - 08:00PM",
-          "dutySlot": 0
+          "dutySlot": 0,
+          "timestamp": "08:01"
         },
         {
           "date": "10/10/2026",
@@ -35919,10 +35920,11 @@
         {
           "date": "10/10/2026",
           "specCode": "O",
-          "name": "د. سنا خالد",
+          "name": "د. نور الهدى علي",
           "VisitCount": 0,
           "dutyTime": "",
-          "dutySlot": 0
+          "dutySlot": 0,
+          "timestamp": "08:34"
         },
         {
           "date": "11/10/2026",
@@ -37390,7 +37392,7 @@
           "date": "10/10/2026",
           "specCode": "M",
           "name": "د. ضحى جاسم محمد",
-          "VisitCount": 0,
+          "VisitCount": 1,
           "dutyTime": "08:00AM - 08:00PM",
           "dutySlot": 0
         },
@@ -38765,7 +38767,7 @@
           "date": "10/10/2026",
           "specCode": "OR",
           "name": "د. علي خضير",
-          "VisitCount": 1,
+          "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0
         },
@@ -39313,13 +39315,6 @@
           "specCode": "GA",
           "name": "د. ايات فيصل",
           "timestamp": "21:01",
-          "VisitCount": 0
-        },
-        {
-          "date": "10/10/2026",
-          "specCode": "GA",
-          "name": "د. علي خالد",
-          "timestamp": "08:51",
           "VisitCount": 0
         }
       ],

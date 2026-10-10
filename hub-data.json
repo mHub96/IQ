@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T19:55:36.595Z",
+  "lastUpdated": "2026-10-10T19:55:45.800Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -16,7 +16,7 @@
       "location": "Basra · Iraq",
       "icon": "fa-hospital",
       "color": "#0f766e",
-      "erEnabled": true,
+      "erEnabled": false,
       "passwords": {
         "owner": "Mrj!",
         "admin": "Iadmin",

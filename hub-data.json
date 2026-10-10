@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T04:42:13.288Z",
+  "lastUpdated": "2026-10-10T05:00:47.655Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -35727,10 +35727,11 @@
         {
           "date": "10/10/2026",
           "specCode": "D",
-          "name": "د. براء عباس",
+          "name": "د. درر علي محمد",
           "VisitCount": 0,
           "dutyTime": "08:00AM - 08:00PM",
-          "dutySlot": 0
+          "dutySlot": 0,
+          "timestamp": "08:00"
         },
         {
           "date": "10/10/2026",

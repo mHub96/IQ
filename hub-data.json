@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T20:44:14.382Z",
+  "lastUpdated": "2026-10-10T20:47:32.500Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -389,6 +389,18 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
+        },
+        {
+          "id": "Pe_basra",
+          "name_ar": "طب الأطفال",
+          "name_en": "Paediatrics",
+          "icon": "👶",
+          "prefix": "د. ",
+          "color": "#3dff6e",
+          "isClone": true,
+          "clonedFromHospitalId": "basra",
+          "clonedFromSpecId": "Pe",
+          "enabled": true
         }
       ],
       "names": [

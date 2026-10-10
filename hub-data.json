@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T19:54:32.376Z",
+  "lastUpdated": "2026-10-10T19:54:36.736Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -39852,7 +39852,8 @@
         "notes": "العناية المركزة ممتلئة بالكامل حالياً - لا توجد أسرة شاغرة",
         "lastUpdated": "2026-10-09T14:56:01.199Z",
         "updatedBy": "د. زينب عبد الرزاق"
-      }
+      },
+      "erEnabled": true
     },
     "mawani": {
       "id": "mawani",

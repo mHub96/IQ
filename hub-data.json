@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T20:47:56.480Z",
+  "lastUpdated": "2026-10-10T20:49:06.846Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -263,6 +263,18 @@
           "acceptPool": []
         },
         {
+          "id": "Pe_basra",
+          "name_ar": "طب الأطفال",
+          "name_en": "Paediatrics",
+          "icon": "👶",
+          "prefix": "د. ",
+          "color": "#3dff6e",
+          "isClone": true,
+          "clonedFromHospitalId": "basra",
+          "clonedFromSpecId": "Pe",
+          "enabled": true
+        },
+        {
           "id": "OR_basra",
           "name_ar": "الكسور",
           "name_en": "Orthopaedics",
@@ -389,18 +401,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "Pe_basra",
-          "name_ar": "طب الأطفال",
-          "name_en": "Paediatrics",
-          "icon": "👶",
-          "prefix": "د. ",
-          "color": "#3dff6e",
-          "isClone": true,
-          "clonedFromHospitalId": "basra",
-          "clonedFromSpecId": "Pe",
-          "enabled": true
         },
         {
           "id": "N_basra",

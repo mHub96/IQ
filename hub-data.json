@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T19:49:55.863Z",
+  "lastUpdated": "2026-10-10T19:50:42.203Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -22748,7 +22748,7 @@
         "lastUpdated": "2026-10-10T07:15:50.865Z",
         "updatedBy": "د. زينب عبد الرزاق"
       },
-      "erEnabled": true
+      "erEnabled": false
     },
     "basra": {
       "id": "basra",

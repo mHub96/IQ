@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T22:51:36.845Z",
+  "lastUpdated": "2026-10-10T22:51:58.361Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -23105,6 +23105,20 @@
           "acceptPool": []
         },
         {
+          "id": "R_iraqi",
+          "name_ar": "الأشعة و السونار",
+          "name_en": "Radiology",
+          "icon": "🩻",
+          "prefix": "د. ",
+          "color": "#6700e6",
+          "isClone": true,
+          "clonedFromHospitalId": "iraqi",
+          "clonedFromSpecId": "R",
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
           "id": "GS",
           "name_ar": "الجراحة العامة",
           "name_en": "General Surgery",
@@ -23133,20 +23147,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": true
-        },
-        {
-          "id": "R_iraqi",
-          "name_ar": "الأشعة و السونار",
-          "name_en": "Radiology",
-          "icon": "🩻",
-          "prefix": "د. ",
-          "color": "#6700e6",
-          "isClone": true,
-          "clonedFromHospitalId": "iraqi",
-          "clonedFromSpecId": "R",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
         },
         {
           "id": "ENT",

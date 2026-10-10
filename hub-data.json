@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T22:50:45.361Z",
+  "lastUpdated": "2026-10-10T22:51:02.288Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -23185,6 +23185,20 @@
           "enabled": true
         },
         {
+          "id": "R_iraqi",
+          "name_ar": "الأشعة و السونار",
+          "name_en": "Radiology",
+          "icon": "🩻",
+          "prefix": "د. ",
+          "color": "#6700e6",
+          "isClone": true,
+          "clonedFromHospitalId": "iraqi",
+          "clonedFromSpecId": "R",
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
           "id": "ICU",
           "name_ar": "تخدير العناية المركزة",
           "name_en": "ICU Anaesthesia",
@@ -23219,20 +23233,6 @@
             "A"
           ],
           "enabled": true
-        },
-        {
-          "id": "R_iraqi",
-          "name_ar": "الأشعة و السونار",
-          "name_en": "Radiology",
-          "icon": "🩻",
-          "prefix": "د. ",
-          "color": "#6700e6",
-          "isClone": true,
-          "clonedFromHospitalId": "iraqi",
-          "clonedFromSpecId": "R",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
         },
         {
           "id": "A",

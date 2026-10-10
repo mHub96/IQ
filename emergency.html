@@ -39,6 +39,16 @@
                 const erSession = localStorage.getItem('hosp_hub_er_owner_session') === 'true' || sessionStorage.getItem('hosp_hub_er_owner_session') === 'true';
                 if (role === 'owner' || erSession) {
                     document.documentElement.classList.add('er-owner-authenticated');
+                } else if (role === 'admin') {
+                    // Check if hospital is admin-authorized and erEnabled
+                    const adminHosps = JSON.parse(localStorage.getItem('hospital_hub_admin_hospitals') || '[]');
+                    const dbCache = JSON.parse(localStorage.getItem('hospital_hub_db_cache_v2') || '{}');
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const urlHosp = urlParams.get('hospital');
+                    const targetHosp = (urlHosp && adminHosps.includes(urlHosp)) ? urlHosp : adminHosps[0];
+                    if (targetHosp && dbCache.hospitals && dbCache.hospitals[targetHosp] && dbCache.hospitals[targetHosp].erEnabled) {
+                        document.documentElement.classList.add('er-owner-authenticated');
+                    }
                 }
             } catch(e) {}
         })();
@@ -280,13 +290,13 @@
                 <div class="text-center mb-6">
                     <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 mb-2">
                         <i class="fas fa-shield-halved"></i>
-                        <span>منطقة المالك حصراً · Owner Access Only</span>
+                        <span>تسجيل الدخول للنظام · System Access</span>
                     </div>
                     <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-1.5">
-                        نظام خفارات الطوارئ
+                        نظام خفارات الطوارئ (ER)
                     </h2>
                     <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm mx-auto">
-                        هذا النظام مشفر ومخصص لمالك التطبيق (Owner) فقط. لا يُسمح بالوصول عبر الرابط المباشر لغير المالك، يرجى إدخال كلمة مرور المالك للمتابعة.
+                        هذا النظام مخصص لمالك التطبيق (Owner) ولمديري المستشفيات المفعّل لها نظام خفارات الطوارئ. يرجى إدخال كلمة المرور للمتابعة.
                     </p>
                 </div>
 
@@ -294,14 +304,14 @@
                 <form id="er-owner-auth-form" onsubmit="event.preventDefault(); submitOwnerAuth();" class="space-y-4">
                     <div>
                         <label for="er-owner-pass-input" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                            كلمة مرور المالك:
+                            كلمة المرور (المالك أو مدير المستشفى):
                         </label>
                         <div class="relative">
                             <input type="password" 
                                    id="er-owner-pass-input" 
                                    required 
                                    autofocus
-                                   placeholder="أدخل كلمة مرور المالك..." 
+                                   placeholder="أدخل كلمة المرور..." 
                                    class="w-full px-4 py-3 pl-11 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 text-sm font-sans transition" />
                             <button type="button" 
                                     onclick="toggleErOwnerPassVisibility()" 

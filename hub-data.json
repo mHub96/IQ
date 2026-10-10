@@ -16,6 +16,7 @@
       "location": "Basra · Iraq",
       "icon": "fa-hospital",
       "color": "#0f766e",
+      "erEnabled": true,
       "passwords": {
         "owner": "Mrj!",
         "admin": "Iadmin",

@@ -408,6 +408,14 @@
                 { id: 'mawani', name_ar: 'مستشفى الموانئ التعليمي' }
             ];
         }
+
+        const isOwner = window.Hub && window.Hub.auth && typeof window.Hub.auth.isOwner === 'function' && window.Hub.auth.isOwner();
+        const adminHospIds = (window.Hub && window.Hub.auth && typeof window.Hub.auth.getAdminHospitalIds === 'function') ? window.Hub.auth.getAdminHospitalIds() : [];
+        const isScopedAdmin = !isOwner && adminHospIds.length > 0 && !adminHospIds.includes('*');
+        if (isScopedAdmin) {
+            hospitals = hospitals.filter(h => adminHospIds.includes(h.id));
+        }
+
         return hospitals;
     }
 
@@ -525,11 +533,28 @@
             document.documentElement.classList.add('er-owner-authenticated');
             unlockOwnerAuthGate();
             return true;
-        } else {
-            document.documentElement.classList.remove('er-owner-authenticated');
-            showOwnerAuthGate();
-            return false;
         }
+
+        // Check if user is hospital admin with erEnabled
+        if (window.Hub && window.Hub.auth && typeof window.Hub.auth.isAdmin === 'function' && window.Hub.auth.isAdmin()) {
+            const adminHospIds = window.Hub.auth.getAdminHospitalIds();
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlHosp = urlParams.get('hospital');
+            const targetHospId = (urlHosp && adminHospIds.includes(urlHosp)) ? urlHosp : (adminHospIds[0] || null);
+
+            if (targetHospId && targetHospId !== '*') {
+                const h = window.Hub.getHospital ? window.Hub.getHospital(targetHospId) : null;
+                if (h && h.erEnabled) {
+                    document.documentElement.classList.add('er-owner-authenticated');
+                    unlockOwnerAuthGate();
+                    return true;
+                }
+            }
+        }
+
+        document.documentElement.classList.remove('er-owner-authenticated');
+        showOwnerAuthGate();
+        return false;
     }
 
     function showOwnerAuthGate(errorMsg = null) {
@@ -597,7 +622,7 @@
         const submitBtn = document.getElementById('er-owner-submit-btn');
         const pwd = (input?.value || '').trim();
         if (!pwd) {
-            showAuthError('يرجى إدخال كلمة مرور المالك للمتابعة.');
+            showAuthError('يرجى إدخال كلمة المرور للمتابعة.');
             input?.focus();
             return;
         }
@@ -613,7 +638,7 @@
             await ensureHubDatabaseLoaded();
 
             // Verify with Hub.auth or default owner password
-            let res = window.Hub && window.Hub.auth ? window.Hub.auth.verifyPassword(pwd, 'owner') : null;
+            let res = window.Hub && window.Hub.auth ? window.Hub.auth.verifyPassword(pwd) : null;
             const isOwner = (res && res.success && res.role === 'owner') || pwd === "MrjBth1996*";
 
             // Strict Owner validation: MUST BE role === 'owner'
@@ -629,6 +654,42 @@
                 document.documentElement.classList.add('er-owner-authenticated');
                 unlockOwnerAuthGate();
                 await proceedEmergencyAppInit();
+            } else if (res && res.success && res.role === 'admin') {
+                // Check if this admin's hospital has erEnabled
+                const adminHosps = res.adminHospitals || [];
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlHosp = urlParams.get('hospital');
+                const targetHospId = (urlHosp && adminHosps.includes(urlHosp)) ? urlHosp : (adminHosps[0] || null);
+
+                let permittedHosp = null;
+                if (targetHospId) {
+                    const h = window.Hub.getHospital ? window.Hub.getHospital(targetHospId) : null;
+                    if (h && h.erEnabled) permittedHosp = h;
+                }
+                if (!permittedHosp && adminHosps.length > 0) {
+                    for (const hid of adminHosps) {
+                        const h = window.Hub.getHospital ? window.Hub.getHospital(hid) : null;
+                        if (h && h.erEnabled) { permittedHosp = h; break; }
+                    }
+                }
+
+                if (permittedHosp) {
+                    if (window.Hub && window.Hub.auth) {
+                        window.Hub.auth.saveSession('admin', pwd, remember, [permittedHosp.id]);
+                    }
+                    document.documentElement.classList.add('er-owner-authenticated');
+                    unlockOwnerAuthGate();
+                    state.hospitalId = permittedHosp.id;
+                    state.hospitalName = permittedHosp.name_ar || permittedHosp.hospitalName || permittedHosp.id;
+                    await proceedEmergencyAppInit();
+                } else {
+                    if (input) {
+                        input.classList.add('animate-shake', 'border-rose-500');
+                        setTimeout(() => input.classList.remove('animate-shake'), 600);
+                        input.focus();
+                    }
+                    showAuthError('عذراً! نظام خفارات الطوارئ (ER) غير مفعّل لهذا المستشفى حالياً. يرجى التواصل مع إدارة النظام (المالك) لتفعيله.');
+                }
             } else {
                 if (input) {
                     input.classList.add('animate-shake', 'border-rose-500');
@@ -636,14 +697,10 @@
                     input.focus();
                     input.select();
                 }
-                if (res && res.success && res.role !== 'owner') {
-                    showAuthError('عذراً! كلمة المرور هذه خاصة برتبة أخرى. نظام الطوارئ مخصص للمالك حصراً.');
-                } else {
-                    showAuthError('كلمة مرور المالك غير صحيحة! يرجى التأكد وإعادة المحاولة.');
-                }
+                showAuthError('كلمة المرور غير صحيحة! يرجى التأكد وإعادة المحاولة.');
             }
         } catch (err) {
-            console.error('Owner auth error:', err);
+            console.error('Auth error:', err);
             showAuthError('حدث خطأ أثناء التحقق. يرجى المحاولة مرة أخرى.');
         } finally {
             if (submitBtn) {
@@ -760,6 +817,51 @@
                     });
                 }
             });
+        }
+
+        // Enforce Hospital Scope based on URL param and Admin permissions
+        const isOwner = window.Hub && window.Hub.auth && typeof window.Hub.auth.isOwner === 'function' && window.Hub.auth.isOwner();
+        const adminHospIds = (window.Hub && window.Hub.auth && typeof window.Hub.auth.getAdminHospitalIds === 'function') ? window.Hub.auth.getAdminHospitalIds() : [];
+        const isScopedAdmin = !isOwner && adminHospIds.length > 0 && !adminHospIds.includes('*');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlHosp = urlParams.get('hospital');
+
+        if (isScopedAdmin) {
+            const targetHosp = (urlHosp && adminHospIds.includes(urlHosp)) ? urlHosp : adminHospIds[0];
+            if (targetHosp) {
+                state.hospitalId = targetHosp;
+                if (window.Hub && typeof window.Hub.getHospital === 'function') {
+                    const h = window.Hub.getHospital(targetHosp);
+                    if (h) state.hospitalName = h.name_ar || h.hospitalName || targetHosp;
+                }
+                if (state.hospitalResidents && state.hospitalResidents[targetHosp] && state.hospitalResidents[targetHosp].length > 0) {
+                    state.residents = JSON.parse(JSON.stringify(state.hospitalResidents[targetHosp]));
+                } else if (window.Hub && typeof window.Hub.getHospital === 'function') {
+                    const h = window.Hub.getHospital(targetHosp);
+                    if (h && Array.isArray(h.names) && h.names.length > 0) {
+                        state.residents = h.names.map((n, i) => ({
+                            id: n.id || `doc_${targetHosp}_${i}`,
+                            name: n.name,
+                            specialty: canonicalizeSpecialtyName(n.spec || n.tag || 'GS'),
+                            sex: n.sex || 'male',
+                            board: n.board || 'iraqi_board',
+                            active: n.active !== false,
+                            phone: n.phone || '',
+                            hospitals: [targetHosp]
+                        }));
+                    }
+                }
+            }
+        } else if (urlHosp && urlHosp !== state.hospitalId) {
+            state.hospitalId = urlHosp;
+            if (window.Hub && typeof window.Hub.getHospital === 'function') {
+                const h = window.Hub.getHospital(urlHosp);
+                if (h) state.hospitalName = h.name_ar || h.hospitalName || urlHosp;
+            }
+            if (state.hospitalResidents && state.hospitalResidents[urlHosp] && state.hospitalResidents[urlHosp].length > 0) {
+                state.residents = JSON.parse(JSON.stringify(state.hospitalResidents[urlHosp]));
+            }
         }
 
         // Load the schedule and allocations for the determined month from store
@@ -1676,6 +1778,18 @@
             ];
         }
 
+        const isOwner = window.Hub && window.Hub.auth && typeof window.Hub.auth.isOwner === 'function' && window.Hub.auth.isOwner();
+        const adminHospIds = (window.Hub && window.Hub.auth && typeof window.Hub.auth.getAdminHospitalIds === 'function') ? window.Hub.auth.getAdminHospitalIds() : [];
+        const isScopedAdmin = !isOwner && adminHospIds.length > 0 && !adminHospIds.includes('*');
+
+        if (isScopedAdmin) {
+            // Strictly filter list of hospitals to only authorized hospital
+            hospitals = hospitals.filter(h => adminHospIds.includes(h.id));
+            if (!adminHospIds.includes(state.hospitalId) && hospitals.length > 0) {
+                state.hospitalId = hospitals[0].id;
+            }
+        }
+
         selectEl.innerHTML = '';
         hospitals.forEach(h => {
             const opt = document.createElement('option');
@@ -1685,6 +1799,30 @@
             selectEl.appendChild(opt);
         });
 
+        if (isScopedAdmin) {
+            // Disable dropdown completely for scoped admin
+            selectEl.disabled = true;
+            selectEl.style.cursor = 'not-allowed';
+            selectEl.style.opacity = '0.85';
+            selectEl.title = 'مخصص لمستشفاك فقط ولا يمكن تغييره';
+
+            // Add lock indicator pill if not already there
+            let lockBadge = document.getElementById('meta-hosp-locked-badge');
+            if (!lockBadge && selectEl.parentElement) {
+                lockBadge = document.createElement('span');
+                lockBadge.id = 'meta-hosp-locked-badge';
+                lockBadge.className = 'text-[11px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-2 py-0.5 rounded-full inline-flex items-center gap-1 mr-1 select-none';
+                lockBadge.innerHTML = '<i class="fas fa-lock text-[10px]"></i> مخصص لمستشفاك فقط';
+                selectEl.parentElement.appendChild(lockBadge);
+            }
+        } else {
+            selectEl.disabled = false;
+            selectEl.style.cursor = 'pointer';
+            selectEl.style.opacity = '1';
+            const lockBadge = document.getElementById('meta-hosp-locked-badge');
+            if (lockBadge) lockBadge.remove();
+        }
+
         const activeHosp = hospitals.find(h => h.id === state.hospitalId);
         if (activeHosp) {
             state.hospitalName = activeHosp.name_ar || activeHosp.hospitalName || state.hospitalName;
@@ -1692,6 +1830,17 @@
     }
 
     function onHospitalChange(hospId) {
+        const isOwner = window.Hub && window.Hub.auth && typeof window.Hub.auth.isOwner === 'function' && window.Hub.auth.isOwner();
+        const adminHospIds = (window.Hub && window.Hub.auth && typeof window.Hub.auth.getAdminHospitalIds === 'function') ? window.Hub.auth.getAdminHospitalIds() : [];
+        const isScopedAdmin = !isOwner && adminHospIds.length > 0 && !adminHospIds.includes('*');
+
+        if (isScopedAdmin && !adminHospIds.includes(hospId)) {
+            showNotification('غير مصرح لك بالانتقال إلى مستشفى آخر', 'error');
+            const selectEl = document.getElementById('meta-hosp-select');
+            if (selectEl) selectEl.value = state.hospitalId;
+            return;
+        }
+
         if (hospId === state.hospitalId) return;
 
         // 1. Save current month schedule, allocations & current residents

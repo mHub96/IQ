@@ -750,15 +750,23 @@
             }
 
             // B. Preserve Residents (names)
-            if (Array.isArray(remoteHosp.names) && Array.isArray(localHosp.names)) {
+            // If the commit is specifically modifying residents (add, update, transfer, delete), local residents take precedence.
+            const isResidentCommit = /Resident|مقيم|نقل|حذف|تعديل/i.test(commitMessage);
+            if (!isResidentCommit && Array.isArray(remoteHosp.names) && Array.isArray(localHosp.names)) {
                 const localNamesSet = new Set(localHosp.names.map(n => (n.name || '').trim()));
                 for (const rRes of remoteHosp.names) {
                     const rName = (rRes.name || '').trim();
-                    if (rName && !localNamesSet.has(rName)) {
+                    const inMaster = Array.isArray(merged.residents) ? merged.residents.some(m => m.id === rRes.id || m.name === rName) : true;
+                    if (rName && inMaster && !localNamesSet.has(rName)) {
                         localHosp.names.push(JSON.parse(JSON.stringify(rRes)));
                         localNamesSet.add(rName);
                     }
                 }
+            }
+
+            // B2. Preserve ER Enabled status
+            if (remoteHosp.erEnabled !== undefined && localHosp.erEnabled === undefined) {
+                localHosp.erEnabled = remoteHosp.erEnabled;
             }
 
             // C. Preserve Specialties
@@ -815,6 +823,26 @@
         // 4. Merge Emergency Data if present in remote
         if (remote.emergency && !merged.emergency) {
             merged.emergency = JSON.parse(JSON.stringify(remote.emergency));
+        }
+
+        // 5. Enforce consistency between master residents and individual hospital names
+        if (Array.isArray(merged.residents) && merged.hospitals) {
+            Object.keys(merged.hospitals).forEach(hid => {
+                const hosp = merged.hospitals[hid];
+                if (!hosp) return;
+                const matchingResidents = merged.residents.filter(r => Array.isArray(r.hospitals) && r.hospitals.includes(hid));
+                hosp.names = matchingResidents.map(r => ({
+                    id: r.id,
+                    name: r.name,
+                    phone: r.phone || 'رقم غير متوفر',
+                    spec: r.spec,
+                    tag: r.tag,
+                    dept: r.dept || r.department || r.spec,
+                    department: r.dept || r.department || r.spec,
+                    active: r.active,
+                    hospitals: r.hospitals
+                }));
+            });
         }
 
         return merged;
@@ -1123,6 +1151,11 @@
         // Only OWNER can modify rotationHeroesUrl!
         if (updates.rotationHeroesUrl !== undefined && !auth.isOwner()) {
             delete updates.rotationHeroesUrl;
+        }
+
+        // Only OWNER can toggle erEnabled!
+        if (updates.erEnabled !== undefined && !auth.isOwner()) {
+            delete updates.erEnabled;
         }
 
         db.hospitals[id] = {
@@ -2552,7 +2585,11 @@
             syncSharedResidentsFromHospitals();
         }
 
-        const idx = db.residents.findIndex(r => r.id === idOrName || r.name === idOrName);
+        let idx = db.residents.findIndex(r => r.id === idOrName || r.name === idOrName);
+        if (idx === -1 && typeof idOrName === 'string') {
+            const cleanTarget = idOrName.replace(/^(د\.|د|dr\.|dr|mr\.|mr|ms\.|ms|أ\.|أ|م\.|م|ص\.|ص)[\s\:\/]+/gi, '').trim();
+            idx = db.residents.findIndex(r => (r.name || '').replace(/^(د\.|د|dr\.|dr|mr\.|mr|ms\.|ms|أ\.|أ|م\.|م|ص\.|ص)[\s\:\/]+/gi, '').trim() === cleanTarget);
+        }
         if (idx === -1) throw new Error('المقيم غير موجود');
 
         const current = db.residents[idx];
@@ -2609,7 +2646,11 @@
             syncSharedResidentsFromHospitals();
         }
 
-        const idx = db.residents.findIndex(r => r.id === idOrName || r.name === idOrName);
+        let idx = db.residents.findIndex(r => r.id === idOrName || r.name === idOrName);
+        if (idx === -1 && typeof idOrName === 'string') {
+            const cleanTarget = idOrName.replace(/^(د\.|د|dr\.|dr|mr\.|mr|ms\.|ms|أ\.|أ|م\.|م|ص\.|ص)[\s\:\/]+/gi, '').trim();
+            idx = db.residents.findIndex(r => (r.name || '').replace(/^(د\.|د|dr\.|dr|mr\.|mr|ms\.|ms|أ\.|أ|م\.|م|ص\.|ص)[\s\:\/]+/gi, '').trim() === cleanTarget);
+        }
         if (idx === -1) throw new Error('المقيم غير موجود');
 
         const name = db.residents[idx].name;

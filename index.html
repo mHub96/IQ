@@ -2425,6 +2425,11 @@
                                 <span class="metric-chip">
                                     <i class="fas fa-stethoscope"></i> ${specCount} تخصص
                                 </span>
+                                ${h.erEnabled ? `
+                                <span class="metric-chip text-rose-600 border-rose-200 bg-rose-50/60 dark:text-rose-400 dark:border-rose-900/40" title="نظام خفارات الطوارئ ER مفعّل لهذا المستشفى">
+                                    <i class="fas fa-truck-medical text-rose-500"></i> ER مفعّل
+                                </span>
+                                ` : ''}
                                 ${icuStats ? `
                                 <a href="./icu.html?hospital=${h.id}" class="metric-chip ${icuIsFull ? 'border-rose-300 text-rose-600 dark:border-rose-800 dark:text-rose-400' : 'border-emerald-300 text-emerald-700 dark:border-emerald-800 dark:text-emerald-400'}" style="text-decoration:none;" title="معاينة موقف أسرة العناية المركزة">
                                     <i class="fas fa-bed"></i> ${icuIsFull ? 'العناية ممتلئة' : `${icuAvail} شاغر`}
@@ -2458,6 +2463,11 @@
                                 <a href="./specialists.html?hospital=${h.id}" class="ios-btn secondary">
                                     <i class="fas fa-user-tie"></i> <span>أطباء الاختصاص</span>
                                 </a>
+                                ${((isHospAdmin && h.erEnabled) || isOwner) ? `
+                                <a href="./emergency.html?hospital=${h.id}" class="ios-btn secondary hosp-er-btn" style="border-color:rgba(225,29,72,0.3); color:#e11d48; background:rgba(225,29,72,0.06);" title="نظام وجداول خفارات الطوارئ لهذا المستشفى">
+                                    <i class="fas fa-truck-medical text-rose-500"></i> <span>خفارات الطوارئ (ER)</span>
+                                </a>
+                                ` : ''}
                                 ${isHospAdmin ? `
                                 <a href="./scheduler.html?hospital=${h.id}" class="ios-btn secondary">
                                     <i class="fas fa-calendar-alt"></i> <span>مجدول الشهر</span>
@@ -2471,11 +2481,29 @@
                             </div>
 
                             ${isOwner ? `
-                                <div class="flex justify-between items-center mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px]">
-                                    <span class="text-amber-600 dark:text-amber-400 font-bold"><i class="fas fa-crown ml-1"></i> المالك</span>
-                                    <button type="button" onclick="confirmDeleteHospital('${h.id}', '${h.name_ar || h.hospitalName}')" class="text-rose-500 font-bold hover:underline">
-                                        <i class="fas fa-trash-alt ml-1"></i> حذف المستشفى
-                                    </button>
+                                <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 space-y-2 text-[11px]">
+                                    <!-- ER Scheduler Toggle for Hospital (Owner Mode) -->
+                                    <div class="flex items-center justify-between p-2 rounded-xl bg-rose-50/70 dark:bg-rose-950/25 border border-rose-200/70 dark:border-rose-900/40">
+                                        <div class="flex items-center gap-2 font-bold text-rose-800 dark:text-rose-200">
+                                            <i class="fas fa-truck-medical text-rose-600 dark:text-rose-400 text-sm"></i>
+                                            <div>
+                                                <div class="leading-tight">نظام خفارات الطوارئ (ER)</div>
+                                                <div class="text-[10px] font-normal text-rose-600/80 dark:text-rose-400/80">إتاحة الموقع لمدير هذا المستشفى</div>
+                                            </div>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer select-none">
+                                            <input type="checkbox" ${h.erEnabled ? 'checked' : ''} onchange="toggleHospitalEREnabled('${h.id}', this.checked)" class="sr-only peer">
+                                            <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-slate-600 peer-checked:bg-rose-600"></div>
+                                            <span class="mr-2 text-xs font-bold ${h.erEnabled ? 'text-rose-600 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500'}">${h.erEnabled ? 'مفعّل' : 'معطّل'}</span>
+                                        </label>
+                                    </div>
+
+                                    <div class="flex justify-between items-center pt-1 text-[11px]">
+                                        <span class="text-amber-600 dark:text-amber-400 font-bold"><i class="fas fa-crown ml-1"></i> المالك</span>
+                                        <button type="button" onclick="confirmDeleteHospital('${h.id}', '${h.name_ar || h.hospitalName}')" class="text-rose-500 font-bold hover:underline">
+                                            <i class="fas fa-trash-alt ml-1"></i> حذف المستشفى
+                                        </button>
+                                    </div>
                                 </div>
                             ` : ''}
                         </div>
@@ -2883,6 +2911,18 @@
             } catch (err) {
                 console.error(err);
                 showToast(err.message || 'تعذر حذف المستشفى', 'error');
+            }
+        }
+
+        async function toggleHospitalEREnabled(hospId, isChecked) {
+            try {
+                await Hub.updateHospital(hospId, { erEnabled: !!isChecked });
+                showToast(isChecked ? 'تم تفعيل نظام خفارات الطوارئ لهذا المستشفى بنجاح 🚨' : 'تم تعطيل نظام خفارات الطوارئ لهذا المستشفى', 'success');
+                renderHubDashboard();
+            } catch (err) {
+                console.error('Error toggling hospital ER status:', err);
+                showToast(err.message || 'فشل تعديل حالة نظام الطوارئ', 'error');
+                renderHubDashboard();
             }
         }
 

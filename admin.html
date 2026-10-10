@@ -1502,11 +1502,15 @@
                     }
                 }
 
-                // Show Owner Edit Passwords & Rotation Heroes buttons only if isOwner
+                // Show ER button if isOwner or if erEnabled for this hospital
                 const isOwner = Hub.auth.isOwner();
+                const isErAllowed = isOwner || (currentHospital && currentHospital.erEnabled);
                 const ownerEmergencyBtn = document.getElementById('admin-owner-emergency-btn');
                 if (ownerEmergencyBtn) {
-                    ownerEmergencyBtn.style.display = isOwner ? 'inline-flex' : 'none';
+                    ownerEmergencyBtn.style.display = isErAllowed ? 'inline-flex' : 'none';
+                    if (currentHospital && currentHospital.id) {
+                        ownerEmergencyBtn.href = `./emergency.html?hospital=${encodeURIComponent(currentHospital.id)}`;
+                    }
                 }
                 const ownerPwdBtn = document.getElementById('admin-owner-passwords-btn');
                 if (ownerPwdBtn) {
@@ -2524,18 +2528,30 @@
                 }
 
                 currentHospital = Hub.getActiveHospital();
-                const targetBoxSpec = (active && spec !== 'RESERVE') ? spec : 'RESERVE';
-                if (!window.openSpecBoxIds) window.openSpecBoxIds = new Set();
-                window.openSpecBoxIds.add(`spec-box-${targetBoxSpec}`);
-                renderResidentsAccordion({
-                    preserveScroll: true,
-                    targetScrollY: savedScroll,
-                    forceOpenSpecId: targetBoxSpec,
-                    highlightResidentId: resId,
-                    highlightResidentName: formattedName
-                });
-                updateStatsBadges();
-                showToast('تم حفظ تعديل المقيم بنجاح', 'success');
+                const currentHid = Hub.getActiveHospitalId();
+                const isStillInHospital = assignedHospitals.includes(currentHid);
+
+                if (isStillInHospital) {
+                    const targetBoxSpec = (active && spec !== 'RESERVE') ? spec : 'RESERVE';
+                    if (!window.openSpecBoxIds) window.openSpecBoxIds = new Set();
+                    window.openSpecBoxIds.add(`spec-box-${targetBoxSpec}`);
+                    renderResidentsAccordion({
+                        preserveScroll: true,
+                        targetScrollY: savedScroll,
+                        forceOpenSpecId: targetBoxSpec,
+                        highlightResidentId: resId,
+                        highlightResidentName: formattedName
+                    });
+                    updateStatsBadges();
+                    showToast('تم حفظ تعديل المقيم بنجاح', 'success');
+                } else {
+                    renderResidentsAccordion({
+                        preserveScroll: true,
+                        targetScrollY: savedScroll
+                    });
+                    updateStatsBadges();
+                    showToast(`تم نقل المقيم "${formattedName}" إلى المستشفى المحدد وإزالته من هذا المستشفى بنجاح`, 'success');
+                }
             } catch (err) {
                 console.error('Error updating resident:', err);
                 showToast(err.message || 'خطأ أثناء تعديل المقيم', 'error');
@@ -2544,30 +2560,71 @@
 
         async function deleteResident(idx, name) {
             const savedScroll = window.scrollY;
-            if (!confirm(`هل أنت متأكد من حذف المقيم "${name}"؟`)) return;
+            const r = currentHospital && currentHospital.names ? currentHospital.names[idx] : null;
+            const resId = r ? (r.id || name) : name;
+            const currentHid = Hub.getActiveHospitalId();
 
-            try {
-                const r = currentHospital.names[idx];
-                const resId = r ? (r.id || name) : name;
-                const isActive = r ? (r.active !== false && r.spec !== 'RESERVE') : true;
-                const specId = isActive ? (r ? (r.spec || r.tag) : null) : 'RESERVE';
-                if (specId) {
-                    if (!window.openSpecBoxIds) window.openSpecBoxIds = new Set();
-                    window.openSpecBoxIds.add(`spec-box-${specId}`);
+            // Check if resident exists in master db.residents and determine assigned hospitals
+            const dbResidents = (Hub.getResidents ? Hub.getResidents() : []) || [];
+            let sharedRes = dbResidents.find(res => (res.id && res.id === resId) || res.name === name);
+            if (!sharedRes && typeof name === 'string') {
+                const cleanName = name.replace(/^(د\.|د|dr\.|dr|mr\.|mr|ms\.|ms|أ\.|أ|م\.|م|ص\.|ص)[\s\:\/]+/gi, '').trim();
+                sharedRes = dbResidents.find(res => (res.name || '').replace(/^(د\.|د|dr\.|dr|mr\.|mr|ms\.|ms|أ\.|أ|م\.|م|ص\.|ص)[\s\:\/]+/gi, '').trim() === cleanName);
+            }
+
+            const assignedHosps = (sharedRes && Array.isArray(sharedRes.hospitals) && sharedRes.hospitals.length > 0)
+                ? sharedRes.hospitals
+                : (r && Array.isArray(r.hospitals) && r.hospitals.length > 0 ? r.hospitals : [currentHid]);
+
+            if (assignedHosps.length > 1) {
+                // Multi-hospital resident: remove ONLY from this hospital
+                const msg = `المقيم "${name}" مسجل في أكثر من مستشفى.\n\nهل أنت متأكد من إزالته من هذا المستشفى فقط؟\n(سيبقى المقيم مسجلاً ومتاحاً في المستشفيات الأخرى ولن يتأثر)`;
+                if (!confirm(msg)) return;
+
+                try {
+                    const newHosps = assignedHosps.filter(h => h !== currentHid);
+                    const targetId = sharedRes ? (sharedRes.id || sharedRes.name) : resId;
+                    await Hub.updateResident(targetId, {
+                        hospitals: newHosps
+                    });
+
+                    currentHospital = Hub.getActiveHospital();
+                    renderResidentsAccordion({
+                        preserveScroll: true,
+                        targetScrollY: savedScroll
+                    });
+                    updateStatsBadges();
+                    showToast(`تمت إزالة ${name} من هذا المستشفى بنجاح (سيبقى في مستشفياته الأخرى)`, 'info');
+                } catch (err) {
+                    console.error('Error removing resident from hospital:', err);
+                    showToast(err.message || 'خطأ أثناء إزالة المقيم من المستشفى', 'error');
                 }
-                await Hub.deleteResident(resId);
+            } else {
+                // Single-hospital resident: warn user before permanent directory deletion
+                const msg = `تنبيه:\nالمقيم "${name}" مسجل في هذا المستشفى فقط.\n\nأنت على وشك حذف هذا المقيم نهائياً من قاعدة بيانات المقيمين.\n(ملاحظة: لن يتم حذف اسمه من جداول وسجلات الخفارات السابقة، وسيتم حذفه كطبيب مقيم فقط).\n\nهل ترغب بالاستمرار في الحذف؟`;
+                if (!confirm(msg)) return;
 
-                currentHospital = Hub.getActiveHospital();
-                renderResidentsAccordion({
-                    preserveScroll: true,
-                    targetScrollY: savedScroll,
-                    forceOpenSpecId: specId
-                });
-                updateStatsBadges();
-                showToast(`تم حذف ${name}`, 'info');
-            } catch (err) {
-                console.error('Error deleting resident:', err);
-                showToast(err.message || 'خطأ أثناء حذف المقيم', 'error');
+                try {
+                    const isActive = r ? (r.active !== false && r.spec !== 'RESERVE') : true;
+                    const specId = isActive ? (r ? (r.spec || r.tag) : null) : 'RESERVE';
+                    if (specId) {
+                        if (!window.openSpecBoxIds) window.openSpecBoxIds = new Set();
+                        window.openSpecBoxIds.add(`spec-box-${specId}`);
+                    }
+                    await Hub.deleteResident(resId);
+
+                    currentHospital = Hub.getActiveHospital();
+                    renderResidentsAccordion({
+                        preserveScroll: true,
+                        targetScrollY: savedScroll,
+                        forceOpenSpecId: specId
+                    });
+                    updateStatsBadges();
+                    showToast(`تم حذف ${name} نهائياً من دليل المقيمين`, 'info');
+                } catch (err) {
+                    console.error('Error deleting resident:', err);
+                    showToast(err.message || 'خطأ أثناء حذف المقيم', 'error');
+                }
             }
         }
 

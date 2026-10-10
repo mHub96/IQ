@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T19:55:25.273Z",
+  "lastUpdated": "2026-10-10T19:55:27.003Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -45051,7 +45051,7 @@
         "lastUpdated": "2026-09-30T10:05:20.837Z",
         "updatedBy": "د. فاطمة محمد حسن"
       },
-      "erEnabled": true
+      "erEnabled": false
     },
     "sayyab": {
       "id": "sayyab",

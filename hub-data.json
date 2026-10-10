@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T18:34:46.860Z",
+  "lastUpdated": "2026-10-10T18:35:21.908Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -953,6 +953,19 @@
           "tag": "GS",
           "dept": "GS",
           "department": "GS",
+          "active": true,
+          "hospitals": [
+            "iraqi"
+          ]
+        },
+        {
+          "id": "res-0242",
+          "name": "د. حسين علي عطيه",
+          "phone": "+9647809349202",
+          "spec": "US",
+          "tag": "US",
+          "dept": "US",
+          "department": "US",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -23894,19 +23907,6 @@
           ]
         },
         {
-          "id": "res-0242",
-          "name": "د. حسين علي عطيه",
-          "phone": "+9647809349202",
-          "spec": "US",
-          "tag": "US",
-          "dept": "US",
-          "department": "US",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
           "id": "res-0196",
           "name": "د. حسين قحطان غضبان",
           "phone": "+9647708013278",
@@ -27474,6 +27474,19 @@
           "tag": "N",
           "dept": "N",
           "department": "N",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
+        },
+        {
+          "id": "res-0242",
+          "name": "د. حسين علي عطيه",
+          "phone": "+9647809349202",
+          "spec": "US",
+          "tag": "US",
+          "dept": "US",
+          "department": "US",
           "active": true,
           "hospitals": [
             "basra"
@@ -47270,7 +47283,7 @@
       "department": "US",
       "active": true,
       "hospitals": [
-        "basra"
+        "iraqi"
       ]
     },
     {

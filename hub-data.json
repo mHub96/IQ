@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T19:55:32.587Z",
+  "lastUpdated": "2026-10-10T19:55:36.595Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -45839,7 +45839,7 @@
       "names": [],
       "schedule": [],
       "specialistSchedule": [],
-      "erEnabled": true
+      "erEnabled": false
     }
   },
   "residents": [

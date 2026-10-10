@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T20:49:18.246Z",
+  "lastUpdated": "2026-10-10T20:49:23.208Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -249,6 +249,20 @@
           "enabled": true
         },
         {
+          "id": "OR_basra",
+          "name_ar": "الكسور",
+          "name_en": "Orthopaedics",
+          "icon": "🦴",
+          "prefix": "د. ",
+          "color": "#ff0000",
+          "isClone": true,
+          "clonedFromHospitalId": "basra",
+          "clonedFromSpecId": "OR",
+          "enabled": true,
+          "parentSpec": null,
+          "acceptPool": []
+        },
+        {
           "id": "M_basra",
           "name_ar": "الباطنية",
           "name_en": "Internal Medicine",
@@ -273,20 +287,6 @@
           "clonedFromHospitalId": "basra",
           "clonedFromSpecId": "Pe",
           "enabled": true
-        },
-        {
-          "id": "OR_basra",
-          "name_ar": "الكسور",
-          "name_en": "Orthopaedics",
-          "icon": "🦴",
-          "prefix": "د. ",
-          "color": "#ff0000",
-          "isClone": true,
-          "clonedFromHospitalId": "basra",
-          "clonedFromSpecId": "OR",
-          "enabled": true,
-          "parentSpec": null,
-          "acceptPool": []
         },
         {
           "id": "MF_basra",

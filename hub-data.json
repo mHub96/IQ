@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T18:44:42.747Z",
+  "lastUpdated": "2026-10-10T19:49:55.863Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -16,7 +16,6 @@
       "location": "Basra · Iraq",
       "icon": "fa-hospital",
       "color": "#0f766e",
-      "erEnabled": true,
       "passwords": {
         "owner": "Mrj!",
         "admin": "Iadmin",
@@ -2892,71 +2891,6 @@
           "tag": "M",
           "dept": "ON",
           "department": "ON",
-          "active": true,
-          "hospitals": [
-            "iraqi"
-          ]
-        },
-        {
-          "id": "res-mv2qtrctbw4w",
-          "name": "فلاح حسن",
-          "phone": "+9647715914292",
-          "spec": "AO",
-          "tag": "AO",
-          "dept": "AO",
-          "department": "AO",
-          "active": true,
-          "hospitals": [
-            "iraqi"
-          ]
-        },
-        {
-          "id": "res-mv2qtrctbw4w",
-          "name": "د. فلاح حسن",
-          "phone": "+9647715914292",
-          "spec": "AO",
-          "tag": "AO",
-          "dept": "AO",
-          "department": "AO",
-          "active": true,
-          "hospitals": [
-            "iraqi"
-          ]
-        },
-        {
-          "id": "res-0185",
-          "name": "د. دعاء علي مجيد",
-          "phone": "+9647705767570",
-          "spec": "ENT",
-          "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
-          "active": true,
-          "hospitals": [
-            "iraqi"
-          ]
-        },
-        {
-          "id": "res-0178",
-          "name": "د. فاطمة صبيح صاحب",
-          "phone": "+9647804332274",
-          "spec": "ENT",
-          "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
-          "active": true,
-          "hospitals": [
-            "iraqi"
-          ]
-        },
-        {
-          "id": "res-0177",
-          "name": "د. زينب عبدالكريم احمد",
-          "phone": "+9647704726124",
-          "spec": "ENT",
-          "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -22813,7 +22747,8 @@
         "notes": "UPDATE 10/10/2026",
         "lastUpdated": "2026-10-10T07:15:50.865Z",
         "updatedBy": "د. زينب عبد الرزاق"
-      }
+      },
+      "erEnabled": true
     },
     "basra": {
       "id": "basra",
@@ -27557,19 +27492,6 @@
           "tag": "N",
           "dept": "N",
           "department": "N",
-          "active": true,
-          "hospitals": [
-            "basra"
-          ]
-        },
-        {
-          "id": "res-0242",
-          "name": "د. حسين علي عطيه",
-          "phone": "+9647809349202",
-          "spec": "US",
-          "tag": "US",
-          "dept": "US",
-          "department": "US",
           "active": true,
           "hospitals": [
             "basra"

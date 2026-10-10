@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T20:47:32.500Z",
+  "lastUpdated": "2026-10-10T20:47:49.445Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -400,6 +400,18 @@
           "isClone": true,
           "clonedFromHospitalId": "basra",
           "clonedFromSpecId": "Pe",
+          "enabled": true
+        },
+        {
+          "id": "N_basra",
+          "name_ar": "طب امراض الكلى",
+          "name_en": "Nephrology",
+          "icon": "🧫",
+          "prefix": "د. ",
+          "color": "#ff5ccb",
+          "isClone": true,
+          "clonedFromHospitalId": "basra",
+          "clonedFromSpecId": "N",
           "enabled": true
         }
       ],

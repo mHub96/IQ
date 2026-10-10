@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T18:32:29.193Z",
+  "lastUpdated": "2026-10-10T18:32:56.056Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -18128,124 +18128,160 @@
           "specCode": "R",
           "name": "د. منار رحيم عبد",
           "timestamp": "08:46",
-          "VisitCount": 2
+          "VisitCount": 2,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "22/08/2026",
           "specCode": "D",
           "name": "د. فاطمة خليل",
           "timestamp": "16:08",
-          "VisitCount": 0
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "23/08/2026",
           "specCode": "R",
           "name": "د. زينب سلمان سعيد",
           "timestamp": "09:19",
-          "VisitCount": 0
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "23/08/2026",
           "specCode": "ICU",
           "name": "د. ايات فيصل",
           "timestamp": "10:01",
-          "VisitCount": 5
+          "VisitCount": 5,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "23/08/2026",
           "specCode": "US",
           "name": "د. عذراء صبيح بدر",
           "timestamp": "15:36",
-          "VisitCount": 1
+          "VisitCount": 1,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "24/08/2026",
           "specCode": "OP",
           "name": "د. زينب عبد الرزاق",
           "timestamp": "10:46",
-          "VisitCount": 5
+          "VisitCount": 5,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "24/08/2026",
           "specCode": "R",
           "name": "د. زينب جبار محسن",
           "timestamp": "11:37",
-          "VisitCount": 2
+          "VisitCount": 2,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "24/08/2026",
           "specCode": "GS",
           "name": "د. سعيد جندي لهمود",
           "timestamp": "13:02",
-          "VisitCount": 0
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "25/08/2026",
           "specCode": "NS",
           "name": "د. علي مهدي منصور",
           "timestamp": "08:49",
-          "VisitCount": 8
+          "VisitCount": 8,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "25/08/2026",
           "specCode": "D",
           "name": "د. علي مهدي منصور",
           "timestamp": "09:45",
-          "VisitCount": 0
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "25/08/2026",
           "specCode": "R",
           "name": "د. ايات سلمان قاسم",
           "timestamp": "07:54",
-          "VisitCount": 0
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "26/08/2026",
           "specCode": "NS",
           "name": "د. ليث انور",
           "timestamp": "10:04",
-          "VisitCount": 4
+          "VisitCount": 4,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "26/08/2026",
           "specCode": "ICU",
           "name": "د. فاطمة عباس",
           "timestamp": "13:22",
-          "VisitCount": 2
+          "VisitCount": 2,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "27/08/2026",
           "specCode": "NS",
           "name": "د. اسعد حسن فرحان",
           "timestamp": "08:42",
-          "VisitCount": 3
+          "VisitCount": 3,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "27/08/2026",
           "specCode": "R",
           "name": "د. زينب جبار محسن",
-          "timestamp": "10:22"
+          "timestamp": "10:22",
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "27/08/2026",
           "specCode": "ON",
           "name": "د. مروة ليث شاكر",
           "timestamp": "20:03",
-          "VisitCount": 1
+          "VisitCount": 1,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "28/08/2026",
           "specCode": "R",
           "name": "د. منار رحيم عبد",
           "timestamp": "08:46",
-          "VisitCount": 0
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "28/08/2026",
           "specCode": "D",
           "name": "د. منتظر صفاء ماجد",
-          "timestamp": "09:22"
+          "timestamp": "09:22",
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "01/09/2026",
@@ -18493,21 +18529,27 @@
           "specCode": "R",
           "name": "د. طيف كريم خضير",
           "timestamp": "08:06",
-          "VisitCount": 1
+          "VisitCount": 1,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "29/08/2026",
           "specCode": "ON",
           "name": "د. حميدة حبيب عباس",
           "timestamp": "08:38",
-          "VisitCount": 1
+          "VisitCount": 1,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "29/08/2026",
           "specCode": "D",
           "name": "د. مرتضى امين عبدالخضر",
           "timestamp": "10:00",
-          "VisitCount": 0
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "01/09/2026",
@@ -18754,42 +18796,54 @@
           "specCode": "ICU",
           "name": "د. نور عبد المطلب",
           "timestamp": "21:28",
-          "VisitCount": 0
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "29/08/2026",
           "specCode": "NS",
           "name": "د. فاطمة خليل",
           "timestamp": "22:34",
-          "VisitCount": 1
+          "VisitCount": 1,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "30/08/2026",
           "specCode": "R",
           "name": "د. زينب سلمان سعيد",
           "timestamp": "09:12",
-          "VisitCount": 0
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "30/08/2026",
           "specCode": "ON",
           "name": "د. زهراء سهيل نجم",
           "timestamp": "11:31",
-          "VisitCount": 1
+          "VisitCount": 1,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "30/08/2026",
           "specCode": "NS",
           "name": "د. عبدالرحمن صفاء صالح",
           "timestamp": "13:46",
-          "VisitCount": 2
+          "VisitCount": 2,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "30/08/2026",
           "specCode": "CT",
           "name": "د. عماد سمير عبدالرضا",
           "timestamp": "16:44",
-          "VisitCount": 1
+          "VisitCount": 1,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "02/09/2026",
@@ -19011,7 +19065,9 @@
           "date": "30/08/2026",
           "specCode": "D",
           "name": "د. احمد حارث عبدالمحسن",
-          "timestamp": "17:22"
+          "timestamp": "17:22",
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "01/09/2026",
@@ -19451,35 +19507,45 @@
           "specCode": "ENT",
           "name": "د. ام البنين عيدان كاظم",
           "timestamp": "20:29",
-          "VisitCount": 1
+          "VisitCount": 1,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "30/08/2026",
           "specCode": "ICU",
           "name": "د. فاطمة عباس",
           "timestamp": "23:23",
-          "VisitCount": 1
+          "VisitCount": 1,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "31/08/2026",
           "specCode": "D",
           "name": "د. محمد فتحي عبدالرزاق",
           "timestamp": "08:02",
-          "VisitCount": 1
+          "VisitCount": 1,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "31/08/2026",
           "specCode": "R",
           "name": "د. زينب سلمان سعيد",
           "timestamp": "08:43",
-          "VisitCount": 2
+          "VisitCount": 2,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "31/08/2026",
           "specCode": "CT",
           "name": "د. حسين يحيى صبار",
           "timestamp": "19:14",
-          "VisitCount": 2
+          "VisitCount": 2,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "01/09/2026",
@@ -20433,7 +20499,9 @@
           "specCode": "ICU",
           "name": "د. فاطمة عباس",
           "timestamp": "13:04",
-          "VisitCount": 5
+          "VisitCount": 5,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "03/09/2026",
@@ -20449,14 +20517,18 @@
           "specCode": "ICU",
           "name": "د. مريم عبد الحميد",
           "timestamp": "08:07",
-          "VisitCount": 3
+          "VisitCount": 3,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "03/09/2026",
           "specCode": "ON",
           "name": "د. زهراء سهيل نجم",
           "timestamp": "08:33",
-          "VisitCount": 2
+          "VisitCount": 2,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "03/09/2026",
@@ -20472,21 +20544,27 @@
           "specCode": "D",
           "name": "د. علي حسين عبدالرضا",
           "timestamp": "09:10",
-          "VisitCount": 1
+          "VisitCount": 1,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "03/09/2026",
           "specCode": "OP",
           "name": "د. عبدالله نادر",
           "timestamp": "12:39",
-          "VisitCount": 1
+          "VisitCount": 1,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "04/09/2026",
           "specCode": "D",
           "name": "د. منتظر صفاء ماجد",
           "timestamp": "14:55",
-          "VisitCount": 4
+          "VisitCount": 4,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "04/09/2026",
@@ -20511,7 +20589,9 @@
           "specCode": "ICU",
           "name": "د. فاطمة عباس",
           "timestamp": "21:30",
-          "VisitCount": 2
+          "VisitCount": 2,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "05/09/2026",
@@ -20536,7 +20616,9 @@
           "specCode": "D",
           "name": "د. علي عبدالرحمن عبدالصمد",
           "timestamp": "09:53",
-          "VisitCount": 0
+          "VisitCount": 0,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "01/10/2026",
@@ -22221,6 +22303,70 @@
           "VisitCount": 0,
           "dutySlot": 0,
           "dutyTime": ""
+        },
+        {
+          "date": "01/10/2026",
+          "specCode": "D",
+          "name": "د. علي مهدي منصور",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "02/10/2026",
+          "specCode": "D",
+          "name": "د. حسين يحيى صبار",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "03/10/2026",
+          "specCode": "D",
+          "name": "د. علي مهدي منصور",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "04/10/2026",
+          "specCode": "D",
+          "name": "د. منتظر صفاء ماجد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "05/10/2026",
+          "specCode": "D",
+          "name": "د. ضرغام عامر حسان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "06/10/2026",
+          "specCode": "D",
+          "name": "د. منتظر صفاء ماجد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "07/10/2026",
+          "specCode": "D",
+          "name": "د. عماد سمير عبدالرضا",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "08/10/2026",
+          "specCode": "D",
+          "name": "د. محمد عبدالحسين محسن",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
         },
         {
           "date": "09/10/2026",
@@ -31279,7 +31425,9 @@
           "specCode": "OR",
           "name": "د. منير عبد الوافي",
           "timestamp": "08:25",
-          "VisitCount": 8
+          "VisitCount": 8,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "26/08/2026",
@@ -31328,7 +31476,9 @@
           "specCode": "M",
           "name": "د مها عباس جابر",
           "timestamp": "09:38",
-          "VisitCount": 5
+          "VisitCount": 5,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "27/08/2026",
@@ -31384,7 +31534,9 @@
           "specCode": "OR",
           "name": "د. عبد الحكيم هادي",
           "timestamp": "09:18",
-          "VisitCount": 8
+          "VisitCount": 8,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "28/08/2026",
@@ -31405,7 +31557,9 @@
           "specCode": "OR",
           "name": "د. عبد العزيز وئام عبد الحميد",
           "timestamp": "08:51",
-          "VisitCount": 6
+          "VisitCount": 6,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "29/08/2026",
@@ -31419,7 +31573,9 @@
           "specCode": "M",
           "name": "د. نزار سليم",
           "timestamp": "20:02",
-          "VisitCount": 2
+          "VisitCount": 2,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "29/08/2026",
@@ -31475,7 +31631,9 @@
           "specCode": "OR",
           "name": "د. علي مطشر ابو كحيله",
           "timestamp": "13:56",
-          "VisitCount": 5
+          "VisitCount": 5,
+          "dutySlot": 0,
+          "dutyTime": ""
         },
         {
           "date": "31/08/2026",
@@ -52865,6 +53023,7 @@
       "name_ar": "جراحة الجملة العصبية",
       "name_en": "Neurosurgery",
       "icon": "🧠",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -52875,6 +53034,7 @@
       "name_ar": "جراحة الصدر و الاوعية الدموية",
       "name_en": "Cardiothoracic Surgery",
       "icon": "🫀",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -52885,6 +53045,7 @@
       "name_ar": "الجراحة العامة",
       "name_en": "General Surgery",
       "icon": "🔪",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -52895,6 +53056,7 @@
       "name_ar": "الكسور",
       "name_en": "Orthopaedics",
       "icon": "🦴",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -52905,6 +53067,7 @@
       "name_ar": "جراحة المسالك البولية",
       "name_en": "Urosurgery",
       "icon": "🫘",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -52915,6 +53078,7 @@
       "name_ar": "الأذن و الأنف و الحنجرة",
       "name_en": "ENT",
       "icon": "👂",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -52925,6 +53089,7 @@
       "name_ar": "جراحة الوجه و الفكين",
       "name_en": "MaxilloFacial Surgery",
       "icon": "🦷",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -52935,6 +53100,7 @@
       "name_ar": "العيون",
       "name_en": "Ophthalmology",
       "icon": "👁️",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -52945,6 +53111,7 @@
       "name_ar": "طب الأطفال",
       "name_en": "Paediatrics",
       "icon": "👶",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -52955,6 +53122,7 @@
       "name_ar": "الباطنية",
       "name_en": "Internal Medicine",
       "icon": "💊",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -52965,6 +53133,7 @@
       "name_ar": "النسائية و التوليد",
       "name_en": "Gynecology",
       "icon": "🤰",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -52975,6 +53144,7 @@
       "name_ar": "تخدير العناية المركزة",
       "name_en": "ICU Anaesthesia",
       "icon": "💉",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": "A",
       "acceptPool": [
@@ -52987,6 +53157,7 @@
       "name_ar": "تخدير العمليات",
       "name_en": "OT Anaesthesia",
       "icon": "💉",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": "A",
       "acceptPool": [
@@ -52999,6 +53170,7 @@
       "name_ar": "تخدير صالة الولادة",
       "name_en": "GYN Anaesthesia",
       "icon": "🤰",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": "A",
       "acceptPool": [
@@ -53011,6 +53183,7 @@
       "name_ar": "التخدير و العناية المركزة",
       "name_en": "Anaesthesia & Intensive Care",
       "icon": "💉",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -53021,6 +53194,7 @@
       "name_ar": "الأشعة و السونار",
       "name_en": "Radiology",
       "icon": "🩻",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -53031,6 +53205,7 @@
       "name_ar": "الوفيات",
       "name_en": "Death Certificates",
       "icon": "⚰️",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [
@@ -53069,6 +53244,7 @@
       "name_ar": "المعاون الاداري",
       "name_en": "Administrative Officer",
       "icon": "🧑",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -53079,6 +53255,7 @@
       "name_ar": "طب الاورام",
       "name_en": "Oncology",
       "icon": "☢️",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -53089,6 +53266,7 @@
       "name_ar": "طب امراض الكلى",
       "name_en": "Nephrology",
       "icon": "🧫",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -53099,6 +53277,7 @@
       "name_ar": "طب الجملة العصبية",
       "name_en": "Neuromedicine",
       "icon": "🧠",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -53109,6 +53288,7 @@
       "name_ar": "النفسية",
       "name_en": "Psychiatry",
       "icon": "🧠",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -53119,6 +53299,7 @@
       "name_ar": "الجلدية",
       "name_en": "Dermatology",
       "icon": "🏥",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -53129,6 +53310,7 @@
       "name_ar": "طب الطوارئ",
       "name_en": "Emergency Medicine",
       "icon": "🏥",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -53139,6 +53321,7 @@
       "name_ar": "طب الأسرة",
       "name_en": "Family Medicine",
       "icon": "👨",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -53149,6 +53332,7 @@
       "name_ar": "ممارسين",
       "name_en": "General Practitioner",
       "icon": "🏥",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -53159,6 +53343,7 @@
       "name_ar": "طب الامراض القلبية",
       "name_en": "Cardiology",
       "icon": "🫀",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -53169,6 +53354,7 @@
       "name_ar": "الجراحة التجميلية",
       "name_en": "Plastic Surgery",
       "icon": "🪡",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -53179,6 +53365,7 @@
       "name_ar": "طب الامراض التنفسية",
       "name_en": "Respiratory Medicine",
       "icon": "🫁",
+      "prefix": "د. ",
       "color": "#0f766e",
       "parentSpec": null,
       "acceptPool": [],
@@ -53189,67 +53376,8 @@
       "name_ar": "دوري احالات",
       "name_en": "Referrals",
       "icon": "🚑",
+      "prefix": "د. ",
       "color": "#0f766e",
-      "parentSpec": null,
-      "acceptPool": [],
-      "enabled": true
-    },
-    {
-      "id": "M_basra",
-      "name_ar": "الباطنية",
-      "name_en": "Internal Medicine",
-      "icon": "💊",
-      "color": "#a1e972",
-      "parentSpec": null,
-      "acceptPool": [],
-      "enabled": true
-    },
-    {
-      "id": "OR_basra",
-      "name_ar": "الكسور",
-      "name_en": "Orthopaedics",
-      "icon": "🦴",
-      "color": "#ff0000",
-      "parentSpec": null,
-      "acceptPool": [],
-      "enabled": true
-    },
-    {
-      "id": "MF_basra",
-      "name_ar": "جراحة الوجه و الفكين",
-      "name_en": "MaxilloFacial Surgery",
-      "icon": "🦷",
-      "color": "#d600af",
-      "parentSpec": null,
-      "acceptPool": [],
-      "enabled": true
-    },
-    {
-      "id": "NS_iraqi",
-      "name_ar": "جراحة الجملة العصبية",
-      "name_en": "Neurosurgery",
-      "icon": "🧠",
-      "color": "#fea101",
-      "parentSpec": null,
-      "acceptPool": [],
-      "enabled": true
-    },
-    {
-      "id": "CT_iraqi",
-      "name_ar": "جراحة الصدر و الاوعية الدموية",
-      "name_en": "Cardiothoracic Surgery",
-      "icon": "🫀",
-      "color": "#e05910",
-      "parentSpec": null,
-      "acceptPool": [],
-      "enabled": true
-    },
-    {
-      "id": "R_iraqi",
-      "name_ar": "الأشعة و السونار",
-      "name_en": "Radiology",
-      "icon": "🩻",
-      "color": "#6700e6",
       "parentSpec": null,
       "acceptPool": [],
       "enabled": true

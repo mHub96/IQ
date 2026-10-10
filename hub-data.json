@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T12:37:36.195Z",
+  "lastUpdated": "2026-10-10T12:51:48.064Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -22053,10 +22053,11 @@
         {
           "date": "10/10/2026",
           "specCode": "R",
-          "name": "د. محمد رائد محمد",
+          "name": "د. سنا احسان علوان",
           "VisitCount": 0,
           "dutyTime": "",
-          "dutySlot": 0
+          "dutySlot": 0,
+          "timestamp": "15:51"
         },
         {
           "date": "11/10/2026",

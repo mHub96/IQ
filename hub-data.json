@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T18:35:21.908Z",
+  "lastUpdated": "2026-10-10T18:36:00.905Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -22721,6 +22721,22 @@
           "date": "31/10/2026",
           "specCode": "ENT",
           "name": "د. مايا عادل عبدالهادي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "11/10/2026",
+          "specCode": "D",
+          "name": "د. حسين علي عطيه",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "27/10/2026",
+          "specCode": "D",
+          "name": "د. حسين علي عطيه",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T19:54:44.140Z",
+  "lastUpdated": "2026-10-10T19:55:25.273Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -39853,7 +39853,7 @@
         "lastUpdated": "2026-10-09T14:56:01.199Z",
         "updatedBy": "د. زينب عبد الرزاق"
       },
-      "erEnabled": true
+      "erEnabled": false
     },
     "mawani": {
       "id": "mawani",

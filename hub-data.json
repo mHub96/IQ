@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T18:36:41.491Z",
+  "lastUpdated": "2026-10-10T18:38:48.326Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -1361,19 +1361,6 @@
           "active": true,
           "hospitals": [
             "basra",
-            "iraqi"
-          ]
-        },
-        {
-          "id": "res-0177",
-          "name": "د. زينب عبدالكريم احمد",
-          "phone": "+9647704726124",
-          "spec": "ENT",
-          "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
-          "active": true,
-          "hospitals": [
             "iraqi"
           ]
         },
@@ -2929,6 +2916,19 @@
           "tag": "M",
           "dept": "ON",
           "department": "ON",
+          "active": true,
+          "hospitals": [
+            "iraqi"
+          ]
+        },
+        {
+          "id": "res-0177",
+          "name": "د. زينب عبدالكريم احمد",
+          "phone": "+9647704726124",
+          "spec": "ENT",
+          "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -24351,6 +24351,19 @@
           "hospitals": [
             "basra",
             "iraqi"
+          ]
+        },
+        {
+          "id": "res-0177",
+          "name": "د. زينب عبدالكريم احمد",
+          "phone": "+9647704726124",
+          "spec": "ENT",
+          "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
+          "active": true,
+          "hospitals": [
+            "basra"
           ]
         },
         {
@@ -48264,7 +48277,7 @@
       "department": "ENT",
       "active": true,
       "hospitals": [
-        "iraqi"
+        "basra"
       ]
     },
     {

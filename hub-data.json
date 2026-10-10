@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T23:01:11.208Z",
+  "lastUpdated": "2026-10-10T23:01:24.683Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -2942,8 +2942,7 @@
           "department": "NS",
           "active": true,
           "hospitals": [
-            "iraqi",
-            "mawani"
+            "iraqi"
           ]
         }
       ],
@@ -41515,20 +41514,6 @@
           "hospitals": [
             "mawani"
           ]
-        },
-        {
-          "id": "res-mv2zzna8lqto",
-          "name": "د. TRANSFER TEST",
-          "phone": "+9648902234422",
-          "spec": "NS",
-          "tag": "NS",
-          "dept": "NS",
-          "department": "NS",
-          "active": true,
-          "hospitals": [
-            "iraqi",
-            "mawani"
-          ]
         }
       ],
       "schedule": [
@@ -53596,8 +53581,7 @@
       "department": "NS",
       "active": true,
       "hospitals": [
-        "iraqi",
-        "mawani"
+        "iraqi"
       ]
     }
   ],

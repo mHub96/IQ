@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T20:49:06.846Z",
+  "lastUpdated": "2026-10-10T20:49:12.413Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -275,6 +275,18 @@
           "enabled": true
         },
         {
+          "id": "N_basra",
+          "name_ar": "طب امراض الكلى",
+          "name_en": "Nephrology",
+          "icon": "🧫",
+          "prefix": "د. ",
+          "color": "#ff5ccb",
+          "isClone": true,
+          "clonedFromHospitalId": "basra",
+          "clonedFromSpecId": "N",
+          "enabled": true
+        },
+        {
           "id": "OR_basra",
           "name_ar": "الكسور",
           "name_en": "Orthopaedics",
@@ -401,18 +413,6 @@
           "parentSpec": null,
           "acceptPool": [],
           "enabled": false
-        },
-        {
-          "id": "N_basra",
-          "name_ar": "طب امراض الكلى",
-          "name_en": "Nephrology",
-          "icon": "🧫",
-          "prefix": "د. ",
-          "color": "#ff5ccb",
-          "isClone": true,
-          "clonedFromHospitalId": "basra",
-          "clonedFromSpecId": "N",
-          "enabled": true
         },
         {
           "id": "G_basra",

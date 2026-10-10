@@ -771,34 +771,51 @@
         ];
         state.monthYear = `${monthNames[state.month - 1]} ${state.year}`;
 
-        // 2. Fallback to DEFAULT_EMERGENCY_DATA if residents or schedules empty
-        if (!state.residents || state.residents.length === 0) {
-            if (window.DEFAULT_EMERGENCY_DATA && window.DEFAULT_EMERGENCY_DATA.residents) {
-                state.residents = JSON.parse(JSON.stringify(window.DEFAULT_EMERGENCY_DATA.residents));
-                state.hospitalName = window.DEFAULT_EMERGENCY_DATA.hospitalName || state.hospitalName;
-                state.orderNumber = window.DEFAULT_EMERGENCY_DATA.orderNumber || state.orderNumber;
-                state.orderDate = window.DEFAULT_EMERGENCY_DATA.orderDate || state.orderDate;
-                state.headOfResidents = window.DEFAULT_EMERGENCY_DATA.headOfResidents || state.headOfResidents;
-                state.headOfHospital = window.DEFAULT_EMERGENCY_DATA.headOfHospital || state.headOfHospital;
-                state.rsStartDate = window.DEFAULT_EMERGENCY_DATA.rsStartDate || state.rsStartDate;
-                state.rsEndDate = window.DEFAULT_EMERGENCY_DATA.rsEndDate || state.rsEndDate;
-            }
+        // 2. Resolve Effective Hospital Scope based on Scoped Admin, URL, or State
+        const isOwner = window.Hub && window.Hub.auth && typeof window.Hub.auth.isOwner === 'function' && window.Hub.auth.isOwner();
+        const adminHospIds = (window.Hub && window.Hub.auth && typeof window.Hub.auth.getAdminHospitalIds === 'function') ? window.Hub.auth.getAdminHospitalIds() : [];
+        const isScopedAdmin = !isOwner && adminHospIds.length > 0 && !adminHospIds.includes('*');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlHosp = urlParams.get('hospital');
+
+        let effectiveHospId = state.hospitalId || 'iraqi';
+        if (isScopedAdmin) {
+            effectiveHospId = (urlHosp && adminHospIds.includes(urlHosp)) ? urlHosp : (adminHospIds[0] || 'iraqi');
+        } else if (urlHosp) {
+            effectiveHospId = urlHosp;
         }
 
-        // Ensure baseline activation state is restored from canonical data if state was corrupted (e.g. 0 inactives)
-        const baselineMap = {};
-        if (window.DEFAULT_EMERGENCY_DATA && Array.isArray(window.DEFAULT_EMERGENCY_DATA.residents)) {
-            window.DEFAULT_EMERGENCY_DATA.residents.forEach(r => {
-                baselineMap[r.id] = (r.active !== false);
-            });
+        state.hospitalId = effectiveHospId;
+        let hospName = effectiveHospId;
+        if (window.Hub && typeof window.Hub.getHospital === 'function') {
+            const h = window.Hub.getHospital(effectiveHospId);
+            if (h) hospName = h.name_ar || h.hospitalName || effectiveHospId;
         }
-        const inactiveInState = (state.residents || []).filter(r => r.active === false).length;
-        if (inactiveInState === 0 && Object.keys(baselineMap).length > 0) {
-            (state.residents || []).forEach(r => {
-                if (baselineMap[r.id] !== undefined) {
-                    r.active = baselineMap[r.id];
-                }
-            });
+        state.hospitalName = hospName;
+
+        // 3. Load hospital signatories & order metadata
+        loadHospitalSignatories(effectiveHospId);
+
+        // 4. Load hospital residents (strictly scoped to effective hospital)
+        loadHospitalResidents(effectiveHospId);
+
+        // Baseline activation healing strictly for default Iraqi hospital
+        if (effectiveHospId === 'iraqi') {
+            const baselineMap = {};
+            if (window.DEFAULT_EMERGENCY_DATA && Array.isArray(window.DEFAULT_EMERGENCY_DATA.residents)) {
+                window.DEFAULT_EMERGENCY_DATA.residents.forEach(r => {
+                    baselineMap[r.id] = (r.active !== false);
+                });
+            }
+            const inactiveInState = (state.residents || []).filter(r => r.active === false).length;
+            if (inactiveInState === 0 && Object.keys(baselineMap).length > 0) {
+                (state.residents || []).forEach(r => {
+                    if (baselineMap[r.id] !== undefined) {
+                        r.active = baselineMap[r.id];
+                    }
+                });
+            }
         }
 
         // Canonicalize all resident specialties to English names matching Hospital specialties
@@ -819,72 +836,17 @@
             });
         }
 
-        // Enforce Hospital Scope based on URL param and Admin permissions
-        const isOwner = window.Hub && window.Hub.auth && typeof window.Hub.auth.isOwner === 'function' && window.Hub.auth.isOwner();
-        const adminHospIds = (window.Hub && window.Hub.auth && typeof window.Hub.auth.getAdminHospitalIds === 'function') ? window.Hub.auth.getAdminHospitalIds() : [];
-        const isScopedAdmin = !isOwner && adminHospIds.length > 0 && !adminHospIds.includes('*');
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlHosp = urlParams.get('hospital');
-
-        if (isScopedAdmin) {
-            const targetHosp = (urlHosp && adminHospIds.includes(urlHosp)) ? urlHosp : adminHospIds[0];
-            if (targetHosp) {
-                state.hospitalId = targetHosp;
-                if (window.Hub && typeof window.Hub.getHospital === 'function') {
-                    const h = window.Hub.getHospital(targetHosp);
-                    if (h) state.hospitalName = h.name_ar || h.hospitalName || targetHosp;
-                }
-                if (state.hospitalResidents && state.hospitalResidents[targetHosp] && state.hospitalResidents[targetHosp].length > 0) {
-                    state.residents = JSON.parse(JSON.stringify(state.hospitalResidents[targetHosp]));
-                } else if (window.Hub && typeof window.Hub.getHospital === 'function') {
-                    const h = window.Hub.getHospital(targetHosp);
-                    if (h && Array.isArray(h.names) && h.names.length > 0) {
-                        state.residents = h.names.map((n, i) => ({
-                            id: n.id || `doc_${targetHosp}_${i}`,
-                            name: n.name,
-                            specialty: canonicalizeSpecialtyName(n.spec || n.tag || 'GS'),
-                            sex: n.sex || 'male',
-                            board: n.board || 'iraqi_board',
-                            active: n.active !== false,
-                            phone: n.phone || '',
-                            hospitals: [targetHosp]
-                        }));
-                    }
-                }
-            }
-        } else if (urlHosp && urlHosp !== state.hospitalId) {
-            state.hospitalId = urlHosp;
-            if (window.Hub && typeof window.Hub.getHospital === 'function') {
-                const h = window.Hub.getHospital(urlHosp);
-                if (h) state.hospitalName = h.name_ar || h.hospitalName || urlHosp;
-            }
-            if (state.hospitalResidents && state.hospitalResidents[urlHosp] && state.hospitalResidents[urlHosp].length > 0) {
-                state.residents = JSON.parse(JSON.stringify(state.hospitalResidents[urlHosp]));
-            }
-        }
-
-        // Load the schedule and allocations for the determined month from store
+        // 5. Load the schedule and allocations for the determined month from store
         loadMonthScheduleFromStore(state.hospitalId, state.year, state.month);
         loadMonthAllocationsFromStore(state.hospitalId, state.year, state.month);
 
-        if (!state.hospitalSignatories) state.hospitalSignatories = {};
-        if (state.hospitalId && state.hospitalSignatories[state.hospitalId]) {
-            if (state.hospitalSignatories[state.hospitalId].headOfResidents) {
-                state.headOfResidents = state.hospitalSignatories[state.hospitalId].headOfResidents;
-            }
-            if (state.hospitalSignatories[state.hospitalId].headOfHospital) {
-                state.headOfHospital = state.hospitalSignatories[state.hospitalId].headOfHospital;
-            }
-        }
-
-        // 3. Try to fetch emergency-db.json asynchronously if fresh
+        // 6. Try to fetch emergency-db.json asynchronously if fresh (Iraqi hospital only)
         try {
             const resp = await fetch(DB_FILE);
             if (resp.ok) {
                 const dbJson = await resp.json();
                 if (dbJson && Array.isArray(dbJson.residents) && dbJson.residents.length > 0) {
-                    if (!saved) {
+                    if (!saved && state.hospitalId === 'iraqi') {
                         state.residents = dbJson.residents;
                         state.headOfResidents = dbJson.headOfResidents || state.headOfResidents;
                         state.headOfHospital = dbJson.headOfHospital || state.headOfHospital;
@@ -994,9 +956,11 @@
 
     const MONTH_ALLOC_PREFIX = 'hosp_hub_emergency_alloc_';
 
-    function saveCurrentMonthScheduleToStore() {
+    function saveCurrentMonthScheduleToStore(hospIdOverride) {
         if (!state.monthlySchedules) state.monthlySchedules = {};
-        const key = `${state.hospitalId}_${state.year}_${state.month}`;
+        const targetHospId = hospIdOverride || state.hospitalId;
+        if (!targetHospId || !state.year || !state.month) return;
+        const key = `${targetHospId}_${state.year}_${state.month}`;
         if (state.schedules) {
             state.monthlySchedules[key] = JSON.parse(JSON.stringify(state.schedules));
             try {
@@ -1007,9 +971,10 @@
         }
     }
 
-    function saveCurrentMonthAllocationsToStore() {
-        if (!state.hospitalId || !state.year || !state.month) return;
-        const key = `${state.hospitalId}_${state.year}_${state.month}`;
+    function saveCurrentMonthAllocationsToStore(hospIdOverride) {
+        const targetHospId = hospIdOverride || state.hospitalId;
+        if (!targetHospId || !state.year || !state.month) return;
+        const key = `${targetHospId}_${state.year}_${state.month}`;
         const map = {};
         (state.residents || []).forEach(r => {
             map[r.id] = {
@@ -1067,6 +1032,16 @@
                     rs_target: Number(r.rs_target) || 0
                 };
             });
+        }
+
+        if (loadedMap && hospId !== 'iraqi') {
+            if (Object.keys(loadedMap).some(id => id.startsWith('er_res_'))) {
+                try {
+                    localStorage.removeItem(MONTH_ALLOC_PREFIX + key);
+                } catch (e) {}
+                delete state.monthlyAllocations[key];
+                loadedMap = null;
+            }
         }
 
         if (loadedMap) {
@@ -1142,6 +1117,12 @@
             });
         }
 
+        if (prevMap && hospId !== 'iraqi') {
+            if (Object.keys(prevMap).some(id => id.startsWith('er_res_'))) {
+                prevMap = null;
+            }
+        }
+
         return prevMap;
     }
 
@@ -1177,11 +1158,159 @@
         return true;
     }
 
-    function saveCurrentHospitalResidents() {
+    function saveCurrentHospitalResidents(hospIdOverride) {
         if (!state.hospitalResidents) state.hospitalResidents = {};
-        if (state.hospitalId && Array.isArray(state.residents)) {
-            state.hospitalResidents[state.hospitalId] = JSON.parse(JSON.stringify(state.residents));
+        const targetHospId = hospIdOverride || state.hospitalId;
+        if (targetHospId && Array.isArray(state.residents)) {
+            state.hospitalResidents[targetHospId] = JSON.parse(JSON.stringify(state.residents));
         }
+    }
+
+    function saveCurrentHospitalSignatories(hospIdOverride) {
+        if (!state.hospitalSignatories) state.hospitalSignatories = {};
+        const targetHospId = hospIdOverride || state.hospitalId;
+        if (targetHospId) {
+            state.hospitalSignatories[targetHospId] = {
+                headOfResidents: state.headOfResidents || '',
+                headOfHospital: state.headOfHospital || '',
+                orderNumber: state.orderNumber || '',
+                orderDate: state.orderDate || '',
+                rsEnabled: state.rsEnabled !== false,
+                rsStartDate: state.rsStartDate || '',
+                rsEndDate: state.rsEndDate || ''
+            };
+        }
+    }
+
+    function loadHospitalSignatories(hospId) {
+        if (!state.hospitalSignatories) state.hospitalSignatories = {};
+        const sig = state.hospitalSignatories[hospId];
+        if (sig) {
+            // Leak prevention: If non-iraqi hospital contains Iraqi default names, clear them
+            if (hospId !== 'iraqi') {
+                if (sig.headOfResidents === 'د. محمد راضي خضر' || sig.headOfResidents === 'د. عادل ناصر') {
+                    sig.headOfResidents = '';
+                }
+                if (sig.headOfHospital === 'د. علي عبد معن') {
+                    sig.headOfHospital = '';
+                }
+                if (sig.orderNumber === '٤٨٢١' || sig.orderNumber === '4821') {
+                    sig.orderNumber = '';
+                }
+            }
+            state.headOfResidents = sig.headOfResidents || (hospId === 'iraqi' ? 'د. عادل ناصر' : '');
+            state.headOfHospital = sig.headOfHospital || (hospId === 'iraqi' ? 'د. علي عبد معن' : '');
+            state.orderNumber = sig.orderNumber || (hospId === 'iraqi' ? '٤٨٢١' : '');
+            state.orderDate = sig.orderDate || (hospId === 'iraqi' ? '2026-09-01' : '');
+            if (sig.rsEnabled !== undefined) state.rsEnabled = !!sig.rsEnabled;
+            if (sig.rsStartDate !== undefined) state.rsStartDate = sig.rsStartDate;
+            if (sig.rsEndDate !== undefined) state.rsEndDate = sig.rsEndDate;
+        } else {
+            if (hospId === 'iraqi') {
+                state.headOfResidents = (window.DEFAULT_EMERGENCY_DATA && window.DEFAULT_EMERGENCY_DATA.headOfResidents) || 'د. عادل ناصر';
+                state.headOfHospital = (window.DEFAULT_EMERGENCY_DATA && window.DEFAULT_EMERGENCY_DATA.headOfHospital) || 'د. علي عبد معن';
+                state.orderNumber = (window.DEFAULT_EMERGENCY_DATA && window.DEFAULT_EMERGENCY_DATA.orderNumber) || '٤٨٢١';
+                state.orderDate = (window.DEFAULT_EMERGENCY_DATA && window.DEFAULT_EMERGENCY_DATA.orderDate) || '2026-09-01';
+                state.rsEnabled = true;
+                state.rsStartDate = '2026-09-15';
+                state.rsEndDate = '2026-09-20';
+            } else {
+                state.headOfResidents = '';
+                state.headOfHospital = '';
+                state.orderNumber = '';
+                state.orderDate = '';
+                state.rsEnabled = false;
+                state.rsStartDate = '';
+                state.rsEndDate = '';
+            }
+            saveCurrentHospitalSignatories(hospId);
+        }
+    }
+
+    function loadHospitalResidents(hospId) {
+        if (!state.hospitalResidents) state.hospitalResidents = {};
+        let residents = state.hospitalResidents[hospId];
+
+        // Leak check: If non-iraqi hospital has contaminated Iraqi residents (e.g. عماد سمير عبدالرضا / er_res_1)
+        let isContaminated = false;
+        if (hospId !== 'iraqi' && Array.isArray(residents) && residents.length > 0) {
+            if (residents.some(r => r.id === 'er_res_1' || (r.name && (r.name.includes('عماد سمير') || r.name.includes('حيدر مهدي جبر'))))) {
+                isContaminated = true;
+            }
+        }
+
+        if (!residents || residents.length === 0 || isContaminated) {
+            if (hospId === 'iraqi') {
+                if (window.DEFAULT_EMERGENCY_DATA && Array.isArray(window.DEFAULT_EMERGENCY_DATA.residents)) {
+                    residents = JSON.parse(JSON.stringify(window.DEFAULT_EMERGENCY_DATA.residents));
+                } else {
+                    residents = [];
+                }
+            } else {
+                // Fetch clean residents from Hub for this hospital
+                let hubResidents = [];
+                if (window.Hub && typeof window.Hub.getHospital === 'function') {
+                    const h = window.Hub.getHospital(hospId);
+                    if (h && Array.isArray(h.names) && h.names.length > 0) {
+                        hubResidents = h.names;
+                    }
+                }
+                if (hubResidents.length === 0 && window.Hub && typeof window.Hub.getResidents === 'function') {
+                    hubResidents = window.Hub.getResidents(hospId) || [];
+                }
+                if (hubResidents.length === 0 && window.Hub && typeof window.Hub.getDatabase === 'function') {
+                    const db = window.Hub.getDatabase();
+                    if (db && Array.isArray(db.residents)) {
+                        hubResidents = db.residents.filter(r => Array.isArray(r.hospitals) && r.hospitals.includes(hospId));
+                    }
+                }
+
+                const femaleNames = ['فاطمة', 'زينب', 'زهراء', 'مريم', 'نور', 'سارة', 'هدى', 'شهد', 'آية', 'اية', 'رشا', 'دعاء', 'رنا', 'منى', 'اسراء', 'إسراء', 'أمل', 'امل', 'ريم', 'حوراء', 'تبارك', 'ضحى', 'بنين', 'تقى', 'فرح'];
+
+                residents = hubResidents.map((r, idx) => {
+                    let cleanName = (r.name || '').trim();
+                    if (cleanName && !cleanName.startsWith('د.') && !cleanName.startsWith('د ')) {
+                        cleanName = 'د. ' + cleanName;
+                    }
+                    let sex = r.sex || 'M';
+                    if (!r.sex) {
+                        const parts = cleanName.split(/\s+/);
+                        if (parts.length > 1) {
+                            const first = parts[1];
+                            if (femaleNames.includes(first) || first.endsWith('ة') || first.endsWith('اء')) {
+                                sex = 'F';
+                            }
+                        }
+                    }
+                    let spec = r.spec || r.tag || r.dept || r.department || 'GS';
+                    return {
+                        id: `er_${hospId}_${r.id || (idx + 1)}`,
+                        row: idx + 1,
+                        name: cleanName,
+                        sex: sex,
+                        specialty: canonicalizeSpecialtyName(spec),
+                        board: r.board || 'iraqi_board',
+                        stage: r.stage || 'الأولى',
+                        er_target: 0,
+                        con_target: 0,
+                        dc_target: 0,
+                        rs_target: 0,
+                        notes: r.notes || '',
+                        active: r.active !== false,
+                        hospitals: [hospId],
+                        phone: r.phone || '',
+                        expiryMonth: '',
+                        prefDays: [],
+                        prefShifts: [],
+                        noConsecutiveDays: true,
+                        preferences: { prefDays: [], prefShifts: [] }
+                    };
+                });
+            }
+            state.hospitalResidents[hospId] = residents;
+        }
+
+        state.residents = JSON.parse(JSON.stringify(residents));
     }
 
     function loadMonthScheduleFromStore(hospId, year, month) {
@@ -1207,10 +1336,29 @@
             loaded = window.DEFAULT_EMERGENCY_DATA.schedules;
         }
 
+        // Cross-contamination purge: If hospId is NOT iraqi, check if loaded schedule contains Iraqi doctors
+        if (loaded && hospId !== 'iraqi') {
+            const erFirst = (loaded.er && loaded.er[0]) || {};
+            const isIraqiSchedule = (
+                erFirst.morning === 'د. دنيا فارس حسون' ||
+                erFirst.afternoon === 'د. فاطمة فاضل كاظم' ||
+                erFirst.preNight === 'د. ضرغام عامر حسان' ||
+                erFirst.lateNight === 'د. محمد شاكر'
+            );
+            if (isIraqiSchedule) {
+                console.warn(`[ER Isolation] Purged contaminated Iraqi schedule for ${hospId}_${year}_${month}`);
+                try {
+                    localStorage.removeItem(MONTH_STORAGE_PREFIX + key);
+                } catch (e) {}
+                delete state.monthlySchedules[key];
+                loaded = null;
+            }
+        }
+
         if (loaded) {
             state.schedules = JSON.parse(JSON.stringify(loaded));
         } else {
-            // Strictly empty clean schedule for any unfilled month
+            // Strictly empty clean schedule for this hospital and month
             state.schedules = { er: [], con: [], dc: [], rs: [] };
         }
 
@@ -1729,7 +1877,9 @@
 
     function saveState() {
         saveCurrentMonthScheduleToStore();
+        saveCurrentMonthAllocationsToStore();
         saveCurrentHospitalResidents();
+        saveCurrentHospitalSignatories();
         localStorage.setItem(STATE_KEY, JSON.stringify(state));
         updateDutyDashboard();
     }
@@ -1843,12 +1993,22 @@
 
         if (hospId === state.hospitalId) return;
 
-        // 1. Save current month schedule, allocations & current residents
-        saveCurrentMonthScheduleToStore();
-        saveCurrentMonthAllocationsToStore();
-        saveCurrentHospitalResidents();
+        const oldHospId = state.hospitalId;
 
-        // 2. Set new hospital
+        // 1. Strictly save current month schedule, allocations, residents & signatories under old hospital ID
+        saveCurrentMonthScheduleToStore(oldHospId);
+        saveCurrentMonthAllocationsToStore(oldHospId);
+        saveCurrentHospitalResidents(oldHospId);
+        saveCurrentHospitalSignatories(oldHospId);
+
+        // 2. Clear transient filters / selections so they don't bleed over
+        state.highlightedResident = null;
+        state.scheduleSearchQuery = '';
+        state.scheduleDoctorFilter = '';
+        state.undoStack = [];
+        state.redoStack = [];
+
+        // 3. Switch active hospital ID and name
         state.hospitalId = hospId;
         let hospName = hospId;
         if (window.Hub && typeof window.Hub.getHospital === 'function') {
@@ -1862,35 +2022,20 @@
         }
         state.hospitalName = hospName;
 
-        // Restore hospital signatories if recorded
-        if (!state.hospitalSignatories) state.hospitalSignatories = {};
-        if (state.hospitalSignatories[hospId]) {
-            if (state.hospitalSignatories[hospId].headOfResidents) {
-                state.headOfResidents = state.hospitalSignatories[hospId].headOfResidents;
-            }
-            if (state.hospitalSignatories[hospId].headOfHospital) {
-                state.headOfHospital = state.hospitalSignatories[hospId].headOfHospital;
-            }
-        }
+        // 4. Load signatories and order meta for the new hospital
+        loadHospitalSignatories(hospId);
 
-        // 3. Load or offer to import residents for this hospital
-        if (!state.hospitalResidents) state.hospitalResidents = {};
-        if (state.hospitalResidents[hospId] && state.hospitalResidents[hospId].length > 0) {
-            state.residents = JSON.parse(JSON.stringify(state.hospitalResidents[hospId]));
-        } else {
-            state.residents = [];
-            const shouldImport = confirm(`مستشفى "${hospName}" لا يحتوي على أطباء مقيمين مسجلين في جدول الطوارئ حالياً.\n\nهل ترغب في استيراد الأطباء المقيمين لهذا المستشفى من قاعدة بيانات HOSP HUB؟`);
-            if (shouldImport) {
-                importResidentsFromHospital(hospId);
-            }
-        }
-
-        // 4. Load schedule & allocations for this hospital and current month/year
+        // 5. Load schedule & allocations for the new hospital
         loadMonthScheduleFromStore(hospId, state.year, state.month);
         loadMonthAllocationsFromStore(hospId, state.year, state.month);
 
+        // 6. Load residents for the new hospital (cleanly, without premature saveState)
+        loadHospitalResidents(hospId);
+
+        // 7. Save state and synchronize all UI elements
         saveState();
         syncMetaInputsWithState();
+        updateRsVisibilityUI();
         updateDutyDashboard();
         renderActiveTab();
         showNotification(`تم التبديل إلى: ${state.hospitalName}`, 'info');
@@ -1936,11 +2081,21 @@
 
     function onOrderNumberChange(val) {
         state.orderNumber = val.trim();
+        if (!state.hospitalSignatories) state.hospitalSignatories = {};
+        if (state.hospitalId) {
+            if (!state.hospitalSignatories[state.hospitalId]) state.hospitalSignatories[state.hospitalId] = {};
+            state.hospitalSignatories[state.hospitalId].orderNumber = state.orderNumber;
+        }
         saveState();
     }
 
     function onOrderDateChange(val) {
         state.orderDate = val;
+        if (!state.hospitalSignatories) state.hospitalSignatories = {};
+        if (state.hospitalId) {
+            if (!state.hospitalSignatories[state.hospitalId]) state.hospitalSignatories[state.hospitalId] = {};
+            state.hospitalSignatories[state.hospitalId].orderDate = state.orderDate;
+        }
         saveState();
     }
 
@@ -1970,6 +2125,11 @@
         const currentNum = parseInt(state.orderNumber) || 4820;
         const nextNum = currentNum + 1;
         state.orderNumber = String(nextNum);
+        if (!state.hospitalSignatories) state.hospitalSignatories = {};
+        if (state.hospitalId) {
+            if (!state.hospitalSignatories[state.hospitalId]) state.hospitalSignatories[state.hospitalId] = {};
+            state.hospitalSignatories[state.hospitalId].orderNumber = state.orderNumber;
+        }
         const input = document.getElementById('meta-order-number');
         if (input) input.value = state.orderNumber;
         saveState();
@@ -1978,6 +2138,11 @@
 
     function onRsDateChange(field, val) {
         state[field] = val;
+        if (!state.hospitalSignatories) state.hospitalSignatories = {};
+        if (state.hospitalId) {
+            if (!state.hospitalSignatories[state.hospitalId]) state.hospitalSignatories[state.hospitalId] = {};
+            state.hospitalSignatories[state.hospitalId][field] = val;
+        }
         saveState();
         updateDutyDashboard();
         if (state.activeTab === 'rs_er' || state.activeTab === 'rs_wards') {
@@ -1987,6 +2152,11 @@
 
     function toggleRotatorsStrike() {
         state.rsEnabled = !state.rsEnabled;
+        if (!state.hospitalSignatories) state.hospitalSignatories = {};
+        if (state.hospitalId) {
+            if (!state.hospitalSignatories[state.hospitalId]) state.hospitalSignatories[state.hospitalId] = {};
+            state.hospitalSignatories[state.hospitalId].rsEnabled = state.rsEnabled;
+        }
         saveState();
         updateRsVisibilityUI();
         if (!state.rsEnabled && (state.activeTab === 'rs_er' || state.activeTab === 'rs_wards')) {
@@ -2032,16 +2202,16 @@
         if (yearInput) yearInput.value = state.year;
 
         const orderInput = document.getElementById('meta-order-number');
-        if (orderInput) orderInput.value = state.orderNumber;
+        if (orderInput) orderInput.value = state.orderNumber || '';
 
         const orderDateInput = document.getElementById('meta-order-date');
-        if (orderDateInput) orderDateInput.value = state.orderDate || '2026-09-01';
+        if (orderDateInput) orderDateInput.value = state.orderDate || '';
 
         const headResInput = document.getElementById('meta-head-residents');
-        if (headResInput) headResInput.value = state.headOfResidents || 'د. محمد راضي خضر';
+        if (headResInput) headResInput.value = state.headOfResidents || '';
 
         const headHospInput = document.getElementById('meta-head-hospital');
-        if (headHospInput) headHospInput.value = state.headOfHospital || 'د. علي عبد معن';
+        if (headHospInput) headHospInput.value = state.headOfHospital || '';
 
         const rsStartInput = document.getElementById('meta-rs-start');
         if (rsStartInput) rsStartInput.value = state.rsStartDate;
@@ -2515,7 +2685,7 @@
                                 <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
                                     <span class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
                                         <i class="fas fa-hospital text-slate-400"></i>
-                                        <span>${state.hospitalName || 'مستشفى الصدر التعليمي'}</span>
+                                        <span>${state.hospitalName || 'المستشفى'}</span>
                                     </span>
                                     <span class="text-slate-300 dark:text-slate-700">•</span>
                                     <span>عدد أيام الشهر: <strong>${daysCount} يوماً</strong></span>
@@ -6341,7 +6511,8 @@
             monthlyAllocations: allMonthlyAllocations,
             monthlySchedules: allMonthlySchedules,
             schedules: state.schedules || {},
-            prefOverrides: state.prefOverrides || {}
+            prefOverrides: state.prefOverrides || {},
+            hospitalSignatories: state.hospitalSignatories || {}
         };
 
         const jsonStr = JSON.stringify(backupData, null, 2);
@@ -6481,6 +6652,9 @@
                 if (parsed.clearPrintMeta !== undefined) state.clearPrintMeta = !!parsed.clearPrintMeta;
                 if (parsed.printOptions && typeof parsed.printOptions === 'object') {
                     state.printOptions = Object.assign(state.printOptions || {}, parsed.printOptions);
+                }
+                if (parsed.hospitalSignatories && typeof parsed.hospitalSignatories === 'object') {
+                    state.hospitalSignatories = Object.assign(state.hospitalSignatories || {}, parsed.hospitalSignatories);
                 }
 
                 // 3. Restore specialty colors
@@ -10353,7 +10527,7 @@
                     <!-- Head of Residents (Right) -->
                     <div style="width: 45%; text-align: center;">
                         <div style="height: 52px; min-height: 50px;"></div>
-                        <div style="font-weight: bold; font-size: 9pt;">${state.headOfResidents || 'د. محمد راضي خضر'}</div>
+                        <div style="font-weight: bold; font-size: 9pt;">${state.headOfResidents || (state.hospitalId === 'iraqi' ? 'د. محمد راضي خضر' : '')}</div>
                         <div style="font-weight: bold; font-size: 8pt; margin-top: 1px;">رئيس الأطباء المقيمين</div>
                     </div>
 
@@ -10361,8 +10535,8 @@
                     <div style="width: 45%; text-align: center;">
                         <div style="height: 52px; min-height: 50px;"></div>
                         <div style="font-size: 7.5pt; font-weight: bold;">الطبيب الاخصائي</div>
-                        <div style="font-weight: bold; font-size: 9pt;">${state.headOfHospital || 'د. علي عبد معن'}</div>
-                        <div style="font-weight: bold; font-size: 8pt; margin-top: 1px;">مدير ${state.hospitalName}</div>
+                        <div style="font-weight: bold; font-size: 9pt;">${state.headOfHospital || (state.hospitalId === 'iraqi' ? 'د. علي عبد معن' : '')}</div>
+                        <div style="font-weight: bold; font-size: 8pt; margin-top: 1px;">مدير ${state.hospitalName || 'المستشفى'}</div>
                     </div>
                 </div>
 

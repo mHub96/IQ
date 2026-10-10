@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T19:53:27.318Z",
+  "lastUpdated": "2026-10-10T19:54:32.376Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -45049,7 +45049,8 @@
         "notes": "3 أسرة جاهزة ومجهزة بأجهزة التنفس الاصطناعي لاستقبال المرضى",
         "lastUpdated": "2026-09-30T10:05:20.837Z",
         "updatedBy": "د. فاطمة محمد حسن"
-      }
+      },
+      "erEnabled": true
     },
     "sayyab": {
       "id": "sayyab",

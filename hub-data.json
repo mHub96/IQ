@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T20:49:26.275Z",
+  "lastUpdated": "2026-10-10T20:49:36.771Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -333,16 +333,6 @@
           "enabled": false
         },
         {
-          "id": "Der",
-          "name_ar": "الجلدية",
-          "name_en": "Dermatology",
-          "icon": "🏥",
-          "color": "#e27ef6",
-          "parentSpec": null,
-          "acceptPool": [],
-          "enabled": false
-        },
-        {
           "id": "N_basra",
           "name_ar": "طب امراض الكلى",
           "name_en": "Nephrology",
@@ -353,6 +343,16 @@
           "clonedFromHospitalId": "basra",
           "clonedFromSpecId": "N",
           "enabled": true
+        },
+        {
+          "id": "Der",
+          "name_ar": "الجلدية",
+          "name_en": "Dermatology",
+          "icon": "🏥",
+          "color": "#e27ef6",
+          "parentSpec": null,
+          "acceptPool": [],
+          "enabled": false
         },
         {
           "id": "EM",

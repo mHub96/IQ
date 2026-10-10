@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T20:47:49.445Z",
+  "lastUpdated": "2026-10-10T20:47:56.480Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -412,6 +412,18 @@
           "isClone": true,
           "clonedFromHospitalId": "basra",
           "clonedFromSpecId": "N",
+          "enabled": true
+        },
+        {
+          "id": "G_basra",
+          "name_ar": "النسائية و التوليد",
+          "name_en": "Gynecology",
+          "icon": "🤰",
+          "prefix": "د. ",
+          "color": "#e40de7",
+          "isClone": true,
+          "clonedFromHospitalId": "basra",
+          "clonedFromSpecId": "G",
           "enabled": true
         }
       ],

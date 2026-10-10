@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T18:39:03.288Z",
+  "lastUpdated": "2026-10-10T18:39:10.238Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -1045,19 +1045,6 @@
           "tag": "GS",
           "dept": "GS",
           "department": "GS",
-          "active": true,
-          "hospitals": [
-            "iraqi"
-          ]
-        },
-        {
-          "id": "res-0185",
-          "name": "د. دعاء علي مجيد",
-          "phone": "+9647705767570",
-          "spec": "ENT",
-          "tag": "ENT",
-          "dept": "ENT",
-          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -2903,6 +2890,19 @@
           "tag": "M",
           "dept": "ON",
           "department": "ON",
+          "active": true,
+          "hospitals": [
+            "iraqi"
+          ]
+        },
+        {
+          "id": "res-0185",
+          "name": "د. دعاء علي مجيد",
+          "phone": "+9647705767570",
+          "spec": "ENT",
+          "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
             "iraqi"
@@ -24073,6 +24073,19 @@
           "tag": "N",
           "dept": "N",
           "department": "N",
+          "active": true,
+          "hospitals": [
+            "basra"
+          ]
+        },
+        {
+          "id": "res-0185",
+          "name": "د. دعاء علي مجيد",
+          "phone": "+9647705767570",
+          "spec": "ENT",
+          "tag": "ENT",
+          "dept": "ENT",
+          "department": "ENT",
           "active": true,
           "hospitals": [
             "basra"
@@ -47664,7 +47677,7 @@
       "department": "ENT",
       "active": true,
       "hospitals": [
-        "iraqi"
+        "basra"
       ]
     },
     {

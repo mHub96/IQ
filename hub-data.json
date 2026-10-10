@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-10T18:32:56.056Z",
+  "lastUpdated": "2026-10-10T18:34:46.860Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -22364,6 +22364,166 @@
           "date": "08/10/2026",
           "specCode": "D",
           "name": "د. محمد عبدالحسين محسن",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "10/10/2026",
+          "specCode": "D",
+          "name": "د. علي عبدالرحمن عبدالصمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "12/10/2026",
+          "specCode": "D",
+          "name": "د. مرتضى امين عبدالخضر",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "13/10/2026",
+          "specCode": "D",
+          "name": "د. محمد عبدالحسين محسن",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "14/10/2026",
+          "specCode": "D",
+          "name": "د. زين العابدين ثجيل",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "15/10/2026",
+          "specCode": "D",
+          "name": "د. ايات عباس مطشر",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "16/10/2026",
+          "specCode": "D",
+          "name": "د. علي عبدالرحمن عبدالصمد",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "17/10/2026",
+          "specCode": "D",
+          "name": "د. شهد كريم عبدالكاظم",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "18/10/2026",
+          "specCode": "D",
+          "name": "د. ايهاب عبدالكريم غالب",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "19/10/2026",
+          "specCode": "D",
+          "name": "د. احمد هاتف",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "20/10/2026",
+          "specCode": "D",
+          "name": "د. حسين عيدان حنون",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "21/10/2026",
+          "specCode": "D",
+          "name": "د. حسين يحيى صبار",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "22/10/2026",
+          "specCode": "D",
+          "name": "د. عبدالله عبدالمجيد ماضي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "23/10/2026",
+          "specCode": "D",
+          "name": "د. احمد هاتف",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "24/10/2026",
+          "specCode": "D",
+          "name": "د. حسين عيدان حنون",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "25/10/2026",
+          "specCode": "D",
+          "name": "د. الحسن حسين جبار",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "26/10/2026",
+          "specCode": "D",
+          "name": "د. عبدالله عبدالمجيد ماضي",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "28/10/2026",
+          "specCode": "D",
+          "name": "د. مرتضى امين عبدالخضر",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "29/10/2026",
+          "specCode": "D",
+          "name": "د. ضرغام عامر حسان",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "30/10/2026",
+          "specCode": "D",
+          "name": "د. الحسن حسين جبار",
+          "VisitCount": 0,
+          "dutyTime": "",
+          "dutySlot": 0
+        },
+        {
+          "date": "31/10/2026",
+          "specCode": "D",
+          "name": "د. ايهاب عبدالكريم غالب",
           "VisitCount": 0,
           "dutyTime": "",
           "dutySlot": 0

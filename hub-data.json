@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "lastUpdated": "2026-10-11T05:37:47.380Z",
+  "lastUpdated": "2026-10-11T05:38:10.874Z",
   "globalPasswords": {
     "owner": "Mrj!",
     "admin": "Admin!",
@@ -40080,11 +40080,10 @@
         {
           "date": "11/10/2026",
           "specCode": "US",
-          "name": "د. كرار حسن",
-          "VisitCount": 0,
+          "name": "د. حيدر علي",
+          "VisitCount": 1,
           "dutyTime": "",
-          "dutySlot": 0,
-          "timestamp": "08:37"
+          "dutySlot": 0
         },
         {
           "date": "12/10/2026",

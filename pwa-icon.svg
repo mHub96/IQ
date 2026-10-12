@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+
+  <!-- Background -->
+  <rect
+    width="512"
+    height="512"
+    rx="112"
+    fill="#080A0C"
+  />
+
+  <!-- Main medical circle -->
+  <circle
+    cx="256"
+    cy="245"
+    r="181"
+    fill="#0D0F11"
+    stroke="#D4AF37"
+    stroke-width="14"
+  />
+
+  <!-- Subtle inner ring -->
+  <circle
+    cx="256"
+    cy="245"
+    r="163"
+    fill="none"
+    stroke="#8F7626"
+    stroke-width="2"
+  />
+
+  <!-- Medical cross -->
+  <path
+    d="
+      M224 141
+      H288
+      V213
+      H360
+      V277
+      H288
+      V349
+      H224
+      V277
+      H152
+      V213
+      H224
+      Z
+    "
+    fill="#F8F6EE"
+  />
+
+  <!-- Hospital name -->
+  <text
+    x="256"
+    y="480"
+    text-anchor="middle"
+    fill="#D4AF37"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="31"
+    font-weight="900"
+    letter-spacing="1.5"
+  >IRAQI HOSPITAL</text>
+
+  <!-- Outer border -->
+  <rect
+    x="7"
+    y="7"
+    width="498"
+    height="498"
+    rx="106"
+    fill="none"
+    stroke="#D4AF37"
+    stroke-width="5"
+  />
+
+</svg>

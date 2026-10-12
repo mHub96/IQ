@@ -1,0 +1,26 @@
+{
+  "name": "Hospital Main Hub 🇮🇶",
+  "short_name": "Hosp Hub",
+  "description": "Unified Hospital Management, On-Call Roster, and Duty System.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "background_color": "#0b0e12",
+  "theme_color": "#0f766e",
+  "icons": [
+    {
+      "src": "pwa-icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "pwa-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
+

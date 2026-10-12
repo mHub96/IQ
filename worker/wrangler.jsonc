@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "hosp-hub-api",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "hosp-hub",
+      "database_id": "e795a9a9-5d07-4c42-8688-e3384809ee84"
+    }
+  ],
+  // Daily clean-up of old history rows and login-failure counters.
+  "triggers": { "crons": ["17 1 * * *"] },
+  "vars": {
+    "ALLOWED_ORIGINS": "https://mhub96.github.io"
+  },
+  "observability": { "enabled": true }
+  // Secrets (set with `wrangler secret put`, never committed):
+  //   SESSION_KEY  HMAC key for login tokens
+  //   PW_KEY       base64 AES-256 key that encrypts role passwords in D1
+  //   BRIDGE_KEY   shared key for the temporary GitHub bridge
+}

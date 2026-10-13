@@ -138,11 +138,6 @@
                     <!-- Notifications + personal account (filled by hub-accounts.js) -->
                     <span data-hacc-slot></span>
 
-                    <!-- Theme Toggle -->
-                    <button type="button" class="hub-nav-btn" onclick="toggleThemeNav()" aria-label="تبديل الوضع الليلي" title="تبديل الوضع">
-                        <i class="fas ${currentTheme === 'dark' ? 'fa-sun' : 'fa-moon'}" id="hub-theme-icon"></i>
-                    </button>
-
                     <!-- Logout Button -->
                     <button type="button" class="hub-btn-logout" onclick="logoutNav()" title="تسجيل الخروج">
                         <i class="fas fa-sign-out-alt"></i>

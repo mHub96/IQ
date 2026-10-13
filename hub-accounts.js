@@ -237,6 +237,10 @@
             parts.push(`<div class="hacc-cta">أنت مسجّل بكلمة مرور مشتركة. أنشئ حساباً شخصياً لتصلك إشعارات الإعجابات والتعليقات.
                 <a class="hacc-btn primary sm" href="./account.html#signup">إنشاء حساب</a></div>`);
         }
+        if (account() && push.state === 'off') {
+            parts.push(`<div class="hacc-cta">🔔 فعّل الإشعارات على هذا الجهاز لتصلك حتى عندما يكون التطبيق مغلقاً.
+                <button type="button" class="hacc-btn primary sm" data-act="push-on">تفعيل الإشعارات</button></div>`);
+        }
         if (!notif.items.length && account()) parts.push('<div class="hacc-empty">لا توجد إشعارات بعد</div>');
         notif.items.forEach((n, i) => {
             const d = describe(n);
@@ -246,6 +250,13 @@
                 <time class="hacc-notif-time">${esc(timeAgo(n.ts))}</time></span></button>`);
         });
         list.innerHTML = parts.join('');
+        const pushBtn = list.querySelector('[data-act="push-on"]');
+        if (pushBtn) pushBtn.addEventListener('click', async () => {
+            pushBtn.disabled = true;
+            const r = await enablePush();
+            toast(r.ok ? 'تم تفعيل الإشعارات ✓' : r.error, r.ok ? 'success' : 'error');
+            renderNotificationList(sheet);
+        });
         list.querySelectorAll('.hacc-notif').forEach(btn => btn.addEventListener('click', () => {
             const n = notif.items[Number(btn.dataset.i)];
             const d = describe(n);
@@ -456,7 +467,8 @@
             ${canReact ? `<form class="hacc-composer" data-role="composer" ${tab === 'likes' ? 'hidden' : ''}>
                 <div class="hacc-identity" role="radiogroup" aria-label="التعليق باسم">
                     <label><input type="radio" name="hacc-as" value="real" checked> <span>باسمي</span></label>
-                    <label><input type="radio" name="hacc-as" value="anon"> <span data-role="anon-label">مجهول</span></label>
+                    <label><input type="radio" name="hacc-as" value="anon"> <span>🕶️ <bdi data-role="anon-label">${esc((account() || {}).anon_tag || 'مجهول')}</bdi></span></label>
+                    <a class="hacc-link" href="./account.html#settings-nick" title="تغيير اللقب المجهول من الإعدادات">تغيير اللقب</a>
                 </div>
                 <div class="hacc-compose-row">
                     <textarea rows="1" maxlength="600" placeholder="اكتب تعليقاً…" aria-label="تعليق" required></textarea>
@@ -561,6 +573,109 @@
     }
 
     // ------------------------------------------------------------------
+    // Push notifications (shown by service-worker.js even when the app is closed)
+    // ------------------------------------------------------------------
+    const push = { state: 'unknown' };
+    const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    const standalone = () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+
+    function pushSupported() {
+        return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+    }
+
+    function urlB64ToBytes(b64) {
+        const s = atob(b64.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((b64.length + 3) % 4));
+        return Uint8Array.from(s, c => c.charCodeAt(0));
+    }
+
+    /** 'unsupported' | 'needs-install' (iPhone: add to the home screen first) | 'denied' | 'on' | 'off' */
+    async function pushStatus() {
+        if (!pushSupported()) push.state = isIos && !standalone() ? 'needs-install' : 'unsupported';
+        else if (Notification.permission === 'denied') push.state = 'denied';
+        else {
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                const sub = await reg.pushManager.getSubscription();
+                push.state = sub && Notification.permission === 'granted' ? 'on' : 'off';
+            } catch (e) { push.state = 'off'; }
+        }
+        return push.state;
+    }
+
+    async function sendSubscription(sub) {
+        await Hub.api('POST', '/api/push/subscribe', { subscription: sub.toJSON() }, { retries: 1 });
+        try { localStorage.setItem('hacc_push_synced', String(Date.now())); } catch (e) {}
+    }
+
+    async function enablePush() {
+        if (!account()) return { ok: false, error: 'الإشعارات تحتاج حساباً شخصياً.' };
+        const st = await pushStatus();
+        if (st === 'needs-install') return { ok: false, error: 'على الآيفون: أضف التطبيق إلى الشاشة الرئيسية (مشاركة ← إضافة إلى الشاشة الرئيسية) ثم فعّل الإشعارات من داخله.' };
+        if (st === 'unsupported') return { ok: false, error: 'هذا المتصفح لا يدعم الإشعارات.' };
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                await pushStatus();
+                return { ok: false, error: 'لم يتم السماح بالإشعارات. يمكنك السماح بها من إعدادات المتصفح.' };
+            }
+            const { key } = await Hub.api('GET', '/api/push/key', undefined, { useToken: false, retries: 1 });
+            if (!key) return { ok: false, error: 'الإشعارات غير مفعّلة على الخادم بعد.' };
+            const reg = await navigator.serviceWorker.ready;
+            let sub = await reg.pushManager.getSubscription();
+            if (sub && sub.options && sub.options.applicationServerKey) {
+                // Subscribed with an older server key: start over.
+                const current = new Uint8Array(sub.options.applicationServerKey);
+                const wanted = urlB64ToBytes(key);
+                if (current.length !== wanted.length || current.some((b, i) => b !== wanted[i])) { await sub.unsubscribe(); sub = null; }
+            }
+            if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToBytes(key) });
+            await sendSubscription(sub);
+            push.state = 'on';
+            return { ok: true };
+        } catch (err) {
+            await pushStatus();
+            return { ok: false, error: err && err.status ? errorText(err) : 'تعذر تفعيل الإشعارات على هذا الجهاز.' };
+        }
+    }
+
+    async function disablePush() {
+        try {
+            const reg = await navigator.serviceWorker.ready;
+            const sub = await reg.pushManager.getSubscription();
+            if (sub) {
+                await Hub.api('POST', '/api/push/unsubscribe', { endpoint: sub.endpoint }, { retries: 1 }).catch(() => {});
+                await sub.unsubscribe();
+            }
+        } catch (e) {}
+        push.state = 'off';
+        return { ok: true };
+    }
+
+    /** Keeps the server copy of this device's subscription fresh (it can change, or the account can). */
+    async function resyncPush() {
+        if (!account() || (await pushStatus()) !== 'on') return;
+        let last = 0;
+        try { last = Number(localStorage.getItem('hacc_push_synced')) || 0; } catch (e) {}
+        if (Date.now() - last < 24 * 3600 * 1000) return;
+        try {
+            const reg = await navigator.serviceWorker.ready;
+            const sub = await reg.pushManager.getSubscription();
+            if (sub) await sendSubscription(sub);
+        } catch (e) {}
+    }
+
+    /** Tapping a like / comment push lands on Home.html#thread=<date>|<name>: open that thread. */
+    function openThreadFromHash() {
+        const m = location.hash.match(/^#thread=([^|]*)\|(.*)$/);
+        if (!m || !/Home\.html$/i.test(location.pathname)) return;
+        const h = new URLSearchParams(location.search).get('hospital') || (Hub.getActiveHospitalId && Hub.getActiveHospitalId());
+        const d = decodeURIComponent(m[1]);
+        const local = /^\d{4}-\d{2}-\d{2}$/.test(d) ? d.split('-').reverse().join('/') : d;
+        history.replaceState(null, '', location.pathname + location.search);
+        setTimeout(() => openThread({ h, d: local, n: decodeURIComponent(m[2]) }, 'comments'), 400);
+    }
+
+    // ------------------------------------------------------------------
     // Start
     // ------------------------------------------------------------------
     function start() {
@@ -568,6 +683,9 @@
         slotObserver.observe(document.body, { childList: true, subtree: true });
         startPolling();
         refreshProfile();
+        pushStatus().then(resyncPush);
+        openThreadFromHash();
+        window.addEventListener('hashchange', openThreadFromHash);
     }
 
     window.HubAccounts = {
@@ -582,6 +700,12 @@
         timeAgo,
         ROLE_NAMES,
         errorText,
+        push: {
+            status: pushStatus,
+            enable: enablePush,
+            disable: disablePush,
+            test: () => Hub.api('POST', '/api/push/test', {}, { retries: 0 }),
+        },
     };
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);

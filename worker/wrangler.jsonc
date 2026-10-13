@@ -13,11 +13,15 @@
   ],
   // No cron here: the live Worker already prunes the shared database every night.
   "vars": {
-    "ALLOWED_ORIGINS": "https://hosp-hub-beta.pages.dev"
+    "ALLOWED_ORIGINS": "https://hosp-hub-beta.pages.dev",
+    // Web Push: public half of the VAPID key pair (the private half is the VAPID_PRIVATE secret).
+    "VAPID_PUBLIC": "BGOl7V-kzJ02TyafKBzlqgbBW-Ef81Znw_LU9ZVzoum_W5bswoynF0gQEocOZBcgQR-SBU2ToEaCIvMRY7GR_7s",
+    "VAPID_SUBJECT": "https://hosp-hub-beta.pages.dev"
   },
   "observability": { "enabled": true }
   // Beta Worker: shares the live D1 database (same data) but has its own SESSION_KEY.
   // Secrets (set with `wrangler secret put`, never committed):
   //   SESSION_KEY  HMAC key for login tokens
   //   PW_KEY       base64 AES-256 key that encrypts role passwords in D1
+  //   VAPID_PRIVATE base64url private key for signing Web Push requests
 }

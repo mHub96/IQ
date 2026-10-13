@@ -21,14 +21,14 @@ const HISTORY_KEEP_DAYS = 120;
 const LOGIN_FAIL_LIMIT = 20;
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const origin = request.headers.get('Origin') || '';
     const cors = corsHeaders(env, origin);
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: cors });
     }
     try {
-      const res = await route(request, env);
+      const res = await route(request, env, ctx);
       for (const [k, v] of Object.entries(cors)) res.headers.set(k, v);
       return res;
     } catch (err) {
@@ -47,7 +47,7 @@ export default {
   },
 };
 
-async function route(request, env) {
+async function route(request, env, ctx) {
   const url = new URL(request.url);
   const path = url.pathname.replace(/\/+$/, '');
   const method = request.method;
@@ -63,7 +63,7 @@ async function route(request, env) {
     return auth ? json({ ok: true, role: auth.r, adminHospitals: auth.h, exp: auth.e, account: auth.a || null }) : json({ error: 'unauthorized' }, 401);
   }
   if (path === '/api/db' && method === 'GET') return readRecords(env, auth, url, false);
-  const accountRoute = await routeAccounts(path, method, request, env, auth, url);
+  const accountRoute = await routeAccounts(path, method, request, env, auth, url, ctx);
   if (accountRoute) return accountRoute;
 
   if (path === '/api/er' && method === 'GET') {

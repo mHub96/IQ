@@ -20,3 +20,6 @@ hub-data.json
 
 # Build tools (tailwind CLI)
 tools/node_modules/
+
+# Cloudflare Pages build output
+dist/

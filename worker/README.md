@@ -43,18 +43,24 @@ which is git-ignored):
 | Name | Purpose |
 |---|---|
 | `SESSION_KEY` | signs login tokens |
+| `VAPID_PRIVATE` | private half of the Web Push key pair (the public half is `VAPID_PUBLIC` in `wrangler.jsonc`) |
 | `PW_KEY` | base64 AES-256 key that encrypts passwords in D1 — **losing it means resetting all passwords** |
 
 ## Personal accounts
 
-- **Sign-up** (`account.html#signup`): hospital + real name + phone are checked live against the roster
+- **Sign-up** (`account.html#signup`): hospital, real name, phone, sex (male / female), username, password.
+  Hospital + real name + phone are checked live against the roster
   (`POST /api/accounts/check`). The phone must belong to a resident of that hospital and the first two names must
   match, ignoring titles, hamza / ta marbuta / alef maqsura variants and diacritics. The answer never says which
   part failed, and the endpoint is rate-limited. A resident can have only one live account.
 - **Approval**: new accounts stay `pending` until the owner or an admin of that hospital approves them
-  (`account.html#manage`, or from the bell). Admins can approve / reject / disable plain user accounts of their
-  own hospitals; only the owner assigns roles (user / anaesthesia / admin / owner) and their hospitals. Role
-  changes apply on the account's next request (the token only identifies the account).
+  (`account.html#manage`, or from the bell). The owner sees and manages every account; an admin only the plain
+  user accounts of their own hospitals. Only the owner changes roles (user / anaesthesia / admin / owner) and their
+  hospitals. Changes apply on the account's next request (the token only identifies the account and device).
+- **Device limit** (owner, or the hospital's admin): unlimited (default), one device, or a set number (2-20).
+  Every sign-in registers the browser's device id (random, kept in localStorage); a new device beyond the limit is
+  refused, and unlinking a device signs it out at once. This is a per-browser lock, not hardware binding:
+  clearing the browser's data makes it a new device that then needs a free slot.
 - **Passwords** never reach the server: the browser sends PBKDF2-SHA256(password, `hosp-hub/v1/<username>`,
   310 000 rounds) and the server stores SHA-256(random salt || that key). Changing the password or disabling the
   account signs it out everywhere (`sess` counter).
@@ -65,22 +71,49 @@ which is git-ignored):
 - **First run**: sign in with the shared owner password, create your own account, approve it in
   `account.html#manage` and give it the owner role. From then on the bell shows new requests.
 
+## Settings (`account.html#settings`)
+
+Appearance (light / dark; the toggle moved here from the top bars), anonymous nickname, push notifications
+for this device, the account's devices (unlink any), and password change.
+
+- **Anonymous nickname**: Reddit style (`Adjective-Noun-1234` / `اسم-صفة-1234`), drawn by sex in the account's
+  nickname language (Arabic or English). It stays until the user draws a new random one or sets a custom one;
+  custom nicknames are 3-24 letters / digits / `- _ .`, checked live for duplicates (case, separators and Arabic
+  letter variants count as the same) and may not start with reserved words (admin, owner, مدير, د ...).
+- **Push notifications** (Web Push, VAPID): the browser subscribes in settings or from the bell; one subscription
+  per device. Every stored notification is also pushed (encrypted per RFC 8291, sent after the response). On
+  iPhone, push works only from the app added to the home screen (iOS 16.4+).
+
 ## Notifications, likes and comments
 
 - A duty card is `duty:<hospital>:<YYYY-MM-DD>:<normalised name>`. The server normalises names, so spelling
   variants of one resident share one card, and the resident's account (matched by name) is notified.
 - Notifications are grouped per card ("X and 3 others liked ..."), polled every minute while a page is open,
   and shown as a number on the installed app icon where the phone supports it.
-- Anonymous comments carry a nickname that is stable within one card and different across cards. Only the
-  owner sees who wrote an anonymous comment (for moderation). Authors, the owner and the hospital's admins can
-  delete comments.
+- Anonymous comments show the author's current nickname to everyone. Only the owner also sees the real name
+  (for moderation). Authors delete their own comments; the owner any comment; an admin any comment in their
+  hospitals. The moderation feed is `account.html#manage` → التعليقات (`GET /api/social/recent`).
 
 | Endpoint | Who |
 |---|---|
 | `POST /api/accounts/check`, `GET /api/accounts/username`, `POST /api/accounts/signup`, `POST /api/accounts/login`, `POST /api/accounts/forgot`, `POST /api/accounts/reset`, `GET /api/social` | anyone (rate-limited) |
-| `GET /api/accounts/me`, `GET /api/notifications`, `POST /api/notifications/seen`, `GET /api/social/thread` | signed in |
+| `GET /api/accounts/me`, `GET /api/notifications`, `POST /api/notifications/seen`, `GET /api/social/thread`, `GET /api/push/key` | signed in |
+| `GET /api/accounts/anon-check`, `POST /api/accounts/anon`, `POST /api/accounts/devices/remove`, `POST /api/push/subscribe`, `POST /api/push/unsubscribe`, `POST /api/push/test` | personal accounts |
 | `POST /api/accounts/password`, `POST /api/social/like`, `POST /api/social/comment`, `POST /api/social/comment/delete` | personal accounts (delete: also owner / hospital admins) |
-| `GET /api/accounts?filter=pending\|resets\|active\|all`, `POST /api/accounts/decide` | owner, hospital admins |
+| `GET /api/accounts?filter=pending\|resets\|active\|all`, `POST /api/accounts/decide`, `GET /api/social/recent` | owner (all), hospital admins (own hospitals) |
+
+## Deploying the beta
+
+```sh
+node tools/build-site.mjs                                              # website -> dist/
+npx wrangler pages deploy dist --project-name hosp-hub-beta --branch main
+cd worker && npx wrangler deploy                                       # API
+npx wrangler d1 execute hosp-hub --remote --file migrations/0002_accounts.sql   # once (additive)
+```
+
+`.github/workflows/deploy.yml` does the first two (and the Worker when `worker/` changed) on every push to
+`main` once the repository has the secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+After editing pages: `cd tools && npm install && npm run css` rebuilds `tailwind.css`.
 
 ## Everyday operations
 

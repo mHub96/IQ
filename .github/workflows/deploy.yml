@@ -1,0 +1,58 @@
+# Deploys the beta on every push to main:
+#   - website  -> Cloudflare Pages project "hosp-hub-beta"
+#   - API      -> Cloudflare Worker "hosp-hub-api-beta" (only when worker/ changed)
+# Needs two repository secrets: CLOUDFLARE_API_TOKEN (template "Edit Cloudflare Workers",
+# plus Account > Cloudflare Pages > Edit) and CLOUDFLARE_ACCOUNT_ID. Without them the job is skipped.
+name: Deploy beta
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-beta
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Check credentials
+        id: creds
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::notice::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID not set; skipping deploy."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.creds.outputs.ok == 'true'
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        if: steps.creds.outputs.ok == 'true'
+        with:
+          node-version: 22
+      - name: Unit tests
+        if: steps.creds.outputs.ok == 'true'
+        run: node --test worker/test/push.test.mjs
+      - name: Build site
+        if: steps.creds.outputs.ok == 'true'
+        run: node tools/build-site.mjs
+      - name: Deploy website (Pages)
+        if: steps.creds.outputs.ok == 'true'
+        run: npx --yes wrangler@4 pages deploy dist --project-name hosp-hub-beta --branch main --commit-dirty=true
+      - name: Deploy API (Worker) when it changed
+        if: steps.creds.outputs.ok == 'true'
+        run: |
+          if git diff --name-only HEAD~1 HEAD | grep -q '^worker/'; then
+            cd worker && npx --yes wrangler@4 deploy
+          else
+            echo "worker/ unchanged; Worker not redeployed."
+          fi

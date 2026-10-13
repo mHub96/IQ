@@ -1,7 +1,7 @@
 // service-worker.js - Hospital Main Hub
 // Pages and scripts are served network-first so every deploy reaches installed apps on
 // their next launch; the cache is only the offline fallback. API calls are never cached.
-const CACHE_VERSION = 'v3.1.0';
+const CACHE_VERSION = 'v3.2.0';
 const CACHE_NAME = `hospital-hub-${CACHE_VERSION}`;
 const CDN_CACHE = 'hospital-hub-cdn-v1';
 const NETWORK_TIMEOUT_MS = 4000;
@@ -142,4 +142,39 @@ self.addEventListener('fetch', event => {
     event.respondWith(staleWhileRevalidate(request));
   }
   // Everything else (the Cloudflare API, GitHub, ...) goes straight to the network.
+});
+
+// ---------------------------------------------------------------------------
+// Push notifications (sent by the API; payload: { title, body, url, tag })
+// ---------------------------------------------------------------------------
+self.addEventListener('push', event => {
+  let msg = {};
+  try { msg = event.data ? event.data.json() : {}; } catch (e) { msg = { title: 'Hosp Hub', body: event.data ? event.data.text() : '' }; }
+  const title = msg.title || 'بوابة المستشفيات';
+  event.waitUntil(Promise.all([
+    self.registration.showNotification(title, {
+      body: msg.body || '',
+      icon: './pwa-icon.svg',
+      badge: './pwa-icon.svg',
+      tag: msg.tag || undefined,
+      renotify: !!msg.tag,
+      dir: 'rtl',
+      lang: 'ar',
+      data: { url: msg.url || './index.html?portal=true' }
+    }),
+    // Count on the app icon; the open app corrects it on its next check.
+    self.navigator && self.navigator.setAppBadge ? self.navigator.setAppBadge().catch(() => {}) : null
+  ]));
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const target = new URL((event.notification.data && event.notification.data.url) || './index.html?portal=true', self.registration.scope).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windows => {
+      const open = windows.find(w => w.url.startsWith(self.registration.scope));
+      if (open) return open.navigate(target).then(w => (w || open).focus()).catch(() => open.focus());
+      return self.clients.openWindow(target);
+    })
+  );
 });

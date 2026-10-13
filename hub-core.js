@@ -3330,6 +3330,34 @@
         return btoa(s);
     }
 
+    /** A random id that stays on this browser (also after signing out); used for the device limit. */
+    function deviceId() {
+        const KEY = 'hospital_hub_device_id';
+        try {
+            let id = localStorage.getItem(KEY);
+            if (!id || !/^[A-Za-z0-9_-]{16,64}$/.test(id)) {
+                const bytes = crypto.getRandomValues(new Uint8Array(18));
+                id = btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+                localStorage.setItem(KEY, id);
+            }
+            return id;
+        } catch (e) {
+            return 'nostorage-' + Math.random().toString(36).slice(2, 18);
+        }
+    }
+
+    /** Human-readable device name for the devices list, e.g. "iPhone · Safari". */
+    function deviceLabel() {
+        const ua = navigator.userAgent || '';
+        const os = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) ? 'iPad' : /Android/.test(ua) ? 'Android'
+            : /Windows/.test(ua) ? 'Windows' : /Mac OS X/.test(ua) ? 'Mac' : /Linux/.test(ua) ? 'Linux' : 'جهاز';
+        const browser = /EdgA?\//.test(ua) ? 'Edge' : /SamsungBrowser/.test(ua) ? 'Samsung Internet' : /OPR\//.test(ua) ? 'Opera'
+            : /Brave/.test(ua) ? 'Brave' : /CriOS|Chrome\//.test(ua) ? 'Chrome' : /FxiOS|Firefox\//.test(ua) ? 'Firefox'
+            : /Safari\//.test(ua) ? 'Safari' : '';
+        const app = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches ? ' (التطبيق)' : '';
+        return [os, browser].filter(Boolean).join(' · ') + app;
+    }
+
     function storeAccount(account) {
         try {
             if (account) localStorage.setItem(ACCOUNT_KEY, JSON.stringify(account));
@@ -3392,7 +3420,7 @@
             if (!user || !password) return { success: false, error: 'الرجاء إدخال اسم المستخدم وكلمة المرور' };
             try {
                 const key = await deriveAccountKey(user, password);
-                const res = await api('POST', '/api/accounts/login', { username: user, key, remember }, { useToken: false, retries: 1 });
+                const res = await api('POST', '/api/accounts/login', { username: user, key, remember, deviceId: deviceId(), deviceLabel: deviceLabel() }, { useToken: false, retries: 1 });
                 if (res && res.success) {
                     pendingToken = { token: res.token, exp: res.exp };
                     storeAccount(res.account);
@@ -3433,6 +3461,7 @@
         },
 
         deriveAccountKey,
+        deviceId,
 
         saveSession(role, password = '', remember = true, adminHospitals = null) {
             localStorage.setItem(SESSION_ROLE_KEY, role);

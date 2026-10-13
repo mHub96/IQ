@@ -133,6 +133,49 @@
         .hosp-pick input { position: absolute; opacity: 0; pointer-events: none; }
         .hosp-pick span { display: inline-block; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--hacc-border); font-size: 0.75rem; font-weight: 700; }
         .hosp-pick input:checked + span { background: var(--hacc-accent-soft); border-color: var(--hacc-accent); color: var(--hacc-accent); }
+        /* Tabs between profile / settings / management */
+        .apptabs { display: flex; gap: 4px; padding: 4px; background: var(--hacc-surface); border-radius: 14px; margin-bottom: 16px; }
+        .apptabs a { flex: 1; text-align: center; padding: 10px 4px; border-radius: 11px; color: var(--hacc-muted); text-decoration: none; font-weight: 800; font-size: 0.82rem; position: relative; }
+        .apptabs a[aria-current="page"] { background: var(--hacc-bg); color: var(--hacc-accent); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08); }
+        .apptabs .n { position: absolute; top: 4px; left: 8px; min-width: 16px; padding: 0 4px; border-radius: 8px; background: var(--hacc-like); color: #fff; font-size: 0.62rem; line-height: 16px; }
+        .seg2 { display: inline-flex; gap: 4px; padding: 4px; background: var(--hacc-surface); border-radius: 12px; }
+        .seg2 button { border: 0; background: none; padding: 8px 16px; border-radius: 9px; font: 800 0.82rem inherit; font-family: inherit; color: var(--hacc-muted); cursor: pointer; min-height: 38px; }
+        .seg2 button[aria-pressed="true"] { background: var(--hacc-bg); color: var(--hacc-accent); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08); }
+        .set-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .set-row + .set-row { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--hacc-border); }
+        .set-title { font-weight: 800; font-size: 0.9rem; }
+        .set-sub { color: var(--hacc-muted); font-size: 0.76rem; margin-top: 2px; line-height: 1.6; }
+        .nick { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 14px; background: var(--hacc-accent-soft); color: var(--hacc-accent); font-weight: 800; font-size: 1.05rem; direction: ltr; }
+        .nick bdi { unicode-bidi: isolate; }
+        .row-inline { display: flex; gap: 8px; align-items: flex-start; }
+        .row-inline input { flex: 1; }
+        .sex-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .sex-pick label, .hosp-pick label { cursor: pointer; position: relative; }
+        /* Visually hidden radios / checkboxes (the styled span is the control). */
+        .sex-pick input, .hosp-pick input { position: absolute; inset: 0; width: 1px; height: 1px; min-height: 0; margin: 0; opacity: 0; pointer-events: none; }
+        .sex-pick input { position: absolute; opacity: 0; pointer-events: none; }
+        .sex-pick span { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 14px; border: 1px solid var(--hacc-border); background: var(--hacc-surface); font-weight: 800; }
+        .sex-pick input:checked + span { border-color: var(--hacc-accent); background: var(--hacc-accent-soft); color: var(--hacc-accent); }
+        .sex-pick input:focus-visible + span { outline: 2px solid var(--hacc-accent); outline-offset: 2px; }
+        .devices { list-style: none; margin: 0; padding: 0; }
+        .devices li { display: flex; gap: 10px; align-items: center; padding: 10px 0; }
+        .devices li + li { border-top: 1px solid var(--hacc-border); }
+        .devices .dev-icon { width: 38px; height: 38px; border-radius: 12px; background: var(--hacc-surface); display: flex; align-items: center; justify-content: center; color: var(--hacc-muted); flex: none; }
+        .devices .dev-main { flex: 1; min-width: 0; }
+        .devices .dev-name { font-weight: 800; font-size: 0.85rem; }
+        .devices .dev-sub { font-size: 0.72rem; color: var(--hacc-muted); }
+        .editor { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--hacc-border); display: grid; gap: 12px; }
+        .editor h4 { margin: 0; font-size: 0.8rem; font-weight: 800; color: var(--hacc-muted); }
+        .limit-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .limit-row select { flex: 1; min-width: 150px; }
+        .limit-row input { width: 90px; flex: none; }
+        .mod-item { border: 1px solid var(--hacc-border); border-radius: 16px; padding: 12px 14px; margin-bottom: 10px; background: var(--hacc-bg); }
+        .mod-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+        .mod-author { font-weight: 800; font-size: 0.85rem; }
+        .mod-meta { font-size: 0.72rem; color: var(--hacc-muted); margin-top: 2px; }
+        .mod-body { margin-top: 8px; font-size: 0.88rem; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .filter-row { display: flex; gap: 8px; margin-bottom: 12px; }
+        .filter-row select, .filter-row input { flex: 1; }
         [hidden] { display: none !important; }
     </style>
 </head>
@@ -144,6 +187,13 @@
     </header>
 
     <main>
+        <!-- Signed-in tabs -->
+        <nav class="apptabs" id="apptabs" aria-label="أقسام الحساب" hidden>
+            <a href="#me" data-view="me">حسابي</a>
+            <a href="#settings" data-view="settings">الإعدادات</a>
+            <a href="#manage" data-view="manage" id="tab-manage" hidden>الإدارة <span class="n" id="tab-manage-n" hidden></span></a>
+        </nav>
+
         <!-- ============ SIGN IN ============ -->
         <section id="view-signin" hidden>
             <nav class="seg" aria-label="الحساب">
@@ -173,6 +223,15 @@
                     <a href="#signup">ليس لديك حساب؟ أنشئ حساباً</a>
                 </div>
             </form>
+            <div class="card" id="signin-theme">
+                <div class="set-row">
+                    <div><div class="set-title">المظهر</div></div>
+                    <div class="seg2" data-role="theme-seg">
+                        <button type="button" data-theme="light">☀️ فاتح</button>
+                        <button type="button" data-theme="dark">🌙 داكن</button>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- ============ SIGN UP ============ -->
@@ -205,6 +264,13 @@
 
                 <fieldset id="su-step2" disabled>
                     <div class="field">
+                        <span class="field-label" style="display:block;font-size:0.8rem;font-weight:800;margin-bottom:6px">الجنس</span>
+                        <div class="sex-pick" role="radiogroup" aria-label="الجنس">
+                            <label><input type="radio" name="su-sex" value="m" required /><span>👨‍⚕️ ذكر</span></label>
+                            <label><input type="radio" name="su-sex" value="f" /><span>👩‍⚕️ أنثى</span></label>
+                        </div>
+                    </div>
+                    <div class="field">
                         <label for="su-user">اسم المستخدم (للدخول)</label>
                         <input id="su-user" dir="ltr" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="e.g. m.ali" maxlength="24" required />
                         <div class="hint" id="su-user-hint">٣–٢٤ حرفاً: أحرف إنجليزية صغيرة وأرقام و . و _</div>
@@ -230,7 +296,7 @@
             <div class="card done" id="su-done" hidden>
                 <div class="big">📨</div>
                 <h2>تم إرسال طلبك</h2>
-                <p class="lead" id="su-done-text">سيصلك إشعار عند الموافقة. يمكنك تسجيل الدخول بعد موافقة مالك المنظومة أو مدير مستشفاك.</p>
+                <p class="lead" id="su-done-text">سيصلك إشعار عند الموافقة.</p>
                 <a class="hacc-btn primary" href="#signin">الذهاب لتسجيل الدخول</a>
             </div>
         </section>
@@ -281,45 +347,109 @@
         <!-- ============ PROFILE ============ -->
         <section id="view-me" hidden>
             <div class="card" id="me-card"></div>
-            <details class="card" id="me-password">
-                <summary>تغيير كلمة المرور <i class="fas fa-chevron-down"></i></summary>
-                <form id="pw-form" novalidate>
-                    <div class="field">
-                        <label for="pw-old">كلمة المرور الحالية</label>
-                        <input id="pw-old" type="password" dir="ltr" autocomplete="current-password" required />
-                    </div>
-                    <div class="field">
-                        <label for="pw-new">كلمة المرور الجديدة</label>
-                        <input id="pw-new" type="password" dir="ltr" autocomplete="new-password" minlength="8" required />
-                    </div>
-                    <div class="field">
-                        <label for="pw-new2">تأكيد كلمة المرور الجديدة</label>
-                        <input id="pw-new2" type="password" dir="ltr" autocomplete="new-password" required />
-                    </div>
-                    <button class="hacc-btn primary btn-block" type="submit">حفظ</button>
-                    <div class="msg" id="pw-msg" role="alert"></div>
-                </form>
-            </details>
             <div class="card" id="legacy-card" hidden>
                 <h2>حساب شخصي</h2>
                 <p class="lead">أنت مسجّل حالياً بكلمة مرور مشتركة. أنشئ حسابك الشخصي لتحصل على الإشعارات وتتمكن من الإعجاب والتعليق، ثم ادخل به بدلاً من كلمة المرور المشتركة.</p>
                 <a class="hacc-btn primary" href="#signup">إنشاء حساب</a>
                 <a class="hacc-btn" href="#signin">لدي حساب</a>
             </div>
-            <a class="hacc-btn btn-block" id="manage-link" href="#manage" hidden><i class="fas fa-user-shield"></i> إدارة الحسابات والطلبات <span id="manage-count"></span></a>
-            <button class="hacc-btn btn-block danger" id="logout-btn" type="button" style="margin-top:12px"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+            <button class="hacc-btn btn-block danger" id="logout-btn" type="button"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
         </section>
 
-        <!-- ============ MANAGE (owner / admins) ============ -->
+        <!-- ============ SETTINGS ============ -->
+        <section id="view-settings" hidden>
+            <div class="card">
+                <h2>المظهر</h2>
+                <div class="set-row" style="margin-top:10px">
+                    <div><div class="set-title">الوضع</div><div class="set-sub">يُطبَّق على كل صفحات التطبيق في هذا الجهاز.</div></div>
+                    <div class="seg2" data-role="theme-seg">
+                        <button type="button" data-theme="light">☀️ فاتح</button>
+                        <button type="button" data-theme="dark">🌙 داكن</button>
+                    </div>
+                </div>
+            </div>
+
+            <div data-account-only>
+                <div class="card" id="settings-nick">
+                    <h2>اللقب المجهول</h2>
+                    <p class="lead">يظهر هذا اللقب بدلاً من اسمك عندما تختار التعليق كمجهول، ويبقى نفسه إلى أن تغيّره هنا.</p>
+                    <div style="text-align:center;margin-bottom:14px"><span class="nick">🕶️ <bdi id="nick-current">—</bdi></span></div>
+                    <div class="set-row">
+                        <div><div class="set-title">لغة اللقب</div><div class="set-sub">تغيير اللغة يختار لقباً عشوائياً جديداً بتلك اللغة.</div></div>
+                        <div class="seg2" id="nick-lang">
+                            <button type="button" data-lang="ar">عربي</button>
+                            <button type="button" data-lang="en">English</button>
+                        </div>
+                    </div>
+                    <div class="set-row">
+                        <div><div class="set-title">لقب عشوائي جديد</div><div class="set-sub">مثل Reddit: صفة + اسم + رقم، حسب الجنس.</div></div>
+                        <button type="button" class="hacc-btn" id="nick-random">🎲 اختيار عشوائي</button>
+                    </div>
+                    <div class="set-row" style="display:block">
+                        <div class="set-title" style="margin-bottom:8px">لقب خاص بك</div>
+                        <div class="row-inline">
+                            <input id="nick-custom" maxlength="24" placeholder="مثال: Night_Owl أو بومة-الليل" autocapitalize="none" spellcheck="false" />
+                            <button type="button" class="hacc-btn primary" id="nick-save" disabled>حفظ</button>
+                        </div>
+                        <div class="hint" id="nick-hint" style="font-size:0.72rem;margin-top:6px;color:var(--hacc-muted)">٣–٢٤ حرفاً (عربي أو إنجليزي) وأرقام و - _ . بدون مسافات. يجب ألا يكون مستخدماً من شخص آخر.</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>الإشعارات</h2>
+                    <div class="set-row" style="margin-top:10px">
+                        <div><div class="set-title">إشعارات هذا الجهاز</div><div class="set-sub" id="push-sub">جاري الفحص…</div></div>
+                        <button type="button" class="hacc-btn" id="push-toggle" disabled>…</button>
+                    </div>
+                    <div class="set-row" id="push-test-row" hidden>
+                        <div><div class="set-title">إشعار تجريبي</div><div class="set-sub">للتأكد من وصول الإشعارات إلى هذا الجهاز.</div></div>
+                        <button type="button" class="hacc-btn" id="push-test">إرسال</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>الأجهزة</h2>
+                    <p class="lead" id="devices-lead">الأجهزة المسجّل دخولها إلى حسابك.</p>
+                    <ul class="devices" id="my-devices"></ul>
+                </div>
+
+                <details class="card" id="me-password">
+                    <summary>تغيير كلمة المرور <i class="fas fa-chevron-down"></i></summary>
+                    <form id="pw-form" novalidate>
+                        <div class="field">
+                            <label for="pw-old">كلمة المرور الحالية</label>
+                            <input id="pw-old" type="password" dir="ltr" autocomplete="current-password" required />
+                        </div>
+                        <div class="field">
+                            <label for="pw-new">كلمة المرور الجديدة</label>
+                            <input id="pw-new" type="password" dir="ltr" autocomplete="new-password" minlength="8" required />
+                        </div>
+                        <div class="field">
+                            <label for="pw-new2">تأكيد كلمة المرور الجديدة</label>
+                            <input id="pw-new2" type="password" dir="ltr" autocomplete="new-password" required />
+                        </div>
+                        <button class="hacc-btn primary btn-block" type="submit">حفظ</button>
+                        <div class="msg" id="pw-msg" role="alert"></div>
+                    </form>
+                </details>
+            </div>
+        </section>
+
+        <!-- ============ MANAGE (owner: everything; admins: their hospitals) ============ -->
         <section id="view-manage" hidden>
             <div class="tabs" role="tablist" id="mg-tabs">
                 <button type="button" role="tab" data-filter="pending" aria-selected="true">طلبات الحسابات <span class="n" data-n="accounts" hidden></span></button>
                 <button type="button" role="tab" data-filter="resets" aria-selected="false">كلمات المرور <span class="n" data-n="resets" hidden></span></button>
                 <button type="button" role="tab" data-filter="active" aria-selected="false">الحسابات المفعّلة</button>
                 <button type="button" role="tab" data-filter="all" aria-selected="false">الكل</button>
+                <button type="button" role="tab" data-filter="comments" aria-selected="false">التعليقات</button>
             </div>
-            <input class="search" id="mg-search" type="search" placeholder="بحث بالاسم أو اسم المستخدم أو الهاتف…" aria-label="بحث" />
+            <div class="filter-row">
+                <select id="mg-hosp" aria-label="المستشفى"></select>
+                <input id="mg-search" type="search" placeholder="بحث…" aria-label="بحث" />
+            </div>
             <div id="mg-list"><div class="hacc-empty">جاري التحميل…</div></div>
+            <button type="button" class="hacc-btn btn-block" id="mg-more" hidden>عرض المزيد</button>
         </section>
     </main>
 
@@ -332,29 +462,47 @@
         const $ = id => document.getElementById(id);
         const { esc, toast, timeAgo, ROLE_NAMES, errorText } = HubAccounts;
         const USERNAME_RE = /^[a-z0-9][a-z0-9._]{2,23}$/;
-        const VIEWS = ['signin', 'signup', 'forgot', 'me', 'manage'];
+        const NICK_RE = /^[\p{L}\p{N}][\p{L}\p{N}._-]{2,23}$/u;
+        const VIEWS = ['signin', 'signup', 'forgot', 'me', 'settings', 'manage'];
         const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
         const setMsg = (el, text, kind = '') => { el.textContent = text || ''; el.className = (el.className.split(' ')[0]) + (kind ? ' ' + kind : ''); };
-        const hospitalName = id => { const h = Hub.getHospital(id); return h ? (h.name_ar || h.hospitalName) : id; };
+        const hospitalName = id => { if (id === '*') return 'كل المستشفيات'; const h = Hub.getHospital(id); return h ? (h.name_ar || h.hospitalName) : id; };
         const localPhone = p => { const d = String(p || '').replace(/\D/g, ''); return d.length === 10 ? '0' + d : p; };
+        const initial = name => esc(String(name || '?').replace(/^د\.?\s*/, '').trim().charAt(0));
+        const SEX = { m: 'ذكر', f: 'أنثى' };
+        let me = null; // fresh profile from the server
 
+        // -------------------- Theme (lives in settings now) --------------------
+        function paintTheme() {
+            const t = Hub.getTheme();
+            document.querySelectorAll('[data-role="theme-seg"] button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.theme === t)));
+        }
+        document.querySelectorAll('[data-role="theme-seg"] button').forEach(b => b.addEventListener('click', () => { Hub.setTheme(b.dataset.theme); paintTheme(); }));
         Hub.setTheme(Hub.getTheme());
+        paintTheme();
 
         // -------------------- Routing --------------------
         function route() {
-            let view = (location.hash || '').replace('#', '').split('-')[0];
+            const hash = (location.hash || '').replace('#', '');
+            let view = hash.split('-')[0];
             const signedIn = Hub.auth.isLoggedIn();
             const approver = ['owner', 'admin'].includes(Hub.auth.getRole());
             if (!VIEWS.includes(view)) view = signedIn ? 'me' : 'signin';
             if (view === 'manage' && !approver) view = signedIn ? 'me' : 'signin';
-            if (view === 'me' && !signedIn) view = 'signin';
+            if ((view === 'me' || view === 'settings') && !signedIn) view = 'signin';
             if (view === 'signin' && Hub.auth.getAccount()) view = 'me';
             VIEWS.forEach(v => { $('view-' + v).hidden = v !== view; });
-            $('page-title').textContent = { signin: 'تسجيل الدخول', signup: 'حساب جديد', forgot: 'استعادة كلمة المرور', me: 'حسابي', manage: 'إدارة الحسابات' }[view];
+            const tabs = $('apptabs');
+            tabs.hidden = !['me', 'settings', 'manage'].includes(view);
+            $('tab-manage').hidden = !approver;
+            tabs.querySelectorAll('a').forEach(a => { if (a.dataset.view === view) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+            $('page-title').textContent = { signin: 'تسجيل الدخول', signup: 'حساب جديد', forgot: 'استعادة كلمة المرور', me: 'حسابي', settings: 'الإعدادات', manage: 'الإدارة' }[view];
             if (view === 'me') renderMe();
-            if (view === 'manage') { if (location.hash === '#manage-resets') selectTab('resets'); else loadManage(); }
+            if (view === 'settings') renderSettings(hash);
+            if (view === 'manage') { selectTab(hash === 'manage-resets' ? 'resets' : hash === 'manage-comments' ? 'comments' : mg.filter); }
             if (view === 'signup') initSignup();
-            window.scrollTo(0, 0);
+            if (approver) loadPendingCounts();
+            if (hash !== 'settings-nick') window.scrollTo(0, 0);
         }
         window.addEventListener('hashchange', route);
 
@@ -365,6 +513,16 @@
             btn.querySelector('i').className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
             btn.setAttribute('aria-label', show ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور');
         }));
+
+        async function loadMe() {
+            if (!Hub.auth.getAccount()) { me = null; return null; }
+            try {
+                const res = await Hub.api('GET', '/api/accounts/me', undefined, { retries: 1 });
+                me = res.account ? { ...res.account, thisDevice: res.device } : null;
+                if (me) Hub.auth.refreshAccount(res.account, res.role, res.adminHospitals);
+            } catch (e) { me = Hub.auth.getAccount(); }
+            return me;
+        }
 
         // -------------------- Sign in --------------------
         $('signin-form').addEventListener('submit', async e => {
@@ -377,7 +535,6 @@
             btn.disabled = false;
             if (res.success) {
                 setMsg(msg, 'تم تسجيل الدخول ✓', 'ok');
-                // saveSession reloads the page; land on the portal afterwards.
                 localStorage.setItem('pwa_last_page', './index.html');
                 setTimeout(() => { location.href = './index.html?portal=true'; }, 300);
             } else {
@@ -388,6 +545,7 @@
 
         // -------------------- Sign up --------------------
         const su = { verified: null, userFree: false, checkSeq: 0, init: false };
+        const sexValue = () => (document.querySelector('input[name="su-sex"]:checked') || {}).value || '';
 
         async function initSignup() {
             if (su.init) return;
@@ -406,7 +564,7 @@
             const s1 = !!($('su-hosp').value && $('su-name').value.trim() && $('su-phone').value.trim());
             $('st1').classList.toggle('on', s1);
             $('st2').classList.toggle('on', !!su.verified);
-            $('st3').classList.toggle('on', !!su.verified && passwordOk() && su.userFree);
+            $('st3').classList.toggle('on', !!su.verified && passwordOk() && su.userFree && !!sexValue());
         }
 
         function verifyBox(kind, html) {
@@ -448,6 +606,7 @@
         }, 550);
 
         ['su-hosp', 'su-name', 'su-phone'].forEach(id => $(id).addEventListener('input', () => { paintSteps(); runCheck(); }));
+        document.querySelectorAll('input[name="su-sex"]').forEach(r => r.addEventListener('change', () => { paintSteps(); updateSubmit(); }));
 
         const checkUsername = debounce(async () => {
             const u = $('su-user').value.trim().toLowerCase();
@@ -497,7 +656,7 @@
         $('su-pass').addEventListener('input', paintPassword);
         $('su-pass2').addEventListener('input', paintPassword);
 
-        function updateSubmit() { $('su-submit').disabled = !(su.verified && su.userFree && passwordOk()); }
+        function updateSubmit() { $('su-submit').disabled = !(su.verified && su.userFree && passwordOk() && sexValue()); }
 
         $('signup-form').addEventListener('submit', async e => {
             e.preventDefault();
@@ -508,7 +667,7 @@
             setMsg(msg, 'جاري تأمين كلمة المرور وإرسال الطلب…');
             try {
                 const key = await Hub.auth.deriveAccountKey(username, $('su-pass').value);
-                const res = await Hub.api('POST', '/api/accounts/signup', { ...su.verified, username, key }, { useToken: false, retries: 0 });
+                const res = await Hub.api('POST', '/api/accounts/signup', { ...su.verified, username, key, sex: sexValue() }, { useToken: false, retries: 0 });
                 $('signup-form').hidden = true;
                 $('su-done').hidden = false;
                 $('su-done-text').textContent = `أهلاً ${res.name}! أُرسل طلبك إلى مالك المنظومة ومدراء ${hospitalName(su.verified.hosp)}. يمكنك تسجيل الدخول باسم المستخدم «${username}» بعد الموافقة.`;
@@ -519,6 +678,7 @@
                     username_taken: 'اسم المستخدم أصبح مستخدماً، اختر اسماً آخر.',
                     already_registered: 'هذا الطبيب لديه حساب أو طلب مسبقاً.',
                     no_match: 'تعذر التحقق من الاسم ورقم الهاتف.',
+                    bad_sex: 'اختر الجنس.',
                 })[code] || errorText(err), 'bad');
                 updateSubmit();
             }
@@ -575,42 +735,172 @@
         });
 
         // -------------------- Profile --------------------
-        function renderMe() {
-            const acc = Hub.auth.getAccount();
+        async function renderMe() {
             const role = Hub.auth.getRole();
-            const approver = ['owner', 'admin'].includes(role);
-            $('legacy-card').hidden = !!acc;
-            $('me-password').hidden = !acc;
-            $('manage-link').hidden = !approver;
-            if (acc) {
-                const scope = (acc.hospitals || []).includes('*') ? 'كل المستشفيات' : (acc.hospitals || []).map(hospitalName).join('، ');
-                $('me-card').innerHTML = `<div class="profile"><span class="hacc-avatar">${esc((acc.name || '?').replace(/^د\.?\s*/, '').charAt(0))}</span>
-                    <div><div class="name">${esc(acc.name)}</div><div class="hacc-muted" dir="ltr" style="text-align:right">@${esc(acc.username)}</div></div></div>
-                    <dl class="kv">
-                        <dt>المستشفى</dt><dd>${esc(hospitalName(acc.hosp))}</dd>
-                        <dt>الهاتف</dt><dd dir="ltr" style="text-align:right">${esc(localPhone(acc.phone))}</dd>
-                        <dt>الصلاحية</dt><dd>${esc(ROLE_NAMES[acc.role] || acc.role)}${scope && acc.role !== 'user' ? ' – ' + esc(scope) : ''}</dd>
-                        <dt>عضو منذ</dt><dd>${esc(new Date(acc.created_at).toLocaleDateString('ar-IQ', { year: 'numeric', month: 'long', day: 'numeric' }))}</dd>
-                    </dl>`;
-            } else {
+            $('legacy-card').hidden = !!Hub.auth.getAccount();
+            if (!Hub.auth.getAccount()) {
                 $('me-card').innerHTML = `<h2>${esc(ROLE_NAMES[role] || 'مستخدم')}</h2><p class="lead" style="margin:0">مسجّل بكلمة المرور المشتركة.</p>`;
+                return;
             }
-            if (approver) loadPendingCounts();
+            const acc = (await loadMe()) || Hub.auth.getAccount();
+            const scope = (acc.hospitals || []).includes('*') ? 'كل المستشفيات' : (acc.hospitals || []).map(hospitalName).join('، ');
+            $('me-card').innerHTML = `<div class="profile"><span class="hacc-avatar">${initial(acc.name)}</span>
+                <div><div class="name">${esc(acc.name)}</div><div class="hacc-muted" dir="ltr" style="text-align:right">@${esc(acc.username)}</div></div></div>
+                <dl class="kv">
+                    <dt>المستشفى</dt><dd>${esc(hospitalName(acc.hosp))}</dd>
+                    <dt>الجنس</dt><dd>${esc(SEX[acc.sex] || '—')}</dd>
+                    <dt>الهاتف</dt><dd dir="ltr" style="text-align:right">${esc(localPhone(acc.phone))}</dd>
+                    <dt>الصلاحية</dt><dd>${esc(ROLE_NAMES[acc.role] || acc.role)}${scope && acc.role !== 'user' && acc.role !== 'owner' ? ' – ' + esc(scope) : ''}</dd>
+                    <dt>اللقب المجهول</dt><dd><bdi>${esc(acc.anon_tag || '—')}</bdi></dd>
+                    <dt>عضو منذ</dt><dd>${esc(new Date(acc.created_at).toLocaleDateString('ar-IQ', { year: 'numeric', month: 'long', day: 'numeric' }))}</dd>
+                </dl>`;
         }
 
-        async function loadPendingCounts() {
-            try {
-                const res = await Hub.api('GET', '/api/notifications', undefined, { retries: 0 });
-                const p = res.pending || {};
-                const total = (p.accounts || 0) + (p.resets || 0);
-                $('manage-count').textContent = total ? `(${total})` : '';
-                document.querySelectorAll('#mg-tabs [data-n]').forEach(el => {
-                    const n = p[el.dataset.n] || 0;
-                    el.textContent = n;
-                    el.hidden = !n;
-                });
-            } catch (e) {}
+        $('logout-btn').addEventListener('click', async () => {
+            if (!confirm('تسجيل الخروج من هذا الجهاز؟')) return;
+            await HubAccounts.push.disable().catch(() => {});
+            Hub.auth.logout();
+            location.href = './index.html?portal=true';
+        });
+
+        // -------------------- Settings --------------------
+        async function renderSettings(hash) {
+            paintTheme();
+            const hasAccount = !!Hub.auth.getAccount();
+            document.querySelectorAll('[data-account-only]').forEach(el => { el.hidden = !hasAccount; });
+            if (!hasAccount) return;
+            const acc = (await loadMe()) || Hub.auth.getAccount();
+            paintNick(acc);
+            paintDevices(acc);
+            paintPush();
+            if (hash === 'settings-nick') $('settings-nick').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+
+        function paintNick(acc) {
+            $('nick-current').textContent = acc.anon_tag || '—';
+            $('nick-lang').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === (acc.anon_lang || 'ar'))));
+        }
+
+        async function saveNick(body, okText) {
+            try {
+                const res = await Hub.api('POST', '/api/accounts/anon', body, { retries: 0 });
+                me = { ...(me || Hub.auth.getAccount()), anon_tag: res.anon_tag, anon_lang: res.anon_lang };
+                Hub.auth.refreshAccount({ ...Hub.auth.getAccount(), anon_tag: res.anon_tag, anon_lang: res.anon_lang }, Hub.auth.getRole(), Hub.auth.getAdminHospitalIds());
+                paintNick(me);
+                toast(okText, 'success');
+                return true;
+            } catch (err) {
+                const code = err && err.data && err.data.error;
+                toast(({ nick_taken: 'هذا اللقب مستخدم من شخص آخر.', nick_invalid: 'لقب غير صالح.', nick_reserved: 'لا يمكن استخدام هذا اللقب.' })[code] || errorText(err), 'error');
+                return false;
+            }
+        }
+
+        $('nick-lang').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+            if (b.getAttribute('aria-pressed') === 'true') return;
+            saveNick({ lang: b.dataset.lang }, 'تم تغيير لغة اللقب ✓');
+        }));
+        $('nick-random').addEventListener('click', () => saveNick({ mode: 'random' }, 'لقب جديد ✓'));
+
+        const checkNick = debounce(async () => {
+            const tag = $('nick-custom').value.trim();
+            const hint = $('nick-hint');
+            $('nick-save').disabled = true;
+            if (!tag) { hint.textContent = '٣–٢٤ حرفاً (عربي أو إنجليزي) وأرقام و - _ . بدون مسافات. يجب ألا يكون مستخدماً من شخص آخر.'; hint.style.color = ''; return; }
+            if (!NICK_RE.test(tag)) { hint.textContent = '✗ ٣–٢٤ حرفاً، يبدأ بحرف أو رقم، بدون مسافات أو رموز غير - _ .'; hint.style.color = 'var(--hacc-danger)'; return; }
+            hint.textContent = 'جاري التحقق…'; hint.style.color = '';
+            try {
+                const res = await Hub.api('GET', '/api/accounts/anon-check?tag=' + encodeURIComponent(tag), undefined, { retries: 0 });
+                if ($('nick-custom').value.trim() !== tag) return;
+                if (!res.valid) { hint.textContent = res.reason === 'reserved' ? '✗ لا يمكن استخدام هذا اللقب.' : '✗ لقب غير صالح.'; hint.style.color = 'var(--hacc-danger)'; return; }
+                if (res.mine) { hint.textContent = 'هذا لقبك الحالي.'; hint.style.color = ''; return; }
+                hint.textContent = res.free ? '✓ اللقب متاح' : '✗ هذا اللقب مستخدم من شخص آخر';
+                hint.style.color = res.free ? '#059669' : 'var(--hacc-danger)';
+                $('nick-save').disabled = !res.free;
+            } catch (err) { hint.textContent = errorText(err); hint.style.color = 'var(--hacc-danger)'; }
+        }, 400);
+        $('nick-custom').addEventListener('input', e => {
+            const v = e.target.value.replace(/\s+/g, '-');
+            if (v !== e.target.value) e.target.value = v;
+            checkNick();
+        });
+        $('nick-save').addEventListener('click', async () => {
+            $('nick-save').disabled = true;
+            if (await saveNick({ mode: 'custom', tag: $('nick-custom').value.trim() }, 'تم حفظ لقبك ✓')) $('nick-custom').value = '';
+        });
+
+        function deviceIcon(label) {
+            return /iPhone|Android|iPad/.test(label || '') ? 'fa-mobile-screen' : 'fa-laptop';
+        }
+
+        function devicesHtml(devices, { thisDevice, removable }) {
+            if (!devices || !devices.length) return '<li class="hacc-muted" style="padding:8px 0">لا توجد أجهزة مسجّلة.</li>';
+            return [...devices].sort((a, b) => (b.last || 0) - (a.last || 0)).map(d => `<li data-device="${esc(d.id)}">
+                <span class="dev-icon"><i class="fas ${deviceIcon(d.label)}"></i></span>
+                <span class="dev-main"><span class="dev-name">${esc(d.label || 'جهاز')}${d.id === thisDevice ? ' <span class="hacc-chip">هذا الجهاز</span>' : ''}</span>
+                <span class="dev-sub" style="display:block">آخر نشاط ${esc(timeAgo(d.last || d.first))} · أول دخول ${esc(new Date(d.first).toLocaleDateString('ar-IQ'))}</span></span>
+                ${removable ? '<button type="button" class="hacc-btn sm danger" data-act="remove-device">إلغاء الربط</button>' : ''}</li>`).join('');
+        }
+
+        function limitText(n) {
+            return !n ? 'غير محدود' : n === 1 ? 'جهاز واحد فقط' : `${n} أجهزة كحد أقصى`;
+        }
+
+        function paintDevices(acc) {
+            $('devices-lead').textContent = `الأجهزة المسجّل دخولها إلى حسابك. الحد المسموح: ${limitText(acc.max_devices)}.`;
+            const ul = $('my-devices');
+            ul.innerHTML = devicesHtml(acc.devices, { thisDevice: acc.thisDevice, removable: true });
+            ul.querySelectorAll('[data-act="remove-device"]').forEach(btn => btn.addEventListener('click', async () => {
+                const id = btn.closest('li').dataset.device;
+                const self = id === acc.thisDevice;
+                if (!confirm(self ? 'إلغاء ربط هذا الجهاز؟ سيتم تسجيل خروجك منه.' : 'إلغاء ربط هذا الجهاز؟ سيتم تسجيل خروجه من حسابك.')) return;
+                try {
+                    await Hub.api('POST', '/api/accounts/devices/remove', { deviceId: id }, { retries: 0 });
+                    if (self) { Hub.auth.logout(); location.href = './index.html?portal=true'; return; }
+                    acc.devices = acc.devices.filter(d => d.id !== id);
+                    paintDevices(acc);
+                    toast('تم إلغاء ربط الجهاز', 'success');
+                } catch (err) { toast(errorText(err), 'error'); }
+            }));
+        }
+
+        async function paintPush() {
+            const st = await HubAccounts.push.status();
+            const btn = $('push-toggle');
+            const sub = $('push-sub');
+            btn.disabled = false;
+            $('push-test-row').hidden = st !== 'on';
+            const texts = {
+                on: ['مفعّلة ✓ ستصلك الإشعارات حتى والتطبيق مغلق.', 'إيقاف'],
+                off: ['غير مفعّلة على هذا الجهاز.', 'تفعيل'],
+                denied: ['محظورة من إعدادات المتصفح. اسمح بالإشعارات لهذا الموقع ثم عد إلى هنا.', 'تفعيل'],
+                'needs-install': ['على الآيفون: أضف التطبيق إلى الشاشة الرئيسية (زر المشاركة ← «إضافة إلى الشاشة الرئيسية») ثم افتحه وفعّل الإشعارات من هنا.', 'تفعيل'],
+                unsupported: ['هذا المتصفح لا يدعم الإشعارات.', 'غير متاح'],
+            }[st] || ['…', '…'];
+            sub.textContent = texts[0];
+            btn.textContent = texts[1];
+            btn.className = 'hacc-btn' + (st === 'on' ? '' : ' primary');
+            btn.disabled = st === 'unsupported';
+            btn.dataset.state = st;
+        }
+        $('push-toggle').addEventListener('click', async () => {
+            const btn = $('push-toggle');
+            btn.disabled = true;
+            if (btn.dataset.state === 'on') {
+                await HubAccounts.push.disable();
+                toast('تم إيقاف الإشعارات على هذا الجهاز', 'info');
+            } else {
+                const r = await HubAccounts.push.enable();
+                toast(r.ok ? 'تم تفعيل الإشعارات ✓' : r.error, r.ok ? 'success' : 'error');
+            }
+            paintPush();
+        });
+        $('push-test').addEventListener('click', async () => {
+            try {
+                const r = await HubAccounts.push.test();
+                toast(r.sent ? 'أُرسل إشعار تجريبي ✓' : 'لم يتم الإرسال. أعد تفعيل الإشعارات.', r.sent ? 'success' : 'error');
+            } catch (err) { toast(errorText(err), 'error'); }
+        });
 
         $('pw-form').addEventListener('submit', async e => {
             e.preventDefault();
@@ -634,14 +924,34 @@
             }
         });
 
-        $('logout-btn').addEventListener('click', () => {
-            if (!confirm('تسجيل الخروج من هذا الجهاز؟')) return;
-            Hub.auth.logout();
-            location.href = './index.html?portal=true';
-        });
+        // -------------------- Management --------------------
+        const mg = { filter: 'pending', items: [], comments: [], query: '', hosp: '', more: false };
 
-        // -------------------- Manage accounts --------------------
-        const mg = { filter: 'pending', items: [], query: '' };
+        async function loadPendingCounts() {
+            try {
+                const res = await Hub.api('GET', '/api/notifications', undefined, { retries: 0 });
+                const p = res.pending || {};
+                const total = (p.accounts || 0) + (p.resets || 0);
+                $('tab-manage-n').textContent = total;
+                $('tab-manage-n').hidden = !total;
+                document.querySelectorAll('#mg-tabs [data-n]').forEach(el => {
+                    const n = p[el.dataset.n] || 0;
+                    el.textContent = n;
+                    el.hidden = !n;
+                });
+            } catch (e) {}
+        }
+
+        function fillHospitalFilter() {
+            const sel = $('mg-hosp');
+            const scope = Hub.auth.isOwner() ? ['*'] : Hub.auth.getAdminHospitalIds();
+            const hospitals = Hub.getHospitals().filter(h => scope.includes('*') || scope.includes(h.id));
+            const current = sel.value;
+            sel.innerHTML = (hospitals.length > 1 ? '<option value="">كل المستشفيات</option>' : '') +
+                hospitals.map(h => `<option value="${esc(h.id)}">${esc(h.name_ar || h.hospitalName || h.id)}</option>`).join('');
+            if ([...sel.options].some(o => o.value === current)) sel.value = current;
+            mg.hosp = sel.value;
+        }
 
         function selectTab(filter) {
             mg.filter = filter;
@@ -650,11 +960,15 @@
         }
         document.querySelectorAll('#mg-tabs [data-filter]').forEach(b => b.addEventListener('click', () => selectTab(b.dataset.filter)));
         $('mg-search').addEventListener('input', debounce(e => { mg.query = e.target.value.trim().toLowerCase(); renderManage(); }, 150));
+        $('mg-hosp').addEventListener('change', e => { mg.hosp = e.target.value; mg.filter === 'comments' ? loadManage() : renderManage(); });
+        $('mg-more').addEventListener('click', () => loadComments(true));
 
         async function loadManage() {
             $('mg-list').innerHTML = '<div class="hacc-empty">جاري التحميل…</div>';
-            loadPendingCounts();
+            $('mg-more').hidden = true;
             await Hub.loadDatabase().catch(() => {});
+            fillHospitalFilter();
+            if (mg.filter === 'comments') return loadComments(false);
             try {
                 const res = await Hub.api('GET', '/api/accounts?filter=' + mg.filter, undefined, { retries: 1 });
                 mg.items = res.accounts || [];
@@ -665,17 +979,19 @@
         }
 
         function renderManage() {
+            if (mg.filter === 'comments') return renderComments();
             const isOwner = Hub.auth.isOwner();
-            const me = Hub.auth.getAccount();
+            const myId = (Hub.auth.getAccount() || {}).id;
             const q = mg.query;
-            const items = mg.items.filter(a => !q || [a.name, a.username, a.phone, localPhone(a.phone)].some(v => String(v || '').toLowerCase().includes(q)));
+            const items = mg.items.filter(a => (!mg.hosp || a.hosp === mg.hosp)
+                && (!q || [a.name, a.username, a.phone, localPhone(a.phone), a.anon_tag].some(v => String(v || '').toLowerCase().includes(q))));
             if (!items.length) {
                 $('mg-list').innerHTML = `<div class="hacc-empty">${{ pending: 'لا توجد طلبات حسابات جديدة 🎉', resets: 'لا توجد طلبات كلمات مرور', active: 'لا توجد حسابات', all: 'لا توجد حسابات' }[mg.filter]}</div>`;
                 return;
             }
             const hospitals = Hub.getHospitals();
             $('mg-list').innerHTML = items.map(a => {
-                const canManage = isOwner || (a.role === 'user' && (!me || a.id !== me.id));
+                const canManage = isOwner || (a.role === 'user' && a.id !== myId);
                 const statusText = { pending: 'بانتظار الموافقة', active: 'مفعّل', disabled: 'موقوف', rejected: 'مرفوض' }[a.status] || a.status;
                 const actions = [];
                 if (canManage) {
@@ -683,52 +999,88 @@
                     if (a.reset === 'requested') actions.push('<button class="hacc-btn good" data-act="approve_reset">🔓 السماح بتغيير كلمة المرور</button>', '<button class="hacc-btn" data-act="deny_reset">تجاهل الطلب</button>');
                     if (a.status === 'active' && mg.filter !== 'resets') actions.push('<button class="hacc-btn danger" data-act="disable">إيقاف الحساب</button>');
                     if (a.status === 'disabled') actions.push('<button class="hacc-btn" data-act="enable">إعادة التفعيل</button>');
-                    if (isOwner && a.status !== 'pending') actions.push('<button class="hacc-btn danger" data-act="delete">حذف نهائي</button>');
                 }
                 const scope = a.hospitals || [];
-                const roleEdit = isOwner && a.status !== 'rejected' ? `<details class="role-edit-wrap"><summary class="hacc-link">⚙️ الصلاحيات</summary><div class="role-edit">
-                    <select data-role="role">${['user', 'anaesthesia', 'admin', 'owner'].map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
-                    <div class="hosp-pick" data-role="hosps">
-                        <label><input type="checkbox" value="*" ${scope.includes('*') ? 'checked' : ''}><span>كل المستشفيات</span></label>
-                        ${hospitals.map(h => `<label><input type="checkbox" value="${esc(h.id)}" ${scope.includes(h.id) ? 'checked' : ''}><span>${esc(h.name_ar || h.hospitalName || h.id)}</span></label>`).join('')}
-                    </div>
-                    <button class="hacc-btn primary sm" data-act="set_role">حفظ الصلاحيات</button></div></details>` : '';
+                const limit = a.max_devices || 0;
+                const limitMode = limit === 0 ? '0' : limit === 1 ? '1' : 'n';
+                const editor = canManage && a.status !== 'rejected' ? `<details class="edit-wrap"><summary class="hacc-link">⚙️ الصلاحيات والأجهزة</summary><div class="editor">
+                    ${isOwner ? `<div><h4>الصلاحية</h4>
+                        <select data-role="role" style="margin-top:6px">${['user', 'anaesthesia', 'admin', 'owner'].map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
+                        <div class="hosp-pick" data-role="hosps" style="margin-top:8px" ${['admin', 'anaesthesia'].includes(a.role) ? '' : 'hidden'}>
+                            <label><input type="checkbox" value="*" ${scope.includes('*') ? 'checked' : ''}><span>كل المستشفيات</span></label>
+                            ${hospitals.map(h => `<label><input type="checkbox" value="${esc(h.id)}" ${scope.includes(h.id) || (!scope.length && h.id === a.hosp) ? 'checked' : ''}><span>${esc(h.name_ar || h.hospitalName || h.id)}</span></label>`).join('')}
+                        </div>
+                        <button class="hacc-btn primary sm" data-act="set_role" style="margin-top:8px">حفظ الصلاحية</button></div>` : ''}
+                    <div><h4>الأجهزة المسموح بها</h4>
+                        <div class="limit-row" style="margin-top:6px">
+                            <select data-role="limit-mode">
+                                <option value="0" ${limitMode === '0' ? 'selected' : ''}>غير محدود</option>
+                                <option value="1" ${limitMode === '1' ? 'selected' : ''}>جهاز واحد فقط</option>
+                                <option value="n" ${limitMode === 'n' ? 'selected' : ''}>عدد محدد…</option>
+                            </select>
+                            <input type="number" min="2" max="20" data-role="limit-n" value="${limit > 1 ? limit : 2}" ${limitMode === 'n' ? '' : 'hidden'} aria-label="عدد الأجهزة" />
+                            <button class="hacc-btn primary sm" data-act="set_devices">حفظ</button>
+                        </div></div>
+                    <div><h4>الأجهزة المرتبطة (${(a.devices || []).length})</h4>
+                        <ul class="devices">${devicesHtml(a.devices, { removable: true })}</ul>
+                        ${(a.devices || []).length ? '<button class="hacc-btn sm danger" data-act="reset_devices">إلغاء ربط كل الأجهزة</button>' : ''}</div>
+                    ${isOwner && a.status !== 'pending' && a.id !== myId ? '<div><button class="hacc-btn sm danger" data-act="delete">حذف الحساب نهائياً</button></div>' : ''}
+                    </div></details>` : '';
                 return `<article class="acc" data-id="${esc(a.id)}">
-                    <div class="acc-head"><span class="hacc-avatar">${esc((a.name || '?').replace(/^د\.?\s*/, '').charAt(0))}</span>
+                    <div class="acc-head"><span class="hacc-avatar">${initial(a.name)}</span>
                     <div style="min-width:0;flex:1"><div class="acc-name">${esc(a.name)}
-                        <span class="badge ${esc(a.status)}">${esc(statusText)}</span>${a.role !== 'user' ? `<span class="badge role">${esc(ROLE_NAMES[a.role] || a.role)}</span>` : ''}${a.reset === 'requested' ? '<span class="badge pending">طلب كلمة مرور</span>' : ''}</div>
-                    <div class="acc-sub"><span dir="ltr">@${esc(a.username)}</span> · ${esc(hospitalName(a.hosp))} · <a href="tel:${esc(localPhone(a.phone))}" dir="ltr">${esc(localPhone(a.phone))}</a></div>
+                        <span class="badge ${esc(a.status)}">${esc(statusText)}</span>${a.role !== 'user' ? `<span class="badge role">${esc(ROLE_NAMES[a.role] || a.role)}</span>` : ''}${a.reset === 'requested' ? '<span class="badge pending">طلب كلمة مرور</span>' : ''}${a.max_devices ? `<span class="badge role">🔒 ${esc(limitText(a.max_devices))}</span>` : ''}</div>
+                    <div class="acc-sub"><span dir="ltr">@${esc(a.username)}</span> · ${esc(SEX[a.sex] || '')} · ${esc(hospitalName(a.hosp))} · <a href="tel:${esc(localPhone(a.phone))}" dir="ltr">${esc(localPhone(a.phone))}</a></div>
                     <div class="acc-sub">${a.status === 'pending' ? 'طلب ' : 'أُنشئ '}${esc(timeAgo(a.created_at))}${a.decided_by ? ' · بواسطة ' + esc(String(a.decided_by).replace(/^\w+:/, '')) : ''}${a.last_seen ? ' · آخر ظهور ' + esc(timeAgo(a.last_seen)) : ''}</div></div></div>
-                    ${actions.length ? `<div class="acc-actions">${actions.join('')}</div>` : ''}${roleEdit}</article>`;
+                    ${actions.length ? `<div class="acc-actions">${actions.join('')}</div>` : ''}${editor}</article>`;
             }).join('');
 
             $('mg-list').querySelectorAll('[data-act]').forEach(btn => btn.addEventListener('click', () => act(btn)));
+            $('mg-list').querySelectorAll('[data-role="limit-mode"]').forEach(sel => sel.addEventListener('change', () => {
+                sel.parentElement.querySelector('[data-role="limit-n"]').hidden = sel.value !== 'n';
+            }));
+            $('mg-list').querySelectorAll('[data-role="role"]').forEach(sel => sel.addEventListener('change', () => {
+                sel.parentElement.querySelector('[data-role="hosps"]').hidden = !['admin', 'anaesthesia'].includes(sel.value);
+            }));
         }
 
         async function act(btn) {
             const card = btn.closest('.acc');
             const id = card.dataset.id;
-            const action = btn.dataset.act;
+            const action = btn.dataset.act.replace('-', '_');
             const a = mg.items.find(x => x.id === id);
-            const confirmText = {
-                reject: `رفض طلب ${a.name}؟`,
-                disable: `إيقاف حساب ${a.name}؟ سيتم تسجيل خروجه من كل الأجهزة.`,
-                delete: `حذف حساب ${a.name} نهائياً مع إعجاباته وتعليقاته؟`,
-            }[action];
-            if (confirmText && !confirm(confirmText)) return;
             const body = { id, action };
             if (action === 'set_role') {
                 body.role = card.querySelector('[data-role="role"]').value;
                 body.hospitals = [...card.querySelectorAll('[data-role="hosps"] input:checked')].map(i => i.value);
+                if (['admin', 'anaesthesia'].includes(body.role) && !body.hospitals.length) { toast('اختر مستشفى واحداً على الأقل.', 'error'); return; }
             }
+            if (action === 'set_devices') {
+                const mode = card.querySelector('[data-role="limit-mode"]').value;
+                body.maxDevices = mode === 'n' ? Math.max(2, Math.min(20, Number(card.querySelector('[data-role="limit-n"]').value) || 2)) : Number(mode);
+            }
+            if (action === 'remove_device') {
+                body.deviceId = btn.closest('li').dataset.device;
+            }
+            const confirmText = {
+                reject: `رفض طلب ${a.name}؟`,
+                disable: `إيقاف حساب ${a.name}؟ سيتم تسجيل خروجه من كل الأجهزة.`,
+                delete: `حذف حساب ${a.name} نهائياً مع إعجاباته وتعليقاته؟`,
+                remove_device: 'إلغاء ربط هذا الجهاز؟ سيتم تسجيل خروجه فوراً.',
+                reset_devices: `إلغاء ربط كل أجهزة ${a.name}؟ سيتم تسجيل خروجه منها.`,
+                set_role: body.role !== a.role ? `تغيير صلاحية ${a.name} إلى «${ROLE_NAMES[body.role]}»؟` : null,
+            }[action];
+            if (confirmText && !confirm(confirmText)) return;
             btn.disabled = true;
             try {
                 const res = await Hub.api('POST', '/api/accounts/decide', body, { retries: 0 });
-                toast({ approve: 'تمت الموافقة ✓', reject: 'تم رفض الطلب', disable: 'تم إيقاف الحساب', enable: 'تم تفعيل الحساب', approve_reset: 'تم السماح بتغيير كلمة المرور ✓', deny_reset: 'تم تجاهل الطلب', set_role: 'تم حفظ الصلاحيات ✓', delete: 'تم حذف الحساب' }[action] || 'تم', 'success');
+                toast({ approve: 'تمت الموافقة ✓', reject: 'تم رفض الطلب', disable: 'تم إيقاف الحساب', enable: 'تم تفعيل الحساب', approve_reset: 'تم السماح بتغيير كلمة المرور ✓', deny_reset: 'تم تجاهل الطلب', set_role: 'تم حفظ الصلاحية ✓', set_devices: 'تم حفظ حد الأجهزة ✓', remove_device: 'تم إلغاء ربط الجهاز', reset_devices: 'تم إلغاء ربط كل الأجهزة', delete: 'تم حذف الحساب' }[action] || 'تم', 'success');
                 if (res.account) Object.assign(a, res.account);
                 const stillListed = action !== 'delete' && ({ pending: a.status === 'pending', resets: a.reset === 'requested', active: a.status === 'active', all: true })[mg.filter];
+                const openEditor = !!card.querySelector('details.edit-wrap[open]');
                 if (!stillListed) mg.items = mg.items.filter(x => x.id !== id);
                 renderManage();
+                if (openEditor) { const again = document.querySelector(`.acc[data-id="${CSS.escape(id)}"] details.edit-wrap`); if (again) again.open = true; }
                 loadPendingCounts();
                 HubAccounts.pollNotifications();
             } catch (err) {
@@ -737,6 +1089,46 @@
             }
         }
 
+        // Comments moderation: owner every hospital, admins their own.
+        async function loadComments(more) {
+            const before = more && mg.comments.length ? mg.comments[mg.comments.length - 1].cid : '';
+            try {
+                const q = new URLSearchParams();
+                if (mg.hosp) q.set('hosp', mg.hosp);
+                if (before) q.set('before', before);
+                const res = await Hub.api('GET', '/api/social/recent?' + q, undefined, { retries: 1 });
+                mg.comments = more ? mg.comments.concat(res.comments) : res.comments;
+                mg.more = res.comments.length === 50;
+                renderComments();
+            } catch (err) {
+                $('mg-list').innerHTML = `<div class="hacc-empty">${esc(errorText(err))}</div>`;
+            }
+        }
+
+        function renderComments() {
+            const q = mg.query;
+            const items = mg.comments.filter(c => !q || [c.author, c.realName, c.body].some(v => String(v || '').toLowerCase().includes(q)));
+            $('mg-more').hidden = !mg.more;
+            if (!items.length) { $('mg-list').innerHTML = '<div class="hacc-empty">لا توجد تعليقات</div>'; return; }
+            $('mg-list').innerHTML = items.map(c => `<article class="mod-item" data-cid="${c.cid}">
+                <div class="mod-head"><span class="mod-author">${c.anon ? '🕶️ ' : ''}<bdi>${esc(c.author)}</bdi>${c.realName ? ` <span class="hacc-reveal" title="ظاهر للمالك فقط">(${esc(c.realName)})</span>` : ''}</span>
+                <button class="hacc-btn sm danger" data-act="del-comment">حذف</button></div>
+                <div class="mod-meta">${esc(hospitalName(c.hosp))} · بطاقة ${esc(c.cardKey)} · ${esc(c.date)} · ${esc(timeAgo(c.ts))}</div>
+                <div class="mod-body">${esc(c.body)}</div></article>`).join('');
+            $('mg-list').querySelectorAll('[data-act="del-comment"]').forEach(btn => btn.addEventListener('click', async () => {
+                const cid = Number(btn.closest('.mod-item').dataset.cid);
+                if (!confirm('حذف هذا التعليق؟')) return;
+                btn.disabled = true;
+                try {
+                    await Hub.api('POST', '/api/social/comment/delete', { cid }, { retries: 0 });
+                    mg.comments = mg.comments.filter(c => c.cid !== cid);
+                    renderComments();
+                    toast('تم حذف التعليق', 'success');
+                } catch (err) { btn.disabled = false; toast(errorText(err), 'error'); }
+            }));
+        }
+
+        window.addEventListener('hub:auth-changed', () => { if (!$('view-me').hidden) renderMe(); });
         route();
     })();
     </script>

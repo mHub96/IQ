@@ -139,6 +139,7 @@ cd worker && npx wrangler deploy                                       # API
 npx wrangler d1 execute hosp-hub --remote --file migrations/0002_accounts.sql   # once (additive)
 npx wrangler d1 execute hosp-hub --remote --file migrations/0003_profiles.sql   # once (additive)
 npx wrangler d1 execute hosp-hub --remote --file migrations/0004_avatars.sql    # once (additive)
+npx wrangler d1 execute hosp-hub --remote --file migrations/0005_visit_cooldown.sql  # once (additive)
 ```
 
 Apply a new migration **before** deploying Worker code that uses it, and check it succeeded. If `--file`
@@ -147,6 +148,16 @@ fails with an authentication error (code 10000), run the statements with `--comm
 `.github/workflows/deploy.yml` does the first two (and the Worker when `worker/` changed) on every push to
 `main` once the repository has the secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
 After editing pages: `cd tools && npm install && npm run css` rebuilds `tailwind.css`.
+
+## Mobile design and contact visits
+
+- `hub-ios.css` (loaded last on every page) gives phones an iOS look: system font, translucent navigation bar
+  with the page title, full-width blurred tab bar, pop-ups as bottom sheets (swipe down to close, in
+  `hub-accounts.js`), tactile buttons, 16px inputs (no zoom on focus) and cross-page View Transitions.
+- Contact visits (Call / WhatsApp / eye badge) count once per person per resident per minute, enforced by the
+  API (`visit_cooldown`, migration 0005): the person is the account, else the device, else the connection.
+- The portal opens on the user's own hospital(s) (account hospital + administered ones); "all" is one tap away
+  and remembered.
 
 ## Everyday operations
 

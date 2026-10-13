@@ -89,6 +89,8 @@
                         <span class="brand-text">بوابة المستشفيات</span>
                     </a>
                 </div>
+                <!-- Page title (shown in the middle of the bar on phones, iOS style) -->
+                <span class="hub-nav-title">${({ roster: 'الخفراء الآن', schedule: 'جدول الخفارات', icu: 'موقف العناية', specialists: 'أطباء الاختصاص', residents: 'دليل المقيمين', signup: 'تبديل الخفارات', scheduler: 'المجدول', admin: 'لوحة الإدارة' })[activePageId] || 'بوابة المستشفيات'}</span>
 
                 <!-- Center: Universal Webpage Links -->
                 <div class="hub-nav-center">

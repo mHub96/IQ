@@ -1,0 +1,182 @@
+/*
+ * iOS design layer, loaded last on every page. Phones first: system font, translucent bars,
+ * a full-width tab bar, bottom-sheet pop-ups, tactile buttons, smooth page transitions.
+ * Larger screens keep the original layouts (only the shared refinements apply).
+ */
+
+:root {
+  --ios-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Arabic", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --ios-bar: rgba(249, 249, 251, 0.82);
+  --ios-sep: rgba(60, 60, 67, 0.18);
+  --ios-label2: rgba(60, 60, 67, 0.62);
+  --ios-tint: #0F766E;
+  --ios-fill: rgba(118, 118, 128, 0.12);
+  --ios-spring: cubic-bezier(0.32, 0.72, 0, 1);
+  --ios-tabbar: 50px;
+}
+html.dark, body.dark {
+  --ios-bar: rgba(22, 22, 24, 0.8);
+  --ios-sep: rgba(84, 84, 88, 0.6);
+  --ios-label2: rgba(235, 235, 245, 0.6);
+  --ios-tint: #D4AF37;
+  --ios-fill: rgba(118, 118, 128, 0.24);
+}
+
+html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+body { font-family: var(--ios-font); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+a, button, [role="button"], label, summary { touch-action: manipulation; }
+::selection { background: color-mix(in srgb, var(--ios-tint) 25%, transparent); }
+
+/* ---------- Page transitions (cross-document View Transitions; ignored where unsupported) ---------- */
+@view-transition { navigation: auto; }
+::view-transition-old(root) { animation: ios-page-out 0.22s var(--ios-spring) both; }
+::view-transition-new(root) { animation: ios-page-in 0.34s var(--ios-spring) both; }
+@keyframes ios-page-out { to { opacity: 0; transform: translateX(6%); } }
+@keyframes ios-page-in { from { opacity: 0; transform: translateX(-8%); } }
+.hub-nav-bar, .ios-top-bar { view-transition-name: ios-navbar; }
+.hub-mobile-bottom-dock, .ios-bottom-dock { view-transition-name: ios-tabbar; }
+::view-transition-group(ios-navbar), ::view-transition-group(ios-tabbar) { animation: none; }
+
+/* ---------- Tactile feedback ---------- */
+.ios-btn, .hacc-btn, .hacc-act, .action-btn-sm, .dock-tab-btn, .hub-nav-btn, .hacc-nav-btn, .ios-icon-btn,
+.ios-segment-btn, .filter-tab, .top-action-btn, .owner-chip-btn, .hp-admin-tile {
+  transition: transform 0.18s var(--ios-spring), opacity 0.18s ease, background-color 0.2s ease, color 0.2s ease;
+}
+.ios-btn:active, .hacc-btn:active, .action-btn-sm:active, .ios-segment-btn:active, .filter-tab:active,
+.top-action-btn:active, .owner-chip-btn:active, .hp-admin-tile:active { transform: scale(0.97); opacity: 0.85; }
+.dock-tab-btn:active, .hub-nav-btn:active, .hacc-nav-btn:active, .ios-icon-btn:active { transform: scale(0.9); }
+
+/* ---------- Install button: a small pill above the tab bar, never over it ---------- */
+#pwa-install-button {
+  right: 12px !important;
+  left: auto !important;
+  bottom: calc(var(--ios-tabbar) + env(safe-area-inset-bottom, 0px) + 12px) !important;
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+  border-radius: 999px !important;
+  z-index: 9990 !important;
+  background: var(--ios-tint) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
+}
+
+@media (max-width: 768px) {
+  /* ---------- Navigation bar: translucent, hairline, title in the middle ---------- */
+  .hub-nav-bar {
+    min-height: calc(48px + env(safe-area-inset-top, 0px));
+    padding: env(safe-area-inset-top, 0px) 10px 0 !important;
+    background: var(--ios-bar) !important;
+    -webkit-backdrop-filter: saturate(180%) blur(20px) !important;
+    backdrop-filter: saturate(180%) blur(20px) !important;
+    border-bottom: 0.5px solid var(--ios-sep) !important;
+    box-shadow: none !important;
+    position: sticky;
+  }
+  .hub-nav-bar .hub-nav-center, .hub-mobile-toggle, .hub-btn-logout, .hub-nav-bar .role-badge { display: none !important; }
+  .hub-nav-brand .brand-text { display: none !important; }
+  .hub-nav-brand .brand-icon { width: 32px; height: 32px; border-radius: 9px; }
+  .hub-nav-title {
+    position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+    height: 48px; display: flex; align-items: center;
+    max-width: 52%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font: 600 17px/1 var(--ios-font); letter-spacing: -0.01em;
+    pointer-events: none;
+  }
+  body.light .hub-nav-title { color: #0F172A; }
+  body.dark .hub-nav-title { color: #F8FAFC; }
+  .hub-nav-right { gap: 6px !important; }
+
+  /* Portal top bar (index.html) */
+  .ios-top-bar {
+    background: var(--ios-bar) !important;
+    -webkit-backdrop-filter: saturate(180%) blur(20px) !important;
+    backdrop-filter: saturate(180%) blur(20px) !important;
+    border-bottom: 0.5px solid var(--ios-sep) !important;
+    box-shadow: none !important;
+  }
+  .ios-top-bar #top-logout-btn { display: none !important; }
+
+  /* ---------- Tab bar: full width, blurred, above the home indicator ---------- */
+  .hub-mobile-bottom-dock, .ios-bottom-dock {
+    left: 0 !important; right: 0 !important; bottom: 0 !important;
+    transform: none !important;
+    width: 100% !important; max-width: none !important;
+    height: calc(var(--ios-tabbar) + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 2px 4px env(safe-area-inset-bottom, 0px) !important;
+    border-radius: 0 !important;
+    border: 0 !important;
+    border-top: 0.5px solid var(--ios-sep) !important;
+    background: var(--ios-bar) !important;
+    -webkit-backdrop-filter: saturate(180%) blur(20px) !important;
+    backdrop-filter: saturate(180%) blur(20px) !important;
+    box-shadow: none !important;
+    align-items: flex-start !important;
+  }
+  .hub-mobile-bottom-dock .dock-tab-btn, .ios-bottom-dock .dock-tab-btn {
+    height: var(--ios-tabbar);
+    gap: 3px !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    font: 500 10px/1.1 var(--ios-font) !important;
+    color: var(--ios-label2) !important;
+  }
+  .hub-mobile-bottom-dock .dock-tab-btn i, .ios-bottom-dock .dock-tab-btn i { font-size: 21px !important; }
+  .hub-mobile-bottom-dock .dock-tab-btn.active, .ios-bottom-dock .dock-tab-btn.active,
+  .hub-mobile-bottom-dock .dock-tab-btn:hover, .ios-bottom-dock .dock-tab-btn:hover { color: var(--ios-tint) !important; background: transparent !important; }
+
+  /* ---------- Inputs: 16px so iOS does not zoom in on focus ---------- */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not(td *):not(th *),
+  select:not(td *):not(th *), textarea:not(td *):not(th *) { font-size: 16px !important; }
+
+  /* ---------- Cards: iOS grouped style (gentler radius and shadow) ---------- */
+  .glass-card, .modal-card, .hub-modal-card { border-radius: 18px; }
+  .glass-card { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.05); }
+  body.dark .glass-card { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); }
+
+  /* ---------- Pop-ups become bottom sheets ---------- */
+  .modal-overlay, .hub-modal-overlay {
+    align-items: flex-end !important;
+    justify-content: center !important;
+    padding: calc(10px + env(safe-area-inset-top, 0px)) 0 0 !important;
+  }
+  .modal-overlay > .modal-card, .modal-overlay > .hub-modal-card,
+  .hub-modal-overlay > .modal-card, .hub-modal-overlay > .hub-modal-card {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border-radius: 14px 14px 0 0 !important;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px)) !important;
+    max-height: calc(100dvh - 10px - env(safe-area-inset-top, 0px)) !important;
+    animation: ios-sheet-up 0.42s var(--ios-spring) both;
+  }
+  /* Pages that open pop-ups by adding .active (the card stays in the DOM): replay the slide-up. */
+  .modal-overlay.active > .modal-card, .modal-overlay.active > .hub-modal-card,
+  .hub-modal-overlay.active > .modal-card, .hub-modal-overlay.active > .hub-modal-card { animation-name: ios-sheet-up-again; }
+  .modal-overlay > .modal-card::before, .modal-overlay > .hub-modal-card::before,
+  .hub-modal-overlay > .modal-card::before, .hub-modal-overlay > .hub-modal-card::before {
+    content: ''; display: block; flex: none;
+    width: 36px; height: 5px; border-radius: 3px;
+    margin: -6px auto 10px;
+    background: var(--ios-sep);
+  }
+  /* The leaderboard's pinned title sits under the grabber. */
+  #trending-modal .modal-card > div:first-child { border-radius: 0 !important; margin-top: 0 !important; top: -1.25rem; }
+
+  /* Our own sheets (comments, notifications, account panel) match. */
+  .hacc-sheet { border-radius: 14px 14px 0 0; }
+}
+
+@keyframes ios-sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes ios-sheet-up-again { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+/* ---------- Toasts as iOS banners ---------- */
+.hacc-toast {
+  border-radius: 16px;
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+  .modal-overlay > *, .hub-modal-overlay > * { animation: none !important; }
+  * { scroll-behavior: auto !important; }
+}

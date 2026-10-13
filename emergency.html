@@ -241,6 +241,19 @@
     </style>
     <link rel="stylesheet" href="./hub-accounts.css" />
     <link rel="stylesheet" href="./tailwind.css" />
+    <style>
+        /* Phones: the tool buttons become a swipeable strip; section headers wrap. */
+        @media (max-width: 640px) {
+            .er-header-row { height: auto; min-height: 4rem; flex-wrap: wrap; padding-top: 6px; padding-bottom: 6px; }
+            .er-toolbar { order: 3; width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; }
+            .er-toolbar::-webkit-scrollbar { display: none; }
+            .er-toolbar > * { flex: none; scroll-snap-align: start; }
+            .flex.items-center.justify-between.flex-wrap > .flex.items-center.gap-2 { flex-wrap: wrap; }
+            div:has(> div > #meta-rs-start) { flex-wrap: wrap; }
+            #meta-rs-start, #meta-rs-end { min-width: 0; max-width: 100%; }
+        }
+    </style>
+    <link rel="stylesheet" href="./hub-ios.css" />
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-full transition-colors duration-200 er-locked">
 
@@ -335,7 +348,7 @@
 
     <!-- Top Navigation Header -->
     <header class="sticky top-0 z-40 glass-panel border-b border-slate-200/80 dark:border-slate-800 shadow-xs no-print">
-        <div class="w-full max-w-[1720px] mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+        <div class="w-full max-w-[1720px] mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 er-header-row">
             
             <!-- Left Branding & Back Navigation -->
             <div class="flex items-center gap-3">
@@ -363,7 +376,7 @@
             </div>
 
             <!-- Top Actions -->
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 er-toolbar">
                 <!-- Full Emergency Backup Button -->
                 <button type="button" onclick="backupResidentsDatabase()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition shadow-xs" title="حفظ وتنزيل نسخة احتياطية شاملة لكافة بيانات وجداول وإعدادات الطوارئ (JSON)">
                     <i class="fas fa-download text-emerald-600 dark:text-emerald-400"></i>

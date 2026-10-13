@@ -151,6 +151,43 @@
 
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
 
+    // Every page's pop-ups are bottom sheets on phones (hub-ios.css): swipe one down from its top
+    // edge to close it, like iOS. Closing = a tap on the backdrop, which every page already handles.
+    (function sheetSwipe() {
+        const SHEET = '.modal-overlay > .modal-card, .modal-overlay > .hub-modal-card, .hub-modal-overlay > .modal-card, .hub-modal-overlay > .hub-modal-card';
+        let card = null, startY = 0, dy = 0;
+        document.addEventListener('touchstart', e => {
+            if (window.innerWidth > 768) return;
+            const c = e.target.closest && e.target.closest(SHEET);
+            if (!c || c.scrollTop > 0) return;
+            const top = c.getBoundingClientRect().top;
+            if (e.touches[0].clientY - top > 56) return; // only from the grabber / title area
+            card = c; startY = e.touches[0].clientY; dy = 0;
+            card.style.transition = 'none';
+        }, { passive: true });
+        document.addEventListener('touchmove', e => {
+            if (!card) return;
+            dy = Math.max(0, e.touches[0].clientY - startY);
+            card.style.transform = `translateY(${dy}px)`;
+        }, { passive: true });
+        document.addEventListener('touchend', () => {
+            if (!card) return;
+            const c = card; card = null;
+            c.style.transition = 'transform .28s cubic-bezier(.32,.72,0,1)';
+            if (dy > 90) {
+                c.style.transform = 'translateY(100%)';
+                setTimeout(() => {
+                    const overlay = c.parentElement;
+                    overlay.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+                    c.style.transform = ''; c.style.transition = '';
+                }, 220);
+            } else {
+                c.style.transform = '';
+                setTimeout(() => { c.style.transition = ''; }, 300);
+            }
+        });
+    })();
+
     // ------------------------------------------------------------------
     // Notifications
     // ------------------------------------------------------------------

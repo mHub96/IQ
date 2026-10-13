@@ -183,7 +183,7 @@
 </head>
 <body class="light">
     <header class="top">
-        <a class="back" href="./index.html?portal=true"><i class="fas fa-arrow-right"></i> البوابة</a>
+        <a class="back" href="./index.html?portal=true" onclick="event.preventDefault(); HubAccounts.goBack(this.href)"><i class="fas fa-arrow-right"></i> رجوع</a>
         <h1 id="page-title">حسابي</h1>
         <span data-hacc-slot></span>
     </header>
@@ -376,6 +376,7 @@
 
     <script src="./hub-sync.js"></script>
     <script src="./hub-core.js"></script>
+    <script src="./hub-avatar.js"></script>
     <script src="./hub-accounts.js"></script>
     <script>
     (() => {
@@ -672,7 +673,7 @@
         function renderMe(which) {
             const acc = Hub.auth.getAccount();
             $('me-card').innerHTML = acc
-                ? `<div class="profile"><span class="hacc-avatar">${initial(acc.name)}</span>
+                ? `<div class="profile">${HubAccounts.avatarHtml(acc, 56)}
                     <div><div class="name">${esc(acc.name)}</div><div class="hacc-muted" dir="ltr" style="text-align:right">@${esc(acc.username)}</div></div></div>`
                 : `<h2>${esc(ROLE_NAMES[Hub.auth.getRole()] || 'مستخدم')}</h2><p class="lead" style="margin:0">مسجّل بكلمة المرور المشتركة. <a href="#signup">أنشئ حساباً شخصياً</a>.</p>`;
             HubAccounts.openPanel(which);
@@ -844,7 +845,7 @@
                     ${isOwner && a.status !== 'pending' && a.id !== myId ? '<div><button class="hacc-btn sm danger" data-act="delete">حذف الحساب نهائياً</button></div>' : ''}
                     </div></details>` : '';
                 return `<article class="acc" data-id="${esc(a.id)}">
-                    <div class="acc-head"><span class="hacc-avatar">${initial(a.name)}</span>
+                    <div class="acc-head">${HubAccounts.avatarHtml(a, 42)}
                     <div style="min-width:0;flex:1"><div class="acc-name">${esc(a.name)}
                         <span class="badge ${esc(a.status)}">${esc(statusText)}</span>${a.role !== 'user' ? `<span class="badge role">${esc(ROLE_NAMES[a.role] || a.role)}</span>` : ''}${a.reset === 'requested' ? '<span class="badge pending">طلب كلمة مرور</span>' : ''}${a.max_devices ? `<span class="badge role">🔒 ${esc(limitText(a.max_devices))}</span>` : ''}</div>
                     <div class="acc-sub"><span dir="ltr">@${esc(a.username)}</span> · ${esc(SEX[a.sex] || '')} · ${esc(hospitalName(a.hosp))} · <a href="tel:${esc(localPhone(a.phone))}" dir="ltr">${esc(localPhone(a.phone))}</a></div>

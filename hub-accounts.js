@@ -59,6 +59,16 @@
         setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, 3200);
     }
 
+    /** Round cartoon avatar of a person ({ avatar, sex, name }); initials if hub-avatar.js is missing. */
+    function avatarHtml(person, size = 36, extraClass = '') {
+        const p = person || {};
+        if (window.HubAvatar) {
+            const cfg = window.HubAvatar.forAccount({ avatar: p.avatar, sex: p.sex, name: p.name || p.author || p.username });
+            return `<span class="hav-wrap ${extraClass}" style="width:${size}px;height:${size}px">${window.HubAvatar.svg(cfg, size, p.sex)}</span>`;
+        }
+        return `<span class="hacc-avatar ${extraClass}">${esc(String(p.name || p.author || '?').replace(/^د\.?\s*/, '').charAt(0))}</span>`;
+    }
+
     const signedIn = () => Hub.auth.isLoggedIn();
     const account = () => Hub.auth.getAccount();
     const isApprover = () => ['owner', 'admin'].includes(Hub.auth.getRole());
@@ -79,8 +89,20 @@
     // ------------------------------------------------------------------
     let openSheetEl = null;
 
+    // Each open sheet adds one history entry, so the phone's back button / gesture closes it.
+    let sheetHistory = false;
+    let ignorePop = false;
+    window.addEventListener('popstate', () => {
+        if (ignorePop) { ignorePop = false; return; }
+        if (openSheetEl) { sheetHistory = false; closeSheet(true); }
+    });
+
     function openSheet(html, { label = '', onClose, tall = false } = {}) {
-        closeSheet();
+        const replacing = !!openSheetEl;
+        closeSheet(true);
+        if (!replacing && !sheetHistory) {
+            try { history.pushState({ haccSheet: true }, ''); sheetHistory = true; } catch (e) {}
+        }
         const wrap = document.createElement('div');
         wrap.className = 'hacc-sheet-backdrop';
         wrap.innerHTML = `<section class="hacc-sheet${tall ? ' tall' : ''}" role="dialog" aria-modal="true" aria-label="${esc(label)}">
@@ -95,10 +117,15 @@
         return wrap.querySelector('.hacc-sheet');
     }
 
-    function closeSheet() {
+    function closeSheet(fromHistory) {
         if (!openSheetEl) return;
         const el = openSheetEl;
         openSheetEl = null;
+        if (fromHistory !== true && sheetHistory) {
+            sheetHistory = false;
+            ignorePop = true;
+            history.back();
+        }
         document.documentElement.classList.remove('hacc-no-scroll');
         el.classList.remove('open');
         if (el._onClose) el._onClose();
@@ -290,10 +317,10 @@
             return `<a class="hacc-nav-btn hacc-nav-account" href="./account.html" title="حسابي" aria-label="حسابي"><i class="fas fa-user-circle"></i></a>`;
         }
         const acc = account();
-        const initial = acc ? esc((acc.name || acc.username || '?').replace(/^د\.?\s*/, '').trim().charAt(0)) : '<i class="fas fa-user"></i>';
+        const initial = acc ? avatarHtml(acc, 34) : '<i class="fas fa-user"></i>';
         return `<button type="button" class="hacc-nav-btn hacc-bell" onclick="HubAccounts.openNotifications()" aria-label="الإشعارات">
                 <i class="fas fa-bell"></i><span class="hacc-bell-count" hidden>0</span></button>
-            <button type="button" class="hacc-nav-btn hacc-nav-account ${acc ? 'has-account' : ''}" onclick="HubAccounts.openPanel()" title="${acc ? esc(acc.name) : 'حسابي والإعدادات'}" aria-label="حسابي والإعدادات">${initial}${acc && acc.profile_complete === false ? '<span class="hacc-dot" aria-label="الملف غير مكتمل"></span>' : ''}</button>`;
+            <button type="button" class="hacc-nav-btn hacc-nav-account ${acc ? 'has-account has-avatar' : ''}" onclick="HubAccounts.openPanel()" title="${acc ? esc(acc.name) : 'حسابي والإعدادات'}" aria-label="حسابي والإعدادات">${initial}${acc && acc.profile_complete === false ? '<span class="hacc-dot" aria-label="الملف غير مكتمل"></span>' : ''}</button>`;
     }
 
     // ------------------------------------------------------------------
@@ -396,11 +423,11 @@
 
     function socialBarHtml(card, s) {
         const likes = s ? s.likes : 0, comments = s ? s.comments : 0, mine = s && s.mine;
-        return `<button type="button" class="hacc-corner-btn like ${mine ? 'on' : ''}" data-act="like" aria-pressed="${mine ? 'true' : 'false'}"
-                    aria-label="${mine ? 'إلغاء الإعجاب' : 'إعجاب'}${likes ? ' (' + likes + ')' : ''}">
-                <i class="${mine ? 'fa-solid' : 'fa-regular'} fa-heart" aria-hidden="true"></i>${likes ? `<span class="hacc-corner-n">${likes > 99 ? '99+' : likes}</span>` : ''}</button>
-            <button type="button" class="hacc-corner-btn comment" data-act="comment" aria-label="التعليقات${comments ? ' (' + comments + ')' : ''}">
-                <i class="fa-regular fa-comment" aria-hidden="true"></i>${comments ? `<span class="hacc-corner-n">${comments > 99 ? '99+' : comments}</span>` : ''}</button>`;
+        return `<button type="button" class="hacc-act like ${mine ? 'on' : ''}" data-act="like" aria-pressed="${mine ? 'true' : 'false'}"
+                    aria-label="${mine ? 'إلغاء الإعجاب' : 'إعجاب'}${likes ? ' (' + likes + ')' : ''}" title="إعجاب">
+                <i class="${mine ? 'fa-solid' : 'fa-regular'} fa-heart" aria-hidden="true"></i>${likes ? `<span class="hacc-act-n">${likes > 99 ? '99+' : likes}</span>` : ''}</button>
+            <button type="button" class="hacc-act comment" data-act="comment" aria-label="التعليقات${comments ? ' (' + comments + ')' : ''}" title="التعليقات">
+                <i class="fa-regular fa-comment" aria-hidden="true"></i>${comments ? `<span class="hacc-act-n">${comments > 99 ? '99+' : comments}</span>` : ''}</button>`;
     }
 
     /**
@@ -412,14 +439,16 @@
         if (!cards.length || !signedIn()) return;
         const groups = new Map();
         for (const c of cards) {
-            let bar = c.el.querySelector(':scope > .hacc-corner');
+            let bar = c.el.querySelector(':scope > .hacc-acts');
             if (!bar) {
                 bar = document.createElement('div');
-                bar.className = 'hacc-corner';
+                bar.className = 'hacc-acts';
+                bar.setAttribute('role', 'group');
+                bar.setAttribute('aria-label', 'التفاعل مع البطاقة');
                 bar.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
                 bar.addEventListener('click', e => e.stopPropagation());
                 bar.addEventListener('mousemove', e => e.stopPropagation());
-                c.el.appendChild(bar);
+                c.el.insertBefore(bar, c.el.firstChild);
             }
             bar._card = { h: c.h, d: c.d, n: c.n };
             const key = `${c.h}|${c.d}`;
@@ -474,7 +503,7 @@
         s.likes = Math.max(0, s.likes + (on ? 1 : -1));
         if (entry) entry.cards[card.n] = s;
         paintBar(bar, s, true);
-        if (on) bar.querySelector('.hacc-corner-btn.like')?.classList.add('pop');
+        if (on) bar.querySelector('.hacc-act.like')?.classList.add('pop');
         if (navigator.vibrate && on) navigator.vibrate(12);
         try {
             const res = await Hub.api('POST', '/api/social/like', { ...card, on }, { retries: 1 });
@@ -489,7 +518,7 @@
 
     /** Same card may be visible more than once (e.g. after a re-render): keep them in step. */
     function syncBars(card, s) {
-        document.querySelectorAll('.hacc-corner').forEach(b => {
+        document.querySelectorAll('.hacc-acts').forEach(b => {
             if (b._card && cardKey(b._card) === cardKey(card)) paintBar(b, s, true);
         });
     }
@@ -532,14 +561,14 @@
             if (!data) return;
             if (current === 'likes') {
                 body.innerHTML = data.likes.length
-                    ? `<ul class="hacc-people">${data.likes.map(l => `<li><span class="hacc-avatar">${esc(l.name.replace(/^د\.?\s*/, '').charAt(0))}</span>
+                    ? `<ul class="hacc-people">${data.likes.map(l => `<li>${avatarHtml(l, 36)}
                         <span class="hacc-person-name">${esc(l.name)}${l.mine ? ' <span class="hacc-chip">أنت</span>' : ''}</span>
                         <span class="hacc-heart-dot" aria-hidden="true">❤</span></li>`).join('')}</ul>`
                     : '<div class="hacc-empty">لا إعجابات بعد. كن أول من يُعجب ❤️</div>';
             } else {
                 body.innerHTML = data.comments.length
                     ? `<ul class="hacc-comments">${data.comments.map(c => `<li data-cid="${c.cid}">
-                        <span class="hacc-avatar ${c.anon ? 'anon' : ''}">${c.anon ? '🕶️' : esc(c.author.replace(/^د\.?\s*/, '').charAt(0))}</span>
+                        ${c.anon ? '<span class="hacc-avatar anon">🕶️</span>' : avatarHtml({ ...c, name: c.author }, 36)}
                         <div class="hacc-bubble-wrap">
                           <div class="hacc-bubble"><div class="hacc-author">${esc(c.author)}${c.mine ? ' <span class="hacc-chip">أنت</span>' : ''}</div>
                           <div class="hacc-text">${esc(c.body)}</div></div>
@@ -759,8 +788,17 @@
         window.addEventListener('hashchange', openThreadFromHash);
     }
 
+    function goBack(fallback = './index.html?portal=true') {
+        let internal = false;
+        try { internal = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) {}
+        if (internal && history.length > 1) history.back();
+        else location.href = fallback;
+    }
+
     window.HubAccounts = {
         navButtons,
+        avatarHtml,
+        goBack,
         openPanel,
         openSheet,
         closeSheet,

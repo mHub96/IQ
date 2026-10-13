@@ -45,7 +45,7 @@
         const approver = ['owner', 'admin'].includes(Hub.auth.getRole());
         sheet = A.openSheet(`<header class="hacc-sheet-head hp-head">
                 <div class="hp-who">
-                    <span class="hacc-avatar">${acc ? initial(acc.name) : '<i class="fas fa-user"></i>'}</span>
+                    <span data-role="head-avatar">${acc ? A.avatarHtml(acc, 46) : '<span class="hacc-avatar"><i class="fas fa-user"></i></span>'}</span>
                     <div><h2>${esc(acc ? acc.name : (ROLE_NAMES[Hub.auth.getRole()] || 'حسابي'))}</h2>
                     <div class="hacc-muted">${acc ? `<span dir="ltr">@${esc(acc.username)}</span> · ${esc(ROLE_NAMES[acc.role] || acc.role)}` : 'مسجّل بكلمة المرور المشتركة'}</div></div>
                 </div>
@@ -97,6 +97,11 @@
         const years = a.board_years || '';
         const month = a.stage_month || 10;
         body.innerHTML = `
+            <div class="hp-avatar-card">
+                ${A.avatarHtml(a, 96, 'hp-avatar-big')}
+                <div><b>صورتك الرمزية</b><div class="hacc-muted">رسم كرتوني بدلاً من الصورة الشخصية</div>
+                <button type="button" class="hacc-btn sm primary" data-act="edit-avatar" style="margin-top:8px">🎨 تعديل الصورة الرمزية</button></div>
+            </div>
             ${a.profile_complete ? '' : `<div class="hp-banner">📝 <b>أكمل ملفك الشخصي</b><br>${a.profile_src === 'auto'
                 ? 'عبّأنا بعض المعلومات تلقائياً من بيانات المستشفى والطوارئ. راجعها وأكمل الناقص ثم احفظ.'
                 : 'أضف نوع البورد والاختصاص والمرحلة وعدد سنوات البورد.'}</div>`}
@@ -131,6 +136,7 @@
             </dl>
             <p class="hacc-muted">الاسم والهاتف والمستشفى مرتبطة بجدول الخفارات؛ لتغييرها راجع مالك المنظومة.</p>`;
 
+        body.querySelector('[data-act="edit-avatar"]').addEventListener('click', () => avatarEditor(body));
         const form = body.querySelector('[data-role="profile-form"]');
         const syncBoard = () => {
             const none = form.board.value === 'none';
@@ -168,6 +174,7 @@
                 me = { ...me, ...res.account };
                 Hub.auth.refreshAccount({ ...Hub.auth.getAccount(), ...res.account }, Hub.auth.getRole(), Hub.auth.getAdminHospitalIds());
                 A.refreshNavSlots();
+                if (res.account.profile_complete) { const nudge = document.getElementById('hacc-nudge'); if (nudge) nudge.remove(); }
                 toast(res.account.profile_complete ? 'تم حفظ ملفك ✓' : 'تم الحفظ. ما زالت بعض المعلومات ناقصة.', res.account.profile_complete ? 'success' : 'info');
                 renderProfile(body);
             } catch (err) {
@@ -175,6 +182,69 @@
                 toast(({ stage_over_years: 'المرحلة أكبر من عدد سنوات البورد.', bad_stage: 'مرحلة غير صحيحة.', bad_years: 'عدد سنوات غير صحيح.' })[code] || errorText(err), 'error');
             }
         });
+    }
+
+    // ------------------------------------------------------------------
+    // Avatar editor (cartoon parts from hub-avatar.js; nothing is uploaded)
+    // ------------------------------------------------------------------
+    function avatarEditor(body) {
+        const HA = window.HubAvatar;
+        const a = me || Hub.auth.getAccount();
+        const sex = a.sex;
+        let cfg = HA.forAccount(a);
+        const parts = HA.PARTS.filter(p => !(p.male && sex === 'f'));
+        let part = parts[1] || parts[0]; // start on hair
+        body.innerHTML = `<div class="ae">
+                <div class="ae-preview" data-role="preview"></div>
+                <div class="ae-tools">
+                    <button type="button" class="hacc-btn sm" data-act="random">🎲 عشوائي</button>
+                    <button type="button" class="hacc-btn sm" data-act="cancel">إلغاء</button>
+                    <button type="button" class="hacc-btn sm primary" data-act="save">حفظ</button>
+                </div>
+                <div class="ae-cats" role="tablist">${parts.map(p => `<button type="button" role="tab" data-part="${p.key}">${esc(p.label)}</button>`).join('')}</div>
+                <div class="ae-colors" data-role="colors"></div>
+                <div class="ae-grid" data-role="grid"></div>
+            </div>`;
+        const preview = body.querySelector('[data-role="preview"]');
+        const grid = body.querySelector('[data-role="grid"]');
+        const colors = body.querySelector('[data-role="colors"]');
+
+        const paint = () => {
+            preview.innerHTML = `<span class="hav-wrap" style="width:132px;height:132px">${HA.svg(cfg, 132, sex)}</span>`;
+            body.querySelectorAll('[data-part]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.part === part.key)));
+            // Colour row: the part's own palette (skin / background are colour-only parts).
+            const palette = part.colors || part.palette;
+            const colorKey = part.colors ? part.key : part.color;
+            colors.innerHTML = palette ? palette.map((hex, i) => `<button type="button" class="ae-swatch" data-color="${i}" style="background:${hex}" aria-label="لون ${i + 1}" aria-pressed="${cfg[colorKey] === i}"></button>`).join('') : '';
+            colors.hidden = !palette;
+            colors.querySelectorAll('[data-color]').forEach(b => b.addEventListener('click', () => { cfg = { ...cfg, [colorKey]: Number(b.dataset.color) }; paint(); }));
+            // Option grid: each option drawn on the current avatar.
+            grid.innerHTML = part.options ? part.options.map((label, i) => `<button type="button" class="ae-opt" data-opt="${i}" aria-pressed="${cfg[part.key] === i}">
+                    <span class="hav-wrap" style="width:64px;height:64px">${HA.svg({ ...cfg, [part.key]: i }, 64, sex)}</span><span>${esc(label)}</span></button>`).join('') : '';
+            grid.hidden = !part.options;
+            grid.querySelectorAll('[data-opt]').forEach(b => b.addEventListener('click', () => { cfg = { ...cfg, [part.key]: Number(b.dataset.opt) }; paint(); }));
+        };
+        body.querySelectorAll('[data-part]').forEach(b => b.addEventListener('click', () => { part = parts.find(p => p.key === b.dataset.part); paint(); b.scrollIntoView({ inline: 'center', block: 'nearest' }); }));
+        body.querySelector('[data-act="random"]').addEventListener('click', () => { cfg = HA.random(sex); paint(); });
+        body.querySelector('[data-act="cancel"]').addEventListener('click', () => renderProfile(body));
+        body.querySelector('[data-act="save"]').addEventListener('click', async e => {
+            e.target.disabled = true;
+            try {
+                const res = await Hub.api('POST', '/api/accounts/avatar', { avatar: cfg }, { retries: 0 });
+                me = { ...me, avatar: res.avatar };
+                Hub.auth.refreshAccount({ ...Hub.auth.getAccount(), avatar: res.avatar }, Hub.auth.getRole(), Hub.auth.getAdminHospitalIds());
+                A.refreshNavSlots();
+                const head = sheet && sheet.querySelector('[data-role="head-avatar"]');
+                if (head) head.innerHTML = A.avatarHtml(me, 46);
+                toast('تم حفظ صورتك الرمزية ✓', 'success');
+                renderProfile(body);
+            } catch (err) {
+                e.target.disabled = false;
+                toast(errorText(err), 'error');
+            }
+        });
+        paint();
+        body.scrollTop = 0;
     }
 
     // ------------------------------------------------------------------
@@ -204,7 +274,7 @@
             ${items.length ? `<ul class="hacc-comments">${items.map(c => {
                 const head = c.date !== lastDate ? `<li class="hp-date">${esc(isoToLocal(c.date))} · ${esc(hospitalName(c.hosp))}</li>` : '';
                 lastDate = c.date;
-                return head + `<li><span class="hacc-avatar ${c.anon ? 'anon' : ''}">${c.anon ? '🕶️' : initial(c.author)}</span>
+                return head + `<li>${c.anon ? '<span class="hacc-avatar anon">🕶️</span>' : A.avatarHtml({ ...c, name: c.author }, 36)}
                     <div class="hacc-bubble-wrap"><div class="hacc-bubble"><div class="hacc-author"><bdi>${esc(c.author)}</bdi></div>
                     <div class="hacc-text">${esc(c.body)}</div></div>
                     <div class="hacc-meta"><time>${esc(timeAgo(c.ts))}</time>${c.edited ? '<span>معدّل</span>' : ''}</div></div></li>`;

@@ -57,7 +57,7 @@ body.dark .hacc-nav-account.has-account { color: #0f172a; }
 
 /* ---------- Bottom sheet ---------- */
 .hacc-sheet-backdrop {
-  position: fixed; inset: 0; z-index: 10000;
+  position: fixed; inset: 0; z-index: 100001;
   background: rgba(15, 23, 42, 0);
   display: flex; align-items: flex-end; justify-content: center;
   transition: background 0.25s ease;
@@ -147,49 +147,84 @@ body.dark .hacc-pending { color: #fbbf24; }
 .hacc-cta .hacc-btn { margin-top: 8px; }
 .hacc-cta a:not(.hacc-btn) { color: var(--hacc-accent); font-weight: 800; }
 
-/* ---------- Like / comment buttons in the card's bottom-right corner ---------- */
-.hacc-corner {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
-  z-index: 3;
+/* ---------- Like / comment: square icon buttons at the start of the card's action row ---------- */
+.hacc-acts {
   display: flex;
-  flex-direction: column;
   gap: 6px;
-  direction: ltr;
+  flex: none;
+  padding-inline-end: 8px;
+  margin-inline-end: 2px;
+  border-inline-end: 1px solid var(--hacc-border);
 }
-.hacc-corner-btn {
+.hacc-act {
   position: relative;
-  width: 34px; height: 34px;
+  width: 40px; height: 40px;
   display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 50%;
+  border-radius: 12px;
   border: 1px solid var(--hacc-border);
-  background: color-mix(in srgb, var(--hacc-bg) 88%, transparent);
-  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  background: var(--hacc-surface);
   color: var(--hacc-muted);
-  font-size: 0.95rem;
+  font-size: 1rem;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
-  transition: transform 0.15s ease, color 0.15s ease, background 0.15s ease;
+  transition: transform 0.15s ease, color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
   -webkit-tap-highlight-color: transparent;
 }
-.hacc-corner-btn:active { transform: scale(0.9); }
-.hacc-corner-btn.like.on { color: var(--hacc-like); border-color: color-mix(in srgb, var(--hacc-like) 35%, transparent); background: color-mix(in srgb, var(--hacc-like) 10%, var(--hacc-bg)); }
-.hacc-corner-btn:focus-visible { outline: 2px solid var(--hacc-accent); outline-offset: 2px; }
-.hacc-corner-n {
-  position: absolute; top: -6px; left: -8px;
-  min-width: 17px; height: 17px; padding: 0 4px;
+.hacc-act:active { transform: scale(0.92); }
+@media (hover: hover) { .hacc-act:hover { color: var(--hacc-text); } }
+.hacc-act.like.on { color: var(--hacc-like); border-color: color-mix(in srgb, var(--hacc-like) 30%, transparent); background: color-mix(in srgb, var(--hacc-like) 9%, var(--hacc-bg)); }
+.hacc-act:focus-visible { outline: 2px solid var(--hacc-accent); outline-offset: 2px; }
+.hacc-act-n {
+  position: absolute; top: -7px; left: -7px;
+  min-width: 18px; height: 18px; padding: 0 5px;
   border-radius: 9px;
   background: var(--hacc-text); color: var(--hacc-bg);
-  font: 800 0.6rem/17px system-ui, sans-serif;
+  font: 800 0.62rem/18px system-ui, sans-serif;
   text-align: center;
   box-shadow: 0 0 0 2px var(--hacc-bg);
 }
-.hacc-corner-btn.like.on .hacc-corner-n { background: var(--hacc-like); color: #fff; }
-.hacc-corner-btn.pop i { animation: hacc-pop 0.35s ease; }
+.hacc-act.like.on .hacc-act-n { background: var(--hacc-like); color: #fff; }
+.hacc-act.pop i { animation: hacc-pop 0.35s ease; }
 @keyframes hacc-pop { 0% { transform: scale(1); } 45% { transform: scale(1.5); } 100% { transform: scale(1); } }
-@media (prefers-reduced-motion: reduce) { .hacc-corner-btn.pop i { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .hacc-act.pop i { animation: none; } }
 .hacc-heart-dot { display: inline-flex; width: 18px; height: 18px; border-radius: 50%; align-items: center; justify-content: center; background: var(--hacc-like); color: #fff; font-size: 0.62rem; }
+
+/* ---------- Cartoon avatars ---------- */
+.hav-wrap { display: inline-flex; flex: none; border-radius: 50%; overflow: hidden; vertical-align: middle; background: var(--hacc-surface); }
+.hav-wrap svg { width: 100%; height: 100%; display: block; }
+.hacc-nav-account.has-avatar { padding: 0; overflow: visible; background: none; border-color: var(--hacc-accent); }
+.hacc-nav-account.has-avatar .hav-wrap { width: 34px !important; height: 34px !important; }
+.hp-avatar-card { display: flex; gap: 14px; align-items: center; padding: 12px; margin-bottom: 14px; border-radius: 18px; background: var(--hacc-surface); }
+.hp-avatar-card .hav-wrap { box-shadow: 0 0 0 3px var(--hacc-bg), 0 0 0 5px var(--hacc-accent-soft); }
+.ae-preview { display: flex; justify-content: center; padding: 6px 0 10px; }
+.ae-preview .hav-wrap { box-shadow: 0 0 0 4px var(--hacc-bg), 0 8px 24px rgba(15, 23, 42, 0.15); }
+.ae-tools { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; }
+.ae-cats { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.ae-cats::-webkit-scrollbar { display: none; }
+.ae-cats button { flex: none; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--hacc-border); background: var(--hacc-bg); color: var(--hacc-muted); font: 800 0.78rem inherit; font-family: inherit; cursor: pointer; }
+.ae-cats button[aria-selected="true"] { background: var(--hacc-accent); border-color: var(--hacc-accent); color: #fff; }
+html.dark .ae-cats button[aria-selected="true"], body.dark .ae-cats button[aria-selected="true"] { color: #0f172a; }
+.ae-colors { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 8px 0 12px; }
+.ae-swatch { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--hacc-bg); box-shadow: 0 0 0 1px var(--hacc-border); cursor: pointer; }
+.ae-swatch[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--hacc-accent); }
+.ae-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.ae-opt { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px; border-radius: 14px; border: 1px solid var(--hacc-border); background: var(--hacc-bg); color: var(--hacc-text); font: 700 0.72rem inherit; font-family: inherit; cursor: pointer; }
+.ae-opt[aria-pressed="true"] { border-color: var(--hacc-accent); box-shadow: 0 0 0 2px var(--hacc-accent-soft); }
+
+/* ---------- Pop-ups of every page: above the top bar and the bottom dock, sized to the screen ---------- */
+.modal-overlay, .hub-modal-overlay {
+  z-index: 100000 !important;
+  box-sizing: border-box;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 12px calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+}
+.modal-overlay > .modal-card, .modal-overlay > .hub-modal-card,
+.hub-modal-overlay > .modal-card, .hub-modal-overlay > .hub-modal-card {
+  max-height: calc(100vh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  max-height: calc(100dvh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.hacc-sheet-backdrop { z-index: 100001; }
+#hacc-toasts { z-index: 100002; }
 
 /* ---------- Comment editing ---------- */
 .hacc-edit { width: 100%; min-height: 60px; padding: 8px 10px; border-radius: 12px; border: 1px solid var(--hacc-accent); background: var(--hacc-bg); color: var(--hacc-text); font: 500 16px/1.5 inherit; font-family: inherit; resize: vertical; }
@@ -199,7 +234,7 @@ body.dark .hacc-pending { color: #fbbf24; }
 .hacc-nav-account { position: relative; }
 .hacc-dot { position: absolute; top: -2px; left: -2px; width: 11px; height: 11px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 0 2px var(--hacc-bg); }
 #hacc-nudge {
-  position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom)); z-index: 9999;
+  position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom)); z-index: 99990;
   width: min(92vw, 440px);
   display: flex; align-items: center; gap: 10px;
   padding: 12px 12px 12px 8px;
@@ -329,7 +364,7 @@ body.dark .hacc-identity input:checked + span { color: #0f172a; }
 .hacc-send:disabled { opacity: 0.5; }
 
 /* ---------- Toasts ---------- */
-#hacc-toasts { position: fixed; top: calc(12px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 10001; display: flex; flex-direction: column; gap: 8px; width: min(92vw, 420px); pointer-events: none; }
+#hacc-toasts { position: fixed; top: calc(12px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 100002; display: flex; flex-direction: column; gap: 8px; width: min(92vw, 420px); pointer-events: none; }
 .hacc-toast {
   padding: 12px 16px; border-radius: 14px;
   background: #1e293b; color: #fff;

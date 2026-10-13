@@ -82,6 +82,11 @@ which is git-ignored):
   every 1st of the level-up month (Iraq time) since, capped at the board length. The owner chooses the month
   (`account.html#manage` -> إعدادات عامة, default October, all hospitals); changing it keeps everyone's
   current stage. The owner can still edit any resident's profile (and sex / hospital) from the account card.
+- **Avatar**: a cartoon figure drawn in SVG by `hub-avatar.js` (no image files): skin, hair type / colour, eyes /
+  pupil colour, eyebrows / colour, moustache and beard / colour (male accounts), nose, mouth, glasses, headwear
+  (cap, beanie, surgical cap, hijab, shemagh) / colour, clothes / colour, background. Stored as a small JSON object
+  of option indexes (`accounts.avatar`, migration 0004); accounts that never chose one get a stable default
+  figure. Shown in the top bar, comments (never on anonymous ones), likes and the management screen.
 - **My comments**: every comment ever written on the resident's duty cards, with totals.
 - **Settings**: light / dark (the toggle moved here from the top bars), anonymous nickname, push
   notifications for this device, devices (unlink any), password.
@@ -102,7 +107,8 @@ which is git-ignored):
 - The duty day runs 08:00 -> 08:00 Iraq time. Likes, new comments, and authors' edits / deletions are
   accepted only while the card's duty day is running; afterwards the card is read-only (the owner and the
   hospital's admins can still delete comments).
-- On the roster, the like and comment buttons are two small icon buttons in the card's bottom-right corner.
+- On the roster, each card has one action row: like and comment (square icon buttons, on the right) then
+  WhatsApp and Call, all the same height.
 - Notifications are grouped per card ("X and 3 others liked ..."), polled every minute while a page is open,
   and shown as a number on the installed app icon where the phone supports it.
 - Anonymous comments show the author's current nickname to everyone. Only the owner also sees the real name
@@ -125,6 +131,7 @@ npx wrangler deploy --config site.wrangler.jsonc                       # website
 cd worker && npx wrangler deploy                                       # API
 npx wrangler d1 execute hosp-hub --remote --file migrations/0002_accounts.sql   # once (additive)
 npx wrangler d1 execute hosp-hub --remote --file migrations/0003_profiles.sql   # once (additive)
+npx wrangler d1 execute hosp-hub --remote --file migrations/0004_avatars.sql    # once (additive)
 ```
 
 `.github/workflows/deploy.yml` does the first two (and the Worker when `worker/` changed) on every push to

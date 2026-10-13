@@ -356,6 +356,28 @@ test('profile: filled in from the roster and ER data, editable, stage levels up 
   assert.equal(byOwner.data.account.profile_src, 'owner');
 });
 
+test('avatar: saved per account, no beard or moustache for female accounts, hidden on anonymous comments', async () => {
+  const cfg = { s: 3, h: 5, hc: 2, e: 1, ec: 4, b: 1, bc: 2, m: 2, mc: 1, d: 3, dc: 1, n: 2, o: 1, g: 1, t: 1, tc: 2, c: 1, cc: 3, k: 4, junk: 9 };
+  const a = await call('POST', '/api/accounts/avatar', { token: state.tokA, body: { avatar: cfg } });
+  assert.equal(a.data.avatar.d, 3);
+  assert.equal(a.data.avatar.junk, undefined, 'unknown keys dropped');
+  const outOfRange = await call('POST', '/api/accounts/avatar', { token: state.tokA, body: { avatar: { ...cfg, h: 999 } } });
+  assert.equal(outOfRange.data.avatar.h, 0, 'out-of-range values reset');
+  await call('POST', '/api/accounts/avatar', { token: state.tokA, body: { avatar: cfg } });
+  const b = await call('POST', '/api/accounts/avatar', { token: state.tokB, body: { avatar: cfg } });
+  assert.equal(b.data.avatar.d, 0, 'female: no beard');
+  assert.equal(b.data.avatar.m, 0, 'female: no moustache');
+  assert.equal((await call('GET', '/api/accounts/me', { token: state.tokA })).data.account.avatar.h, 5);
+  const card = { h: hospital.id, d: today(), n: resB.name };
+  await call('POST', '/api/social/comment', { token: state.tokA, body: { ...card, body: 'بالاسم' } });
+  await call('POST', '/api/social/comment', { token: state.tokA, body: { ...card, body: 'مجهول', anon: true } });
+  const t = (await call('GET', '/api/social/thread?' + new URLSearchParams(card), { token: state.tokC })).data;
+  const named = t.comments.find(c => c.body === 'بالاسم'), anon = t.comments.find(c => c.body === 'مجهول');
+  assert.equal(named.avatar.h, 5);
+  assert.equal(anon.avatar, null, 'anonymous comments never reveal the avatar');
+  assert.equal(anon.sex, null);
+});
+
 test('push: public key, subscription validation, one subscription per device', async () => {
   const key = await call('GET', '/api/push/key');
   assert.match(key.data.key, /^B[A-Za-z0-9_-]{86}$/);

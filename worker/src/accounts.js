@@ -22,7 +22,7 @@ const RESET_VALID_MS = 3 * DAY;
 const ACTIVE_WRITE_MS = 60 * 60 * 1000; // last_seen is refreshed at most hourly (D1 write budget)
 const PUBLIC_FIELDS = `id, username, name, phone, sex, hosp, resident_id, role, hospitals, status, max_devices,
   anon_tag, anon_lang, reset, reset_at, created_at, decided_at, decided_by, last_seen,
-  board, specialty, stage, stage_ref, board_years, profile_src`;
+  board, specialty, stage, stage_ref, board_years, profile_src, avatar`;
 
 /** Routes under /api/accounts, /api/notifications, /api/social and /api/push. Returns null when not matched. */
 export async function routeAccounts(path, method, request, env, auth, url, ctx) {
@@ -45,6 +45,7 @@ export async function routeAccounts(path, method, request, env, auth, url, ctx) 
     case 'GET /api/accounts/anon-check': return anonCheck(env, auth, url);
     case 'GET /api/accounts/profile-suggest': return profileSuggest(env, auth);
     case 'POST /api/accounts/profile': return saveProfile(request, env, auth);
+    case 'POST /api/accounts/avatar': return saveAvatar(request, env, auth);
     case 'GET /api/accounts/received': return receivedComments(env, auth, url);
     case 'GET /api/accounts/stage-month': return json({ ok: true, month: await getStageMonth(env) });
     case 'POST /api/accounts/stage-month': return putStageMonth(request, env, auth);
@@ -101,6 +102,7 @@ function profile(row, stageMonth = 10) {
   if (!row) return null;
   const { pw, salt, anon_key, devices, ...rest } = row;
   const out = { ...rest, hospitals: scopeOf(row) };
+  if ('avatar' in row) out.avatar = parseAvatar(row.avatar);
   if ('board' in row) {
     out.stage_now = currentStage(row.stage, row.stage_ref, row.board_years, stageMonth);
     out.profile_complete = profileComplete(row);
@@ -729,6 +731,36 @@ function cleanProfile(p) {
   return { board, specialty, stage, boardYears };
 }
 
+// Option counts per avatar part (must match hub-avatar.js).
+const AVATAR_LIMITS = { s: 7, h: 13, hc: 10, e: 6, ec: 7, b: 6, bc: 10, m: 5, mc: 10, d: 6, dc: 10, n: 4, o: 5, g: 5, t: 6, tc: 8, c: 3, cc: 8, k: 8 };
+
+export function cleanAvatar(input) {
+  if (!input || typeof input !== 'object') return null;
+  const out = {};
+  for (const [k, n] of Object.entries(AVATAR_LIMITS)) {
+    const v = Math.floor(Number(input[k]));
+    out[k] = Number.isFinite(v) && v >= 0 && v < n ? v : 0;
+  }
+  return out;
+}
+
+function parseAvatar(text) {
+  if (!text) return null;
+  try { return cleanAvatar(JSON.parse(text)); } catch { return null; }
+}
+
+async function saveAvatar(request, env, auth) {
+  if (!auth.a) return json({ error: 'account_required' }, 403);
+  if (await overLimit(env, 'avatar:' + auth.a, 40)) return json({ error: 'rate_limited' }, 429);
+  const body = await readJson(request) || {};
+  const avatar = body.avatar === null ? null : cleanAvatar(body.avatar);
+  if (body.avatar !== null && !avatar) return json({ error: 'bad_avatar' }, 400);
+  const row = await env.DB.prepare('SELECT sex FROM accounts WHERE id = ?').bind(auth.a).first();
+  if (avatar && row.sex === 'f') { avatar.m = 0; avatar.d = 0; }
+  await env.DB.prepare('UPDATE accounts SET avatar = ? WHERE id = ?').bind(avatar ? JSON.stringify(avatar) : null, auth.a).run();
+  return json({ ok: true, avatar });
+}
+
 async function profileSuggest(env, auth) {
   if (!auth.a) return json({ error: 'account_required' }, 403);
   const row = await env.DB.prepare('SELECT name, hosp, resident_id, phone FROM accounts WHERE id = ?').bind(auth.a).first();
@@ -774,7 +806,7 @@ async function receivedComments(env, auth, url) {
   const me = await env.DB.prepare('SELECT name_key FROM accounts WHERE id = ?').bind(auth.a).first();
   const [list, totals] = await env.DB.batch([
     env.DB.prepare(
-      `SELECT c.cid, c.hosp, c.account_id, c.anon, c.body, c.ts, c.edited_at, c.card_date, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex
+      `SELECT c.cid, c.hosp, c.account_id, c.anon, c.body, c.ts, c.edited_at, c.card_date, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex, a.avatar AS avatar
          FROM comments c LEFT JOIN accounts a ON a.id = c.account_id
         WHERE c.card_key = ?1 AND c.deleted = 0 AND c.cid < ?2 ORDER BY c.cid DESC LIMIT 50`
     ).bind(me.name_key, before),
@@ -887,7 +919,8 @@ function commentView(c, auth) {
     // Anonymous comments show the author's current nickname to everyone.
     author: c.anon ? (c.anon_tag || 'مجهول') : (c.name || '—'),
     anon: !!c.anon,
-    sex: c.sex || null,
+    sex: c.anon ? null : (c.sex || null),
+    avatar: c.anon ? null : parseAvatar(c.avatar),
     // Only the owner can see who is behind a nickname (to deal with abuse).
     realName: auth.r === 'owner' && c.anon ? c.name : undefined,
     body: c.body,
@@ -904,18 +937,18 @@ async function thread(env, auth, url) {
   if (!card) return json({ error: 'bad_request' }, 400);
   const [likesRes, commentsRes] = await env.DB.batch([
     env.DB.prepare(
-      `SELECT a.name AS name, l.ts AS ts, l.account_id = ?2 AS mine FROM likes l JOIN accounts a ON a.id = l.account_id
+      `SELECT a.name AS name, a.sex AS sex, a.avatar AS avatar, l.ts AS ts, l.account_id = ?2 AS mine FROM likes l JOIN accounts a ON a.id = l.account_id
         WHERE l.target = ?1 ORDER BY l.ts DESC LIMIT 300`
     ).bind(card.target, auth.a || ''),
     env.DB.prepare(
-      `SELECT c.cid, c.hosp, c.account_id, c.anon, c.body, c.ts, c.edited_at, c.card_date, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex
+      `SELECT c.cid, c.hosp, c.account_id, c.anon, c.body, c.ts, c.edited_at, c.card_date, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex, a.avatar AS avatar
          FROM comments c LEFT JOIN accounts a ON a.id = c.account_id
         WHERE c.target = ?1 AND c.deleted = 0 ORDER BY c.cid LIMIT 300`
     ).bind(card.target),
   ]);
   return json({
     ok: true,
-    likes: likesRes.results.map(l => ({ name: l.name, ts: l.ts, mine: !!l.mine })),
+    likes: likesRes.results.map(l => ({ name: l.name, sex: l.sex, avatar: parseAvatar(l.avatar), ts: l.ts, mine: !!l.mine })),
     comments: commentsRes.results.map(c => commentView(c, auth)),
     canReact: !!auth.a,
     open: dutyOpen(card.date),
@@ -931,7 +964,7 @@ async function recentComments(env, auth, url) {
   const before = Number(url.searchParams.get('before')) || 1e15;
   const hospitals = seesAll(auth) ? (hosp ? [hosp] : null) : (auth.h || []).filter(h => !hosp || h === hosp);
   const { results } = await env.DB.prepare(
-    `SELECT c.cid, c.target, c.hosp, c.account_id, c.anon, c.body, c.ts, c.edited_at, c.card_date, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex
+    `SELECT c.cid, c.target, c.hosp, c.account_id, c.anon, c.body, c.ts, c.edited_at, c.card_date, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex, a.avatar AS avatar
        FROM comments c LEFT JOIN accounts a ON a.id = c.account_id
       WHERE c.deleted = 0 AND c.cid < ?1 ${hospitals ? 'AND c.hosp IN (SELECT value FROM json_each(?2))' : ''}
       ORDER BY c.cid DESC LIMIT 50`

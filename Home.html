@@ -845,70 +845,46 @@
             background: rgba(0, 0, 0, 0.06);
         }
 
-        /* --- Action Buttons --- */
+        /* --- Action Buttons: one row; [like][comment] | [WhatsApp][Call], all 40px tall --- */
         .card-actions {
             display: flex;
-            gap: 0.5rem;
-            margin-top: 0.2rem;
-            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 0.45rem;
             width: 100%;
         }
         .roster-card .action-btn-sm {
-            padding: 0.4rem 1rem;
-            border-radius: 0.8rem;
+            flex: 1 1 0;
+            min-width: 0;
+            min-height: 40px;
+            padding: 0 0.75rem;
+            border-radius: 12px;
             text-decoration: none;
-            font-weight: 700;
-            font-size: 0.65rem;
+            font-weight: 800;
+            font-size: 0.8rem;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer;
-            flex: 1;
-            max-width: 130px;
             justify-content: center;
+            gap: 7px;
+            line-height: 1;
+            white-space: nowrap;
+            cursor: pointer;
             border: 1px solid transparent;
-            line-height: 1.2;
+            transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
         }
-        body.light .roster-card .action-btn-sm {
-            background: rgba(255, 255, 255, 0.7);
-            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.04), -3px -3px 8px rgba(255, 255, 255, 0.7), 0 1px 0 rgba(0, 0, 0, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        .roster-card .action-btn-sm:active { transform: scale(0.97); }
+        .roster-card .action-btn-sm i { font-size: 0.95rem; }
+        .roster-card .action-btn-sm.wa { color: #047857; background: rgba(5, 150, 105, 0.09); border-color: rgba(5, 150, 105, 0.22); }
+        .roster-card .action-btn-sm.call { color: #1d4ed8; background: rgba(37, 99, 235, 0.08); border-color: rgba(37, 99, 235, 0.2); }
+        @media (hover: hover) {
+            .roster-card .action-btn-sm.wa:hover { background: rgba(5, 150, 105, 0.15); }
+            .roster-card .action-btn-sm.call:hover { background: rgba(37, 99, 235, 0.14); }
         }
-        body.dark .roster-card .action-btn-sm {
-            background: rgba(0, 0, 0, 0.35);
-            box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.5), -3px -3px 8px rgba(255, 255, 255, 0.02), 0 1px 0 rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.02);
-        }
-        .roster-card .action-btn-sm .btn-icon {
-            font-size: 0.75rem;
-        }
-        .roster-card .action-btn-sm.call {
-            color: #2563eb;
-        }
-        body.dark .roster-card .action-btn-sm.call {
-            color: #60a5fa;
-        }
-        .roster-card .action-btn-sm.call:hover {
-            background: rgba(37, 99, 235, 0.08);
-        }
-        body.dark .roster-card .action-btn-sm.call:hover {
-            background: rgba(96, 165, 250, 0.08);
-        }
-        .roster-card .action-btn-sm.wa {
-            color: #059669;
-        }
-        body.dark .roster-card .action-btn-sm.wa {
-            color: #34d399;
-        }
-        .roster-card .action-btn-sm.wa:hover {
-            background: rgba(5, 150, 105, 0.08);
-        }
-        body.dark .roster-card .action-btn-sm.wa:hover {
-            background: rgba(52, 211, 153, 0.08);
-        }
+        body.dark .roster-card .action-btn-sm.wa { color: #6ee7b7; background: rgba(52, 211, 153, 0.1); border-color: rgba(52, 211, 153, 0.22); }
+        body.dark .roster-card .action-btn-sm.call { color: #93c5fd; background: rgba(96, 165, 250, 0.1); border-color: rgba(96, 165, 250, 0.22); }
         .roster-card .action-btn-sm.opacity-40 {
-            opacity: 0.25;
+            opacity: 0.35;
             cursor: default;
             pointer-events: none;
         }
@@ -1212,6 +1188,17 @@
             background: #141c2a;
             border: 1px solid rgba(212, 175, 55, 0.08);
         }
+        /* Leaderboard: title and close button stay visible while the list scrolls. */
+        #trending-modal .modal-card > div:first-child {
+            position: sticky;
+            top: -1.5rem;
+            z-index: 2;
+            margin: -1.5rem -1.5rem 0.75rem;
+            padding: 1.1rem 1.5rem 0.6rem;
+            background: #ffffff;
+            border-radius: 2rem 2rem 0 0;
+        }
+        body.dark #trending-modal .modal-card > div:first-child { background: #141c2a; }
         .modal-overlay.active .modal-card {
             transform: scale(1) translateY(0);
         }
@@ -1479,13 +1466,18 @@
                 padding: 0.22rem 0.6rem;
             }
             .card-actions {
-                gap: 0.5rem;
-                margin-top: 0.2rem;
+                gap: 6px;
             }
             .modal-card {
                 max-width: calc(100vw - 24px) !important;
                 padding: 1.25rem 1rem !important;
                 border-radius: 1.4rem !important;
+            }
+            #trending-modal .modal-card > div:first-child {
+                top: -1.25rem;
+                margin: -1.25rem -1rem 0.75rem;
+                padding: 1rem 1rem 0.6rem;
+                border-radius: 1.4rem 1.4rem 0 0;
             }
         }
 
@@ -1617,6 +1609,7 @@
     <!-- Scripts -->
     <script src="./hub-sync.js"></script>
     <script src="./hub-core.js"></script>
+    <script src="./hub-avatar.js"></script>
     <script src="./hub-accounts.js"></script>
     <script src="./nav-component.js"></script>
     <script>
@@ -2705,7 +2698,7 @@
                 const today = Hub.getMedicalDate();
                 const wrappers = container.querySelectorAll('.roster-card-wrapper');
                 HubAccounts.decorate(currentResidents.map((resident, i) => ({
-                    el: wrappers[i] && wrappers[i].querySelector('.card-front'),
+                    el: wrappers[i] && wrappers[i].querySelector('.card-front .card-actions'),
                     h: resident.parentHospitalId || currentHospital.id,
                     d: today,
                     n: resident.name

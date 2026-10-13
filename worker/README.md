@@ -134,6 +134,9 @@ npx wrangler d1 execute hosp-hub --remote --file migrations/0003_profiles.sql   
 npx wrangler d1 execute hosp-hub --remote --file migrations/0004_avatars.sql    # once (additive)
 ```
 
+Apply a new migration **before** deploying Worker code that uses it, and check it succeeded. If `--file`
+fails with an authentication error (code 10000), run the statements with `--command "..."` instead.
+
 `.github/workflows/deploy.yml` does the first two (and the Worker when `worker/` changed) on every push to
 `main` once the repository has the secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
 After editing pages: `cd tools && npm install && npm run css` rebuilds `tailwind.css`.

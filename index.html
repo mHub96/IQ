@@ -22,18 +22,11 @@
                 }
 
                 // If navigating from inside the hospital hub app, do not redirect
+                // Any page of this site counts. (A fixed list once missed signup.html: a guest sent
+                // from there to the portal was sent straight back, reloading both pages forever.)
                 const ref = document.referrer;
-                const isInternalReferrer = ref && (
-                    ref.includes('emergency.html') ||
-                    ref.includes('schedule.html') ||
-                    ref.includes('residents.html') ||
-                    ref.includes('specialists.html') ||
-                    ref.includes('admin.html') ||
-                    ref.includes('Home.html') ||
-                    ref.includes('icu.html') ||
-                    ref.includes('scheduler.html') ||
-                    ref.includes('s.html')
-                );
+                let isInternalReferrer = false;
+                try { isInternalReferrer = !!ref && new URL(ref).origin === window.location.origin; } catch (e) {}
 
                 if (isInternalReferrer) {
                     localStorage.setItem('pwa_last_page', './index.html');

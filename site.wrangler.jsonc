@@ -1,0 +1,16 @@
+// The beta website: static files from dist/ (built by tools/build-site.mjs), served by Cloudflare
+// (Workers static assets, the current form of Cloudflare Pages). No server code.
+{
+  "$schema": "./worker/node_modules/wrangler/config-schema.json",
+  "name": "hosp-hub-beta",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./dist",
+    // Serve files under their exact names (./Home.html) without redirects: a redirected page
+    // would break the service worker's offline copy.
+    "html_handling": "none",
+    // "/" and unknown page addresses open the portal.
+    "not_found_handling": "single-page-application"
+  }
+}

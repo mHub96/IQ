@@ -1,8 +1,8 @@
 # Deploys the beta on every push to main:
-#   - website  -> Cloudflare Pages project "hosp-hub-beta"
+#   - website  -> Cloudflare static-assets Worker "hosp-hub-beta" (site.wrangler.jsonc)
 #   - API      -> Cloudflare Worker "hosp-hub-api-beta" (only when worker/ changed)
-# Needs two repository secrets: CLOUDFLARE_API_TOKEN (template "Edit Cloudflare Workers",
-# plus Account > Cloudflare Pages > Edit) and CLOUDFLARE_ACCOUNT_ID. Without them the job is skipped.
+# Needs two repository secrets: CLOUDFLARE_API_TOKEN (template "Edit Cloudflare Workers") and
+# CLOUDFLARE_ACCOUNT_ID. Without them the job is skipped.
 name: Deploy beta
 
 on:
@@ -45,9 +45,9 @@ jobs:
       - name: Build site
         if: steps.creds.outputs.ok == 'true'
         run: node tools/build-site.mjs
-      - name: Deploy website (Pages)
+      - name: Deploy website
         if: steps.creds.outputs.ok == 'true'
-        run: npx --yes wrangler@4 pages deploy dist --project-name hosp-hub-beta --branch main --commit-dirty=true
+        run: npx --yes wrangler@4 deploy --config site.wrangler.jsonc
       - name: Deploy API (Worker) when it changed
         if: steps.creds.outputs.ok == 'true'
         run: |

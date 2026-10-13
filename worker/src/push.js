@@ -69,7 +69,7 @@ async function vapidJwt(env, audience) {
   }
   const exp = now + 12 * 3600;
   const head = b64u(enc.encode(JSON.stringify({ typ: 'JWT', alg: 'ES256' })));
-  const body = b64u(enc.encode(JSON.stringify({ aud: audience, exp, sub: env.VAPID_SUBJECT || 'https://hosp-hub-beta.pages.dev' })));
+  const body = b64u(enc.encode(JSON.stringify({ aud: audience, exp, sub: env.VAPID_SUBJECT || 'https://hosp-hub-beta.mrjuniversity.workers.dev' })));
   const sig = new Uint8Array(await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, vapidKey, enc.encode(`${head}.${body}`)));
   const jwt = `${head}.${body}.${b64u(sig)}`;
   jwtCache.set(audience, { jwt, exp });

@@ -1,6 +1,6 @@
 # Hospital Hub API (Cloudflare Worker + D1)
 
-> **Beta repository.** This copy deploys as Worker `hosp-hub-api-beta` and site `hosp-hub-beta.pages.dev`,
+> **Beta repository.** This copy deploys as Worker `hosp-hub-api-beta` and site `https://hosp-hub-beta.mrjuniversity.workers.dev`,
 > both on the **same D1 database as the live site** (data is shared; duty edits made in the beta are real).
 > The beta adds personal accounts, notifications and likes / comments in new tables only
 > (`migrations/0002_accounts.sql`), which the live Worker never touches.
@@ -106,7 +106,7 @@ for this device, the account's devices (unlink any), and password change.
 
 ```sh
 node tools/build-site.mjs                                              # website -> dist/
-npx wrangler pages deploy dist --project-name hosp-hub-beta --branch main
+npx wrangler deploy --config site.wrangler.jsonc                       # website (static assets)
 cd worker && npx wrangler deploy                                       # API
 npx wrangler d1 execute hosp-hub --remote --file migrations/0002_accounts.sql   # once (additive)
 ```

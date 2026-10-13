@@ -61,6 +61,6 @@
 
 ## 🧪 النسخة التجريبية (Beta)
 
-هذا المستودع هو النسخة التجريبية: الموقع على Cloudflare Pages (`hosp-hub-beta.pages.dev`) والخادم `hosp-hub-api-beta`، وكلاهما يستخدم **نفس قاعدة البيانات** الحية. التفاصيل في [`worker/README.md`](worker/README.md).
+هذا المستودع هو النسخة التجريبية: الموقع على Cloudflare (`https://hosp-hub-beta.mrjuniversity.workers.dev`) والخادم `hosp-hub-api-beta`، وكلاهما يستخدم **نفس قاعدة البيانات** الحية. التفاصيل في [`worker/README.md`](worker/README.md).
 
 بعد تعديل أي صفحة: `cd tools && npm install && npm run css` لإعادة بناء `tailwind.css`.

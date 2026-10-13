@@ -119,7 +119,7 @@
                 <!-- Right: Role, Theme, Logout & Mobile Toggle -->
                 <div class="hub-nav-right">
                     <!-- Role Badge (the owner's tools are in the account panel: Administrative Sector) -->
-                    ${isOwner ? '' : `<span class="role-badge ${badgeClass}" onclick="handleRoleBadgeClick()" title="${badgeTitle}">
+                    ${isOwner ? '' : `<span class="role-badge ${badgeClass}" onclick="window.HubAccounts ? HubAccounts.openPanel() : (location.href = './account.html')" title="حسابي">
                         <i class="fas ${badgeIcon}"></i>
                         <span>${badgeText}</span>
                     </span>`}

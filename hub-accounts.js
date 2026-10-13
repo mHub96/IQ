@@ -796,14 +796,11 @@
         openGlobalSpecialtiesModal: './index.html?portal=true',
         openFullSystemBackupModal: './index.html?portal=true',
         openAllPasswordsModalNav: './index.html?portal=true',
-        openRoleSwitcherModal: './index.html?portal=true',
-        showResetModal: './Home.html',
     };
     const ADMIN_ACTIONS = Object.keys(ADMIN_PAGES);
     function adminAction(fn) {
         if (!ADMIN_ACTIONS.includes(fn)) return;
-        const run = typeof window[fn] === 'function' ? window[fn]
-            : (fn === 'openRoleSwitcherModal' && typeof window.handleRoleBadgeClick === 'function') ? window.handleRoleBadgeClick : null;
+        const run = typeof window[fn] === 'function' ? window[fn] : null;
         if (run) { closeSheet(); setTimeout(() => run(), 280); return; }
         location.href = ADMIN_PAGES[fn] + '#admin=' + fn;
     }

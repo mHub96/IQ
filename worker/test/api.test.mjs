@@ -148,13 +148,22 @@ test('create and delete a duty', async () => {
   assert.equal(rows.some(r => r[1] === id), false);
 });
 
-test('contact taps increment atomically', async () => {
+test('contact taps: one visit per person per resident per minute (cooldown on the server)', async () => {
   const rows = await loadAll(tokens.user);
   const sched = rows.filter(r => r[0] === 'sched')[5];
   const before = sched[5].VisitCount || 0;
-  await Promise.all([1, 2, 3].map(() => call('POST', '/api/visit', { token: tokens.user, body: { id: sched[1] } })));
+  // Several taps at once from the same session (e.g. Call then WhatsApp, or re-tapping): counted once.
+  const taps = await Promise.all([1, 2, 3].map(() => call('POST', '/api/visit', { token: tokens.user, body: { id: sched[1] } })));
+  assert.equal(taps.filter(t => t.data.cooldown).length, 2);
+  assert.ok(taps.every(t => t.data.ok));
+  const again = await call('POST', '/api/visit', { token: tokens.user, body: { id: sched[1] } });
+  assert.equal(again.data.cooldown, true);
+  assert.ok(again.data.retryIn > 0 && again.data.retryIn <= 60000);
+  // Another person visiting the same resident is counted.
+  const other = await call('POST', '/api/visit', { token: tokens.admin, body: { id: sched[1] } });
+  assert.equal(other.data.cooldown, undefined);
   const after = (await loadAll(tokens.user)).find(r => r[1] === sched[1]);
-  assert.equal(after[5].VisitCount, before + 3);
+  assert.equal(after[5].VisitCount, before + 2);
 });
 
 test('ICU: anaesthesia may edit, admin may not', async () => {

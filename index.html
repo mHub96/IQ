@@ -1234,7 +1234,7 @@
             <span data-hacc-slot></span>
 
             <!-- Role Badge -->
-            <div id="top-role-pill" class="ios-role-pill user" onclick="openRoleSwitcherModal()" title="انقر لتبديل مستوى المستخدم">
+            <div id="top-role-pill" class="ios-role-pill user" onclick="window.HubAccounts ? HubAccounts.openPanel() : (location.href = './account.html')" title="حسابي">
                 <i class="fas fa-user" id="top-role-icon"></i>
                 <span id="top-role-text">مستخدم</span>
             </div>
@@ -1305,11 +1305,11 @@
             </div>
 
             <div class="ios-segmented-control" id="hosp-segmented-filter">
-                <button type="button" class="ios-segment-btn active" onclick="setHospFilter('all', this)">
-                    <i class="fas fa-layer-group"></i> <span>جميع المستشفيات</span>
+                <button type="button" class="ios-segment-btn" id="seg-btn-my-hosp" data-filter="my" onclick="setHospFilter('my', this)" style="display:none;">
+                    <i class="fas fa-hospital-user"></i> <span id="seg-my-label">مستشفاي</span>
                 </button>
-                <button type="button" class="ios-segment-btn" id="seg-btn-my-hosp" onclick="setHospFilter('my', this)" style="display:none;">
-                    <i class="fas fa-shield-halved"></i> <span>مستشفياتي الإدارية</span>
+                <button type="button" class="ios-segment-btn active" data-filter="all" onclick="setHospFilter('all', this)">
+                    <i class="fas fa-layer-group"></i> <span>جميع المستشفيات</span>
                 </button>
             </div>
         </section>
@@ -1937,6 +1937,7 @@
 
                 // Load database
                 currentDb = await Hub.loadDatabase();
+                applyDefaultHospFilter();
                 updateLiveClock();
                 setInterval(updateLiveClock, 1000);
 
@@ -1993,6 +1994,7 @@
                 document.getElementById('account-pass-input').value = '';
                 document.getElementById('lock-screen').classList.add('hidden');
                 updateTopRoleBadge();
+                applyDefaultHospFilter();
                 renderHubDashboard();
                 showToast(`أهلاً ${res.account ? res.account.name : ''} 👋`, 'success');
             } else {
@@ -2018,6 +2020,7 @@
 
                 document.getElementById('lock-screen').classList.add('hidden');
                 updateTopRoleBadge();
+                applyDefaultHospFilter();
                 renderHubDashboard();
 
                 if (Hub.auth.isOwner()) {
@@ -2411,11 +2414,31 @@
             renderHubDashboard();
         }
 
-        function setHospFilter(filter, btn) {
+        /** Hospitals that are "mine": the account's hospital plus any it administers (not "all"). */
+        function myHospitalIds() {
+            if (!Hub.auth.isLoggedIn()) return [];
+            const ids = new Set();
+            const acc = Hub.auth.getAccount && Hub.auth.getAccount();
+            if (acc && acc.hosp) ids.add(acc.hosp);
+            (Hub.auth.getAdminHospitalIds() || []).forEach(id => { if (id !== '*') ids.add(id); });
+            return [...ids].filter(id => currentDb && currentDb.hospitals && currentDb.hospitals[id]);
+        }
+
+        function setHospFilter(filter, btn, remember = true) {
             currentHospFilter = filter;
-            document.querySelectorAll('.ios-segment-btn').forEach(b => b.classList.remove('active'));
-            if (btn) btn.classList.add('active');
+            document.querySelectorAll('#hosp-segmented-filter .ios-segment-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
+            if (remember) { try { localStorage.setItem('hub_portal_filter', filter); } catch (e) {} }
             renderHubDashboard();
+        }
+
+        /** Signed-in users start on their own hospital(s) unless they chose "all" before. */
+        function applyDefaultHospFilter() {
+            const mine = myHospitalIds();
+            let saved = null;
+            try { saved = localStorage.getItem('hub_portal_filter'); } catch (e) {}
+            const filter = mine.length && saved !== 'all' ? 'my' : 'all';
+            currentHospFilter = filter;
+            document.querySelectorAll('#hosp-segmented-filter .ios-segment-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
         }
 
         function renderHubDashboard() {
@@ -2431,8 +2454,12 @@
             // The owner's tools live in the account panel (Administrative Sector).
             if (addBtnWrap) addBtnWrap.style.display = 'none';
 
+            const myIds = myHospitalIds();
             const myHospSeg = document.getElementById('seg-btn-my-hosp');
-            if (myHospSeg) myHospSeg.style.display = (isAdmin || isOwner) ? 'inline-flex' : 'none';
+            if (myHospSeg) myHospSeg.style.display = myIds.length ? 'inline-flex' : 'none';
+            const myLabel = document.getElementById('seg-my-label');
+            if (myLabel) myLabel.textContent = myIds.length === 1 ? 'مستشفاي' : 'مستشفياتي';
+            if (currentHospFilter === 'my' && !myIds.length) currentHospFilter = 'all';
 
             // Global Statistics & On-Call Summary
             const today = Hub.getMedicalDate();
@@ -2446,7 +2473,7 @@
             let filtered = hospitals.filter(h => {
                 // Segment Filter
                 if (currentHospFilter === 'my') {
-                    if (!Hub.auth.isAdmin(h.id)) return false;
+                    if (!myIds.includes(h.id)) return false;
                 }
                 // Search Query
                 if (searchQuery) {

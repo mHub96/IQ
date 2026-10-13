@@ -1090,17 +1090,31 @@
     // ============================================================
     // CONTACT TAP COUNTER
     // ============================================================
+    // One visit per resident per minute. The server enforces it for the account (whatever happens on
+    // the phone); this local note only keeps the number on screen from jumping up and back.
+    const VISIT_COOLDOWN_MS = 60 * 1000;
+    const visitNoteKey = (hid, entry) => 'hub_visit_' + hid + '|' + String(entry.name || '').replace(/\s+/g, ' ').trim() + '|' + entry.date;
     function bumpVisit(entry) {
-        entry.VisitCount = (entry.VisitCount || 0) + 1;
         const rid = HubSync ? entry[HubSync.RID] : null;
         if (!rid || !db || !readApiToken()) return;
         const hid = Object.keys(db.hospitals || {}).find(h => (db.hospitals[h].schedule || []).includes(entry));
         if (!hid) return;
+        const note = visitNoteKey(hid, entry);
+        let last = 0;
+        try { last = Number(localStorage.getItem(note)) || 0; } catch (e) {}
+        if (Date.now() - last < VISIT_COOLDOWN_MS) return;
+        try { localStorage.setItem(note, String(Date.now())); } catch (e) {}
+        entry.VisitCount = (entry.VisitCount || 0) + 1;
         const id = hid + ':' + rid;
         const k = HubSync.key('sched', id);
         api('POST', '/api/visit', { id }, { retries: 1 }).then(res => {
             if (!res || !res.ok) return;
             entry.VisitCount = res.count;
+            if (res.cooldown) {
+                try { localStorage.setItem(note, String(Date.now() - VISIT_COOLDOWN_MS + (res.retryIn || 0))); } catch (e) {}
+                window.dispatchEvent(new CustomEvent('hub:data-changed'));
+                return;
+            }
             const b = syncBase && syncBase.get(k);
             if (b) {
                 const obj = JSON.parse(b.s);

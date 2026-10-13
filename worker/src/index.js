@@ -14,6 +14,10 @@
 
 import { DAY, json, signToken, verifyToken, encrypt, decrypt, bucketOf } from './lib.js';
 import { routeAccounts, resolveAccountAuth } from './accounts.js';
+import { nameKey } from './names.js';
+import { dutyDayNow } from './profile.js';
+
+const VISIT_COOLDOWN_MS = 60 * 1000;
 
 const ROLES = ['user', 'anaesthesia', 'admin', 'owner'];
 const PAGE_ROWS = 1500;
@@ -74,7 +78,7 @@ async function route(request, env, ctx) {
   if (!auth) return json({ error: 'unauthorized' }, 401);
 
   if (path === '/api/sync' && method === 'POST') return sync(request, env, auth);
-  if (path === '/api/visit' && method === 'POST') return visit(request, env, auth);
+  if (path === '/api/visit' && method === 'POST') return visit(request, env, auth, request.headers.get('CF-Connecting-IP') || 'unknown');
   if (path === '/api/secrets' && method === 'GET') return getSecrets(env, auth);
   if (path === '/api/secrets' && method === 'PUT') return putSecrets(request, env, auth);
   if (path === '/api/history' && method === 'GET') return getHistory(env, auth, url);
@@ -390,11 +394,33 @@ function neutralize(jsonText) {
 }
 
 /** Contact-tap counter: an atomic increment so concurrent taps never overwrite each other. */
-async function visit(request, env, auth) {
+/**
+ * Contact-tap counter. One visit per person per resident per minute: Call and WhatsApp count as the
+ * same visit, and refreshing or re-tapping does not add more. "Person" is the account (or the device /
+ * connection for shared-password sessions), so the cooldown holds whatever happens on the phone.
+ */
+async function visit(request, env, auth, ip) {
   let body;
   try { body = await request.json(); } catch { return json({ error: 'bad_request' }, 400); }
   const id = String(body.id || '');
   if (!id) return json({ error: 'bad_request' }, 400);
+  const now = Date.now();
+  const entry = await env.DB.prepare("SELECT hosp, json_extract(data, '$.name') AS name, json_extract(data, '$.VisitCount') AS count, v FROM records WHERE coll = 'sched' AND id = ?")
+    .bind(id).first();
+  if (!entry) return json({ error: 'not_found' }, 404);
+  const who = auth.a ? 'a:' + auth.a : auth.dv ? 'd:' + auth.dv : 'ip:' + ip + ':' + auth.r;
+  const key = `${who}|${entry.hosp}|${nameKey(entry.name)}|${dutyDayNow(now)}`;
+  // Claims the slot only when the last counted visit is over a minute old (atomic).
+  const claimed = await env.DB.prepare(
+    `INSERT INTO visit_cooldown (k, ts) VALUES (?1, ?2)
+     ON CONFLICT (k) DO UPDATE SET ts = excluded.ts WHERE visit_cooldown.ts <= ?3
+     RETURNING ts`
+  ).bind(key, now, now - VISIT_COOLDOWN_MS).first();
+  if (Math.random() < 0.01) await env.DB.prepare('DELETE FROM visit_cooldown WHERE ts < ?').bind(now - DAY).run();
+  if (!claimed) {
+    const last = await env.DB.prepare('SELECT ts FROM visit_cooldown WHERE k = ?').bind(key).first();
+    return json({ ok: true, cooldown: true, count: entry.count || 0, v: entry.v, retryIn: Math.max(0, VISIT_COOLDOWN_MS - (now - (last ? last.ts : now))) });
+  }
   const row = await env.DB.prepare(
     `UPDATE records SET data = json_set(data, '$.VisitCount', COALESCE(json_extract(data, '$.VisitCount'), 0) + 1),
             v = v + 1, updated_at = ?2, updated_by = ?3, wid = NULL

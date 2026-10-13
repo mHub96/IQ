@@ -253,7 +253,6 @@
     // Administrative sector (owner): every owner tool in one place
     // ------------------------------------------------------------------
     function renderAdmin(body) {
-        const hosp = encodeURIComponent((Hub.getActiveHospitalId && Hub.getActiveHospitalId()) || '');
         const groups = [
             ['الحسابات', [
                 ['fa-user-check', 'طلبات الحسابات والموافقات', 'موافقة ورفض وإدارة الحسابات والأجهزة', { href: './account.html#manage' }],
@@ -263,16 +262,12 @@
             ]],
             ['المنظومة', [
                 ['fa-truck-medical', 'نظام خفارات الطوارئ (ER)', 'جداول وتوزيع خفارات الطوارئ', { href: './emergency.html' }],
-                ['fa-calendar-alt', 'المجدول', 'إعداد جداول الخفارات الشهرية', { href: './scheduler.html?hospital=' + hosp }],
-                ['fa-sliders', 'لوحة الإدارة', 'المستشفيات والمقيمون والتخصصات', { href: './admin.html' }],
                 ['fa-plus-circle', 'إضافة مستشفى جديد', 'مستشفى جديد بكامل هيكليته', { fn: 'openAddHospitalModal' }],
                 ['fa-crown', 'مستودع التخصصات العام', 'التخصصات المشتركة لكل المستشفيات', { fn: 'openGlobalSpecialtiesModal' }],
                 ['fa-database', 'النسخ الاحتياطي الشامل', 'تنزيل واستعادة نسخة كاملة', { fn: 'openFullSystemBackupModal' }],
-                ['fa-sync-alt', 'تصفير الإحصائيات', 'تصفير عداد الزيارات والتفاعلات', { fn: 'showResetModal' }],
             ]],
             ['الصلاحيات', [
                 ['fa-lock', 'كلمات المرور المشتركة', 'كلمات مرور المالك والمدراء والمستخدمين', { fn: 'openAllPasswordsModalNav' }],
-                ['fa-users-cog', 'تبديل مستوى المستخدم', 'العمل مؤقتاً كمدير أو مقيم', { fn: 'openRoleSwitcherModal' }],
             ]],
         ];
         body.innerHTML = groups.map(([title, items]) => `<section class="hp-section"><h3>${title}</h3><div class="hp-admin-grid">${items.map(([icon, label, sub, act]) => act.href

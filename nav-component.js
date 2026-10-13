@@ -110,7 +110,7 @@
                     <a href="./signup.html${queryParam}" class="hub-nav-link ${activePageId === 'signup' ? 'active' : ''}">
                         <i class="fas fa-exchange-alt"></i> <span>تبديل الخفارات</span>
                     </a>
-                    ${(isAdmin || isOwner || isCurrentHospAdmin) ? `
+                    ${(!isOwner && (isAdmin || isCurrentHospAdmin)) ? `
                     <a href="./scheduler.html${queryParam}" class="hub-nav-link ${activePageId === 'scheduler' ? 'active' : ''}">
                         <i class="fas fa-calendar-alt"></i> <span>المجدول</span>
                     </a>` : ''}
@@ -118,22 +118,11 @@
 
                 <!-- Right: Role, Theme, Logout & Mobile Toggle -->
                 <div class="hub-nav-right">
-                    <!-- Role Badge -->
-                    <span class="role-badge ${badgeClass}" onclick="handleRoleBadgeClick()" title="${badgeTitle}">
+                    <!-- Role Badge (the owner's tools are in the account panel: Administrative Sector) -->
+                    ${isOwner ? '' : `<span class="role-badge ${badgeClass}" onclick="handleRoleBadgeClick()" title="${badgeTitle}">
                         <i class="fas ${badgeIcon}"></i>
                         <span>${badgeText}</span>
-                    </span>
-
-                    ${isOwner ? `
-                    <!-- Owner Emergency Hub Button -->
-                    <a href="./emergency.html" class="hub-nav-btn owner-emergency-btn" aria-label="خفارات الطوارئ (ER)" title="نظام خفارات الطوارئ والأقسام الخافرة" style="color:#e11d48; border-color:rgba(225,29,72,0.35); background:rgba(225,29,72,0.08);">
-                        <i class="fas fa-truck-medical"></i>
-                    </a>
-                    <!-- Owner Edit Passwords Button -->
-                    <button type="button" class="hub-nav-btn owner-key-btn" onclick="openAllPasswordsModalNav()" aria-label="تعديل كلمات المرور" title="تعديل كلمات المرور (المالك)" style="color:#d97706; border-color:rgba(217,119,6,0.35); background:rgba(217,119,6,0.08);">
-                        <i class="fas fa-key"></i>
-                    </button>
-                    ` : ''}
+                    </span>`}
 
                     <!-- Notifications + personal account (filled by hub-accounts.js) -->
                     <span data-hacc-slot></span>
@@ -397,7 +386,7 @@
                     <i class="fas fa-calendar-check"></i>
                     <span>تبديل</span>
                 </a>
-                ${(isAdmin || isOwner || isCurrentHospAdmin) ? `
+                ${(!isOwner && (isAdmin || isCurrentHospAdmin)) ? `
                 <a href="./scheduler.html${queryParam}" class="dock-tab-btn ${activePageId === 'scheduler' ? 'active' : ''}" title="المجدول (صلاحيات الإدارة)">
                     <i class="fas fa-calendar-alt"></i>
                     <span>المجدول</span>

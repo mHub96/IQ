@@ -429,7 +429,7 @@
                 VIEWS.forEach(v => { $('view-' + v).hidden = v !== 'me'; });
                 renderMe(view === 'settings' ? 'settings' : 'profile');
             }
-            if (view === 'manage') { selectTab(hash === 'manage-resets' ? 'resets' : hash === 'manage-comments' ? 'comments' : mg.filter); }
+            if (view === 'manage') { selectTab(hash === 'manage-resets' ? 'resets' : hash === 'manage-comments' ? 'comments' : hash === 'manage-system' && Hub.auth.isOwner() ? 'system' : mg.filter); }
             if (view === 'signup') initSignup();
             if (approver) loadPendingCounts();
             window.scrollTo(0, 0);

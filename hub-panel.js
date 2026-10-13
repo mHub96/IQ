@@ -40,7 +40,7 @@
     // Shell
     // ------------------------------------------------------------------
     async function open(which = 'profile') {
-        tab = ['profile', 'comments', 'settings'].includes(which) ? which : 'profile';
+        tab = ['profile', 'comments', 'settings', 'admin'].includes(which) ? which : 'profile';
         const acc = Hub.auth.getAccount();
         const approver = ['owner', 'admin'].includes(Hub.auth.getRole());
         sheet = A.openSheet(`<header class="hacc-sheet-head hp-head">
@@ -55,14 +55,16 @@
                 ${acc ? `<button type="button" role="tab" data-tab="profile">الملف الشخصي</button>
                 <button type="button" role="tab" data-tab="comments">تعليقاتي</button>` : ''}
                 <button type="button" role="tab" data-tab="settings">الإعدادات</button>
+                ${Hub.auth.isOwner() ? '<button type="button" role="tab" data-tab="admin">القطاع الإداري</button>' : ''}
             </div>
             <div class="hacc-sheet-body hp-body" data-role="body"><div class="hacc-empty">جاري التحميل…</div></div>
             <footer class="hp-foot">
-                ${approver ? '<a class="hacc-btn sm" href="./account.html#manage"><i class="fas fa-user-shield"></i> إدارة الحسابات</a>' : ''}
+                ${approver && !Hub.auth.isOwner() ? '<a class="hacc-btn sm" href="./account.html#manage"><i class="fas fa-user-shield"></i> إدارة الحسابات</a>' : ''}
                 ${!acc ? '<a class="hacc-btn sm primary" href="./account.html#signup">إنشاء حساب شخصي</a>' : ''}
                 <button type="button" class="hacc-btn sm danger" data-act="logout"><i class="fas fa-sign-out-alt"></i> خروج</button>
             </footer>`, { label: 'لوحة الحساب', tall: true });
-        if (!acc) tab = 'settings';
+        if (!acc && tab !== 'admin') tab = 'settings';
+        if (tab === 'admin' && !Hub.auth.isOwner()) tab = acc ? 'profile' : 'settings';
         sheet.querySelector('[data-act="close"]').addEventListener('click', A.closeSheet);
         sheet.querySelector('[data-act="logout"]').addEventListener('click', logout);
         sheet.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => show(b.dataset.tab)));
@@ -75,7 +77,7 @@
         sheet.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === which)));
         const body = sheet.querySelector('[data-role="body"]');
         body.scrollTop = 0;
-        ({ profile: renderProfile, comments: renderComments, settings: renderSettings })[which](body);
+        ({ profile: renderProfile, comments: renderComments, settings: renderSettings, admin: renderAdmin })[which](body);
     }
 
     async function logout() {
@@ -248,6 +250,38 @@
     }
 
     // ------------------------------------------------------------------
+    // Administrative sector (owner): every owner tool in one place
+    // ------------------------------------------------------------------
+    function renderAdmin(body) {
+        const hosp = encodeURIComponent((Hub.getActiveHospitalId && Hub.getActiveHospitalId()) || '');
+        const groups = [
+            ['الحسابات', [
+                ['fa-user-check', 'طلبات الحسابات والموافقات', 'موافقة ورفض وإدارة الحسابات والأجهزة', { href: './account.html#manage' }],
+                ['fa-key', 'طلبات كلمات المرور', 'السماح للأطباء بتغيير كلمات مرورهم', { href: './account.html#manage-resets' }],
+                ['fa-comments', 'مراجعة التعليقات', 'كل التعليقات في كل المستشفيات', { href: './account.html#manage-comments' }],
+                ['fa-layer-group', 'ترقية المراحل السنوية', 'شهر ارتفاع مراحل المقيمين', { href: './account.html#manage-system' }],
+            ]],
+            ['المنظومة', [
+                ['fa-truck-medical', 'نظام خفارات الطوارئ (ER)', 'جداول وتوزيع خفارات الطوارئ', { href: './emergency.html' }],
+                ['fa-calendar-alt', 'المجدول', 'إعداد جداول الخفارات الشهرية', { href: './scheduler.html?hospital=' + hosp }],
+                ['fa-sliders', 'لوحة الإدارة', 'المستشفيات والمقيمون والتخصصات', { href: './admin.html' }],
+                ['fa-plus-circle', 'إضافة مستشفى جديد', 'مستشفى جديد بكامل هيكليته', { fn: 'openAddHospitalModal' }],
+                ['fa-crown', 'مستودع التخصصات العام', 'التخصصات المشتركة لكل المستشفيات', { fn: 'openGlobalSpecialtiesModal' }],
+                ['fa-database', 'النسخ الاحتياطي الشامل', 'تنزيل واستعادة نسخة كاملة', { fn: 'openFullSystemBackupModal' }],
+                ['fa-sync-alt', 'تصفير الإحصائيات', 'تصفير عداد الزيارات والتفاعلات', { fn: 'showResetModal' }],
+            ]],
+            ['الصلاحيات', [
+                ['fa-lock', 'كلمات المرور المشتركة', 'كلمات مرور المالك والمدراء والمستخدمين', { fn: 'openAllPasswordsModalNav' }],
+                ['fa-users-cog', 'تبديل مستوى المستخدم', 'العمل مؤقتاً كمدير أو مقيم', { fn: 'openRoleSwitcherModal' }],
+            ]],
+        ];
+        body.innerHTML = groups.map(([title, items]) => `<section class="hp-section"><h3>${title}</h3><div class="hp-admin-grid">${items.map(([icon, label, sub, act]) => act.href
+            ? `<a class="hp-admin-tile" href="${act.href}"><i class="fas ${icon}"></i><span><b>${label}</b><small>${sub}</small></span></a>`
+            : `<button type="button" class="hp-admin-tile" data-fn="${act.fn}"><i class="fas ${icon}"></i><span><b>${label}</b><small>${sub}</small></span></button>`).join('')}</div></section>`).join('');
+        body.querySelectorAll('[data-fn]').forEach(b => b.addEventListener('click', () => A.adminAction(b.dataset.fn)));
+    }
+
+    // ------------------------------------------------------------------
     // Comments received (all time)
     // ------------------------------------------------------------------
     async function renderComments(body, more = false) {
@@ -314,6 +348,16 @@
                     <button type="button" class="hacc-btn sm primary" data-act="nick-save" disabled>حفظ</button>
                 </div>
                 <div class="hp-hint" data-role="nick-hint">٣–٢٤ حرفاً وأرقام و - _ . بدون مسافات، وغير مستخدم من شخص آخر.</div>
+            </section>
+            <section class="hp-section">
+                <h3>اسم المستخدم</h3>
+                <p class="hacc-muted">الحالي: <b dir="ltr" data-role="uname">@${esc(a.username)}</b></p>
+                <form class="hp-form" data-role="uname-form" novalidate>
+                    <input name="username" dir="ltr" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="24" placeholder="اسم المستخدم الجديد" />
+                    <div class="hp-hint" data-role="uname-hint">٣–٢٤ حرفاً: أحرف إنجليزية صغيرة وأرقام و . و _</div>
+                    <input name="password" type="password" dir="ltr" autocomplete="current-password" placeholder="كلمة المرور الحالية (للتأكيد)" />
+                    <button type="submit" class="hacc-btn primary" disabled>تغيير اسم المستخدم</button>
+                </form>
             </section>
             <section class="hp-section">
                 <h3>الإشعارات</h3>
@@ -393,6 +437,51 @@
         saveBtn.addEventListener('click', async () => {
             saveBtn.disabled = true;
             if (await saveNick({ mode: 'custom', tag: custom.value.trim() }, 'تم حفظ لقبك ✓')) { custom.value = ''; setHint(''); }
+        });
+
+        // Username (unique; checked live)
+        const uf = body.querySelector('[data-role="uname-form"]');
+        const uhint = body.querySelector('[data-role="uname-hint"]');
+        const usave = uf.querySelector('button[type=submit]');
+        let ufree = false;
+        const setU = (t, color = '') => { uhint.textContent = t; uhint.style.color = color; };
+        const checkU = debounce(async () => {
+            const u = uf.username.value.trim().toLowerCase();
+            ufree = false; usave.disabled = true;
+            if (!u) return setU('٣–٢٤ حرفاً: أحرف إنجليزية صغيرة وأرقام و . و _');
+            if (u === (me || a).username) return setU('هذا اسمك الحالي.');
+            if (!/^[a-z0-9][a-z0-9._]{2,23}$/.test(u)) return setU('✗ أحرف إنجليزية صغيرة وأرقام و . و _ فقط (٣ أحرف على الأقل).', 'var(--hacc-danger)');
+            setU('جاري التحقق…');
+            try {
+                const r = await Hub.api('GET', '/api/accounts/username?u=' + encodeURIComponent(u), undefined, { useToken: false, retries: 0 });
+                if (uf.username.value.trim().toLowerCase() !== u) return;
+                ufree = !!r.free;
+                setU(r.free ? '✓ الاسم متاح' : '✗ هذا الاسم مستخدم، اختر اسماً آخر', r.free ? '#059669' : 'var(--hacc-danger)');
+                usave.disabled = !(ufree && uf.password.value);
+            } catch (err) { setU(errorText(err), 'var(--hacc-danger)'); }
+        }, 400);
+        uf.username.addEventListener('input', () => { const v = uf.username.value.toLowerCase().replace(/\s/g, ''); if (v !== uf.username.value) uf.username.value = v; checkU(); });
+        uf.password.addEventListener('input', () => { usave.disabled = !(ufree && uf.password.value); });
+        uf.addEventListener('submit', async e => {
+            e.preventDefault();
+            if (usave.disabled) return;
+            usave.disabled = true;
+            const oldName = (me || a).username, newName = uf.username.value.trim().toLowerCase();
+            try {
+                const [oldKey, newKey] = await Promise.all([Hub.auth.deriveAccountKey(oldName, uf.password.value), Hub.auth.deriveAccountKey(newName, uf.password.value)]);
+                const res = await Hub.api('POST', '/api/accounts/rename', { username: newName, oldKey, newKey }, { retries: 0 });
+                me = { ...me, username: res.username };
+                Hub.auth.refreshAccount({ ...Hub.auth.getAccount(), username: res.username }, Hub.auth.getRole(), Hub.auth.getAdminHospitalIds());
+                body.querySelector('[data-role="uname"]').textContent = '@' + res.username;
+                const head = sheet && sheet.querySelector('.hp-who .hacc-muted span[dir="ltr"]');
+                if (head) head.textContent = '@' + res.username;
+                uf.reset(); setU('');
+                toast('تم تغيير اسم المستخدم ✓ استخدمه في تسجيل الدخول القادم.', 'success');
+            } catch (err) {
+                const code = err && err.data && err.data.error;
+                toast(({ wrong_password: 'كلمة المرور الحالية غير صحيحة.', username_taken: 'هذا الاسم أصبح مستخدماً.', bad_username: 'اسم مستخدم غير صالح.' })[code] || errorText(err), 'error');
+                usave.disabled = false;
+            }
         });
 
         // Push

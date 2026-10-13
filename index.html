@@ -16,7 +16,7 @@
                 if (params.get('portal') === 'true' || params.get('hub') === 'true' || params.get('force') === 'true') {
                     localStorage.setItem('pwa_last_page', './index.html');
                     if (window.history && window.history.replaceState) {
-                        window.history.replaceState({}, document.title, window.location.pathname);
+                        window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
                     }
                     return;
                 }
@@ -1941,10 +1941,19 @@
                 setInterval(updateLiveClock, 1000);
 
                 renderHubDashboard();
+                runAdminActionFromHash();
             } catch (err) {
                 console.error("Hub Init Error:", err);
                 showToast("تعذر تحميل البيانات من السيرفر، جاري استخدام الذاكرة المحلية", "error");
             }
+        }
+
+        /** The account panel's Administrative Sector links here as #admin=<tool> when the tool lives on this page. */
+        function runAdminActionFromHash() {
+            const m = location.hash.match(/^#admin=(\w+)$/);
+            if (!m || !Hub.auth.isOwner() || !window.HubAccounts || !HubAccounts.ADMIN_ACTIONS.includes(m[1])) return;
+            history.replaceState(null, '', location.pathname);
+            if (typeof window[m[1]] === 'function') setTimeout(() => window[m[1]](), 300);
         }
 
         function togglePortalLockPwd() {
@@ -2294,6 +2303,7 @@
 
             if (!pill || !icon || !text) return;
 
+            pill.style.display = isOwner ? 'none' : '';
             if (isOwner) {
                 pill.className = 'ios-role-pill owner';
                 icon.className = 'fas fa-crown';
@@ -2323,7 +2333,7 @@
             // Toggle Admin Scheduler tab in bottom dock
             const schedBtn = document.getElementById('dock-btn-scheduler');
             if (schedBtn) {
-                schedBtn.style.display = (isAdmin || isOwner) ? 'flex' : 'none';
+                schedBtn.style.display = (isAdmin && !isOwner) ? 'flex' : 'none';
             }
 
             // Toggle top logout button visibility
@@ -2418,7 +2428,8 @@
 
             // Toggle Owner Bar & Segment buttons
             const addBtnWrap = document.getElementById('add-hospital-container');
-            if (addBtnWrap) addBtnWrap.style.display = isOwner ? 'flex' : 'none';
+            // The owner's tools live in the account panel (Administrative Sector).
+            if (addBtnWrap) addBtnWrap.style.display = 'none';
 
             const myHospSeg = document.getElementById('seg-btn-my-hosp');
             if (myHospSeg) myHospSeg.style.display = (isAdmin || isOwner) ? 'inline-flex' : 'none';

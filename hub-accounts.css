@@ -377,3 +377,19 @@ body.dark .hacc-identity input:checked + span { color: #0f172a; }
 .hacc-toast.show { opacity: 1; transform: none; }
 .hacc-toast.error { background: var(--hacc-danger); }
 .hacc-toast.success { background: #059669; }
+
+/* ---------- Administrative Sector (owner) ---------- */
+.hp-admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.hp-admin-tile {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px; border-radius: 14px;
+  border: 1px solid var(--hacc-border); background: var(--hacc-surface);
+  color: var(--hacc-text); text-decoration: none; text-align: right;
+  font-family: inherit; cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.hp-admin-tile:active { transform: scale(0.98); }
+@media (hover: hover) { .hp-admin-tile:hover { border-color: var(--hacc-accent); } }
+.hp-admin-tile i { width: 34px; height: 34px; flex: none; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; background: var(--hacc-accent-soft); color: var(--hacc-accent); }
+.hp-admin-tile b { display: block; font-size: 0.82rem; line-height: 1.4; }
+.hp-admin-tile small { display: block; font-size: 0.7rem; color: var(--hacc-muted); line-height: 1.5; margin-top: 2px; }

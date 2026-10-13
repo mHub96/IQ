@@ -42,6 +42,7 @@ export async function routeAccounts(path, method, request, env, auth, url, ctx) 
   switch (`${method} ${path}`) {
     case 'GET /api/accounts/me': return me(env, auth);
     case 'POST /api/accounts/password': return changePassword(request, env, auth);
+    case 'POST /api/accounts/rename': return renameAccount(request, env, auth);
     case 'GET /api/accounts/anon-check': return anonCheck(env, auth, url);
     case 'GET /api/accounts/profile-suggest': return profileSuggest(env, auth);
     case 'POST /api/accounts/profile': return saveProfile(request, env, auth);
@@ -90,12 +91,12 @@ async function issueAccountToken(env, row, deviceId, remember) {
  */
 export async function resolveAccountAuth(env, payload) {
   const row = await env.DB.prepare(
-    `SELECT a.id, a.role, a.hospitals, a.status, a.sess, a.name, a.hosp, a.anon_tag, d.device_id AS dev
+    `SELECT a.id, a.role, a.hospitals, a.status, a.sess, a.name, a.hosp, a.anon_tag, a.sex, a.avatar, d.device_id AS dev
        FROM accounts a LEFT JOIN account_devices d ON d.account_id = a.id AND d.device_id = ?2
       WHERE a.id = ?1`
   ).bind(payload.a, payload.dv || '').first();
   if (!row || row.status !== 'active' || row.sess !== payload.s || !row.dev) return null;
-  return { r: row.role, h: scopeOf(row), e: payload.e, a: row.id, name: row.name, hosp: row.hosp, anon: row.anon_tag, dv: payload.dv };
+  return { r: row.role, h: scopeOf(row), e: payload.e, a: row.id, name: row.name, hosp: row.hosp, anon: row.anon_tag, sex: row.sex, avatar: row.avatar, dv: payload.dv };
 }
 
 function profile(row, stageMonth = 10) {
@@ -469,6 +470,33 @@ async function changePassword(request, env, auth) {
   return json({ ok: true, token, exp });
 }
 
+/**
+ * Body: { username, oldKey, newKey }. The password key is salted with the username, so the browser
+ * re-derives it for the new name; the current password proves the change. Sessions stay valid.
+ */
+async function renameAccount(request, env, auth) {
+  if (!auth.a) return json({ error: 'account_required' }, 403);
+  if (await overLimit(env, 'rename:' + auth.a, 10)) return json({ error: 'rate_limited' }, 429);
+  const body = await readJson(request) || {};
+  const username = String(body.username || '').trim().toLowerCase();
+  if (!USERNAME_RE.test(username)) return json({ error: 'bad_username' }, 400);
+  if (!KEY_RE.test(String(body.newKey || ''))) return json({ error: 'bad_key' }, 400);
+  const row = await env.DB.prepare('SELECT username, pw, salt FROM accounts WHERE id = ?').bind(auth.a).first();
+  if (await sha256b64(row.salt + String(body.oldKey || '')) !== row.pw) return json({ error: 'wrong_password' }, 403);
+  if (username === row.username) return json({ ok: true, username });
+  const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
+  try {
+    await env.DB.batch([
+      env.DB.prepare('UPDATE accounts SET username = ?, pw = ?, salt = ? WHERE id = ?').bind(username, await sha256b64(salt + body.newKey), salt, auth.a),
+      env.DB.prepare('INSERT INTO audit (ts, role, msg, n) VALUES (?, ?, ?, 1)').bind(Date.now(), `${auth.r}:${auth.name}`, `Username ${row.username} -> ${username}`),
+    ]);
+  } catch (err) {
+    if (/accounts\.username|UNIQUE/.test(String(err && err.message))) return json({ error: 'username_taken' }, 409);
+    throw err;
+  }
+  return json({ ok: true, username });
+}
+
 async function removeOwnDevice(request, env, auth) {
   if (!auth.a) return json({ error: 'account_required' }, 403);
   const body = await readJson(request) || {};
@@ -731,12 +759,13 @@ function cleanProfile(p) {
   return { board, specialty, stage, boardYears };
 }
 
-// Option counts per avatar part (must match hub-avatar.js).
-const AVATAR_LIMITS = { s: 7, h: 13, hc: 10, e: 6, ec: 7, b: 6, bc: 10, m: 5, mc: 10, d: 6, dc: 10, n: 4, o: 5, g: 5, t: 6, tc: 8, c: 3, cc: 8, k: 8 };
+// Option counts per avatar part (must match hub-avatar.js, version 2).
+const AVATAR_VERSION = 2;
+const AVATAR_LIMITS = { s: 20, h: 26, hc: 20, e: 21, ec: 20, b: 21, bc: 20, m: 21, mc: 20, d: 21, dc: 20, n: 20, o: 20, g: 21, gc: 20, t: 21, tc: 20, c: 20, cc: 20, k: 20 };
 
 export function cleanAvatar(input) {
   if (!input || typeof input !== 'object') return null;
-  const out = {};
+  const out = { v: AVATAR_VERSION };
   for (const [k, n] of Object.entries(AVATAR_LIMITS)) {
     const v = Math.floor(Number(input[k]));
     out[k] = Number.isFinite(v) && v >= 0 && v < n ? v : 0;
@@ -746,7 +775,11 @@ export function cleanAvatar(input) {
 
 function parseAvatar(text) {
   if (!text) return null;
-  try { return cleanAvatar(JSON.parse(text)); } catch { return null; }
+  try {
+    const a = JSON.parse(text);
+    // Designs from the first avatar version used other option lists: show the default figure instead.
+    return a && a.v === AVATAR_VERSION ? cleanAvatar(a) : null;
+  } catch { return null; }
 }
 
 async function saveAvatar(request, env, auth) {
@@ -1030,7 +1063,10 @@ async function addComment(request, env, auth, ctx) {
   dispatchPush(env, ctx, notes);
   return json({
     ok: true,
-    comment: { cid: ins.results[0].cid, author: anon ? auth.anon : auth.name, anon, body: text, ts: now, mine: true, canEdit: true, canDelete: true, edited: false },
+    comment: {
+      cid: ins.results[0].cid, author: anon ? auth.anon : auth.name, anon, body: text, ts: now, mine: true, canEdit: true, canDelete: true, edited: false,
+      sex: anon ? null : auth.sex, avatar: anon ? null : parseAvatar(auth.avatar),
+    },
   });
 }
 

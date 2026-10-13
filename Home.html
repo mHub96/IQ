@@ -3156,7 +3156,7 @@
             // Admin Reset Button visibility based on dual password role
             const adminResetBtn = document.getElementById('admin-reset-btn');
             if (adminResetBtn) {
-                if (Hub.auth.isAdmin(currentHospital?.id)) adminResetBtn.classList.remove('hidden');
+                if (Hub.auth.isAdmin(currentHospital?.id) && !Hub.auth.isOwner()) adminResetBtn.classList.remove('hidden');
                 else adminResetBtn.classList.add('hidden');
             }
         }
@@ -3193,6 +3193,12 @@
             renderRoster();
             renderTrending();
             updateCountdowns();
+
+            // Opened from the account panel's Administrative Sector.
+            if (location.hash === '#admin=showResetModal' && Hub.auth.isOwner()) {
+                history.replaceState(null, '', location.pathname + location.search);
+                setTimeout(showResetModal, 300);
+            }
 
             // Setup reactive listeners
             window.addEventListener('hub:hospital-switched', () => {

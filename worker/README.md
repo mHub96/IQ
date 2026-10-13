@@ -82,11 +82,18 @@ which is git-ignored):
   every 1st of the level-up month (Iraq time) since, capped at the board length. The owner chooses the month
   (`account.html#manage` -> إعدادات عامة, default October, all hospitals); changing it keeps everyone's
   current stage. The owner can still edit any resident's profile (and sex / hospital) from the account card.
-- **Avatar**: a cartoon figure drawn in SVG by `hub-avatar.js` (no image files): skin, hair type / colour, eyes /
-  pupil colour, eyebrows / colour, moustache and beard / colour (male accounts), nose, mouth, glasses, headwear
-  (cap, beanie, surgical cap, hijab, shemagh) / colour, clothes / colour, background. Stored as a small JSON object
-  of option indexes (`accounts.avatar`, migration 0004); accounts that never chose one get a stable default
-  figure. Shown in the top bar, comments (never on anonymous ones), likes and the management screen.
+- **Avatar** (version 2): a cartoon figure drawn in SVG by `hub-avatar.js` (no image files), every part built on one
+  head template so hair, headwear, beards and glasses fit. 20+ options in every category: skin (20), hair (26 styles,
+  professional to wild / anime) and colour (20), eyes (21) and colour (20), eyebrows (21) and colour, moustache (21) and
+  beard (21) with colour (male accounts), nose (20), mouth (20), glasses (21) and colour, headwear (21, incl. hijab,
+  turban, shemagh) and colour, clothes (20) and colour, background (20). Stored as option indexes with `v: 2`;
+  version-1 designs show the default figure until redesigned.
+- **Username**: users can change it in Settings (unique, checked live). The password key is salted with the
+  username, so the browser re-derives it and the current password confirms the change; sessions stay valid.
+- **Administrative Sector** (owner): the account panel tab that holds every owner tool (accounts, password
+  requests, comments, stage month, ER, scheduler, admin page, add hospital, global specialties, full backup,
+  shared passwords, role switcher, statistics reset). These buttons no longer appear in the bars for the owner;
+  tools that live on another page open there via `#admin=<tool>`.
 - **My comments**: every comment ever written on the resident's duty cards, with totals.
 - **Settings**: light / dark (the toggle moved here from the top bars), anonymous nickname, push
   notifications for this device, devices (unlink any), password.

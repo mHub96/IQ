@@ -660,7 +660,9 @@
                     const res = await Hub.api('POST', '/api/social/comment', { ...card, body: text, anon }, { retries: 0 });
                     ta.value = '';
                     ta.style.height = '';
-                    if (data) { data.comments.push(res.comment); current = 'comments'; render(); updateCounts(); }
+                    const sent = res.comment;
+                    if (!sent.anon && !sent.avatar) { const me = account() || {}; sent.avatar = me.avatar || null; sent.sex = me.sex || null; }
+                    if (data) { data.comments.push(sent); current = 'comments'; render(); updateCounts(); }
                 } catch (err) {
                     toast(errorText(err), 'error');
                 } finally {
@@ -788,6 +790,24 @@
         window.addEventListener('hashchange', openThreadFromHash);
     }
 
+    /** Owner tools that live on the portal page (index.html) or in the shared navigation script. */
+    const ADMIN_PAGES = {
+        openAddHospitalModal: './index.html?portal=true',
+        openGlobalSpecialtiesModal: './index.html?portal=true',
+        openFullSystemBackupModal: './index.html?portal=true',
+        openAllPasswordsModalNav: './index.html?portal=true',
+        openRoleSwitcherModal: './index.html?portal=true',
+        showResetModal: './Home.html',
+    };
+    const ADMIN_ACTIONS = Object.keys(ADMIN_PAGES);
+    function adminAction(fn) {
+        if (!ADMIN_ACTIONS.includes(fn)) return;
+        const run = typeof window[fn] === 'function' ? window[fn]
+            : (fn === 'openRoleSwitcherModal' && typeof window.handleRoleBadgeClick === 'function') ? window.handleRoleBadgeClick : null;
+        if (run) { closeSheet(); setTimeout(() => run(), 280); return; }
+        location.href = ADMIN_PAGES[fn] + '#admin=' + fn;
+    }
+
     function goBack(fallback = './index.html?portal=true') {
         let internal = false;
         try { internal = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) {}
@@ -799,6 +819,8 @@
         navButtons,
         avatarHtml,
         goBack,
+        adminAction,
+        ADMIN_ACTIONS,
         openPanel,
         openSheet,
         closeSheet,

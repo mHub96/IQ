@@ -357,7 +357,7 @@ test('profile: filled in from the roster and ER data, editable, stage levels up 
 });
 
 test('avatar: saved per account, no beard or moustache for female accounts, hidden on anonymous comments', async () => {
-  const cfg = { s: 3, h: 5, hc: 2, e: 1, ec: 4, b: 1, bc: 2, m: 2, mc: 1, d: 3, dc: 1, n: 2, o: 1, g: 1, t: 1, tc: 2, c: 1, cc: 3, k: 4, junk: 9 };
+  const cfg = { v: 2, s: 3, h: 5, hc: 2, e: 1, ec: 4, b: 1, bc: 2, m: 2, mc: 1, d: 3, dc: 1, n: 2, o: 1, g: 1, t: 1, tc: 2, c: 1, cc: 3, k: 4, junk: 9 };
   const a = await call('POST', '/api/accounts/avatar', { token: state.tokA, body: { avatar: cfg } });
   assert.equal(a.data.avatar.d, 3);
   assert.equal(a.data.avatar.junk, undefined, 'unknown keys dropped');
@@ -369,13 +369,30 @@ test('avatar: saved per account, no beard or moustache for female accounts, hidd
   assert.equal(b.data.avatar.m, 0, 'female: no moustache');
   assert.equal((await call('GET', '/api/accounts/me', { token: state.tokA })).data.account.avatar.h, 5);
   const card = { h: hospital.id, d: today(), n: resB.name };
-  await call('POST', '/api/social/comment', { token: state.tokA, body: { ...card, body: 'بالاسم' } });
+  const posted = await call('POST', '/api/social/comment', { token: state.tokA, body: { ...card, body: 'بالاسم' } });
+  assert.equal(posted.data.comment.avatar.h, 5, 'a new comment carries the author avatar right away');
+  assert.equal(posted.data.comment.avatar.v, 2);
   await call('POST', '/api/social/comment', { token: state.tokA, body: { ...card, body: 'مجهول', anon: true } });
   const t = (await call('GET', '/api/social/thread?' + new URLSearchParams(card), { token: state.tokC })).data;
   const named = t.comments.find(c => c.body === 'بالاسم'), anon = t.comments.find(c => c.body === 'مجهول');
   assert.equal(named.avatar.h, 5);
   assert.equal(anon.avatar, null, 'anonymous comments never reveal the avatar');
   assert.equal(anon.sex, null);
+});
+
+test('username: change it with the current password; duplicates refused; sign in with the new name', async () => {
+  const newName = 'renamed_' + RUN;
+  assert.equal((await call('POST', '/api/accounts/rename', { token: state.tokA, body: { username: uB, oldKey: await deriveKey(uA, 'pass-A-1'), newKey: await deriveKey(uB, 'pass-A-1') } })).data.error, 'username_taken');
+  assert.equal((await call('POST', '/api/accounts/rename', { token: state.tokA, body: { username: newName, oldKey: await deriveKey(uA, 'wrong'), newKey: await deriveKey(newName, 'pass-A-1') } })).status, 403);
+  assert.equal((await call('POST', '/api/accounts/rename', { token: state.tokA, body: { username: 'Bad Name!', oldKey: await deriveKey(uA, 'pass-A-1'), newKey: await deriveKey(newName, 'pass-A-1') } })).data.error, 'bad_username');
+  const ok = await call('POST', '/api/accounts/rename', { token: state.tokA, body: { username: newName, oldKey: await deriveKey(uA, 'pass-A-1'), newKey: await deriveKey(newName, 'pass-A-1') } });
+  assert.equal(ok.data.username, newName);
+  assert.equal((await call('GET', '/api/accounts/me', { token: state.tokA })).data.account.username, newName, 'still signed in');
+  assert.equal((await accountLogin(uA, 'pass-A-1', DEV.a1)).success, false, 'old name no longer works');
+  const relog = await accountLogin(newName, 'pass-A-1', DEV.a1);
+  assert.equal(relog.success, true);
+  state.tokA = relog.token;
+  assert.equal((await call('GET', '/api/accounts/username?u=' + uA)).data.free, true, 'old name is free again');
 });
 
 test('push: public key, subscription validation, one subscription per device', async () => {

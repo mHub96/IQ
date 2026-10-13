@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>جدول الخفارات الشهري · Monthly Duty Schedule 🇮🇶</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = { darkMode: 'class' };
-    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="./nav-component.css" />
+    <link rel="stylesheet" href="./hub-accounts.css" />
 
     <style>
         :root {
@@ -866,7 +865,8 @@
             top: -2px;
             right: 2px;
             box-shadow: 0 0 6px #10b981;
-            animation: ecgPulse 2s infinite;
+            /* No animation: the old `ecgPulse` name had no keyframes, so the dot never moved,
+               yet the endless animation kept the page busy on every frame (battery drain). */
         }
 
         /* 4. Mobile Body Specialty Cells */
@@ -977,6 +977,7 @@
             .matrix-table-container { border: 1px solid #000; }
         }
     </style>
+    <link rel="stylesheet" href="./tailwind.css" />
 </head>
 <body class="light">
 
@@ -1131,6 +1132,7 @@
     <!-- Scripts -->
     <script src="./hub-sync.js"></script>
     <script src="./hub-core.js"></script>
+    <script src="./hub-accounts.js"></script>
     <script src="./nav-component.js"></script>
 
     <script>

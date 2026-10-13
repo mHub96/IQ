@@ -67,9 +67,13 @@
             badgeText = isGlobal ? '💉 مقيم التخدير العام' : ((adminHospName && adminHospName !== 'جميع المستشفيات') ? `💉 مقيم تخدير (${adminHospName})` : '💉 مقيم تخدير (العناية)');
             badgeTitle = isGlobal ? 'صلاحية تعديل موقف أسرة العناية المركزة لكافة المستشفيات مفعلة' : 'صلاحية تعديل موقف أسرة العناية المركزة مفعلة (اضغط للترقية)';
         } else if (isLoggedIn) {
+            const account = window.Hub.auth.getAccount ? window.Hub.auth.getAccount() : null;
             badgeClass = 'user';
             badgeIcon = 'fa-user';
-            badgeText = 'مستخدم عادي';
+            // Personal accounts show the doctor's own name (escaped: it is user-supplied text).
+            badgeText = account && window.HubAccounts
+                ? window.HubAccounts.esc(String(account.name || '').replace(/^د\.?\s*/, '').split(/\s+/).slice(0, 2).join(' '))
+                : 'مستخدم عادي';
             badgeTitle = 'حساب مستخدم عادي (اضغط للترقية إلى صلاحيات الإدارة أو المالك)';
         }
 
@@ -130,6 +134,9 @@
                         <i class="fas fa-key"></i>
                     </button>
                     ` : ''}
+
+                    <!-- Notifications + personal account (filled by hub-accounts.js) -->
+                    <span data-hacc-slot></span>
 
                     <!-- Theme Toggle -->
                     <button type="button" class="hub-nav-btn" onclick="toggleThemeNav()" aria-label="تبديل الوضع الليلي" title="تبديل الوضع">

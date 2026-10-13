@@ -1,5 +1,10 @@
 # Hospital Hub API (Cloudflare Worker + D1)
 
+> **Beta repository.** This copy deploys as Worker `hosp-hub-api-beta` and site `hosp-hub-beta.pages.dev`,
+> both on the **same D1 database as the live site** (data is shared; duty edits made in the beta are real).
+> The beta adds personal accounts, notifications and likes / comments in new tables only
+> (`migrations/0002_accounts.sql`), which the live Worker never touches.
+
 The website (GitHub Pages) stores all shared data here instead of in `hub-data.json`.
 
 - **Worker:** `https://hosp-hub-api.mrjuniversity.workers.dev` (`src/index.js`)
@@ -39,7 +44,43 @@ which is git-ignored):
 |---|---|
 | `SESSION_KEY` | signs login tokens |
 | `PW_KEY` | base64 AES-256 key that encrypts passwords in D1 — **losing it means resetting all passwords** |
-| `BRIDGE_KEY` | used only by the former GitHub bridge; safe to delete (`npx wrangler secret delete BRIDGE_KEY`) |
+
+## Personal accounts
+
+- **Sign-up** (`account.html#signup`): hospital + real name + phone are checked live against the roster
+  (`POST /api/accounts/check`). The phone must belong to a resident of that hospital and the first two names must
+  match, ignoring titles, hamza / ta marbuta / alef maqsura variants and diacritics. The answer never says which
+  part failed, and the endpoint is rate-limited. A resident can have only one live account.
+- **Approval**: new accounts stay `pending` until the owner or an admin of that hospital approves them
+  (`account.html#manage`, or from the bell). Admins can approve / reject / disable plain user accounts of their
+  own hospitals; only the owner assigns roles (user / anaesthesia / admin / owner) and their hospitals. Role
+  changes apply on the account's next request (the token only identifies the account).
+- **Passwords** never reach the server: the browser sends PBKDF2-SHA256(password, `hosp-hub/v1/<username>`,
+  310 000 rounds) and the server stores SHA-256(random salt || that key). Changing the password or disabling the
+  account signs it out everywhere (`sess` counter).
+- **Forgot password**: the user asks (username + phone), an approver allows it, and within 3 days the user sets a
+  new password on the same page.
+- The shared role passwords keep working during the move; `/api/revoke-sessions` signs out shared-password
+  sessions only.
+- **First run**: sign in with the shared owner password, create your own account, approve it in
+  `account.html#manage` and give it the owner role. From then on the bell shows new requests.
+
+## Notifications, likes and comments
+
+- A duty card is `duty:<hospital>:<YYYY-MM-DD>:<normalised name>`. The server normalises names, so spelling
+  variants of one resident share one card, and the resident's account (matched by name) is notified.
+- Notifications are grouped per card ("X and 3 others liked ..."), polled every minute while a page is open,
+  and shown as a number on the installed app icon where the phone supports it.
+- Anonymous comments carry a nickname that is stable within one card and different across cards. Only the
+  owner sees who wrote an anonymous comment (for moderation). Authors, the owner and the hospital's admins can
+  delete comments.
+
+| Endpoint | Who |
+|---|---|
+| `POST /api/accounts/check`, `GET /api/accounts/username`, `POST /api/accounts/signup`, `POST /api/accounts/login`, `POST /api/accounts/forgot`, `POST /api/accounts/reset`, `GET /api/social` | anyone (rate-limited) |
+| `GET /api/accounts/me`, `GET /api/notifications`, `POST /api/notifications/seen`, `GET /api/social/thread` | signed in |
+| `POST /api/accounts/password`, `POST /api/social/like`, `POST /api/social/comment`, `POST /api/social/comment/delete` | personal accounts (delete: also owner / hospital admins) |
+| `GET /api/accounts?filter=pending\|resets\|active\|all`, `POST /api/accounts/decide` | owner, hospital admins |
 
 ## Everyday operations
 
@@ -51,7 +92,7 @@ npx wrangler d1 export hosp-hub --remote --output backup.sql # full backup
 npx wrangler d1 time-travel info hosp-hub                    # point-in-time restore info
 ```
 
-- **Sign everybody out** (e.g. after changing leaked passwords): as owner, `POST /api/revoke-sessions`
+- **Sign everybody out** of shared-password sessions (e.g. after changing leaked passwords): as owner, `POST /api/revoke-sessions`
   (in the browser console on the site: `fetch(Hub.CONFIG.apiBase + '/api/revoke-sessions', {method:'POST', headers:{Authorization:'Bearer ' + JSON.parse(localStorage.hospital_hub_api_token).token}})`).
 - **Undo a change:** `GET /api/history?coll=<coll>&id=<id>` (owner) lists previous versions of a record.
 - **ER conflict copies:** when two devices had different ER schedules, the other version is kept as
@@ -61,11 +102,14 @@ npx wrangler d1 time-travel info hosp-hub                    # point-in-time res
 
 ```sh
 npx wrangler dev --port 8787                                   # in worker/, uses .dev.vars
+npx wrangler d1 execute hosp-hub --local --file schema.sql
+npx wrangler d1 execute hosp-hub --local --file migrations/0002_accounts.sql
 npx wrangler d1 execute hosp-hub --local --file .local/import.sql
 # tests read a private snapshot from worker/.local/test-hub-data.json (or HUB_DATA=<path>)
 node --test worker/test/sync.test.mjs                           # from the repo root
 node --test --test-concurrency=1 worker/test/api.test.mjs       # needs a fresh import
 node --test --test-concurrency=1 worker/test/client.test.mjs    # needs a fresh import
+node --test --test-concurrency=1 worker/test/accounts.test.mjs  # accounts, approvals, likes, comments
 ```
 
 `node worker/scripts/build-import.mjs <snapshot.json>` turns a database snapshot (same format as the

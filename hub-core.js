@@ -12,7 +12,7 @@
     // ============================================================
     // Data lives in Cloudflare D1 behind the hosp-hub-api Worker (see worker/).
     // `localStorage.hub_api_base` overrides the endpoint for local testing.
-    const DEFAULT_API_BASE = 'https://hosp-hub-api.mrjuniversity.workers.dev';
+    const DEFAULT_API_BASE = 'https://hosp-hub-api-beta.mrjuniversity.workers.dev';
     const CONFIG = {
         apiBase: (() => {
             try { return (localStorage.getItem('hub_api_base') || DEFAULT_API_BASE).replace(/\/+$/, ''); }
@@ -33,6 +33,7 @@
     const SESSION_REMEMBER_KEY = 'hospital_hub_session_remember';
     const SESSION_ADMIN_HOSPITALS_KEY = 'hospital_hub_session_admin_hospitals';
     const API_TOKEN_KEY = 'hospital_hub_api_token';
+    const ACCOUNT_KEY = 'hospital_hub_account';
     const ER_SYNC_KEY = 'hospital_hub_er_synced';
     const THEME_KEY = 'hospital_hub_theme';
 
@@ -3314,6 +3315,28 @@
     // ============================================================
     let pendingToken = null;
 
+    /**
+     * Personal-account passwords are stretched on the device (PBKDF2-SHA256, 310 000 rounds,
+     * salted with the username) and only the derived key is sent to the server.
+     */
+    async function deriveAccountKey(username, password) {
+        const enc = new TextEncoder();
+        const base = await crypto.subtle.importKey('raw', enc.encode(String(password)), 'PBKDF2', false, ['deriveBits']);
+        const bits = await crypto.subtle.deriveBits(
+            { name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode('hosp-hub/v1/' + String(username).trim().toLowerCase()), iterations: 310000 },
+            base, 256);
+        let s = '';
+        new Uint8Array(bits).forEach(b => { s += String.fromCharCode(b); });
+        return btoa(s);
+    }
+
+    function storeAccount(account) {
+        try {
+            if (account) localStorage.setItem(ACCOUNT_KEY, JSON.stringify(account));
+            else localStorage.removeItem(ACCOUNT_KEY);
+        } catch (e) {}
+    }
+
     const auth = {
         /**
          * Checks a password with the server. Returns a Promise of
@@ -3357,10 +3380,59 @@
 
             const res = await this.verifyPassword(pwd, roleHint, true);
             if (res.success) {
+                storeAccount(null);
                 this.saveSession(res.role, '', remember, res.adminHospitals);
             }
             return res;
         },
+
+        /** Sign in with a personal account. Resolves to { success, role, account } or { success: false, error, status }. */
+        async accountLogin(username, password, remember = true) {
+            const user = String(username || '').trim().toLowerCase();
+            if (!user || !password) return { success: false, error: 'الرجاء إدخال اسم المستخدم وكلمة المرور' };
+            try {
+                const key = await deriveAccountKey(user, password);
+                const res = await api('POST', '/api/accounts/login', { username: user, key, remember }, { useToken: false, retries: 1 });
+                if (res && res.success) {
+                    pendingToken = { token: res.token, exp: res.exp };
+                    storeAccount(res.account);
+                    this.saveSession(res.role, '', remember, res.adminHospitals || []);
+                    return { success: true, role: res.role, account: res.account };
+                }
+                return { success: false, error: (res && res.error) || 'اسم المستخدم أو كلمة المرور غير صحيحة', status: res && res.status };
+            } catch (err) {
+                if (err instanceof ApiError && err.data && err.data.error) return { success: false, error: err.data.error };
+                return { success: false, error: 'تعذر الاتصال بالخادم. تحقق من الاتصال بالإنترنت وحاول مجدداً.' };
+            }
+        },
+
+        /** The signed-in personal account (null for shared-password sessions and guests). */
+        getAccount() {
+            if (!this.checkSession()) return null;
+            try { return JSON.parse(localStorage.getItem(ACCOUNT_KEY) || 'null'); } catch (e) { return null; }
+        },
+
+        /**
+         * Applies a fresh profile from the server (role changes take effect without signing in again).
+         * Returns true when the role or hospitals changed.
+         */
+        refreshAccount(account, role, adminHospitals) {
+            if (!account) return false;
+            const before = localStorage.getItem(SESSION_ROLE_KEY) + '|' + localStorage.getItem(SESSION_ADMIN_HOSPITALS_KEY);
+            storeAccount(account);
+            localStorage.setItem(SESSION_ROLE_KEY, role);
+            localStorage.setItem(SESSION_ADMIN_HOSPITALS_KEY, JSON.stringify(adminHospitals || []));
+            const changed = before !== role + '|' + JSON.stringify(adminHospitals || []);
+            if (changed) window.dispatchEvent(new CustomEvent('hub:auth-changed', { detail: { role, adminHospitals } }));
+            return changed;
+        },
+
+        /** Keeps this device signed in after the server issued a new token (e.g. password change). */
+        replaceToken(token, exp) {
+            storeApiToken(token, exp);
+        },
+
+        deriveAccountKey,
 
         saveSession(role, password = '', remember = true, adminHospitals = null) {
             localStorage.setItem(SESSION_ROLE_KEY, role);
@@ -3400,7 +3472,9 @@
             if (!role || !ts || isNaN(ts)) return false;
 
             const isRemembered = localStorage.getItem(SESSION_REMEMBER_KEY) === 'true';
-            const maxAge = isRemembered ? (7 * 24 * 60 * 60 * 1000) : (24 * 60 * 60 * 1000);
+            // Personal accounts stay signed in for 30 days (the server token decides); shared passwords 7.
+            const rememberedDays = localStorage.getItem(ACCOUNT_KEY) ? 30 : 7;
+            const maxAge = isRemembered ? (rememberedDays * 24 * 60 * 60 * 1000) : (24 * 60 * 60 * 1000);
 
             if (Date.now() - ts > maxAge) {
                 this.logout();
@@ -3520,6 +3594,7 @@
             localStorage.removeItem(SESSION_REMEMBER_KEY);
             localStorage.removeItem(SESSION_ADMIN_HOSPITALS_KEY);
             storeApiToken(null);
+            storeAccount(null);
             detachSecrets();
             if (hadSession) clearLocalData();
             if (hadSession) {
@@ -3534,6 +3609,7 @@
                 pendingToken = null;
                 return { success: false, error: res.error || 'كلمة مرور غير صحيحة' };
             }
+            storeAccount(null);
             this.saveSession(res.role, '', true, res.adminHospitals);
             return res;
         },
@@ -3583,6 +3659,9 @@
     // ============================================================
     window.Hub = {
         CONFIG,
+        /** Authenticated call to the API: Hub.api('GET', '/api/...', body?, { useToken, retries }). */
+        api,
+        ApiError,
         loadDatabase,
         saveDatabase,
         er: {

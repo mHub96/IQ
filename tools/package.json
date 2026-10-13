@@ -1,0 +1,11 @@
+{
+  "name": "hosp-hub-tools",
+  "private": true,
+  "description": "Build step for the website's CSS (Tailwind compiled ahead of time instead of in the browser).",
+  "scripts": {
+    "css": "tailwindcss -c tailwind.config.js -i tailwind.input.css -o ../tailwind.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17"
+  }
+}

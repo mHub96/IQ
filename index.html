@@ -57,15 +57,12 @@
     </script>
     <script src="./pwa.js"></script>
     
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class'
-        };
-    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="./nav-component.css" />
+    <link rel="stylesheet" href="./hub-accounts.css" />
 
     <style>
         :root {
@@ -1165,6 +1162,7 @@
             opacity: 0.7;
         }
     </style>
+    <link rel="stylesheet" href="./tailwind.css" />
 </head>
 <body class="light">
 
@@ -1181,9 +1179,24 @@
             <h2 class="text-lg font-black text-slate-900 dark:text-white mb-1">🔐 بوابة المستشفيات التعليمية</h2>
             <p class="text-xs text-slate-500 dark:text-slate-400 mb-5">منظومة الخفارات وإدارة الأطباء المقيمين</p>
             
-            <form id="lock-form" onsubmit="event.preventDefault(); handleHubLogin();" class="space-y-3">
+            <!-- Personal account (default) -->
+            <form id="account-lock-form" onsubmit="event.preventDefault(); handleAccountLogin();" class="space-y-3">
+                <input type="text" id="account-user-input" class="hub-input" placeholder="اسم المستخدم" dir="ltr" autofocus autocomplete="username" autocapitalize="none" spellcheck="false" style="text-align:center;" />
+                <input type="password" id="account-pass-input" class="hub-input" placeholder="كلمة المرور" dir="ltr" autocomplete="current-password" style="text-align:center;" />
+                <button type="submit" id="account-login-btn" class="ios-btn primary w-full justify-center">
+                    <i class="fas fa-arrow-left ml-1"></i> دخول
+                </button>
+                <div style="display:flex; justify-content:space-between; gap:8px; font-size:0.78rem; font-weight:800;">
+                    <a href="./account.html#signup" style="color:var(--hacc-accent);">إنشاء حساب جديد</a>
+                    <a href="./account.html#forgot" style="color:var(--hacc-accent);">نسيت كلمة المرور؟</a>
+                </div>
+                <button type="button" onclick="toggleSharedLogin(true)" style="background:none; border:0; color:#94a3b8; font-size:0.74rem; font-weight:700; cursor:pointer; text-decoration:underline;">الدخول بكلمة المرور المشتركة (مؤقتاً)</button>
+            </form>
+
+            <!-- Shared password (kept during the move to personal accounts) -->
+            <form id="lock-form" onsubmit="event.preventDefault(); handleHubLogin();" class="space-y-3" hidden>
                 <div class="relative w-full">
-                    <input type="password" id="password-input" class="hub-input text-center text-xl font-mono tracking-widest" placeholder="•••••" maxlength="30" autofocus style="padding-left:44px; padding-right:44px;" />
+                    <input type="password" id="password-input" class="hub-input text-center text-xl font-mono tracking-widest" placeholder="•••••" maxlength="30" style="padding-left:44px; padding-right:44px;" />
                     <button type="button" onclick="togglePortalLockPwd()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm p-2" aria-label="عرض أو إخفاء كلمة المرور">
                         <i class="fas fa-eye" id="portal-lock-eye-icon"></i>
                     </button>
@@ -1191,12 +1204,13 @@
                 <button type="submit" id="login-btn" class="ios-btn primary w-full justify-center">
                     <i class="fas fa-arrow-left ml-1"></i> دخول إلى النظام
                 </button>
+                <button type="button" onclick="toggleSharedLogin(false)" style="background:none; border:0; color:#94a3b8; font-size:0.74rem; font-weight:700; cursor:pointer; text-decoration:underline;">العودة إلى الدخول بالحساب الشخصي</button>
             </form>
             <p id="lock-error" class="text-rose-500 text-xs mt-2 min-h-[20px]"></p>
             
             <label class="inline-flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 cursor-pointer mt-2">
                 <input type="checkbox" id="remember-me" checked class="w-4 h-4 accent-teal-600 rounded" />
-                تذكر تسجيل الدخول (7 أيام)
+                تذكر تسجيل الدخول
             </label>
             <div class="footer-credit mt-4">Dr. Mohammed Riyadh · Iraq</div>
         </div>
@@ -1227,6 +1241,9 @@
             <button type="button" onclick="toggleThemeInstant()" class="ios-icon-btn" title="تبديل المظهر النهاري / الليلي" aria-label="Toggle Theme">
                 <i class="fas fa-moon" id="top-theme-icon"></i>
             </button>
+
+            <!-- Notifications + personal account (filled by hub-accounts.js) -->
+            <span data-hacc-slot></span>
 
             <!-- Role Badge -->
             <div id="top-role-pill" class="ios-role-pill user" onclick="openRoleSwitcherModal()" title="انقر لتبديل مستوى المستخدم">
@@ -1880,6 +1897,7 @@
     <!-- Scripts -->
     <script src="./hub-sync.js"></script>
     <script src="./hub-core.js"></script>
+    <script src="./hub-accounts.js"></script>
     <script src="./nav-component.js"></script>
     <script>
         // ============================================================
@@ -1948,6 +1966,40 @@
             pwdInput.type = isPassword ? 'text' : 'password';
             if (eyeIcon) {
                 eyeIcon.className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
+            }
+        }
+
+        function toggleSharedLogin(shared) {
+            document.getElementById('lock-form').hidden = !shared;
+            document.getElementById('account-lock-form').hidden = shared;
+            document.getElementById('lock-error').textContent = '';
+            document.getElementById(shared ? 'password-input' : 'account-user-input').focus();
+        }
+
+        async function handleAccountLogin() {
+            const user = document.getElementById('account-user-input').value.trim();
+            const pass = document.getElementById('account-pass-input').value;
+            const remember = document.getElementById('remember-me').checked;
+            const errorEl = document.getElementById('lock-error');
+            const btn = document.getElementById('account-login-btn');
+            if (!user || !pass) {
+                errorEl.textContent = 'الرجاء إدخال اسم المستخدم وكلمة المرور';
+                return;
+            }
+            errorEl.textContent = 'جاري التحقق...';
+            btn.disabled = true;
+            const res = await Hub.auth.accountLogin(user, pass, remember);
+            btn.disabled = false;
+            if (res && res.success) {
+                errorEl.textContent = '';
+                document.getElementById('account-pass-input').value = '';
+                document.getElementById('lock-screen').classList.add('hidden');
+                updateTopRoleBadge();
+                renderHubDashboard();
+                showToast(`أهلاً ${res.account ? res.account.name : ''} 👋`, 'success');
+            } else {
+                errorEl.textContent = res?.error || 'اسم المستخدم أو كلمة المرور غير صحيحة';
+                document.getElementById('account-pass-input').select();
             }
         }
 

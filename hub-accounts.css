@@ -1,0 +1,253 @@
+/* Accounts, notifications, likes and comments. Self-contained (no Tailwind). */
+:root {
+  --hacc-accent: #0f766e;
+  --hacc-accent-soft: rgba(15, 118, 110, 0.1);
+  --hacc-bg: #ffffff;
+  --hacc-surface: #f1f5f9;
+  --hacc-border: rgba(148, 163, 184, 0.35);
+  --hacc-text: #0f172a;
+  --hacc-muted: #64748b;
+  --hacc-like: #e11d48;
+  --hacc-danger: #dc2626;
+  --hacc-shadow: 0 -12px 40px rgba(15, 23, 42, 0.18);
+}
+html.dark, body.dark {
+  --hacc-accent: #d4af37;
+  --hacc-accent-soft: rgba(212, 175, 55, 0.12);
+  --hacc-bg: #0f172a;
+  --hacc-surface: #1e293b;
+  --hacc-border: rgba(148, 163, 184, 0.2);
+  --hacc-text: #f1f5f9;
+  --hacc-muted: #94a3b8;
+  --hacc-shadow: 0 -12px 40px rgba(0, 0, 0, 0.5);
+}
+
+html.hacc-no-scroll, html.hacc-no-scroll body { overflow: hidden; }
+
+/* ---------- Nav buttons ---------- */
+[data-hacc-slot] { display: contents; }
+.hacc-nav-btn {
+  position: relative;
+  width: 36px; height: 36px;
+  flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--hacc-border);
+  background: var(--hacc-accent-soft);
+  color: var(--hacc-accent);
+  font: 800 0.95rem/1 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.hacc-nav-btn:active { transform: scale(0.92); }
+.hacc-nav-account.has-account { background: var(--hacc-accent); color: #fff; }
+body.dark .hacc-nav-account.has-account { color: #0f172a; }
+.hacc-bell-count {
+  position: absolute; top: -4px; left: -4px;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 9px;
+  background: var(--hacc-like); color: #fff;
+  font: 800 0.65rem/18px system-ui, sans-serif;
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--hacc-bg);
+}
+.hacc-bell-count[hidden] { display: none; }
+
+/* ---------- Bottom sheet ---------- */
+.hacc-sheet-backdrop {
+  position: fixed; inset: 0; z-index: 10000;
+  background: rgba(15, 23, 42, 0);
+  display: flex; align-items: flex-end; justify-content: center;
+  transition: background 0.25s ease;
+}
+.hacc-sheet-backdrop.open { background: rgba(15, 23, 42, 0.45); }
+.hacc-sheet {
+  width: 100%; max-width: 560px;
+  max-height: min(86vh, 86dvh);
+  display: flex; flex-direction: column;
+  background: var(--hacc-bg); color: var(--hacc-text);
+  border-radius: 22px 22px 0 0;
+  box-shadow: var(--hacc-shadow);
+  transform: translateY(100%);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  padding-bottom: env(safe-area-inset-bottom);
+  font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  direction: rtl; text-align: right;
+}
+.hacc-sheet-backdrop.open .hacc-sheet { transform: translateY(0); }
+@media (min-width: 640px) {
+  .hacc-sheet-backdrop { align-items: center; }
+  .hacc-sheet { border-radius: 22px; max-height: 80vh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hacc-sheet, .hacc-sheet-backdrop { transition: none; }
+}
+.hacc-sheet-grip { width: 100%; padding: 10px 0 4px; display: flex; justify-content: center; touch-action: none; cursor: grab; }
+.hacc-sheet-grip::before { content: ''; width: 42px; height: 5px; border-radius: 3px; background: var(--hacc-border); }
+.hacc-sheet-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 4px 18px 12px;
+  border-bottom: 1px solid var(--hacc-border);
+}
+.hacc-sheet-head h2 { margin: 0; font-size: 1.05rem; font-weight: 800; }
+.hacc-sheet-body { overflow-y: auto; overscroll-behavior: contain; padding: 10px 14px 16px; flex: 1; -webkit-overflow-scrolling: touch; }
+.hacc-center { text-align: center; padding: 18px 20px 26px; }
+.hacc-center h2 { font-size: 1.05rem; margin: 8px 0; }
+.hacc-big-icon { font-size: 2.4rem; }
+.hacc-muted { color: var(--hacc-muted); font-size: 0.8rem; line-height: 1.6; }
+.hacc-empty { text-align: center; color: var(--hacc-muted); padding: 28px 10px; font-size: 0.85rem; }
+.hacc-row { display: flex; gap: 10px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+
+.hacc-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 44px; padding: 0 18px;
+  border-radius: 12px;
+  border: 1px solid var(--hacc-border);
+  background: var(--hacc-surface); color: var(--hacc-text);
+  font: 700 0.88rem/1 inherit; font-family: inherit;
+  text-decoration: none; cursor: pointer;
+}
+.hacc-btn.primary { background: var(--hacc-accent); border-color: var(--hacc-accent); color: #fff; }
+body.dark .hacc-btn.primary { color: #0f172a; }
+.hacc-btn.sm { min-height: 34px; padding: 0 12px; font-size: 0.78rem; }
+.hacc-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.hacc-link { background: none; border: 0; padding: 4px; color: var(--hacc-accent); font: 700 0.78rem inherit; font-family: inherit; cursor: pointer; }
+.hacc-link.danger { color: var(--hacc-danger); }
+.hacc-icon-btn { width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--hacc-surface); color: var(--hacc-muted); font-size: 1rem; cursor: pointer; flex: none; }
+.hacc-chip { display: inline-block; padding: 1px 7px; border-radius: 999px; background: var(--hacc-accent-soft); color: var(--hacc-accent); font-size: 0.66rem; font-weight: 800; vertical-align: middle; }
+
+/* ---------- Notifications ---------- */
+.hacc-notif {
+  width: 100%;
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 12px 10px; margin: 2px 0;
+  border: 0; border-radius: 14px;
+  background: transparent; color: inherit;
+  text-align: right; font-family: inherit; cursor: pointer;
+}
+.hacc-notif.unread { background: var(--hacc-accent-soft); }
+.hacc-notif-icon { width: 40px; height: 40px; flex: none; border-radius: 50%; background: var(--hacc-surface); display: flex; align-items: center; justify-content: center; font-size: 1.15rem; }
+.hacc-notif-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.hacc-notif-text { font-size: 0.86rem; line-height: 1.55; font-weight: 600; overflow-wrap: anywhere; }
+.hacc-notif.unread .hacc-notif-text { font-weight: 800; }
+.hacc-notif-time { font-size: 0.72rem; color: var(--hacc-accent); font-weight: 700; }
+.hacc-pending {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; margin-bottom: 8px;
+  border-radius: 14px;
+  background: rgba(217, 119, 6, 0.12); color: #b45309;
+  font-weight: 800; font-size: 0.85rem; text-decoration: none;
+}
+body.dark .hacc-pending { color: #fbbf24; }
+.hacc-pending span:nth-child(2) { flex: 1; }
+.hacc-chevron { font-size: 1.2rem; }
+.hacc-cta { padding: 12px 14px; margin: 4px 0 10px; border-radius: 14px; background: var(--hacc-surface); font-size: 0.8rem; line-height: 1.7; color: var(--hacc-muted); }
+.hacc-cta .hacc-btn { margin-top: 8px; }
+.hacc-cta a:not(.hacc-btn) { color: var(--hacc-accent); font-weight: 800; }
+
+/* ---------- Social bar on roster cards ---------- */
+.hacc-social {
+  width: 100%;
+  margin-top: 8px; padding-top: 6px;
+  border-top: 1px solid var(--hacc-border);
+  font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  position: relative; z-index: 2;
+}
+.hacc-social-summary { display: flex; justify-content: space-between; align-items: center; min-height: 0; }
+.hacc-social-summary:has(.hacc-count:not([hidden])) { min-height: 22px; margin-bottom: 2px; }
+.hacc-count { background: none; border: 0; padding: 2px 4px; color: var(--hacc-muted); font: 600 0.74rem inherit; font-family: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+.hacc-count[hidden] { display: none; }
+.hacc-heart-dot { display: inline-flex; width: 18px; height: 18px; border-radius: 50%; align-items: center; justify-content: center; background: var(--hacc-like); color: #fff; font-size: 0.62rem; }
+.hacc-social-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.hacc-react {
+  min-height: 36px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: 0; border-radius: 10px;
+  background: transparent; color: var(--hacc-muted);
+  font: 700 0.8rem inherit; font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.hacc-react:active { background: var(--hacc-surface); }
+@media (hover: hover) { .hacc-react:hover { background: var(--hacc-surface); } }
+.hacc-react.liked { color: var(--hacc-like); }
+.hacc-heart { display: inline-block; }
+.hacc-heart.pop { animation: hacc-pop 0.35s ease; }
+@keyframes hacc-pop { 0% { transform: scale(1); } 45% { transform: scale(1.45); } 100% { transform: scale(1); } }
+
+/* ---------- Thread ---------- */
+.hacc-tabs { display: flex; gap: 6px; padding: 8px 14px 0; border-bottom: 1px solid var(--hacc-border); }
+.hacc-tabs button {
+  flex: 1; padding: 10px 6px;
+  border: 0; border-bottom: 3px solid transparent;
+  background: none; color: var(--hacc-muted);
+  font: 800 0.85rem inherit; font-family: inherit; cursor: pointer;
+}
+.hacc-tabs button[aria-selected="true"] { color: var(--hacc-accent); border-bottom-color: var(--hacc-accent); }
+.hacc-people, .hacc-comments { list-style: none; margin: 0; padding: 0; }
+.hacc-people li { display: flex; align-items: center; gap: 10px; padding: 8px 4px; }
+.hacc-person-name { flex: 1; font-weight: 700; font-size: 0.88rem; }
+.hacc-avatar {
+  width: 36px; height: 36px; flex: none;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--hacc-accent); color: #fff;
+  font-weight: 800; font-size: 0.9rem;
+}
+body.dark .hacc-avatar { color: #0f172a; }
+.hacc-avatar.anon { background: #475569; color: #fff; }
+.hacc-comments li { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0; }
+.hacc-bubble-wrap { min-width: 0; max-width: calc(100% - 44px); }
+.hacc-bubble { background: var(--hacc-surface); border-radius: 18px; padding: 8px 12px; }
+.hacc-author { font-weight: 800; font-size: 0.8rem; margin-bottom: 2px; }
+.hacc-text { font-size: 0.88rem; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.hacc-meta { display: flex; gap: 10px; align-items: center; padding: 3px 10px 0; font-size: 0.7rem; color: var(--hacc-muted); font-weight: 600; }
+.hacc-reveal { color: #b45309; }
+.hacc-composer { border-top: 1px solid var(--hacc-border); padding: 8px 12px 10px; background: var(--hacc-bg); }
+.hacc-composer[hidden] { display: none; }
+.hacc-identity { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.hacc-identity label { cursor: pointer; }
+.hacc-identity input { position: absolute; opacity: 0; pointer-events: none; }
+.hacc-identity span {
+  display: inline-block; padding: 5px 12px;
+  border-radius: 999px; border: 1px solid var(--hacc-border);
+  font-size: 0.74rem; font-weight: 700; color: var(--hacc-muted);
+}
+.hacc-identity input:checked + span { background: var(--hacc-accent); border-color: var(--hacc-accent); color: #fff; }
+body.dark .hacc-identity input:checked + span { color: #0f172a; }
+.hacc-identity input:focus-visible + span { outline: 2px solid var(--hacc-accent); outline-offset: 2px; }
+.hacc-compose-row { display: flex; gap: 8px; align-items: flex-end; }
+.hacc-compose-row textarea {
+  flex: 1; resize: none;
+  min-height: 42px; max-height: 120px;
+  padding: 10px 14px;
+  border-radius: 21px; border: 1px solid var(--hacc-border);
+  background: var(--hacc-surface); color: var(--hacc-text);
+  font: 500 16px/1.4 inherit; font-family: inherit; /* 16px avoids iOS zoom on focus */
+}
+.hacc-compose-row textarea:focus { outline: none; border-color: var(--hacc-accent); }
+.hacc-send {
+  width: 42px; height: 42px; flex: none;
+  border-radius: 50%; border: 0;
+  background: var(--hacc-accent); color: #fff;
+  font-size: 1rem; cursor: pointer;
+  transform: scaleX(-1);
+}
+.hacc-send:disabled { opacity: 0.5; }
+
+/* ---------- Toasts ---------- */
+#hacc-toasts { position: fixed; top: calc(12px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 10001; display: flex; flex-direction: column; gap: 8px; width: min(92vw, 420px); pointer-events: none; }
+.hacc-toast {
+  padding: 12px 16px; border-radius: 14px;
+  background: #1e293b; color: #fff;
+  font: 700 0.82rem/1.5 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  direction: rtl; text-align: right;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  opacity: 0; transform: translateY(-12px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.hacc-toast.show { opacity: 1; transform: none; }
+.hacc-toast.error { background: var(--hacc-danger); }
+.hacc-toast.success { background: #059669; }

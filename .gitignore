@@ -17,3 +17,6 @@ worker/.dev.vars
 
 # Data lives in Cloudflare D1; never commit data snapshots
 hub-data.json
+
+# Build tools (tailwind CLI)
+tools/node_modules/

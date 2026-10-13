@@ -319,6 +319,10 @@
     function renderSettings(body) {
         const a = me || Hub.auth.getAccount();
         body.innerHTML = `
+            <section class="hp-section" data-role="install-section" hidden>
+                <h3>التطبيق</h3>
+                <div class="hp-line"><span data-role="install-text"></span><button type="button" class="hacc-btn sm primary" data-act="install" hidden>تثبيت</button></div>
+            </section>
             <section class="hp-section">
                 <h3>المظهر</h3>
                 <div class="hp-line"><span>الوضع</span>
@@ -374,6 +378,18 @@
                     <div class="hp-hint" data-role="pw-msg"></div>
                 </form></details>
             </section>` : ''}`;
+
+        // Install the app (Android / desktop: browser prompt; iPhone: Share > Add to Home Screen)
+        const P = window.HubPWA;
+        if (P) {
+            const sec = body.querySelector('[data-role="install-section"]');
+            const txt = body.querySelector('[data-role="install-text"]');
+            const btn = body.querySelector('[data-act="install"]');
+            if (P.installed()) { sec.hidden = false; txt.textContent = 'التطبيق مثبّت على هذا الجهاز ✓'; }
+            else if (P.canPrompt()) { sec.hidden = false; txt.textContent = 'ثبّت التطبيق على الشاشة الرئيسية'; btn.hidden = false; }
+            else if (P.isIos()) { sec.hidden = false; txt.textContent = 'على الآيفون: زر المشاركة ⬆️ ثم «إضافة إلى الشاشة الرئيسية»'; }
+            btn.addEventListener('click', async () => { if (await P.install()) { txt.textContent = 'تم التثبيت ✓'; btn.hidden = true; } });
+        }
 
         // Theme
         const paintTheme = () => body.querySelectorAll('[data-role="theme"] button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.theme === Hub.getTheme())));

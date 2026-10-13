@@ -1,7 +1,7 @@
-// service-worker.js - Hospital Main Hub
+﻿// service-worker.js - Hospital Main Hub
 // Pages and scripts are served network-first so every deploy reaches installed apps on
 // their next launch; the cache is only the offline fallback. API calls are never cached.
-const CACHE_VERSION = 'v3.6.0';
+const CACHE_VERSION = 'v3.7.0';
 const CACHE_NAME = `hospital-hub-${CACHE_VERSION}`;
 const CDN_CACHE = 'hospital-hub-cdn-v1';
 const NETWORK_TIMEOUT_MS = 4000;
@@ -153,7 +153,7 @@ self.addEventListener('fetch', event => {
 self.addEventListener('push', event => {
   let msg = {};
   try { msg = event.data ? event.data.json() : {}; } catch (e) { msg = { title: 'Hosp Hub', body: event.data ? event.data.text() : '' }; }
-  const title = msg.title || 'بوابة المستشفيات';
+  const title = msg.title || 'ط¨ظˆط§ط¨ط© ط§ظ„ظ…ط³طھط´ظپظٹط§طھ';
   event.waitUntil(Promise.all([
     self.registration.showNotification(title, {
       body: msg.body || '',

@@ -88,6 +88,21 @@
     document.body.appendChild(button);
   }
 
+  // Install, offered in the account panel (hub-panel.js settings) on phones.
+  window.HubPWA = {
+    canPrompt: () => !!deferredInstallPrompt,
+    installed: () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true,
+    isIos: () => /iPhone|iPad|iPod/.test(navigator.userAgent),
+    async install() {
+      if (!deferredInstallPrompt) return false;
+      deferredInstallPrompt.prompt();
+      const choice = await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      document.getElementById('pwa-install-button')?.remove();
+      return choice && choice.outcome === 'accepted';
+    },
+  };
+
   window.addEventListener('beforeinstallprompt', event => {
     event.preventDefault();
     deferredInstallPrompt = event;

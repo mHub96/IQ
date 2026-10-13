@@ -7,6 +7,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { dutyDayNow, parseStage, parseBoard } from '../src/profile.js';
+import { nameKey } from '../src/names.js';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const BASE = process.env.API_BASE || 'http://127.0.0.1:8787';
@@ -44,7 +46,13 @@ const phones = new Map();
 for (const r of SOURCE.residents) phones.set(r.phone, (phones.get(r.phone) || 0) + 1);
 const pool = SOURCE.residents.filter(r => (r.hospitals || []).includes(hospital.id) && /^\+?9647\d{9}$/.test(r.phone || '')
   && phones.get(r.phone) === 1 && r.name.replace(/^د\.?\s*/, '').trim().split(/\s+/).length >= 2);
-const [resA, resB, resC] = pool;
+// The ER scheduler's residents (private copy of the live record, optional) for the auto-fill checks.
+const ER_FILE = path.join(root, 'worker', '.local', 'er-state.json');
+const ER = fs.existsSync(ER_FILE) ? JSON.parse(JSON.parse(fs.readFileSync(ER_FILE, 'utf8'))[0].results[0].data).residents : [];
+const erOf = r => ER.find(e => nameKey(e.name) === nameKey(r.name));
+const erUseful = r => { const e = erOf(r); return e && ['arab', 'iraqi'].includes(parseBoard(e.board)) && parseStage(e.stage); };
+const ordered = [...pool.filter(erUseful), ...pool.filter(r => !erUseful(r))];
+const [resA, resB, resC] = ordered;
 const localPhone = p => '0' + p.replace(/\D/g, '').slice(-10);
 
 const uA = `alpha_${RUN}`, uB = `beta_${RUN}`, uC = `gamma_${RUN}`;
@@ -57,10 +65,9 @@ const accountLogin = async (username, password, deviceId) => (await call('POST',
 const signup = async (res, username, password, sex, extra = {}) => call('POST', '/api/accounts/signup', {
   body: { hosp: hospital.id, name: res.name, phone: res.phone, username, key: await deriveKey(username, password), sex, ...extra },
 });
-const today = () => {
-  const d = new Date();
-  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-};
+// The running duty day (Iraq time, from 08:00), as the roster writes dates.
+const today = () => dutyDayNow().split('-').reverse().join('/');
+const yesterday = () => dutyDayNow(Date.now() - 24 * 3600 * 1000).split('-').reverse().join('/');
 
 test('setup', async () => {
   assert.ok(resA && resB && resC, 'three residents found in the snapshot');
@@ -255,8 +262,10 @@ test('comments: anonymous ones show the account nickname to everyone; moderation
   assert.equal(named.data.comment.body, 'شكراً bدكتور/b');
   const anon1 = await call('POST', '/api/social/comment', { token: state.tokA, body: { ...card, body: 'تعليق مجهول', anon: true } });
   assert.equal(anon1.data.comment.author, state.nickA, 'the account nickname');
-  const otherCard = await call('POST', '/api/social/comment', { token: state.tokA, body: { ...card, d: '01/01/2026', body: 'x', anon: true } });
-  assert.equal(otherCard.data.comment.author, state.nickA, 'same nickname on every card');
+  const otherCard = await call('POST', '/api/social/comment', { token: state.tokA, body: { ...card, d: yesterday(), body: 'x', anon: true } });
+  assert.equal(otherCard.status, 409, 'yesterday\'s card is closed');
+  assert.equal(otherCard.data.error, 'duty_closed');
+  assert.equal((await call('POST', '/api/social/like', { token: state.tokA, body: { ...card, d: yesterday(), on: true } })).data.error, 'duty_closed');
   const byC = await call('POST', '/api/social/comment', { token: state.tokC, body: { ...card, body: 'من C', anon: true } });
 
   const seenByB = await call('GET', '/api/social/thread?' + new URLSearchParams(card), { token: state.tokB });
@@ -271,8 +280,25 @@ test('comments: anonymous ones show the account nickname to everyone; moderation
   assert.equal(seenByOwner.data.comments.find(c => c.cid === anon1.data.comment.cid).realName, resA.name);
   assert.ok(seenByOwner.data.comments.every(c => c.canDelete));
 
-  const c = (await call('GET', '/api/notifications', { token: state.tokB })).data.items.find(n => n.type === 'comment' && n.data.d !== '2026-01-01');
+  const c = (await call('GET', '/api/notifications', { token: state.tokB })).data.items.find(n => n.type === 'comment');
   assert.equal(c.data.count, 3);
+
+  // Authors edit their own comment during the duty day; nobody else can.
+  const edited = await call('POST', '/api/social/comment/edit', { token: state.tokA, body: { cid: named.data.comment.cid, body: 'شكراً جزيلاً' } });
+  assert.equal(edited.data.ok, true);
+  assert.equal((await call('POST', '/api/social/comment/edit', { token: state.tokC, body: { cid: named.data.comment.cid, body: 'x' } })).status, 403);
+  const afterEdit = (await call('GET', '/api/social/thread?' + new URLSearchParams(card), { token: state.tokB })).data.comments.find(x => x.cid === named.data.comment.cid);
+  assert.equal(afterEdit.body, 'شكراً جزيلاً');
+  assert.equal(afterEdit.edited, true);
+  assert.equal(afterEdit.canEdit, false, 'not the author');
+  assert.equal((await call('GET', '/api/social/thread?' + new URLSearchParams(card), { token: state.tokA })).data.comments.find(x => x.cid === named.data.comment.cid).canEdit, true);
+
+  // B (the resident on the card) sees every comment received, with totals.
+  const received = await call('GET', '/api/accounts/received', { token: state.tokB });
+  assert.equal(received.data.comments.length, 3);
+  assert.equal(received.data.totals.comments, 3);
+  assert.ok(received.data.comments.every(x => x.realName === undefined), 'nicknames stay anonymous for the resident');
+  assert.ok(received.data.comments.some(x => x.author === state.nickA));
 
   // Moderation feed: owner everywhere, a hospital admin only in its hospital.
   const ownerFeed = await call('GET', '/api/social/recent', { token: state.owner });
@@ -292,6 +318,42 @@ test('comments: anonymous ones show the account nickname to everyone; moderation
 
   assert.equal((await call('POST', '/api/notifications/seen', { token: state.tokB, body: {} })).data.ok, true);
   assert.equal((await call('GET', '/api/notifications', { token: state.tokB })).data.unread, 0);
+});
+
+test('profile: filled in from the roster and ER data, editable, stage levels up in the owner\'s month', async () => {
+  const meA = (await call('GET', '/api/accounts/me', { token: state.tokA })).data.account;
+  const er = erOf(resA);
+  if (er && erUseful(resA)) {
+    assert.equal(meA.board, parseBoard(er.board), 'board from the ER scheduler');
+    assert.equal(meA.stage, parseStage(er.stage), 'stage from the ER scheduler');
+    assert.equal(meA.profile_src, 'auto');
+  }
+  assert.ok(meA.specialty, 'specialty from the roster');
+  assert.equal(meA.profile_complete, false, 'board length still missing');
+  const sugg = await call('GET', '/api/accounts/profile-suggest', { token: state.tokA });
+  assert.equal(sugg.data.suggestion.specialty, meA.specialty);
+
+  assert.equal((await call('POST', '/api/accounts/profile', { token: state.tokA, body: { board: 'arab', specialty: 'x', stage: 6, boardYears: 5 } })).data.error, 'stage_over_years');
+  const saved = await call('POST', '/api/accounts/profile', { token: state.tokA, body: { board: 'arab', specialty: meA.specialty, stage: 2, boardYears: 5 } });
+  assert.equal(saved.data.account.stage_now, 2);
+  assert.equal(saved.data.account.profile_complete, true);
+  assert.equal(saved.data.account.profile_src, 'user');
+  const none = await call('POST', '/api/accounts/profile', { token: state.tokC, body: { board: 'none', specialty: 'طب الطوارئ', stage: 3, boardYears: 4 } });
+  assert.equal(none.data.account.stage, null, 'no board, no stage');
+  assert.equal(none.data.account.profile_complete, true);
+
+  // Only the owner sets the level-up month; current stages are kept when it changes.
+  assert.equal((await call('POST', '/api/accounts/stage-month', { token: state.tokA, body: { month: 9 } })).status, 403);
+  const before = (await call('GET', '/api/accounts/stage-month', { token: state.tokA })).data.month;
+  assert.equal((await call('POST', '/api/accounts/stage-month', { token: state.owner, body: { month: 9 } })).data.month, 9);
+  assert.equal((await call('GET', '/api/accounts/me', { token: state.tokA })).data.account.stage_now, 2);
+  assert.equal((await call('POST', '/api/accounts/stage-month', { token: state.owner, body: { month: before } })).data.month, before);
+
+  // The owner edits anyone's profile; admins cannot.
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'set_profile', profile: { board: 'iraqi' } } })).status, 403);
+  const byOwner = await call('POST', '/api/accounts/decide', { token: state.owner, body: { id: state.idB, action: 'set_profile', profile: { board: 'iraqi', specialty: 'الجراحة العامة', stage: 4, boardYears: 6 } } });
+  assert.equal(byOwner.data.account.stage_now, 4);
+  assert.equal(byOwner.data.account.profile_src, 'owner');
 });
 
 test('push: public key, subscription validation, one subscription per device', async () => {

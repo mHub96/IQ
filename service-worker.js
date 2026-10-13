@@ -1,7 +1,7 @@
 // service-worker.js - Hospital Main Hub
 // Pages and scripts are served network-first so every deploy reaches installed apps on
 // their next launch; the cache is only the offline fallback. API calls are never cached.
-const CACHE_VERSION = 'v3.2.0';
+const CACHE_VERSION = 'v3.3.0';
 const CACHE_NAME = `hospital-hub-${CACHE_VERSION}`;
 const CDN_CACHE = 'hospital-hub-cdn-v1';
 const NETWORK_TIMEOUT_MS = 4000;
@@ -25,6 +25,7 @@ const APP_SHELL = [
   './hub-core.js',
   './hub-accounts.js',
   './hub-accounts.css',
+  './hub-panel.js',
   './account.html',
   './nav-component.js',
   './nav-component.css',

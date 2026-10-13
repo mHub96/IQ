@@ -11,6 +11,7 @@
 import { DAY, json, readJson, signToken, sha256b64, b64, overLimit, bucketOf, plainText } from './lib.js';
 import { nameKey, namesMatch, phoneKey, isoDate } from './names.js';
 import { sendPush, isPushEndpoint, topicFor } from './push.js';
+import { BOARDS, dutyDayNow, getStageMonth, setStageMonth, currentStage, profileComplete, suggestProfile } from './profile.js';
 
 const USERNAME_RE = /^[a-z0-9][a-z0-9._]{2,23}$/;
 const KEY_RE = /^[A-Za-z0-9+/]{43}=$/; // 32 bytes, base64
@@ -20,7 +21,8 @@ const ACCOUNT_ROLES = ['user', 'anaesthesia', 'admin', 'owner'];
 const RESET_VALID_MS = 3 * DAY;
 const ACTIVE_WRITE_MS = 60 * 60 * 1000; // last_seen is refreshed at most hourly (D1 write budget)
 const PUBLIC_FIELDS = `id, username, name, phone, sex, hosp, resident_id, role, hospitals, status, max_devices,
-  anon_tag, anon_lang, reset, reset_at, created_at, decided_at, decided_by, last_seen`;
+  anon_tag, anon_lang, reset, reset_at, created_at, decided_at, decided_by, last_seen,
+  board, specialty, stage, stage_ref, board_years, profile_src`;
 
 /** Routes under /api/accounts, /api/notifications, /api/social and /api/push. Returns null when not matched. */
 export async function routeAccounts(path, method, request, env, auth, url, ctx) {
@@ -41,6 +43,11 @@ export async function routeAccounts(path, method, request, env, auth, url, ctx) 
     case 'GET /api/accounts/me': return me(env, auth);
     case 'POST /api/accounts/password': return changePassword(request, env, auth);
     case 'GET /api/accounts/anon-check': return anonCheck(env, auth, url);
+    case 'GET /api/accounts/profile-suggest': return profileSuggest(env, auth);
+    case 'POST /api/accounts/profile': return saveProfile(request, env, auth);
+    case 'GET /api/accounts/received': return receivedComments(env, auth, url);
+    case 'GET /api/accounts/stage-month': return json({ ok: true, month: await getStageMonth(env) });
+    case 'POST /api/accounts/stage-month': return putStageMonth(request, env, auth);
     case 'POST /api/accounts/anon': return setAnon(request, env, auth);
     case 'POST /api/accounts/devices/remove': return removeOwnDevice(request, env, auth);
     case 'GET /api/accounts': return listAccounts(env, auth, url);
@@ -52,6 +59,7 @@ export async function routeAccounts(path, method, request, env, auth, url, ctx) 
     case 'POST /api/social/like': return like(request, env, auth, ctx);
     case 'POST /api/social/comment': return addComment(request, env, auth, ctx);
     case 'POST /api/social/comment/delete': return deleteComment(request, env, auth);
+    case 'POST /api/social/comment/edit': return editComment(request, env, auth);
     case 'POST /api/push/subscribe': return pushSubscribe(request, env, auth);
     case 'POST /api/push/unsubscribe': return pushUnsubscribe(request, env, auth);
     case 'POST /api/push/test': return pushTest(env, auth, ctx);
@@ -89,10 +97,15 @@ export async function resolveAccountAuth(env, payload) {
   return { r: row.role, h: scopeOf(row), e: payload.e, a: row.id, name: row.name, hosp: row.hosp, anon: row.anon_tag, dv: payload.dv };
 }
 
-function profile(row) {
+function profile(row, stageMonth = 10) {
   if (!row) return null;
   const { pw, salt, anon_key, devices, ...rest } = row;
   const out = { ...rest, hospitals: scopeOf(row) };
+  if ('board' in row) {
+    out.stage_now = currentStage(row.stage, row.stage_ref, row.board_years, stageMonth);
+    out.profile_complete = profileComplete(row);
+    out.stage_month = stageMonth;
+  }
   if (devices !== undefined) {
     try { out.devices = JSON.parse(devices || '[]'); } catch { out.devices = []; }
   }
@@ -205,7 +218,8 @@ async function checkIdentity(request, env, ip) {
   const { hospOk, match } = await findResident(env, String(body.hosp || ''), String(body.name || ''), String(body.phone || ''));
   if (!hospOk || !match) return json({ ok: true, match: false });
   const taken = await env.DB.prepare("SELECT 1 AS t FROM accounts WHERE resident_id = ? AND status IN ('pending', 'active')").bind(match.id || '').first();
-  return json({ ok: true, match: true, taken: !!taken, name: match.name });
+  const hint = taken ? {} : await suggestProfile(env, { name: match.name, hosp: String(body.hosp), residentId: match.id, phone: body.phone }).catch(() => ({}));
+  return json({ ok: true, match: true, taken: !!taken, name: match.name, sex: hint.sex || null });
 }
 
 async function usernameFree(env, url, ip) {
@@ -237,12 +251,16 @@ async function signup(request, env, ip, ctx) {
   const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
   const pw = await sha256b64(salt + key);
   const note = JSON.stringify({ id, name: match.name, username, hosp });
+  // Profile filled in from the roster and the ER scheduler; the user confirms or edits it later.
+  const auto = await suggestProfile(env, { name: match.name, hosp, residentId: match.id, phone: pk }).catch(() => ({}));
   try {
     const results = await withUniqueNick(sex, lang, (tag, tagKey) => env.DB.batch([
       env.DB.prepare(
-        `INSERT INTO accounts (id, username, pw, salt, name, name_key, phone, sex, hosp, resident_id, anon_tag, anon_key, anon_lang, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).bind(id, username, pw, salt, match.name, nameKey(match.name), pk, sex, hosp, match.id || null, tag, tagKey, lang, now),
+        `INSERT INTO accounts (id, username, pw, salt, name, name_key, phone, sex, hosp, resident_id, anon_tag, anon_key, anon_lang, created_at,
+                               board, specialty, stage, stage_ref, profile_src)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(id, username, pw, salt, match.name, nameKey(match.name), pk, sex, hosp, match.id || null, tag, tagKey, lang, now,
+        auto.board || null, auto.specialty || null, auto.stage ?? null, auto.stage != null ? now : null, auto.source && auto.source.length ? 'auto' : null),
       notifyApprovers(env, hosp, 'signup:' + id, 'signup_request', note, now),
     ]));
     dispatchPush(env, ctx, results[1]);
@@ -419,7 +437,7 @@ async function accountLogin(request, env, ip) {
     env.DB.prepare('UPDATE accounts SET last_seen = ? WHERE id = ?').bind(now, row.id),
   ]);
   const { token, exp } = await issueAccountToken(env, row, deviceId, body.remember);
-  return json({ success: true, role: row.role, adminHospitals: scopeOf(row), token, exp, account: profile(row) });
+  return json({ success: true, role: row.role, adminHospitals: scopeOf(row), token, exp, account: profile(row, await getStageMonth(env)) });
 }
 
 async function me(env, auth) {
@@ -431,7 +449,7 @@ async function me(env, auth) {
             (SELECT COUNT(*) FROM push_subs p WHERE p.account_id = accounts.id) AS push_devices
        FROM accounts WHERE id = ?`
   ).bind(auth.a).first();
-  return json({ ok: true, account: profile(row), role: auth.r, adminHospitals: auth.h, device: auth.dv });
+  return json({ ok: true, account: profile(row, await getStageMonth(env)), role: auth.r, adminHospitals: auth.h, device: auth.dv, dutyDay: dutyDayNow() });
 }
 
 async function changePassword(request, env, auth) {
@@ -567,7 +585,8 @@ async function listAccounts(env, auth, url) {
     ? env.DB.prepare(`SELECT ${fields} FROM accounts WHERE ${where} ORDER BY created_at DESC LIMIT 500`)
     : env.DB.prepare(`SELECT ${fields} FROM accounts WHERE ${where} AND hosp IN (SELECT value FROM json_each(?)) ORDER BY created_at DESC LIMIT 500`).bind(JSON.stringify(auth.h || []));
   const { results } = await stmt.all();
-  return json({ ok: true, accounts: results.map(profile), scope: seesAll(auth) ? ['*'] : auth.h });
+  const month = await getStageMonth(env);
+  return json({ ok: true, accounts: results.map(r => profile(r, month)), scope: seesAll(auth) ? ['*'] : auth.h, stageMonth: month });
 }
 
 /**
@@ -640,6 +659,17 @@ async function decide(request, env, auth, ctx) {
     case 'set_devices':
       if (body.maxDevices === undefined) return json({ error: 'bad_request' }, 400);
       break;
+    case 'set_profile': {
+      if (!isOwner) return json({ error: 'forbidden' }, 403);
+      const p = cleanProfile(body.profile || {});
+      if (p.error) return json({ error: p.error }, 400);
+      const sex = body.profile && (body.profile.sex === 'm' || body.profile.sex === 'f') ? body.profile.sex : row.sex;
+      const hosp = body.profile && HOSP_RE.test(String(body.profile.hosp || '')) ? String(body.profile.hosp) : row.hosp;
+      stmts.push(env.DB.prepare(
+        `UPDATE accounts SET board = ?, specialty = ?, stage = ?, stage_ref = ?, board_years = ?, profile_src = 'owner', sex = ?, hosp = ? WHERE id = ?`
+      ).bind(p.board, p.specialty, p.stage, p.stage === null ? null : now, p.boardYears, sex, hosp, row.id));
+      break;
+    }
     case 'remove_device':
       stmts.push(
         env.DB.prepare('DELETE FROM account_devices WHERE account_id = ? AND device_id = ?').bind(row.id, String(body.deviceId || '')),
@@ -679,7 +709,86 @@ async function decide(request, env, auth, ctx) {
                FROM account_devices d WHERE d.account_id = accounts.id) AS devices
        FROM accounts WHERE id = ?`
   ).bind(row.id).first();
-  return json({ ok: true, account: profile(updated) });
+  return json({ ok: true, account: profile(updated, await getStageMonth(env)) });
+}
+
+// ---------------------------------------------------------------------------
+// Resident profile (board, specialty, stage) and the comments a resident received
+// ---------------------------------------------------------------------------
+
+/** Validates { board, specialty, stage, boardYears }. Stage is the stage today (it moves up yearly). */
+function cleanProfile(p) {
+  const board = BOARDS.includes(p.board) ? p.board : null;
+  const specialty = plainText(p.specialty, 80) || null;
+  let stage = p.stage === '' || p.stage === null || p.stage === undefined ? null : Math.floor(Number(p.stage));
+  let boardYears = p.boardYears === '' || p.boardYears === null || p.boardYears === undefined ? null : Math.floor(Number(p.boardYears));
+  if (board === 'none') { stage = null; boardYears = null; }
+  if (stage !== null && !(stage >= 1 && stage <= 10)) return { error: 'bad_stage' };
+  if (boardYears !== null && !(boardYears >= 1 && boardYears <= 10)) return { error: 'bad_years' };
+  if (stage !== null && boardYears !== null && stage > boardYears) return { error: 'stage_over_years' };
+  return { board, specialty, stage, boardYears };
+}
+
+async function profileSuggest(env, auth) {
+  if (!auth.a) return json({ error: 'account_required' }, 403);
+  const row = await env.DB.prepare('SELECT name, hosp, resident_id, phone FROM accounts WHERE id = ?').bind(auth.a).first();
+  const s = await suggestProfile(env, { name: row.name, hosp: row.hosp, residentId: row.resident_id, phone: row.phone });
+  return json({ ok: true, suggestion: s });
+}
+
+async function saveProfile(request, env, auth) {
+  if (!auth.a) return json({ error: 'account_required' }, 403);
+  if (await overLimit(env, 'profile:' + auth.a, 30)) return json({ error: 'rate_limited' }, 429);
+  const p = cleanProfile(await readJson(request) || {});
+  if (p.error) return json({ error: p.error }, 400);
+  const row = await env.DB.prepare(
+    `UPDATE accounts SET board = ?, specialty = ?, stage = ?, stage_ref = ?, board_years = ?, profile_src = 'user' WHERE id = ?
+     RETURNING ${PUBLIC_FIELDS}`
+  ).bind(p.board, p.specialty, p.stage, p.stage === null ? null : Date.now(), p.boardYears, auth.a).first();
+  return json({ ok: true, account: profile(row, await getStageMonth(env)) });
+}
+
+async function putStageMonth(request, env, auth) {
+  if (auth.r !== 'owner') return json({ error: 'forbidden' }, 403);
+  const body = await readJson(request) || {};
+  const month = Math.floor(Number(body.month));
+  if (!(month >= 1 && month <= 12)) return json({ error: 'bad_month' }, 400);
+  // Keep everyone's current stage: re-base stages counted under the old month to today.
+  const old = await getStageMonth(env);
+  if (old !== month) {
+    const { results } = await env.DB.prepare('SELECT id, stage, stage_ref, board_years FROM accounts WHERE stage IS NOT NULL').all();
+    const now = Date.now();
+    const stmts = results.map(r => env.DB.prepare('UPDATE accounts SET stage = ?, stage_ref = ? WHERE id = ?')
+      .bind(currentStage(r.stage, r.stage_ref, r.board_years, old, now), now, r.id));
+    for (let i = 0; i < stmts.length; i += 40) await env.DB.batch(stmts.slice(i, i + 40));
+    await setStageMonth(env, month);
+    await env.DB.prepare('INSERT INTO audit (ts, role, msg, n) VALUES (?, ?, ?, ?)').bind(now, auth.a ? `owner:${auth.name}` : 'owner', `Stage level-up month: ${old} -> ${month}`, results.length).run();
+  }
+  return json({ ok: true, month });
+}
+
+/** Every comment ever written on this resident's duty cards (newest first, 50 per page). */
+async function receivedComments(env, auth, url) {
+  if (!auth.a) return json({ error: 'account_required' }, 403);
+  const before = Number(url.searchParams.get('before')) || 1e15;
+  const me = await env.DB.prepare('SELECT name_key FROM accounts WHERE id = ?').bind(auth.a).first();
+  const [list, totals] = await env.DB.batch([
+    env.DB.prepare(
+      `SELECT c.cid, c.hosp, c.account_id, c.anon, c.body, c.ts, c.edited_at, c.card_date, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex
+         FROM comments c LEFT JOIN accounts a ON a.id = c.account_id
+        WHERE c.card_key = ?1 AND c.deleted = 0 AND c.cid < ?2 ORDER BY c.cid DESC LIMIT 50`
+    ).bind(me.name_key, before),
+    env.DB.prepare(
+      `SELECT (SELECT COUNT(*) FROM comments WHERE card_key = ?1 AND deleted = 0) AS comments,
+              (SELECT COUNT(*) FROM likes WHERE card_key = ?1) AS likes,
+              (SELECT COUNT(DISTINCT card_date) FROM comments WHERE card_key = ?1 AND deleted = 0) AS days`
+    ).bind(me.name_key),
+  ]);
+  return json({
+    ok: true,
+    comments: list.results.map(c => ({ ...commentView({ ...c, card_date: c.card_date }, { ...auth, r: 'user' }), hosp: c.hosp, date: c.card_date })),
+    totals: totals.results[0],
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -767,7 +876,12 @@ async function socialSummary(env, auth, url) {
 
 const canModerate = (auth, hosp) => auth.r === 'owner' || (auth.r === 'admin' && hospInScope(auth, hosp));
 
+/** Authors may edit / delete only while the card's duty day is running. */
+const dutyOpen = cardDate => !!cardDate && cardDate === dutyDayNow();
+
 function commentView(c, auth) {
+  const mine = !!auth.a && c.account_id === auth.a;
+  const open = dutyOpen(c.card_date);
   return {
     cid: c.cid,
     // Anonymous comments show the author's current nickname to everyone.
@@ -778,8 +892,10 @@ function commentView(c, auth) {
     realName: auth.r === 'owner' && c.anon ? c.name : undefined,
     body: c.body,
     ts: c.ts,
-    mine: !!auth.a && c.account_id === auth.a,
-    canDelete: (!!auth.a && c.account_id === auth.a) || canModerate(auth, c.hosp),
+    mine,
+    edited: !!c.edited_at,
+    canEdit: mine && open,
+    canDelete: (mine && open) || canModerate(auth, c.hosp),
   };
 }
 
@@ -792,7 +908,7 @@ async function thread(env, auth, url) {
         WHERE l.target = ?1 ORDER BY l.ts DESC LIMIT 300`
     ).bind(card.target, auth.a || ''),
     env.DB.prepare(
-      `SELECT c.cid, c.hosp, c.account_id, c.anon, c.body, c.ts, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex
+      `SELECT c.cid, c.hosp, c.account_id, c.anon, c.body, c.ts, c.edited_at, c.card_date, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex
          FROM comments c LEFT JOIN accounts a ON a.id = c.account_id
         WHERE c.target = ?1 AND c.deleted = 0 ORDER BY c.cid LIMIT 300`
     ).bind(card.target),
@@ -802,6 +918,8 @@ async function thread(env, auth, url) {
     likes: likesRes.results.map(l => ({ name: l.name, ts: l.ts, mine: !!l.mine })),
     comments: commentsRes.results.map(c => commentView(c, auth)),
     canReact: !!auth.a,
+    open: dutyOpen(card.date),
+    dutyDay: dutyDayNow(),
     myAnonTag: auth.anon || null,
   });
 }
@@ -813,7 +931,7 @@ async function recentComments(env, auth, url) {
   const before = Number(url.searchParams.get('before')) || 1e15;
   const hospitals = seesAll(auth) ? (hosp ? [hosp] : null) : (auth.h || []).filter(h => !hosp || h === hosp);
   const { results } = await env.DB.prepare(
-    `SELECT c.cid, c.target, c.hosp, c.account_id, c.anon, c.body, c.ts, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex
+    `SELECT c.cid, c.target, c.hosp, c.account_id, c.anon, c.body, c.ts, c.edited_at, c.card_date, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex
        FROM comments c LEFT JOIN accounts a ON a.id = c.account_id
       WHERE c.deleted = 0 AND c.cid < ?1 ${hospitals ? 'AND c.hosp IN (SELECT value FROM json_each(?2))' : ''}
       ORDER BY c.cid DESC LIMIT 50`
@@ -847,12 +965,13 @@ async function like(request, env, auth, ctx) {
   const body = await readJson(request);
   const card = body && cardTarget(body.h, body.d, body.n);
   if (!card) return json({ error: 'bad_request' }, 400);
+  if (!dutyOpen(card.date)) return json({ error: 'duty_closed' }, 409);
   if (await overLimit(env, 'like:' + auth.a, 120)) return json({ error: 'rate_limited' }, 429);
   const now = Date.now();
   if (body.on === false) {
     await env.DB.prepare('DELETE FROM likes WHERE target = ? AND account_id = ?').bind(card.target, auth.a).run();
   } else {
-    const ins = await env.DB.prepare('INSERT OR IGNORE INTO likes (target, account_id, ts) VALUES (?, ?, ?)').bind(card.target, auth.a, now).run();
+    const ins = await env.DB.prepare('INSERT OR IGNORE INTO likes (target, account_id, ts, card_key) VALUES (?, ?, ?, ?)').bind(card.target, auth.a, now, card.key).run();
     if (ins.meta.changes) dispatchPush(env, ctx, await notifyCardOwners(env, card, auth.a, 'like', { last: auth.name }, now).all());
   }
   const row = await env.DB.prepare('SELECT COUNT(*) AS n, EXISTS (SELECT 1 FROM likes WHERE target = ?1 AND account_id = ?2) AS mine FROM likes WHERE target = ?1')
@@ -866,31 +985,49 @@ async function addComment(request, env, auth, ctx) {
   const card = body && cardTarget(body.h, body.d, body.n);
   const text = plainText(body && body.body, 600);
   if (!card || !text) return json({ error: 'bad_request' }, 400);
+  if (!dutyOpen(card.date)) return json({ error: 'duty_closed' }, 409);
   if (await overLimit(env, 'comment:' + auth.a, 20)) return json({ error: 'rate_limited' }, 429);
   const now = Date.now();
   const anon = !!body.anon;
   const [ins, notes] = await env.DB.batch([
-    env.DB.prepare('INSERT INTO comments (target, hosp, account_id, anon, body, ts) VALUES (?, ?, ?, ?, ?, ?) RETURNING cid')
-      .bind(card.target, card.hosp, auth.a, anon ? 1 : 0, text, now),
+    env.DB.prepare('INSERT INTO comments (target, hosp, account_id, anon, body, ts, card_key, card_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING cid')
+      .bind(card.target, card.hosp, auth.a, anon ? 1 : 0, text, now, card.key, card.date),
     notifyCardOwners(env, card, auth.a, 'comment', { last: anon ? auth.anon : auth.name, text: text.slice(0, 120) }, now),
   ]);
   dispatchPush(env, ctx, notes);
   return json({
     ok: true,
-    comment: { cid: ins.results[0].cid, author: anon ? auth.anon : auth.name, anon, body: text, ts: now, mine: true, canDelete: true },
+    comment: { cid: ins.results[0].cid, author: anon ? auth.anon : auth.name, anon, body: text, ts: now, mine: true, canEdit: true, canDelete: true, edited: false },
   });
 }
 
 async function deleteComment(request, env, auth) {
   const body = await readJson(request);
-  const row = await env.DB.prepare('SELECT cid, hosp, account_id FROM comments WHERE cid = ? AND deleted = 0').bind(Number(body && body.cid) || 0).first();
+  const row = await env.DB.prepare('SELECT cid, hosp, account_id, card_date FROM comments WHERE cid = ? AND deleted = 0').bind(Number(body && body.cid) || 0).first();
   if (!row) return json({ error: 'not_found' }, 404);
-  const own = !!auth.a && row.account_id === auth.a;
-  if (!own && !canModerate(auth, row.hosp)) return json({ error: 'forbidden' }, 403);
+  const own = !!auth.a && row.account_id === auth.a && dutyOpen(row.card_date);
+  if (!own && !canModerate(auth, row.hosp)) {
+    return json({ error: row.account_id === auth.a ? 'duty_closed' : 'forbidden' }, row.account_id === auth.a ? 409 : 403);
+  }
   const by = own ? 'author' : (auth.a ? `${auth.r}:${auth.name}` : auth.r);
   await env.DB.batch([
     env.DB.prepare('UPDATE comments SET deleted = 1, deleted_by = ? WHERE cid = ?').bind(by, row.cid),
     ...(own ? [] : [env.DB.prepare('INSERT INTO audit (ts, role, msg, n) VALUES (?, ?, ?, 1)').bind(Date.now(), by, `Comment ${row.cid} removed (${row.hosp})`)]),
   ]);
   return json({ ok: true });
+}
+
+/** Authors edit their own comment while the duty day is running. */
+async function editComment(request, env, auth) {
+  if (!auth.a) return json({ error: 'account_required' }, 403);
+  const body = await readJson(request) || {};
+  const text = plainText(body.body, 600);
+  if (!text) return json({ error: 'bad_request' }, 400);
+  const row = await env.DB.prepare('SELECT cid, account_id, card_date FROM comments WHERE cid = ? AND deleted = 0').bind(Number(body.cid) || 0).first();
+  if (!row) return json({ error: 'not_found' }, 404);
+  if (row.account_id !== auth.a) return json({ error: 'forbidden' }, 403);
+  if (!dutyOpen(row.card_date)) return json({ error: 'duty_closed' }, 409);
+  const now = Date.now();
+  await env.DB.prepare('UPDATE comments SET body = ?, edited_at = ? WHERE cid = ?').bind(text, now, row.cid).run();
+  return json({ ok: true, body: text, edited_at: now });
 }

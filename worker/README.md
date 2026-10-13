@@ -71,10 +71,20 @@ which is git-ignored):
 - **First run**: sign in with the shared owner password, create your own account, approve it in
   `account.html#manage` and give it the owner role. From then on the bell shows new requests.
 
-## Settings (`account.html#settings`)
+## Account panel (`hub-panel.js`, opens over the current page from the avatar button)
 
-Appearance (light / dark; the toggle moved here from the top bars), anonymous nickname, push notifications
-for this device, the account's devices (unlink any), and password change.
+- **Profile**: board type (Arab / Iraqi / other / none), specialty, current stage, board length in years.
+  Filled in automatically at sign-up as far as the system knows: specialty from the hospital roster
+  (specialty code -> Arabic name), board / stage / sex from the ER scheduler's residents list
+  (`er` record `hosp_hub_emergency_state_v3`, matched by phone, then name). The board length is not
+  recorded anywhere, so it is asked for. Incomplete profiles get a dot on the avatar and a reminder once a day.
+- **Stage level-up**: the stage is stored with the time it was set; the stage shown is that plus one for
+  every 1st of the level-up month (Iraq time) since, capped at the board length. The owner chooses the month
+  (`account.html#manage` -> إعدادات عامة, default October, all hospitals); changing it keeps everyone's
+  current stage. The owner can still edit any resident's profile (and sex / hospital) from the account card.
+- **My comments**: every comment ever written on the resident's duty cards, with totals.
+- **Settings**: light / dark (the toggle moved here from the top bars), anonymous nickname, push
+  notifications for this device, devices (unlink any), password.
 
 - **Anonymous nickname**: Reddit style (`Adjective-Noun-1234` / `اسم-صفة-1234`), drawn by sex in the account's
   nickname language (Arabic or English). It stays until the user draws a new random one or sets a custom one;
@@ -86,8 +96,13 @@ for this device, the account's devices (unlink any), and password change.
 
 ## Notifications, likes and comments
 
-- A duty card is `duty:<hospital>:<YYYY-MM-DD>:<normalised name>`. The server normalises names, so spelling
-  variants of one resident share one card, and the resident's account (matched by name) is notified.
+- A duty card is `duty:<hospital>:<YYYY-MM-DD>:<normalised name>`: one card per resident per duty day, so the
+  next day starts with a fresh card. The server normalises names, so spelling variants of one resident share
+  one card, and the resident's account (matched by name) is notified.
+- The duty day runs 08:00 -> 08:00 Iraq time. Likes, new comments, and authors' edits / deletions are
+  accepted only while the card's duty day is running; afterwards the card is read-only (the owner and the
+  hospital's admins can still delete comments).
+- On the roster, the like and comment buttons are two small icon buttons in the card's bottom-right corner.
 - Notifications are grouped per card ("X and 3 others liked ..."), polled every minute while a page is open,
   and shown as a number on the installed app icon where the phone supports it.
 - Anonymous comments show the author's current nickname to everyone. Only the owner also sees the real name
@@ -109,6 +124,7 @@ node tools/build-site.mjs                                              # website
 npx wrangler deploy --config site.wrangler.jsonc                       # website (static assets)
 cd worker && npx wrangler deploy                                       # API
 npx wrangler d1 execute hosp-hub --remote --file migrations/0002_accounts.sql   # once (additive)
+npx wrangler d1 execute hosp-hub --remote --file migrations/0003_profiles.sql   # once (additive)
 ```
 
 `.github/workflows/deploy.yml` does the first two (and the Worker when `worker/` changed) on every push to

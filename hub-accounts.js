@@ -70,6 +70,7 @@
             account_required: 'هذه الميزة تحتاج حساباً شخصياً.',
             forbidden: 'لا تملك صلاحية لهذا الإجراء.',
             unauthorized: 'انتهت الجلسة. سجّل الدخول مجدداً.',
+            duty_closed: 'انتهى يوم هذه الخفارة؛ لا يمكن التفاعل معها الآن.',
         })[code] || 'تعذر الاتصال بالخادم. حاول مجدداً.';
     }
 
@@ -78,11 +79,11 @@
     // ------------------------------------------------------------------
     let openSheetEl = null;
 
-    function openSheet(html, { label = '', onClose } = {}) {
+    function openSheet(html, { label = '', onClose, tall = false } = {}) {
         closeSheet();
         const wrap = document.createElement('div');
         wrap.className = 'hacc-sheet-backdrop';
-        wrap.innerHTML = `<section class="hacc-sheet" role="dialog" aria-modal="true" aria-label="${esc(label)}">
+        wrap.innerHTML = `<section class="hacc-sheet${tall ? ' tall' : ''}" role="dialog" aria-modal="true" aria-label="${esc(label)}">
             <div class="hacc-sheet-grip" aria-hidden="true"></div>${html}</section>`;
         wrap.addEventListener('click', e => { if (e.target === wrap) closeSheet(); });
         wrap._onClose = onClose;
@@ -292,7 +293,46 @@
         const initial = acc ? esc((acc.name || acc.username || '?').replace(/^د\.?\s*/, '').trim().charAt(0)) : '<i class="fas fa-user"></i>';
         return `<button type="button" class="hacc-nav-btn hacc-bell" onclick="HubAccounts.openNotifications()" aria-label="الإشعارات">
                 <i class="fas fa-bell"></i><span class="hacc-bell-count" hidden>0</span></button>
-            <a class="hacc-nav-btn hacc-nav-account ${acc ? 'has-account' : ''}" href="./account.html" title="${acc ? esc(acc.name) : 'إنشاء حساب شخصي'}" aria-label="حسابي">${initial}</a>`;
+            <button type="button" class="hacc-nav-btn hacc-nav-account ${acc ? 'has-account' : ''}" onclick="HubAccounts.openPanel()" title="${acc ? esc(acc.name) : 'حسابي والإعدادات'}" aria-label="حسابي والإعدادات">${initial}${acc && acc.profile_complete === false ? '<span class="hacc-dot" aria-label="الملف غير مكتمل"></span>' : ''}</button>`;
+    }
+
+    // ------------------------------------------------------------------
+    // Account panel (hub-panel.js, loaded on first use)
+    // ------------------------------------------------------------------
+    let panelLoading = null;
+    function openPanel(tab) {
+        if (!window.HubPanel) {
+            panelLoading = panelLoading || new Promise((resolve, reject) => {
+                const el = document.createElement('script');
+                const self = document.querySelector('script[src*="hub-accounts.js"]');
+                el.src = (self ? self.src.replace(/hub-accounts\.js.*$/, '') : './') + 'hub-panel.js';
+                el.onload = resolve;
+                el.onerror = () => { panelLoading = null; reject(new Error('panel')); };
+                document.head.appendChild(el);
+            });
+            return panelLoading.then(() => window.HubPanel.open(tab)).catch(() => toast('تعذر فتح لوحة الحساب. تحقق من الاتصال.', 'error'));
+        }
+        return window.HubPanel.open(tab);
+    }
+
+    /** Once a day, remind accounts with an incomplete profile (board, specialty, stage). */
+    function nudgeProfile() {
+        const acc = account();
+        if (!acc || acc.profile_complete !== false || document.getElementById('hacc-nudge')) return;
+        const today = new Date().toDateString();
+        try { if (localStorage.getItem('hacc_nudge_day') === today) return; } catch (e) {}
+        const el = document.createElement('div');
+        el.id = 'hacc-nudge';
+        el.setAttribute('role', 'status');
+        el.innerHTML = `<span class="hacc-nudge-icon" aria-hidden="true">📝</span>
+            <span class="hacc-nudge-text"><b>أكمل ملفك الشخصي</b><br>نوع البورد، الاختصاص، المرحلة وسنوات البورد.</span>
+            <button type="button" class="hacc-btn sm primary" data-act="go">إكمال</button>
+            <button type="button" class="hacc-icon-btn" data-act="later" aria-label="لاحقاً">✕</button>`;
+        const done = () => { try { localStorage.setItem('hacc_nudge_day', today); } catch (e) {} el.remove(); };
+        el.querySelector('[data-act="go"]').addEventListener('click', () => { done(); openPanel('profile'); });
+        el.querySelector('[data-act="later"]').addEventListener('click', done);
+        document.body.appendChild(el);
+        requestAnimationFrame(() => el.classList.add('show'));
     }
 
     function refreshNavSlots() {
@@ -319,7 +359,12 @@
         if (!account()) return;
         try {
             const res = await Hub.api('GET', '/api/accounts/me', undefined, { retries: 0 });
-            if (res && res.account) Hub.auth.refreshAccount(res.account, res.role, res.adminHospitals);
+            if (res && res.account) {
+                const before = (account() || {}).profile_complete;
+                Hub.auth.refreshAccount(res.account, res.role, res.adminHospitals);
+                if (before !== res.account.profile_complete) refreshNavSlots();
+                setTimeout(nudgeProfile, 2500);
+            }
         } catch (e) {}
     }
 
@@ -349,17 +394,13 @@
         return pending;
     }
 
-    function socialBarHtml(card, s, canReact) {
+    function socialBarHtml(card, s) {
         const likes = s ? s.likes : 0, comments = s ? s.comments : 0, mine = s && s.mine;
-        return `<div class="hacc-social-summary">
-                <button type="button" class="hacc-count" data-act="likes" ${likes ? '' : 'hidden'}><span class="hacc-heart-dot" aria-hidden="true">❤</span> <span data-role="likes">${likes}</span></button>
-                <button type="button" class="hacc-count" data-act="comments" ${comments ? '' : 'hidden'}><span data-role="comments">${comments}</span> تعليق</button>
-            </div>
-            <div class="hacc-social-actions">
-                <button type="button" class="hacc-react ${mine ? 'liked' : ''}" data-act="like" aria-pressed="${mine ? 'true' : 'false'}">
-                    <span class="hacc-heart" aria-hidden="true">${mine ? '❤️' : '🤍'}</span> أعجبني</button>
-                <button type="button" class="hacc-react" data-act="comment"><span aria-hidden="true">💬</span> تعليق</button>
-            </div>`;
+        return `<button type="button" class="hacc-corner-btn like ${mine ? 'on' : ''}" data-act="like" aria-pressed="${mine ? 'true' : 'false'}"
+                    aria-label="${mine ? 'إلغاء الإعجاب' : 'إعجاب'}${likes ? ' (' + likes + ')' : ''}">
+                <i class="${mine ? 'fa-solid' : 'fa-regular'} fa-heart" aria-hidden="true"></i>${likes ? `<span class="hacc-corner-n">${likes > 99 ? '99+' : likes}</span>` : ''}</button>
+            <button type="button" class="hacc-corner-btn comment" data-act="comment" aria-label="التعليقات${comments ? ' (' + comments + ')' : ''}">
+                <i class="fa-regular fa-comment" aria-hidden="true"></i>${comments ? `<span class="hacc-corner-n">${comments > 99 ? '99+' : comments}</span>` : ''}</button>`;
     }
 
     /**
@@ -371,10 +412,11 @@
         if (!cards.length || !signedIn()) return;
         const groups = new Map();
         for (const c of cards) {
-            let bar = c.el.querySelector(':scope > .hacc-social');
+            let bar = c.el.querySelector(':scope > .hacc-corner');
             if (!bar) {
                 bar = document.createElement('div');
-                bar.className = 'hacc-social';
+                bar.className = 'hacc-corner';
+                bar.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
                 bar.addEventListener('click', e => e.stopPropagation());
                 bar.addEventListener('mousemove', e => e.stopPropagation());
                 c.el.appendChild(bar);
@@ -403,8 +445,7 @@
             e.stopPropagation();
             const act = btn.dataset.act;
             if (act === 'like') toggleLike(bar);
-            else if (act === 'likes') openThread(bar._card, 'likes');
-            else openThread(bar._card, 'comments', act === 'comment');
+            else openThread(bar._card, 'comments', true);
         }));
     }
 
@@ -433,7 +474,7 @@
         s.likes = Math.max(0, s.likes + (on ? 1 : -1));
         if (entry) entry.cards[card.n] = s;
         paintBar(bar, s, true);
-        if (on) bar.querySelector('.hacc-heart')?.classList.add('pop');
+        if (on) bar.querySelector('.hacc-corner-btn.like')?.classList.add('pop');
         if (navigator.vibrate && on) navigator.vibrate(12);
         try {
             const res = await Hub.api('POST', '/api/social/like', { ...card, on }, { retries: 1 });
@@ -448,7 +489,7 @@
 
     /** Same card may be visible more than once (e.g. after a re-render): keep them in step. */
     function syncBars(card, s) {
-        document.querySelectorAll('.hacc-social').forEach(b => {
+        document.querySelectorAll('.hacc-corner').forEach(b => {
             if (b._card && cardKey(b._card) === cardKey(card)) paintBar(b, s, true);
         });
     }
@@ -468,7 +509,7 @@
                 <div class="hacc-identity" role="radiogroup" aria-label="التعليق باسم">
                     <label><input type="radio" name="hacc-as" value="real" checked> <span>باسمي</span></label>
                     <label><input type="radio" name="hacc-as" value="anon"> <span>🕶️ <bdi data-role="anon-label">${esc((account() || {}).anon_tag || 'مجهول')}</bdi></span></label>
-                    <a class="hacc-link" href="./account.html#settings-nick" title="تغيير اللقب المجهول من الإعدادات">تغيير اللقب</a>
+                    <button type="button" class="hacc-link" data-act="nick" title="تغيير اللقب المجهول من الإعدادات">تغيير اللقب</button>
                 </div>
                 <div class="hacc-compose-row">
                     <textarea rows="1" maxlength="600" placeholder="اكتب تعليقاً…" aria-label="تعليق" required></textarea>
@@ -502,12 +543,14 @@
                         <div class="hacc-bubble-wrap">
                           <div class="hacc-bubble"><div class="hacc-author">${esc(c.author)}${c.mine ? ' <span class="hacc-chip">أنت</span>' : ''}</div>
                           <div class="hacc-text">${esc(c.body)}</div></div>
-                          <div class="hacc-meta"><time>${esc(timeAgo(c.ts))}</time>
+                          <div class="hacc-meta"><time>${esc(timeAgo(c.ts))}</time>${c.edited ? '<span>معدّل</span>' : ''}
                           ${c.realName ? `<span class="hacc-reveal" title="ظاهر للمالك فقط">👁 ${esc(c.realName)}</span>` : ''}
+                          ${c.canEdit ? '<button type="button" class="hacc-link" data-act="edit">تعديل</button>' : ''}
                           ${c.canDelete ? '<button type="button" class="hacc-link danger" data-act="delete">حذف</button>' : ''}</div>
                         </div></li>`).join('')}</ul>`
                     : '<div class="hacc-empty">لا تعليقات بعد. اكتب أول تعليق 💬</div>';
                 body.querySelectorAll('[data-act="delete"]').forEach(btn => btn.addEventListener('click', () => removeComment(Number(btn.closest('li').dataset.cid))));
+                body.querySelectorAll('[data-act="edit"]').forEach(btn => btn.addEventListener('click', () => editComment(btn.closest('li'))));
                 body.scrollTop = body.scrollHeight;
             }
         };
@@ -516,6 +559,10 @@
             try {
                 data = await Hub.api('GET', '/api/social/thread?' + new URLSearchParams(card), undefined, { retries: 1 });
                 if (composer && data.myAnonTag) composer.querySelector('[data-role="anon-label"]').textContent = data.myAnonTag;
+                if (composer && data.open === false) {
+                    // Another day's card: read-only (likes and comments belong to that duty day).
+                    composer.outerHTML = '<div class="hacc-composer hacc-cta">🔒 انتهى يوم هذه الخفارة؛ التعليقات للقراءة فقط.</div>';
+                }
                 render();
                 updateCounts();
             } catch (err) {
@@ -533,6 +580,29 @@
             syncBars(card, s);
         };
 
+        const editComment = li => {
+            const cid = Number(li.dataset.cid);
+            const c = data.comments.find(x => x.cid === cid);
+            const textEl = li.querySelector('.hacc-text');
+            textEl.innerHTML = `<textarea class="hacc-edit" maxlength="600" rows="2" aria-label="تعديل التعليق"></textarea>
+                <div class="hacc-edit-actions"><button type="button" class="hacc-btn sm primary" data-act="save">حفظ</button>
+                <button type="button" class="hacc-btn sm" data-act="cancel">إلغاء</button></div>`;
+            const ta = textEl.querySelector('textarea');
+            ta.value = c.body;
+            ta.focus();
+            textEl.querySelector('[data-act="cancel"]').addEventListener('click', render);
+            textEl.querySelector('[data-act="save"]').addEventListener('click', async () => {
+                const text = ta.value.trim();
+                if (!text) return;
+                try {
+                    const res = await Hub.api('POST', '/api/social/comment/edit', { cid, body: text }, { retries: 0 });
+                    c.body = res.body;
+                    c.edited = true;
+                    render();
+                } catch (err) { toast(errorText(err), 'error'); }
+            });
+        };
+
         const removeComment = async cid => {
             if (!confirm('حذف هذا التعليق؟')) return;
             try {
@@ -546,6 +616,7 @@
         sheet.querySelectorAll('[data-tab]').forEach(t => t.addEventListener('click', () => { current = t.dataset.tab; render(); }));
 
         if (composer) {
+            composer.querySelector('[data-act="nick"]').addEventListener('click', () => { closeSheet(); setTimeout(() => openPanel('settings'), 260); });
             const ta = composer.querySelector('textarea');
             ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 120) + 'px'; });
             ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); composer.requestSubmit(); } });
@@ -690,6 +761,9 @@
 
     window.HubAccounts = {
         navButtons,
+        openPanel,
+        openSheet,
+        closeSheet,
         refreshNavSlots,
         openNotifications,
         pollNotifications,

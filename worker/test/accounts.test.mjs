@@ -395,6 +395,31 @@ test('username: change it with the current password; duplicates refused; sign in
   assert.equal((await call('GET', '/api/accounts/username?u=' + uA)).data.free, true, 'old name is free again');
 });
 
+test('replies: one conversation level, the replied-to author is notified, no double notice for the card owner', async () => {
+  const card = { h: hospital.id, d: today(), n: resB.name };
+  const root = await call('POST', '/api/social/comment', { token: state.tokA, body: { ...card, body: 'سؤال' } });
+  const r1 = await call('POST', '/api/social/comment', { token: state.tokC, body: { ...card, body: 'جواب', parentCid: root.data.comment.cid, anon: true } });
+  assert.equal(r1.data.comment.parent, root.data.comment.cid);
+  const r2 = await call('POST', '/api/social/comment', { token: state.tokB, body: { ...card, body: 'رد على الرد', parentCid: r1.data.comment.cid } });
+  assert.equal(r2.data.comment.parent, root.data.comment.cid, 'a reply to a reply joins the same conversation');
+  assert.equal((await call('POST', '/api/social/comment', { token: state.tokB, body: { ...card, d: '01/01/2026', body: 'x', parentCid: root.data.comment.cid } })).status, 409);
+  assert.equal((await call('POST', '/api/social/comment', { token: state.tokB, body: { ...card, body: 'x', parentCid: 99999999 } })).status, 404);
+
+  const notesA = (await call('GET', '/api/notifications', { token: state.tokA })).data.items;
+  const replyA = notesA.find(n => n.type === 'reply');
+  assert.ok(replyA, 'A is told about the reply');
+  assert.ok(replyA.data.last && replyA.data.text);
+  // C (anonymous reply author) is told about B's reply to C's comment, without revealing anything.
+  assert.ok((await call('GET', '/api/notifications', { token: state.tokC })).data.items.some(n => n.type === 'reply'));
+  // B owns the card and replied to C: B gets no notice about its own reply.
+  const notesB = (await call('GET', '/api/notifications', { token: state.tokB })).data.items;
+  assert.ok(!notesB.some(n => n.type === 'reply'));
+
+  const t = (await call('GET', '/api/social/thread?' + new URLSearchParams(card), { token: state.tokB })).data.comments;
+  assert.equal(t.find(c => c.cid === r2.data.comment.cid).parent, root.data.comment.cid);
+  assert.equal(t.find(c => c.cid === root.data.comment.cid).parent, null);
+});
+
 test('push: public key, subscription validation, one subscription per device', async () => {
   const key = await call('GET', '/api/push/key');
   assert.match(key.data.key, /^B[A-Za-z0-9_-]{86}$/);

@@ -261,6 +261,8 @@
                 return { icon: '❤️', text: `${d.last || 'أحدهم'}${others} أُعجب ببطاقة خفارتك${when}`, open: () => openThread({ h: d.h, d: isoToLocal(d.d), n: d.name }, 'likes') };
             case 'comment':
                 return { icon: '💬', text: `${d.last || 'أحدهم'} علّق على بطاقة خفارتك${when}${d.text ? ': «' + d.text + '»' : ''}`, open: () => openThread({ h: d.h, d: isoToLocal(d.d), n: d.name }, 'comments') };
+            case 'reply':
+                return { icon: '↩️', text: `${d.last || 'أحدهم'} ردّ على تعليقك في بطاقة ${d.name || ''}${d.text ? ': «' + d.text + '»' : ''}`, open: () => openThread({ h: d.h, d: isoToLocal(d.d), n: d.name }, 'comments') };
             case 'signup_request':
                 return { icon: '🆕', text: `طلب حساب جديد: ${d.name} (@${d.username}) – ${hospitalName(d.hosp)}`, href: './account.html#manage' };
             case 'reset_request':
@@ -572,6 +574,10 @@
             </div>
             <div class="hacc-sheet-body" data-role="body"><div class="hacc-empty">جاري التحميل…</div></div>
             ${canReact ? `<form class="hacc-composer" data-role="composer" ${tab === 'likes' ? 'hidden' : ''}>
+                <div class="hacc-replying" data-role="replying" hidden>
+                    <span>↩️ الرد على <bdi data-role="reply-name"></bdi></span>
+                    <button type="button" class="hacc-icon-btn sm" data-act="cancel-reply" aria-label="إلغاء الرد">✕</button>
+                </div>
                 <div class="hacc-identity" role="radiogroup" aria-label="التعليق باسم">
                     <label><input type="radio" name="hacc-as" value="real" checked> <span>باسمي</span></label>
                     <label><input type="radio" name="hacc-as" value="anon"> <span>🕶️ <bdi data-role="anon-label">${esc((account() || {}).anon_tag || 'مجهول')}</bdi></span></label>
@@ -586,6 +592,7 @@
 
         let data = null;
         let current = tab;
+        let replyTo = null;
         const body = sheet.querySelector('[data-role="body"]');
         const composer = sheet.querySelector('[data-role="composer"]');
         sheet.querySelector('[data-act="close"]').addEventListener('click', closeSheet);
@@ -603,22 +610,50 @@
                         <span class="hacc-heart-dot" aria-hidden="true">❤</span></li>`).join('')}</ul>`
                     : '<div class="hacc-empty">لا إعجابات بعد. كن أول من يُعجب ❤️</div>';
             } else {
-                body.innerHTML = data.comments.length
-                    ? `<ul class="hacc-comments">${data.comments.map(c => `<li data-cid="${c.cid}">
-                        ${c.anon ? '<span class="hacc-avatar anon">🕶️</span>' : avatarHtml({ ...c, name: c.author }, 36)}
+                const canReply = !!composer && composer.isConnected && data.open !== false;
+                const ids = new Set(data.comments.map(c => c.cid));
+                const roots = data.comments.filter(c => !c.parent || !ids.has(c.parent));
+                const repliesOf = cid => data.comments.filter(c => c.parent === cid && ids.has(cid));
+                const item = (c, size) => `<li data-cid="${c.cid}">
+                        ${c.anon ? `<span class="hacc-avatar anon" style="width:${size}px;height:${size}px">🕶️</span>` : avatarHtml({ ...c, name: c.author }, size)}
                         <div class="hacc-bubble-wrap">
                           <div class="hacc-bubble"><div class="hacc-author">${esc(c.author)}${c.mine ? ' <span class="hacc-chip">أنت</span>' : ''}</div>
                           <div class="hacc-text">${esc(c.body)}</div></div>
                           <div class="hacc-meta"><time>${esc(timeAgo(c.ts))}</time>${c.edited ? '<span>معدّل</span>' : ''}
                           ${c.realName ? `<span class="hacc-reveal" title="ظاهر للمالك فقط">👁 ${esc(c.realName)}</span>` : ''}
+                          ${canReply ? '<button type="button" class="hacc-link" data-act="reply">ردّ</button>' : ''}
                           ${c.canEdit ? '<button type="button" class="hacc-link" data-act="edit">تعديل</button>' : ''}
                           ${c.canDelete ? '<button type="button" class="hacc-link danger" data-act="delete">حذف</button>' : ''}</div>
-                        </div></li>`).join('')}</ul>`
+                        </div>`;
+                body.innerHTML = data.comments.length
+                    ? `<ul class="hacc-comments">${roots.map(c => {
+                        const kids = repliesOf(c.cid);
+                        return item(c, 36) + (kids.length ? `<ul class="hacc-replies">${kids.map(k => item(k, 28) + '</li>').join('')}</ul>` : '') + '</li>';
+                    }).join('')}</ul>`
                     : '<div class="hacc-empty">لا تعليقات بعد. اكتب أول تعليق 💬</div>';
+                body.querySelectorAll('[data-act="reply"]').forEach(btn => btn.addEventListener('click', () => startReply(Number(btn.closest('li').dataset.cid))));
                 body.querySelectorAll('[data-act="delete"]').forEach(btn => btn.addEventListener('click', () => removeComment(Number(btn.closest('li').dataset.cid))));
                 body.querySelectorAll('[data-act="edit"]').forEach(btn => btn.addEventListener('click', () => editComment(btn.closest('li'))));
-                body.scrollTop = body.scrollHeight;
+                if (!keepScroll) body.scrollTop = body.scrollHeight;
+                keepScroll = false;
             }
+        };
+        let keepScroll = false;
+
+        const setReplyTo = c => {
+            replyTo = c || null;
+            if (!composer) return;
+            const banner = composer.querySelector('[data-role="replying"]');
+            banner.hidden = !replyTo;
+            if (replyTo) banner.querySelector('[data-role="reply-name"]').textContent = replyTo.author;
+            composer.querySelector('textarea').placeholder = replyTo ? 'اكتب ردّاً…' : 'اكتب تعليقاً…';
+        };
+        const startReply = cid => {
+            const c = data && data.comments.find(x => x.cid === cid);
+            if (!c || !composer) return;
+            setReplyTo(c);
+            const ta = composer.querySelector('textarea');
+            ta.focus();
         };
 
         const load = async () => {
@@ -674,6 +709,8 @@
             try {
                 await Hub.api('POST', '/api/social/comment/delete', { cid }, { retries: 1 });
                 data.comments = data.comments.filter(c => c.cid !== cid);
+                if (replyTo && replyTo.cid === cid) setReplyTo(null);
+                keepScroll = true;
                 render();
                 updateCounts();
             } catch (err) { toast(errorText(err), 'error'); }
@@ -682,6 +719,7 @@
         sheet.querySelectorAll('[data-tab]').forEach(t => t.addEventListener('click', () => { current = t.dataset.tab; render(); }));
 
         if (composer) {
+            composer.querySelector('[data-act="cancel-reply"]').addEventListener('click', () => setReplyTo(null));
             composer.querySelector('[data-act="nick"]').addEventListener('click', () => { closeSheet(); setTimeout(() => openPanel('settings'), 260); });
             const ta = composer.querySelector('textarea');
             ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 120) + 'px'; });
@@ -694,12 +732,24 @@
                 const send = composer.querySelector('.hacc-send');
                 send.disabled = true;
                 try {
-                    const res = await Hub.api('POST', '/api/social/comment', { ...card, body: text, anon }, { retries: 0 });
+                    const payload = { ...card, body: text, anon };
+                    if (replyTo) payload.parentCid = replyTo.cid;
+                    const res = await Hub.api('POST', '/api/social/comment', payload, { retries: 0 });
                     ta.value = '';
                     ta.style.height = '';
                     const sent = res.comment;
                     if (!sent.anon && !sent.avatar) { const me = account() || {}; sent.avatar = me.avatar || null; sent.sex = me.sex || null; }
-                    if (data) { data.comments.push(sent); current = 'comments'; render(); updateCounts(); }
+                    const wasReply = !!replyTo;
+                    setReplyTo(null);
+                    if (data) {
+                        data.comments.push(sent);
+                        current = 'comments';
+                        keepScroll = wasReply;
+                        render();
+                        updateCounts();
+                        const el = body.querySelector(`li[data-cid="${sent.cid}"]`);
+                        if (el && wasReply) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                    }
                 } catch (err) {
                     toast(errorText(err), 'error');
                 } finally {
@@ -825,6 +875,8 @@
         pushStatus().then(resyncPush);
         openThreadFromHash();
         window.addEventListener('hashchange', openThreadFromHash);
+        initIosChrome();
+        scheduleInstallOffer();
     }
 
     /** Owner tools that live on the portal page (index.html) or in the shared navigation script. */
@@ -849,7 +901,93 @@
         else location.href = fallback;
     }
 
+    // ------------------------------------------------------------------
+    // iOS chrome: the bars turn to glass once content scrolls under them; cards rise in
+    // ------------------------------------------------------------------
+    function initIosChrome() {
+        let scrolled = null;
+        const update = () => {
+            const now = window.scrollY > 6;
+            if (now !== scrolled) { scrolled = now; document.body.classList.toggle('ios-scrolled', now); }
+        };
+        update();
+        window.addEventListener('scroll', update, { passive: true });
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        // The first screenful of cards rises in with a short stagger (once per page).
+        requestAnimationFrame(() => {
+            const cards = [...document.querySelectorAll('.glass-card, .hospital-card, .roster-card')]
+                .filter(el => { const r = el.getBoundingClientRect(); return r.width && r.top < innerHeight; }).slice(0, 10);
+            cards.forEach((el, i) => { el.style.animationDelay = (i * 40) + 'ms'; el.classList.add('ios-rise'); });
+            setTimeout(() => cards.forEach(el => { el.classList.remove('ios-rise'); el.style.animationDelay = ''; }), 1200);
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // Install offer: Android gets the system prompt, iPhone gets the Add to Home Screen steps
+    // ------------------------------------------------------------------
+    const INSTALL_SNOOZE_MS = 7 * 24 * 3600 * 1000;
+    const isPhone = () => window.matchMedia && window.matchMedia('(max-width: 900px) and (pointer: coarse)').matches;
+    const iosShareIcon = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M8 7l4-4 4 4"/><path d="M7 10H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1"/></svg>';
+    const addIcon = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/></svg>';
+
+    function installState() {
+        const P = window.HubPWA;
+        if (!P || P.installed()) return 'installed';
+        if (P.canPrompt()) return 'prompt';
+        if (P.isIos()) return 'ios';
+        return 'none';
+    }
+
+    /** Opens the install sheet. Returns false when this device cannot install (or already has). */
+    function offerInstall() {
+        const state = installState();
+        if (state === 'installed' || state === 'none') return false;
+        const sheet = openSheet(`<div class="ios-install">
+                <img class="ios-install-icon" src="./pwa-icon.svg" alt="" width="76" height="76">
+                <h2>بوابة المستشفيات على شاشتك الرئيسية</h2>
+                <p class="hacc-muted">افتحها بلمسة كتطبيق كامل، واستلم إشعارات الإعجابات والتعليقات والردود حتى والتطبيق مغلق.</p>
+                <ul class="ios-install-perks">
+                    <li><span>⚡️</span>فتح فوري بملء الشاشة</li>
+                    <li><span>🔔</span>إشعارات فورية</li>
+                    <li><span>📶</span>يعمل مع ضعف الإنترنت</li>
+                </ul>
+                ${state === 'prompt' ? `<button type="button" class="ios-install-cta" data-act="install">تثبيت التطبيق</button>` : `<ol class="ios-install-steps">
+                    <li><b>1</b><span>اضغط زر المشاركة ${iosShareIcon} في شريط Safari</span></li>
+                    <li><b>2</b><span>اختر «إضافة إلى الشاشة الرئيسية» ${addIcon}</span></li>
+                    <li><b>3</b><span>اضغط «إضافة» في الأعلى</span></li>
+                </ol>`}
+                <button type="button" class="ios-install-later" data-act="later">ليس الآن</button>
+            </div>`, { label: 'تثبيت التطبيق' });
+        const snooze = () => { try { localStorage.setItem('ios_install_offer', String(Date.now())); } catch (e) {} };
+        snooze();
+        sheet.querySelector('[data-act="later"]').addEventListener('click', closeSheet);
+        const btn = sheet.querySelector('[data-act="install"]');
+        if (btn) btn.addEventListener('click', async () => {
+            const ok = await window.HubPWA.install();
+            closeSheet();
+            if (ok) toast('تم تثبيت التطبيق ✓', 'success');
+        });
+        return true;
+    }
+
+    /** Offered once a week on phones that have not installed the app, when nothing else is open. */
+    function scheduleInstallOffer() {
+        if (!isPhone()) return;
+        let last = 0;
+        try { last = Number(localStorage.getItem('ios_install_offer')) || 0; } catch (e) { return; }
+        if (Date.now() - last < INSTALL_SNOOZE_MS) return;
+        const tryOffer = () => {
+            if (openSheetEl || document.querySelector('.modal-overlay.active, .hub-modal-overlay.active')) return;
+            if (installState() === 'ios' || installState() === 'prompt') offerInstall();
+        };
+        // Android: Chrome decides when the app is installable; iPhone: right away.
+        window.addEventListener('beforeinstallprompt', () => setTimeout(tryOffer, 2500), { once: true });
+        setTimeout(tryOffer, 6000);
+    }
+
     window.HubAccounts = {
+        offerInstall,
+        installState,
         navButtons,
         avatarHtml,
         goBack,

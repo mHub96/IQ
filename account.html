@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0f766e" />
+    <meta name="theme-color" content="#007AFF" />
     <title>حسابي · Hosp Hub</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -19,11 +19,11 @@
             margin: 0;
             min-height: 100vh; min-height: 100dvh;
             font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif;
-            background: radial-gradient(1200px 600px at 100% -10%, rgba(15, 118, 110, 0.12), transparent 60%), #f8fafc;
+            background: radial-gradient(1200px 600px at 100% -10%, rgba(0, 122, 255, 0.12), transparent 60%), #F9F9FB;
             color: var(--hacc-text);
             -webkit-font-smoothing: antialiased;
         }
-        body.dark { background: radial-gradient(1200px 600px at 100% -10%, rgba(212, 175, 55, 0.08), transparent 60%), #0b0e12; }
+        body.dark { background: radial-gradient(1200px 600px at 100% -10%, rgba(10, 132, 255, 0.08), transparent 60%), #000000; }
         .top {
             position: sticky; top: 0; z-index: 50;
             display: flex; align-items: center; gap: 10px;
@@ -40,14 +40,14 @@
             border: 1px solid var(--hacc-border);
             border-radius: 22px;
             padding: 20px 18px;
-            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
             margin-bottom: 16px;
         }
         .card h2 { margin: 0 0 4px; font-size: 1.15rem; font-weight: 800; }
         .card > p.lead { margin: 0 0 16px; color: var(--hacc-muted); font-size: 0.84rem; line-height: 1.7; }
         .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; background: var(--hacc-surface); border-radius: 14px; margin-bottom: 16px; }
         .seg a { text-align: center; padding: 10px 4px; border-radius: 11px; color: var(--hacc-muted); text-decoration: none; font-weight: 800; font-size: 0.82rem; }
-        .seg a[aria-current="page"] { background: var(--hacc-bg); color: var(--hacc-accent); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08); }
+        .seg a[aria-current="page"] { background: var(--hacc-bg); color: var(--hacc-accent); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
         .field { margin-bottom: 14px; }
         .field label { display: block; font-size: 0.8rem; font-weight: 800; margin-bottom: 6px; }
         .field .hint { font-size: 0.72rem; color: var(--hacc-muted); margin-top: 5px; line-height: 1.6; min-height: 1em; }
@@ -109,7 +109,7 @@
         .tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; scrollbar-width: none; }
         .tabs button { flex: none; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--hacc-border); background: var(--hacc-bg); color: var(--hacc-muted); font: 800 0.8rem inherit; font-family: inherit; cursor: pointer; }
         .tabs button[aria-selected="true"] { background: var(--hacc-accent); border-color: var(--hacc-accent); color: #fff; }
-        body.dark .tabs button[aria-selected="true"] { color: #0f172a; }
+        body.dark .tabs button[aria-selected="true"] { color: #1C1C1E; }
         .tabs .n { display: inline-block; min-width: 18px; padding: 0 5px; margin-right: 4px; border-radius: 9px; background: var(--hacc-like); color: #fff; font-size: 0.68rem; line-height: 18px; text-align: center; }
         .search { margin-bottom: 12px; }
         .acc { border: 1px solid var(--hacc-border); border-radius: 18px; padding: 14px; margin-bottom: 10px; background: var(--hacc-bg); }
@@ -136,11 +136,11 @@
         /* Tabs between profile / settings / management */
         .apptabs { display: flex; gap: 4px; padding: 4px; background: var(--hacc-surface); border-radius: 14px; margin-bottom: 16px; }
         .apptabs a { flex: 1; text-align: center; padding: 10px 4px; border-radius: 11px; color: var(--hacc-muted); text-decoration: none; font-weight: 800; font-size: 0.82rem; position: relative; }
-        .apptabs a[aria-current="page"] { background: var(--hacc-bg); color: var(--hacc-accent); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08); }
+        .apptabs a[aria-current="page"] { background: var(--hacc-bg); color: var(--hacc-accent); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
         .apptabs .n { position: absolute; top: 4px; left: 8px; min-width: 16px; padding: 0 4px; border-radius: 8px; background: var(--hacc-like); color: #fff; font-size: 0.62rem; line-height: 16px; }
         .seg2 { display: inline-flex; gap: 4px; padding: 4px; background: var(--hacc-surface); border-radius: 12px; }
         .seg2 button { border: 0; background: none; padding: 8px 16px; border-radius: 9px; font: 800 0.82rem inherit; font-family: inherit; color: var(--hacc-muted); cursor: pointer; min-height: 38px; }
-        .seg2 button[aria-pressed="true"] { background: var(--hacc-bg); color: var(--hacc-accent); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08); }
+        .seg2 button[aria-pressed="true"] { background: var(--hacc-bg); color: var(--hacc-accent); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
         .set-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
         .set-row + .set-row { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--hacc-border); }
         .set-title { font-weight: 800; font-size: 0.9rem; }

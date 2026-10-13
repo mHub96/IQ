@@ -1,138 +1,362 @@
 /*
- * iOS design layer, loaded last on every page. Phones first: system font, translucent bars,
- * a full-width tab bar, bottom-sheet pop-ups, tactile buttons, smooth page transitions.
- * Larger screens keep the original layouts (only the shared refinements apply).
+ * iOS design layer ("Liquid Glass"), loaded last on every page.
+ * System colours and type, glass bars, a floating capsule tab bar, floating sheets,
+ * capsule controls and spring motion. Phones get the full treatment; larger screens
+ * share the colours, materials, controls and motion.
  */
 
 :root {
   --ios-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Arabic", "IBM Plex Sans Arabic", system-ui, sans-serif;
-  --ios-bar: rgba(249, 249, 251, 0.82);
+  --ios-tint: #007AFF;
+  --ios-tint-soft: rgba(0, 122, 255, 0.12);
+  --ios-red: #FF3B30;
+  --ios-green: #34C759;
+  --ios-orange: #FF9500;
+  --ios-bg: #F2F2F7;
+  --ios-card: #FFFFFF;
+  --ios-card2: #F2F2F7;
+  --ios-label: #000000;
+  --ios-label2: rgba(60, 60, 67, 0.6);
+  --ios-label3: rgba(60, 60, 67, 0.3);
   --ios-sep: rgba(60, 60, 67, 0.18);
-  --ios-label2: rgba(60, 60, 67, 0.62);
-  --ios-tint: #0F766E;
   --ios-fill: rgba(118, 118, 128, 0.12);
+  --ios-glass: rgba(255, 255, 255, 0.62);
+  --ios-glass-strong: rgba(255, 255, 255, 0.78);
+  --ios-glass-edge: rgba(255, 255, 255, 0.75);
+  --ios-glass-shadow: 0 10px 34px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --ios-blur: saturate(190%) blur(22px);
   --ios-spring: cubic-bezier(0.32, 0.72, 0, 1);
-  --ios-tabbar: 50px;
+  --ios-bounce: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --ios-tabbar: 62px;
+  --ios-tabbar-gap: 10px;
+
+  /* The account sheets and panel use the same system colours. */
+  --hacc-accent: var(--ios-tint);
+  --hacc-accent-soft: var(--ios-tint-soft);
+  --hacc-bg: var(--ios-card);
+  --hacc-surface: #E9E9EB;
+  --hacc-border: var(--ios-sep);
+  --hacc-text: var(--ios-label);
+  --hacc-muted: var(--ios-label2);
+  --hacc-like: #FF2D55;
+  --hacc-danger: var(--ios-red);
+  --hacc-shadow: 0 -8px 40px rgba(0, 0, 0, 0.16);
 }
 html.dark, body.dark {
-  --ios-bar: rgba(22, 22, 24, 0.8);
-  --ios-sep: rgba(84, 84, 88, 0.6);
+  --ios-tint: #0A84FF;
+  --ios-tint-soft: rgba(10, 132, 255, 0.18);
+  --ios-red: #FF453A;
+  --ios-green: #30D158;
+  --ios-orange: #FF9F0A;
+  --ios-bg: #000000;
+  --ios-card: #1C1C1E;
+  --ios-card2: #2C2C2E;
+  --ios-label: #FFFFFF;
   --ios-label2: rgba(235, 235, 245, 0.6);
-  --ios-tint: #D4AF37;
+  --ios-label3: rgba(235, 235, 245, 0.3);
+  --ios-sep: rgba(84, 84, 88, 0.65);
   --ios-fill: rgba(118, 118, 128, 0.24);
+  --ios-glass: rgba(37, 37, 40, 0.58);
+  --ios-glass-strong: rgba(44, 44, 46, 0.8);
+  --ios-glass-edge: rgba(255, 255, 255, 0.14);
+  --ios-glass-shadow: 0 10px 34px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.4);
+
+  --hacc-surface: #2C2C2E;
+  --hacc-like: #FF375F;
+  --hacc-shadow: 0 -8px 40px rgba(0, 0, 0, 0.6);
 }
 
 html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
 body { font-family: var(--ios-font); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 a, button, [role="button"], label, summary { touch-action: manipulation; }
 ::selection { background: color-mix(in srgb, var(--ios-tint) 25%, transparent); }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--ios-tint) 55%, transparent); outline-offset: 2px; }
+input[type="checkbox"], input[type="radio"], input[type="range"], progress { accent-color: var(--ios-tint); }
+
+/* ---------- System backgrounds: grouped grey (light), true black (dark) ---------- */
+body.light { background: var(--ios-bg) !important; background-image: none !important; }
+body.dark { background: var(--ios-bg) !important; background-image: none !important; color: var(--ios-label); }
+
+/* ---------- Cards: white / elevated grey, continuous corners, no heavy borders ---------- */
+.glass-card, .ios-card, .hub-card, .hospital-card, .roster-card, .modal-card, .hub-modal-card {
+  border-radius: 22px;
+}
+body.light .glass-card {
+  background: var(--ios-card) !important;
+  border: 0 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 20px rgba(0, 0, 0, 0.05) !important;
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+body.dark .glass-card {
+  background: var(--ios-card) !important;
+  border: 0.5px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+body.dark .modal-card, body.dark .hub-modal-card { background: var(--ios-card2) !important; border-color: rgba(255, 255, 255, 0.08) !important; }
+
+/* ---------- Large titles: SF-like weight and tracking ---------- */
+h1, .hospital-title { letter-spacing: -0.022em; }
+h2, h3 { letter-spacing: -0.012em; }
+
+/* ---------- Buttons: capsules in the tint colour ---------- */
+.ios-btn, .hacc-btn { border-radius: 999px !important; }
+.hacc-btn.primary, .ios-btn.primary { background: var(--ios-tint) !important; color: #fff !important; border-color: transparent !important; }
+body.dark .hacc-nav-account.has-account { color: #fff; }
+.hacc-nav-btn {
+  border: 0.5px solid var(--ios-glass-edge) !important;
+  background: var(--ios-glass) !important;
+  -webkit-backdrop-filter: var(--ios-blur); backdrop-filter: var(--ios-blur);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  color: var(--ios-tint) !important;
+}
+.hacc-nav-account.has-account { padding: 0; overflow: hidden; }
+
+/* ---------- Segmented controls: grey track, white sliding thumb ---------- */
+.ios-segmented-control, .hp-seg {
+  background: var(--ios-fill) !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  padding: 3px !important;
+}
+.ios-segment-btn, .hp-seg button {
+  border-radius: 999px !important;
+  color: var(--ios-label) !important;
+  font-weight: 600 !important;
+  transition: background-color 0.3s var(--ios-spring), box-shadow 0.3s var(--ios-spring), transform 0.18s var(--ios-spring) !important;
+}
+.ios-segment-btn.active, .hp-seg button[aria-pressed="true"], .hp-seg button.active {
+  background: var(--ios-card) !important;
+  color: var(--ios-label) !important;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04) !important;
+}
+body.dark .ios-segment-btn.active, body.dark .hp-seg button[aria-pressed="true"], body.dark .hp-seg button.active { background: #636366 !important; }
+
+/* Sheet tabs (comments / likes) as a segmented control */
+.hacc-tabs { border-bottom: 0 !important; gap: 0 !important; }
+.hacc-tabs[role="tablist"] {
+  margin: 4px 14px 8px; padding: 3px !important;
+  background: var(--ios-fill); border-radius: 999px;
+}
+.hacc-tabs button {
+  border: 0 !important; border-radius: 999px !important; padding: 7px 6px !important;
+  color: var(--ios-label) !important; font-weight: 600 !important;
+  transition: background-color 0.3s var(--ios-spring), box-shadow 0.3s var(--ios-spring);
+}
+.hacc-tabs button[aria-selected="true"] {
+  background: var(--ios-card) !important; color: var(--ios-label) !important;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04);
+}
+body.dark .hacc-tabs button[aria-selected="true"] { background: #636366 !important; }
+
+/* ---------- Inputs: filled, borderless, rounded ---------- */
+.hacc-composer textarea, .hacc-field input, .hacc-field select, .hacc-field textarea {
+  background: var(--ios-fill) !important;
+  border: 0 !important;
+  border-radius: 12px;
+}
+.hacc-composer textarea { border-radius: 20px !important; }
+.hacc-send { border-radius: 50% !important; background: var(--ios-tint) !important; color: #fff !important; }
+.hacc-bubble { border-radius: 20px !important; }
 
 /* ---------- Page transitions (cross-document View Transitions; ignored where unsupported) ---------- */
 @view-transition { navigation: auto; }
-::view-transition-old(root) { animation: ios-page-out 0.22s var(--ios-spring) both; }
-::view-transition-new(root) { animation: ios-page-in 0.34s var(--ios-spring) both; }
-@keyframes ios-page-out { to { opacity: 0; transform: translateX(6%); } }
-@keyframes ios-page-in { from { opacity: 0; transform: translateX(-8%); } }
+::view-transition-old(root) { animation: ios-page-out 0.24s var(--ios-spring) both; }
+::view-transition-new(root) { animation: ios-page-in 0.38s var(--ios-spring) both; }
+@keyframes ios-page-out { to { opacity: 0; transform: scale(0.985); } }
+@keyframes ios-page-in { from { opacity: 0; transform: translateY(10px) scale(1.01); } }
 .hub-nav-bar, .ios-top-bar { view-transition-name: ios-navbar; }
 .hub-mobile-bottom-dock, .ios-bottom-dock { view-transition-name: ios-tabbar; }
 ::view-transition-group(ios-navbar), ::view-transition-group(ios-tabbar) { animation: none; }
+/* The selected-tab lozenge glides to the new tab between pages. */
+.hub-mobile-bottom-dock .dock-tab-btn.active, .ios-bottom-dock .dock-tab-btn.active { view-transition-name: ios-tab-pill; }
+::view-transition-group(ios-tab-pill) { animation-duration: 0.45s; animation-timing-function: var(--ios-bounce); }
 
 /* ---------- Tactile feedback ---------- */
 .ios-btn, .hacc-btn, .hacc-act, .action-btn-sm, .dock-tab-btn, .hub-nav-btn, .hacc-nav-btn, .ios-icon-btn,
-.ios-segment-btn, .filter-tab, .top-action-btn, .owner-chip-btn, .hp-admin-tile {
-  transition: transform 0.18s var(--ios-spring), opacity 0.18s ease, background-color 0.2s ease, color 0.2s ease;
+.ios-segment-btn, .filter-tab, .top-action-btn, .owner-chip-btn, .hp-admin-tile, .hacc-send, .hospital-card, .ios-install-cta {
+  transition: transform 0.22s var(--ios-spring), opacity 0.18s ease, background-color 0.25s ease, color 0.2s ease, box-shadow 0.25s ease;
 }
 .ios-btn:active, .hacc-btn:active, .action-btn-sm:active, .ios-segment-btn:active, .filter-tab:active,
-.top-action-btn:active, .owner-chip-btn:active, .hp-admin-tile:active { transform: scale(0.97); opacity: 0.85; }
-.dock-tab-btn:active, .hub-nav-btn:active, .hacc-nav-btn:active, .ios-icon-btn:active { transform: scale(0.9); }
+.top-action-btn:active, .owner-chip-btn:active, .hp-admin-tile:active, .ios-install-cta:active { transform: scale(0.96); opacity: 0.88; }
+.hospital-card:active { transform: scale(0.98); }
+.dock-tab-btn:active, .hub-nav-btn:active, .hacc-nav-btn:active, .ios-icon-btn:active, .hacc-send:active { transform: scale(0.88); }
 
-/* ---------- Install button: a small pill above the tab bar, never over it ---------- */
+/* ---------- Content appears with a gentle rise ---------- */
+@keyframes ios-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.ios-rise { animation: ios-rise 0.5s var(--ios-spring) both; }
+
+/* ---------- Floating install pill (larger screens only; phones get the install sheet) ---------- */
 #pwa-install-button {
-  right: 12px !important;
-  left: auto !important;
-  bottom: calc(var(--ios-tabbar) + env(safe-area-inset-bottom, 0px) + 12px) !important;
-  padding: 8px 12px !important;
-  font-size: 12px !important;
-  border-radius: 999px !important;
-  z-index: 9990 !important;
+  right: 16px !important; left: auto !important; bottom: 20px !important;
+  padding: 9px 14px !important; font-size: 13px !important;
+  border-radius: 999px !important; z-index: 9990 !important;
   background: var(--ios-tint) !important;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
 }
 
+/* ---------- Install sheet ---------- */
+.ios-install { padding: 6px 22px 22px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.ios-install-icon { width: 76px; height: 76px; border-radius: 18px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18); margin-top: 6px; }
+.ios-install h2 { margin: 6px 0 0; font-size: 21px; font-weight: 800; letter-spacing: -0.02em; }
+.ios-install p { margin: 0; font-size: 14px; line-height: 1.6; max-width: 34ch; }
+.ios-install-perks { list-style: none; margin: 6px 0 4px; padding: 0; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.ios-install-perks li { display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; background: var(--ios-fill); font-size: 13px; font-weight: 600; }
+.ios-install-steps { list-style: none; margin: 4px 0; padding: 4px 14px; width: 100%; border-radius: 16px; background: var(--ios-fill); text-align: right; }
+.ios-install-steps li { display: flex; align-items: center; gap: 12px; padding: 11px 0; font-size: 15px; font-weight: 600; }
+.ios-install-steps li + li { border-top: 0.5px solid var(--ios-sep); }
+.ios-install-steps b { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--ios-tint); color: #fff; font-size: 13px; }
+.ios-install-steps span { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ios-install-steps svg { color: var(--ios-tint); }
+.ios-install-cta { width: 100%; min-height: 50px; border: 0; border-radius: 999px; background: var(--ios-tint); color: #fff; font: 700 17px var(--ios-font); cursor: pointer; margin-top: 4px; }
+.ios-install-later { border: 0; background: none; color: var(--ios-tint); font: 600 16px var(--ios-font); padding: 10px; cursor: pointer; }
+
+/* ---------- Toasts as iOS banners ---------- */
+.hacc-toast {
+  border-radius: 22px;
+  background: var(--ios-glass-strong) !important;
+  color: var(--ios-label) !important;
+  border: 0.5px solid var(--ios-glass-edge);
+  -webkit-backdrop-filter: var(--ios-blur);
+  backdrop-filter: var(--ios-blur);
+  box-shadow: var(--ios-glass-shadow);
+}
+
+/* ---------- Sheets: glass backdrop dim, spring, floating card ---------- */
+.hacc-sheet-backdrop.open { background: rgba(0, 0, 0, 0.32) !important; }
+.hacc-sheet {
+  font-family: var(--ios-font) !important;
+  transition: transform 0.5s var(--ios-spring) !important;
+  border-radius: 34px 34px 0 0 !important;
+}
+
+/* Desktop pop-ups: centred, scale in with a spring */
+@media (min-width: 769px) {
+  .modal-overlay.active > .modal-card, .hub-modal-overlay.active > .hub-modal-card,
+  .modal-overlay.active > .hub-modal-card, .hub-modal-overlay.active > .modal-card { animation: ios-pop 0.42s var(--ios-spring) both; }
+  .modal-card, .hub-modal-card { border-radius: 28px !important; }
+  .hacc-sheet { border-radius: 30px !important; margin-bottom: 24px; }
+}
+@keyframes ios-pop { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }
+
 @media (max-width: 768px) {
-  /* ---------- Navigation bar: translucent, hairline, title in the middle ---------- */
+  /* ---------- Navigation bar: clear at the top, glass once content scrolls under it ---------- */
   .hub-nav-bar {
-    min-height: calc(48px + env(safe-area-inset-top, 0px));
-    padding: env(safe-area-inset-top, 0px) 10px 0 !important;
-    background: var(--ios-bar) !important;
-    -webkit-backdrop-filter: saturate(180%) blur(20px) !important;
-    backdrop-filter: saturate(180%) blur(20px) !important;
-    border-bottom: 0.5px solid var(--ios-sep) !important;
+    min-height: calc(52px + env(safe-area-inset-top, 0px));
+    padding: env(safe-area-inset-top, 0px) 12px 0 !important;
+    background: transparent !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    border-bottom: 0.5px solid transparent !important;
     box-shadow: none !important;
     position: sticky;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+  body.ios-scrolled .hub-nav-bar {
+    background: var(--ios-glass-strong) !important;
+    -webkit-backdrop-filter: var(--ios-blur) !important;
+    backdrop-filter: var(--ios-blur) !important;
+    border-bottom-color: var(--ios-sep) !important;
   }
   .hub-nav-bar .hub-nav-center, .hub-mobile-toggle, .hub-btn-logout, .hub-nav-bar .role-badge { display: none !important; }
   .hub-nav-brand .brand-text { display: none !important; }
-  .hub-nav-brand .brand-icon { width: 32px; height: 32px; border-radius: 9px; }
+  .hub-nav-brand .brand-icon {
+    width: 36px; height: 36px; border-radius: 50%;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
   .hub-nav-title {
     position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
-    height: 48px; display: flex; align-items: center;
+    height: 52px; display: flex; align-items: center;
     max-width: 52%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     font: 600 17px/1 var(--ios-font); letter-spacing: -0.01em;
+    color: var(--ios-label) !important;
     pointer-events: none;
+    opacity: 0; transition: opacity 0.25s ease;
   }
-  body.light .hub-nav-title { color: #0F172A; }
-  body.dark .hub-nav-title { color: #F8FAFC; }
-  .hub-nav-right { gap: 6px !important; }
+  body.ios-scrolled .hub-nav-title { opacity: 1; }
+  .hub-nav-right { gap: 8px !important; }
+  /* Round glass buttons in the bar */
+  .hub-nav-right .hub-nav-btn, .hub-nav-right .theme-toggle, .hub-nav-right > button {
+    border-radius: 50% !important;
+    background: var(--ios-glass) !important;
+    border: 0.5px solid var(--ios-glass-edge) !important;
+    -webkit-backdrop-filter: var(--ios-blur); backdrop-filter: var(--ios-blur);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08) !important;
+  }
 
   /* Portal top bar (index.html) */
   .ios-top-bar {
-    background: var(--ios-bar) !important;
-    -webkit-backdrop-filter: saturate(180%) blur(20px) !important;
-    backdrop-filter: saturate(180%) blur(20px) !important;
-    border-bottom: 0.5px solid var(--ios-sep) !important;
+    background: transparent !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    border-bottom: 0.5px solid transparent !important;
     box-shadow: none !important;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+  body.ios-scrolled .ios-top-bar {
+    background: var(--ios-glass-strong) !important;
+    -webkit-backdrop-filter: var(--ios-blur) !important;
+    backdrop-filter: var(--ios-blur) !important;
+    border-bottom-color: var(--ios-sep) !important;
   }
   .ios-top-bar #top-logout-btn { display: none !important; }
 
-  /* ---------- Tab bar: full width, blurred, above the home indicator ---------- */
+  /* ---------- Tab bar: a floating glass capsule; every tab keeps its place on every page ---------- */
   .hub-mobile-bottom-dock, .ios-bottom-dock {
-    left: 0 !important; right: 0 !important; bottom: 0 !important;
+    position: fixed !important;
+    left: 12px !important; right: 12px !important;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + var(--ios-tabbar-gap)) !important;
+    top: auto !important;
     transform: none !important;
-    width: 100% !important; max-width: none !important;
-    height: calc(var(--ios-tabbar) + env(safe-area-inset-bottom, 0px)) !important;
-    padding: 2px 4px env(safe-area-inset-bottom, 0px) !important;
-    border-radius: 0 !important;
-    border: 0 !important;
-    border-top: 0.5px solid var(--ios-sep) !important;
-    background: var(--ios-bar) !important;
-    -webkit-backdrop-filter: saturate(180%) blur(20px) !important;
-    backdrop-filter: saturate(180%) blur(20px) !important;
-    box-shadow: none !important;
-    align-items: flex-start !important;
+    width: auto !important; max-width: none !important;
+    height: var(--ios-tabbar) !important;
+    padding: 4px !important;
+    display: flex !important;
+    align-items: stretch !important;
+    justify-content: space-between !important;
+    gap: 0 !important;
+    border-radius: 999px !important;
+    border: 0.5px solid var(--ios-glass-edge) !important;
+    background: var(--ios-glass) !important;
+    -webkit-backdrop-filter: var(--ios-blur) !important;
+    backdrop-filter: var(--ios-blur) !important;
+    box-shadow: var(--ios-glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+    z-index: 9000 !important;
   }
   .hub-mobile-bottom-dock .dock-tab-btn, .ios-bottom-dock .dock-tab-btn {
-    height: var(--ios-tabbar);
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important; flex-direction: column !important;
+    align-items: center !important; justify-content: center !important;
     gap: 3px !important;
-    border-radius: 10px !important;
+    border-radius: 999px !important;
     background: transparent !important;
-    font: 500 10px/1.1 var(--ios-font) !important;
-    color: var(--ios-label2) !important;
+    font: 600 10px/1.1 var(--ios-font) !important;
+    color: var(--ios-label) !important;
+    box-shadow: none !important;
   }
-  .hub-mobile-bottom-dock .dock-tab-btn i, .ios-bottom-dock .dock-tab-btn i { font-size: 21px !important; }
-  .hub-mobile-bottom-dock .dock-tab-btn.active, .ios-bottom-dock .dock-tab-btn.active,
-  .hub-mobile-bottom-dock .dock-tab-btn:hover, .ios-bottom-dock .dock-tab-btn:hover { color: var(--ios-tint) !important; background: transparent !important; }
+  .hub-mobile-bottom-dock .dock-tab-btn span, .ios-bottom-dock .dock-tab-btn span {
+    font: inherit !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+  }
+  .hub-mobile-bottom-dock .dock-tab-btn i, .ios-bottom-dock .dock-tab-btn i { font-size: 20px !important; }
+  .hub-mobile-bottom-dock .dock-tab-btn.active, .ios-bottom-dock .dock-tab-btn.active {
+    color: var(--ios-tint) !important;
+    background: var(--ios-fill) !important;
+  }
+  .hub-mobile-bottom-dock .dock-tab-btn:hover, .ios-bottom-dock .dock-tab-btn:hover { background: transparent; }
+  .hub-mobile-bottom-dock .dock-tab-btn::before, .ios-bottom-dock .dock-tab-btn::before,
+  .hub-mobile-bottom-dock .dock-tab-btn::after, .ios-bottom-dock .dock-tab-btn::after { display: none !important; }
+  /* Room for the floating bar at the end of every page */
+  body { padding-bottom: calc(var(--ios-tabbar) + var(--ios-tabbar-gap) + env(safe-area-inset-bottom, 0px) + 18px) !important; }
 
   /* ---------- Inputs: 16px so iOS does not zoom in on focus ---------- */
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not(td *):not(th *),
   select:not(td *):not(th *), textarea:not(td *):not(th *) { font-size: 16px !important; }
 
-  /* ---------- Cards: iOS grouped style (gentler radius and shadow) ---------- */
-  .glass-card, .modal-card, .hub-modal-card { border-radius: 18px; }
-  .glass-card { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.05); }
-  body.dark .glass-card { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); }
-
-  /* ---------- Pop-ups become bottom sheets ---------- */
+  /* ---------- Pop-ups become floating sheets ---------- */
   .modal-overlay, .hub-modal-overlay {
     align-items: flex-end !important;
     justify-content: center !important;
@@ -143,10 +367,10 @@ a, button, [role="button"], label, summary { touch-action: manipulation; }
     width: 100% !important;
     max-width: none !important;
     margin: 0 !important;
-    border-radius: 14px 14px 0 0 !important;
+    border-radius: 34px 34px 0 0 !important;
     padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px)) !important;
     max-height: calc(100dvh - 10px - env(safe-area-inset-top, 0px)) !important;
-    animation: ios-sheet-up 0.42s var(--ios-spring) both;
+    animation: ios-sheet-up 0.5s var(--ios-spring) both;
   }
   /* Pages that open pop-ups by adding .active (the card stays in the DOM): replay the slide-up. */
   .modal-overlay.active > .modal-card, .modal-overlay.active > .hub-modal-card,
@@ -156,54 +380,41 @@ a, button, [role="button"], label, summary { touch-action: manipulation; }
     content: ''; display: block; flex: none;
     width: 36px; height: 5px; border-radius: 3px;
     margin: -6px auto 10px;
-    background: var(--ios-sep);
+    background: var(--ios-label3);
   }
   /* The leaderboard's pinned title sits under the grabber. */
   #trending-modal .modal-card > div:first-child { border-radius: 0 !important; margin-top: 0 !important; top: -1.25rem; }
-
-  /* Our own sheets (comments, notifications, account panel) match. */
-  .hacc-sheet { border-radius: 14px 14px 0 0; }
 }
 
 @keyframes ios-sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes ios-sheet-up-again { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-/* ---------- Toasts as iOS banners ---------- */
-.hacc-toast {
-  border-radius: 16px;
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  backdrop-filter: saturate(180%) blur(20px);
-}
-
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
-  .modal-overlay > *, .hub-modal-overlay > * { animation: none !important; }
+  ::view-transition-old(root), ::view-transition-new(root), ::view-transition-group(ios-tab-pill) { animation: none; }
+  .modal-overlay > *, .hub-modal-overlay > *, .ios-rise { animation: none !important; }
   * { scroll-behavior: auto !important; }
 }
 
 /* ---------- Page contents on phones ---------- */
 @media (max-width: 768px) {
-  /* iOS grouped background behind white cards */
-  body.light { background: #F2F2F7 !important; }
-
-  /* Install: offered in the account panel's settings instead of a floating button */
+  /* Install: offered by the install sheet and in the account panel's settings */
   #pwa-install-button { display: none !important; }
 
   /* Home: compact hospital header, softly tinted action pills */
   .top-bar { margin-bottom: 4px !important; }
   .top-action-btn {
-    padding: 7px 12px !important; font-size: 13px !important; font-weight: 700 !important;
+    padding: 7px 12px !important; font-size: 13px !important; font-weight: 600 !important;
     border-radius: 999px !important; box-shadow: none !important; border: 0 !important;
   }
-  body.light .top-action-btn.leader { background: rgba(217, 119, 6, 0.12) !important; color: #B45309 !important; }
-  body.light .top-action-btn.report { background: rgba(37, 99, 235, 0.1) !important; color: #1D4ED8 !important; }
-  body.light .top-action-btn.reset { background: rgba(220, 38, 38, 0.1) !important; color: #B91C1C !important; }
-  body.dark .top-action-btn.leader { background: rgba(251, 191, 36, 0.14) !important; color: #FCD34D !important; }
-  body.dark .top-action-btn.report { background: rgba(96, 165, 250, 0.14) !important; color: #93C5FD !important; }
-  body.dark .top-action-btn.reset { background: rgba(248, 113, 113, 0.14) !important; color: #FCA5A5 !important; }
+  body.light .top-action-btn.leader { background: rgba(255, 149, 0, 0.14) !important; color: #C93400 !important; }
+  body.light .top-action-btn.report { background: var(--ios-tint-soft) !important; color: var(--ios-tint) !important; }
+  body.light .top-action-btn.reset { background: rgba(255, 59, 48, 0.12) !important; color: #D70015 !important; }
+  body.dark .top-action-btn.leader { background: rgba(255, 159, 10, 0.18) !important; color: #FFB340 !important; }
+  body.dark .top-action-btn.report { background: var(--ios-tint-soft) !important; color: #409CFF !important; }
+  body.dark .top-action-btn.reset { background: rgba(255, 69, 58, 0.18) !important; color: #FF6961 !important; }
   .hospital-header { padding-top: 2px !important; padding-bottom: 6px !important; gap: 4px !important; }
   .hospital-mark { transform: scale(0.62); margin: -8px auto -20px !important; }
-  .hospital-title { font-size: 22px !important; line-height: 1.3 !important; letter-spacing: -0.01em; }
+  .hospital-title { font-size: 28px !important; font-weight: 800 !important; line-height: 1.25 !important; }
   .hospital-subtitle { font-size: 10px !important; letter-spacing: 0.12em !important; }
   .hospital-eyebrow { font-size: 11px !important; }
   .current-time-bubble { transform: scale(0.86); margin-top: -2px; }
@@ -212,8 +423,8 @@ a, button, [role="button"], label, summary { touch-action: manipulation; }
   /* Duty exchange: the form starts at the top, not floating mid-screen */
   .main-wrapper { align-items: flex-start !important; padding-top: 14px !important; }
 
-  /* Page header cards: smaller icon and title (the page title is already in the bar) */
+  /* Page header cards: a large title, as iOS apps open */
   .max-w-7xl > .glass-card:first-child { padding: 18px 16px !important; margin-bottom: 16px !important; }
-  .max-w-7xl > .glass-card:first-child .w-16.h-16 { width: 48px !important; height: 48px !important; font-size: 1.4rem !important; }
-  .max-w-7xl > .glass-card:first-child .text-2xl { font-size: 21px !important; }
+  .max-w-7xl > .glass-card:first-child .w-16.h-16 { width: 48px !important; height: 48px !important; font-size: 1.4rem !important; border-radius: 14px !important; }
+  .max-w-7xl > .glass-card:first-child .text-2xl { font-size: 28px !important; font-weight: 800 !important; letter-spacing: -0.022em; }
 }

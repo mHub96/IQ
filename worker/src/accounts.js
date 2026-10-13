@@ -313,6 +313,7 @@ function pushMessage(n) {
   switch (n.type) {
     case 'like': return { title: '❤️ إعجاب جديد', body: `${d.last || 'أحدهم'}${others} أُعجب ببطاقة خفارتك`, url: card };
     case 'comment': return { title: '💬 تعليق جديد على بطاقتك', body: `${d.last || 'أحدهم'}: ${d.text || ''}`, url: card };
+    case 'reply': return { title: '↩️ ردّ على تعليقك', body: `${d.last || 'أحدهم'}: ${d.text || ''}`, url: card };
     case 'signup_request': return { title: '🆕 طلب حساب جديد', body: `${d.name || ''} (@${d.username || ''})`, url: './account.html#manage' };
     case 'reset_request': return { title: '🔑 طلب تغيير كلمة المرور', body: `${d.name || ''} (@${d.username || ''})`, url: './account.html#manage-resets' };
     case 'account_approved': return { title: '✅ تم تفعيل حسابك', body: 'أهلاً بك في بوابة المستشفيات!', url: './index.html?portal=true' };
@@ -761,7 +762,7 @@ function cleanProfile(p) {
 
 // Option counts per avatar part (must match hub-avatar.js, version 2).
 const AVATAR_VERSION = 2;
-const AVATAR_LIMITS = { s: 20, h: 26, hc: 20, e: 21, ec: 20, b: 21, bc: 20, m: 21, mc: 20, d: 21, dc: 20, n: 20, o: 20, g: 21, gc: 20, t: 21, tc: 20, c: 20, cc: 20, k: 20 };
+const AVATAR_LIMITS = { s: 20, h: 26, hc: 20, e: 21, ec: 20, b: 21, bc: 20, m: 21, mc: 20, d: 21, dc: 20, n: 20, o: 20, g: 21, gc: 20, t: 21, tc: 20, a: 20, ac: 20, c: 20, cc: 20, k: 20 };
 
 export function cleanAvatar(input) {
   if (!input || typeof input !== 'object') return null;
@@ -839,7 +840,7 @@ async function receivedComments(env, auth, url) {
   const me = await env.DB.prepare('SELECT name_key FROM accounts WHERE id = ?').bind(auth.a).first();
   const [list, totals] = await env.DB.batch([
     env.DB.prepare(
-      `SELECT c.cid, c.hosp, c.account_id, c.anon, c.body, c.ts, c.edited_at, c.card_date, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex, a.avatar AS avatar
+      `SELECT c.cid, c.parent_cid, c.hosp, c.account_id, c.anon, c.body, c.ts, c.edited_at, c.card_date, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex, a.avatar AS avatar
          FROM comments c LEFT JOIN accounts a ON a.id = c.account_id
         WHERE c.card_key = ?1 AND c.deleted = 0 AND c.cid < ?2 ORDER BY c.cid DESC LIMIT 50`
     ).bind(me.name_key, before),
@@ -959,6 +960,7 @@ function commentView(c, auth) {
     body: c.body,
     ts: c.ts,
     mine,
+    parent: c.parent_cid || null,
     edited: !!c.edited_at,
     canEdit: mine && open,
     canDelete: (mine && open) || canModerate(auth, c.hosp),
@@ -974,7 +976,7 @@ async function thread(env, auth, url) {
         WHERE l.target = ?1 ORDER BY l.ts DESC LIMIT 300`
     ).bind(card.target, auth.a || ''),
     env.DB.prepare(
-      `SELECT c.cid, c.hosp, c.account_id, c.anon, c.body, c.ts, c.edited_at, c.card_date, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex, a.avatar AS avatar
+      `SELECT c.cid, c.parent_cid, c.hosp, c.account_id, c.anon, c.body, c.ts, c.edited_at, c.card_date, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex, a.avatar AS avatar
          FROM comments c LEFT JOIN accounts a ON a.id = c.account_id
         WHERE c.target = ?1 AND c.deleted = 0 ORDER BY c.cid LIMIT 300`
     ).bind(card.target),
@@ -997,7 +999,7 @@ async function recentComments(env, auth, url) {
   const before = Number(url.searchParams.get('before')) || 1e15;
   const hospitals = seesAll(auth) ? (hosp ? [hosp] : null) : (auth.h || []).filter(h => !hosp || h === hosp);
   const { results } = await env.DB.prepare(
-    `SELECT c.cid, c.target, c.hosp, c.account_id, c.anon, c.body, c.ts, c.edited_at, c.card_date, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex, a.avatar AS avatar
+    `SELECT c.cid, c.parent_cid, c.target, c.hosp, c.account_id, c.anon, c.body, c.ts, c.edited_at, c.card_date, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex, a.avatar AS avatar
        FROM comments c LEFT JOIN accounts a ON a.id = c.account_id
       WHERE c.deleted = 0 AND c.cid < ?1 ${hospitals ? 'AND c.hosp IN (SELECT value FROM json_each(?2))' : ''}
       ORDER BY c.cid DESC LIMIT 50`
@@ -1012,7 +1014,7 @@ async function recentComments(env, auth, url) {
 }
 
 /** Resident accounts that own a duty card (anyone whose roster name matches), minus the actor. */
-function notifyCardOwners(env, card, actorId, type, extra, now) {
+function notifyCardOwners(env, card, actorId, type, extra, now, alsoSkip = '') {
   const gkey = `${type}:${card.target}`;
   const countSql = type === 'like'
     ? '(SELECT COUNT(*) FROM likes WHERE target = ?1)'
@@ -1020,10 +1022,10 @@ function notifyCardOwners(env, card, actorId, type, extra, now) {
   return env.DB.prepare(
     `INSERT INTO notifications (account_id, gkey, type, data, ts, seen)
      SELECT a.id, ?2, ?3, json_object('h', ?4, 'd', ?5, 'name', ?6, 'count', ${countSql}, 'last', ?7, 'text', ?8), ?9, 0
-       FROM accounts a WHERE a.name_key = ?10 AND a.status = 'active' AND a.id <> ?11
+       FROM accounts a WHERE a.name_key = ?10 AND a.status = 'active' AND a.id <> ?11 AND a.id <> ?12
      ON CONFLICT (account_id, gkey) DO UPDATE SET data = excluded.data, ts = excluded.ts, seen = 0
      ${RETURNING}`
-  ).bind(card.target, gkey, type, card.hosp, card.date, card.name, extra.last, extra.text || null, now, card.key, actorId);
+  ).bind(card.target, gkey, type, card.hosp, card.date, card.name, extra.last, extra.text || null, now, card.key, actorId, alsoSkip || '');
 }
 
 async function like(request, env, auth, ctx) {
@@ -1055,16 +1057,31 @@ async function addComment(request, env, auth, ctx) {
   if (await overLimit(env, 'comment:' + auth.a, 20)) return json({ error: 'rate_limited' }, 429);
   const now = Date.now();
   const anon = !!body.anon;
-  const [ins, notes] = await env.DB.batch([
-    env.DB.prepare('INSERT INTO comments (target, hosp, account_id, anon, body, ts, card_key, card_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING cid')
-      .bind(card.target, card.hosp, auth.a, anon ? 1 : 0, text, now, card.key, card.date),
-    notifyCardOwners(env, card, auth.a, 'comment', { last: anon ? auth.anon : auth.name, text: text.slice(0, 120) }, now),
-  ]);
-  dispatchPush(env, ctx, notes);
+  // A reply answers a comment on the same card; replies to replies join the same conversation (one level).
+  let parent = null;
+  if (body.parentCid) {
+    parent = await env.DB.prepare('SELECT cid, parent_cid, account_id FROM comments WHERE cid = ? AND target = ? AND deleted = 0')
+      .bind(Number(body.parentCid) || 0, card.target).first();
+    if (!parent) return json({ error: 'parent_not_found' }, 404);
+  }
+  const parentCid = parent ? (parent.parent_cid || parent.cid) : null;
+  const who = anon ? auth.anon : auth.name;
+  const replyTo = parent && parent.account_id !== auth.a ? parent.account_id : '';
+  const stmts = [
+    env.DB.prepare('INSERT INTO comments (target, hosp, account_id, anon, body, ts, card_key, card_date, parent_cid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING cid')
+      .bind(card.target, card.hosp, auth.a, anon ? 1 : 0, text, now, card.key, card.date, parentCid),
+    notifyCardOwners(env, card, auth.a, 'comment', { last: who, text: text.slice(0, 120) }, now, replyTo),
+  ];
+  if (replyTo) {
+    stmts.push(notifyOne(env, replyTo, 'reply:' + parent.cid, 'reply',
+      JSON.stringify({ h: card.hosp, d: card.date, name: card.name, last: who, text: text.slice(0, 120), parent: parent.cid }), now));
+  }
+  const [ins, notes, replyNote] = await env.DB.batch(stmts);
+  dispatchPush(env, ctx, notes, replyNote);
   return json({
     ok: true,
     comment: {
-      cid: ins.results[0].cid, author: anon ? auth.anon : auth.name, anon, body: text, ts: now, mine: true, canEdit: true, canDelete: true, edited: false,
+      cid: ins.results[0].cid, parent: parentCid, author: anon ? auth.anon : auth.name, anon, body: text, ts: now, mine: true, canEdit: true, canDelete: true, edited: false,
       sex: anon ? null : auth.sex, avatar: anon ? null : parseAvatar(auth.avatar),
     },
   });

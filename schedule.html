@@ -38,7 +38,7 @@
         }
 
         body.dark {
-            background: #0b0e12;
+            background: #000000;
             color: #e8edf5;
         }
 
@@ -72,7 +72,7 @@
             background: rgba(16, 22, 34, 0.84);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(212, 175, 55, 0.14);
+            border: 1px solid rgba(10, 132, 255, 0.14);
             box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
         }
 
@@ -87,15 +87,15 @@
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            background: linear-gradient(135deg, #0f766e, #0d9488);
+            background: linear-gradient(135deg, #007AFF, #0A84FF);
             color: white;
-            box-shadow: 0 6px 20px rgba(15, 118, 110, 0.25);
+            box-shadow: 0 6px 20px rgba(0, 122, 255, 0.25);
             font-size: 0.84rem;
         }
         body.dark .btn-gradient {
-            background: linear-gradient(135deg, #d4af37, #b8942e);
-            color: #0b0e12;
-            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
+            color: #000000;
+            box-shadow: 0 6px 20px rgba(10, 132, 255, 0.25);
         }
         .btn-gradient:active { transform: scale(0.96); }
 
@@ -106,20 +106,20 @@
             font-size: 0.8rem;
             transition: all 0.2s ease;
             cursor: pointer;
-            border: 1px solid #cbd5e1;
+            border: 1px solid #D1D1D6;
             background: rgba(255, 255, 255, 0.8);
-            color: #475569;
+            color: #636366;
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
         }
         body.dark .btn-ghost {
-            border-color: rgba(212, 175, 55, 0.2);
+            border-color: rgba(10, 132, 255, 0.2);
             background: rgba(255, 255, 255, 0.04);
-            color: #e2e8f0;
+            color: #E5E5EA;
         }
         .btn-ghost:hover { background: rgba(0, 0, 0, 0.05); }
-        body.dark .btn-ghost:hover { background: rgba(212, 175, 55, 0.1); }
+        body.dark .btn-ghost:hover { background: rgba(10, 132, 255, 0.1); }
         .btn-ghost:active { transform: scale(0.96); }
 
         /* Segmented View Switcher */
@@ -132,14 +132,14 @@
         }
         body.dark .segmented-control {
             background: rgba(16, 22, 34, 0.9);
-            border: 1px solid rgba(212, 175, 55, 0.14);
+            border: 1px solid rgba(10, 132, 255, 0.14);
         }
         .segmented-btn {
             padding: 7px 16px;
             border-radius: 11px;
             font-size: 0.8rem;
             font-weight: 800;
-            color: #64748b;
+            color: #8A8A8E;
             border: none;
             background: transparent;
             cursor: pointer;
@@ -149,16 +149,16 @@
             gap: 6px;
             white-space: nowrap;
         }
-        body.dark .segmented-btn { color: #94a3b8; }
+        body.dark .segmented-btn { color: #AEAEB2; }
         .segmented-btn.active {
             background: #ffffff;
-            color: #0f766e;
+            color: #007AFF;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
         body.dark .segmented-btn.active {
-            background: linear-gradient(135deg, #d4af37, #b8942e);
-            color: #0b0e12;
-            box-shadow: 0 2px 10px rgba(212, 175, 55, 0.25);
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
+            color: #000000;
+            box-shadow: 0 2px 10px rgba(10, 132, 255, 0.25);
         }
 
         /* Specialty Pills Row */
@@ -176,25 +176,25 @@
             font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
-            border: 1px solid #cbd5e1;
+            border: 1px solid #D1D1D6;
             background: rgba(255, 255, 255, 0.8);
-            color: #475569;
+            color: #636366;
             transition: all 0.2s ease;
         }
         body.dark .spec-pill {
             background: rgba(255, 255, 255, 0.04);
-            border-color: rgba(212, 175, 55, 0.16);
-            color: #cbd5e1;
+            border-color: rgba(10, 132, 255, 0.16);
+            color: #D1D1D6;
         }
         .spec-pill.active {
-            background: #0f766e;
+            background: #007AFF;
             color: white;
-            border-color: #0f766e;
+            border-color: #007AFF;
         }
         body.dark .spec-pill.active {
-            background: #d4af37;
-            color: #0b0e12;
-            border-color: #d4af37;
+            background: #0A84FF;
+            color: #000000;
+            border-color: #0A84FF;
             font-weight: 800;
         }
 
@@ -209,23 +209,23 @@
             align-items: center;
             gap: 0.45rem;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-            background: linear-gradient(135deg, rgba(15, 118, 110, 0.12), rgba(13, 148, 136, 0.22));
-            border: 1.5px solid #0f766e;
-            color: #0f766e;
-            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.15);
+            background: linear-gradient(135deg, rgba(0, 122, 255, 0.12), rgba(10, 132, 255, 0.22));
+            border: 1.5px solid #007AFF;
+            color: #007AFF;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
         }
         body.dark .btn-today-action {
-            background: linear-gradient(135deg, rgba(212, 175, 55, 0.16), rgba(212, 175, 55, 0.28));
-            border-color: #d4af37;
-            color: #d4af37;
-            box-shadow: 0 4px 14px rgba(212, 175, 55, 0.2);
+            background: linear-gradient(135deg, rgba(10, 132, 255, 0.16), rgba(10, 132, 255, 0.28));
+            border-color: #0A84FF;
+            color: #0A84FF;
+            box-shadow: 0 4px 14px rgba(10, 132, 255, 0.2);
         }
         .btn-today-action:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(15, 118, 110, 0.25);
+            box-shadow: 0 6px 18px rgba(0, 122, 255, 0.25);
         }
         body.dark .btn-today-action:hover {
-            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35);
+            box-shadow: 0 6px 20px rgba(10, 132, 255, 0.35);
         }
         .btn-today-action:active {
             transform: scale(0.95);
@@ -253,7 +253,7 @@
         }
         body.dark .matrix-table-container {
             background: #0f1520;
-            border-color: rgba(212, 175, 55, 0.18);
+            border-color: rgba(10, 132, 255, 0.18);
             box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
         }
         .matrix-table {
@@ -265,8 +265,8 @@
         }
         .matrix-table th, .matrix-table td {
             padding: 9px 8px;
-            border-bottom: 1.5px solid #e2e8f0;
-            border-left: 1px solid #e2e8f0;
+            border-bottom: 1.5px solid #E5E5EA;
+            border-left: 1px solid #E5E5EA;
             text-align: center;
             vertical-align: middle;
             background-clip: padding-box;
@@ -283,7 +283,7 @@
             top: 0;
             z-index: 30;
             padding: 12px 8px;
-            background: #f1f5f9 !important;
+            background: #F2F2F7 !important;
             opacity: 1 !important;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
             background-clip: padding-box;
@@ -309,16 +309,16 @@
             background: #221711 !important;
         }
         .matrix-table thead th.is-today-col {
-            background: #ccfbf1 !important;
-            border-top: 3px solid #0f766e !important;
-            border-left: 2px solid #0f766e !important;
-            border-right: 2px solid #0f766e !important;
+            background: #D9EBFF !important;
+            border-top: 3px solid #007AFF !important;
+            border-left: 2px solid #007AFF !important;
+            border-right: 2px solid #007AFF !important;
         }
         body.dark .matrix-table thead th.is-today-col {
             background: #142834 !important;
-            border-top: 3px solid #d4af37 !important;
-            border-left: 2px solid #d4af37 !important;
-            border-right: 2px solid #d4af37 !important;
+            border-top: 3px solid #0A84FF !important;
+            border-left: 2px solid #0A84FF !important;
+            border-right: 2px solid #0A84FF !important;
         }
 
         /* Day Numbers & Names */
@@ -328,20 +328,20 @@
             font-weight: 900;
             text-align: center;
             line-height: 1.1;
-            color: #0f172a;
+            color: #1C1C1E;
         }
         body.dark .day-number-text {
-            color: #f1f5f9;
+            color: #F2F2F7;
         }
         .day-name-text {
             font-size: 0.74rem;
             font-weight: 800;
             text-align: center;
             margin-top: 3px;
-            color: #64748b;
+            color: #8A8A8E;
         }
         body.dark .day-name-text {
-            color: #94a3b8;
+            color: #AEAEB2;
         }
 
         /* Weekend Highlighting: Friday & Saturday */
@@ -378,7 +378,7 @@
             top: 0;
             right: 0;
             z-index: 50 !important;
-            background: #e2e8f0 !important;
+            background: #E5E5EA !important;
             opacity: 1 !important;
             box-shadow: -4px 4px 12px rgba(0, 0, 0, 0.08);
             background-clip: padding-box;
@@ -400,21 +400,21 @@
             max-width: 200px;
             background: #ffffff !important;
             opacity: 1 !important;
-            border-left: 2.5px solid #0f766e !important;
+            border-left: 2.5px solid #007AFF !important;
             box-shadow: -4px 0 14px rgba(0, 0, 0, 0.07);
             background-clip: padding-box;
         }
         body.dark .matrix-table td.sticky-col {
             background: #121927 !important;
             opacity: 1 !important;
-            border-left: 2.5px solid #d4af37 !important;
+            border-left: 2.5px solid #0A84FF !important;
             box-shadow: -4px 0 18px rgba(0, 0, 0, 0.6);
             background-clip: padding-box;
         }
 
         /* Crucial: On row hover, KEEP td.sticky-col 100% OPAQUE, NEVER TRANSPARENT! */
         .matrix-table tbody tr:hover td.sticky-col {
-            background: #f8fafc !important;
+            background: #F9F9FB !important;
             opacity: 1 !important;
         }
         body.dark .matrix-table tbody tr:hover td.sticky-col {
@@ -429,11 +429,11 @@
             gap: 7px;
             font-weight: 900;
             font-size: 0.9rem;
-            color: #0f766e;
+            color: #007AFF;
             text-align: center;
         }
         body.dark .header-specialty-title {
-            color: #d4af37;
+            color: #0A84FF;
         }
 
         .specialty-cell-badge {
@@ -465,12 +465,12 @@
             font-size: 0.85rem;
             line-height: 1.35;
             text-align: center;
-            color: #0f172a;
+            color: #1C1C1E;
             max-width: 160px;
             word-wrap: break-word;
         }
         body.dark .specialty-name-text {
-            color: #f8fafc;
+            color: #F9F9FB;
         }
 
         /* Solid Zebra Striping & Row Hover (Zero Transparency) */
@@ -483,13 +483,13 @@
             background: #0f1520;
         }
         .matrix-table tbody tr:nth-child(even) td:not(.is-today-col):not(.sticky-col):not(.is-friday-col):not(.is-saturday-col) {
-            background: #f8fafc;
+            background: #F9F9FB;
         }
         body.dark .matrix-table tbody tr:nth-child(even) td:not(.is-today-col):not(.sticky-col):not(.is-friday-col):not(.is-saturday-col) {
             background: #131b29;
         }
         .matrix-table tbody tr:hover td:not(.is-today-col):not(.sticky-col):not(.is-friday-col):not(.is-saturday-col) {
-            background: #f1f5f9 !important;
+            background: #F2F2F7 !important;
         }
         body.dark .matrix-table tbody tr:hover td:not(.is-today-col):not(.sticky-col):not(.is-friday-col):not(.is-saturday-col) {
             background: #182438 !important;
@@ -502,8 +502,8 @@
             font-size: 0.75rem;
             font-weight: 800;
             background: #ffffff;
-            color: #0f172a;
-            border: 1.5px solid #cbd5e1;
+            color: #1C1C1E;
+            border: 1.5px solid #D1D1D6;
             margin: 3px 0;
             display: flex;
             align-items: center;
@@ -519,29 +519,29 @@
         body.dark .doctor-duty-chip {
             background: #182233;
             border-color: rgba(255, 255, 255, 0.12);
-            color: #f8fafc;
+            color: #F9F9FB;
             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
         }
         .doctor-duty-chip:hover {
             transform: translateY(-1px);
             z-index: 5; /* Lower than sticky-col (25) and th (30/50) */
-            border-color: var(--spec-card-color, #0f766e);
-            box-shadow: 0 4px 14px rgba(15, 118, 110, 0.18);
+            border-color: var(--spec-card-color, #007AFF);
+            box-shadow: 0 4px 14px rgba(0, 122, 255, 0.18);
         }
         body.dark .doctor-duty-chip:hover {
-            border-color: #d4af37;
-            box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3);
+            border-color: #0A84FF;
+            box-shadow: 0 4px 14px rgba(10, 132, 255, 0.3);
         }
         .doctor-duty-chip.matched-doctor-chip {
             background: linear-gradient(135deg, #fef08a, #facc15) !important;
-            color: #0f172a !important;
+            color: #1C1C1E !important;
             border-color: #eab308 !important;
             font-weight: 900 !important;
             box-shadow: 0 4px 14px rgba(234, 179, 8, 0.4) !important;
         }
         body.dark .doctor-duty-chip.matched-doctor-chip {
-            background: linear-gradient(135deg, #d4af37, #b8942e) !important;
-            color: #0b0e12 !important;
+            background: linear-gradient(135deg, #0A84FF, #0062CC) !important;
+            color: #000000 !important;
             border-color: #f59e0b !important;
         }
         .duty-dot {
@@ -558,25 +558,25 @@
         }
         .empty-slot-dash {
             font-size: 0.85rem;
-            color: #cbd5e1;
+            color: #D1D1D6;
             font-weight: bold;
         }
         body.dark .empty-slot-dash {
-            color: #334155;
+            color: #48484A;
         }
 
         /* Today Column Styling: Solid, Distinct & Opaque */
         .matrix-table td.is-today-col {
-            background: #f0fdfa !important;
-            border-left: 2px solid #0f766e !important;
-            border-right: 2px solid #0f766e !important;
+            background: #EEF6FF !important;
+            border-left: 2px solid #007AFF !important;
+            border-right: 2px solid #007AFF !important;
             position: relative;
             z-index: 2;
         }
         body.dark .matrix-table td.is-today-col {
             background: #111a26 !important;
-            border-left: 2px solid #d4af37 !important;
-            border-right: 2px solid #d4af37 !important;
+            border-left: 2px solid #0A84FF !important;
+            border-right: 2px solid #0A84FF !important;
             position: relative;
             z-index: 2;
         }
@@ -589,52 +589,52 @@
             border-radius: 999px;
             font-size: 0.65rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #0f766e, #0d9488);
+            background: linear-gradient(135deg, #007AFF, #0A84FF);
             color: #ffffff;
             margin-top: 3px;
-            box-shadow: 0 2px 6px rgba(15, 118, 110, 0.25);
+            box-shadow: 0 2px 6px rgba(0, 122, 255, 0.25);
             letter-spacing: 0.02em;
         }
         body.dark .today-header-badge {
-            background: linear-gradient(135deg, #d4af37, #b8942e);
-            color: #0b0e12;
-            box-shadow: 0 2px 6px rgba(212, 175, 55, 0.25);
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
+            color: #000000;
+            box-shadow: 0 2px 6px rgba(10, 132, 255, 0.25);
         }
 
         /* Elegant Today Focus Effect (Soft Luminous Focus Halo) */
         @keyframes elegantFocusPulse {
             0% {
-                box-shadow: 0 0 0 0 rgba(15, 118, 110, 0.7), 0 2px 8px rgba(0, 0, 0, 0.06);
+                box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.7), 0 2px 8px rgba(0, 0, 0, 0.06);
                 transform: scale(1);
             }
             30% {
-                box-shadow: 0 0 0 8px rgba(15, 118, 110, 0.2), 0 4px 16px rgba(15, 118, 110, 0.25);
+                box-shadow: 0 0 0 8px rgba(0, 122, 255, 0.2), 0 4px 16px rgba(0, 122, 255, 0.25);
                 transform: scale(1.02);
             }
             70% {
-                box-shadow: 0 0 0 12px rgba(15, 118, 110, 0.06), 0 3px 12px rgba(15, 118, 110, 0.15);
+                box-shadow: 0 0 0 12px rgba(0, 122, 255, 0.06), 0 3px 12px rgba(0, 122, 255, 0.15);
                 transform: scale(1.01);
             }
             100% {
-                box-shadow: 0 0 0 0 rgba(15, 118, 110, 0), 0 2px 8px rgba(0, 0, 0, 0.06);
+                box-shadow: 0 0 0 0 rgba(0, 122, 255, 0), 0 2px 8px rgba(0, 0, 0, 0.06);
                 transform: scale(1);
             }
         }
         body.dark @keyframes elegantFocusPulse {
             0% {
-                box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.8), 0 2px 10px rgba(0, 0, 0, 0.6);
+                box-shadow: 0 0 0 0 rgba(10, 132, 255, 0.8), 0 2px 10px rgba(0, 0, 0, 0.6);
                 transform: scale(1);
             }
             30% {
-                box-shadow: 0 0 0 8px rgba(212, 175, 55, 0.25), 0 4px 20px rgba(212, 175, 55, 0.35);
+                box-shadow: 0 0 0 8px rgba(10, 132, 255, 0.25), 0 4px 20px rgba(10, 132, 255, 0.35);
                 transform: scale(1.02);
             }
             70% {
-                box-shadow: 0 0 0 12px rgba(212, 175, 55, 0.08), 0 3px 14px rgba(212, 175, 55, 0.2);
+                box-shadow: 0 0 0 12px rgba(10, 132, 255, 0.08), 0 3px 14px rgba(10, 132, 255, 0.2);
                 transform: scale(1.01);
             }
             100% {
-                box-shadow: 0 0 0 0 rgba(212, 175, 55, 0), 0 2px 10px rgba(0, 0, 0, 0.6);
+                box-shadow: 0 0 0 0 rgba(10, 132, 255, 0), 0 2px 10px rgba(0, 0, 0, 0.6);
                 transform: scale(1);
             }
         }
@@ -647,10 +647,10 @@
         /* Gentle Column Glow */
         @keyframes elegantColFade {
             0% {
-                outline: 2px solid rgba(15, 118, 110, 0.8);
+                outline: 2px solid rgba(0, 122, 255, 0.8);
             }
             50% {
-                outline: 2px solid rgba(15, 118, 110, 0.4);
+                outline: 2px solid rgba(0, 122, 255, 0.4);
             }
             100% {
                 outline: 2px solid transparent;
@@ -658,10 +658,10 @@
         }
         body.dark @keyframes elegantColFade {
             0% {
-                outline: 2px solid rgba(212, 175, 55, 0.8);
+                outline: 2px solid rgba(10, 132, 255, 0.8);
             }
             50% {
-                outline: 2px solid rgba(212, 175, 55, 0.4);
+                outline: 2px solid rgba(10, 132, 255, 0.4);
             }
             100% {
                 outline: 2px solid transparent;
@@ -675,7 +675,7 @@
         .day-duty-card {
             padding: 14px 16px;
             border-radius: 18px;
-            border: 1.5px solid #e2e8f0;
+            border: 1.5px solid #E5E5EA;
             background: #ffffff;
             display: flex;
             align-items: center;
@@ -686,27 +686,27 @@
         }
         body.dark .day-duty-card {
             background: rgba(16, 22, 34, 0.88);
-            border-color: rgba(212, 175, 55, 0.16);
+            border-color: rgba(10, 132, 255, 0.16);
             box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
         }
         .day-duty-card:hover {
             transform: translateY(-2px);
-            border-color: #0f766e;
+            border-color: #007AFF;
             box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
         }
         body.dark .day-duty-card:hover {
-            border-color: #d4af37;
+            border-color: #0A84FF;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
         }
         .day-duty-card.today {
-            border-color: #0f766e;
-            background: linear-gradient(135deg, rgba(15, 118, 110, 0.06), #ffffff);
-            box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.25);
+            border-color: #007AFF;
+            background: linear-gradient(135deg, rgba(0, 122, 255, 0.06), #ffffff);
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.25);
         }
         body.dark .day-duty-card.today {
-            border-color: #d4af37;
-            background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(16, 22, 34, 0.95));
-            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
+            border-color: #0A84FF;
+            background: linear-gradient(135deg, rgba(10, 132, 255, 0.1), rgba(16, 22, 34, 0.95));
+            box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.3);
         }
 
         /* Contact Pill */
@@ -716,16 +716,16 @@
             border-radius: 10px;
             font-size: 0.75rem;
             font-weight: 700;
-            background: rgba(15, 118, 110, 0.1);
-            color: #0f766e;
+            background: rgba(0, 122, 255, 0.1);
+            color: #007AFF;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 5px;
         }
         body.dark .phone-btn {
-            background: rgba(212, 175, 55, 0.15);
-            color: #d4af37;
+            background: rgba(10, 132, 255, 0.15);
+            color: #0A84FF;
         }
 
         /* ============================================================
@@ -745,18 +745,18 @@
             width: 52px !important;
             min-width: 52px !important;
             max-width: 52px !important;
-            background: #e2e8f0 !important;
+            background: #E5E5EA !important;
             opacity: 1 !important;
             padding: 6px 2px !important;
             box-shadow: -3px 3px 8px rgba(0, 0, 0, 0.07);
             background-clip: padding-box;
-            border-bottom: 2px solid #cbd5e1 !important;
-            border-left: 2px solid #0f766e !important;
+            border-bottom: 2px solid #D1D1D6 !important;
+            border-left: 2px solid #007AFF !important;
         }
         body.dark .matrix-table th.mobile-corner-th {
             background: #1a263c !important;
-            border-bottom-color: rgba(212, 175, 55, 0.3) !important;
-            border-left-color: #d4af37 !important;
+            border-bottom-color: rgba(10, 132, 255, 0.3) !important;
+            border-left-color: #0A84FF !important;
             box-shadow: -3px 3px 12px rgba(0, 0, 0, 0.7);
         }
 
@@ -769,17 +769,17 @@
             min-width: 130px;
             max-width: 150px;
             padding: 7px 5px !important;
-            background: #f1f5f9 !important;
+            background: #F2F2F7 !important;
             opacity: 1 !important;
-            border-bottom: 2px solid #cbd5e1 !important;
-            border-left: 1px solid #e2e8f0 !important;
+            border-bottom: 2px solid #D1D1D6 !important;
+            border-left: 1px solid #E5E5EA !important;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             background-clip: padding-box;
             vertical-align: middle;
         }
         body.dark .matrix-table th.mobile-spec-th {
             background: #151e2e !important;
-            border-bottom-color: rgba(212, 175, 55, 0.25) !important;
+            border-bottom-color: rgba(10, 132, 255, 0.25) !important;
             border-left-color: rgba(255, 255, 255, 0.08) !important;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
         }
@@ -802,7 +802,7 @@
         .mobile-spec-name {
             font-size: 0.72rem;
             font-weight: 800;
-            color: #1e293b;
+            color: #2C2C2E;
             text-align: center;
             white-space: nowrap;
             overflow: hidden;
@@ -810,7 +810,7 @@
             max-width: 120px;
         }
         body.dark .mobile-spec-name {
-            color: #f1f5f9;
+            color: #F2F2F7;
         }
 
         /* 3. Mobile Day Column in Body (Frozen Right) */
@@ -823,8 +823,8 @@
             max-width: 52px !important;
             background: #ffffff !important;
             opacity: 1 !important;
-            border-left: 2.5px solid #0f766e !important;
-            border-bottom: 1px solid #e2e8f0 !important;
+            border-left: 2.5px solid #007AFF !important;
+            border-bottom: 1px solid #E5E5EA !important;
             box-shadow: -3px 0 8px rgba(0, 0, 0, 0.05);
             background-clip: padding-box;
             padding: 4px 2px !important;
@@ -832,7 +832,7 @@
         }
         body.dark .matrix-table td.mobile-day-td {
             background: #121927 !important;
-            border-left-color: #d4af37 !important;
+            border-left-color: #0A84FF !important;
             border-bottom-color: rgba(255, 255, 255, 0.07) !important;
             box-shadow: -3px 0 10px rgba(0, 0, 0, 0.5);
         }
@@ -875,8 +875,8 @@
             min-width: 130px;
             max-width: 150px;
             padding: 5px 4px !important;
-            border-left: 1px solid #e2e8f0;
-            border-bottom: 1px solid #e2e8f0;
+            border-left: 1px solid #E5E5EA;
+            border-bottom: 1px solid #E5E5EA;
             vertical-align: middle;
             text-align: center;
         }
@@ -887,13 +887,13 @@
 
         /* 5. Mobile Row Backgrounds (Today, Friday, Saturday) */
         .mobile-day-row.is-today-row td {
-            background-color: #f0fdfa !important;
+            background-color: #EEF6FF !important;
         }
         body.dark .mobile-day-row.is-today-row td {
             background-color: #0d222b !important;
         }
         .mobile-day-row.is-today-row td.mobile-day-td {
-            background-color: #ccfbf1 !important;
+            background-color: #D9EBFF !important;
         }
         body.dark .mobile-day-row.is-today-row td.mobile-day-td {
             background-color: #142834 !important;
@@ -953,14 +953,14 @@
 
         /* 7. Row glow animation for jump to today */
         @keyframes rowPulseHighlight {
-            0% { box-shadow: inset 0 0 0 2px #0f766e; }
-            50% { box-shadow: inset 0 0 16px rgba(15, 118, 110, 0.45); }
-            100% { box-shadow: inset 0 0 0 2px #0f766e; }
+            0% { box-shadow: inset 0 0 0 2px #007AFF; }
+            50% { box-shadow: inset 0 0 16px rgba(0, 122, 255, 0.45); }
+            100% { box-shadow: inset 0 0 0 2px #007AFF; }
         }
         @keyframes rowPulseHighlightDark {
-            0% { box-shadow: inset 0 0 0 2px #d4af37; }
-            50% { box-shadow: inset 0 0 16px rgba(212, 175, 55, 0.45); }
-            100% { box-shadow: inset 0 0 0 2px #d4af37; }
+            0% { box-shadow: inset 0 0 0 2px #0A84FF; }
+            50% { box-shadow: inset 0 0 16px rgba(10, 132, 255, 0.45); }
+            100% { box-shadow: inset 0 0 0 2px #0A84FF; }
         }
         .mobile-day-row.today-row-glow td {
             animation: rowPulseHighlight 1.6s ease-in-out 2;
@@ -992,7 +992,7 @@
         <div class="glass-card p-4 sm:p-6 mb-5">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-2xl bg-teal-600 dark:bg-amber-500 text-white dark:text-slate-950 flex items-center justify-center text-2xl shadow-lg shadow-teal-700/20 dark:shadow-amber-500/20 flex-shrink-0">
+                    <div class="w-12 h-12 rounded-2xl bg-teal-600 dark:bg-teal-500 text-white dark:text-slate-950 flex items-center justify-center text-2xl shadow-lg shadow-teal-700/20 dark:shadow-teal-500/20 flex-shrink-0">
                         <i class="fas fa-calendar-days"></i>
                     </div>
                     <div>
@@ -1011,7 +1011,7 @@
                         <i class="fas fa-chevron-right"></i>
                     </button>
                     <div class="px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-extrabold text-sm sm:text-base text-slate-800 dark:text-white shadow-sm flex items-center gap-2 min-w-[170px] justify-center">
-                        <i class="fas fa-calendar-day text-teal-600 dark:text-amber-400"></i>
+                        <i class="fas fa-calendar-day text-teal-600 dark:text-teal-400"></i>
                         <span id="current-month-display">أيلول 2026</span>
                     </div>
                     <button type="button" onclick="navigateMonth(-1)" class="btn-ghost" title="الشهر السابق">
@@ -1052,7 +1052,7 @@
                 <div class="flex items-center gap-2 flex-1 max-w-md">
                     <div class="relative flex-1">
                         <input type="text" id="doctor-search-input" oninput="handleDoctorSearch(this.value)" placeholder="بحث عن اسم طبيب في الجدول..." 
-                               class="w-full px-3 py-2 pr-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 text-xs sm:text-sm font-semibold text-slate-800 dark:text-white outline-none focus:border-teal-600 dark:focus:border-amber-400 transition" />
+                               class="w-full px-3 py-2 pr-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 text-xs sm:text-sm font-semibold text-slate-800 dark:text-white outline-none focus:border-teal-600 dark:focus:border-teal-400 transition" />
                         <i class="fas fa-search absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                     </div>
                     <button type="button" onclick="window.print()" class="btn-ghost" title="طباعة الجدول">
@@ -1118,7 +1118,7 @@
             <div class="hub-modal-card" style="max-width:380px; text-align:right; padding:22px;">
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-                        <i class="fas fa-stethoscope text-teal-600 dark:text-amber-400"></i> تفاصيل الخفر
+                        <i class="fas fa-stethoscope text-teal-600 dark:text-teal-400"></i> تفاصيل الخفر
                     </h3>
                     <button type="button" onclick="closeDutyDetailModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
                         <i class="fas fa-times text-lg"></i>
@@ -1134,6 +1134,7 @@
     <script src="./hub-sync.js"></script>
     <script src="./hub-core.js"></script>
     <script src="./hub-avatar.js"></script>
+    <script src="./pwa.js"></script>
     <script src="./hub-accounts.js"></script>
     <script src="./nav-component.js"></script>
 
@@ -1449,7 +1450,7 @@
             const isMob = isMobileLayout();
             if (isMob) {
                 text.textContent = 'عرض الهاتف (رأسي)';
-                btn.className = 'btn-ghost text-xs py-1 px-2.5 flex items-center gap-1.5 text-teal-700 dark:text-amber-400 border-teal-500/40 dark:border-amber-400/40 font-bold';
+                btn.className = 'btn-ghost text-xs py-1 px-2.5 flex items-center gap-1.5 text-teal-700 dark:text-teal-400 border-teal-500/40 dark:border-teal-400/40 font-bold';
                 if (icon) icon.className = 'fas fa-mobile-alt';
                 if (hint) hint.textContent = '* اسحب رأسياً لتصفح الأيام وأفقياً للتنقل بين التخصصات';
             } else {
@@ -1517,7 +1518,7 @@
                 // Header row: Corner (اليوم) + Specialties
                 let headHtml = `<tr>
                     <th class="sticky-col mobile-corner-th">
-                        <div class="flex flex-col items-center justify-center gap-0.5 text-teal-700 dark:text-amber-400 font-black text-[11px]">
+                        <div class="flex flex-col items-center justify-center gap-0.5 text-teal-700 dark:text-teal-400 font-black text-[11px]">
                             <i class="fas fa-calendar-day text-xs"></i>
                             <span>اليوم</span>
                         </div>
@@ -1624,7 +1625,7 @@
                 let headHtml = `<tr>
                     <th class="sticky-col">
                         <div class="header-specialty-title">
-                            <i class="fas fa-stethoscope ml-1 text-teal-600 dark:text-amber-400"></i>
+                            <i class="fas fa-stethoscope ml-1 text-teal-600 dark:text-teal-400"></i>
                             <span>التخصص الطبي</span>
                         </div>
                     </th>`;
@@ -1856,7 +1857,7 @@
                 <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
                     <div class="text-[11px] text-slate-400 font-bold mb-1">الطبيب الخفر</div>
                     <div class="text-base font-black text-slate-900 dark:text-white mb-1">${entry.name}</div>
-                    <div class="text-xs text-teal-600 dark:text-amber-400 font-semibold">${specName}</div>
+                    <div class="text-xs text-teal-600 dark:text-teal-400 font-semibold">${specName}</div>
                 </div>
 
                 <div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 text-xs">

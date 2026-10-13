@@ -60,6 +60,7 @@
             <div class="hacc-sheet-body hp-body" data-role="body"><div class="hacc-empty">جاري التحميل…</div></div>
             <footer class="hp-foot">
                 ${approver && !Hub.auth.isOwner() ? '<a class="hacc-btn sm" href="./account.html#manage"><i class="fas fa-user-shield"></i> إدارة الحسابات</a>' : ''}
+                ${approver && !Hub.auth.isOwner() ? `<a class="hacc-btn sm" href="./scheduler.html?hospital=${encodeURIComponent((Hub.auth.getAdminHospitalIds() || [])[0] || '')}"><i class="fas fa-calendar-alt"></i> المجدول</a>` : ''}
                 ${!acc ? '<a class="hacc-btn sm primary" href="./account.html#signup">إنشاء حساب شخصي</a>' : ''}
                 <button type="button" class="hacc-btn sm danger" data-act="logout"><i class="fas fa-sign-out-alt"></i> خروج</button>
             </footer>`, { label: 'لوحة الحساب', tall: true });
@@ -387,8 +388,11 @@
             const btn = body.querySelector('[data-act="install"]');
             if (P.installed()) { sec.hidden = false; txt.textContent = 'التطبيق مثبّت على هذا الجهاز ✓'; }
             else if (P.canPrompt()) { sec.hidden = false; txt.textContent = 'ثبّت التطبيق على الشاشة الرئيسية'; btn.hidden = false; }
-            else if (P.isIos()) { sec.hidden = false; txt.textContent = 'على الآيفون: زر المشاركة ⬆️ ثم «إضافة إلى الشاشة الرئيسية»'; }
-            btn.addEventListener('click', async () => { if (await P.install()) { txt.textContent = 'تم التثبيت ✓'; btn.hidden = true; } });
+            else if (P.isIos()) { sec.hidden = false; txt.textContent = 'أضف التطبيق إلى الشاشة الرئيسية'; btn.hidden = false; btn.textContent = 'الطريقة'; }
+            btn.addEventListener('click', async () => {
+                if (!P.canPrompt()) { HubAccounts.offerInstall(); return; }
+                if (await P.install()) { txt.textContent = 'تم التثبيت ✓'; btn.hidden = true; }
+            });
         }
 
         // Theme

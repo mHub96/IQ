@@ -20,13 +20,13 @@
             text-align: right;
             min-height: 100vh;
             background: #d1d9e6;
-            color: #0f172a;
+            color: #1C1C1E;
             transition: background 0.4s ease, color 0.4s ease;
             overflow-x: hidden;
         }
 
         body.dark {
-            background: #0b0e12;
+            background: #000000;
             color: #e8edf5;
         }
 
@@ -56,7 +56,7 @@
         body.dark .glass-card {
             background: rgba(16, 22, 34, 0.85);
             backdrop-filter: blur(14px);
-            border: 1px solid rgba(212, 175, 55, 0.12);
+            border: 1px solid rgba(10, 132, 255, 0.12);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
         }
 
@@ -71,15 +71,15 @@
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            background: linear-gradient(135deg, #0f766e, #0d9488);
+            background: linear-gradient(135deg, #007AFF, #0A84FF);
             color: white;
-            box-shadow: 0 6px 20px rgba(15, 118, 110, 0.25);
+            box-shadow: 0 6px 20px rgba(0, 122, 255, 0.25);
             font-size: 0.85rem;
         }
         body.dark .btn-gradient {
-            background: linear-gradient(135deg, #d4af37, #b8942e);
-            color: #0b0e12;
-            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.2);
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
+            color: #000000;
+            box-shadow: 0 6px 20px rgba(10, 132, 255, 0.2);
         }
         .btn-gradient:hover { transform: translateY(-2px); }
 
@@ -90,22 +90,22 @@
             font-size: 0.8rem;
             transition: all 0.2s ease;
             cursor: pointer;
-            border: 1px solid #cbd5e1;
+            border: 1px solid #D1D1D6;
             background: transparent;
-            color: #475569;
+            color: #636366;
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
         }
         body.dark .btn-ghost {
-            border-color: rgba(212, 175, 55, 0.18);
-            color: #e2e8f0;
+            border-color: rgba(10, 132, 255, 0.18);
+            color: #E5E5EA;
         }
         .btn-ghost:hover {
             background: rgba(0, 0, 0, 0.05);
         }
         body.dark .btn-ghost:hover {
-            background: rgba(212, 175, 55, 0.1);
+            background: rgba(10, 132, 255, 0.1);
         }
 
         .input-field {
@@ -114,7 +114,7 @@
             font-weight: 600;
             transition: all 0.2s ease;
             width: 100%;
-            border: 1.5px solid #cbd5e1;
+            border: 1.5px solid #D1D1D6;
             background: rgba(255, 255, 255, 0.95);
             color: #1a2332;
             outline: none;
@@ -126,12 +126,12 @@
             color: #f0f3f8;
         }
         .input-field:focus {
-            border-color: #0f766e;
-            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+            border-color: #007AFF;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
         }
         body.dark .input-field:focus {
-            border-color: #d4af37;
-            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+            border-color: #0A84FF;
+            box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.15);
         }
 
         /* Hospital Filter Pills */
@@ -153,35 +153,35 @@
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s ease;
-            border: 1.5px solid #e2e8f0;
+            border: 1.5px solid #E5E5EA;
             background: rgba(255, 255, 255, 0.8);
-            color: #475569;
+            color: #636366;
             white-space: nowrap;
             user-select: none;
         }
         body.dark .filter-pill {
             background: rgba(18, 24, 38, 0.8);
             border-color: rgba(255, 255, 255, 0.1);
-            color: #cbd5e1;
+            color: #D1D1D6;
         }
         .filter-pill:hover {
-            border-color: #0f766e;
+            border-color: #007AFF;
             transform: translateY(-1px);
         }
         body.dark .filter-pill:hover {
-            border-color: #d4af37;
+            border-color: #0A84FF;
         }
         .filter-pill.active {
-            background: linear-gradient(135deg, #0f766e, #0d9488);
+            background: linear-gradient(135deg, #007AFF, #0A84FF);
             color: white;
             border-color: transparent;
-            box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3);
+            box-shadow: 0 4px 14px rgba(0, 122, 255, 0.3);
         }
         body.dark .filter-pill.active {
-            background: linear-gradient(135deg, #d4af37, #b8942e);
-            color: #0b0e12;
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
+            color: #000000;
             border-color: transparent;
-            box-shadow: 0 4px 14px rgba(212, 175, 55, 0.25);
+            box-shadow: 0 4px 14px rgba(10, 132, 255, 0.25);
         }
 
         /* Resident Card */
@@ -189,7 +189,7 @@
             border-radius: 1.25rem;
             padding: 1.1rem 1.25rem;
             transition: all 0.25s ease;
-            border: 1.5px solid #e2e8f0;
+            border: 1.5px solid #E5E5EA;
             background: #ffffff;
             display: flex;
             flex-direction: column;
@@ -200,22 +200,22 @@
         }
         body.dark .doctor-card {
             background: rgba(16, 22, 34, 0.85);
-            border-color: rgba(212, 175, 55, 0.12);
+            border-color: rgba(10, 132, 255, 0.12);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
         }
         .doctor-card .doctor-name {
-            color: #0f172a !important;
+            color: #1C1C1E !important;
         }
         body.dark .doctor-card .doctor-name {
-            color: #f8fafc !important;
+            color: #F9F9FB !important;
         }
         .doctor-card:hover {
             transform: translateY(-3px);
-            border-color: #0f766e;
+            border-color: #007AFF;
             box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
         }
         body.dark .doctor-card:hover {
-            border-color: #d4af37;
+            border-color: #0A84FF;
             box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
         }
 
@@ -235,8 +235,8 @@
             text-align: left;
             font-weight: 600;
             font-size: 0.85rem;
-            color: #0f766e;
-            background: rgba(15, 118, 110, 0.08);
+            color: #007AFF;
+            background: rgba(0, 122, 255, 0.08);
             padding: 0.35rem 0.7rem;
             border-radius: 0.65rem;
             display: inline-flex;
@@ -246,15 +246,15 @@
             transition: all 0.15s ease;
         }
         body.dark .phone-badge {
-            color: #d4af37;
-            background: rgba(212, 175, 55, 0.1);
+            color: #0A84FF;
+            background: rgba(10, 132, 255, 0.1);
         }
         .phone-badge:hover {
-            background: rgba(15, 118, 110, 0.18);
+            background: rgba(0, 122, 255, 0.18);
             transform: scale(1.02);
         }
         body.dark .phone-badge:hover {
-            background: rgba(212, 175, 55, 0.2);
+            background: rgba(10, 132, 255, 0.2);
         }
 
         @keyframes highlightSavePulse {
@@ -279,11 +279,11 @@
             position: absolute;
             cursor: pointer;
             inset: 0;
-            background-color: #cbd5e1;
+            background-color: #D1D1D6;
             transition: .3s;
             border-radius: 24px;
         }
-        body.dark .toggle-slider { background-color: #334155; }
+        body.dark .toggle-slider { background-color: #48484A; }
         .toggle-slider:before {
             position: absolute;
             content: "";
@@ -297,10 +297,10 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         input:checked + .toggle-slider {
-            background: linear-gradient(135deg, #0f766e, #0d9488);
+            background: linear-gradient(135deg, #007AFF, #0A84FF);
         }
         body.dark input:checked + .toggle-slider {
-            background: linear-gradient(135deg, #d4af37, #b8942e);
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
         }
         input:checked + .toggle-slider:before {
             transform: translateX(20px);
@@ -334,7 +334,7 @@
         }
         body.dark .modal-card {
             background: #141c2a;
-            border: 1px solid rgba(212, 175, 55, 0.15);
+            border: 1px solid rgba(10, 132, 255, 0.15);
         }
 
         #toast-container {
@@ -372,26 +372,26 @@
             border-radius: 0.65rem;
             font-weight: 700;
             font-size: 0.75rem;
-            color: #64748b;
+            color: #8A8A8E;
             background: transparent;
             border: none;
             cursor: pointer;
             transition: all 0.2s ease;
         }
         .page-size-btn:hover {
-            color: #0f766e;
+            color: #007AFF;
         }
         body.dark .page-size-btn:hover {
-            color: #d4af37;
+            color: #0A84FF;
         }
         .page-size-btn.active {
             background: #ffffff;
-            color: #0f766e;
+            color: #007AFF;
             box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         }
         body.dark .page-size-btn.active {
-            background: #1e293b;
-            color: #d4af37;
+            background: #2C2C2E;
+            color: #0A84FF;
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
 
@@ -405,23 +405,23 @@
             gap: 0.4rem;
             cursor: pointer;
             transition: all 0.2s ease;
-            border: 1.5px solid #cbd5e1;
+            border: 1.5px solid #D1D1D6;
             background: rgba(255,255,255,0.9);
-            color: #334155;
+            color: #48484A;
         }
         body.dark .pagination-nav-btn {
-            border-color: rgba(212,175,55,0.22);
+            border-color: rgba(10, 132, 255,0.22);
             background: rgba(16,22,34,0.85);
-            color: #cbd5e1;
+            color: #D1D1D6;
         }
         .pagination-nav-btn:hover:not(:disabled) {
-            background: #f1f5f9;
-            color: #0f766e;
+            background: #F2F2F7;
+            color: #007AFF;
             transform: translateY(-1px);
         }
         body.dark .pagination-nav-btn:hover:not(:disabled) {
-            background: rgba(212,175,55,0.12);
-            color: #d4af37;
+            background: rgba(10, 132, 255,0.12);
+            color: #0A84FF;
         }
         .pagination-nav-btn:disabled {
             opacity: 0.35;
@@ -440,33 +440,33 @@
             font-size: 0.82rem;
             cursor: pointer;
             transition: all 0.2s ease;
-            border: 1.5px solid #e2e8f0;
+            border: 1.5px solid #E5E5EA;
             background: rgba(255,255,255,0.95);
-            color: #475569;
+            color: #636366;
         }
         body.dark .pagination-page-pill {
-            border-color: rgba(212,175,55,0.18);
+            border-color: rgba(10, 132, 255,0.18);
             background: rgba(16,22,34,0.9);
-            color: #94a3b8;
+            color: #AEAEB2;
         }
         .pagination-page-pill:hover {
-            border-color: #0f766e;
-            color: #0f766e;
+            border-color: #007AFF;
+            color: #007AFF;
         }
         body.dark .pagination-page-pill:hover {
-            border-color: #d4af37;
-            color: #d4af37;
+            border-color: #0A84FF;
+            color: #0A84FF;
         }
         .pagination-page-pill.active {
-            background: linear-gradient(135deg, #0f766e, #0d9488);
+            background: linear-gradient(135deg, #007AFF, #0A84FF);
             color: #ffffff;
             border-color: transparent;
-            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
         }
         body.dark .pagination-page-pill.active {
-            background: linear-gradient(135deg, #d4af37, #b8942e);
-            color: #0b0e12;
-            box-shadow: 0 4px 14px rgba(212, 175, 55, 0.25);
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
+            color: #000000;
+            box-shadow: 0 4px 14px rgba(10, 132, 255, 0.25);
         }
 
         /* Mobile Screen Layouts */
@@ -547,7 +547,7 @@
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="text-xs font-mono font-bold text-teal-600 dark:text-amber-400 uppercase tracking-widest">
+                        <span class="text-xs font-mono font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest">
                             Central Residents Directory & Phonebook
                         </span>
                         <span id="role-indicator-badge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
@@ -628,7 +628,7 @@
         <div class="glass-card p-3 mb-4 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div class="flex items-center gap-2">
                 <span class="font-bold text-slate-500 dark:text-slate-400">
-                    <i class="fas fa-layer-group ml-1 text-teal-600 dark:text-amber-400"></i> عدد المقيمين في الصفحة:
+                    <i class="fas fa-layer-group ml-1 text-teal-600 dark:text-teal-400"></i> عدد المقيمين في الصفحة:
                 </span>
                 <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/90 p-1 rounded-xl border border-slate-200 dark:border-slate-700" id="res-page-size-selector">
                     <button type="button" onclick="setResPageSize(10)" class="page-size-btn active" data-size="10">10</button>
@@ -673,7 +673,7 @@
         <div class="modal-card">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-black flex items-center gap-2" id="modal-title">
-                    <i class="fas fa-user-doctor text-teal-600 dark:text-amber-400"></i>
+                    <i class="fas fa-user-doctor text-teal-600 dark:text-teal-400"></i>
                     <span>إضافة مقيم جديد</span>
                 </h3>
                 <button type="button" onclick="closeResidentModal()" class="text-slate-400 hover:text-slate-600 text-xl">
@@ -688,7 +688,7 @@
                     <div class="flex items-center justify-between mb-1">
                         <label class="block text-xs font-bold text-slate-500">اسم المقيم الكامل</label>
                         <div class="flex items-center gap-1.5">
-                            <button type="button" onclick="pickResidentFromContactsInDirectory()" class="btn-ghost text-xs text-teal-700 dark:text-amber-400 border-teal-300 dark:border-amber-600 hover:bg-teal-50 dark:hover:bg-amber-950/30 py-0.5 px-2" title="استيراد من جهات اتصال الهاتف أو vCard">
+                            <button type="button" onclick="pickResidentFromContactsInDirectory()" class="btn-ghost text-xs text-teal-700 dark:text-teal-400 border-teal-300 dark:border-teal-600 hover:bg-teal-50 dark:hover:bg-teal-950/30 py-0.5 px-2" title="استيراد من جهات اتصال الهاتف أو vCard">
                                 <i class="fas fa-address-book ml-1"></i> من جهات الاتصال 📱
                             </button>
                             <input type="file" id="directory-vcf-picker" accept=".vcf,text/vcard" class="hidden" style="display:none;" onchange="handleDirectoryVCardFile(event)" />
@@ -710,7 +710,7 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1 flex items-center justify-between">
                             <span>القسم المكلف به (الخفارات)</span>
-                            <span class="text-[10px] text-teal-600 dark:text-amber-400 font-normal">تناوب Rotation</span>
+                            <span class="text-[10px] text-teal-600 dark:text-teal-400 font-normal">تناوب Rotation</span>
                         </label>
                         <select id="form-res-dept" class="input-field" onchange="onFormResDeptChanged()"></select>
                     </div>
@@ -721,7 +721,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <div class="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                                <i class="fas fa-shuffle text-teal-600 dark:text-amber-400"></i>
+                                <i class="fas fa-shuffle text-teal-600 dark:text-teal-400"></i>
                                 <span>تغطية أكثر من مستشفى</span>
                             </div>
                             <div class="text-[11px] text-slate-400 mt-0.5">
@@ -1183,7 +1183,7 @@
 
             if (summary) {
                 summary.innerHTML = `
-                    <span>عرض <strong class="text-teal-700 dark:text-amber-400">${start} - ${end}</strong> من أصل <strong>${total}</strong> مقيم</span>
+                    <span>عرض <strong class="text-teal-700 dark:text-teal-400">${start} - ${end}</strong> من أصل <strong>${total}</strong> مقيم</span>
                     <span class="text-slate-400">· صفحة ${currentResPage} من ${totalPages}</span>
                 `;
             }
@@ -1247,7 +1247,7 @@
             grid.innerHTML = pageResidents.map(r => {
                 const specId = (typeof Hub !== 'undefined' && Hub.normalizeSpecialtyId) ? Hub.normalizeSpecialtyId(r.tag || r.spec) : (r.tag || r.spec);
                 const resolvedSpecName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(r.tag || r.spec) : r.spec;
-                const specObj = allSpecialties.find(s => s.id === specId) || { name_ar: resolvedSpecName, icon: '🏥', color: '#0f766e' };
+                const specObj = allSpecialties.find(s => s.id === specId) || { name_ar: resolvedSpecName, icon: '🏥', color: '#007AFF' };
                 const isActive = r.active !== false && r.spec !== 'RESERVE';
                 const hasPhone = r.phone && r.phone.trim() && r.phone !== 'رقم غير متوفر';
                 const rawPhone = hasPhone ? r.phone.replace(/[^0-9+]/g, '') : '';
@@ -1293,7 +1293,7 @@
                             <!-- Hospital Badges (Tagging) -->
                             <div class="flex flex-wrap items-center gap-1.5 my-2.5">
                                 ${doctorHospitals.map(h => `
-                                    <span class="hosp-tag-badge border font-bold" style="background: ${h.color ? h.color + '15' : 'rgba(15,118,110,0.1)'}; color: ${h.color || '#0f766e'}; border-color: ${h.color ? h.color + '40' : 'rgba(15,118,110,0.3)'};">
+                                    <span class="hosp-tag-badge border font-bold" style="background: ${h.color ? h.color + '15' : 'rgba(0, 122, 255,0.1)'}; color: ${h.color || '#007AFF'}; border-color: ${h.color ? h.color + '40' : 'rgba(0, 122, 255,0.3)'};">
                                         <i class="fas ${h.icon || 'fa-hospital'}"></i>
                                         <span>${h.name_ar || h.hospitalName}</span>
                                     </span>
@@ -1321,7 +1321,7 @@
                                     <span>${r.phone}</span>
                                 </a>
                                 <div class="flex items-center gap-1">
-                                    <button type="button" onclick="copyPhoneNumber('${r.phone}')" class="p-2 rounded-xl text-slate-600 hover:text-teal-600 dark:text-slate-300 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs" title="نسخ الرقم">
+                                    <button type="button" onclick="copyPhoneNumber('${r.phone}')" class="p-2 rounded-xl text-slate-600 hover:text-teal-600 dark:text-slate-300 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs" title="نسخ الرقم">
                                         <i class="fas fa-copy"></i>
                                     </button>
                                     <a href="https://wa.me/${rawPhone.replace('+', '')}" target="_blank" class="p-2 rounded-xl text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/50 text-xs" title="مراسلة واتساب">
@@ -1385,7 +1385,7 @@
             const multiContainer = document.getElementById('multi-hospital-checkboxes');
             multiContainer.innerHTML = allHospitals.map(h => `
                 <label class="flex items-center gap-2.5 p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer text-xs font-bold">
-                    <input type="checkbox" name="modal-hosp-cb" value="${h.id}" class="w-4 h-4 rounded accent-teal-600 dark:accent-amber-500" />
+                    <input type="checkbox" name="modal-hosp-cb" value="${h.id}" class="w-4 h-4 rounded accent-teal-600 dark:accent-teal-500" />
                     <span class="flex items-center gap-2">
                         <i class="fas ${h.icon || 'fa-hospital'} text-slate-500"></i>
                         <span>${h.name_ar || h.hospitalName}</span>
@@ -1426,7 +1426,7 @@
 
             populateModalDropdowns();
 
-            document.getElementById('modal-title').innerHTML = '<i class="fas fa-user-plus text-teal-600 dark:text-amber-400"></i> <span>إضافة مقيم جديد</span>';
+            document.getElementById('modal-title').innerHTML = '<i class="fas fa-user-plus text-teal-600 dark:text-teal-400"></i> <span>إضافة مقيم جديد</span>';
             document.getElementById('submit-btn-text').textContent = 'إضافة المقيم وحفظه';
             document.getElementById('form-res-id').value = '';
             document.getElementById('form-res-name').value = '';
@@ -1468,7 +1468,7 @@
 
             populateModalDropdowns();
 
-            document.getElementById('modal-title').innerHTML = '<i class="fas fa-user-pen text-teal-600 dark:text-amber-400"></i> <span>تعديل بيانات المقيم</span>';
+            document.getElementById('modal-title').innerHTML = '<i class="fas fa-user-pen text-teal-600 dark:text-teal-400"></i> <span>تعديل بيانات المقيم</span>';
             document.getElementById('submit-btn-text').textContent = 'حفظ التعديلات';
             document.getElementById('form-res-id').value = resident.id;
             document.getElementById('form-res-name').value = resident.name;

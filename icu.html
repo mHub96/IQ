@@ -38,7 +38,7 @@
             color: #1a2332;
         }
         body.dark {
-            background: #0b0e12;
+            background: #000000;
             color: #e8edf5;
         }
 
@@ -144,19 +144,19 @@
         }
         body.light .filter-tab {
             background: #ffffff;
-            color: #475569;
-            border-color: #e2e8f0;
+            color: #636366;
+            border-color: #E5E5EA;
         }
         body.dark .filter-tab {
             background: rgba(255, 255, 255, 0.05);
-            color: #94a3b8;
+            color: #AEAEB2;
             border-color: rgba(255, 255, 255, 0.08);
         }
         .filter-tab.active {
-            background: linear-gradient(135deg, #0f766e, #0d9488) !important;
+            background: linear-gradient(135deg, #007AFF, #0A84FF) !important;
             color: #ffffff !important;
             border-color: transparent !important;
-            box-shadow: 0 4px 14px rgba(15, 118, 110, 0.35);
+            box-shadow: 0 4px 14px rgba(0, 122, 255, 0.35);
         }
 
         /* Modal Overlays */
@@ -239,12 +239,12 @@
         }
 
         .icu-ghost-suggestion-bright {
-            color: #94a3b8;
+            color: #AEAEB2;
             opacity: 0.95;
             font-weight: 700;
         }
         body.dark .icu-ghost-suggestion-bright {
-            color: #64748b;
+            color: #8A8A8E;
         }
 
         .icu-dropdown-arrow {
@@ -256,8 +256,8 @@
             height: 28px;
             border-radius: 8px;
             border: none;
-            background: rgba(15, 118, 110, 0.08);
-            color: #0f766e;
+            background: rgba(0, 122, 255, 0.08);
+            color: #007AFF;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -267,11 +267,11 @@
             transition: all 0.2s ease;
         }
         body.dark .icu-dropdown-arrow {
-            background: rgba(20, 184, 166, 0.15);
-            color: #2dd4bf;
+            background: rgba(64, 156, 255, 0.15);
+            color: #64B5FF;
         }
         .icu-dropdown-arrow:hover {
-            background: rgba(15, 118, 110, 0.2);
+            background: rgba(0, 122, 255, 0.2);
             transform: translateY(-50%) scale(1.05);
         }
 
@@ -283,7 +283,7 @@
             max-height: 210px;
             overflow-y: auto;
             background: rgba(255, 255, 255, 0.98);
-            border: 1.5px solid #0f766e;
+            border: 1.5px solid #007AFF;
             border-radius: 14px;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(12px);
@@ -293,8 +293,8 @@
             scrollbar-width: thin;
         }
         body.dark .icu-custom-menu {
-            background: rgba(15, 23, 42, 0.98);
-            border-color: #0d9488;
+            background: rgba(0, 0, 0, 0.98);
+            border-color: #0A84FF;
             box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.5);
         }
 
@@ -302,7 +302,7 @@
             padding: 8px 12px;
             font-size: 0.82rem;
             font-weight: 700;
-            color: #1e293b;
+            color: #2C2C2E;
             border-radius: 10px;
             cursor: pointer;
             text-align: right;
@@ -313,22 +313,22 @@
             justify-content: space-between;
         }
         body.dark .icu-menu-item {
-            color: #f1f5f9;
+            color: #F2F2F7;
         }
         .icu-menu-item:hover, .icu-menu-item.active {
-            background: rgba(15, 118, 110, 0.12);
-            color: #0f766e;
+            background: rgba(0, 122, 255, 0.12);
+            color: #007AFF;
         }
         body.dark .icu-menu-item:hover, body.dark .icu-menu-item.active {
-            background: rgba(13, 148, 136, 0.25);
-            color: #2dd4bf;
+            background: rgba(10, 132, 255, 0.25);
+            color: #64B5FF;
         }
 
         .icu-menu-empty {
             padding: 12px;
             text-align: center;
             font-size: 0.78rem;
-            color: #94a3b8;
+            color: #AEAEB2;
             font-weight: 600;
         }
     </style>
@@ -722,7 +722,7 @@
                             <div class="flex items-start justify-between gap-3 mb-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-md flex-shrink-0"
-                                         style="background:${stat.hospitalColor || '#0f766e'}; color:#ffffff;">
+                                         style="background:${stat.hospitalColor || '#007AFF'}; color:#ffffff;">
                                         <i class="fas ${stat.hospitalIcon || 'fa-hospital'}"></i>
                                     </div>
                                     <div>

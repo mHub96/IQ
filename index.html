@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="theme-color" content="#0f766e" />
+    <meta name="theme-color" content="#007AFF" />
     <title>بوابة المستشفيات التعليمية · Medical Hub App 🇮🇶</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <script>
@@ -63,7 +63,7 @@
             --sab: env(safe-area-inset-bottom, 0px);
             --sal: env(safe-area-inset-left, 0px);
             --sar: env(safe-area-inset-right, 0px);
-            --primary-medical: #0f766e;
+            --primary-medical: #007AFF;
             --primary-cyan: #06b6d4;
             --ios-radius: 22px;
         }
@@ -81,7 +81,7 @@
             text-align: right;
             min-height: 100vh;
             background: #d1d9e6;
-            color: #1e293b;
+            color: #2C2C2E;
             transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
             overflow-x: hidden;
             padding-top: calc(var(--sat) + 64px);
@@ -90,8 +90,8 @@
 
         /* OLED Night Mode */
         body.dark {
-            background: #0b0e12;
-            color: #f1f5f9;
+            background: #000000;
+            color: #F2F2F7;
         }
 
         body.dark::before {
@@ -129,7 +129,7 @@
 
         body.dark .ios-top-bar {
             background: rgba(14, 20, 32, 0.92);
-            border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+            border-bottom: 1px solid rgba(10, 132, 255, 0.15);
             box-shadow: 0 4px 25px rgba(0, 0, 0, 0.6);
         }
 
@@ -148,15 +148,15 @@
             place-items: center;
             font-size: 1.15rem;
             color: #ffffff;
-            background: linear-gradient(135deg, #0f766e, #0d9488);
-            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.35);
+            background: linear-gradient(135deg, #007AFF, #0A84FF);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.35);
             position: relative;
         }
 
         body.dark .brand-pill-icon {
-            background: linear-gradient(135deg, #d4af37, #b8942e);
-            color: #0b0e12;
-            box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3);
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
+            color: #000000;
+            box-shadow: 0 4px 16px rgba(10, 132, 255, 0.3);
         }
 
         .pulse-indicator {
@@ -171,7 +171,7 @@
             animation: ecgPulse 2s infinite;
         }
         body.dark .pulse-indicator {
-            border-color: #0b0e12;
+            border-color: #000000;
         }
 
         @keyframes ecgPulse {
@@ -187,19 +187,19 @@
             font-size: 1rem;
             font-weight: 800;
             line-height: 1.15;
-            color: #0f172a;
+            color: #1C1C1E;
         }
         body.dark .brand-title {
-            color: #f8fafc;
+            color: #F9F9FB;
         }
         .brand-sub {
             font-size: 0.65rem;
             font-weight: 600;
-            color: #0f766e;
+            color: #007AFF;
             letter-spacing: 0.02em;
         }
         body.dark .brand-sub {
-            color: #d4af37;
+            color: #0A84FF;
         }
 
         .ios-top-actions {
@@ -214,7 +214,7 @@
             border-radius: 50%;
             border: 1px solid rgba(226, 232, 240, 0.9);
             background: rgba(255, 255, 255, 0.9);
-            color: #475569;
+            color: #636366;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -223,9 +223,9 @@
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         body.dark .ios-icon-btn {
-            background: rgba(30, 41, 59, 0.7);
+            background: rgba(44, 44, 46, 0.7);
             border-color: rgba(255, 255, 255, 0.1);
-            color: #cbd5e1;
+            color: #D1D1D6;
         }
         .ios-icon-btn:active {
             transform: scale(0.92);
@@ -249,28 +249,28 @@
             border-color: #fde68a;
         }
         body.dark .ios-role-pill.owner {
-            background: rgba(212, 175, 55, 0.18);
-            color: #d4af37;
-            border-color: rgba(212, 175, 55, 0.35);
+            background: rgba(10, 132, 255, 0.18);
+            color: #0A84FF;
+            border-color: rgba(10, 132, 255, 0.35);
         }
         .ios-role-pill.admin {
-            background: #ccfbf1;
-            color: #0f766e;
-            border-color: #99f6e4;
+            background: #D9EBFF;
+            color: #007AFF;
+            border-color: #B3D7FF;
         }
         body.dark .ios-role-pill.admin {
-            background: rgba(15, 118, 110, 0.25);
-            color: #2dd4bf;
-            border-color: rgba(45, 212, 191, 0.35);
+            background: rgba(0, 122, 255, 0.25);
+            color: #64B5FF;
+            border-color: rgba(100, 181, 255, 0.35);
         }
         .ios-role-pill.user {
-            background: #e2e8f0;
-            color: #475569;
-            border-color: #cbd5e1;
+            background: #E5E5EA;
+            color: #636366;
+            border-color: #D1D1D6;
         }
         body.dark .ios-role-pill.user {
             background: rgba(255, 255, 255, 0.08);
-            color: #94a3b8;
+            color: #AEAEB2;
             border-color: rgba(255, 255, 255, 0.12);
         }
 
@@ -356,8 +356,8 @@
             50% { opacity: 0.85; transform: scale(1.05); }
         }
         .icu-header-btn {
-            color: #0f766e !important;
-            border-color: rgba(15, 118, 110, 0.25) !important;
+            color: #007AFF !important;
+            border-color: rgba(0, 122, 255, 0.25) !important;
             text-decoration: none;
         }
         body.dark .icu-header-btn {
@@ -425,7 +425,7 @@
             border-radius: var(--ios-radius);
             padding: 16px 18px;
             border: 1px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 0 10px 28px rgba(15, 118, 110, 0.06), 0 2px 6px rgba(0, 0, 0, 0.02);
+            box-shadow: 0 10px 28px rgba(0, 122, 255, 0.06), 0 2px 6px rgba(0, 0, 0, 0.02);
             margin-bottom: 16px;
             display: flex;
             align-items: center;
@@ -438,8 +438,8 @@
 
         body.dark .live-activity-card {
             background: linear-gradient(135deg, rgba(16, 22, 34, 0.92), rgba(20, 28, 44, 0.88));
-            border: 1px solid rgba(212, 175, 55, 0.18);
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.06);
+            border: 1px solid rgba(10, 132, 255, 0.18);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(10, 132, 255, 0.06);
         }
 
         .live-status-left {
@@ -470,29 +470,29 @@
         .live-title-wrap h2 {
             font-size: 0.95rem;
             font-weight: 800;
-            color: #0f172a;
+            color: #1C1C1E;
             display: flex;
             align-items: center;
             gap: 6px;
         }
         body.dark .live-title-wrap h2 {
-            color: #f8fafc;
+            color: #F9F9FB;
         }
         .live-title-wrap p {
             font-size: 0.74rem;
-            color: #64748b;
+            color: #8A8A8E;
             font-weight: 600;
         }
         body.dark .live-title-wrap p {
-            color: #94a3b8;
+            color: #AEAEB2;
         }
 
         .live-clock-pill {
             padding: 6px 14px;
             border-radius: 999px;
-            background: rgba(15, 118, 110, 0.08);
-            border: 1px solid rgba(15, 118, 110, 0.18);
-            color: #0f766e;
+            background: rgba(0, 122, 255, 0.08);
+            border: 1px solid rgba(0, 122, 255, 0.18);
+            color: #007AFF;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.78rem;
             font-weight: 700;
@@ -501,9 +501,9 @@
             gap: 6px;
         }
         body.dark .live-clock-pill {
-            background: rgba(212, 175, 55, 0.12);
-            border-color: rgba(212, 175, 55, 0.3);
-            color: #d4af37;
+            background: rgba(10, 132, 255, 0.12);
+            border-color: rgba(10, 132, 255, 0.3);
+            color: #0A84FF;
         }
 
         /* Search & iOS Segmented Filter */
@@ -523,28 +523,28 @@
             width: 100%;
             height: 44px;
             border-radius: 14px;
-            border: 1px solid #cbd5e1;
+            border: 1px solid #D1D1D6;
             background: rgba(255, 255, 255, 0.9);
             padding: 0 42px 0 14px;
             font-size: 0.88rem;
             font-weight: 600;
-            color: #1e293b;
+            color: #2C2C2E;
             outline: none;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         body.dark .ios-search-input {
             background: rgba(16, 22, 34, 0.92);
-            border-color: rgba(212, 175, 55, 0.18);
-            color: #f1f5f9;
+            border-color: rgba(10, 132, 255, 0.18);
+            color: #F2F2F7;
         }
         .ios-search-input:focus {
-            border-color: #0f766e;
-            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+            border-color: #007AFF;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
             background: #ffffff;
         }
         body.dark .ios-search-input:focus {
-            border-color: #d4af37;
-            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+            border-color: #0A84FF;
+            box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2);
             background: #0f1523;
         }
 
@@ -553,7 +553,7 @@
             right: 14px;
             top: 50%;
             transform: translateY(-50%);
-            color: #94a3b8;
+            color: #AEAEB2;
             font-size: 0.9rem;
             pointer-events: none;
         }
@@ -570,7 +570,7 @@
         }
         body.dark .ios-segmented-control {
             background: rgba(16, 22, 34, 0.8);
-            border: 1px solid rgba(212, 175, 55, 0.12);
+            border: 1px solid rgba(10, 132, 255, 0.12);
         }
         .ios-segmented-control::-webkit-scrollbar { display: none; }
 
@@ -581,7 +581,7 @@
             border-radius: 10px;
             font-size: 0.78rem;
             font-weight: 700;
-            color: #64748b;
+            color: #8A8A8E;
             border: none;
             background: transparent;
             cursor: pointer;
@@ -593,17 +593,17 @@
             white-space: nowrap;
         }
         body.dark .ios-segment-btn {
-            color: #94a3b8;
+            color: #AEAEB2;
         }
         .ios-segment-btn.active {
             background: #ffffff;
-            color: #0f766e;
+            color: #007AFF;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
         body.dark .ios-segment-btn.active {
-            background: linear-gradient(135deg, #d4af37, #b8942e);
-            color: #0b0e12;
-            box-shadow: 0 2px 10px rgba(212, 175, 55, 0.25);
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
+            color: #000000;
+            box-shadow: 0 2px 10px rgba(10, 132, 255, 0.25);
         }
 
         /* Owner Fast Actions Bar */
@@ -660,26 +660,26 @@
 
         body.dark .hosp-widget-card {
             background: rgba(16, 22, 34, 0.84);
-            border: 1px solid rgba(212, 175, 55, 0.14);
+            border: 1px solid rgba(10, 132, 255, 0.14);
             box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
         }
 
         .hosp-widget-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 16px 40px rgba(15, 118, 110, 0.1);
+            box-shadow: 0 16px 40px rgba(0, 122, 255, 0.1);
         }
         body.dark .hosp-widget-card:hover {
-            border-color: rgba(212, 175, 55, 0.35);
-            box-shadow: 0 16px 45px rgba(0, 0, 0, 0.75), 0 0 20px rgba(212, 175, 55, 0.08);
+            border-color: rgba(10, 132, 255, 0.35);
+            box-shadow: 0 16px 45px rgba(0, 0, 0, 0.75), 0 0 20px rgba(10, 132, 255, 0.08);
         }
 
         .hosp-widget-card.is-expanded {
-            box-shadow: 0 18px 44px rgba(15, 118, 110, 0.14), 0 2px 6px rgba(0, 0, 0, 0.04);
-            border-color: rgba(15, 118, 110, 0.35);
+            box-shadow: 0 18px 44px rgba(0, 122, 255, 0.14), 0 2px 6px rgba(0, 0, 0, 0.04);
+            border-color: rgba(0, 122, 255, 0.35);
         }
         body.dark .hosp-widget-card.is-expanded {
-            box-shadow: 0 18px 48px rgba(0, 0, 0, 0.85), 0 0 24px rgba(212, 175, 55, 0.12);
-            border-color: rgba(212, 175, 55, 0.45);
+            box-shadow: 0 18px 48px rgba(0, 0, 0, 0.85), 0 0 24px rgba(10, 132, 255, 0.12);
+            border-color: rgba(10, 132, 255, 0.45);
         }
 
         .widget-top-banner {
@@ -712,12 +712,12 @@
         .widget-hosp-name {
             font-size: 1.18rem;
             font-weight: 800;
-            color: #0f172a;
+            color: #1C1C1E;
             line-height: 1.25;
             margin-bottom: 2px;
         }
         body.dark .widget-hosp-name {
-            color: #f8fafc;
+            color: #F9F9FB;
         }
         .widget-meta-row {
             display: flex;
@@ -725,11 +725,11 @@
             gap: 8px;
             flex-wrap: wrap;
             font-size: 0.72rem;
-            color: #64748b;
+            color: #8A8A8E;
             font-weight: 600;
         }
         body.dark .widget-meta-row {
-            color: #94a3b8;
+            color: #AEAEB2;
         }
 
         .widget-status-badge {
@@ -768,24 +768,24 @@
             align-items: center;
             gap: 5px;
             background: rgba(0, 0, 0, 0.03);
-            color: #475569;
+            color: #636366;
             border: 1px solid rgba(0, 0, 0, 0.05);
         }
         body.dark .metric-chip {
             background: rgba(255, 255, 255, 0.04);
-            color: #cbd5e1;
+            color: #D1D1D6;
             border-color: rgba(255, 255, 255, 0.07);
         }
         .metric-chip.oncall-live {
-            background: rgba(15, 118, 110, 0.1);
-            color: #0f766e;
-            border-color: rgba(15, 118, 110, 0.25);
+            background: rgba(0, 122, 255, 0.1);
+            color: #007AFF;
+            border-color: rgba(0, 122, 255, 0.25);
             font-weight: 800;
         }
         body.dark .metric-chip.oncall-live {
-            background: rgba(212, 175, 55, 0.15);
-            color: #d4af37;
-            border-color: rgba(212, 175, 55, 0.35);
+            background: rgba(10, 132, 255, 0.15);
+            color: #0A84FF;
+            border-color: rgba(10, 132, 255, 0.35);
         }
 
         /* Primary Compact Action Bar (Centered Roster + Down Arrow) */
@@ -811,8 +811,8 @@
             align-items: center;
             justify-content: center;
             background: rgba(241, 245, 249, 0.95);
-            border: 1px solid #cbd5e1;
-            color: #475569;
+            border: 1px solid #D1D1D6;
+            color: #636366;
             font-size: 0.85rem;
             cursor: pointer;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -823,17 +823,17 @@
         body.dark .hosp-expand-arrow-btn {
             background: rgba(255, 255, 255, 0.05);
             border-color: rgba(255, 255, 255, 0.12);
-            color: #94a3b8;
+            color: #AEAEB2;
         }
         .hosp-expand-arrow-btn:hover {
-            background: #e2e8f0;
-            color: #0f172a;
+            background: #E5E5EA;
+            color: #1C1C1E;
             transform: translateY(-1px);
         }
         body.dark .hosp-expand-arrow-btn:hover {
-            background: rgba(212, 175, 55, 0.16);
-            border-color: rgba(212, 175, 55, 0.4);
-            color: #d4af37;
+            background: rgba(10, 132, 255, 0.16);
+            border-color: rgba(10, 132, 255, 0.4);
+            color: #0A84FF;
         }
         .hosp-expand-arrow-btn:active {
             transform: scale(0.94);
@@ -845,14 +845,14 @@
             transform: rotate(180deg);
         }
         .hosp-widget-card.is-expanded .hosp-expand-arrow-btn {
-            background: rgba(15, 118, 110, 0.12);
-            border-color: rgba(15, 118, 110, 0.35);
-            color: #0f766e;
+            background: rgba(0, 122, 255, 0.12);
+            border-color: rgba(0, 122, 255, 0.35);
+            color: #007AFF;
         }
         body.dark .hosp-widget-card.is-expanded .hosp-expand-arrow-btn {
-            background: rgba(212, 175, 55, 0.2);
-            border-color: rgba(212, 175, 55, 0.45);
-            color: #d4af37;
+            background: rgba(10, 132, 255, 0.2);
+            border-color: rgba(10, 132, 255, 0.45);
+            color: #0A84FF;
         }
 
         /* Expandable Options Drawer */
@@ -901,33 +901,33 @@
         }
 
         .ios-btn.primary {
-            background: linear-gradient(135deg, #0f766e, #0d9488);
+            background: linear-gradient(135deg, #007AFF, #0A84FF);
             color: #ffffff;
-            box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3);
+            box-shadow: 0 4px 14px rgba(0, 122, 255, 0.3);
         }
         body.dark .ios-btn.primary {
-            background: linear-gradient(135deg, #d4af37, #b8942e);
-            color: #0b0e12;
-            box-shadow: 0 4px 16px rgba(212, 175, 55, 0.25);
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
+            color: #000000;
+            box-shadow: 0 4px 16px rgba(10, 132, 255, 0.25);
         }
 
         .ios-btn.secondary {
             background: rgba(241, 245, 249, 0.9);
-            color: #334155;
-            border-color: #cbd5e1;
+            color: #48484A;
+            border-color: #D1D1D6;
         }
         body.dark .ios-btn.secondary {
             background: rgba(255, 255, 255, 0.05);
-            color: #e2e8f0;
+            color: #E5E5EA;
             border-color: rgba(255, 255, 255, 0.1);
         }
         .ios-btn.secondary:hover {
-            background: #e2e8f0;
+            background: #E5E5EA;
         }
         body.dark .ios-btn.secondary:hover {
-            background: rgba(212, 175, 55, 0.12);
-            border-color: rgba(212, 175, 55, 0.35);
-            color: #d4af37;
+            background: rgba(10, 132, 255, 0.12);
+            border-color: rgba(10, 132, 255, 0.35);
+            color: #0A84FF;
         }
 
         /* Floating Bottom Dock for iPhone (App Tab Bar) */
@@ -956,8 +956,8 @@
 
         body.dark .ios-bottom-dock {
             background: rgba(14, 20, 32, 0.94);
-            border: 1px solid rgba(212, 175, 55, 0.18);
-            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(212, 175, 55, 0.08);
+            border: 1px solid rgba(10, 132, 255, 0.18);
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(10, 132, 255, 0.08);
         }
 
         .dock-tab-btn {
@@ -968,7 +968,7 @@
             gap: 2px;
             padding: 4px 4px;
             border-radius: 999px;
-            color: #64748b;
+            color: #8A8A8E;
             text-decoration: none;
             background: transparent;
             border: none;
@@ -980,7 +980,7 @@
             min-width: 0;
         }
         body.dark .dock-tab-btn {
-            color: #94a3b8;
+            color: #AEAEB2;
         }
         .dock-tab-btn i {
             font-size: 1rem;
@@ -992,12 +992,12 @@
             max-width: 100%;
         }
         .dock-tab-btn.active {
-            color: #0f766e;
-            background: rgba(15, 118, 110, 0.12);
+            color: #007AFF;
+            background: rgba(0, 122, 255, 0.12);
         }
         body.dark .dock-tab-btn.active {
-            color: #d4af37;
-            background: rgba(212, 175, 55, 0.15);
+            color: #0A84FF;
+            background: rgba(10, 132, 255, 0.15);
         }
         .dock-tab-btn:active {
             transform: scale(0.92);
@@ -1044,7 +1044,7 @@
         }
         body.dark .lock-box {
             background: #141c2a;
-            border-color: rgba(212, 175, 55, 0.2);
+            border-color: rgba(10, 132, 255, 0.2);
             box-shadow: 0 25px 70px rgba(0, 0, 0, 0.8);
         }
 
@@ -1053,7 +1053,7 @@
             width: 100%;
             padding: 0.75rem 1rem;
             border-radius: 12px;
-            border: 1.5px solid #cbd5e1;
+            border: 1.5px solid #D1D1D6;
             background: rgba(248, 250, 252, 0.9);
             font-size: 0.9rem;
             font-weight: 600;
@@ -1064,15 +1064,15 @@
         body.dark .hub-input {
             background: #0f1520;
             border-color: #1f2937;
-            color: #f1f5f9;
+            color: #F2F2F7;
         }
         .hub-input:focus {
-            border-color: #0f766e;
-            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+            border-color: #007AFF;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
         }
         body.dark .hub-input:focus {
-            border-color: #14b8a6;
-            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+            border-color: #409CFF;
+            box-shadow: 0 0 0 3px rgba(64, 156, 255, 0.2);
         }
 
         /* Modal Overlays */
@@ -1099,13 +1099,13 @@
             max-width: 520px;
             max-height: 90vh;
             overflow-y: auto;
-            border: 1px solid #e2e8f0;
+            border: 1px solid #E5E5EA;
             box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
             animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         body.dark .modal-card {
             background: #141c2a;
-            border-color: rgba(212, 175, 55, 0.2);
+            border-color: rgba(10, 132, 255, 0.2);
             box-shadow: 0 25px 70px rgba(0, 0, 0, 0.8);
         }
         @keyframes modalPop {
@@ -1150,7 +1150,7 @@
         .footer-credit {
             text-align: center;
             font-size: 0.72rem;
-            color: #94a3b8;
+            color: #AEAEB2;
             margin-top: 2rem;
             opacity: 0.7;
         }
@@ -1184,7 +1184,7 @@
                     <a href="./account.html#signup" style="color:var(--hacc-accent);">إنشاء حساب جديد</a>
                     <a href="./account.html#forgot" style="color:var(--hacc-accent);">نسيت كلمة المرور؟</a>
                 </div>
-                <button type="button" onclick="toggleSharedLogin(true)" style="background:none; border:0; color:#94a3b8; font-size:0.74rem; font-weight:700; cursor:pointer; text-decoration:underline;">الدخول بكلمة المرور المشتركة (مؤقتاً)</button>
+                <button type="button" onclick="toggleSharedLogin(true)" style="background:none; border:0; color:#AEAEB2; font-size:0.74rem; font-weight:700; cursor:pointer; text-decoration:underline;">الدخول بكلمة المرور المشتركة (مؤقتاً)</button>
             </form>
 
             <!-- Shared password (kept during the move to personal accounts) -->
@@ -1198,7 +1198,7 @@
                 <button type="submit" id="login-btn" class="ios-btn primary w-full justify-center">
                     <i class="fas fa-arrow-left ml-1"></i> دخول إلى النظام
                 </button>
-                <button type="button" onclick="toggleSharedLogin(false)" style="background:none; border:0; color:#94a3b8; font-size:0.74rem; font-weight:700; cursor:pointer; text-decoration:underline;">العودة إلى الدخول بالحساب الشخصي</button>
+                <button type="button" onclick="toggleSharedLogin(false)" style="background:none; border:0; color:#AEAEB2; font-size:0.74rem; font-weight:700; cursor:pointer; text-decoration:underline;">العودة إلى الدخول بالحساب الشخصي</button>
             </form>
             <p id="lock-error" class="text-rose-500 text-xs mt-2 min-h-[20px]"></p>
             
@@ -1290,7 +1290,7 @@
             <button type="button" class="owner-chip-btn text-white" style="background:linear-gradient(135deg,#7c3aed,#9333ea);" onclick="openGlobalSpecialtiesModal()">
                 <i class="fas fa-crown text-amber-300"></i> مستودع التخصصات العام 👑
             </button>
-            <button type="button" class="owner-chip-btn text-white" style="background:linear-gradient(135deg,#0d9488,#0f766e);" onclick="openFullSystemBackupModal()">
+            <button type="button" class="owner-chip-btn text-white" style="background:linear-gradient(135deg,#0A84FF,#007AFF);" onclick="openFullSystemBackupModal()">
                 <i class="fas fa-database text-amber-300"></i> النسخ الاحتياطي الشامل 👑
             </button>
             <button type="button" class="owner-chip-btn text-white" style="background:linear-gradient(135deg,#d97706,#b45309);" onclick="openAllPasswordsModalNav()">
@@ -1331,13 +1331,13 @@
             <i class="fas fa-hospital-alt"></i>
             <span>الرئيسية</span>
         </a>
-        <a href="./icu.html" class="dock-tab-btn" id="dock-link-icu" title="موقف أسرة العناية المركزة (ICU)">
-            <i class="fas fa-procedures"></i>
-            <span>العناية</span>
-        </a>
         <a href="./schedule.html" class="dock-tab-btn" id="dock-link-schedule" title="جدول الخفارات الشهري">
             <i class="fas fa-calendar-week"></i>
             <span>الجدول</span>
+        </a>
+        <a href="./icu.html" class="dock-tab-btn" id="dock-link-icu" title="موقف أسرة العناية المركزة (ICU)">
+            <i class="fas fa-procedures"></i>
+            <span>العناية</span>
         </a>
         <a href="./specialists.html" class="dock-tab-btn" id="dock-link-specialists" title="أطباء الاختصاص">
             <i class="fas fa-user-tie"></i>
@@ -1351,10 +1351,6 @@
             <i class="fas fa-calendar-check"></i>
             <span>تبديل</span>
         </a>
-        <a href="./scheduler.html" class="dock-tab-btn" id="dock-btn-scheduler" style="display: none;" title="المجدول (صلاحيات الإدارة)">
-            <i class="fas fa-calendar-alt"></i>
-            <span>المجدول</span>
-        </a>
     </nav>
 
     <!-- ADD HOSPITAL MODAL (Owner Only) -->
@@ -1362,7 +1358,7 @@
         <div class="modal-card">
             <div class="flex justify-between items-center mb-3">
                 <h3 class="text-lg font-black flex items-center gap-2 text-slate-800 dark:text-white">
-                    <i class="fas fa-hospital-plus text-teal-600 dark:text-amber-400"></i> إضافة مستشفى تعليمي جديد
+                    <i class="fas fa-hospital-plus text-teal-600 dark:text-teal-400"></i> إضافة مستشفى تعليمي جديد
                 </h3>
                 <button type="button" onclick="closeAddHospitalModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
                     <i class="fas fa-times"></i>
@@ -1564,26 +1560,26 @@
                         <i class="fas fa-key"></i>
                     </div>
                     <div>
-                        <h3 style="font-size:1.15rem; font-weight:800; margin:0; color:#1e293b;" class="dark:text-white">تعديل كلمات المرور</h3>
+                        <h3 style="font-size:1.15rem; font-weight:800; margin:0; color:#2C2C2E;" class="dark:text-white">تعديل كلمات المرور</h3>
                         <span style="font-size:0.75rem; color:#b45309; font-weight:700;"><i class="fas fa-crown text-amber-500 ml-1"></i> صلاحية المالك حصراً</span>
                     </div>
                 </div>
-                <button type="button" onclick="closeAllPasswordsModalNav()" style="background:none; border:none; font-size:1.2rem; color:#94a3b8; cursor:pointer;" aria-label="إغلاق">
+                <button type="button" onclick="closeAllPasswordsModalNav()" style="background:none; border:none; font-size:1.2rem; color:#AEAEB2; cursor:pointer;" aria-label="إغلاق">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
-            <p style="font-size:0.8rem; color:#64748b; margin-bottom:14px; line-height:1.5;">
+            <p style="font-size:0.8rem; color:#8A8A8E; margin-bottom:14px; line-height:1.5;">
                 بصفتك المالك، يمكنك تعديل كلمات المرور لكافة المستويات وتطبيقها على كامل المنظومة أو مستشفى بعينه.
             </p>
 
             <!-- Scope Selection -->
             <div style="margin-bottom:14px;">
-                <label style="display:block; font-size:0.75rem; font-weight:700; color:#475569; margin-bottom:4px;">نطاق تطبيق التعديل</label>
-                <select id="hub-pwd-scope-select" onchange="onScopeChangePasswordsNav(this.value, this)" style="width:100%; padding:9px 12px; border-radius:10px; border:1px solid #cbd5e1; font-size:0.85rem; font-weight:600; background:#f8fafc; outline:none; color:#1e293b;">
+                <label style="display:block; font-size:0.75rem; font-weight:700; color:#636366; margin-bottom:4px;">نطاق تطبيق التعديل</label>
+                <select id="hub-pwd-scope-select" onchange="onScopeChangePasswordsNav(this.value, this)" style="width:100%; padding:9px 12px; border-radius:10px; border:1px solid #D1D1D6; font-size:0.85rem; font-weight:600; background:#F9F9FB; outline:none; color:#2C2C2E;">
                     <option value="all">🌐 جميع المستشفيات والمنظومة بالكامل (تحديث شامل)</option>
                 </select>
-                <div id="hub-pwd-scope-badge" style="display:flex; align-items:center; gap:6px; font-size:0.75rem; font-weight:700; color:#0f766e; background:rgba(15,118,110,0.08); border:1px solid rgba(15,118,110,0.2); border-radius:8px; padding:6px 10px; margin-top:6px;">
+                <div id="hub-pwd-scope-badge" style="display:flex; align-items:center; gap:6px; font-size:0.75rem; font-weight:700; color:#007AFF; background:rgba(0, 122, 255,0.08); border:1px solid rgba(0, 122, 255,0.2); border-radius:8px; padding:6px 10px; margin-top:6px;">
                     <i class="fas fa-globe"></i>
                     <span id="hub-pwd-scope-text">تطبيق التعديل على المنظومة بالكامل وجميع المستشفيات</span>
                 </div>
@@ -1594,36 +1590,36 @@
                 <!-- Normal User Password -->
                 <div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                        <label id="hub-pwd-user-label" style="font-size:0.78rem; font-weight:700; color:#334155;">كلمة مرور المستخدم العادي</label>
-                        <span id="hub-pwd-user-hint" style="font-size:0.68rem; color:#64748b;">(تصفح، تبديل، دليل المقيمين)</span>
+                        <label id="hub-pwd-user-label" style="font-size:0.78rem; font-weight:700; color:#48484A;">كلمة مرور المستخدم العادي</label>
+                        <span id="hub-pwd-user-hint" style="font-size:0.68rem; color:#8A8A8E;">(تصفح، تبديل، دليل المقيمين)</span>
                     </div>
                     <div style="position:relative;">
-                        <input type="text" id="hub-pwd-user" placeholder="كلمة المرور" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #cbd5e1; font-family:monospace; font-size:0.95rem; text-align:center; color:#1e293b; background:#ffffff;" />
-                        <i class="fas fa-user" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:0.85rem;"></i>
+                        <input type="text" id="hub-pwd-user" placeholder="كلمة المرور" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #D1D1D6; font-family:monospace; font-size:0.95rem; text-align:center; color:#2C2C2E; background:#ffffff;" />
+                        <i class="fas fa-user" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#AEAEB2; font-size:0.85rem;"></i>
                     </div>
                 </div>
 
                 <!-- Anaesthesia Resident Password -->
                 <div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                        <label id="hub-pwd-anaesthesia-label" style="font-size:0.78rem; font-weight:700; color:#0f766e;">كلمة مرور مقيم التخدير والعناية</label>
-                        <span id="hub-pwd-anaesthesia-hint" style="font-size:0.68rem; color:#64748b;">(تعديل موقف أسرة العناية المركزة)</span>
+                        <label id="hub-pwd-anaesthesia-label" style="font-size:0.78rem; font-weight:700; color:#007AFF;">كلمة مرور مقيم التخدير والعناية</label>
+                        <span id="hub-pwd-anaesthesia-hint" style="font-size:0.68rem; color:#8A8A8E;">(تعديل موقف أسرة العناية المركزة)</span>
                     </div>
                     <div style="position:relative;">
-                        <input type="text" id="hub-pwd-anaesthesia" placeholder="كلمة المرور" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #cbd5e1; font-family:monospace; font-size:0.95rem; text-align:center; color:#1e293b; background:#ffffff;" />
-                        <i class="fas fa-syringe" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#0f766e; font-size:0.85rem;"></i>
+                        <input type="text" id="hub-pwd-anaesthesia" placeholder="كلمة المرور" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #D1D1D6; font-family:monospace; font-size:0.95rem; text-align:center; color:#2C2C2E; background:#ffffff;" />
+                        <i class="fas fa-syringe" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#007AFF; font-size:0.85rem;"></i>
                     </div>
                 </div>
 
                 <!-- Admin Password -->
                 <div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                        <label id="hub-pwd-admin-label" style="font-size:0.78rem; font-weight:700; color:#334155;">كلمة مرور المدير / المشرف</label>
-                        <span id="hub-pwd-admin-hint" style="font-size:0.68rem; color:#64748b;">(إدارة المقيمين، المجدول)</span>
+                        <label id="hub-pwd-admin-label" style="font-size:0.78rem; font-weight:700; color:#48484A;">كلمة مرور المدير / المشرف</label>
+                        <span id="hub-pwd-admin-hint" style="font-size:0.68rem; color:#8A8A8E;">(إدارة المقيمين، المجدول)</span>
                     </div>
                     <div style="position:relative;">
-                        <input type="text" id="hub-pwd-admin" placeholder="كلمة المرور" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #cbd5e1; font-family:monospace; font-size:0.95rem; text-align:center; color:#1e293b; background:#ffffff;" />
-                        <i class="fas fa-shield-halved" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:0.85rem;"></i>
+                        <input type="text" id="hub-pwd-admin" placeholder="كلمة المرور" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #D1D1D6; font-family:monospace; font-size:0.95rem; text-align:center; color:#2C2C2E; background:#ffffff;" />
+                        <i class="fas fa-shield-halved" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#AEAEB2; font-size:0.85rem;"></i>
                     </div>
                 </div>
 
@@ -1634,7 +1630,7 @@
                         <span id="hub-pwd-owner-hint" style="font-size:0.68rem; color:#b45309; font-weight:700;">(كامل الصلاحيات + كلمات المرور)</span>
                     </div>
                     <div style="position:relative;">
-                        <input type="text" id="hub-pwd-owner" placeholder="كلمة المرور" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:2px solid rgba(217,119,6,0.5); font-family:monospace; font-size:0.95rem; text-align:center; background:#fffbeb; color:#1e293b;" />
+                        <input type="text" id="hub-pwd-owner" placeholder="كلمة المرور" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:2px solid rgba(217,119,6,0.5); font-family:monospace; font-size:0.95rem; text-align:center; background:#fffbeb; color:#2C2C2E;" />
                         <i class="fas fa-crown" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#d97706; font-size:0.85rem;"></i>
                     </div>
                 </div>
@@ -1646,7 +1642,7 @@
                 <button type="button" id="hub-save-passwords-btn" onclick="submitAllPasswordsNav()" style="flex:1; padding:11px; border-radius:12px; border:none; background:linear-gradient(135deg,#d97706,#b45309); color:white; font-weight:700; cursor:pointer; font-size:0.88rem; box-shadow:0 4px 14px rgba(217,119,6,0.3);">
                     <i class="fas fa-check-circle ml-1"></i> حفظ وتطبيق كلمات المرور
                 </button>
-                <button type="button" onclick="closeAllPasswordsModalNav()" style="padding:11px 16px; border-radius:12px; border:1px solid #cbd5e1; background:transparent; color:#64748b; font-weight:600; cursor:pointer; font-size:0.88rem;">
+                <button type="button" onclick="closeAllPasswordsModalNav()" style="padding:11px 16px; border-radius:12px; border:1px solid #D1D1D6; background:transparent; color:#8A8A8E; font-weight:600; cursor:pointer; font-size:0.88rem;">
                     إلغاء
                 </button>
             </div>
@@ -1657,17 +1653,17 @@
     <div id="role-switcher-modal" class="modal-overlay hub-modal-overlay" onclick="if(event.target===this) closeRoleSwitcherModal()">
         <div class="modal-card hub-modal-card max-w-md w-full p-5 sm:p-6 text-right relative" style="max-width:440px; text-align:right;">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-4" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(148,163,184,0.2); padding-bottom:12px; margin-bottom:16px;">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-4" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(142, 142, 147,0.2); padding-bottom:12px; margin-bottom:16px;">
                 <div class="flex items-center gap-3" style="display:flex; align-items:center; gap:10px;">
-                    <div class="w-10 h-10 rounded-xl bg-teal-500/15 dark:bg-amber-400/20 text-teal-700 dark:text-amber-400 flex items-center justify-center text-lg shadow-sm" style="width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:rgba(15,118,110,0.15); color:#0f766e;">
+                    <div class="w-10 h-10 rounded-xl bg-teal-500/15 dark:bg-teal-400/20 text-teal-700 dark:text-teal-400 flex items-center justify-center text-lg shadow-sm" style="width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:rgba(0, 122, 255,0.15); color:#007AFF;">
                         <i class="fas fa-users-cog"></i>
                     </div>
                     <div>
                         <h3 class="text-base font-black text-slate-800 dark:text-white" style="font-size:1.05rem; font-weight:800; margin:0;">تبديل مستوى المستخدم</h3>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400" style="font-size:0.75rem; color:#64748b; margin:2px 0 0;">اختر مستوى الصلاحية للعمل به داخل المنظومة</p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400" style="font-size:0.75rem; color:#8A8A8E; margin:2px 0 0;">اختر مستوى الصلاحية للعمل به داخل المنظومة</p>
                     </div>
                 </div>
-                <button type="button" onclick="closeRoleSwitcherModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center transition" style="background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:#94a3b8;" aria-label="إغلاق">
+                <button type="button" onclick="closeRoleSwitcherModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center transition" style="background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:#AEAEB2;" aria-label="إغلاق">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -1675,10 +1671,10 @@
             <!-- Current Role Indicator Banner -->
             <div class="mb-4 p-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between" style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-radius:14px; margin-bottom:14px; background:rgba(241,245,249,0.7); border:1px solid rgba(226,232,240,0.8);">
                 <div class="flex items-center gap-2" style="display:flex; align-items:center; gap:8px;">
-                    <span class="text-xs text-slate-500 dark:text-slate-400 font-bold" style="font-size:0.78rem; font-weight:700; color:#64748b;">المستوى الحالي:</span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400 font-bold" style="font-size:0.78rem; font-weight:700; color:#8A8A8E;">المستوى الحالي:</span>
                     <span id="switcher-current-role-badge" class="px-2.5 py-1 rounded-full text-xs font-black bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-300" style="padding:3px 10px; border-radius:999px; font-size:0.75rem; font-weight:800;">مستخدم</span>
                 </div>
-                <span id="switcher-hospital-badge" class="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[150px]" style="font-size:0.75rem; font-weight:700; color:#64748b;"></span>
+                <span id="switcher-hospital-badge" class="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[150px]" style="font-size:0.75rem; font-weight:700; color:#8A8A8E;"></span>
             </div>
 
             <!-- Role Selection Options -->
@@ -1703,13 +1699,13 @@
                     <div id="owner-pwd-box" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 hidden" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(226,232,240,0.8);" onclick="event.stopPropagation()">
                         <div class="relative mb-2" style="position:relative; margin-bottom:8px;">
                             <input type="password" id="owner-level-pwd" class="hub-role-input" placeholder="أدخل كلمة مرور المالك..." onkeydown="if(event.key==='Enter') confirmUpgradeToRole('owner')" />
-                            <button type="button" onclick="toggleInputPwd('owner-level-pwd', 'owner-eye-icon')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#94a3b8;">
+                            <button type="button" onclick="toggleInputPwd('owner-level-pwd', 'owner-eye-icon')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#AEAEB2;">
                                 <i class="fas fa-eye" id="owner-eye-icon"></i>
                             </button>
                         </div>
                         <div class="flex gap-2" style="display:flex; gap:8px;">
                             <button type="button" onclick="confirmUpgradeToRole('owner')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 transition shadow-sm" style="flex:1; padding:8px 12px; border-radius:10px; border:none; background:#d97706; color:white; font-weight:700; cursor:pointer; font-size:0.78rem;">تأكيد الدخول كمالك</button>
-                            <button type="button" onclick="cancelRoleInput('owner')" class="py-1.5 px-3 rounded-lg text-xs font-bold border border-slate-300 dark:border-slate-700 text-slate-500" style="padding:8px 12px; border-radius:10px; border:1px solid #cbd5e1; background:transparent; color:#64748b; font-weight:600; cursor:pointer; font-size:0.78rem;">إلغاء</button>
+                            <button type="button" onclick="cancelRoleInput('owner')" class="py-1.5 px-3 rounded-lg text-xs font-bold border border-slate-300 dark:border-slate-700 text-slate-500" style="padding:8px 12px; border-radius:10px; border:1px solid #D1D1D6; background:transparent; color:#8A8A8E; font-weight:600; cursor:pointer; font-size:0.78rem;">إلغاء</button>
                         </div>
                         <p id="owner-pwd-error" class="text-[11px] text-rose-500 mt-1 min-h-[16px]" style="color:#ef4444; font-size:0.72rem; margin:4px 0 0; min-height:16px;"></p>
                     </div>
@@ -1719,13 +1715,13 @@
                 <div class="switcher-role-card role-card-admin" id="card-role-admin" onclick="selectRoleLevel('admin')">
                     <div class="flex items-start justify-between gap-2" style="display:flex; align-items:flex-start; justify-content:space-between;">
                         <div class="flex items-center gap-3" style="display:flex; align-items:center; gap:10px;">
-                            <div class="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 flex items-center justify-center text-lg flex-shrink-0" style="width:38px; height:38px; border-radius:12px; background:rgba(15,118,110,0.15); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
+                            <div class="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 flex items-center justify-center text-lg flex-shrink-0" style="width:38px; height:38px; border-radius:12px; background:rgba(0, 122, 255,0.15); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
                                 🛡️
                             </div>
                             <div>
                                 <div class="flex items-center gap-2" style="display:flex; align-items:center; gap:6px;">
                                     <h4 class="role-title">مدير مستشفى (Admin)</h4>
-                                    <span id="tag-active-admin" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-bold" style="font-size:0.68rem; padding:2px 8px; border-radius:999px; background:rgba(15,118,110,0.15); color:#0f766e; font-weight:800;">نشط حالياً ✓</span>
+                                    <span id="tag-active-admin" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-bold" style="font-size:0.68rem; padding:2px 8px; border-radius:999px; background:rgba(0, 122, 255,0.15); color:#007AFF; font-weight:800;">نشط حالياً ✓</span>
                                 </div>
                                 <p class="role-desc">إدارة وتعديل جداول الخفارات للمقيمين والاختصاصيين وتعديل الأطباء</p>
                             </div>
@@ -1735,13 +1731,13 @@
                     <div id="admin-pwd-box" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 hidden" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(226,232,240,0.8);" onclick="event.stopPropagation()">
                         <div class="relative mb-2" style="position:relative; margin-bottom:8px;">
                             <input type="password" id="admin-level-pwd" class="hub-role-input" placeholder="أدخل كلمة مرور الإدارة..." onkeydown="if(event.key==='Enter') confirmUpgradeToRole('admin')" />
-                            <button type="button" onclick="toggleInputPwd('admin-level-pwd', 'admin-eye-icon')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#94a3b8;">
+                            <button type="button" onclick="toggleInputPwd('admin-level-pwd', 'admin-eye-icon')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#AEAEB2;">
                                 <i class="fas fa-eye" id="admin-eye-icon"></i>
                             </button>
                         </div>
                         <div class="flex gap-2" style="display:flex; gap:8px;">
-                            <button type="button" onclick="confirmUpgradeToRole('admin')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 transition shadow-sm" style="flex:1; padding:8px 12px; border-radius:10px; border:none; background:#0f766e; color:white; font-weight:700; cursor:pointer; font-size:0.78rem;">تأكيد التبديل لمدير</button>
-                            <button type="button" onclick="cancelRoleInput('admin')" class="py-1.5 px-3 rounded-lg text-xs font-bold border border-slate-300 dark:border-slate-700 text-slate-500" style="padding:8px 12px; border-radius:10px; border:1px solid #cbd5e1; background:transparent; color:#64748b; font-weight:600; cursor:pointer; font-size:0.78rem;">إلغاء</button>
+                            <button type="button" onclick="confirmUpgradeToRole('admin')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 transition shadow-sm" style="flex:1; padding:8px 12px; border-radius:10px; border:none; background:#007AFF; color:white; font-weight:700; cursor:pointer; font-size:0.78rem;">تأكيد التبديل لمدير</button>
+                            <button type="button" onclick="cancelRoleInput('admin')" class="py-1.5 px-3 rounded-lg text-xs font-bold border border-slate-300 dark:border-slate-700 text-slate-500" style="padding:8px 12px; border-radius:10px; border:1px solid #D1D1D6; background:transparent; color:#8A8A8E; font-weight:600; cursor:pointer; font-size:0.78rem;">إلغاء</button>
                         </div>
                         <p id="admin-pwd-error" class="text-[11px] text-rose-500 mt-1 min-h-[16px]" style="color:#ef4444; font-size:0.72rem; margin:4px 0 0; min-height:16px;"></p>
                     </div>
@@ -1751,13 +1747,13 @@
                 <div class="switcher-role-card role-card-anaesthesia" id="card-role-anaesthesia" onclick="selectRoleLevel('anaesthesia')">
                     <div class="flex items-start justify-between gap-2" style="display:flex; align-items:flex-start; justify-content:space-between;">
                         <div class="flex items-center gap-3" style="display:flex; align-items:center; gap:10px;">
-                            <div class="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 flex items-center justify-center text-lg flex-shrink-0" style="width:38px; height:38px; border-radius:12px; background:rgba(15,118,110,0.15); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
+                            <div class="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 flex items-center justify-center text-lg flex-shrink-0" style="width:38px; height:38px; border-radius:12px; background:rgba(0, 122, 255,0.15); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
                                 💉
                             </div>
                             <div>
                                 <div class="flex items-center gap-2" style="display:flex; align-items:center; gap:6px;">
                                     <h4 class="role-title">مقيم تخدير (Anaesthesia)</h4>
-                                    <span id="tag-active-anaesthesia" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-bold" style="font-size:0.68rem; padding:2px 8px; border-radius:999px; background:rgba(15,118,110,0.15); color:#0f766e; font-weight:800;">نشط حالياً ✓</span>
+                                    <span id="tag-active-anaesthesia" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-bold" style="font-size:0.68rem; padding:2px 8px; border-radius:999px; background:rgba(0, 122, 255,0.15); color:#007AFF; font-weight:800;">نشط حالياً ✓</span>
                                 </div>
                                 <p class="role-desc">تحديث ومتابعة موقف أسرة العناية المركزة (ICU)</p>
                             </div>
@@ -1767,13 +1763,13 @@
                     <div id="anaesthesia-pwd-box" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 hidden" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(226,232,240,0.8);" onclick="event.stopPropagation()">
                         <div class="relative mb-2" style="position:relative; margin-bottom:8px;">
                             <input type="password" id="anaesthesia-level-pwd" class="hub-role-input" placeholder="أدخل كلمة مرور مقيم التخدير..." onkeydown="if(event.key==='Enter') confirmUpgradeToRole('anaesthesia')" />
-                            <button type="button" onclick="toggleInputPwd('anaesthesia-level-pwd', 'anaesthesia-eye-icon')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#94a3b8;">
+                            <button type="button" onclick="toggleInputPwd('anaesthesia-level-pwd', 'anaesthesia-eye-icon')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#AEAEB2;">
                                 <i class="fas fa-eye" id="anaesthesia-eye-icon"></i>
                             </button>
                         </div>
                         <div class="flex gap-2" style="display:flex; gap:8px;">
-                            <button type="button" onclick="confirmUpgradeToRole('anaesthesia')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 transition shadow-sm" style="flex:1; padding:8px 12px; border-radius:10px; border:none; background:#0f766e; color:white; font-weight:700; cursor:pointer; font-size:0.78rem;">تأكيد التبديل لمقيم تخدير</button>
-                            <button type="button" onclick="cancelRoleInput('anaesthesia')" class="py-1.5 px-3 rounded-lg text-xs font-bold border border-slate-300 dark:border-slate-700 text-slate-500" style="padding:8px 12px; border-radius:10px; border:1px solid #cbd5e1; background:transparent; color:#64748b; font-weight:600; cursor:pointer; font-size:0.78rem;">إلغاء</button>
+                            <button type="button" onclick="confirmUpgradeToRole('anaesthesia')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 transition shadow-sm" style="flex:1; padding:8px 12px; border-radius:10px; border:none; background:#007AFF; color:white; font-weight:700; cursor:pointer; font-size:0.78rem;">تأكيد التبديل لمقيم تخدير</button>
+                            <button type="button" onclick="cancelRoleInput('anaesthesia')" class="py-1.5 px-3 rounded-lg text-xs font-bold border border-slate-300 dark:border-slate-700 text-slate-500" style="padding:8px 12px; border-radius:10px; border:1px solid #D1D1D6; background:transparent; color:#8A8A8E; font-weight:600; cursor:pointer; font-size:0.78rem;">إلغاء</button>
                         </div>
                         <p id="anaesthesia-pwd-error" class="text-[11px] text-rose-500 mt-1 min-h-[16px]" style="color:#ef4444; font-size:0.72rem; margin:4px 0 0; min-height:16px;"></p>
                     </div>
@@ -1783,13 +1779,13 @@
                 <div class="switcher-role-card role-card-user" id="card-role-user" onclick="selectRoleLevel('user')">
                     <div class="flex items-start justify-between gap-2" style="display:flex; align-items:flex-start; justify-content:space-between;">
                         <div class="flex items-center gap-3" style="display:flex; align-items:center; gap:10px;">
-                            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center text-lg flex-shrink-0" style="width:38px; height:38px; border-radius:12px; background:rgba(100,116,139,0.15); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
+                            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center text-lg flex-shrink-0" style="width:38px; height:38px; border-radius:12px; background:rgba(138, 138, 142,0.15); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
                                 👨‍⚕️
                             </div>
                             <div>
                                 <div class="flex items-center gap-2" style="display:flex; align-items:center; gap:6px;">
                                     <h4 class="role-title">مستخدم عادي (User)</h4>
-                                    <span id="tag-active-user" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold" style="font-size:0.68rem; padding:2px 8px; border-radius:999px; background:rgba(100,116,139,0.15); color:#475569; font-weight:800;">نشط حالياً ✓</span>
+                                    <span id="tag-active-user" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold" style="font-size:0.68rem; padding:2px 8px; border-radius:999px; background:rgba(138, 138, 142,0.15); color:#636366; font-weight:800;">نشط حالياً ✓</span>
                                 </div>
                                 <p class="role-desc">استعراض جداول الخفارات واليوميات والبحث عن الأطباء (وضع القراءة فقط)</p>
                             </div>
@@ -1799,11 +1795,11 @@
             </div>
 
             <!-- Footer Quick Actions -->
-            <div class="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between" style="margin-top:16px; padding-top:12px; border-top:1px solid rgba(148,163,184,0.2); display:flex; justify-content:space-between; align-items:center;">
+            <div class="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between" style="margin-top:16px; padding-top:12px; border-top:1px solid rgba(142, 142, 147,0.2); display:flex; justify-content:space-between; align-items:center;">
                 <button type="button" onclick="handleDockLockAction(); closeRoleSwitcherModal();" class="text-xs font-bold text-rose-500 hover:text-rose-600 flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40" style="background:none; border:none; color:#ef4444; font-weight:700; cursor:pointer; font-size:0.75rem;">
                     <i class="fas fa-sign-out-alt"></i> قفل التطبيق وخروج
                 </button>
-                <button type="button" onclick="closeRoleSwitcherModal()" class="text-xs font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700" style="border:1px solid #cbd5e1; border-radius:10px; background:transparent; color:#64748b; font-weight:700; cursor:pointer; font-size:0.75rem; padding:6px 14px;">
+                <button type="button" onclick="closeRoleSwitcherModal()" class="text-xs font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700" style="border:1px solid #D1D1D6; border-radius:10px; background:transparent; color:#8A8A8E; font-weight:700; cursor:pointer; font-size:0.75rem; padding:6px 14px;">
                     إلغاء
                 </button>
             </div>
@@ -1815,48 +1811,48 @@
         <div class="modal-card" style="max-width:480px; text-align:right;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="width:40px; height:40px; border-radius:12px; background:rgba(13,148,136,0.15); display:flex; align-items:center; justify-content:center; color:#0d9488; font-size:1.25rem;">
+                    <div style="width:40px; height:40px; border-radius:12px; background:rgba(10, 132, 255,0.15); display:flex; align-items:center; justify-content:center; color:#0A84FF; font-size:1.25rem;">
                         <i class="fas fa-database"></i>
                     </div>
                     <div>
-                        <h3 style="font-size:1.15rem; font-weight:800; margin:0; color:#1e293b;" class="dark:text-white">النسخ الاحتياطي الشامل للمنظومة</h3>
+                        <h3 style="font-size:1.15rem; font-weight:800; margin:0; color:#2C2C2E;" class="dark:text-white">النسخ الاحتياطي الشامل للمنظومة</h3>
                         <span style="font-size:0.75rem; color:#b45309; font-weight:700;"><i class="fas fa-crown text-amber-500 ml-1"></i> صلاحية المالك حصراً</span>
                     </div>
                 </div>
-                <button type="button" onclick="closeFullSystemBackupModal()" style="background:none; border:none; font-size:1.2rem; color:#94a3b8; cursor:pointer;" aria-label="إغلاق">
+                <button type="button" onclick="closeFullSystemBackupModal()" style="background:none; border:none; font-size:1.2rem; color:#AEAEB2; cursor:pointer;" aria-label="إغلاق">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
-            <p style="font-size:0.8rem; color:#64748b; margin-bottom:16px; line-height:1.5;">
+            <p style="font-size:0.8rem; color:#8A8A8E; margin-bottom:16px; line-height:1.5;">
                 تنزيل واستعادة النسخة الاحتياطية الشاملة لكامل المنظومة (كافة المستشفيات، التخصصات، الأطباء، جداول الخفارات، بيانات طوارئ ER، والإعدادات).
             </p>
 
             <!-- Export Full System Card -->
-            <div style="background:rgba(241,245,249,0.7); border:1px solid #cbd5e1; border-radius:16px; padding:14px; margin-bottom:12px;">
-                <h4 style="font-size:0.8rem; font-weight:800; color:#1e293b; margin:0 0 10px; display:flex; align-items:center; gap:6px;">
+            <div style="background:rgba(241,245,249,0.7); border:1px solid #D1D1D6; border-radius:16px; padding:14px; margin-bottom:12px;">
+                <h4 style="font-size:0.8rem; font-weight:800; color:#2C2C2E; margin:0 0 10px; display:flex; align-items:center; gap:6px;">
                     <i class="fas fa-download text-teal-600"></i>
                     <span>تنزيل النسخة الاحتياطية الشاملة</span>
                 </h4>
-                <button type="button" onclick="exportFullSystemBackupFile()" style="width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(13,148,136,0.3); background:#ffffff; color:#0f766e; font-weight:800; font-size:0.82rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" class="hover:bg-teal-50 transition shadow-xs">
+                <button type="button" onclick="exportFullSystemBackupFile()" style="width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(10, 132, 255,0.3); background:#ffffff; color:#007AFF; font-weight:800; font-size:0.82rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" class="hover:bg-teal-50 transition shadow-xs">
                     <div style="text-align:right;">
                         <div style="font-size:0.85rem; font-weight:800;">نسخة المنظومة الشاملة (JSON)</div>
-                        <div style="font-size:0.7rem; color:#64748b; margin-top:2px;">كافة المستشفيات والجداول وإعدادات الطوارئ</div>
+                        <div style="font-size:0.7rem; color:#8A8A8E; margin-top:2px;">كافة المستشفيات والجداول وإعدادات الطوارئ</div>
                     </div>
                     <i class="fas fa-network-wired text-lg text-teal-600"></i>
                 </button>
             </div>
 
             <!-- Restore Full System Card -->
-            <div style="background:rgba(241,245,249,0.7); border:1px solid #cbd5e1; border-radius:16px; padding:14px; margin-bottom:16px;">
-                <h4 style="font-size:0.8rem; font-weight:800; color:#1e293b; margin:0 0 10px; display:flex; align-items:center; gap:6px;">
+            <div style="background:rgba(241,245,249,0.7); border:1px solid #D1D1D6; border-radius:16px; padding:14px; margin-bottom:16px;">
+                <h4 style="font-size:0.8rem; font-weight:800; color:#2C2C2E; margin:0 0 10px; display:flex; align-items:center; gap:6px;">
                     <i class="fas fa-upload text-indigo-600"></i>
                     <span>استعادة المنظومة من ملف نسخة احتياطية</span>
                 </h4>
                 <button type="button" onclick="triggerRestoreFullSystemFilePicker()" style="width:100%; padding:12px 14px; border-radius:12px; border:2px dashed rgba(99,102,241,0.4); background:#ffffff; color:#4338ca; font-weight:800; font-size:0.82rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" class="hover:bg-indigo-50 transition shadow-xs">
                     <div style="text-align:right;">
                         <div style="font-size:0.85rem; font-weight:800;">استعادة المنظومة الشاملة 👑</div>
-                        <div style="font-size:0.7rem; color:#64748b; margin-top:2px;">استعادة كاملة لقاعدة البيانات والمنظومة</div>
+                        <div style="font-size:0.7rem; color:#8A8A8E; margin-top:2px;">استعادة كاملة لقاعدة البيانات والمنظومة</div>
                     </div>
                     <i class="fas fa-cloud-arrow-up text-lg text-indigo-600"></i>
                 </button>
@@ -2508,7 +2504,7 @@
                 const activeRes = (h.names || []).filter(n => n.active !== false && n.spec !== 'RESERVE').length;
                 const specCount = (h.specialties || []).filter(s => s.enabled !== false).length;
                 const onCallToday = Hub.getActiveOnCallResidentsCount ? Hub.getActiveOnCallResidentsCount(h, today) : ((h.schedule || []).filter(s => s.date === today && s.name && s.name.trim()).length);
-                const color = h.color || '#0f766e';
+                const color = h.color || '#007AFF';
                 const icon = h.icon || 'fa-hospital';
                 const location = h.location || 'العراق';
                 const isHospAdmin = Hub.auth.isAdmin(h.id);
@@ -2575,7 +2571,7 @@
                                 <a href="./schedule.html?hospital=${h.id}" class="ios-btn secondary" onclick="Hub.setActiveHospitalId('${h.id}')">
                                     <i class="fas fa-calendar-week"></i> <span>جدول الخفارات</span>
                                 </a>
-                                <a href="./icu.html?hospital=${h.id}" class="ios-btn secondary hosp-icu-btn" onclick="Hub.setActiveHospitalId('${h.id}')" style="border-color:rgba(15,118,110,0.3); color:#0f766e;">
+                                <a href="./icu.html?hospital=${h.id}" class="ios-btn secondary hosp-icu-btn" onclick="Hub.setActiveHospitalId('${h.id}')" style="border-color:rgba(0, 122, 255,0.3); color:#007AFF;">
                                     <i class="fas fa-procedures"></i> <span>موقف العناية</span>
                                 </a>
                                 <a href="./signup.html?hospital=${h.id}" class="ios-btn secondary">
@@ -2785,7 +2781,7 @@
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px dashed rgba(245,158,11,0.25);">
                     <div>
                         <div style="font-weight:700;">نسخة #${idx + 1} · ${new Date(s.timestamp).toLocaleString('ar-IQ')}</div>
-                        <div style="font-size:0.68rem; color:#64748b;">${s.note || 'حفظ تلقائي'}</div>
+                        <div style="font-size:0.68rem; color:#8A8A8E;">${s.note || 'حفظ تلقائي'}</div>
                     </div>
                     <button type="button" onclick="restoreSnapshotIndex(${idx + 1})" class="ios-btn secondary" style="padding:3px 8px; font-size:0.7rem; color:#d97706;">استعادة</button>
                 </div>

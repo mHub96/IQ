@@ -26,7 +26,7 @@
         }
 
         body.dark {
-            background: #0b0e12;
+            background: #000000;
             color: #e8edf5;
         }
 
@@ -56,7 +56,7 @@
         body.dark .glass-card {
             background: rgba(16, 22, 34, 0.84);
             backdrop-filter: blur(14px);
-            border: 1px solid rgba(212, 175, 55, 0.12);
+            border: 1px solid rgba(10, 132, 255, 0.12);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
         }
 
@@ -71,15 +71,15 @@
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            background: linear-gradient(135deg, #0f766e, #0d9488);
+            background: linear-gradient(135deg, #007AFF, #0A84FF);
             color: white;
-            box-shadow: 0 6px 20px rgba(15, 118, 110, 0.25);
+            box-shadow: 0 6px 20px rgba(0, 122, 255, 0.25);
             font-size: 0.85rem;
         }
         body.dark .btn-gradient {
-            background: linear-gradient(135deg, #d4af37, #b8942e);
-            color: #0b0e12;
-            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.2);
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
+            color: #000000;
+            box-shadow: 0 6px 20px rgba(10, 132, 255, 0.2);
         }
         .btn-gradient:hover { transform: translateY(-2px); }
 
@@ -90,22 +90,22 @@
             font-size: 0.8rem;
             transition: all 0.2s ease;
             cursor: pointer;
-            border: 1px solid #cbd5e1;
+            border: 1px solid #D1D1D6;
             background: transparent;
-            color: #475569;
+            color: #636366;
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
         }
         body.dark .btn-ghost {
-            border-color: rgba(212, 175, 55, 0.15);
-            color: #e2e8f0;
+            border-color: rgba(10, 132, 255, 0.15);
+            color: #E5E5EA;
         }
         .btn-ghost:hover {
             background: rgba(0, 0, 0, 0.05);
         }
         body.dark .btn-ghost:hover {
-            background: rgba(212, 175, 55, 0.1);
+            background: rgba(10, 132, 255, 0.1);
         }
 
         .input-field {
@@ -114,7 +114,7 @@
             font-weight: 600;
             transition: all 0.2s ease;
             width: 100%;
-            border: 1.5px solid #cbd5e1;
+            border: 1.5px solid #D1D1D6;
             background: rgba(255, 255, 255, 0.9);
             color: #1a2332;
             outline: none;
@@ -126,12 +126,12 @@
             color: #f0f3f8;
         }
         .input-field:focus {
-            border-color: #0f766e;
-            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+            border-color: #007AFF;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
         }
         body.dark .input-field:focus {
-            border-color: #d4af37;
-            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+            border-color: #0A84FF;
+            box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.15);
         }
 
         /* Specialty Accordion & Header */
@@ -144,14 +144,14 @@
             margin: 0.35rem 0;
             cursor: pointer;
             transition: all 0.2s ease;
-            border: 1px solid #e2e8f0;
+            border: 1px solid #E5E5EA;
             background: rgba(255, 255, 255, 0.7);
             font-weight: 800;
             font-size: 0.9rem;
         }
         body.dark .spec-header {
             background: rgba(20, 28, 44, 0.6);
-            border-color: rgba(212, 175, 55, 0.08);
+            border-color: rgba(10, 132, 255, 0.08);
             color: #f0f3f8;
         }
         .spec-header:hover { transform: translateX(-4px); }
@@ -181,19 +181,19 @@
             justify-content: space-between;
             align-items: center;
             transition: all 0.2s ease;
-            border: 1px solid #e2e8f0;
+            border: 1px solid #E5E5EA;
             background: rgba(255, 255, 255, 0.75);
         }
         body.dark .resident-card {
             background: rgba(14, 20, 32, 0.7);
-            border-color: rgba(212, 175, 55, 0.06);
+            border-color: rgba(10, 132, 255, 0.06);
         }
         .resident-card:hover {
-            border-color: #0f766e;
+            border-color: #007AFF;
             box-shadow: 0 8px 24px rgba(0,0,0,0.06);
         }
         body.dark .resident-card:hover {
-            border-color: #d4af37;
+            border-color: #0A84FF;
             box-shadow: 0 8px 24px rgba(0,0,0,0.4);
         }
 
@@ -208,9 +208,9 @@
             color: #1e40af;
         }
         body.dark .counter-badge {
-            background: rgba(212, 175, 55, 0.12);
-            color: #d4af37;
-            border-color: rgba(212, 175, 55, 0.15);
+            background: rgba(10, 132, 255, 0.12);
+            color: #0A84FF;
+            border-color: rgba(10, 132, 255, 0.15);
         }
 
         /* Specialty Bubble Cards (Hospital Specialty Management) */
@@ -233,13 +233,13 @@
         }
         .specialty-item.spec-dragging {
             opacity: 0.35;
-            border: 2px dashed #0d9488 !important;
+            border: 2px dashed #0A84FF !important;
             transform: scale(0.98);
         }
         .specialty-item.spec-drag-over {
-            border-color: #0d9488 !important;
+            border-color: #0A84FF !important;
             transform: scale(1.02);
-            box-shadow: 0 6px 18px rgba(13, 148, 136, 0.2);
+            box-shadow: 0 6px 18px rgba(10, 132, 255, 0.2);
         }
         .specialty-item .drag-handle {
             cursor: grab;
@@ -298,7 +298,7 @@
             animation: drawerSlideDown 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         body.dark .spec-options-drawer {
-            background: rgba(15, 23, 42, 0.45);
+            background: rgba(0, 0, 0, 0.45);
             border-top-color: rgba(255, 255, 255, 0.1);
         }
         .specialty-item.expanded .spec-options-drawer {
@@ -322,7 +322,7 @@
             display: inline-block;
         }
         body.dark .color-swatch-dot {
-            border-color: #1e293b;
+            border-color: #2C2C2E;
         }
         .color-swatch-dot:hover, .color-swatch-dot:active {
             transform: scale(1.22);
@@ -344,9 +344,9 @@
             min-height: 38px;
         }
         body.dark .spec-action-btn {
-            background: #1e293b;
+            background: #2C2C2E;
             border-color: rgba(255, 255, 255, 0.12);
-            color: #f1f5f9;
+            color: #F2F2F7;
         }
         .spec-action-btn:hover {
             filter: brightness(0.96);
@@ -416,7 +416,7 @@
         }
         body.dark .modal-card {
             background: #141c2a;
-            border: 1px solid rgba(212, 175, 55, 0.15);
+            border: 1px solid rgba(10, 132, 255, 0.15);
         }
 
         #toast-container {
@@ -518,7 +518,7 @@
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="text-xs font-mono font-bold text-teal-600 dark:text-amber-400 uppercase tracking-widest">
+                        <span class="text-xs font-mono font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest">
                             Hospital Administration & Residents
                         </span>
                         <span id="admin-role-indicator" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"></span>
@@ -585,11 +585,11 @@
         <!-- Add Resident Action Button -->
         <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
             <h2 class="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2">
-                <i class="fas fa-user-doctor text-teal-600 dark:text-amber-400"></i> قائمة المقيمين حسب الاختصاص
+                <i class="fas fa-user-doctor text-teal-600 dark:text-teal-400"></i> قائمة المقيمين حسب الاختصاص
             </h2>
             <div class="flex items-center gap-2">
-                <button type="button" onclick="openAddResidentWithContacts()" class="btn-ghost text-xs text-teal-700 dark:text-amber-400 border-teal-300 dark:border-amber-600 hover:bg-teal-50 dark:hover:bg-amber-950/30" title="إضافة مقيم جديد مباشرة من جهات اتصال الهاتف أو ملف vCard">
-                    <i class="fas fa-address-book text-teal-600 dark:text-amber-400 ml-1"></i> إضافة من جهات الاتصال 📱
+                <button type="button" onclick="openAddResidentWithContacts()" class="btn-ghost text-xs text-teal-700 dark:text-teal-400 border-teal-300 dark:border-teal-600 hover:bg-teal-50 dark:hover:bg-teal-950/30" title="إضافة مقيم جديد مباشرة من جهات اتصال الهاتف أو ملف vCard">
+                    <i class="fas fa-address-book text-teal-600 dark:text-teal-400 ml-1"></i> إضافة من جهات الاتصال 📱
                 </button>
                 <button type="button" onclick="toggleAddResidentPanel()" class="btn-gradient text-xs">
                     <i class="fas fa-user-plus"></i> إضافة مقيم جديد
@@ -601,11 +601,11 @@
         <div id="add-resident-panel" class="glass-card p-5 mb-6 hidden">
             <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-200 dark:border-slate-800">
                 <h3 class="text-md font-bold flex items-center gap-2">
-                    <i class="fas fa-plus-circle text-teal-600 dark:text-amber-400"></i> بيانات المقيم الجديد
+                    <i class="fas fa-plus-circle text-teal-600 dark:text-teal-400"></i> بيانات المقيم الجديد
                 </h3>
                 <div class="flex items-center gap-2">
-                    <button type="button" onclick="pickResidentFromContacts()" class="btn-ghost text-xs text-teal-700 dark:text-amber-400 border-teal-300 dark:border-amber-600 hover:bg-teal-50 dark:hover:bg-amber-950/30" title="استيراد الاسم ورقم الهاتف من جهات اتصال الهاتف أو ملف vCard">
-                        <i class="fas fa-address-book text-teal-600 dark:text-amber-400 ml-1"></i> استيراد من جهات الاتصال 📱
+                    <button type="button" onclick="pickResidentFromContacts()" class="btn-ghost text-xs text-teal-700 dark:text-teal-400 border-teal-300 dark:border-teal-600 hover:bg-teal-50 dark:hover:bg-teal-950/30" title="استيراد الاسم ورقم الهاتف من جهات اتصال الهاتف أو ملف vCard">
+                        <i class="fas fa-address-book text-teal-600 dark:text-teal-400 ml-1"></i> استيراد من جهات الاتصال 📱
                     </button>
                     <input type="file" id="contact-vcf-picker" accept=".vcf,text/vcard" class="hidden" style="display:none;" onchange="handleVCardFile(event)" />
                 </div>
@@ -614,7 +614,7 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1 flex items-center justify-between">
                         <span>اسم المقيم <span class="text-rose-500 font-bold">* (إلزامي)</span></span>
-                        <span id="new-res-prefix-hint" class="text-[10px] text-teal-600 dark:text-amber-400 font-semibold">(البادئة: د.)</span>
+                        <span id="new-res-prefix-hint" class="text-[10px] text-teal-600 dark:text-teal-400 font-semibold">(البادئة: د.)</span>
                     </label>
                     <input type="text" id="new-res-name" class="input-field" placeholder="مثال: د. احمد علي" required />
                 </div>
@@ -629,7 +629,7 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1 flex items-center justify-between">
                         <span>القسم المكلف به (الخفارات)</span>
-                        <span class="text-[10px] text-teal-600 dark:text-amber-400 font-normal">تناوب Rotation</span>
+                        <span class="text-[10px] text-teal-600 dark:text-teal-400 font-normal">تناوب Rotation</span>
                     </label>
                     <select id="new-res-dept" class="input-field" onchange="onNewResDeptChanged()"></select>
                 </div>
@@ -640,7 +640,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <div class="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                            <i class="fas fa-shuffle text-teal-600 dark:text-amber-400"></i>
+                            <i class="fas fa-shuffle text-teal-600 dark:text-teal-400"></i>
                             <span>تغطية أكثر من مستشفى</span>
                         </div>
                         <div class="text-[11px] text-slate-400 mt-0.5">تعيين المقيم للدوام في عدة مستشفيات مشتركة</div>
@@ -705,7 +705,7 @@
                         <span class="toggle-slider-compact"></span>
                     </label>
                     <span class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 cursor-pointer" onclick="document.getElementById('show-empty-specs-toggle').click()">
-                        <i class="fas fa-filter text-teal-600 dark:text-amber-400"></i>
+                        <i class="fas fa-filter text-teal-600 dark:text-teal-400"></i>
                         <span>إظهار التخصصات الفارغة (0 مقيم)</span>
                     </span>
                 </div>
@@ -727,7 +727,7 @@
     <div id="edit-resident-modal" class="modal-overlay">
         <div class="modal-card">
             <h3 class="text-xl font-black mb-3 flex items-center gap-2">
-                <i class="fas fa-user-edit text-teal-600 dark:text-amber-400"></i> تعديل بيانات المقيم
+                <i class="fas fa-user-edit text-teal-600 dark:text-teal-400"></i> تعديل بيانات المقيم
             </h3>
             <input type="hidden" id="edit-res-idx" />
             <input type="hidden" id="edit-res-id" />
@@ -735,7 +735,7 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1 flex items-center justify-between">
                         <span>اسم المقيم <span class="text-rose-500 font-bold">* (إلزامي)</span></span>
-                        <span id="edit-res-prefix-hint" class="text-[10px] text-teal-600 dark:text-amber-400 font-semibold"></span>
+                        <span id="edit-res-prefix-hint" class="text-[10px] text-teal-600 dark:text-teal-400 font-semibold"></span>
                     </label>
                     <input type="text" id="edit-res-name" class="input-field" required />
                 </div>
@@ -751,7 +751,7 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1 flex items-center justify-between">
                             <span>القسم المكلف به (الخفارات)</span>
-                            <span class="text-[10px] text-teal-600 dark:text-amber-400 font-normal">تناوب Rotation</span>
+                            <span class="text-[10px] text-teal-600 dark:text-teal-400 font-normal">تناوب Rotation</span>
                         </label>
                         <select id="edit-res-dept" class="input-field"></select>
                     </div>
@@ -762,7 +762,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <div class="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                                <i class="fas fa-shuffle text-teal-600 dark:text-amber-400"></i>
+                                <i class="fas fa-shuffle text-teal-600 dark:text-teal-400"></i>
                                 <span>تغطية أكثر من مستشفى</span>
                             </div>
                             <div class="text-[11px] text-slate-400 mt-0.5">تعيين المقيم للدوام في عدة مستشفيات مشتركة</div>
@@ -803,7 +803,7 @@
         <div class="modal-card" style="max-width: 660px;">
             <div class="flex justify-between items-center mb-3">
                 <h3 class="text-xl font-black flex items-center gap-2">
-                    <i class="fas fa-tags text-teal-600 dark:text-amber-400"></i> تخصصات المستشفى الحالي
+                    <i class="fas fa-tags text-teal-600 dark:text-teal-400"></i> تخصصات المستشفى الحالي
                 </h3>
                 <button type="button" onclick="closeSpecialtiesModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
                     <i class="fas fa-times"></i>
@@ -839,7 +839,7 @@
                     <button type="button" id="hosp-modal-owner-store-btn" onclick="openGlobalSpecialtiesModal()" class="btn-ghost text-xs text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800" style="display:none;">
                         <i class="fas fa-crown ml-1"></i> المستودع العام 👑
                     </button>
-                    <button type="button" onclick="syncWithGlobalSpecialties()" class="btn-ghost text-xs text-teal-700 dark:text-amber-400 border-teal-200 dark:border-amber-800/40" title="مزامنة التخصصات مع الدليل العام الموحد">
+                    <button type="button" onclick="syncWithGlobalSpecialties()" class="btn-ghost text-xs text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-800/40" title="مزامنة التخصصات مع الدليل العام الموحد">
                         <i class="fas fa-rotate"></i> مزامنة
                     </button>
                 </div>
@@ -853,7 +853,7 @@
         <div class="modal-card" style="max-width: 520px;">
             <div class="flex justify-between items-center mb-3">
                 <h3 class="text-lg font-black flex items-center gap-2">
-                    <i class="fas fa-plus-circle text-teal-600 dark:text-amber-400"></i> إضافة تخصص للمستشفى
+                    <i class="fas fa-plus-circle text-teal-600 dark:text-teal-400"></i> إضافة تخصص للمستشفى
                 </h3>
                 <button type="button" onclick="closeAddHospitalSpecModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
                     <i class="fas fa-times"></i>
@@ -899,7 +899,7 @@
 
                 <div class="p-2.5 rounded-xl bg-teal-50/60 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-800">
                     <label class="block text-xs font-bold text-teal-800 dark:text-teal-200 mb-1 flex items-center justify-between">
-                        <span><i class="fas fa-id-badge text-teal-600 dark:text-amber-400 ml-1"></i> لقب / بادئة المنتسبين (Prefix):</span>
+                        <span><i class="fas fa-id-badge text-teal-600 dark:text-teal-400 ml-1"></i> لقب / بادئة المنتسبين (Prefix):</span>
                         <span class="text-[10px] text-teal-600/70 dark:text-teal-300/70 font-normal">يسبق اسم المنتسب في هذا التخصص</span>
                     </label>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -1009,7 +1009,7 @@
         <div class="modal-card" style="max-width: 520px;">
             <div class="flex justify-between items-center mb-3">
                 <h3 class="text-lg font-black flex items-center gap-2" id="edit-hosp-spec-modal-title">
-                    <i class="fas fa-pen-to-square text-teal-600 dark:text-amber-400"></i> تعديل التخصص والبادئة
+                    <i class="fas fa-pen-to-square text-teal-600 dark:text-teal-400"></i> تعديل التخصص والبادئة
                 </h3>
                 <button type="button" onclick="closeEditHospitalSpecModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
                     <i class="fas fa-times"></i>
@@ -1037,7 +1037,7 @@
 
                 <div class="p-2.5 rounded-xl bg-teal-50/60 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-800">
                     <label class="block text-xs font-bold text-teal-800 dark:text-teal-200 mb-1 flex items-center justify-between">
-                        <span><i class="fas fa-id-badge text-teal-600 dark:text-amber-400 ml-1"></i> لقب / بادئة المنتسبين (Prefix):</span>
+                        <span><i class="fas fa-id-badge text-teal-600 dark:text-teal-400 ml-1"></i> لقب / بادئة المنتسبين (Prefix):</span>
                         <span class="text-[10px] text-teal-600/70 dark:text-teal-300/70 font-normal">اللقب الذي يسبق الأسماء</span>
                     </label>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -1222,7 +1222,7 @@
         <div class="modal-card">
             <div class="flex justify-between items-center mb-3">
                 <h3 class="text-xl font-black flex items-center gap-2">
-                    <i class="fas fa-sliders text-teal-600 dark:text-amber-400"></i> إعدادات المستشفى الحالي
+                    <i class="fas fa-sliders text-teal-600 dark:text-teal-400"></i> إعدادات المستشفى الحالي
                 </h3>
                 <button type="button" onclick="closeHospitalSettingsModal()" class="text-slate-400 hover:text-slate-600 text-xl"><i class="fas fa-times"></i></button>
             </div>
@@ -1301,7 +1301,7 @@
         <div class="modal-card" style="max-width: 620px;">
             <div class="flex justify-between items-center mb-3">
                 <h3 class="text-xl font-black flex items-center gap-2">
-                    <i class="fas fa-boxes-packing text-teal-600 dark:text-amber-400"></i>
+                    <i class="fas fa-boxes-packing text-teal-600 dark:text-teal-400"></i>
                     <span>مركز النسخ الاحتياطي والاستعادة الشاملة</span>
                 </h3>
                 <button type="button" onclick="closeImportModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
@@ -1379,7 +1379,7 @@
         <div class="modal-card" style="max-width: 480px;">
             <div class="flex justify-between items-center mb-3">
                 <h3 class="text-lg font-black flex items-center gap-2">
-                    <i class="fas fa-address-book text-teal-600 dark:text-amber-400"></i>
+                    <i class="fas fa-address-book text-teal-600 dark:text-teal-400"></i>
                     <span>إضافة جهة اتصال من الهاتف 📱</span>
                 </h3>
                 <button type="button" onclick="closeContactFallbackModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
@@ -2009,11 +2009,11 @@
             const summaryEl = document.getElementById('specs-filter-summary');
             if (summaryEl) {
                 if (isSearching) {
-                    summaryEl.innerHTML = `<i class="fas fa-search ml-1 text-teal-600 dark:text-amber-400"></i> تم العثور على <strong>${totalSearchMatches}</strong> مقيم مطابق في <strong>${renderedCount}</strong> فئة`;
+                    summaryEl.innerHTML = `<i class="fas fa-search ml-1 text-teal-600 dark:text-teal-400"></i> تم العثور على <strong>${totalSearchMatches}</strong> مقيم مطابق في <strong>${renderedCount}</strong> فئة`;
                 } else if (hiddenEmptyCount > 0 && !showEmpty) {
                     summaryEl.innerHTML = `<i class="fas fa-eye-slash ml-1 text-slate-400"></i> عرض ${renderedCount} فئة نشطة (تم إخفاء ${hiddenEmptyCount} فارغة)`;
                 } else {
-                    summaryEl.innerHTML = `<i class="fas fa-list-check ml-1 text-teal-600 dark:text-amber-400"></i> عرض جميع التخصصات وفئة الاحتياط (${specs.length + 1} فئة)`;
+                    summaryEl.innerHTML = `<i class="fas fa-list-check ml-1 text-teal-600 dark:text-teal-400"></i> عرض جميع التخصصات وفئة الاحتياط (${specs.length + 1} فئة)`;
                 }
             }
 
@@ -2068,7 +2068,7 @@
                                 <span class="font-bold text-sm text-slate-800 dark:text-slate-200">${r.name}</span>
                                 ${isReserve ? `
                                     <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700" title="اختصاص الطبيب">
-                                        <i class="fas fa-stethoscope ml-1 text-teal-600 dark:text-amber-400"></i> اختصاصه: ${originSpecName}
+                                        <i class="fas fa-stethoscope ml-1 text-teal-600 dark:text-teal-400"></i> اختصاصه: ${originSpecName}
                                     </span>
                                 ` : (isGuestRotating ? `
                                     <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
@@ -2724,7 +2724,7 @@
                 }
                 const poolCount = Array.isArray(s.acceptPool) ? s.acceptPool.length : 0;
                 const resCount = names.filter(n => n.spec === s.id || n.tag === s.id || n.dept === s.id || n.department === s.id).length;
-                const specColor = s.color || '#0f766e';
+                const specColor = s.color || '#007AFF';
                 const parentName = s.parentSpec ? ((window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(s.parentSpec) : s.parentSpec) : null;
                 const isExpanded = window.expandedSpecIds && window.expandedSpecIds.has(s.id);
 
@@ -2744,7 +2744,7 @@
                         <!-- Colored Specialty Bubble (Tap anywhere to expand/collapse options) -->
                         <div class="spec-bubble-head" onclick="toggleSpecCard('${s.id}')">
                             <!-- Drag handle for desktop reordering -->
-                            <span class="drag-handle text-slate-400 hover:text-teal-600 dark:hover:text-amber-400 p-1 text-base cursor-grab" 
+                            <span class="drag-handle text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 p-1 text-base cursor-grab" 
                                   title="اسحب لتغيير ترتيب الظهور" 
                                   onclick="event.stopPropagation()">
                                 <i class="fas fa-grip-vertical"></i>
@@ -2815,9 +2815,9 @@
                                 </span>
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <div class="flex items-center gap-1.5">
-                                        ${['#0f766e', '#10b981', '#2563eb', '#8b5cf6', '#d97706', '#ea580c', '#e11d48', '#475569'].map(c => `
+                                        ${['#007AFF', '#10b981', '#2563eb', '#8b5cf6', '#d97706', '#ea580c', '#e11d48', '#636366'].map(c => `
                                             <span class="color-swatch-dot" 
-                                                  style="background: ${c}; ${c.toLowerCase() === specColor.toLowerCase() ? 'outline: 2px solid #0f172a; outline-offset: 1px;' : ''}"
+                                                  style="background: ${c}; ${c.toLowerCase() === specColor.toLowerCase() ? 'outline: 2px solid #1C1C1E; outline-offset: 1px;' : ''}"
                                                   title="${c}"
                                                   onclick="changeHospitalSpecColor('${s.id}', '${c}')"></span>
                                         `).join('')}
@@ -2855,14 +2855,14 @@
                                             ${idx === 0 ? 'disabled' : ''} 
                                             class="spec-action-btn flex-1 ${idx === 0 ? 'opacity-40 cursor-not-allowed' : ''}" 
                                             title="تحريك للأعلى في الجدول">
-                                        <i class="fas fa-arrow-up text-teal-600 dark:text-amber-400"></i> للأعلى
+                                        <i class="fas fa-arrow-up text-teal-600 dark:text-teal-400"></i> للأعلى
                                     </button>
                                     <button type="button" 
                                             onclick="moveHospitalSpecOrder(${idx}, 1)" 
                                             ${idx === specs.length - 1 ? 'disabled' : ''} 
                                             class="spec-action-btn flex-1 ${idx === specs.length - 1 ? 'opacity-40 cursor-not-allowed' : ''}" 
                                             title="تحريك للأسفل في الجدول">
-                                        <i class="fas fa-arrow-down text-teal-600 dark:text-amber-400"></i> للأسفل
+                                        <i class="fas fa-arrow-down text-teal-600 dark:text-teal-400"></i> للأسفل
                                     </button>
                                 </div>
                             </div>
@@ -3246,8 +3246,8 @@
             if (document.getElementById('new-spec-name-en')) document.getElementById('new-spec-name-en').value = '';
             if (document.getElementById('new-spec-id')) document.getElementById('new-spec-id').value = '';
             if (document.getElementById('new-spec-icon')) document.getElementById('new-spec-icon').value = '🏥';
-            if (document.getElementById('new-spec-color')) document.getElementById('new-spec-color').value = '#0f766e';
-            if (document.getElementById('add-hosp-spec-color')) document.getElementById('add-hosp-spec-color').value = '#0f766e';
+            if (document.getElementById('new-spec-color')) document.getElementById('new-spec-color').value = '#007AFF';
+            if (document.getElementById('add-hosp-spec-color')) document.getElementById('add-hosp-spec-color').value = '#007AFF';
             setSpecPrefixControls('new-spec', 'د. ');
 
             document.getElementById('add-hospital-spec-modal').classList.add('active');
@@ -3314,7 +3314,7 @@
             if (nameEnEl) nameEnEl.value = spec.name_en || '';
             if (iconEl) iconEl.value = spec.icon || '🏥';
             if (colorEl) colorEl.value = spec.color || '#0f766e';
-            if (titleEl) titleEl.innerHTML = `<i class="fas fa-pen-to-square text-teal-600 dark:text-amber-400"></i> تعديل تخصص: ${spec.name_ar}`;
+            if (titleEl) titleEl.innerHTML = `<i class="fas fa-pen-to-square text-teal-600 dark:text-teal-400"></i> تعديل تخصص: ${spec.name_ar}`;
 
             setSpecPrefixControls('edit-hosp-spec', spec.prefix !== undefined ? spec.prefix : 'د. ');
             const updateCheck = document.getElementById('edit-hosp-spec-update-existing');

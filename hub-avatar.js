@@ -1,5 +1,9 @@
 /**
- * Cartoon avatars drawn as inline SVG (no image files), version 2.
+ * 3D avatars in the Memoji style, drawn as inline SVG (no image files), version 2.
+ *
+ * Every part is lit as a soft, rounded volume by an SVG lighting filter (diffuse shading plus a
+ * specular highlight from the top left), with no outlines; eyes, lips and nose are shaded with
+ * gradients. The option lists cover professional, casual and anime looks.
  *
  * Every part is built on one head template (viewBox 0 0 200 200), so hair, hats, beards and
  * glasses always sit on the head:
@@ -9,7 +13,7 @@
  *   eyes           (80 / 120, 104), brows y ~ 86, nose 100..124, mouth (100, 140)
  *   neck / body    neck x 80..120 from y 140, shoulders from y 166
  *
- * An avatar is { v: 2, s, h, hc, e, ec, b, bc, m, mc, d, dc, n, o, g, t, tc, c, cc, k } (option indexes).
+ * An avatar is { v: 2, s, h, hc, e, ec, b, bc, m, mc, d, dc, n, o, g, gc, t, tc, a, ac, c, cc, k } (option indexes).
  * HubAvatar.svg(config, size, sex) returns markup; HubAvatar.forAccount(acc) gives a stable default
  * figure for accounts that never designed one.
  */
@@ -164,13 +168,13 @@
 
     function hairStrands(kind, dark, light, clip) {
         const lines = [];
-        const add = d => lines.push(`<path d="${d}" stroke="${dark}" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".6"/>`);
+        const add = d => lines.push(`<path d="${d}" stroke="${dark}" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".22"/>`);
         if (kind === 'side') for (let i = 0; i < 9; i++) add(`M${68 + i * 9} ${46 + Math.abs(4 - i) * 2}Q${80 + i * 7} ${58} ${62 + i * 9} ${74 + (i % 3) * 3}`);
         if (kind === 'back') for (let i = 0; i < 9; i++) add(`M${64 + i * 9} ${70}Q${70 + i * 8} ${44} ${100 + (i - 4) * 4} ${34}`);
         if (kind === 'up') for (let i = 0; i < 10; i++) add(`M${62 + i * 8.5} ${76}L${64 + i * 8.5} ${50 - Math.abs(4.5 - i) * -1.5}`);
         if (kind === 'part') for (let i = 0; i < 10; i++) { const l = i < 5; add(`M100 40Q${l ? 84 - i * 4 : 116 + (i - 5) * 4} ${50} ${l ? 64 + i * 5 : 106 + (i - 5) * 7} ${82}`); }
         if (kind === 'wild') for (let i = 0; i < 12; i++) add(`M${60 + i * 7} ${80}Q${66 + i * 6} ${40 + (i % 3) * 6} ${56 + i * 8} ${22 + (i % 2) * 10}`);
-        const hl = `<path d="M70 52Q100 30 130 52" stroke="${light}" stroke-width="7" fill="none" stroke-linecap="round" opacity=".28"/>`;
+        const hl = `<path d="M70 52Q100 30 130 52" stroke="${light}" stroke-width="9" fill="none" stroke-linecap="round" opacity=".3"/>`;
         return `<g clip-path="url(#${clip})">${lines.join('')}${kind ? hl : ''}</g>`;
     }
 
@@ -221,12 +225,16 @@
             const gx = (E.gaze || 0);
             const r = E.r;
             const irisDark = shade(color, -0.45);
+            const ig = uid(), lg = uid();
             let s = `<g transform="rotate(${tilt} ${cx} ${y})"><clipPath id="${clip}"><path d="${sclera}"/></clipPath>`;
+            s += `<defs><radialGradient id="${ig}" cx=".5" cy=".64" r=".62"><stop offset="0" stop-color="${shade(color, 0.42)}"/><stop offset=".55" stop-color="${color}"/><stop offset="1" stop-color="${irisDark}"/></radialGradient>`;
+            s += `<linearGradient id="${lg}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A2A22" stop-opacity=".42"/><stop offset=".5" stop-color="#3A2A22" stop-opacity="0"/></linearGradient></defs>`;
             s += `<path d="${sclera}" fill="#FBFBF8"/>`;
-            s += `<g clip-path="url(#${clip})"><circle cx="${cx + gx}" cy="${y - 0.4}" r="${r}" fill="${color}"/><circle cx="${cx + gx}" cy="${y - 0.4}" r="${r}" fill="none" stroke="${irisDark}" stroke-width="1.2"/>`;
+            s += `<g clip-path="url(#${clip})"><circle cx="${cx + gx}" cy="${y - 0.4}" r="${r}" fill="url(#${ig})"/>`;
             s += `<circle cx="${cx + gx}" cy="${y - 0.4}" r="${f(r * (E.anime ? 0.5 : 0.46))}" fill="#0C0A09"/>`;
             if (E.anime) s += `<ellipse cx="${cx + gx - r * 0.35}" cy="${y - r * 0.45}" rx="${f(r * 0.32)}" ry="${f(r * 0.42)}" fill="#fff"/><circle cx="${cx + gx + r * 0.4}" cy="${y + r * 0.35}" r="${f(r * 0.16)}" fill="#fff" opacity=".9"/>`;
-            else s += `<circle cx="${cx + gx + r * 0.35}" cy="${y - r * 0.45}" r="${f(r * 0.3)}" fill="#fff"/>`;
+            else s += `<circle cx="${cx + gx + r * 0.32}" cy="${y - r * 0.42}" r="${f(r * 0.36)}" fill="#fff"/><circle cx="${cx + gx - r * 0.4}" cy="${y + r * 0.38}" r="${f(r * 0.14)}" fill="#fff" opacity=".7"/>`;
+            s += `<path d="${sclera}" fill="url(#${lg})"/>`;
             if (E.lid) s += `<rect x="${cx - w - 2}" y="${y - h * 2.2}" width="${w * 2 + 4}" height="${f(h * 2.2 * E.lid + h * 0.8)}" fill="${skin}"/><path d="M${cx - w} ${f(y - h * 2.2 + h * 2.2 * E.lid + h * 0.8)}H${cx + w}" stroke="${shade(skin, -0.3)}" stroke-width="1.2"/>`;
             s += `<path d="M${cx - w} ${y}Q${cx} ${y - h * 0.25} ${cx + w} ${y}" stroke="${shade(skin, -0.15)}" stroke-width="2" fill="none" opacity=".35"/></g>`;
             s += `<path d="${top}" stroke="${ink}" stroke-width="${E.anime || E.mono ? 3.2 : 2.4}" fill="none" stroke-linecap="round"/>`;
@@ -236,7 +244,8 @@
             if (E.bags) s += `<path d="M${cx - w * 0.7} ${y + 6}Q${cx} ${y + 10} ${cx + w * 0.7} ${y + 6}" stroke="${shade(skin, -0.28)}" stroke-width="1.3" fill="none"/>`;
             return s + '</g>';
         };
-        return one(80, -1, false) + one(120, 1, !!E.wink);
+        const big = (cx, inner) => `<g transform="translate(${cx} 104) scale(1.12) translate(${-cx} -104)">${inner}</g>`;
+        return big(80, one(80, -1, false)) + big(120, one(120, 1, !!E.wink));
     }
 
     // ------------------------------------------------------------------
@@ -374,7 +383,7 @@
     function texture(d, color, n = 14, dir = 1) {
         let s = '';
         const dark = shade(color, -0.35);
-        for (let i = 0; i < n * 2; i++) s += `<path d="M${f(76 + i * (48 / (n * 2)))} ${f(124 + (i % 3) * 2)}l${(i < n ? -0.8 : 0.8) * dir} ${4 + (i % 3)}" stroke="${dark}" stroke-width="1" opacity=".6"/>`;
+        for (let i = 0; i < n * 2; i++) s += `<path d="M${f(76 + i * (48 / (n * 2)))} ${f(124 + (i % 3) * 2)}l${(i < n ? -0.8 : 0.8) * dir} ${4 + (i % 3)}" stroke="${dark}" stroke-width="1" opacity=".3"/>`;
         return s;
     }
 
@@ -404,7 +413,7 @@
         }[type];
         if (!P) return '';
         const mc = uid();
-        return `<clipPath id="${mc}"><path d="${P}"/></clipPath><path d="${P}" fill="${color}"/><g clip-path="url(#${mc})">${texture(P, color, 18)}</g><path d="${P}" fill="none" stroke="${dark}" stroke-width=".8" opacity=".6"/>`;
+        return `<clipPath id="${mc}"><path d="${P}"/></clipPath><path d="${P}" fill="${color}"/><g clip-path="url(#${mc})">${texture(P, color, 18)}</g><path d="${P}" fill="none" stroke="${dark}" stroke-width=".6" opacity=".25"/>`;
     }
 
     const BEARD = ['بدون', 'شعيرات خفيفة', 'ظل لحية', 'لحية خط الفك', 'سكسوكة', 'فان دايك', 'دائرية', 'مرساة', 'بالبو', 'مربعة قصيرة',
@@ -449,10 +458,10 @@
         // Hair texture: short strokes following the beard direction.
         for (let i = 0; i < 46; i++) {
             const x = 56 + (i * 37) % 90, y = 100 + ((i * 53) % 100);
-            s += `<path d="M${x} ${y}q1 3 ${x < 100 ? -1 : 1} 6" stroke="${i % 3 ? dark : light}" stroke-width="1.1" fill="none" opacity=".6"/>`;
+            s += `<path d="M${x} ${y}q1 3 ${x < 100 ? -1 : 1} 6" stroke="${i % 3 ? dark : light}" stroke-width="1.2" fill="none" opacity=".28"/>`;
         }
         s += '</g>';
-        return `<g>${s}<path d="${P}" fill="none" stroke="${dark}" stroke-width=".8" opacity=".5"/></g>`;
+        return `<g>${s}</g>`;
     }
 
     // ------------------------------------------------------------------
@@ -563,6 +572,41 @@
     }
 
     // ------------------------------------------------------------------
+    // Accessories (20): on the face, at the ears, or at the neck / chest
+    // ------------------------------------------------------------------
+    const ACCESSORIES = ['بدون', 'نمش', 'شامة', 'أقراط لؤلؤ', 'أقراط حلقية', 'سماعات لاسلكية', 'كمامة طبية', 'كمامة قماش', 'سماعة طبية',
+        'بطاقة تعريف بشريط', 'قلم خلف الأذن', 'لاصقة جروح', 'خدود أنمي', 'لمعة أنمي', 'وشاح', 'قلادة', 'ربطة فراشة', 'دبوس شارة', 'ملصق قلب', 'قطرة عرق أنمي'];
+    const ACC_LAYER = { 1: 'face', 2: 'face', 3: 'ears', 4: 'ears', 5: 'ears', 6: 'mask', 7: 'mask', 8: 'neck', 9: 'neck', 10: 'ears',
+        11: 'face', 12: 'face', 13: 'top', 14: 'neck', 15: 'neck', 16: 'neck', 17: 'neck', 18: 'face', 19: 'top' };
+
+    function accessory(type, color, skin) {
+        const dark = shade(color, -0.3), light = shade(color, 0.35);
+        switch (type) {
+            case 1: return [[80, 120], [85, 124], [76, 125], [88, 118], [83, 116], [120, 120], [115, 124], [124, 125], [112, 118], [117, 116], [98, 112], [103, 114]]
+                .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.25" fill="${shade(skin, -0.42)}" opacity=".6"/>`).join('');
+            case 2: return `<circle cx="122" cy="134" r="2.1" fill="${shade(skin, -0.6)}"/>`;
+            case 3: return `<circle cx="49" cy="124" r="4" fill="#F7F3EA"/><circle cx="151" cy="124" r="4" fill="#F7F3EA"/>`;
+            case 4: return `<circle cx="50" cy="130" r="8" fill="none" stroke="${color}" stroke-width="2.6"/><circle cx="150" cy="130" r="8" fill="none" stroke="${color}" stroke-width="2.6"/>`;
+            case 5: return `<path d="M50 108q-6 2 -5 9l1 16q1 3 4 1l1 -16q3 -2 3 -6Z" fill="#F7F7F7"/><path d="M150 108q6 2 5 9l-1 16q-1 3 -4 1l-1 -16q-3 -2 -3 -6Z" fill="#F7F7F7"/>`;
+            case 6: return `<path d="M64 112Q100 104 136 112L134 140Q120 160 100 162Q80 160 66 140Z" fill="#BFE3F5"/><path d="M70 122Q100 116 130 122M70 132Q100 126 130 132M72 142Q100 137 128 142" stroke="#93C8E4" stroke-width="1.6" fill="none"/><path d="M64 114L52 106M136 114L148 106M66 138L54 130M134 138L146 130" stroke="#E5F3FA" stroke-width="1.8"/>`;
+            case 7: return `<path d="M64 112Q100 104 136 112L134 140Q120 160 100 162Q80 160 66 140Z" fill="${color}"/><path d="M100 108V162" stroke="${dark}" stroke-width="1.4" opacity=".5"/><path d="M64 114L52 106M136 114L148 106" stroke="${dark}" stroke-width="2"/>`;
+            case 8: return `<path d="M76 164Q64 186 80 196Q96 202 104 190M124 164Q136 186 120 196" fill="none" stroke="#3F4A5A" stroke-width="3.2" stroke-linecap="round"/><circle cx="105" cy="189" r="6" fill="#C9CED6"/><circle cx="105" cy="189" r="3" fill="#8E96A3"/>`;
+            case 9: return `<path d="M80 164L96 190M120 164L104 190" stroke="${color}" stroke-width="3.4" stroke-linecap="round"/><rect x="88" y="186" width="24" height="14" rx="3" fill="#F7F7F7"/><rect x="91" y="189" width="8" height="8" rx="1.5" fill="${light}"/><path d="M101 191H109M101 195H107" stroke="#9AA3AF" stroke-width="1.4"/>`;
+            case 10: return `<path d="M150 82L162 118" stroke="${color}" stroke-width="4.2" stroke-linecap="round"/><path d="M161 115L164 122" stroke="#2A2A2A" stroke-width="2" stroke-linecap="round"/>`;
+            case 11: return `<g transform="rotate(-28 124 122)"><rect x="112" y="117" width="24" height="10" rx="5" fill="#E9B98F"/><rect x="120" y="117" width="8" height="10" fill="#D9A579"/></g>`;
+            case 12: return `<path d="M70 124l4 -6M76 125l4 -6M82 126l4 -6M118 126l4 -6M124 125l4 -6M130 124l4 -6" stroke="#E86A7E" stroke-width="2" stroke-linecap="round"/>`;
+            case 13: return `<path d="M160 52l3 9l9 3l-9 3l-3 9l-3 -9l-9 -3l9 -3Z" fill="#FFE27A"/><path d="M40 72l2 6l6 2l-6 2l-2 6l-2 -6l-6 -2l6 -2Z" fill="#FFF1B8"/>`;
+            case 14: return `<path d="M66 160Q100 182 134 160Q142 168 136 176Q100 196 64 176Q58 168 66 160Z" fill="${color}"/><path d="M118 174L126 200H110Z" fill="${dark}"/><path d="M72 168Q100 184 128 168" stroke="${light}" stroke-width="2" fill="none" opacity=".6"/>`;
+            case 15: return `<path d="M82 164Q100 186 118 164" stroke="#E7C26A" stroke-width="2" fill="none"/><path d="M100 178l4 6l-4 6l-4 -6Z" fill="${color}"/>`;
+            case 16: return `<path d="M100 170L86 162V178ZM100 170L114 162V178Z" fill="${color}"/><circle cx="100" cy="170" r="3.6" fill="${dark}"/>`;
+            case 17: return `<circle cx="132" cy="184" r="8" fill="${color}"/><circle cx="132" cy="184" r="4.5" fill="${light}"/>`;
+            case 18: return `<path d="M126 132C118 126 120 118 126 121C132 118 134 126 126 132Z" fill="#FF5A7A"/>`;
+            case 19: return `<path d="M148 60Q156 72 152 78Q146 82 142 76Q140 70 148 60Z" fill="#9BD7F5"/><path d="M146 70q-1 3 1 5" stroke="#fff" stroke-width="1.4" fill="none" stroke-linecap="round"/>`;
+        }
+        return '';
+    }
+
+    // ------------------------------------------------------------------
     // Clothes (20)
     // ------------------------------------------------------------------
     const CLOTHES = ['سكراب', 'سكراب بجيب', 'صدرية بيضاء وسماعة', 'صدرية بيضاء وربطة عنق', 'قميص بياقة', 'قميص وربطة عنق', 'بولو', 'تيشيرت',
@@ -618,6 +662,7 @@
         { key: 'n', label: 'الأنف', options: NOSES.map(x => x.name) },
         { key: 'o', label: 'الفم', options: MOUTHS },
         { key: 'g', label: 'النظارات', options: GLASSES, color: 'gc', palette: HAT_COLOR },
+        { key: 'a', label: 'الإكسسوارات', options: ACCESSORIES, color: 'ac', palette: HAT_COLOR },
         { key: 't', label: 'غطاء الرأس', options: HATS, color: 'tc', palette: HAT_COLOR },
         { key: 'c', label: 'الملابس', options: CLOTHES, color: 'cc', palette: CLOTH_COLOR },
         { key: 'k', label: 'الخلفية', colors: BG },
@@ -625,7 +670,8 @@
     const LIMITS = {
         s: SKIN.length, h: HAIR.length, hc: HAIR_COLOR.length, e: EYES.length, ec: EYE_COLOR.length, b: BROWS.length, bc: HAIR_COLOR.length,
         m: MOUSTACHE.length, mc: HAIR_COLOR.length, d: BEARD.length, dc: HAIR_COLOR.length, n: NOSES.length, o: MOUTHS.length,
-        g: GLASSES.length, gc: HAT_COLOR.length, t: HATS.length, tc: HAT_COLOR.length, c: CLOTHES.length, cc: CLOTH_COLOR.length, k: BG.length,
+        g: GLASSES.length, gc: HAT_COLOR.length, t: HATS.length, tc: HAT_COLOR.length, a: ACCESSORIES.length, ac: HAT_COLOR.length,
+        c: CLOTHES.length, cc: CLOTH_COLOR.length, k: BG.length,
     };
     const VERSION = 2;
 
@@ -680,7 +726,7 @@
         if (hair.back) {
             const bclip = uid();
             let bs = '';
-            for (let i = 0; i < 16; i++) bs += `<path d="M${30 + i * 9} 70Q${28 + i * 9.4} 130 ${26 + i * 9.6} 200" stroke="${i % 4 ? darkHair : lightHair}" stroke-width="${i % 4 ? 1.4 : 2}" fill="none" opacity="${i % 4 ? 0.45 : 0.3}"/>`;
+            for (let i = 0; i < 16; i++) bs += `<path d="M${30 + i * 9} 70Q${28 + i * 9.4} 130 ${26 + i * 9.6} 200" stroke="${i % 4 ? darkHair : lightHair}" stroke-width="${i % 4 ? 1.6 : 2.4}" fill="none" opacity="${i % 4 ? 0.2 : 0.22}"/>`;
             hairBack += `<clipPath id="${bclip}"><path d="${hair.back}"/></clipPath><path d="${hair.back}" fill="${shade(hairColor, -0.12)}"/><g clip-path="url(#${bclip})">${bs}</g>`;
         }
         if (hair.bun) { const [bx, by, br] = hair.bun; hairBack += `<circle cx="${bx}" cy="${by}" r="${br}" fill="${hairColor}"/><path d="M${bx - br * 0.7} ${by}Q${bx} ${by - br * 0.9} ${bx + br * 0.7} ${by}M${bx - br * 0.5} ${by + br * 0.4}Q${bx} ${by - br * 0.3} ${bx + br * 0.5} ${by + br * 0.4}" stroke="${darkHair}" stroke-width="1.3" fill="none" opacity=".6"/>`; }
@@ -693,10 +739,9 @@
                 hairFront += `<path d="${hair.front}" fill="${skin}" opacity=".55"/><g clip-path="url(#${clip})" opacity=".7">${dots}</g>`;
             }
             hairFront += hairStrands(hair.strands, darkHair, lightHair, clip);
-            hairFront += `<path d="${hair.front}" fill="none" stroke="${darkHair}" stroke-width="1.4" stroke-linejoin="round" opacity=".7"/>`;
             if (hair.curls) {
                 let curls = '';
-                for (let i = 0; i < 26; i++) { const t = Math.PI - (i / 25) * Math.PI; const [x, y] = onSkull(t, hair.curls === 2 ? 4 : 2, 0.9); curls += `<circle cx="${x}" cy="${f(y + 6)}" r="${hair.curls === 2 ? 5 : 4}" fill="none" stroke="${darkHair}" stroke-width="1.2" opacity=".5"/>`; }
+                for (let i = 0; i < 26; i++) { const t = Math.PI - (i / 25) * Math.PI; const [x, y] = onSkull(t, hair.curls === 2 ? 4 : 2, 0.9); curls += `<circle cx="${x}" cy="${f(y + 6)}" r="${hair.curls === 2 ? 5 : 4}" fill="${lightHair}" opacity=".18"/>`; }
                 hairFront += `<g clip-path="url(#${clip})">${curls}</g>`;
             }
             if (hair.locs) [44, 51, 58, 142, 149, 156].forEach((x, i) => {
@@ -711,31 +756,60 @@
             const xclip = uid();
             let xs = '';
             for (let i = 0; i < 6; i++) xs += `<path d="M${52 + i * 3} 90Q${48 + i * 3} 140 ${52 + i * 3} 190M${148 - i * 3} 90Q${152 - i * 3} 140 ${148 - i * 3} 190" stroke="${darkHair}" stroke-width="1.2" fill="none" opacity=".5"/>`;
-            hairExtra += `<clipPath id="${xclip}"><path d="${hair.extra}"/></clipPath><path d="${hair.extra}" fill="${hairColor}"/><g clip-path="url(#${xclip})">${xs}</g><path d="${hair.extra}" fill="none" stroke="${darkHair}" stroke-width="1" opacity=".6"/>`;
+            hairExtra += `<clipPath id="${xclip}"><path d="${hair.extra}"/></clipPath><path d="${hair.extra}" fill="${hairColor}"/><g clip-path="url(#${xclip})" opacity=".45">${xs}</g>`;
         }
 
         const female = sex === 'f';
-        const blush = `<ellipse cx="72" cy="124" rx="9" ry="5" fill="#F28B82" opacity="${female ? 0.28 : 0.14}"/><ellipse cx="128" cy="124" rx="9" ry="5" fill="#F28B82" opacity="${female ? 0.28 : 0.14}"/>`;
-        // Shadow cast by the hair / headwear on the forehead, and under the jaw on the neck.
-        const foreheadShade = (hair.front && !hair.buzz && !hidesHair) ? `<path d="M62 84Q100 70 138 84" stroke="${skinShadow}" stroke-width="6" fill="none" opacity=".35"/>` : '';
+        const F = uid(), soft = uid(), blur = uid(), bgg = uid(), ck = uid();
+        const lit = inner => inner ? `<g filter="url(#${F})">${inner}</g>` : '';
+        const acc = c.a ? accessory(c.a, HAT_COLOR[c.ac], skin) : '';
+        const layer = name => (ACC_LAYER[c.a] === name ? acc : '');
+        const bg = BG[c.k];
+        // Cheeks: warm, soft-edged colour (stronger for female figures).
+        const blush = `<ellipse cx="72" cy="126" rx="13" ry="8" fill="url(#${ck})" opacity="${female ? 0.75 : 0.42}"/><ellipse cx="128" cy="126" rx="13" ry="8" fill="url(#${ck})" opacity="${female ? 0.75 : 0.42}"/>`;
+        // Soft shadow cast by the hair / headwear on the forehead.
+        const foreheadShade = (hair.front && !hair.buzz && !hidesHair) ? `<path d="M64 84Q100 72 136 84" stroke="${skinDeep}" stroke-width="9" fill="none" opacity=".35" filter="url(#${blur})"/>` : '';
+        const earAcc = ACC_LAYER[c.a] === 'ears' && !hidesEars ? acc : '';
 
         return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="${size}" height="${size}" aria-hidden="true" focusable="false" class="hav" style="--hv-skin:${skin}">
-            <rect width="200" height="200" fill="${BG[c.k]}"/>
-            ${scarf ? scarf.back : ''}${hairBack}
-            ${clothes(c.c, CLOTH_COLOR[c.cc], skin)}
-            ${ears}
-            <path d="${face}" fill="${skin}"/>
-            <path d="M74 148C84 159 92 166 100 166C108 166 116 159 126 148C118 156 108 160 100 160C92 160 82 156 74 148Z" fill="${skinShadow}" opacity=".5"/>
+            <defs>
+              <filter id="${F}" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="4.6" result="b"/>
+                <feDiffuseLighting in="b" surfaceScale="4.2" diffuseConstant="1.18" lighting-color="#fff" result="d"><feDistantLight azimuth="235" elevation="56"/></feDiffuseLighting>
+                <feComposite in="d" in2="SourceAlpha" operator="in" result="d2"/>
+                <feBlend in="SourceGraphic" in2="d2" mode="multiply" result="m"/>
+                <feSpecularLighting in="b" surfaceScale="4.2" specularConstant=".75" specularExponent="18" lighting-color="#fff" result="sp"><feDistantLight azimuth="235" elevation="48"/></feSpecularLighting>
+                <feComposite in="sp" in2="SourceAlpha" operator="in" result="sp2"/>
+                <feComposite in="m" in2="sp2" operator="arithmetic" k1="0" k2="1" k3=".55" k4="0"/>
+              </filter>
+              <filter id="${soft}" filterUnits="userSpaceOnUse" x="0" y="0" width="200" height="200"><feGaussianBlur stdDeviation=".55"/></filter>
+              <filter id="${blur}" filterUnits="userSpaceOnUse" x="0" y="0" width="200" height="200"><feGaussianBlur stdDeviation="3.2"/></filter>
+              <radialGradient id="${bgg}" cx=".5" cy=".42" r=".75"><stop offset="0" stop-color="${shade(bg, 0.38)}"/><stop offset=".7" stop-color="${bg}"/><stop offset="1" stop-color="${shade(bg, -0.1)}"/></radialGradient>
+              <radialGradient id="${ck}"><stop offset="0" stop-color="#F0717A" stop-opacity=".55"/><stop offset="1" stop-color="#F0717A" stop-opacity="0"/></radialGradient>
+            </defs>
+            <rect width="200" height="200" fill="url(#${bgg})"/>
+            ${lit((scarf ? scarf.back : '') + hairBack)}
+            ${lit(clothes(c.c, CLOTH_COLOR[c.cc], skin))}
+            ${lit(layer('neck'))}
+            <ellipse cx="100" cy="164" rx="34" ry="9" fill="#1A0F0A" opacity=".22" filter="url(#${blur})"/>
+            ${lit(ears + `<path d="${face}" fill="${skin}"/>`)}
             ${blush}${foreheadShade}
-            ${beard(c.d, HAIR_COLOR[c.dc], skin)}
+            <ellipse cx="86" cy="70" rx="20" ry="11" fill="#fff" opacity=".12" filter="url(#${blur})"/>
+            ${lit(beard(c.d, HAIR_COLOR[c.dc], skin))}
             ${eyePair(c.e, EYE_COLOR[c.ec], skin)}
             ${browPair(c.b, HAIR_COLOR[c.bc])}
-            ${nose(c.n, skin)}
+            <g filter="url(#${soft})">${nose(c.n, skin)}</g>
+            <ellipse cx="97" cy="112" rx="2.6" ry="6" fill="#fff" opacity=".2" filter="url(#${soft})"/>
             ${mouth(c.o, skin)}
-            ${moustache(c.m, HAIR_COLOR[c.mc])}
-            ${hairFront}${hairExtra}
+            ${layer('face')}
+            ${lit(moustache(c.m, HAIR_COLOR[c.mc]))}
+            ${lit(layer('mask'))}
+            ${earAcc && hair.cover ? lit(earAcc) : ''}
+            ${lit(hairFront + hairExtra)}
+            ${earAcc && !hair.cover ? lit(earAcc) : ''}
             ${glasses(c.g, HAT_COLOR[c.gc])}
-            ${scarf ? scarf.front : hat(c.t, HAT_COLOR[c.tc])}
+            ${lit(scarf ? scarf.front : hat(c.t, HAT_COLOR[c.tc]))}
+            ${layer('top')}
             </svg>`;
     }
 
@@ -755,6 +829,7 @@
         else if ([9, 10].includes(cfg.t)) cfg.t = 0;
         if (r(3)) cfg.t = 0;
         if (r(2)) cfg.g = 0;
+        if (r(3)) cfg.a = 0;
         if (r(2)) { cfg.m = 0; cfg.d = 0; }
         cfg.e = r(3) ? r(14) : cfg.e;
         cfg.bc = cfg.hc; cfg.mc = cfg.hc; cfg.dc = cfg.hc;

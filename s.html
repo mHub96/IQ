@@ -19,31 +19,31 @@
 
         :root {
             /* Light Theme (Default / Day Mode) */
-            --background-color: #f1f5f9;
+            --background-color: #F2F2F7;
             --card-background-color: #ffffff;
-            --card-hover-background-color: #f8fafc;
-            --border-subtle: #cbd5e1;
-            --border-focus: #94a3b8;
-            --text-primary-color: #0f172a;
-            --text-secondary-color: #334155;
-            --text-muted-color: #64748b;
-            --slot-bg: #f8fafc;
-            --slot-border: #e2e8f0;
-            --cell-input-color: #0f172a;
-            --cell-input-placeholder: #94a3b8;
-            --ghost-text-color: #64748b;
+            --card-hover-background-color: #F9F9FB;
+            --border-subtle: #D1D1D6;
+            --border-focus: #AEAEB2;
+            --text-primary-color: #1C1C1E;
+            --text-secondary-color: #48484A;
+            --text-muted-color: #8A8A8E;
+            --slot-bg: #F9F9FB;
+            --slot-border: #E5E5EA;
+            --cell-input-color: #1C1C1E;
+            --cell-input-placeholder: #AEAEB2;
+            --ghost-text-color: #8A8A8E;
             --navigation-bg: rgba(255, 255, 255, 0.96);
-            --navigation-border: #e2e8f0;
+            --navigation-border: #E5E5EA;
             --navigation-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
             --day-box-bg: rgba(0, 0, 0, 0.015);
-            --day-box-border: #e2e8f0;
+            --day-box-border: #E5E5EA;
             --day-box-weekend: rgba(241, 245, 249, 0.9);
             --popup-bg: #ffffff;
-            --popup-border: #cbd5e1;
+            --popup-border: #D1D1D6;
             --popup-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
             --custom-menu-bg: #ffffff;
-            --custom-menu-item-color: #1e293b;
-            --custom-menu-item-hover-bg: #f1f5f9;
+            --custom-menu-item-color: #2C2C2E;
+            --custom-menu-item-hover-bg: #F2F2F7;
             --navigation-height: 56px;
             --card-radius: 1.5rem;
             --input-radius: 0.8rem;
@@ -56,12 +56,12 @@
             --card-hover-background-color: #1c2432;
             --border-subtle: rgba(255, 255, 255, 0.08);
             --border-focus: rgba(255, 255, 255, 0.18);
-            --text-primary-color: #f8fafc;
-            --text-secondary-color: #cbd5e1;
-            --text-muted-color: #94a3b8;
+            --text-primary-color: #F9F9FB;
+            --text-secondary-color: #D1D1D6;
+            --text-muted-color: #AEAEB2;
             --slot-bg: rgba(255, 255, 255, 0.03);
             --slot-border: rgba(255, 255, 255, 0.06);
-            --cell-input-color: #f8fafc;
+            --cell-input-color: #F9F9FB;
             --cell-input-placeholder: rgba(255, 255, 255, 0.2);
             --ghost-text-color: rgba(255, 255, 255, 0.38);
             --navigation-bg: rgba(18, 22, 30, 0.96);
@@ -132,12 +132,12 @@
             width: 32px;
             height: 32px;
             border-radius: 10px;
-            background: rgba(212, 175, 55, 0.12);
+            background: rgba(10, 132, 255, 0.12);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1rem;
-            border: 1px solid rgba(212, 175, 55, 0.25);
+            border: 1px solid rgba(10, 132, 255, 0.25);
             flex-shrink: 0;
         }
 
@@ -197,15 +197,15 @@
         }
 
         .view-button.active {
-            background: linear-gradient(135deg, #0f766e, #0d9488);
+            background: linear-gradient(135deg, #007AFF, #0A84FF);
             color: #ffffff;
-            box-shadow: 0 2px 8px rgba(15, 118, 110, 0.25);
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
         }
 
         body.dark .view-button.active {
-            background: linear-gradient(135deg, #d4af37, #b8942e);
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
             color: #0b0e13;
-            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.25);
+            box-shadow: 0 2px 8px rgba(10, 132, 255, 0.25);
         }
 
         /* Month Navigation Controller */
@@ -227,7 +227,7 @@
         }
 
         .month-control-group:hover, .month-control-group:focus-within {
-            border-color: #d4af37;
+            border-color: #0A84FF;
         }
 
         .month-nav-btn {
@@ -246,8 +246,8 @@
         }
 
         .month-nav-btn:hover {
-            background: rgba(212, 175, 55, 0.15);
-            color: #d4af37;
+            background: rgba(10, 132, 255, 0.15);
+            color: #0A84FF;
             transform: scale(1.08);
         }
 
@@ -264,7 +264,7 @@
 
         .month-input-wrapper .month-icon {
             font-size: 0.85rem;
-            color: #d4af37;
+            color: #0A84FF;
         }
 
         .month-picker {
@@ -291,7 +291,7 @@
 
         /* Save Button */
         .synchronize-button {
-            background: linear-gradient(135deg, #d4af37, #f59e0b);
+            background: linear-gradient(135deg, #0A84FF, #f59e0b);
             color: #0b0e13;
             padding: 0.45rem 1.15rem;
             border-radius: 2rem;
@@ -300,7 +300,7 @@
             letter-spacing: 0.02em;
             border: none;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3);
+            box-shadow: 0 4px 14px rgba(10, 132, 255, 0.3);
             cursor: pointer;
             white-space: nowrap;
             font-family: inherit;
@@ -311,7 +311,7 @@
 
         .synchronize-button:hover {
             transform: translateY(-1px) scale(1.02);
-            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45);
+            box-shadow: 0 6px 20px rgba(10, 132, 255, 0.45);
             filter: brightness(1.08);
         }
 
@@ -600,8 +600,8 @@
         }
 
         .duty-slot .time-display.single-slot {
-            background: rgba(212, 175, 55, 0.12);
-            border-color: rgba(212, 175, 55, 0.25);
+            background: rgba(10, 132, 255, 0.12);
+            border-color: rgba(10, 132, 255, 0.25);
             cursor: default;
             opacity: 1;
             color: #b45309;
@@ -650,7 +650,7 @@
 
         .duty-slot .input-wrapper:focus-within {
             border-color: var(--specialty-color);
-            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.15);
+            box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.15);
         }
 
         .duty-slot .cell-input,
@@ -759,12 +759,12 @@
 
         body.dark .duty-slot .dropdown-arrow {
             background: rgba(0, 0, 0, 0.3);
-            color: #94a3b8;
+            color: #AEAEB2;
         }
 
         .duty-slot .dropdown-arrow:hover {
-            background: rgba(212, 175, 55, 0.15);
-            color: #d4af37;
+            background: rgba(10, 132, 255, 0.15);
+            color: #0A84FF;
         }
 
         .duty-slot .custom-menu {
@@ -854,9 +854,9 @@
         }
 
         .add-slot-button:hover {
-            background: rgba(212, 175, 55, 0.06);
-            border-color: var(--specialty-color, #d4af37);
-            color: var(--specialty-color, #d4af37);
+            background: rgba(10, 132, 255, 0.06);
+            border-color: var(--specialty-color, #0A84FF);
+            color: var(--specialty-color, #0A84FF);
         }
 
         .slot-tip {
@@ -1124,9 +1124,9 @@
         }
 
         .navigation-arrows:hover {
-            background: #d4af37;
+            background: #0A84FF;
             color: #0b0e13;
-            border-color: #d4af37;
+            border-color: #0A84FF;
             transform: translateY(-50%) scale(1.1);
         }
 
@@ -1169,7 +1169,7 @@
         .track-indicators .indicator-dot.active {
             width: 18px;
             border-radius: 10px;
-            background: var(--specialty-color, #d4af37);
+            background: var(--specialty-color, #0A84FF);
         }
 
         .swipe-hint {
@@ -1273,7 +1273,7 @@
             align-items: center;
             gap: 0.35rem;
             background: var(--card-background-color);
-            border: 1.5px solid var(--specialty-color, #0f766e);
+            border: 1.5px solid var(--specialty-color, #007AFF);
             padding: 0.22rem 0.65rem;
             border-radius: 2rem;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
@@ -1284,7 +1284,7 @@
 
         body.dark .specialty-quick-selector {
             background: rgba(255, 255, 255, 0.05);
-            border-color: var(--specialty-color, #d4af37);
+            border-color: var(--specialty-color, #0A84FF);
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
         }
 

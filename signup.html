@@ -36,7 +36,7 @@
             background-size: 120px 120px;
         }
         body.dark {
-            background: #0b0e12;
+            background: #000000;
             color: #e8edf5;
         }
 
@@ -89,7 +89,7 @@
             background: white;
             border-radius: 28px;
             padding: 28px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid #E5E5EA;
             box-shadow: 0 12px 36px rgba(0,0,0,0.06);
             transition: all 0.3s ease;
             width: 100%;
@@ -97,7 +97,7 @@
         }
         body.dark .app-card {
             background: rgba(16, 22, 34, 0.84);
-            border-color: rgba(212, 175, 55, 0.16);
+            border-color: rgba(10, 132, 255, 0.16);
             box-shadow: 0 16px 45px rgba(0,0,0,0.6);
             backdrop-filter: blur(14px);
         }
@@ -116,18 +116,18 @@
             gap: 6px;
             font-weight: 700;
             font-size: 0.85rem;
-            color: #0f172a;
+            color: #1C1C1E;
             margin-bottom: 8px;
         }
         body.dark .form-group label {
-            color: #e2e8f0;
+            color: #E5E5EA;
         }
 
         .form-select {
             width: 100%;
             padding: 13px 16px;
             border-radius: 14px;
-            border: 1.5px solid #cbd5e1;
+            border: 1.5px solid #D1D1D6;
             background: #ffffff;
             font-size: 0.95rem;
             font-weight: 600;
@@ -139,7 +139,7 @@
             background-repeat: no-repeat;
             background-position: left 16px center;
             cursor: pointer;
-            color: #0f172a;
+            color: #1C1C1E;
         }
         body.dark .form-select {
             background: #0f151e;
@@ -147,12 +147,12 @@
             color: #e8edf5;
         }
         .form-select:focus {
-            border-color: #0f766e;
-            box-shadow: 0 0 0 4px rgba(15,118,110,0.15);
+            border-color: #007AFF;
+            box-shadow: 0 0 0 4px rgba(0, 122, 255,0.15);
         }
         body.dark .form-select:focus {
-            border-color: #d4af37;
-            box-shadow: 0 0 0 4px rgba(212,175,55,0.15);
+            border-color: #0A84FF;
+            box-shadow: 0 0 0 4px rgba(10, 132, 255,0.15);
         }
 
         .input-wrap {
@@ -178,14 +178,14 @@
             white-space: nowrap;
         }
         .ghost-text .offset { color: transparent; }
-        .ghost-text .suggestion-bright { color: #64748b; font-weight: 500; }
+        .ghost-text .suggestion-bright { color: #8A8A8E; font-weight: 500; }
         body.dark .ghost-text .suggestion-bright { color: rgba(255, 255, 255, 0.45); }
 
         .input-text {
             width: 100%;
             padding: 13px 16px;
             border-radius: 14px;
-            border: 1.5px solid #cbd5e1;
+            border: 1.5px solid #D1D1D6;
             background: #ffffff;
             font-size: 0.95rem;
             font-weight: 600;
@@ -195,7 +195,7 @@
             position: relative;
             z-index: 10;
             direction: rtl;
-            color: #0f172a;
+            color: #1C1C1E;
         }
         body.dark .input-text {
             background: #0f151e;
@@ -203,12 +203,12 @@
             color: #e8edf5;
         }
         .input-text:focus {
-            border-color: #0f766e;
-            box-shadow: 0 0 0 4px rgba(15,118,110,0.15);
+            border-color: #007AFF;
+            box-shadow: 0 0 0 4px rgba(0, 122, 255,0.15);
         }
         body.dark .input-text:focus {
-            border-color: #d4af37;
-            box-shadow: 0 0 0 4px rgba(212,175,55,0.15);
+            border-color: #0A84FF;
+            box-shadow: 0 0 0 4px rgba(10, 132, 255,0.15);
         }
 
         .dropdown-arrow {
@@ -217,7 +217,7 @@
             top: 50%;
             transform: translateY(-50%);
             z-index: 20;
-            color: #94a3b8;
+            color: #AEAEB2;
             cursor: pointer;
             padding: 6px 10px;
             border-radius: 10px;
@@ -227,7 +227,7 @@
         }
         .dropdown-arrow:hover {
             background: rgba(0,0,0,0.08);
-            color: #475569;
+            color: #636366;
         }
 
         .dropdown-menu {
@@ -238,7 +238,7 @@
             max-height: 220px;
             overflow-y: auto;
             background: white;
-            border: 2px solid #0f766e;
+            border: 2px solid #007AFF;
             border-radius: 14px;
             z-index: 100;
             display: none;
@@ -247,7 +247,7 @@
         }
         body.dark .dropdown-menu {
             background: #141a24;
-            border-color: #d4af37;
+            border-color: #0A84FF;
             box-shadow: 0 16px 40px rgba(0,0,0,0.6);
         }
         .dropdown-menu div {
@@ -256,7 +256,7 @@
             color: #1a2332;
             font-weight: 600;
             transition: 0.15s;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid #F2F2F7;
             font-size: 0.9rem;
         }
         body.dark .dropdown-menu div {
@@ -264,19 +264,19 @@
             border-color: #1e2632;
         }
         .dropdown-menu div:hover, .dropdown-menu div.selected {
-            background: #0f766e;
+            background: #007AFF;
             color: white;
         }
         body.dark .dropdown-menu div:hover, body.dark .dropdown-menu div.selected {
-            background: #d4af37;
-            color: #0b0e12;
+            background: #0A84FF;
+            color: #000000;
         }
 
         .info-box {
-            background: #f8fafc;
+            background: #F9F9FB;
             border-radius: 14px;
             padding: 12px 16px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid #E5E5EA;
             font-size: 0.85rem;
             margin-top: 6px;
         }
@@ -284,7 +284,7 @@
             background: #0f151e;
             border-color: #2a3346;
         }
-        .info-box .label { color: #94a3b8; font-weight: 600; display: block; margin-bottom: 4px; }
+        .info-box .label { color: #AEAEB2; font-weight: 600; display: block; margin-bottom: 4px; }
         .info-box .value { font-weight: 800; font-size: 0.92rem; }
 
         .btn-update {
@@ -292,7 +292,7 @@
             padding: 15px;
             border: none;
             border-radius: 14px;
-            background: linear-gradient(135deg, #0f766e, #0d9488);
+            background: linear-gradient(135deg, #007AFF, #0A84FF);
             color: white;
             font-weight: 800;
             font-size: 1rem;
@@ -300,16 +300,16 @@
             transition: all 0.2s ease;
             margin-top: 14px;
             font-family: inherit;
-            box-shadow: 0 8px 24px rgba(15,118,110,0.25);
+            box-shadow: 0 8px 24px rgba(0, 122, 255,0.25);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
         }
         body.dark .btn-update {
-            background: linear-gradient(135deg, #d4af37, #b8942e);
-            box-shadow: 0 8px 24px rgba(212,175,55,0.25);
-            color: #0b0e12;
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
+            box-shadow: 0 8px 24px rgba(10, 132, 255,0.25);
+            color: #000000;
         }
         .btn-update:hover:not(:disabled) { transform: translateY(-2px); }
         .btn-update:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
@@ -342,10 +342,10 @@
         .footer-credit {
             text-align: center;
             font-size: 0.68rem;
-            color: #94a3b8;
+            color: #AEAEB2;
             margin-top: 20px;
             padding-top: 14px;
-            border-top: 1px solid #e2e8f0;
+            border-top: 1px solid #E5E5EA;
             opacity: 0.6;
         }
         body.dark .footer-credit { border-color: #2a3346; }
@@ -355,10 +355,10 @@
             transition: transform 0.15s ease;
         }
         body.dark .btn-submit, body.dark .submit-btn, body.dark button[type="submit"] {
-            background: linear-gradient(135deg, #d4af37, #b8942e) !important;
-            color: #0b0e12 !important;
+            background: linear-gradient(135deg, #0A84FF, #0062CC) !important;
+            color: #000000 !important;
             font-weight: 800 !important;
-            box-shadow: 0 4px 16px rgba(212, 175, 55, 0.25) !important;
+            box-shadow: 0 4px 16px rgba(10, 132, 255, 0.25) !important;
         }
     </style>
     <link rel="stylesheet" href="./tailwind.css" />
@@ -377,7 +377,7 @@
             <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div>
                     <h1 class="text-xl font-black flex items-center gap-2">
-                        <i class="fas fa-exchange-alt text-teal-600 dark:text-amber-400"></i>
+                        <i class="fas fa-exchange-alt text-teal-600 dark:text-teal-400"></i>
                         <span>تبديل الخفارات</span>
                     </h1>
                     <div class="text-xs font-bold text-slate-400 mt-0.5">
@@ -394,7 +394,7 @@
             <!-- STEP 1: Hospital Select -->
             <div class="form-group">
                 <label for="hosp-select">
-                    <i class="fas fa-hospital text-teal-600 dark:text-amber-400"></i>
+                    <i class="fas fa-hospital text-teal-600 dark:text-teal-400"></i>
                     <span>1. اختر المستشفى:</span>
                 </label>
                 <select id="hosp-select" class="form-select" onchange="onHospitalChange()"></select>
@@ -403,7 +403,7 @@
             <!-- STEP 2: Specialty Select -->
             <div class="form-group" id="spec-group">
                 <label for="spec-select">
-                    <i class="fas fa-stethoscope text-teal-600 dark:text-amber-400"></i>
+                    <i class="fas fa-stethoscope text-teal-600 dark:text-teal-400"></i>
                     <span>2. اختر التخصص الطبي:</span>
                 </label>
                 <select id="spec-select" class="form-select" onchange="onSpecialtyChange()">
@@ -414,7 +414,7 @@
             <!-- STEP 3: Date of Exchange Select -->
             <div class="form-group" id="date-group" style="display:none;">
                 <label for="exchange-date-input">
-                    <i class="fas fa-calendar-day text-teal-600 dark:text-amber-400"></i>
+                    <i class="fas fa-calendar-day text-teal-600 dark:text-teal-400"></i>
                     <span>3. تاريخ تبديل الخفارة (اليوم المحدد):</span>
                 </label>
                 <input type="date" id="exchange-date-input" class="form-select font-mono text-left" dir="ltr" onchange="onDateChange()" />
@@ -425,7 +425,7 @@
             <div id="duty-status-group" style="display:none;">
                 <div class="info-box mb-3" id="current-duty-box">
                     <span class="label">الخفر المسجل حالياً في هذا اليوم:</span>
-                    <span class="value text-teal-600 dark:text-amber-400" id="current-holder">—</span>
+                    <span class="value text-teal-600 dark:text-teal-400" id="current-holder">—</span>
                 </div>
 
                 <!-- Multiple Residents Picker (Appears IF more than 1 resident on this day and specialty) -->
@@ -442,7 +442,7 @@
             <div id="name-section" style="display:none;">
                 <div class="form-group">
                     <label for="name-input">
-                        <i class="fas fa-user-plus text-teal-600 dark:text-amber-400"></i>
+                        <i class="fas fa-user-plus text-teal-600 dark:text-teal-400"></i>
                         <span id="name-input-label">اسم المقيم البديل (الخفر الجديد):</span>
                     </label>
                     <div class="input-wrap">
@@ -708,7 +708,7 @@
             if (matchingDuties.length === 0) {
                 // No resident on duty yet
                 holder.textContent = 'لا يوجد خفر مسجل في هذا اليوم لهذا التخصص';
-                holder.style.color = '#94a3b8';
+                holder.style.color = '#AEAEB2';
                 targetWrap.style.display = 'none';
                 selectedOldResidentName = null;
                 const labelEl = document.getElementById('name-input-label');
@@ -720,7 +720,7 @@
                 // Exactly one resident on duty
                 const resident = matchingDuties[0];
                 holder.innerHTML = `<span class="font-bold">${resident.name}</span> <span class="text-xs opacity-75 font-mono">(${resident.timestamp || 'خفارة مسجلة'})</span>`;
-                holder.style.color = '#0f766e';
+                holder.style.color = '#007AFF';
                 targetWrap.style.display = 'none';
                 selectedOldResidentName = resident.name;
                 const labelEl = document.getElementById('name-input-label');
@@ -859,7 +859,7 @@
             }
 
             if (currentResidents.length === 0) {
-                menu.innerHTML = '<div style="color:#94a3b8;font-size:0.8rem;text-align:center;padding:12px;">لا يوجد مقيمين</div>';
+                menu.innerHTML = '<div style="color:#AEAEB2;font-size:0.8rem;text-align:center;padding:12px;">لا يوجد مقيمين</div>';
             } else {
                 menu.innerHTML = currentResidents.slice(0, 20).map(n =>
                     `<div onclick="selectName('${n.name.replace(/'/g, "\'")}')">${n.name}</div>`

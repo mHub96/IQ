@@ -22,7 +22,8 @@ html.dark, body.dark {
   --hacc-shadow: 0 -12px 40px rgba(0, 0, 0, 0.5);
 }
 
-html.hacc-no-scroll, html.hacc-no-scroll body { overflow: hidden; }
+html.hacc-no-scroll { overflow: hidden; }
+html.hacc-no-scroll body { position: fixed; left: 0; right: 0; width: 100%; overflow: hidden; }
 
 /* ---------- Nav buttons ---------- */
 [data-hacc-slot] { display: contents; }

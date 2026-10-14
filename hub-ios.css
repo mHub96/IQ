@@ -428,3 +428,26 @@ body.dark .hacc-tabs button[aria-selected="true"] { background: #636366 !importa
   .max-w-7xl > .glass-card:first-child .w-16.h-16 { width: 48px !important; height: 48px !important; font-size: 1.4rem !important; border-radius: 14px !important; }
   .max-w-7xl > .glass-card:first-child .text-2xl { font-size: 28px !important; font-weight: 800 !important; letter-spacing: -0.022em; }
 }
+
+/* ---------- Desktop top bar: one line, whatever the role ----------
+   An admin's bar carries the scheduler link and a long hospital badge; labels used to wrap onto
+   two lines. Labels never wrap now; the badge truncates, and narrower desktops show icon-only links. */
+@media (min-width: 901px) {
+  .hub-nav-link, .hub-nav-link span, .hub-nav-title, .hub-btn-logout { white-space: nowrap; }
+  .hub-nav-center { flex-wrap: nowrap; min-width: 0; }
+  .role-badge { max-width: 190px; min-width: 0; }
+  .role-badge > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+@media (min-width: 901px) and (max-width: 1439px) {
+  .hub-nav-center:has(> .hub-nav-link:nth-child(7)) .hub-nav-link:not(.active) span { display: none; }
+  .hub-nav-center:has(> .hub-nav-link:nth-child(7)) .hub-nav-link:not(.active) { padding-inline: 0.6rem; }
+}
+@media (min-width: 901px) and (max-width: 1180px) {
+  .hub-nav-link:not(.active) span { display: none; }
+  .hub-nav-link:not(.active) { padding-inline: 0.6rem; }
+}
+
+/* ---------- The top bar sticks on every page ----------
+   The bar lives in #universal-nav, a wrapper exactly its own height, so position:sticky had no room
+   and the bar (bell included) scrolled away on long pages. The wrapper now takes no box of its own. */
+#universal-nav { display: contents; }

@@ -94,26 +94,26 @@
 
                 <!-- Center: Universal Webpage Links -->
                 <div class="hub-nav-center">
-                    <a href="./index.html?portal=true" class="hub-nav-link ${activePageId === 'hub' ? 'active' : ''}">
+                    <a href="./index.html?portal=true" class="hub-nav-link ${activePageId === 'hub' ? 'active' : ''}" title="البوابة الرئيسية">
                         <i class="fas fa-th-large"></i> <span>البوابة الرئيسية</span>
                     </a>
-                    <a href="./schedule.html${queryParam}" class="hub-nav-link ${activePageId === 'schedule' ? 'active' : ''}">
+                    <a href="./schedule.html${queryParam}" class="hub-nav-link ${activePageId === 'schedule' ? 'active' : ''}" title="جدول الخفارات">
                         <i class="fas fa-calendar-week"></i> <span>جدول الخفارات</span>
                     </a>
-                    <a href="./icu.html${queryParam}" class="hub-nav-link ${activePageId === 'icu' ? 'active' : ''}">
+                    <a href="./icu.html${queryParam}" class="hub-nav-link ${activePageId === 'icu' ? 'active' : ''}" title="موقف العناية">
                         <i class="fas fa-procedures"></i> <span>موقف العناية</span>
                     </a>
-                    <a href="./specialists.html${queryParam}" class="hub-nav-link ${activePageId === 'specialists' ? 'active' : ''}">
+                    <a href="./specialists.html${queryParam}" class="hub-nav-link ${activePageId === 'specialists' ? 'active' : ''}" title="أطباء الاختصاص">
                         <i class="fas fa-user-tie"></i> <span>أطباء الاختصاص</span>
                     </a>
-                    <a href="./residents.html${queryParam}" class="hub-nav-link ${activePageId === 'residents' ? 'active' : ''}">
+                    <a href="./residents.html${queryParam}" class="hub-nav-link ${activePageId === 'residents' ? 'active' : ''}" title="دليل المقيمين">
                         <i class="fas fa-address-book"></i> <span>دليل المقيمين</span>
                     </a>
-                    <a href="./signup.html${queryParam}" class="hub-nav-link ${activePageId === 'signup' ? 'active' : ''}">
+                    <a href="./signup.html${queryParam}" class="hub-nav-link ${activePageId === 'signup' ? 'active' : ''}" title="تبديل الخفارات">
                         <i class="fas fa-exchange-alt"></i> <span>تبديل الخفارات</span>
                     </a>
                     ${(!isOwner && (isAdmin || isCurrentHospAdmin)) ? `
-                    <a href="./scheduler.html${queryParam}" class="hub-nav-link ${activePageId === 'scheduler' ? 'active' : ''}">
+                    <a href="./scheduler.html${queryParam}" class="hub-nav-link ${activePageId === 'scheduler' ? 'active' : ''}" title="المجدول">
                         <i class="fas fa-calendar-alt"></i> <span>المجدول</span>
                     </a>` : ''}
                 </div>

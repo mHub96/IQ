@@ -97,9 +97,52 @@
         if (openSheetEl) { sheetHistory = false; closeSheet(true); }
     });
 
+    // Scroll lock that keeps the reader's place: overflow:hidden on <html> + <body> resets the page
+    // to the top on pages whose body has overflow-x:hidden, so the body is pinned at its offset instead.
+    let lockedY = null;
+    let replacingSheet = false;
+    let pinnedBars = [];
+    function lockScroll() {
+        if (lockedY !== null) return;
+        lockedY = window.scrollY;
+        // Sticky top bars would travel up with the pinned body; hold them where they are on screen.
+        pinnedBars = [...document.querySelectorAll('.hub-nav-bar, body > .top')].filter(el => getComputedStyle(el).position === 'sticky').map(el => {
+            const r = el.getBoundingClientRect();
+            const cs = getComputedStyle(el);
+            // A placeholder keeps the bar's space so the page does not shift under the sheet.
+            const hold = document.createElement('div');
+            hold.className = 'hacc-bar-hold';
+            hold.style.height = (el.offsetHeight + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom)) + 'px';
+            el.before(hold);
+            el._hold = hold;
+            el.style.position = 'fixed';
+            el.style.top = r.top + 'px';
+            el.style.left = r.left + 'px';
+            el.style.width = r.width + 'px';
+            return el;
+        });
+        document.body.style.top = -lockedY + 'px';
+        document.documentElement.classList.add('hacc-no-scroll');
+    }
+    function unlockScroll() {
+        if (lockedY === null) return;
+        const y = lockedY;
+        lockedY = null;
+        document.documentElement.classList.remove('hacc-no-scroll');
+        document.body.style.top = '';
+        pinnedBars.forEach(el => {
+            el.style.position = el.style.top = el.style.left = el.style.width = '';
+            if (el._hold) { el._hold.remove(); el._hold = null; }
+        });
+        pinnedBars = [];
+        window.scrollTo({ top: y, left: 0, behavior: 'instant' });
+    }
+
     function openSheet(html, { label = '', onClose, tall = false } = {}) {
         const replacing = !!openSheetEl;
+        replacingSheet = replacing;
         closeSheet(true);
+        replacingSheet = false;
         if (!replacing && !sheetHistory) {
             try { history.pushState({ haccSheet: true }, ''); sheetHistory = true; } catch (e) {}
         }
@@ -110,7 +153,7 @@
         wrap.addEventListener('click', e => { if (e.target === wrap) closeSheet(); });
         wrap._onClose = onClose;
         document.body.appendChild(wrap);
-        document.documentElement.classList.add('hacc-no-scroll');
+        lockScroll();
         requestAnimationFrame(() => wrap.classList.add('open'));
         openSheetEl = wrap;
         enableSwipeToClose(wrap.querySelector('.hacc-sheet'));
@@ -126,7 +169,8 @@
             ignorePop = true;
             history.back();
         }
-        document.documentElement.classList.remove('hacc-no-scroll');
+        // A sheet replacing this one keeps the lock (and the saved place).
+        if (fromHistory !== true || !replacingSheet) unlockScroll();
         el.classList.remove('open');
         if (el._onClose) el._onClose();
         setTimeout(() => el.remove(), 250);
@@ -907,6 +951,7 @@
     function initIosChrome() {
         let scrolled = null;
         const update = () => {
+            if (lockedY !== null) return; // the page is pinned under a sheet
             const now = window.scrollY > 6;
             if (now !== scrolled) { scrolled = now; document.body.classList.toggle('ios-scrolled', now); }
         };

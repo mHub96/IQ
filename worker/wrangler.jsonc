@@ -13,7 +13,7 @@
   ],
   // No cron here: the live Worker already prunes the shared database every night.
   "vars": {
-    "ALLOWED_ORIGINS": "https://hosp-hub-beta.mrjuniversity.workers.dev",
+    "ALLOWED_ORIGINS": "https://hosp-hub-beta.mrjuniversity.workers.dev,https://mhub96.github.io",
     // Web Push: public half of the VAPID key pair (the private half is the VAPID_PRIVATE secret).
     "VAPID_PUBLIC": "BGOl7V-kzJ02TyafKBzlqgbBW-Ef81Znw_LU9ZVzoum_W5bswoynF0gQEocOZBcgQR-SBU2ToEaCIvMRY7GR_7s",
     "VAPID_SUBJECT": "https://hosp-hub-beta.mrjuniversity.workers.dev"

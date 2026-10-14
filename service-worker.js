@@ -1,8 +1,11 @@
 // service-worker.js - Hospital Main Hub
 // Pages and scripts are served network-first so every deploy reaches installed apps on
 // their next launch; the cache is only the offline fallback. API calls are never cached.
-const CACHE_VERSION = 'v3.8.0';
-const CACHE_NAME = `hospital-hub-${CACHE_VERSION}`;
+const CACHE_VERSION = 'v3.8.1';
+// Next to the live site on the same origin (mhub96.github.io/IQ-beta/), the beta's caches carry
+// their own prefix, and only those are ever cleaned up here: the live site's caches are left alone.
+const SCOPE_PREFIX = /\/IQ-beta\//i.test(self.registration.scope) ? 'iq-beta-' : '';
+const CACHE_NAME = `${SCOPE_PREFIX}hospital-hub-${CACHE_VERSION}`;
 const CDN_CACHE = 'hospital-hub-cdn-v1';
 const NETWORK_TIMEOUT_MS = 4000;
 
@@ -33,7 +36,8 @@ const APP_SHELL = [
   './nav-component.css',
   './manifest.webmanifest',
   './pwa.js',
-  './pwa-icon.svg'
+  './pwa-icon.svg',
+  './storage-scope.js'
 ];
 
 const CDN_HOSTS = [
@@ -59,9 +63,9 @@ self.addEventListener('activate', event => {
   const activation = caches.keys().then(keys => {
     // Pages open right now were served by the old cache-first worker (v2.x), i.e. they run
     // the old GitHub-based code; they get reloaded once below.
-    const fromOldGeneration = keys.some(key => /^hospital-hub-v2\./.test(key));
+    const fromOldGeneration = keys.some(key => key.startsWith(SCOPE_PREFIX + 'hospital-hub-v2.'));
     return Promise.all(
-      keys.filter(key => key !== CACHE_NAME && key !== CDN_CACHE).map(key => caches.delete(key))
+      keys.filter(key => key.startsWith(SCOPE_PREFIX + 'hospital-hub-') && key !== CACHE_NAME && key !== CDN_CACHE).map(key => caches.delete(key))
     ).then(() => self.clients.claim())
       .then(() => fromOldGeneration);
   });

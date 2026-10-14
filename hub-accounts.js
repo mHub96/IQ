@@ -284,7 +284,7 @@
         stopPolling();
         if (!signedIn()) { notif.items = []; notif.unread = null; notif.pending = null; paintBells(); return; }
         pollNotifications();
-        notif.timer = setInterval(() => { if (document.visibilityState === 'visible') pollNotifications(); }, POLL_MS);
+        notif.timer = setInterval(() => { if (onScreen()) pollNotifications(); }, POLL_MS);
     }
 
     function stopPolling() {
@@ -292,7 +292,10 @@
         notif.timer = null;
     }
 
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pollNotifications(); });
+    // In the app shell several pages stay loaded; only the one on screen checks for news.
+    function onScreen() { return document.visibilityState === 'visible' && (!window.HubView || window.HubView.active); }
+    document.addEventListener('visibilitychange', () => { if (onScreen()) pollNotifications(); });
+    window.addEventListener('hub:view-shown', () => { if (signedIn()) pollNotifications(); });
     window.addEventListener('hub:auth-changed', () => { startPolling(); refreshNavSlots(); });
 
     /** Text, icon and action for one notification. */
@@ -1022,11 +1025,15 @@
         try { last = Number(localStorage.getItem('ios_install_offer')) || 0; } catch (e) { return; }
         if (Date.now() - last < INSTALL_SNOOZE_MS) return;
         const tryOffer = () => {
+            if (window.HubView && !window.HubView.active) return;     // another view is on screen
+            try { if (Date.now() - (Number(localStorage.getItem('ios_install_offer')) || 0) < INSTALL_SNOOZE_MS) return; } catch (e) { return; }
             if (openSheetEl || document.querySelector('.modal-overlay.active, .hub-modal-overlay.active')) return;
             if (installState() === 'ios' || installState() === 'prompt') offerInstall();
         };
-        // Android: Chrome decides when the app is installable; iPhone: right away.
-        window.addEventListener('beforeinstallprompt', () => setTimeout(tryOffer, 2500), { once: true });
+        // Android: Chrome decides when the app is installable (the event reaches the app window); iPhone: right away.
+        let host = window;
+        try { if (window.HubView) host = window.parent; } catch (e) {}
+        host.addEventListener('beforeinstallprompt', () => setTimeout(tryOffer, 2500), { once: true });
         setTimeout(tryOffer, 6000);
     }
 

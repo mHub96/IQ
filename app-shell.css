@@ -1,0 +1,122 @@
+/*
+ * App shell: the persistent frame (tab bar + one live view per tab).
+ * Views sit inside the safe areas: insets are not reported inside iframes, so the shell keeps
+ * pages clear of the notch and home indicator and paints those strips in the page colour.
+ */
+:root {
+  --app-bg: #F2F2F7;
+  --app-label: #000000;
+  --app-tint: #007AFF;
+  --app-fill: rgba(118, 118, 128, 0.12);
+  --app-glass: rgba(255, 255, 255, 0.62);
+  --app-glass-edge: rgba(255, 255, 255, 0.75);
+  --app-shadow: 0 10px 34px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --app-spring: cubic-bezier(0.32, 0.72, 0, 1);
+  --app-tabbar: 62px;
+  --app-tabbar-gap: 10px;
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+html.dark {
+  --app-bg: #000000;
+  --app-label: #FFFFFF;
+  --app-tint: #0A84FF;
+  --app-fill: rgba(118, 118, 128, 0.24);
+  --app-glass: rgba(37, 37, 40, 0.58);
+  --app-glass-edge: rgba(255, 255, 255, 0.14);
+  --app-shadow: 0 10px 34px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+html, body {
+  margin: 0; height: 100%; overflow: hidden;
+  background: var(--app-bg);
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Arabic", "IBM Plex Sans Arabic", system-ui, sans-serif; }
+
+#app-views {
+  position: fixed;
+  top: var(--sat); bottom: var(--sab); left: var(--sal); right: var(--sar);
+}
+.app-view {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border: 0; display: block;
+  background: var(--app-bg);
+  /* Hidden views keep their layout (pages measure themselves while loading) but cost no input. */
+  visibility: hidden; pointer-events: none;
+}
+.app-view.active { visibility: visible; pointer-events: auto; z-index: 1; }
+
+/* ---------- Tab bar: a floating glass capsule (phones) ---------- */
+#app-tabbar {
+  position: fixed; z-index: 10;
+  left: calc(12px + var(--sal)); right: calc(12px + var(--sar));
+  bottom: calc(var(--sab) + var(--app-tabbar-gap));
+  height: var(--app-tabbar);
+  padding: 4px; box-sizing: border-box;
+  display: flex; align-items: stretch; justify-content: space-between;
+  border-radius: 999px;
+  border: 0.5px solid var(--app-glass-edge);
+  background: var(--app-glass);
+  -webkit-backdrop-filter: saturate(190%) blur(22px);
+  backdrop-filter: saturate(190%) blur(22px);
+  box-shadow: var(--app-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.42s var(--app-spring), opacity 0.3s ease;
+}
+/* A page pop-up is open: the bar steps aside, as iOS does under a sheet. */
+#app-tabbar.covered { transform: translateY(calc(100% + var(--app-tabbar-gap) + var(--sab) + 8px)); opacity: 0; pointer-events: none; }
+#app-tabbar.off { display: none; }
+
+.app-tab {
+  position: relative; z-index: 1;
+  flex: 1 1 0; min-width: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  border-radius: 999px;
+  color: var(--app-label); text-decoration: none;
+  font-size: 10px; font-weight: 600; line-height: 1.1;
+  transition: color 0.25s ease, transform 0.18s var(--app-spring);
+  -webkit-user-select: none; user-select: none;
+}
+.app-tab i { font-size: 20px; }
+.app-tab span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.app-tab.active { color: var(--app-tint); }
+.app-tab:active { transform: scale(0.92); }
+
+/* The selection lozenge glides to the chosen tab. */
+.app-tab-pill {
+  position: absolute; z-index: 0; top: 4px; bottom: 4px; left: 0;
+  width: 0; border-radius: 999px;
+  background: var(--app-fill);
+  transition: transform 0.45s cubic-bezier(0.34, 1.36, 0.64, 1), width 0.45s var(--app-spring), opacity 0.2s ease;
+  opacity: 0;
+}
+.app-tab-pill.on { opacity: 1; }
+
+/* The install offer is a sheet inside the app; the old floating button is not used here. */
+#pwa-install-button { display: none !important; }
+
+/* Desktop keeps each page's own top navigation; the views simply switch in place. */
+@media (min-width: 769px) {
+  #app-tabbar { display: none; }
+}
+
+/* ---------- First launch: icon until the first view has painted ---------- */
+#app-splash {
+  position: fixed; inset: 0; z-index: 20;
+  display: grid; place-items: center;
+  background: var(--app-bg);
+  transition: opacity 0.35s ease;
+}
+#app-splash img { border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18); animation: app-splash 1.4s ease-in-out infinite alternate; }
+#app-splash.gone { opacity: 0; pointer-events: none; }
+@keyframes app-splash { from { transform: scale(0.96); } to { transform: scale(1.02); } }
+
+@media (prefers-reduced-motion: reduce) {
+  #app-tabbar, .app-tab, .app-tab-pill, #app-splash { transition: none; }
+  #app-splash img { animation: none; }
+}

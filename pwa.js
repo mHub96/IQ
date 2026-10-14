@@ -1,4 +1,13 @@
 (() => {
+  // A view inside the app shell: the shell window registers the service worker, receives the
+  // install prompt and remembers where the user was. Install calls go to the shell's HubPWA.
+  try {
+    if (window.parent !== window && window.parent.HubShell) {
+      Object.defineProperty(window, 'HubPWA', { configurable: true, get: () => window.parent.HubPWA });
+      return;
+    }
+  } catch (e) {}
+
   let deferredInstallPrompt = null;
 
   // ----- PWA State Persistence: Save last visited page -----

@@ -1,7 +1,8 @@
 // service-worker.js - Hospital Main Hub
-// Pages and scripts are served network-first so every deploy reaches installed apps on
-// their next launch; the cache is only the offline fallback. API calls are never cached.
-const CACHE_VERSION = 'v3.8.2';
+// The app's own files are served straight from the cache (instant, like an installed app) and
+// refreshed in the background; a deploy also bumps CACHE_VERSION, which re-downloads all of them
+// and reloads open pages once. API calls are never cached.
+const CACHE_VERSION = 'v3.9.0';
 // Next to the live site on the same origin (mhub96.github.io/IQ-new/), the beta's caches carry
 // their own prefix, and only those are ever cleaned up here: the live site's caches are left alone.
 const SCOPE_MATCH = /\/(IQ-[^/]+)\//i.exec(new URL(self.registration.scope).pathname);
@@ -12,6 +13,10 @@ const NETWORK_TIMEOUT_MS = 4000;
 
 const APP_SHELL = [
   './',
+  './app.html',
+  './app-shell.js',
+  './app-shell.css',
+  './app-view.js',
   './index.html',
   './Home.html',
   './emergency.html',
@@ -120,6 +125,28 @@ function networkFirst(request) {
   });
 }
 
+// The app's files: answer from the cache at once, fetch a fresh copy for next time.
+// Pages are matched without their query (?hospital=…), so every address of a page is instant.
+function cacheFirstRevalidate(request, event) {
+  const isPage = request.mode === 'navigate' || request.destination === 'document' || request.destination === 'iframe';
+  return caches.open(CACHE_NAME).then(cache =>
+    cache.match(request, { ignoreSearch: isPage }).then(cached => {
+      const network = fetch(request).then(response => {
+        if (response && response.ok && response.type === 'basic') {
+          const copy = response.clone();
+          cache.put(isPage ? new URL(request.url).pathname : request, copy).catch(() => {});
+        }
+        return response;
+      });
+      if (cached) {
+        if (event) event.waitUntil(network.catch(() => {}));
+        return cached;
+      }
+      return networkFirst(request);
+    })
+  );
+}
+
 function staleWhileRevalidate(request) {
   return caches.open(CDN_CACHE).then(cache =>
     cache.match(request).then(cached => {
@@ -142,7 +169,7 @@ self.addEventListener('fetch', event => {
   if (url.origin === self.location.origin) {
     // The old shared data file is no longer the source of truth; never serve it from cache.
     if (url.pathname.endsWith('/hub-data.json')) return;
-    event.respondWith(networkFirst(request));
+    event.respondWith(cacheFirstRevalidate(request, event));
     return;
   }
 
@@ -158,7 +185,7 @@ self.addEventListener('fetch', event => {
 self.addEventListener('push', event => {
   let msg = {};
   try { msg = event.data ? event.data.json() : {}; } catch (e) { msg = { title: 'Hosp Hub', body: event.data ? event.data.text() : '' }; }
-  const title = msg.title || 'ط¨ظˆط§ط¨ط© ط§ظ„ظ…ط³طھط´ظپظٹط§طھ';
+  const title = msg.title || 'بوابة المستشفيات';
   event.waitUntil(Promise.all([
     self.registration.showNotification(title, {
       body: msg.body || '',
@@ -180,7 +207,11 @@ self.addEventListener('notificationclick', event => {
   const target = new URL((event.notification.data && event.notification.data.url) || './index.html?portal=true', self.registration.scope).href;
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windows => {
-      const open = windows.find(w => w.url.startsWith(self.registration.scope));
+      const tops = windows.filter(w => w.frameType !== 'nested' && w.url.startsWith(self.registration.scope));
+      // The running app opens the screen in place (no reload); an older page is navigated.
+      const app = tops.find(w => new URL(w.url).pathname.endsWith('/app.html'));
+      if (app) { app.postMessage({ type: 'app:open', url: target }); return app.focus(); }
+      const open = tops[0];
       if (open) return open.navigate(target).then(w => (w || open).focus()).catch(() => open.focus());
       return self.clients.openWindow(target);
     })

@@ -881,6 +881,13 @@
         };
     }
 
+    // App shell: a tab's view that was out of sight for a while catches up as it is shown.
+    if (typeof window !== 'undefined') {
+        window.addEventListener('hub:view-shown', e => {
+            if (e.detail && e.detail.hiddenFor > 30 * 1000) scheduleRefresh(0);
+        });
+    }
+
     // Phones keep the app open for days: refresh when it comes back to the foreground.
     let hiddenAt = 0;
     if (typeof document !== 'undefined') {

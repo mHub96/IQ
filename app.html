@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <script src="./storage-scope.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="بوابة المستشفيات" />
+    <meta name="theme-color" content="#F2F2F7" />
+    <title>بوابة المستشفيات</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="./pwa-icon.svg" />
+    <link rel="apple-touch-icon" href="./pwa-icon.svg" />
+    <script>
+        // Paint the right colour before anything loads (no white flash in dark mode).
+        try { if (localStorage.getItem('hospital_hub_theme') === 'dark') document.documentElement.classList.add('dark'); } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="./app-shell.css" />
+    <script src="./pwa.js"></script>
+</head>
+<body>
+    <!-- One live view per tab; each page loads once and then stays running. -->
+    <div id="app-views" aria-live="polite"></div>
+
+    <!-- The tab bar belongs to the app, not to a page: it never reloads. -->
+    <nav id="app-tabbar" aria-label="التنقل الرئيسي">
+        <span class="app-tab-pill" aria-hidden="true"></span>
+        <a class="app-tab" data-tab="home" href="./index.html?portal=true"><i class="fas fa-hospital-alt"></i><span>الرئيسية</span></a>
+        <a class="app-tab" data-tab="schedule" href="./schedule.html"><i class="fas fa-calendar-week"></i><span>الجدول</span></a>
+        <a class="app-tab" data-tab="icu" href="./icu.html"><i class="fas fa-procedures"></i><span>العناية</span></a>
+        <a class="app-tab" data-tab="specialists" href="./specialists.html"><i class="fas fa-user-tie"></i><span>الاختصاص</span></a>
+        <a class="app-tab" data-tab="residents" href="./residents.html"><i class="fas fa-address-book"></i><span>المقيمين</span></a>
+        <a class="app-tab" data-tab="signup" href="./signup.html"><i class="fas fa-calendar-check"></i><span>تبديل</span></a>
+    </nav>
+
+    <div id="app-splash" aria-hidden="true"><img src="./pwa-icon.svg" alt="" width="84" height="84" /></div>
+
+    <script src="./app-shell.js"></script>
+</body>
+</html>

@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <script src="./storage-scope.js"></script>
+    <script src="./app-view.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -11,6 +12,9 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <script>
         (function() {
+            // Opened on its own, this page moves into the app shell (app-view.js), which restores the
+            // last screen itself; inside the shell nothing here must redirect.
+            if (window.parent === window || window.HubView) return;
             try {
                 const params = new URLSearchParams(window.location.search);
                 // If explicit portal visit, stay on portal and update last page

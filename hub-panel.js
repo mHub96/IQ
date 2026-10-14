@@ -57,7 +57,7 @@
             </header>
             <div class="hacc-tabs" role="tablist">
                 ${acc ? `<button type="button" role="tab" data-tab="profile">الملف الشخصي</button>
-                <button type="button" role="tab" data-tab="schedule">جدولي</button>
+                ${acc.role !== 'rotator' ? '<button type="button" role="tab" data-tab="schedule">جدولي</button>' : ''}
                 <button type="button" role="tab" data-tab="comments">تعليقاتي</button>` : ''}
                 <button type="button" role="tab" data-tab="settings">الإعدادات</button>
                 ${Hub.auth.isOwner() ? '<button type="button" role="tab" data-tab="admin">القطاع الإداري</button>' : ''}
@@ -71,6 +71,7 @@
             </footer>`, { label: 'لوحة الحساب', tall: true });
         if (!acc && tab !== 'admin') tab = 'settings';
         if (tab === 'admin' && !Hub.auth.isOwner()) tab = acc ? 'profile' : 'settings';
+        if (tab === 'schedule' && acc && acc.role === 'rotator') tab = 'profile';
         sheet.querySelector('[data-act="close"]').addEventListener('click', A.closeSheet);
         sheet.querySelector('[data-act="logout"]').addEventListener('click', logout);
         sheet.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => show(b.dataset.tab)));

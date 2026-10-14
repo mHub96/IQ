@@ -21,6 +21,8 @@ import { dutyDayNow } from './profile.js';
 const VISIT_COOLDOWN_MS = 60 * 1000;
 
 const ROLES = ['user', 'anaesthesia', 'admin', 'owner'];
+// Roles a login token may carry: the shared-password roles plus rotator (personal accounts only).
+const TOKEN_ROLES = [...ROLES, 'rotator'];
 const PAGE_ROWS = 1500;
 const HISTORY_KEEP_DAYS = 120;
 const LOGIN_FAIL_LIMIT = 20;
@@ -169,7 +171,7 @@ async function authenticate(request, env) {
   const m = header.match(/^Bearer\s+(.+)$/i);
   if (!m) return null;
   const payload = await verifyToken(env, m[1]);
-  if (!payload || !ROLES.includes(payload.r) || payload.e < Date.now()) return null;
+  if (!payload || !TOKEN_ROLES.includes(payload.r) || payload.e < Date.now()) return null;
   // Personal accounts have their own session counter (password change / ban signs them out).
   if (payload.a) return resolveAccountAuth(env, payload);
   if (payload.g !== await sessionGeneration(env)) return null;
@@ -197,7 +199,7 @@ function allowed(a, op) {
   const isNew = !op.bv;
   switch (op.c) {
     case 'sched':
-      return true; // every signed-in role can sign up for / exchange duties
+      return a.r !== 'rotator'; // every signed-in role except rotators (view and comment only) can exchange duties
     case 'icu':
       return a.r === 'anaesthesia' && inScope(a, op.h);
     case 'hospital':

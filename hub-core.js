@@ -1638,6 +1638,7 @@
     // DUTY & SCHEDULE MANAGEMENT
     // ============================================================
     async function exchangeDuty(hospitalId, specCode, newResidentName, targetDate = null, oldResidentName = null) {
+        if (auth.isRotator()) throw new Error('حساب الروتيتر للعرض والتعليق فقط');
         const hospital = getHospital(hospitalId);
         if (!hospital) throw new Error('المستشفى غير موجود');
 
@@ -3538,7 +3539,7 @@
                     return false;
                 }
             } catch (e) {}
-            return ['user', 'anaesthesia', 'admin', 'owner'].includes(role);
+            return ['user', 'anaesthesia', 'admin', 'owner', 'rotator'].includes(role);
         },
 
         getRole() {
@@ -3571,11 +3572,20 @@
         },
 
         isLoggedIn() {
-            return this.checkSession() && ['user', 'anaesthesia', 'admin', 'owner'].includes(this.getRole());
+            return this.checkSession() && ['user', 'anaesthesia', 'admin', 'owner', 'rotator'].includes(this.getRole());
         },
 
         isUser() {
-            return ['user', 'anaesthesia', 'admin', 'owner'].includes(this.getRole());
+            return ['user', 'anaesthesia', 'admin', 'owner', 'rotator'].includes(this.getRole());
+        },
+
+        /** Rotators (doctors on rotation) can view the site and comment, but not exchange duties. */
+        isRotator() {
+            return this.getRole() === 'rotator';
+        },
+
+        canExchangeDuties() {
+            return this.isLoggedIn() && this.getRole() !== 'rotator';
         },
 
         isOwner() {

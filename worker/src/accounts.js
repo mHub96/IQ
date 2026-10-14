@@ -17,7 +17,12 @@ const USERNAME_RE = /^[a-z0-9][a-z0-9._]{2,23}$/;
 const KEY_RE = /^[A-Za-z0-9+/]{43}=$/; // 32 bytes, base64
 const HOSP_RE = /^[\w-]{1,48}$/;
 const DEVICE_RE = /^[A-Za-z0-9_-]{16,64}$/;
-const ACCOUNT_ROLES = ['user', 'anaesthesia', 'admin', 'owner'];
+const ACCOUNT_ROLES = ['user', 'anaesthesia', 'admin', 'owner', 'rotator'];
+// Roles a hospital admin may give when approving or managing a resident of their hospital.
+const ADMIN_GIVES = ['user', 'anaesthesia'];
+// Roster specialty codes of anaesthesia residents (suggested role "anaesthesia" on their sign-up request).
+const ANAESTHESIA_CODES = ['A', 'ICU', 'OP', 'GA'];
+const ROTATOR_NAME_RE = /^[\p{L}][\p{L}\p{M} .'-]{3,59}$/u;
 const RESET_VALID_MS = 3 * DAY;
 const ACTIVE_WRITE_MS = 60 * 60 * 1000; // last_seen is refreshed at most hourly (D1 write budget)
 const PUBLIC_FIELDS = `id, username, name, phone, sex, hosp, resident_id, role, hospitals, status, max_devices,
@@ -31,6 +36,7 @@ export async function routeAccounts(path, method, request, env, auth, url, ctx) 
     case 'POST /api/accounts/check': return checkIdentity(request, env, ip);
     case 'GET /api/accounts/username': return usernameFree(env, url, ip);
     case 'POST /api/accounts/signup': return signup(request, env, ip, ctx);
+    case 'POST /api/accounts/signup-rotator': return signupRotator(request, env, ip, ctx);
     case 'POST /api/accounts/login': return accountLogin(request, env, ip);
     case 'POST /api/accounts/forgot': return forgot(request, env, ip, ctx);
     case 'POST /api/accounts/reset': return resetPassword(request, env, ip);
@@ -75,7 +81,7 @@ export async function routeAccounts(path, method, request, env, auth, url, ctx) 
 
 export function scopeOf(row) {
   if (row.role === 'owner') return ['*'];
-  if (row.role === 'user') return [];
+  if (row.role === 'user' || row.role === 'rotator') return [];
   try { return JSON.parse(row.hospitals || '[]'); } catch { return []; }
 }
 
@@ -104,6 +110,11 @@ function profile(row, stageMonth = 10) {
   const { pw, salt, anon_key, devices, ...rest } = row;
   const out = { ...rest, hospitals: scopeOf(row) };
   if ('avatar' in row) out.avatar = parseAvatar(row.avatar);
+  if ('roster_spec' in row) {
+    delete out.roster_spec;
+    // Pending requests: suggest the anaesthesia role for anaesthesia residents.
+    if (row.role === 'user' && (ANAESTHESIA_CODES.includes(row.roster_spec) || /تخدير|anaes|anest/i.test(row.specialty || ''))) out.suggested_role = 'anaesthesia';
+  }
   if ('board' in row) {
     out.stage_now = currentStage(row.stage, row.stage_ref, row.board_years, stageMonth);
     out.profile_complete = profileComplete(row);
@@ -274,6 +285,48 @@ async function signup(request, env, ip, ctx) {
     throw err;
   }
   return json({ ok: true, status: 'pending', name: match.name });
+}
+
+/**
+ * Rotators: doctors on rotation, not in the roster. Name, username, password, sex and the hospital
+ * they rotate in (whose admins approve them). They can view the site and comment, nothing more.
+ */
+async function signupRotator(request, env, ip, ctx) {
+  if (await overLimit(env, 'signup:' + ip, 10)) return json({ error: 'rate_limited' }, 429);
+  const body = await readJson(request);
+  if (!body) return json({ error: 'bad_request' }, 400);
+  const username = String(body.username || '').trim().toLowerCase();
+  const key = String(body.key || '');
+  const hosp = String(body.hosp || '');
+  const name = plainText(body.name, 60).replace(/\s+/g, ' ');
+  const sex = body.sex === 'f' ? 'f' : body.sex === 'm' ? 'm' : null;
+  const lang = body.lang === 'en' ? 'en' : 'ar';
+  if (!sex) return json({ error: 'bad_sex' }, 400);
+  if (!ROTATOR_NAME_RE.test(name) || name.split(' ').filter(Boolean).length < 2) return json({ error: 'bad_name' }, 400);
+  if (!USERNAME_RE.test(username)) return json({ error: 'bad_username' }, 400);
+  if (!KEY_RE.test(key)) return json({ error: 'bad_key' }, 400);
+  if (!HOSP_RE.test(hosp) || !(await env.DB.prepare("SELECT 1 AS ok FROM records WHERE coll = 'hospital' AND id = ?").bind(hosp).first())) return json({ error: 'bad_hospital' }, 400);
+
+  const now = Date.now();
+  const id = crypto.randomUUID();
+  const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
+  const pw = await sha256b64(salt + key);
+  const note = JSON.stringify({ id, name, username, hosp, rotator: true });
+  try {
+    const results = await withUniqueNick(sex, lang, (tag, tagKey) => env.DB.batch([
+      // name_key is private to the account so a rotator never receives a resident's duty-card notifications.
+      env.DB.prepare(
+        `INSERT INTO accounts (id, username, pw, salt, name, name_key, phone, sex, hosp, resident_id, role, anon_tag, anon_key, anon_lang, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, '', ?, ?, NULL, 'rotator', ?, ?, ?, ?)`
+      ).bind(id, username, pw, salt, name, 'rotator:' + id, sex, hosp, tag, tagKey, lang, now),
+      notifyApprovers(env, hosp, 'signup:' + id, 'signup_request', note, now),
+    ]));
+    dispatchPush(env, ctx, results[1]);
+  } catch (err) {
+    if (/accounts\.username/.test(String(err && err.message || err))) return json({ error: 'username_taken' }, 409);
+    throw err;
+  }
+  return json({ ok: true, status: 'pending', name });
 }
 
 // ---------------------------------------------------------------------------
@@ -629,6 +682,7 @@ async function listAccounts(env, auth, url) {
     all: '1',
   }[filter] || "status = 'pending'";
   const fields = `${PUBLIC_FIELDS},
+    (SELECT COALESCE(json_extract(data, '$.spec'), json_extract(data, '$.dept')) FROM records WHERE coll = 'resident' AND id = accounts.resident_id) AS roster_spec,
     (SELECT json_group_array(json_object('id', device_id, 'label', label, 'first', first_seen, 'last', last_seen))
        FROM account_devices d WHERE d.account_id = accounts.id) AS devices`;
   const stmt = seesAll(auth)
@@ -652,7 +706,8 @@ async function decide(request, env, auth, ctx) {
   const row = await env.DB.prepare('SELECT * FROM accounts WHERE id = ?').bind(String(body.id || '')).first();
   if (!row) return json({ error: 'not_found' }, 404);
   const isOwner = auth.r === 'owner';
-  if (!isOwner && (!hospInScope(auth, row.hosp) || row.role !== 'user' || row.id === auth.a)) return json({ error: 'forbidden' }, 403);
+  // Admins manage residents (regular / anaesthesia) and rotators of their own hospitals, never themselves.
+  if (!isOwner && (!hospInScope(auth, row.hosp) || !['user', 'anaesthesia', 'rotator'].includes(row.role) || row.id === auth.a)) return json({ error: 'forbidden' }, 403);
 
   const now = Date.now();
   const by = auth.a ? `${auth.r}:${auth.name || auth.a}` : auth.r;
@@ -665,11 +720,17 @@ async function decide(request, env, auth, ctx) {
 
   let role = row.role, hospitals = scopeOf(row);
   if (body.role !== undefined || body.hospitals !== undefined) {
-    if (!isOwner) return json({ error: 'forbidden' }, 403);
-    role = ACCOUNT_ROLES.includes(body.role) ? body.role : row.role;
-    hospitals = Array.isArray(body.hospitals) ? body.hospitals.map(String).filter(h => h === '*' || HOSP_RE.test(h)).slice(0, 50) : hospitals;
-    if (role !== 'user' && role !== 'owner' && !hospitals.length) hospitals = [row.hosp];
-    stmts.push(env.DB.prepare('UPDATE accounts SET role = ?, hospitals = ? WHERE id = ?').bind(role, JSON.stringify(role === 'user' || role === 'owner' ? [] : hospitals), row.id));
+    if (isOwner) {
+      role = ACCOUNT_ROLES.includes(body.role) ? body.role : row.role;
+      hospitals = Array.isArray(body.hospitals) ? body.hospitals.map(String).filter(h => h === '*' || HOSP_RE.test(h)).slice(0, 50) : hospitals;
+    } else {
+      // Admins: regular or anaesthesia resident only, for their own hospital; rotators stay rotators.
+      if (body.hospitals !== undefined || !ADMIN_GIVES.includes(body.role) || !ADMIN_GIVES.includes(row.role)) return json({ error: 'forbidden' }, 403);
+      role = body.role;
+      hospitals = [row.hosp];
+    }
+    if (!['user', 'owner', 'rotator'].includes(role) && !hospitals.length) hospitals = [row.hosp];
+    stmts.push(env.DB.prepare('UPDATE accounts SET role = ?, hospitals = ? WHERE id = ?').bind(role, JSON.stringify(['user', 'owner', 'rotator'].includes(role) ? [] : hospitals), row.id));
   }
   if (body.maxDevices !== undefined) {
     const n = Math.max(0, Math.min(20, Math.floor(Number(body.maxDevices) || 0)));
@@ -701,7 +762,7 @@ async function decide(request, env, auth, ctx) {
       stmts.push(env.DB.prepare('UPDATE accounts SET reset = NULL, reset_at = NULL WHERE id = ?').bind(row.id));
       break;
     case 'set_role':
-      if (!isOwner) return json({ error: 'forbidden' }, 403);
+      if (body.role === undefined) return json({ error: 'bad_request' }, 400);
       if (role !== row.role || JSON.stringify(hospitals) !== JSON.stringify(scopeOf(row))) {
         notes.push(stmts.push(notifyOne(env, row.id, 'role', 'role_changed', JSON.stringify({ role, hospitals }), now)) - 1);
       }

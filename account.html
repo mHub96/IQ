@@ -127,6 +127,14 @@
         .badge.role { background: var(--hacc-accent-soft); color: var(--hacc-accent); }
         .acc-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
         .acc-actions .hacc-btn { flex: 1; min-width: 110px; }
+        .approve-as { flex: 1 1 100%; display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 800; color: var(--hacc-muted); }
+        .approve-as select { flex: 1; min-height: 42px; }
+        .acc-sub.suggest { color: #0a7d55; font-weight: 700; }
+        body.dark .acc-sub.suggest { color: #5fd3a3; }
+        /* Account kind on the sign-up page (resident / rotator). */
+        .seg.su-kind { grid-template-columns: 1fr 1fr; }
+        .seg.su-kind button { border: 0; background: transparent; padding: 10px 4px; border-radius: 11px; color: var(--hacc-muted); font: inherit; font-weight: 800; font-size: 0.82rem; cursor: pointer; }
+        .seg.su-kind button[aria-selected="true"] { background: var(--hacc-bg); color: var(--hacc-accent); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
         .hacc-btn.danger { color: var(--hacc-danger); }
         .hacc-btn.good { background: #059669; border-color: #059669; color: #fff; }
         .role-edit { display: grid; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--hacc-border); }
@@ -246,6 +254,10 @@
                 <a href="#signup" aria-current="page">حساب جديد</a>
                 <a href="#forgot">نسيت كلمة المرور</a>
             </nav>
+            <div class="seg su-kind" role="tablist" aria-label="نوع الحساب">
+                <button type="button" role="tab" data-kind="resident" aria-selected="true">👨‍⚕️ مقيم في جدول المستشفى</button>
+                <button type="button" role="tab" data-kind="rotator" aria-selected="false">🔄 روتيتر</button>
+            </div>
             <form class="card" id="signup-form" novalidate>
                 <h2>إنشاء حساب جديد</h2>
                 <p class="lead">نتحقق من اسمك ورقم هاتفك مقارنةً بجدول المستشفى أثناء الكتابة، ثم يُرسل طلبك إلى مالك المنظومة ومدراء مستشفاك للموافقة.</p>
@@ -297,6 +309,46 @@
                 </fieldset>
                 <button class="hacc-btn primary btn-block" type="submit" id="su-submit" disabled>إرسال طلب الموافقة</button>
                 <div class="msg" id="su-msg" role="alert"></div>
+            </form>
+            <form class="card" id="rotator-form" novalidate hidden>
+                <h2>حساب روتيتر</h2>
+                <p class="lead">للأطباء في فترة الروتيشن غير المسجلين في جدول الخفارات: تصفح الموقع وكتابة التعليقات فقط. يُرسل طلبك إلى مالك المنظومة ومدراء المستشفى الذي تدور فيه للموافقة.</p>
+                <div class="field">
+                    <label for="ro-hosp">المستشفى الذي تدور فيه حالياً</label>
+                    <select id="ro-hosp" required><option value="">جاري تحميل المستشفيات…</option></select>
+                </div>
+                <div class="field">
+                    <label for="ro-name">الاسم الكامل</label>
+                    <input id="ro-name" autocomplete="name" maxlength="60" placeholder="مثال: د. سارة محمد علي" required />
+                    <div class="hint" id="ro-name-hint">الاسم الثلاثي كما تحب أن يظهر في التعليقات.</div>
+                </div>
+                <div class="field">
+                    <span class="field-label" style="display:block;font-size:0.8rem;font-weight:800;margin-bottom:6px">الجنس</span>
+                    <div class="sex-pick" role="radiogroup" aria-label="الجنس">
+                        <label><input type="radio" name="ro-sex" value="m" required /><span>👨‍⚕️ ذكر</span></label>
+                        <label><input type="radio" name="ro-sex" value="f" /><span>👩‍⚕️ أنثى</span></label>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="ro-user">اسم المستخدم (للدخول)</label>
+                    <input id="ro-user" dir="ltr" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="e.g. s.ali" maxlength="24" required />
+                    <div class="hint" id="ro-user-hint">٣–٢٤ حرفاً: أحرف إنجليزية صغيرة وأرقام و . و _</div>
+                </div>
+                <div class="field">
+                    <label for="ro-pass">كلمة المرور</label>
+                    <div class="pw-wrap">
+                        <input id="ro-pass" type="password" dir="ltr" autocomplete="new-password" minlength="8" required />
+                        <button type="button" class="pw-eye" aria-label="إظهار كلمة المرور"><i class="fas fa-eye"></i></button>
+                    </div>
+                    <div class="hint" id="ro-pass-hint">٨ أحرف على الأقل.</div>
+                </div>
+                <div class="field">
+                    <label for="ro-pass2">تأكيد كلمة المرور</label>
+                    <input id="ro-pass2" type="password" dir="ltr" autocomplete="new-password" required />
+                    <div class="hint" id="ro-pass2-hint"></div>
+                </div>
+                <button class="hacc-btn primary btn-block" type="submit" id="ro-submit" disabled>إرسال طلب الموافقة</button>
+                <div class="msg" id="ro-msg" role="alert"></div>
             </form>
             <div class="card done" id="su-done" hidden>
                 <div class="big">📨</div>
@@ -490,8 +542,77 @@
                 .map(h => `<option value="${esc(h.id)}">${esc(h.name_ar || h.hospitalName || h.id)}</option>`).join('');
             const active = Hub.getActiveHospitalId && Hub.getActiveHospitalId();
             if (active && hospitals.some(h => h.id === active)) sel.value = active;
+            $('ro-hosp').innerHTML = sel.innerHTML;
+            $('ro-hosp').value = sel.value;
             paintSteps();
         }
+
+        // -------------------- Sign up as a rotator --------------------
+        const ro = { userFree: false };
+        document.querySelectorAll('.su-kind [data-kind]').forEach(b => b.addEventListener('click', () => {
+            const rot = b.dataset.kind === 'rotator';
+            document.querySelectorAll('.su-kind [data-kind]').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+            $('signup-form').hidden = rot;
+            $('rotator-form').hidden = !rot;
+            $('su-done').hidden = true;
+        }));
+        const roSex = () => (document.querySelector('input[name="ro-sex"]:checked') || {}).value || '';
+        const roNameOk = () => { const n = $('ro-name').value.trim().replace(/\s+/g, ' '); return n.length >= 5 && n.split(' ').length >= 2; };
+        const roPassOk = () => $('ro-pass').value.length >= 8 && $('ro-pass').value === $('ro-pass2').value;
+        const roUpdate = () => { $('ro-submit').disabled = !($('ro-hosp').value && roNameOk() && roSex() && ro.userFree && roPassOk()); };
+        const roCheckUser = debounce(async () => {
+            const u = $('ro-user').value.trim().toLowerCase();
+            const hint = $('ro-user-hint');
+            ro.userFree = false;
+            roUpdate();
+            if (!u) { setMsg(hint, '٣–٢٤ حرفاً: أحرف إنجليزية صغيرة وأرقام و . و _'); return; }
+            if (!USERNAME_RE.test(u)) { setMsg(hint, 'استخدم أحرفاً إنجليزية صغيرة وأرقاماً و . و _ فقط (٣ أحرف على الأقل).', 'bad'); return; }
+            setMsg(hint, 'جاري التحقق من توفر الاسم…', 'wait');
+            try {
+                const res = await Hub.api('GET', '/api/accounts/username?u=' + encodeURIComponent(u), undefined, { useToken: false, retries: 1 });
+                if ($('ro-user').value.trim().toLowerCase() !== u) return;
+                ro.userFree = !!res.free;
+                setMsg(hint, res.free ? '✓ الاسم متاح' : '✗ هذا الاسم مستخدم، اختر اسماً آخر', res.free ? 'ok' : 'bad');
+            } catch (err) { setMsg(hint, errorText(err), 'bad'); }
+            roUpdate();
+        }, 450);
+        $('ro-user').addEventListener('input', e => {
+            const lower = e.target.value.toLowerCase().replace(/\s/g, '');
+            if (lower !== e.target.value) e.target.value = lower;
+            roCheckUser();
+        });
+        const roPaintPass = () => {
+            const p = $('ro-pass').value, p2 = $('ro-pass2').value;
+            setMsg($('ro-pass-hint'), !p ? '٨ أحرف على الأقل.' : p.length < 8 ? 'قصيرة جداً (٨ أحرف على الأقل).' : '✓', p && p.length < 8 ? 'bad' : (p ? 'ok' : ''));
+            setMsg($('ro-pass2-hint'), p2 ? (p2 === p ? '✓ متطابقة' : '✗ غير متطابقة') : '', p2 ? (p2 === p ? 'ok' : 'bad') : '');
+            roUpdate();
+        };
+        $('ro-pass').addEventListener('input', roPaintPass);
+        $('ro-pass2').addEventListener('input', roPaintPass);
+        $('ro-name').addEventListener('input', () => { setMsg($('ro-name-hint'), roNameOk() || !$('ro-name').value ? 'الاسم الثلاثي كما تحب أن يظهر في التعليقات.' : 'اكتب الاسم الأول والثاني على الأقل.', roNameOk() || !$('ro-name').value ? '' : 'bad'); roUpdate(); });
+        $('ro-hosp').addEventListener('change', roUpdate);
+        document.querySelectorAll('input[name="ro-sex"]').forEach(r => r.addEventListener('change', roUpdate));
+        $('rotator-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            if ($('ro-submit').disabled) return;
+            const msg = $('ro-msg');
+            const username = $('ro-user').value.trim().toLowerCase();
+            const hosp = $('ro-hosp').value;
+            $('ro-submit').disabled = true;
+            setMsg(msg, 'جاري تأمين كلمة المرور وإرسال الطلب…');
+            try {
+                const key = await Hub.auth.deriveAccountKey(username, $('ro-pass').value);
+                const res = await Hub.api('POST', '/api/accounts/signup-rotator', { hosp, name: $('ro-name').value.trim(), username, key, sex: roSex() }, { useToken: false, retries: 0 });
+                $('rotator-form').hidden = true;
+                $('su-done').hidden = false;
+                $('su-done-text').textContent = `أهلاً ${res.name}! أُرسل طلب حساب الروتيتر إلى مالك المنظومة ومدراء ${hospitalName(hosp)}. يمكنك تسجيل الدخول باسم المستخدم «${username}» بعد الموافقة.`;
+                $('si-user').value = username;
+            } catch (err) {
+                const code = err && err.data && err.data.error;
+                setMsg(msg, ({ username_taken: 'اسم المستخدم أصبح مستخدماً، اختر اسماً آخر.', bad_name: 'اكتب الاسم الأول والثاني على الأقل (أحرف فقط).', bad_sex: 'اختر الجنس.', bad_hospital: 'اختر المستشفى.' })[code] || errorText(err), 'bad');
+                roUpdate();
+            }
+        });
 
         function paintSteps() {
             const s1 = !!($('su-hosp').value && $('su-name').value.trim() && $('su-phone').value.trim());
@@ -802,11 +923,15 @@
             }
             const hospitals = Hub.getHospitals();
             $('mg-list').innerHTML = items.map(a => {
-                const canManage = isOwner || (a.role === 'user' && a.id !== myId);
+                const canManage = isOwner || (['user', 'anaesthesia', 'rotator'].includes(a.role) && a.id !== myId);
+                // Role on approval: admins give regular / anaesthesia resident; rotators stay rotators.
+                const roleChoices = isOwner ? ['user', 'anaesthesia', 'admin', 'owner', 'rotator'] : (a.role === 'rotator' ? [] : ['user', 'anaesthesia']);
+                const proposed = a.status === 'pending' && a.role === 'user' && a.suggested_role ? a.suggested_role : a.role;
+                const rolePick = roleChoices.length > 1 ? `<select data-role="approve-role" aria-label="الصلاحية عند الموافقة">${roleChoices.map(r => `<option value="${r}" ${proposed === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>` : '';
                 const statusText = { pending: 'بانتظار الموافقة', active: 'مفعّل', disabled: 'موقوف', rejected: 'مرفوض' }[a.status] || a.status;
                 const actions = [];
                 if (canManage) {
-                    if (a.status === 'pending') actions.push('<button class="hacc-btn good" data-act="approve">✓ موافقة</button>', '<button class="hacc-btn danger" data-act="reject">✗ رفض</button>');
+                    if (a.status === 'pending') actions.push(rolePick ? `<label class="approve-as">الموافقة بصلاحية ${rolePick}</label>` : '', '<button class="hacc-btn good" data-act="approve">✓ موافقة</button>', '<button class="hacc-btn danger" data-act="reject">✗ رفض</button>');
                     if (a.reset === 'requested') actions.push('<button class="hacc-btn good" data-act="approve_reset">🔓 السماح بتغيير كلمة المرور</button>', '<button class="hacc-btn" data-act="deny_reset">تجاهل الطلب</button>');
                     if (a.status === 'active' && mg.filter !== 'resets') actions.push('<button class="hacc-btn danger" data-act="disable">إيقاف الحساب</button>');
                     if (a.status === 'disabled') actions.push('<button class="hacc-btn" data-act="enable">إعادة التفعيل</button>');
@@ -815,8 +940,11 @@
                 const limit = a.max_devices || 0;
                 const limitMode = limit === 0 ? '0' : limit === 1 ? '1' : 'n';
                 const editor = canManage && a.status !== 'rejected' ? `<details class="edit-wrap"><summary class="hacc-link">⚙️ الصلاحيات والأجهزة</summary><div class="editor">
+                    ${!isOwner && ['user', 'anaesthesia'].includes(a.role) && a.status !== 'pending' ? `<div><h4>الصلاحية</h4>
+                        <select data-role="role" style="margin-top:6px">${['user', 'anaesthesia'].map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
+                        <button class="hacc-btn primary sm" data-act="set_role" style="margin-top:8px">حفظ الصلاحية</button></div>` : ''}
                     ${isOwner ? `<div><h4>الصلاحية</h4>
-                        <select data-role="role" style="margin-top:6px">${['user', 'anaesthesia', 'admin', 'owner'].map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
+                        <select data-role="role" style="margin-top:6px">${['user', 'anaesthesia', 'admin', 'owner', 'rotator'].map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
                         <div class="hosp-pick" data-role="hosps" style="margin-top:8px" ${['admin', 'anaesthesia'].includes(a.role) ? '' : 'hidden'}>
                             <label><input type="checkbox" value="*" ${scope.includes('*') ? 'checked' : ''}><span>كل المستشفيات</span></label>
                             ${hospitals.map(h => `<label><input type="checkbox" value="${esc(h.id)}" ${scope.includes(h.id) || (!scope.length && h.id === a.hosp) ? 'checked' : ''}><span>${esc(h.name_ar || h.hospitalName || h.id)}</span></label>`).join('')}
@@ -851,8 +979,9 @@
                     <div class="acc-head">${HubAccounts.avatarHtml(a, 42)}
                     <div style="min-width:0;flex:1"><div class="acc-name">${esc(a.name)}
                         <span class="badge ${esc(a.status)}">${esc(statusText)}</span>${a.role !== 'user' ? `<span class="badge role">${esc(ROLE_NAMES[a.role] || a.role)}</span>` : ''}${a.reset === 'requested' ? '<span class="badge pending">طلب كلمة مرور</span>' : ''}${a.max_devices ? `<span class="badge role">🔒 ${esc(limitText(a.max_devices))}</span>` : ''}</div>
-                    <div class="acc-sub"><span dir="ltr">@${esc(a.username)}</span> · ${esc(SEX[a.sex] || '')} · ${esc(hospitalName(a.hosp))} · <a href="tel:${esc(localPhone(a.phone))}" dir="ltr">${esc(localPhone(a.phone))}</a></div>
-                    <div class="acc-sub">${profileLine(a)}</div>
+                    <div class="acc-sub"><span dir="ltr">@${esc(a.username)}</span> · ${esc(SEX[a.sex] || '')} · ${esc(hospitalName(a.hosp))}${a.phone ? ` · <a href="tel:${esc(localPhone(a.phone))}" dir="ltr">${esc(localPhone(a.phone))}</a>` : ''}</div>
+                    ${a.role === 'rotator' ? '<div class="acc-sub">🔄 روتيتر: تصفح الموقع والتعليق فقط، بلا تبديل خفارات.</div>' : `<div class="acc-sub">${profileLine(a)}</div>`}
+                    ${a.status === 'pending' && a.suggested_role === 'anaesthesia' ? '<div class="acc-sub suggest">💉 مقترح: <b>مقيم تخدير</b> (اختصاصه التخدير في جدول المستشفى)</div>' : ''}
                     <div class="acc-sub">${a.status === 'pending' ? 'طلب ' : 'أُنشئ '}${esc(timeAgo(a.created_at))}${a.decided_by ? ' · بواسطة ' + esc(String(a.decided_by).replace(/^\w+:/, '')) : ''}${a.last_seen ? ' · آخر ظهور ' + esc(timeAgo(a.last_seen)) : ''}</div></div></div>
                     ${actions.length ? `<div class="acc-actions">${actions.join('')}</div>` : ''}${editor}</article>`;
             }).join('');
@@ -862,7 +991,8 @@
                 sel.parentElement.querySelector('[data-role="limit-n"]').hidden = sel.value !== 'n';
             }));
             $('mg-list').querySelectorAll('[data-role="role"]').forEach(sel => sel.addEventListener('change', () => {
-                sel.parentElement.querySelector('[data-role="hosps"]').hidden = !['admin', 'anaesthesia'].includes(sel.value);
+                const hosps = sel.parentElement.querySelector('[data-role="hosps"]');
+                if (hosps) hosps.hidden = !['admin', 'anaesthesia'].includes(sel.value);
             }));
         }
 
@@ -874,8 +1004,18 @@
             const body = { id, action };
             if (action === 'set_role') {
                 body.role = card.querySelector('[data-role="role"]').value;
-                body.hospitals = [...card.querySelectorAll('[data-role="hosps"] input:checked')].map(i => i.value);
-                if (['admin', 'anaesthesia'].includes(body.role) && !body.hospitals.length) { toast('اختر مستشفى واحداً على الأقل.', 'error'); return; }
+                if (Hub.auth.isOwner()) {
+                    body.hospitals = [...card.querySelectorAll('[data-role="hosps"] input:checked')].map(i => i.value);
+                    if (['admin', 'anaesthesia'].includes(body.role) && !body.hospitals.length) { toast('اختر مستشفى واحداً على الأقل.', 'error'); return; }
+                }
+            }
+            if (action === 'approve') {
+                const pick = card.querySelector('[data-role="approve-role"]');
+                if (pick) {
+                    body.role = pick.value;
+                    // The owner approving an anaesthesia resident or admin: scope = the account's hospital.
+                    if (Hub.auth.isOwner() && ['admin', 'anaesthesia'].includes(body.role)) body.hospitals = [a.hosp];
+                }
             }
             if (action === 'set_profile') {
                 const f = name => card.querySelector(`[data-role="profile"] [data-f="${name}"]`).value;
@@ -896,6 +1036,7 @@
                 remove_device: 'إلغاء ربط هذا الجهاز؟ سيتم تسجيل خروجه فوراً.',
                 reset_devices: `إلغاء ربط كل أجهزة ${a.name}؟ سيتم تسجيل خروجه منها.`,
                 set_role: body.role !== a.role ? `تغيير صلاحية ${a.name} إلى «${ROLE_NAMES[body.role]}»؟` : null,
+                approve: body.role && body.role !== 'user' && body.role !== a.role ? `الموافقة على ${a.name} بصلاحية «${ROLE_NAMES[body.role]}»؟` : null,
             }[action];
             if (confirmText && !confirm(confirmText)) return;
             btn.disabled = true;

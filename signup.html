@@ -534,6 +534,11 @@
                 window.location.href = './index.html';
                 return;
             }
+            // Rotators view and comment only; the duty exchange is for the hospital's residents.
+            if (Hub.auth.isRotator && Hub.auth.isRotator()) {
+                window.location.replace('./Home.html');
+                return;
+            }
 
             initUniversalNav('signup');
 

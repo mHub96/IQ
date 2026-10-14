@@ -71,6 +71,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Arabic
 /* A page pop-up is open: the bar steps aside, as iOS does under a sheet. */
 #app-tabbar.covered { transform: translateY(calc(100% + var(--app-tabbar-gap) + var(--sab) + 8px)); opacity: 0; pointer-events: none; }
 #app-tabbar.off { display: none; }
+/* Rotators view and comment only: no duty exchange tab. */
+#app-tabbar.rotator .app-tab[data-tab="signup"] { display: none; }
 
 .app-tab {
   position: relative; z-index: 1;

@@ -14,6 +14,7 @@
 
 import { DAY, json, signToken, verifyToken, encrypt, decrypt, bucketOf } from './lib.js';
 import { routeAccounts, resolveAccountAuth } from './accounts.js';
+import { routeDuties } from './duties.js';
 import { nameKey } from './names.js';
 import { dutyDayNow } from './profile.js';
 
@@ -67,6 +68,8 @@ async function route(request, env, ctx) {
     return auth ? json({ ok: true, role: auth.r, adminHospitals: auth.h, exp: auth.e, account: auth.a || null }) : json({ error: 'unauthorized' }, 401);
   }
   if (path === '/api/db' && method === 'GET') return readRecords(env, auth, url, false);
+  const dutiesRoute = await routeDuties(path, method, request, env, auth, url, ctx);
+  if (dutiesRoute) return dutiesRoute;
   const accountRoute = await routeAccounts(path, method, request, env, auth, url, ctx);
   if (accountRoute) return accountRoute;
 

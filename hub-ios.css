@@ -148,6 +148,10 @@ body.dark .ios-segment-btn.active, body.dark .hp-seg button[aria-pressed="true"]
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04);
 }
 body.dark .hacc-tabs button[aria-selected="true"] { background: #636366 !important; }
+/* Four or five tabs (account panel) stay on one line; they scroll sideways if they do not fit. */
+.hacc-tabs[role="tablist"] { overflow-x: auto; scrollbar-width: none; }
+.hacc-tabs[role="tablist"]::-webkit-scrollbar { display: none; }
+.hacc-tabs button { flex: 1 0 auto !important; white-space: nowrap; font-size: 0.82rem !important; padding: 7px 10px !important; }
 
 /* ---------- Inputs: filled, borderless, rounded ---------- */
 .hacc-composer textarea, .hacc-field input, .hacc-field select, .hacc-field textarea {

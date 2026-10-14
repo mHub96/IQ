@@ -294,12 +294,30 @@ function notifyApprovers(env, hosp, gkey, type, data, now) {
   ).bind(gkey, type, data, now, hosp);
 }
 
+/** Notification for every active account registered at `hosp` (e.g. the ER preferences portal opened). */
+export function notifyHospitalResidents(env, hosp, gkey, type, data, now) {
+  return env.DB.prepare(
+    `INSERT INTO notifications (account_id, gkey, type, data, ts, seen)
+     SELECT id, ?1, ?2, ?3, ?4, 0 FROM accounts WHERE status = 'active' AND hosp = ?5
+     ON CONFLICT (account_id, gkey) DO UPDATE SET data = excluded.data, ts = excluded.ts, seen = 0
+     ${RETURNING}`
+  ).bind(gkey, type, data, now, hosp);
+}
+
 function notifyOne(env, accountId, gkey, type, data, now) {
   return env.DB.prepare(
     `INSERT INTO notifications (account_id, gkey, type, data, ts, seen) VALUES (?1, ?2, ?3, ?4, ?5, 0)
      ON CONFLICT (account_id, gkey) DO UPDATE SET data = excluded.data, ts = excluded.ts, seen = 0
      ${RETURNING}`
   ).bind(accountId, gkey, type, data, now);
+}
+
+const MONTH_AR = ['', 'كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'];
+/** Deadline in Iraq time, e.g. "20/10 الساعة 23:59". */
+function closesText(ms) {
+  const d = new Date(Number(ms) + 3 * 3600 * 1000);
+  if (isNaN(d)) return '';
+  return `${d.getUTCDate()}/${d.getUTCMonth() + 1} الساعة ${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
 }
 
 const ROLE_AR = { owner: 'المالك', admin: 'مدير مستشفى', anaesthesia: 'مقيم تخدير', user: 'مقيم' };
@@ -319,12 +337,13 @@ function pushMessage(n) {
     case 'account_approved': return { title: '✅ تم تفعيل حسابك', body: 'أهلاً بك في بوابة المستشفيات!', url: './index.html?portal=true' };
     case 'reset_approved': return { title: '🔓 تمت الموافقة', body: 'يمكنك الآن اختيار كلمة مرور جديدة.', url: './account.html#forgot' };
     case 'role_changed': return { title: '⭐ تغيّرت صلاحياتك', body: `صلاحيتك الآن: ${ROLE_AR[d.role] || d.role || ''}`, url: './account.html' };
+    case 'er_portal': return { title: d.extended ? '🗓️ تمديد بوابة رغبات الطوارئ' : '🗓️ بوابة رغبات خفارات الطوارئ مفتوحة', body: `اختر رغباتك لجدول ${MONTH_AR[Number(String(d.ym || '').slice(5))] || ''} ${String(d.ym || '').slice(0, 4)} قبل ${closesText(d.closes)}`, url: './index.html?portal=true#panel=schedule' };
     default: return { title: '🔔 إشعار جديد', body: '', url: './index.html?portal=true' };
   }
 }
 
 /** Sends a push for every notification row returned by an INSERT ... RETURNING, after the response. */
-function dispatchPush(env, ctx, ...stmtResults) {
+export function dispatchPush(env, ctx, ...stmtResults) {
   const rows = stmtResults.flatMap(r => (r && r.results) || []);
   if (!rows.length || !env.VAPID_PRIVATE) return;
   const job = (async () => {

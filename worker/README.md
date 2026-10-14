@@ -129,6 +129,9 @@ which is git-ignored):
 | `GET /api/accounts/anon-check`, `POST /api/accounts/anon`, `POST /api/accounts/devices/remove`, `POST /api/push/subscribe`, `POST /api/push/unsubscribe`, `POST /api/push/test` | personal accounts |
 | `POST /api/accounts/password`, `POST /api/social/like`, `POST /api/social/comment`, `POST /api/social/comment/delete` | personal accounts (delete: also owner / hospital admins) |
 | `GET /api/accounts?filter=pending\|resets\|active\|all`, `POST /api/accounts/decide`, `GET /api/social/recent` | owner (all), hospital admins (own hospitals) |
+| `GET /api/accounts/my-duties?ym=YYYY-MM`, `POST /api/accounts/duty-mark` | personal accounts ("My Schedule": own duties + own marks) |
+| `GET /api/er-portal/mine`, `POST /api/er-portal/mine` | personal accounts (ER preferences while their hospital's portal is open) |
+| `GET /api/er-portal?hosp=&ym=`, `POST /api/er-portal/open\|close\|applied` | owner, admins of that hospital |
 
 ## Deploying the beta
 
@@ -140,6 +143,7 @@ npx wrangler d1 execute hosp-hub --remote --file migrations/0002_accounts.sql   
 npx wrangler d1 execute hosp-hub --remote --file migrations/0003_profiles.sql   # once (additive)
 npx wrangler d1 execute hosp-hub --remote --file migrations/0004_avatars.sql    # once (additive)
 npx wrangler d1 execute hosp-hub --remote --file migrations/0005_visit_cooldown.sql  # once (additive)
+npx wrangler d1 execute hosp-hub --remote --file migrations/0007_my_schedule_er_portal.sql  # once (additive)
 ```
 
 Apply a new migration **before** deploying Worker code that uses it, and check it succeeded. If `--file`
@@ -158,6 +162,19 @@ After editing pages: `cd tools && npm install && npm run css` rebuilds `tailwind
   API (`visit_cooldown`, migration 0005): the person is the account, else the device, else the connection.
 - The portal opens on the user's own hospital(s) (account hospital + administered ones); "all" is one tap away
   and remembered.
+
+## My Schedule and the ER preferences portal
+
+- **My Schedule** (account panel tab "جدولي", `hub-myschedule.js` + `.css`, loaded on first use): the month's
+  duties from the resident's hospital roster and the ER scheduler's month record
+  (`hosp_hub_emergency_sched_<hospital>_<year>_<month>`), matched by name (the ER entry is found by phone, then
+  name). Marks (bought +$ / sold -$, a flag with a reason, a note) live in `duty_marks` and are private. The PDF
+  is drawn on screen behind the app and captured (html2canvas + jsPDF from cdnjs) with system Arabic fonts.
+- **ER portal** (`emergency-portal.js` on the ER page, migration 0007): an admin opens it for a hospital and a
+  coming month until a deadline; every account of that hospital gets a notification (`er_portal`). Residents send
+  their preferences from "جدولي" (same fields as the ER preferences panel). Requests stay in `er_pref_requests`;
+  the ER page copies them into its residents database when it shows that month (and before an automatic
+  distribution) and stamps them `applied_at`. The server never writes the ER scheduler's shared record.
 
 ## Everyday operations
 

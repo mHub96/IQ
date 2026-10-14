@@ -894,6 +894,14 @@
         initAutoModalListeners();
         initKeyboardShortcuts();
         initCustomFontFromStorage();
+        announcePeriod();
+    }
+
+    /** Tells add-ons (emergency-portal.js) which hospital and month are on screen. */
+    function announcePeriod() {
+        try {
+            window.dispatchEvent(new CustomEvent('er:period', { detail: { hosp: state.hospitalId, year: state.year, month: state.month } }));
+        } catch (e) {}
     }
 
     function initKeyboardShortcuts() {
@@ -2049,6 +2057,7 @@
         updateDutyDashboard();
         renderActiveTab();
         showNotification(`تم التبديل إلى: ${state.hospitalName}`, 'info');
+        announcePeriod();
     }
 
     function onMonthYearChange(monthVal, yearVal) {
@@ -2087,6 +2096,7 @@
         updateDutyDashboard();
         renderActiveTab();
         showNotification(`تم التبديل إلى جدول شهر: ${state.monthYear}`, 'info');
+        announcePeriod();
     }
 
     function onOrderNumberChange(val) {
@@ -5297,6 +5307,17 @@
                         <button type="button" onclick="openImportMonthAllocationsModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 transition flex items-center gap-1.5 shadow-xs" title="استيراد أنصبة وإحصائيات الأطباء من أي شهر سابق">
                             <i class="fas fa-clock-rotate-left"></i>
                             <span>استيراد من شهر سابق</span>
+                        </button>
+
+                        <!-- Residents' ER preferences portal (emergency-portal.js) -->
+                        <button type="button" onclick="ErPortal.openControl()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 transition flex items-center gap-1.5 shadow-xs" title="فتح بوابة ليحدد المقيمون رغباتهم لشهر قادم">
+                            <i class="fas fa-door-open"></i>
+                            <span>بوابة رغبات المقيمين</span>
+                            <span class="er-portal-pill hidden px-1.5 rounded-full bg-emerald-600 text-white text-[10px]"></span>
+                        </button>
+                        <button type="button" onclick="ErPortal.openSummary()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-50 transition flex items-center gap-1.5 shadow-xs" title="ملخص حي لطلبات رغبات المقيمين">
+                            <i class="fas fa-list-check"></i>
+                            <span>ملخص الرغبات</span>
                         </button>
 
                         <!-- Advance Board Stage Button -->
@@ -11090,6 +11111,12 @@
     window.openConflictExplanation = openConflictExplanation;
     window.closeConflictModal = closeConflictModal;
     window.triggerScheduleAutoGenerate = triggerScheduleAutoGenerate;
+    // For add-ons on this page (emergency-portal.js): live state and the save / redraw helpers.
+    window.EmergencyCore = {
+        state: () => state,
+        saveState, pushDBHistory, refreshDBView, renderActiveTab, showNotification,
+        updateDBUndoRedoUI: () => { try { updateDBUndoRedoUI(); } catch (e) {} },
+    };
     window.closeAutoGenerateModal = closeAutoGenerateModal;
     window.onScheduleSearchInput = onScheduleSearchInput;
     window.onScheduleShiftFilterChange = onScheduleShiftFilterChange;

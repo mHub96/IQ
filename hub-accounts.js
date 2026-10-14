@@ -320,6 +320,11 @@
                 return { icon: '🔓', text: 'تمت الموافقة على طلب تغيير كلمة المرور.' };
             case 'role_changed':
                 return { icon: '⭐', text: `تم تغيير صلاحياتك إلى: ${ROLE_NAMES[d.role] || d.role}` };
+            case 'er_portal': {
+                const mon = ['', 'كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'][Number(String(d.ym || '').slice(5))] || '';
+                const until = d.closes ? new Date(d.closes).toLocaleString('ar-IQ-u-nu-latn', { day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Baghdad' }) : '';
+                return { icon: '🗓️', text: `${d.extended ? 'تم تمديد' : 'فُتحت'} بوابة رغبات خفارات الطوارئ لشهر ${mon} ${String(d.ym || '').slice(0, 4)}${until ? ' حتى ' + until : ''}. اضغط لتحديد رغباتك.`, open: () => openPanel('portal') };
+            }
             default:
                 return { icon: '🔔', text: 'إشعار جديد' };
         }
@@ -911,6 +916,14 @@
         setTimeout(() => openThread({ h, d: local, n: decodeURIComponent(m[2]) }, 'comments'), 400);
     }
 
+    /** A push that lands on <page>#panel=<tab> opens the account panel there (schedule = ER portal form). */
+    function openPanelFromHash() {
+        const m = location.hash.match(/^#panel=(\w+)$/);
+        if (!m || !account()) return;
+        history.replaceState(null, '', location.pathname + location.search);
+        setTimeout(() => openPanel(m[1] === 'schedule' ? 'portal' : m[1]), 400);
+    }
+
     // ------------------------------------------------------------------
     // Start
     // ------------------------------------------------------------------
@@ -921,7 +934,9 @@
         refreshProfile();
         pushStatus().then(resyncPush);
         openThreadFromHash();
+        openPanelFromHash();
         window.addEventListener('hashchange', openThreadFromHash);
+        window.addEventListener('hashchange', openPanelFromHash);
         initIosChrome();
         scheduleInstallOffer();
     }

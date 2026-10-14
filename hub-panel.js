@@ -39,8 +39,12 @@
     // ------------------------------------------------------------------
     // Shell
     // ------------------------------------------------------------------
+    let portalNext = false; // open the ER preferences form once the schedule tab shows
+
     async function open(which = 'profile') {
-        tab = ['profile', 'comments', 'settings', 'admin'].includes(which) ? which : 'profile';
+        portalNext = which === 'portal';
+        if (portalNext) which = 'schedule';
+        tab = ['profile', 'schedule', 'comments', 'settings', 'admin'].includes(which) ? which : 'profile';
         const acc = Hub.auth.getAccount();
         const approver = ['owner', 'admin'].includes(Hub.auth.getRole());
         sheet = A.openSheet(`<header class="hacc-sheet-head hp-head">
@@ -53,6 +57,7 @@
             </header>
             <div class="hacc-tabs" role="tablist">
                 ${acc ? `<button type="button" role="tab" data-tab="profile">الملف الشخصي</button>
+                <button type="button" role="tab" data-tab="schedule">جدولي</button>
                 <button type="button" role="tab" data-tab="comments">تعليقاتي</button>` : ''}
                 <button type="button" role="tab" data-tab="settings">الإعدادات</button>
                 ${Hub.auth.isOwner() ? '<button type="button" role="tab" data-tab="admin">القطاع الإداري</button>' : ''}
@@ -78,7 +83,38 @@
         sheet.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === which)));
         const body = sheet.querySelector('[data-role="body"]');
         body.scrollTop = 0;
-        ({ profile: renderProfile, comments: renderComments, settings: renderSettings, admin: renderAdmin })[which](body);
+        if (window.HubMySchedule) window.HubMySchedule.detach();
+        const portalForm = portalNext && which === 'schedule';
+        portalNext = false;
+        ({ profile: renderProfile, schedule: renderSchedule, comments: renderComments, settings: renderSettings, admin: renderAdmin })[which](body, portalForm);
+    }
+
+    // ------------------------------------------------------------------
+    // My Schedule (hub-myschedule.js + .css, loaded on first use)
+    // ------------------------------------------------------------------
+    let scheduleLoading = null;
+    function loadSchedule() {
+        if (window.HubMySchedule) return Promise.resolve();
+        const base = ((document.querySelector('script[src*="hub-panel.js"]') || {}).src || './').replace(/hub-panel\.js.*$/, '');
+        const add = (tag, attrs) => new Promise((resolve, reject) => {
+            const el = Object.assign(document.createElement(tag), attrs);
+            el.onload = resolve;
+            el.onerror = reject;
+            document.head.appendChild(el);
+        });
+        return scheduleLoading = scheduleLoading || Promise.all([
+            add('link', { rel: 'stylesheet', href: base + 'hub-myschedule.css' }),
+            add('script', { src: base + 'hub-myschedule.js' }),
+        ]).catch(err => { scheduleLoading = null; throw err; });
+    }
+    async function renderSchedule(body, portalForm) {
+        body.innerHTML = '<div class="hacc-empty">جاري التحميل…</div>';
+        try { await loadSchedule(); } catch (e) {
+            body.innerHTML = '<div class="hacc-empty">تعذر التحميل. تحقق من الاتصال.</div>';
+            return;
+        }
+        if (tab !== 'schedule' || !sheet || !body.isConnected) return;
+        if (portalForm) window.HubMySchedule.openPortal(body); else window.HubMySchedule.render(body);
     }
 
     async function logout() {

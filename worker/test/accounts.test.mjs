@@ -357,25 +357,24 @@ test('profile: filled in from the roster and ER data, editable, stage levels up 
 });
 
 test('avatar: saved per account, no beard or moustache for female accounts, hidden on anonymous comments', async () => {
-  const cfg = { v: 2, s: 3, h: 5, hc: 2, e: 1, ec: 4, b: 1, bc: 2, m: 2, mc: 1, d: 3, dc: 1, n: 2, o: 1, g: 1, t: 1, tc: 2, c: 1, cc: 3, k: 4, junk: 9 };
+  const cfg = { v: 3, t: 5, hc: 2, tc: 3, a: 1, f: 3, fc: 1, c: 2, cc: 4, g: 1, e: 1, b: 2, m: 1, s: 3, k: 4, junk: 9 };
   const a = await call('POST', '/api/accounts/avatar', { token: state.tokA, body: { avatar: cfg } });
-  assert.equal(a.data.avatar.d, 3);
+  assert.equal(a.data.avatar.f, 3);
   assert.equal(a.data.avatar.junk, undefined, 'unknown keys dropped');
-  const outOfRange = await call('POST', '/api/accounts/avatar', { token: state.tokA, body: { avatar: { ...cfg, h: 999 } } });
-  assert.equal(outOfRange.data.avatar.h, 0, 'out-of-range values reset');
+  const outOfRange = await call('POST', '/api/accounts/avatar', { token: state.tokA, body: { avatar: { ...cfg, t: 999 } } });
+  assert.equal(outOfRange.data.avatar.t, 0, 'out-of-range values reset');
   await call('POST', '/api/accounts/avatar', { token: state.tokA, body: { avatar: cfg } });
   const b = await call('POST', '/api/accounts/avatar', { token: state.tokB, body: { avatar: cfg } });
-  assert.equal(b.data.avatar.d, 0, 'female: no beard');
-  assert.equal(b.data.avatar.m, 0, 'female: no moustache');
-  assert.equal((await call('GET', '/api/accounts/me', { token: state.tokA })).data.account.avatar.h, 5);
+  assert.equal(b.data.avatar.f, 0, 'female: no beard or moustache');
+  assert.equal((await call('GET', '/api/accounts/me', { token: state.tokA })).data.account.avatar.t, 5);
   const card = { h: hospital.id, d: today(), n: resB.name };
   const posted = await call('POST', '/api/social/comment', { token: state.tokA, body: { ...card, body: 'بالاسم' } });
-  assert.equal(posted.data.comment.avatar.h, 5, 'a new comment carries the author avatar right away');
-  assert.equal(posted.data.comment.avatar.v, 2);
+  assert.equal(posted.data.comment.avatar.t, 5, 'a new comment carries the author avatar right away');
+  assert.equal(posted.data.comment.avatar.v, 3);
   await call('POST', '/api/social/comment', { token: state.tokA, body: { ...card, body: 'مجهول', anon: true } });
   const t = (await call('GET', '/api/social/thread?' + new URLSearchParams(card), { token: state.tokC })).data;
   const named = t.comments.find(c => c.body === 'بالاسم'), anon = t.comments.find(c => c.body === 'مجهول');
-  assert.equal(named.avatar.h, 5);
+  assert.equal(named.avatar.t, 5);
   assert.equal(anon.avatar, null, 'anonymous comments never reveal the avatar');
   assert.equal(anon.sex, null);
 });

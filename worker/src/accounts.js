@@ -841,8 +841,9 @@ function cleanProfile(p) {
 }
 
 // Option counts per avatar part (must match hub-avatar.js, version 2).
-const AVATAR_VERSION = 2;
-const AVATAR_LIMITS = { s: 20, h: 26, hc: 20, e: 21, ec: 20, b: 21, bc: 20, m: 21, mc: 20, d: 21, dc: 20, n: 20, o: 20, g: 21, gc: 20, t: 21, tc: 20, a: 20, ac: 20, c: 20, cc: 20, k: 20 };
+// Avataaars-style avatars (hub-avatar.js, built by tools/avatar): option counts per key.
+const AVATAR_VERSION = 3;
+const AVATAR_LIMITS = { t: 40, hc: 15, tc: 21, a: 10, f: 8, fc: 10, c: 13, cc: 21, g: 14, e: 13, b: 13, m: 12, s: 10, k: 14 };
 
 export function cleanAvatar(input) {
   if (!input || typeof input !== 'object') return null;
@@ -870,7 +871,7 @@ async function saveAvatar(request, env, auth) {
   const avatar = body.avatar === null ? null : cleanAvatar(body.avatar);
   if (body.avatar !== null && !avatar) return json({ error: 'bad_avatar' }, 400);
   const row = await env.DB.prepare('SELECT sex FROM accounts WHERE id = ?').bind(auth.a).first();
-  if (avatar && row.sex === 'f') { avatar.m = 0; avatar.d = 0; }
+  if (avatar && row.sex === 'f') avatar.f = 0; // no beard or moustache
   await env.DB.prepare('UPDATE accounts SET avatar = ? WHERE id = ?').bind(avatar ? JSON.stringify(avatar) : null, auth.a).run();
   return json({ ok: true, avatar });
 }

@@ -258,11 +258,14 @@
             colors.innerHTML = palette ? palette.map((hex, i) => `<button type="button" class="ae-swatch" data-color="${i}" style="background:${hex}" aria-label="لون ${i + 1}" aria-pressed="${cfg[colorKey] === i}"></button>`).join('') : '';
             colors.hidden = !palette;
             colors.querySelectorAll('[data-color]').forEach(b => b.addEventListener('click', () => { cfg = { ...cfg, [colorKey]: Number(b.dataset.color) }; paint(); }));
+            // Colour-only parts (skin, headwear colour, background) preview on the figure itself; nothing else to pick.
             // Option grid: each option drawn on the current avatar.
+            // Some options only show with another choice (shirt graphics need the graphic T-shirt).
+            const need = part.requires || {};
             grid.innerHTML = part.options ? part.options.map((label, i) => `<button type="button" class="ae-opt" data-opt="${i}" aria-pressed="${cfg[part.key] === i}">
-                    <span class="hav-wrap" style="width:64px;height:64px">${HA.svg({ ...cfg, [part.key]: i }, 64, sex)}</span><span>${esc(label)}</span></button>`).join('') : '';
+                    <span class="hav-wrap" style="width:64px;height:64px">${HA.svg({ ...cfg, ...need, [part.key]: i }, 64, sex)}</span><span>${esc(label)}</span></button>`).join('') : '';
             grid.hidden = !part.options;
-            grid.querySelectorAll('[data-opt]').forEach(b => b.addEventListener('click', () => { cfg = { ...cfg, [part.key]: Number(b.dataset.opt) }; paint(); }));
+            grid.querySelectorAll('[data-opt]').forEach(b => b.addEventListener('click', () => { cfg = { ...cfg, ...need, [part.key]: Number(b.dataset.opt) }; paint(); }));
         };
         body.querySelectorAll('[data-part]').forEach(b => b.addEventListener('click', () => { part = parts.find(p => p.key === b.dataset.part); paint(); b.scrollIntoView({ inline: 'center', block: 'nearest' }); }));
         body.querySelector('[data-act="random"]').addEventListener('click', () => { cfg = HA.random(sex); paint(); });

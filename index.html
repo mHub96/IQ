@@ -1,0 +1,3285 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <script src="./storage-scope.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#007AFF" />
+    <title>بوابة المستشفيات التعليمية · Medical Hub App 🇮🇶</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <script>
+        (function() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                // If explicit portal visit, stay on portal and update last page
+                if (params.get('portal') === 'true' || params.get('hub') === 'true' || params.get('force') === 'true') {
+                    localStorage.setItem('pwa_last_page', './index.html');
+                    if (window.history && window.history.replaceState) {
+                        window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+                    }
+                    return;
+                }
+
+                // If navigating from inside the hospital hub app, do not redirect
+                // Any page of this site counts. (A fixed list once missed signup.html: a guest sent
+                // from there to the portal was sent straight back, reloading both pages forever.)
+                const ref = document.referrer;
+                let isInternalReferrer = false;
+                try { isInternalReferrer = !!ref && new URL(ref).origin === window.location.origin; } catch (e) {}
+
+                if (isInternalReferrer) {
+                    localStorage.setItem('pwa_last_page', './index.html');
+                    return;
+                }
+
+                // Fresh PWA / browser launch: check if there is a saved last page to restore
+                const lastPage = localStorage.getItem('pwa_last_page');
+                if (lastPage && typeof lastPage === 'string') {
+                    const clean = lastPage.trim();
+                    const fileName = clean.split('?')[0].split('#')[0].split('/').pop();
+                    if (fileName && fileName !== 'index.html' && fileName !== '') {
+                        window._pwa_redirecting = true;
+                        window.location.replace(clean);
+                    }
+                }
+            } catch (e) {
+                console.warn('PWA state restore error:', e);
+            }
+        })();
+    </script>
+    <script src="./pwa.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="./nav-component.css" />
+    <link rel="stylesheet" href="./hub-accounts.css" />
+
+    <style>
+        :root {
+            --sat: env(safe-area-inset-top, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
+            --sal: env(safe-area-inset-left, 0px);
+            --sar: env(safe-area-inset-right, 0px);
+            --primary-medical: #007AFF;
+            --primary-cyan: #06b6d4;
+            --ios-radius: 22px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            direction: rtl;
+            text-align: right;
+            min-height: 100vh;
+            background: #d1d9e6;
+            color: #2C2C2E;
+            transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
+            overflow-x: hidden;
+            padding-top: calc(var(--sat) + 64px);
+            padding-bottom: calc(var(--sab) + 84px);
+        }
+
+        /* OLED Night Mode */
+        body.dark {
+            background: #000000;
+            color: #F2F2F7;
+        }
+
+        body.dark::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.08;
+            background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.25'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-size: 120px 120px;
+        }
+
+        /* iOS Frosted Header */
+        .ios-top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 999;
+            height: calc(var(--sat) + 64px);
+            padding-top: var(--sat);
+            padding-left: max(16px, var(--sal));
+            padding-right: max(16px, var(--sar));
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
+        }
+
+        body.dark .ios-top-bar {
+            background: rgba(14, 20, 32, 0.92);
+            border-bottom: 1px solid rgba(10, 132, 255, 0.15);
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.6);
+        }
+
+        .ios-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .brand-pill-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            font-size: 1.15rem;
+            color: #ffffff;
+            background: linear-gradient(135deg, #007AFF, #0A84FF);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.35);
+            position: relative;
+        }
+
+        body.dark .brand-pill-icon {
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
+            color: #000000;
+            box-shadow: 0 4px 16px rgba(10, 132, 255, 0.3);
+        }
+
+        .pulse-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            border: 2px solid white;
+            animation: ecgPulse 2s infinite;
+        }
+        body.dark .pulse-indicator {
+            border-color: #000000;
+        }
+
+        @keyframes ecgPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.6; }
+        }
+
+        .brand-text-block {
+            display: flex;
+            flex-direction: column;
+        }
+        .brand-title {
+            font-size: 1rem;
+            font-weight: 800;
+            line-height: 1.15;
+            color: #1C1C1E;
+        }
+        body.dark .brand-title {
+            color: #F9F9FB;
+        }
+        .brand-sub {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #007AFF;
+            letter-spacing: 0.02em;
+        }
+        body.dark .brand-sub {
+            color: #0A84FF;
+        }
+
+        .ios-top-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ios-icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            background: rgba(255, 255, 255, 0.9);
+            color: #636366;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        body.dark .ios-icon-btn {
+            background: rgba(44, 44, 46, 0.7);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #D1D1D6;
+        }
+        .ios-icon-btn:active {
+            transform: scale(0.92);
+        }
+
+        .ios-role-pill {
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .ios-role-pill.owner {
+            background: #fef3c7;
+            color: #92400e;
+            border-color: #fde68a;
+        }
+        body.dark .ios-role-pill.owner {
+            background: rgba(10, 132, 255, 0.18);
+            color: #0A84FF;
+            border-color: rgba(10, 132, 255, 0.35);
+        }
+        .ios-role-pill.admin {
+            background: #D9EBFF;
+            color: #007AFF;
+            border-color: #B3D7FF;
+        }
+        body.dark .ios-role-pill.admin {
+            background: rgba(0, 122, 255, 0.25);
+            color: #64B5FF;
+            border-color: rgba(100, 181, 255, 0.35);
+        }
+        .ios-role-pill.user {
+            background: #E5E5EA;
+            color: #636366;
+            border-color: #D1D1D6;
+        }
+        body.dark .ios-role-pill.user {
+            background: rgba(255, 255, 255, 0.08);
+            color: #AEAEB2;
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .ios-role-pill.anaesthesia {
+            background: #e0f2fe;
+            color: #0369a1;
+            border-color: #bae6fd;
+        }
+        body.dark .ios-role-pill.anaesthesia {
+            background: rgba(14, 165, 233, 0.2);
+            color: #38bdf8;
+            border-color: rgba(56, 189, 248, 0.35);
+        }
+        .switcher-role-card.role-card-anaesthesia {
+            border-color: rgba(14, 165, 233, 0.25);
+        }
+        .switcher-role-card.role-card-anaesthesia:hover {
+            border-color: #0284c7;
+            background: rgba(14, 165, 233, 0.04);
+        }
+        #card-role-owner,
+        .switcher-role-card.role-card-owner {
+            display: none !important;
+        }
+        .switcher-role-card.role-card-owner {
+            border-color: rgba(217, 119, 6, 0.25);
+        }
+        .switcher-role-card.role-card-owner:hover {
+            border-color: #d97706;
+            background: rgba(217, 119, 6, 0.05);
+        }
+        .switcher-role-card.role-card-owner.is-active-role {
+            border-color: #d97706 !important;
+            background: rgba(217, 119, 6, 0.08) !important;
+        }
+
+        .live-icu-pill {
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.28);
+            color: #059669;
+            font-size: 0.78rem;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            text-decoration: none;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
+            cursor: pointer;
+        }
+        .live-icu-pill:hover {
+            background: rgba(16, 185, 129, 0.18);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
+            color: #047857;
+        }
+        body.dark .live-icu-pill {
+            background: rgba(16, 185, 129, 0.16);
+            border-color: rgba(16, 185, 129, 0.35);
+            color: #34d399;
+        }
+        body.dark .live-icu-pill:hover {
+            background: rgba(16, 185, 129, 0.25);
+            color: #6ee7b7;
+        }
+        .live-icu-avail-badge {
+            background: #10b981;
+            color: #ffffff;
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 999px;
+            line-height: 1.2;
+        }
+        .live-icu-avail-badge.full {
+            background: #ef4444;
+            animation: icuPillPulse 1.8s infinite;
+        }
+        @keyframes icuPillPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.05); }
+        }
+        .icu-header-btn {
+            color: #007AFF !important;
+            border-color: rgba(0, 122, 255, 0.25) !important;
+            text-decoration: none;
+        }
+        body.dark .icu-header-btn {
+            color: #34d399 !important;
+            border-color: rgba(16, 185, 129, 0.3) !important;
+        }
+
+        /* ER Scheduler Toggle Switch (Green ON / Red OFF) */
+        .er-toggle-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .er-toggle-input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+            pointer-events: none;
+        }
+        .er-toggle-track {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            border-radius: 999px;
+            background: #ef4444; /* RED when OFF */
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+            transition: background 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            direction: ltr !important;
+            flex-shrink: 0;
+        }
+        .er-toggle-thumb {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .er-toggle-input:checked + .er-toggle-track {
+            background: #10b981; /* GREEN when ON */
+        }
+        .er-toggle-input:checked + .er-toggle-track .er-toggle-thumb {
+            transform: translateX(20px);
+        }
+
+        /* Container */
+        .app-container {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 16px 14px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Live Activity Banner (Apple Health/iOS Live Activity style) */
+        .live-activity-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(240,253,250,0.85));
+            border-radius: var(--ios-radius);
+            padding: 16px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 28px rgba(0, 122, 255, 0.06), 0 2px 6px rgba(0, 0, 0, 0.02);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        body.dark .live-activity-card {
+            background: linear-gradient(135deg, rgba(16, 22, 34, 0.92), rgba(20, 28, 44, 0.88));
+            border: 1px solid rgba(10, 132, 255, 0.18);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(10, 132, 255, 0.06);
+        }
+
+        .live-status-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .live-pulse-badge {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: #ecfdf5;
+            color: #059669;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+            border: 1px solid #a7f3d0;
+        }
+        body.dark .live-pulse-badge {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .live-title-wrap h2 {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #1C1C1E;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        body.dark .live-title-wrap h2 {
+            color: #F9F9FB;
+        }
+        .live-title-wrap p {
+            font-size: 0.74rem;
+            color: #8A8A8E;
+            font-weight: 600;
+        }
+        body.dark .live-title-wrap p {
+            color: #AEAEB2;
+        }
+
+        .live-clock-pill {
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(0, 122, 255, 0.08);
+            border: 1px solid rgba(0, 122, 255, 0.18);
+            color: #007AFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        body.dark .live-clock-pill {
+            background: rgba(10, 132, 255, 0.12);
+            border-color: rgba(10, 132, 255, 0.3);
+            color: #0A84FF;
+        }
+
+        /* Search & iOS Segmented Filter */
+        .ios-filter-section {
+            margin-bottom: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .ios-search-wrap {
+            position: relative;
+            width: 100%;
+        }
+
+        .ios-search-input {
+            width: 100%;
+            height: 44px;
+            border-radius: 14px;
+            border: 1px solid #D1D1D6;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0 42px 0 14px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #2C2C2E;
+            outline: none;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        body.dark .ios-search-input {
+            background: rgba(16, 22, 34, 0.92);
+            border-color: rgba(10, 132, 255, 0.18);
+            color: #F2F2F7;
+        }
+        .ios-search-input:focus {
+            border-color: #007AFF;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+            background: #ffffff;
+        }
+        body.dark .ios-search-input:focus {
+            border-color: #0A84FF;
+            box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2);
+            background: #0f1523;
+        }
+
+        .ios-search-icon {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #AEAEB2;
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .ios-segmented-control {
+            display: flex;
+            align-items: center;
+            background: rgba(226, 232, 240, 0.6);
+            padding: 3px;
+            border-radius: 13px;
+            gap: 3px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        body.dark .ios-segmented-control {
+            background: rgba(16, 22, 34, 0.8);
+            border: 1px solid rgba(10, 132, 255, 0.12);
+        }
+        .ios-segmented-control::-webkit-scrollbar { display: none; }
+
+        .ios-segment-btn {
+            flex: 1;
+            min-width: max-content;
+            padding: 7px 14px;
+            border-radius: 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #8A8A8E;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+        body.dark .ios-segment-btn {
+            color: #AEAEB2;
+        }
+        .ios-segment-btn.active {
+            background: #ffffff;
+            color: #007AFF;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        body.dark .ios-segment-btn.active {
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
+            color: #000000;
+            box-shadow: 0 2px 10px rgba(10, 132, 255, 0.25);
+        }
+
+        /* Owner Fast Actions Bar */
+        .owner-quick-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+        }
+        .owner-quick-bar::-webkit-scrollbar { display: none; }
+
+        .owner-chip-btn {
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .owner-chip-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Hospital Cards (iOS App Widget Styling) */
+        .hospitals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+            gap: 16px;
+        }
+
+        .hosp-widget-card {
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--ios-radius);
+            padding: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            align-self: start;
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+
+        body.dark .hosp-widget-card {
+            background: rgba(16, 22, 34, 0.84);
+            border: 1px solid rgba(10, 132, 255, 0.14);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+        }
+
+        .hosp-widget-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 40px rgba(0, 122, 255, 0.1);
+        }
+        body.dark .hosp-widget-card:hover {
+            border-color: rgba(10, 132, 255, 0.35);
+            box-shadow: 0 16px 45px rgba(0, 0, 0, 0.75), 0 0 20px rgba(10, 132, 255, 0.08);
+        }
+
+        .hosp-widget-card.is-expanded {
+            box-shadow: 0 18px 44px rgba(0, 122, 255, 0.14), 0 2px 6px rgba(0, 0, 0, 0.04);
+            border-color: rgba(0, 122, 255, 0.35);
+        }
+        body.dark .hosp-widget-card.is-expanded {
+            box-shadow: 0 18px 48px rgba(0, 0, 0, 0.85), 0 0 24px rgba(10, 132, 255, 0.12);
+            border-color: rgba(10, 132, 255, 0.45);
+        }
+
+        .widget-top-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .widget-squircle-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            display: grid;
+            place-items: center;
+            font-size: 1.4rem;
+            color: #ffffff;
+            flex-shrink: 0;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .hosp-widget-card:hover .widget-squircle-icon {
+            transform: scale(1.05) rotate(4deg);
+        }
+
+        .widget-title-area {
+            flex: 1;
+            min-width: 0;
+        }
+        .widget-hosp-name {
+            font-size: 1.18rem;
+            font-weight: 800;
+            color: #1C1C1E;
+            line-height: 1.25;
+            margin-bottom: 2px;
+        }
+        body.dark .widget-hosp-name {
+            color: #F9F9FB;
+        }
+        .widget-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 0.72rem;
+            color: #8A8A8E;
+            font-weight: 600;
+        }
+        body.dark .widget-meta-row {
+            color: #AEAEB2;
+        }
+
+        .widget-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+        body.dark .widget-status-badge {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        /* Metrics Chips */
+        .widget-metrics-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .metric-chip {
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(0, 0, 0, 0.03);
+            color: #636366;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        body.dark .metric-chip {
+            background: rgba(255, 255, 255, 0.04);
+            color: #D1D1D6;
+            border-color: rgba(255, 255, 255, 0.07);
+        }
+        .metric-chip.oncall-live {
+            background: rgba(0, 122, 255, 0.1);
+            color: #007AFF;
+            border-color: rgba(0, 122, 255, 0.25);
+            font-weight: 800;
+        }
+        body.dark .metric-chip.oncall-live {
+            background: rgba(10, 132, 255, 0.15);
+            color: #0A84FF;
+            border-color: rgba(10, 132, 255, 0.35);
+        }
+
+        /* Primary Compact Action Bar (Centered Roster + Down Arrow) */
+        .hosp-primary-action-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .hosp-roster-btn {
+            flex: 1;
+            max-width: 250px;
+            min-height: 44px;
+        }
+
+        .hosp-expand-arrow-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(241, 245, 249, 0.95);
+            border: 1px solid #D1D1D6;
+            color: #636366;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            flex-shrink: 0;
+            outline: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+        body.dark .hosp-expand-arrow-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.12);
+            color: #AEAEB2;
+        }
+        .hosp-expand-arrow-btn:hover {
+            background: #E5E5EA;
+            color: #1C1C1E;
+            transform: translateY(-1px);
+        }
+        body.dark .hosp-expand-arrow-btn:hover {
+            background: rgba(10, 132, 255, 0.16);
+            border-color: rgba(10, 132, 255, 0.4);
+            color: #0A84FF;
+        }
+        .hosp-expand-arrow-btn:active {
+            transform: scale(0.94);
+        }
+        .hosp-expand-arrow-btn i {
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .hosp-widget-card.is-expanded .hosp-expand-arrow-btn i {
+            transform: rotate(180deg);
+        }
+        .hosp-widget-card.is-expanded .hosp-expand-arrow-btn {
+            background: rgba(0, 122, 255, 0.12);
+            border-color: rgba(0, 122, 255, 0.35);
+            color: #007AFF;
+        }
+        body.dark .hosp-widget-card.is-expanded .hosp-expand-arrow-btn {
+            background: rgba(10, 132, 255, 0.2);
+            border-color: rgba(10, 132, 255, 0.45);
+            color: #0A84FF;
+        }
+
+        /* Expandable Options Drawer */
+        .hosp-expanded-options {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, margin-top 0.25s ease;
+            margin-top: 0;
+            width: 100%;
+        }
+        .hosp-widget-card.is-expanded .hosp-expanded-options {
+            max-height: 420px;
+            opacity: 1;
+            margin-top: 10px;
+        }
+
+        /* Action Buttons Grid */
+        .widget-actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 7px;
+        }
+        .widget-actions-grid a:last-child:nth-child(odd) {
+            grid-column: span 2;
+        }
+
+        .ios-btn {
+            min-height: 46px;
+            padding: 0 12px;
+            border-radius: 14px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid transparent;
+            text-align: center;
+        }
+        .ios-btn:active {
+            transform: scale(0.96);
+        }
+
+        .ios-btn.primary {
+            background: linear-gradient(135deg, #007AFF, #0A84FF);
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(0, 122, 255, 0.3);
+        }
+        body.dark .ios-btn.primary {
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
+            color: #000000;
+            box-shadow: 0 4px 16px rgba(10, 132, 255, 0.25);
+        }
+
+        .ios-btn.secondary {
+            background: rgba(241, 245, 249, 0.9);
+            color: #48484A;
+            border-color: #D1D1D6;
+        }
+        body.dark .ios-btn.secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #E5E5EA;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .ios-btn.secondary:hover {
+            background: #E5E5EA;
+        }
+        body.dark .ios-btn.secondary:hover {
+            background: rgba(10, 132, 255, 0.12);
+            border-color: rgba(10, 132, 255, 0.35);
+            color: #0A84FF;
+        }
+
+        /* Floating Bottom Dock for iPhone (App Tab Bar) */
+        .ios-bottom-dock {
+            position: fixed;
+            bottom: max(10px, var(--sab));
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 998;
+            width: calc(100% - 16px);
+            max-width: 540px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(24px) saturate(190%);
+            -webkit-backdrop-filter: blur(24px) saturate(190%);
+            border-radius: 999px;
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 3px 6px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            direction: rtl;
+        }
+
+        body.dark .ios-bottom-dock {
+            background: rgba(14, 20, 32, 0.94);
+            border: 1px solid rgba(10, 132, 255, 0.18);
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(10, 132, 255, 0.08);
+        }
+
+        .dock-tab-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            padding: 4px 4px;
+            border-radius: 999px;
+            color: #8A8A8E;
+            text-decoration: none;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 0.62rem;
+            font-weight: 700;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            flex: 1;
+            min-width: 0;
+        }
+        body.dark .dock-tab-btn {
+            color: #AEAEB2;
+        }
+        .dock-tab-btn i {
+            font-size: 1rem;
+        }
+        .dock-tab-btn span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+        .dock-tab-btn.active {
+            color: #007AFF;
+            background: rgba(0, 122, 255, 0.12);
+        }
+        body.dark .dock-tab-btn.active {
+            color: #0A84FF;
+            background: rgba(10, 132, 255, 0.15);
+        }
+        .dock-tab-btn:active {
+            transform: scale(0.92);
+        }
+
+        @view-transition {
+            navigation: auto;
+        }
+        .ios-bottom-dock {
+            view-transition-name: hub-bottom-app-dock;
+        }
+
+        /* Lock Screen */
+        #lock-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: rgba(209, 217, 230, 0.95);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: opacity 0.35s ease;
+        }
+        body.dark #lock-screen {
+            background: rgba(11, 14, 18, 0.95);
+        }
+        #lock-screen.hidden {
+            display: none;
+        }
+
+        .lock-box {
+            background: #ffffff;
+            border-radius: 28px;
+            padding: 32px 24px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 25px 65px rgba(0, 0, 0, 0.12);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        body.dark .lock-box {
+            background: #141c2a;
+            border-color: rgba(10, 132, 255, 0.2);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Input & Form Styles */
+        .hub-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            border: 1.5px solid #D1D1D6;
+            background: rgba(248, 250, 252, 0.9);
+            font-size: 0.9rem;
+            font-weight: 600;
+            outline: none;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        body.dark .hub-input {
+            background: #0f1520;
+            border-color: #1f2937;
+            color: #F2F2F7;
+        }
+        .hub-input:focus {
+            border-color: #007AFF;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+        }
+        body.dark .hub-input:focus {
+            border-color: #409CFF;
+            box-shadow: 0 0 0 3px rgba(64, 156, 255, 0.2);
+        }
+
+        /* Modal Overlays */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-card {
+            background: #ffffff;
+            border-radius: 26px;
+            padding: 24px;
+            width: 100%;
+            max-width: 520px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid #E5E5EA;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+            animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        body.dark .modal-card {
+            background: #141c2a;
+            border-color: rgba(10, 132, 255, 0.2);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.8);
+        }
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.95) translateY(12px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Toast Container */
+        #toast-container {
+            position: fixed;
+            top: calc(var(--sat) + 16px);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+            width: 90%;
+            max-width: 420px;
+        }
+        .toast {
+            padding: 12px 18px;
+            border-radius: 14px;
+            color: white;
+            font-weight: 700;
+            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: auto;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { background: #059669; }
+        .toast.error { background: #dc2626; }
+        .toast.info { background: #2563eb; }
+
+        .footer-credit {
+            text-align: center;
+            font-size: 0.72rem;
+            color: #AEAEB2;
+            margin-top: 2rem;
+            opacity: 0.7;
+        }
+    </style>
+    <link rel="stylesheet" href="./tailwind.css" />
+    <link rel="stylesheet" href="./hub-ios.css" />
+</head>
+<body class="light">
+
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
+
+    <!-- LOCK SCREEN (iOS Passcode / Lock Experience) -->
+    <div id="lock-screen">
+        <div class="lock-box">
+            <div class="brand-pill-icon mx-auto mb-4" style="width: 58px; height: 58px; font-size: 1.6rem;">
+                <i class="fas fa-hospital-user"></i>
+                <span class="pulse-indicator"></span>
+            </div>
+            <h2 class="text-lg font-black text-slate-900 dark:text-white mb-1">🔐 بوابة المستشفيات التعليمية</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-5">منظومة الخفارات وإدارة الأطباء المقيمين</p>
+            
+            <!-- Personal account (default) -->
+            <form id="account-lock-form" onsubmit="event.preventDefault(); handleAccountLogin();" class="space-y-3">
+                <input type="text" id="account-user-input" class="hub-input" placeholder="اسم المستخدم" dir="ltr" autofocus autocomplete="username" autocapitalize="none" spellcheck="false" style="text-align:center;" />
+                <input type="password" id="account-pass-input" class="hub-input" placeholder="كلمة المرور" dir="ltr" autocomplete="current-password" style="text-align:center;" />
+                <button type="submit" id="account-login-btn" class="ios-btn primary w-full justify-center">
+                    <i class="fas fa-arrow-left ml-1"></i> دخول
+                </button>
+                <div style="display:flex; justify-content:space-between; gap:8px; font-size:0.78rem; font-weight:800;">
+                    <a href="./account.html#signup" style="color:var(--hacc-accent);">إنشاء حساب جديد</a>
+                    <a href="./account.html#forgot" style="color:var(--hacc-accent);">نسيت كلمة المرور؟</a>
+                </div>
+                <button type="button" onclick="toggleSharedLogin(true)" style="background:none; border:0; color:#AEAEB2; font-size:0.74rem; font-weight:700; cursor:pointer; text-decoration:underline;">الدخول بكلمة المرور المشتركة (مؤقتاً)</button>
+            </form>
+
+            <!-- Shared password (kept during the move to personal accounts) -->
+            <form id="lock-form" onsubmit="event.preventDefault(); handleHubLogin();" class="space-y-3" hidden>
+                <div class="relative w-full">
+                    <input type="password" id="password-input" class="hub-input text-center text-xl font-mono tracking-widest" placeholder="•••••" maxlength="30" style="padding-left:44px; padding-right:44px;" />
+                    <button type="button" onclick="togglePortalLockPwd()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm p-2" aria-label="عرض أو إخفاء كلمة المرور">
+                        <i class="fas fa-eye" id="portal-lock-eye-icon"></i>
+                    </button>
+                </div>
+                <button type="submit" id="login-btn" class="ios-btn primary w-full justify-center">
+                    <i class="fas fa-arrow-left ml-1"></i> دخول إلى النظام
+                </button>
+                <button type="button" onclick="toggleSharedLogin(false)" style="background:none; border:0; color:#AEAEB2; font-size:0.74rem; font-weight:700; cursor:pointer; text-decoration:underline;">العودة إلى الدخول بالحساب الشخصي</button>
+            </form>
+            <p id="lock-error" class="text-rose-500 text-xs mt-2 min-h-[20px]"></p>
+            
+            <label class="inline-flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 cursor-pointer mt-2">
+                <input type="checkbox" id="remember-me" checked class="w-4 h-4 accent-teal-600 rounded" />
+                تذكر تسجيل الدخول
+            </label>
+            <div class="footer-credit mt-4">Dr. Mohammed Riyadh · Iraq</div>
+        </div>
+    </div>
+
+    <!-- iOS TOP NAVIGATION BAR -->
+    <header class="ios-top-bar">
+        <!-- Brand -->
+        <a href="./index.html" class="ios-brand" title="البوابة الرئيسية">
+            <div class="brand-pill-icon">
+                <i class="fas fa-hospital-alt"></i>
+                <span class="pulse-indicator"></span>
+            </div>
+            <div class="brand-text-block">
+                <span class="brand-title">بوابة المستشفيات</span>
+                <span class="brand-sub">Iraqi Medical Hub</span>
+            </div>
+        </a>
+
+        <!-- Actions -->
+        <div class="ios-top-actions">
+            <!-- ICU Shortcut Button -->
+            <a href="./icu.html" class="ios-icon-btn icu-header-btn" title="موقف أسرة العناية المركزة (ICU)" aria-label="موقف العناية المركزة">
+                <i class="fas fa-procedures"></i>
+            </a>
+
+            <!-- Notifications + personal account (filled by hub-accounts.js) -->
+            <span data-hacc-slot></span>
+
+            <!-- Role Badge -->
+            <div id="top-role-pill" class="ios-role-pill user" onclick="window.HubAccounts ? HubAccounts.openPanel() : (location.href = './account.html')" title="حسابي">
+                <i class="fas fa-user" id="top-role-icon"></i>
+                <span id="top-role-text">مستخدم</span>
+            </div>
+
+            <!-- Logout / Lock Button in Top Ribbon -->
+            <button type="button" onclick="handleDockLockAction()" class="ios-icon-btn text-rose-500 hover:text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/40" id="top-logout-btn" title="تسجيل الخروج والقفل" aria-label="تسجيل الخروج">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Hidden compatibility container for nav-component listeners -->
+    <div id="universal-nav" style="display: none;"></div>
+
+    <!-- MAIN APP CONTAINER -->
+    <main class="app-container" id="hub-main-content">
+
+        <!-- LIVE SHIFT & MEDICAL ACTIVITY CARD -->
+        <section class="live-activity-card">
+            <div class="live-status-left">
+                <div class="live-pulse-badge">
+                    <i class="fas fa-heart-pulse"></i>
+                </div>
+                <div class="live-title-wrap">
+                    <h2>
+                        <span>الخفارات الطبية نشطة</span>
+                        <span class="widget-status-badge"><i class="fas fa-circle text-[8px] animate-pulse"></i> مباشر</span>
+                    </h2>
+                    <p id="live-oncall-summary">جاري فحص جدول الأطباء الخفراء...</p>
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <a href="./icu.html" class="live-icu-pill" id="live-icu-shortcut" title="موقف أسرة العناية المركزة (ICU)">
+                    <i class="fas fa-procedures"></i>
+                    <span>موقف أسرة العناية</span>
+                    <span id="live-icu-avail-counter" class="live-icu-avail-badge">-- شاغر</span>
+                </a>
+                <div class="live-clock-pill" id="live-time-display">
+                    <i class="fas fa-clock"></i> <span>--:-- · --/--/----</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- OWNER ACTION BUTTONS (Owner Exclusive) -->
+        <section class="owner-quick-bar" id="add-hospital-container" style="display:none;">
+            <a href="./emergency.html" class="owner-chip-btn text-white" style="background:linear-gradient(135deg,#e11d48,#be123c);">
+                <i class="fas fa-truck-medical"></i> نظام خفارات الطوارئ (ER) 🚨
+            </a>
+            <button type="button" class="owner-chip-btn text-white" style="background:linear-gradient(135deg,#0284c7,#0369a1);" onclick="openAddHospitalModal()">
+                <i class="fas fa-plus-circle"></i> إضافة مستشفى جديد
+            </button>
+            <button type="button" class="owner-chip-btn text-white" style="background:linear-gradient(135deg,#7c3aed,#9333ea);" onclick="openGlobalSpecialtiesModal()">
+                <i class="fas fa-crown text-amber-300"></i> مستودع التخصصات العام 👑
+            </button>
+            <button type="button" class="owner-chip-btn text-white" style="background:linear-gradient(135deg,#0A84FF,#007AFF);" onclick="openFullSystemBackupModal()">
+                <i class="fas fa-database text-amber-300"></i> النسخ الاحتياطي الشامل 👑
+            </button>
+            <button type="button" class="owner-chip-btn text-white" style="background:linear-gradient(135deg,#d97706,#b45309);" onclick="openAllPasswordsModalNav()">
+                <i class="fas fa-key"></i> تعديل كلمات المرور
+            </button>
+        </section>
+
+        <!-- SEARCH & SEGMENTED FILTER -->
+        <section class="ios-filter-section">
+            <div class="ios-search-wrap">
+                <i class="fas fa-search ios-search-icon"></i>
+                <input type="text" id="hosp-search-input" class="ios-search-input" placeholder="بحث عن مستشفى أو قسم..." oninput="onSearchInput(this.value)" />
+            </div>
+
+            <div class="ios-segmented-control" id="hosp-segmented-filter">
+                <button type="button" class="ios-segment-btn" id="seg-btn-my-hosp" data-filter="my" onclick="setHospFilter('my', this)" style="display:none;">
+                    <i class="fas fa-hospital-user"></i> <span id="seg-my-label">مستشفاي</span>
+                </button>
+                <button type="button" class="ios-segment-btn active" data-filter="all" onclick="setHospFilter('all', this)">
+                    <i class="fas fa-layer-group"></i> <span>جميع المستشفيات</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- HOSPITALS INTERACTIVE WIDGET GRID -->
+        <section class="hospitals-grid" id="hospitals-list-grid">
+            <!-- Rendered dynamically -->
+        </section>
+
+        <footer class="footer-credit">
+            Hospital Main Hub Suite · Dr. Mohammed Riyadh · Iraq 🇮🇶
+        </footer>
+    </main>
+
+    <!-- FLOATING IOS BOTTOM DOCK (App Tab Bar) -->
+    <nav class="ios-bottom-dock" id="hub-bottom-dock">
+        <a href="./index.html" class="dock-tab-btn active" onclick="window.scrollTo({top:0, behavior:'smooth'})" title="البوابة الرئيسية">
+            <i class="fas fa-hospital-alt"></i>
+            <span>الرئيسية</span>
+        </a>
+        <a href="./schedule.html" class="dock-tab-btn" id="dock-link-schedule" title="جدول الخفارات الشهري">
+            <i class="fas fa-calendar-week"></i>
+            <span>الجدول</span>
+        </a>
+        <a href="./icu.html" class="dock-tab-btn" id="dock-link-icu" title="موقف أسرة العناية المركزة (ICU)">
+            <i class="fas fa-procedures"></i>
+            <span>العناية</span>
+        </a>
+        <a href="./specialists.html" class="dock-tab-btn" id="dock-link-specialists" title="أطباء الاختصاص">
+            <i class="fas fa-user-tie"></i>
+            <span>الاختصاص</span>
+        </a>
+        <a href="./residents.html" class="dock-tab-btn" id="dock-link-residents" title="دليل المقيمين">
+            <i class="fas fa-address-book"></i>
+            <span>المقيمين</span>
+        </a>
+        <a href="./signup.html" class="dock-tab-btn" id="dock-link-signup" title="تبديل الخفارات">
+            <i class="fas fa-calendar-check"></i>
+            <span>تبديل</span>
+        </a>
+    </nav>
+
+    <!-- ADD HOSPITAL MODAL (Owner Only) -->
+    <div id="add-hospital-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-lg font-black flex items-center gap-2 text-slate-800 dark:text-white">
+                    <i class="fas fa-hospital-plus text-teal-600 dark:text-teal-400"></i> إضافة مستشفى تعليمي جديد
+                </h3>
+                <button type="button" onclick="closeAddHospitalModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                أدخل بيانات المستشفى الجديد. سيتم إنشاء البنية وتخصيص كلمات المرور الخاصة به تلقائياً.
+            </p>
+
+            <form id="add-hospital-form" onsubmit="submitNewHospital(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">اسم المستشفى بالعربية</label>
+                    <input type="text" id="new-hosp-name-ar" class="hub-input" placeholder="مثال: مستشفى البصرة التعليمي" required />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">اسم المستشفى بالإنجليزية</label>
+                    <input type="text" id="new-hosp-name-en" class="hub-input" placeholder="e.g. Basra Teaching Hospital" required />
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">المعرف البرمجي (Slug)</label>
+                        <input type="text" id="new-hosp-id" class="hub-input text-left font-mono text-sm" placeholder="basra" required />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">الموقع / المدينة</label>
+                        <input type="text" id="new-hosp-location" class="hub-input" placeholder="Basra · Iraq" value="Basra · Iraq" />
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">الأيقونة</label>
+                        <select id="new-hosp-icon" class="hub-input">
+                            <option value="fa-hospital">🏥 مستشفى (Hospital)</option>
+                            <option value="fa-hospital-user">👨‍⚕️ مستشفى وأطباء (Hospital User)</option>
+                            <option value="fa-clinic-medical">🩺 عيادة (Clinic)</option>
+                            <option value="fa-heartbeat">💓 نبض وطوارئ (Heartbeat)</option>
+                            <option value="fa-ambulance">🚑 إسعاف (Ambulance)</option>
+                            <option value="fa-anchor">⚓ موانئ (Anchor)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">لون الهوية</label>
+                        <input type="color" id="new-hosp-color" value="#0f766e" class="hub-input h-11 p-1 cursor-pointer" />
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="add-hosp-passwords-wrap">
+                    <div>
+                        <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">كلمة مرور المستخدم</label>
+                        <input type="text" id="new-hosp-user-pwd" class="hub-input text-center font-mono" value="" placeholder="كلمة مرور المستخدم" required />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">مقيم التخدير</label>
+                        <input type="text" id="new-hosp-anaesthesia-pwd" class="hub-input text-center font-mono" value="" placeholder="كلمة مرور مقيم التخدير" required />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">كلمة مرور المدير</label>
+                        <input type="text" id="new-hosp-admin-pwd" class="hub-input text-center font-mono" value="" placeholder="كلمة مرور المدير" required />
+                    </div>
+                    <div id="new-hosp-owner-pwd-col">
+                        <label class="block text-xs font-bold mb-1 text-slate-600 dark:text-slate-300">كلمة مرور المالك</label>
+                        <input type="text" id="new-hosp-owner-pwd" class="hub-input text-center font-mono" value="" placeholder="فارغ = كلمة مرور المالك العامة" />
+                    </div>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700">
+                    <label class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
+                        <input type="checkbox" id="new-hosp-clone-specs" checked class="w-4 h-4 accent-teal-600" />
+                        نسخ قائمة التخصصات الطبية من المستودع العام
+                    </label>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="submit" id="submit-hosp-btn" class="flex-1 ios-btn primary justify-center">
+                        <i class="fas fa-check-circle ml-1"></i> حفظ وإنشاء المستشفى
+                    </button>
+                    <button type="button" onclick="closeAddHospitalModal()" class="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 font-bold text-xs text-slate-600 dark:text-slate-300">
+                        إلغاء
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- OWNER MAIN SPECIALTY STORE MODAL -->
+    <div id="global-specialties-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 740px;">
+            <div class="flex justify-between items-center mb-3">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-950/60 flex items-center justify-center text-purple-600 dark:text-purple-400 text-base">
+                        <i class="fas fa-crown"></i>
+                    </span>
+                    <div>
+                        <h3 class="text-lg font-black text-slate-800 dark:text-white">
+                            مستودع التخصصات العام (المتجر الرئيسي)
+                        </h3>
+                        <div class="text-xs text-purple-600 dark:text-purple-400 font-bold">صلاحيات المالك الحصرية · الدليل الموحد لجميع المستشفيات</div>
+                    </div>
+                </div>
+                <button type="button" onclick="closeGlobalSpecialtiesModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                المصدر المركزي الموحد لكافة المستشفيات. يمكنك تعديل أسماء التخصصات، وضبط الفئات الفرعية ومصادر سحب واستعارة الأطباء (Accept Pools).
+            </p>
+
+            <div class="flex flex-wrap gap-2 items-center justify-between mb-3">
+                <div class="relative flex-1 min-w-[200px]">
+                    <i class="fas fa-search absolute right-3 top-3 text-slate-400 text-xs"></i>
+                    <input type="text" id="global-spec-search-input" oninput="renderGlobalSpecialtiesList()" placeholder="بحث عن تخصص بالاسم..." class="hub-input text-xs pr-8" />
+                </div>
+                <button type="button" onclick="openGlobalSpecEditModal()" class="px-4 py-2.5 rounded-xl font-bold text-white text-xs flex items-center gap-1.5 shadow-md transition hover:opacity-95" style="background:linear-gradient(135deg,#7c3aed,#9333ea);">
+                    <i class="fas fa-plus ml-1"></i> إضافة تخصص عام جديد
+                </button>
+            </div>
+
+            <div id="global-specialties-items-container" class="space-y-1.5 max-h-96 overflow-y-auto mb-4 p-1">
+                <!-- Rendered dynamically -->
+            </div>
+
+            <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <span id="global-spec-count-badge" class="text-xs font-bold px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">0 تخصص في المستودع</span>
+                <button type="button" onclick="closeGlobalSpecialtiesModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- OWNER GLOBAL SPECIALTY EDIT DIALOG -->
+    <div id="global-spec-edit-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 620px;">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-lg font-black flex items-center gap-2 text-slate-800 dark:text-white" id="global-spec-modal-title">
+                    <i class="fas fa-crown text-purple-600"></i> تعديل التخصص في المستودع العام
+                </h3>
+                <button type="button" onclick="closeGlobalSpecEditModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <input type="hidden" id="global-spec-orig-id" />
+            <input type="hidden" id="global-spec-id" />
+
+            <div class="space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">اسم التخصص بالعربية</label>
+                        <input type="text" id="global-spec-name-ar" class="hub-input" placeholder="مثال: جراحة العظام والكسور" required />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">الأيقونة (Emoji)</label>
+                        <input type="text" id="global-spec-icon" class="hub-input text-center text-xl" placeholder="🏥" maxlength="4" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">الاسم بالإنجليزية (اختياري)</label>
+                    <input type="text" id="global-spec-name-en" class="hub-input font-mono text-left" placeholder="e.g. Orthopaedic Surgery" dir="ltr" />
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-purple-700 dark:text-purple-300 mb-1 flex items-center gap-1">
+                        <i class="fas fa-diagram-project"></i> التخصص الأب (Subcategory Parent):
+                    </label>
+                    <select id="global-spec-parent" class="hub-input text-xs">
+                        <option value="">-- تخصص رئيسي مستقل (بدون تخصص أب) --</option>
+                    </select>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-bold text-blue-700 dark:text-blue-300 flex items-center gap-1">
+                            <i class="fas fa-users-viewfinder"></i> مصادر سحب واستعارة الأطباء (Accept Pool):
+                        </label>
+                        <div class="flex gap-1">
+                            <button type="button" onclick="selectAllGlobalPool()" class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800">تحديد الكل</button>
+                            <button type="button" onclick="clearAllGlobalPool()" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">إلغاء التحديد</button>
+                        </div>
+                    </div>
+                    <div id="global-spec-pool-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-44 overflow-y-auto p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40"></div>
+                </div>
+
+                <div class="flex gap-3 pt-3">
+                    <button type="button" onclick="saveGlobalSpecEdit()" class="flex-1 py-2.5 rounded-xl font-bold text-white text-xs shadow-md transition hover:opacity-95" style="background:linear-gradient(135deg,#7c3aed,#9333ea);">
+                        <i class="fas fa-check ml-1"></i> حفظ في المستودع العام
+                    </button>
+                    <button type="button" onclick="closeGlobalSpecEditModal()" class="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 font-bold text-xs text-slate-600 dark:text-slate-300">
+                        إلغاء
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OWNER ALL PASSWORDS MODAL (Universal Password Manager) -->
+    <div id="hub-passwords-modal" class="hub-modal-overlay">
+        <div class="hub-modal-card" style="max-width:440px; text-align:right; padding:22px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:40px; height:40px; border-radius:12px; background:rgba(217,119,6,0.15); display:flex; align-items:center; justify-content:center; color:#d97706; font-size:1.2rem;">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size:1.15rem; font-weight:800; margin:0; color:#2C2C2E;" class="dark:text-white">تعديل كلمات المرور</h3>
+                        <span style="font-size:0.75rem; color:#b45309; font-weight:700;"><i class="fas fa-crown text-amber-500 ml-1"></i> صلاحية المالك حصراً</span>
+                    </div>
+                </div>
+                <button type="button" onclick="closeAllPasswordsModalNav()" style="background:none; border:none; font-size:1.2rem; color:#AEAEB2; cursor:pointer;" aria-label="إغلاق">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <p style="font-size:0.8rem; color:#8A8A8E; margin-bottom:14px; line-height:1.5;">
+                بصفتك المالك، يمكنك تعديل كلمات المرور لكافة المستويات وتطبيقها على كامل المنظومة أو مستشفى بعينه.
+            </p>
+
+            <!-- Scope Selection -->
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:0.75rem; font-weight:700; color:#636366; margin-bottom:4px;">نطاق تطبيق التعديل</label>
+                <select id="hub-pwd-scope-select" onchange="onScopeChangePasswordsNav(this.value, this)" style="width:100%; padding:9px 12px; border-radius:10px; border:1px solid #D1D1D6; font-size:0.85rem; font-weight:600; background:#F9F9FB; outline:none; color:#2C2C2E;">
+                    <option value="all">🌐 جميع المستشفيات والمنظومة بالكامل (تحديث شامل)</option>
+                </select>
+                <div id="hub-pwd-scope-badge" style="display:flex; align-items:center; gap:6px; font-size:0.75rem; font-weight:700; color:#007AFF; background:rgba(0, 122, 255,0.08); border:1px solid rgba(0, 122, 255,0.2); border-radius:8px; padding:6px 10px; margin-top:6px;">
+                    <i class="fas fa-globe"></i>
+                    <span id="hub-pwd-scope-text">تطبيق التعديل على المنظومة بالكامل وجميع المستشفيات</span>
+                </div>
+            </div>
+
+            <!-- Passwords Fields -->
+            <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
+                <!-- Normal User Password -->
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <label id="hub-pwd-user-label" style="font-size:0.78rem; font-weight:700; color:#48484A;">كلمة مرور المستخدم العادي</label>
+                        <span id="hub-pwd-user-hint" style="font-size:0.68rem; color:#8A8A8E;">(تصفح، تبديل، دليل المقيمين)</span>
+                    </div>
+                    <div style="position:relative;">
+                        <input type="text" id="hub-pwd-user" placeholder="كلمة المرور" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #D1D1D6; font-family:monospace; font-size:0.95rem; text-align:center; color:#2C2C2E; background:#ffffff;" />
+                        <i class="fas fa-user" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#AEAEB2; font-size:0.85rem;"></i>
+                    </div>
+                </div>
+
+                <!-- Anaesthesia Resident Password -->
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <label id="hub-pwd-anaesthesia-label" style="font-size:0.78rem; font-weight:700; color:#007AFF;">كلمة مرور مقيم التخدير والعناية</label>
+                        <span id="hub-pwd-anaesthesia-hint" style="font-size:0.68rem; color:#8A8A8E;">(تعديل موقف أسرة العناية المركزة)</span>
+                    </div>
+                    <div style="position:relative;">
+                        <input type="text" id="hub-pwd-anaesthesia" placeholder="كلمة المرور" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #D1D1D6; font-family:monospace; font-size:0.95rem; text-align:center; color:#2C2C2E; background:#ffffff;" />
+                        <i class="fas fa-syringe" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#007AFF; font-size:0.85rem;"></i>
+                    </div>
+                </div>
+
+                <!-- Admin Password -->
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <label id="hub-pwd-admin-label" style="font-size:0.78rem; font-weight:700; color:#48484A;">كلمة مرور المدير / المشرف</label>
+                        <span id="hub-pwd-admin-hint" style="font-size:0.68rem; color:#8A8A8E;">(إدارة المقيمين، المجدول)</span>
+                    </div>
+                    <div style="position:relative;">
+                        <input type="text" id="hub-pwd-admin" placeholder="كلمة المرور" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #D1D1D6; font-family:monospace; font-size:0.95rem; text-align:center; color:#2C2C2E; background:#ffffff;" />
+                        <i class="fas fa-shield-halved" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#AEAEB2; font-size:0.85rem;"></i>
+                    </div>
+                </div>
+
+                <!-- Owner Password -->
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <label id="hub-pwd-owner-label" style="font-size:0.78rem; font-weight:700; color:#b45309;">كلمة مرور المالك</label>
+                        <span id="hub-pwd-owner-hint" style="font-size:0.68rem; color:#b45309; font-weight:700;">(كامل الصلاحيات + كلمات المرور)</span>
+                    </div>
+                    <div style="position:relative;">
+                        <input type="text" id="hub-pwd-owner" placeholder="كلمة المرور" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:2px solid rgba(217,119,6,0.5); font-family:monospace; font-size:0.95rem; text-align:center; background:#fffbeb; color:#2C2C2E;" />
+                        <i class="fas fa-crown" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#d97706; font-size:0.85rem;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <p id="hub-passwords-error" style="color:#ef4444; font-size:0.75rem; min-height:18px; margin-bottom:10px; text-align:center;"></p>
+
+            <div style="display:flex; gap:8px;">
+                <button type="button" id="hub-save-passwords-btn" onclick="submitAllPasswordsNav()" style="flex:1; padding:11px; border-radius:12px; border:none; background:linear-gradient(135deg,#d97706,#b45309); color:white; font-weight:700; cursor:pointer; font-size:0.88rem; box-shadow:0 4px 14px rgba(217,119,6,0.3);">
+                    <i class="fas fa-check-circle ml-1"></i> حفظ وتطبيق كلمات المرور
+                </button>
+                <button type="button" onclick="closeAllPasswordsModalNav()" style="padding:11px 16px; border-radius:12px; border:1px solid #D1D1D6; background:transparent; color:#8A8A8E; font-weight:600; cursor:pointer; font-size:0.88rem;">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROLE SWITCHER MODAL (Universal Switch User Level) -->
+    <div id="role-switcher-modal" class="modal-overlay hub-modal-overlay" onclick="if(event.target===this) closeRoleSwitcherModal()">
+        <div class="modal-card hub-modal-card max-w-md w-full p-5 sm:p-6 text-right relative" style="max-width:440px; text-align:right;">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-4" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(142, 142, 147,0.2); padding-bottom:12px; margin-bottom:16px;">
+                <div class="flex items-center gap-3" style="display:flex; align-items:center; gap:10px;">
+                    <div class="w-10 h-10 rounded-xl bg-teal-500/15 dark:bg-teal-400/20 text-teal-700 dark:text-teal-400 flex items-center justify-center text-lg shadow-sm" style="width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:rgba(0, 122, 255,0.15); color:#007AFF;">
+                        <i class="fas fa-users-cog"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-slate-800 dark:text-white" style="font-size:1.05rem; font-weight:800; margin:0;">تبديل مستوى المستخدم</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400" style="font-size:0.75rem; color:#8A8A8E; margin:2px 0 0;">اختر مستوى الصلاحية للعمل به داخل المنظومة</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeRoleSwitcherModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center transition" style="background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:#AEAEB2;" aria-label="إغلاق">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Current Role Indicator Banner -->
+            <div class="mb-4 p-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between" style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-radius:14px; margin-bottom:14px; background:rgba(241,245,249,0.7); border:1px solid rgba(226,232,240,0.8);">
+                <div class="flex items-center gap-2" style="display:flex; align-items:center; gap:8px;">
+                    <span class="text-xs text-slate-500 dark:text-slate-400 font-bold" style="font-size:0.78rem; font-weight:700; color:#8A8A8E;">المستوى الحالي:</span>
+                    <span id="switcher-current-role-badge" class="px-2.5 py-1 rounded-full text-xs font-black bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-300" style="padding:3px 10px; border-radius:999px; font-size:0.75rem; font-weight:800;">مستخدم</span>
+                </div>
+                <span id="switcher-hospital-badge" class="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[150px]" style="font-size:0.75rem; font-weight:700; color:#8A8A8E;"></span>
+            </div>
+
+            <!-- Role Selection Options -->
+            <div class="space-y-3" id="switcher-role-cards" style="display:flex; flex-direction:column; gap:10px;">
+                <!-- 0. Owner Level Card (Hidden from switcher panel) -->
+                <div class="switcher-role-card role-card-owner" id="card-role-owner" onclick="selectRoleLevel('owner')" style="display:none !important;">
+                    <div class="flex items-start justify-between gap-2" style="display:flex; align-items:flex-start; justify-content:space-between;">
+                        <div class="flex items-center gap-3" style="display:flex; align-items:center; gap:10px;">
+                            <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center text-lg flex-shrink-0" style="width:38px; height:38px; border-radius:12px; background:rgba(217,119,6,0.15); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
+                                👑
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2" style="display:flex; align-items:center; gap:6px;">
+                                    <h4 class="role-title">مالك المنظومة (Owner)</h4>
+                                    <span id="tag-active-owner" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 font-bold" style="font-size:0.68rem; padding:2px 8px; border-radius:999px; background:rgba(217,119,6,0.15); color:#d97706; font-weight:800;">نشط حالياً ✓</span>
+                                </div>
+                                <p class="role-desc">صلاحيات كاملة على كافة المستشفيات والجداول والموقف وإدارة كلمات المرور</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Password input for owner if needed -->
+                    <div id="owner-pwd-box" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 hidden" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(226,232,240,0.8);" onclick="event.stopPropagation()">
+                        <div class="relative mb-2" style="position:relative; margin-bottom:8px;">
+                            <input type="password" id="owner-level-pwd" class="hub-role-input" placeholder="أدخل كلمة مرور المالك..." onkeydown="if(event.key==='Enter') confirmUpgradeToRole('owner')" />
+                            <button type="button" onclick="toggleInputPwd('owner-level-pwd', 'owner-eye-icon')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#AEAEB2;">
+                                <i class="fas fa-eye" id="owner-eye-icon"></i>
+                            </button>
+                        </div>
+                        <div class="flex gap-2" style="display:flex; gap:8px;">
+                            <button type="button" onclick="confirmUpgradeToRole('owner')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 transition shadow-sm" style="flex:1; padding:8px 12px; border-radius:10px; border:none; background:#d97706; color:white; font-weight:700; cursor:pointer; font-size:0.78rem;">تأكيد الدخول كمالك</button>
+                            <button type="button" onclick="cancelRoleInput('owner')" class="py-1.5 px-3 rounded-lg text-xs font-bold border border-slate-300 dark:border-slate-700 text-slate-500" style="padding:8px 12px; border-radius:10px; border:1px solid #D1D1D6; background:transparent; color:#8A8A8E; font-weight:600; cursor:pointer; font-size:0.78rem;">إلغاء</button>
+                        </div>
+                        <p id="owner-pwd-error" class="text-[11px] text-rose-500 mt-1 min-h-[16px]" style="color:#ef4444; font-size:0.72rem; margin:4px 0 0; min-height:16px;"></p>
+                    </div>
+                </div>
+
+                <!-- 1. Admin Level Card -->
+                <div class="switcher-role-card role-card-admin" id="card-role-admin" onclick="selectRoleLevel('admin')">
+                    <div class="flex items-start justify-between gap-2" style="display:flex; align-items:flex-start; justify-content:space-between;">
+                        <div class="flex items-center gap-3" style="display:flex; align-items:center; gap:10px;">
+                            <div class="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 flex items-center justify-center text-lg flex-shrink-0" style="width:38px; height:38px; border-radius:12px; background:rgba(0, 122, 255,0.15); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
+                                🛡️
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2" style="display:flex; align-items:center; gap:6px;">
+                                    <h4 class="role-title">مدير مستشفى (Admin)</h4>
+                                    <span id="tag-active-admin" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-bold" style="font-size:0.68rem; padding:2px 8px; border-radius:999px; background:rgba(0, 122, 255,0.15); color:#007AFF; font-weight:800;">نشط حالياً ✓</span>
+                                </div>
+                                <p class="role-desc">إدارة وتعديل جداول الخفارات للمقيمين والاختصاصيين وتعديل الأطباء</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Password input for admin if needed -->
+                    <div id="admin-pwd-box" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 hidden" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(226,232,240,0.8);" onclick="event.stopPropagation()">
+                        <div class="relative mb-2" style="position:relative; margin-bottom:8px;">
+                            <input type="password" id="admin-level-pwd" class="hub-role-input" placeholder="أدخل كلمة مرور الإدارة..." onkeydown="if(event.key==='Enter') confirmUpgradeToRole('admin')" />
+                            <button type="button" onclick="toggleInputPwd('admin-level-pwd', 'admin-eye-icon')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#AEAEB2;">
+                                <i class="fas fa-eye" id="admin-eye-icon"></i>
+                            </button>
+                        </div>
+                        <div class="flex gap-2" style="display:flex; gap:8px;">
+                            <button type="button" onclick="confirmUpgradeToRole('admin')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 transition shadow-sm" style="flex:1; padding:8px 12px; border-radius:10px; border:none; background:#007AFF; color:white; font-weight:700; cursor:pointer; font-size:0.78rem;">تأكيد التبديل لمدير</button>
+                            <button type="button" onclick="cancelRoleInput('admin')" class="py-1.5 px-3 rounded-lg text-xs font-bold border border-slate-300 dark:border-slate-700 text-slate-500" style="padding:8px 12px; border-radius:10px; border:1px solid #D1D1D6; background:transparent; color:#8A8A8E; font-weight:600; cursor:pointer; font-size:0.78rem;">إلغاء</button>
+                        </div>
+                        <p id="admin-pwd-error" class="text-[11px] text-rose-500 mt-1 min-h-[16px]" style="color:#ef4444; font-size:0.72rem; margin:4px 0 0; min-height:16px;"></p>
+                    </div>
+                </div>
+
+                <!-- 2. Anaesthesia Resident Level Card -->
+                <div class="switcher-role-card role-card-anaesthesia" id="card-role-anaesthesia" onclick="selectRoleLevel('anaesthesia')">
+                    <div class="flex items-start justify-between gap-2" style="display:flex; align-items:flex-start; justify-content:space-between;">
+                        <div class="flex items-center gap-3" style="display:flex; align-items:center; gap:10px;">
+                            <div class="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 flex items-center justify-center text-lg flex-shrink-0" style="width:38px; height:38px; border-radius:12px; background:rgba(0, 122, 255,0.15); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
+                                💉
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2" style="display:flex; align-items:center; gap:6px;">
+                                    <h4 class="role-title">مقيم تخدير (Anaesthesia)</h4>
+                                    <span id="tag-active-anaesthesia" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-bold" style="font-size:0.68rem; padding:2px 8px; border-radius:999px; background:rgba(0, 122, 255,0.15); color:#007AFF; font-weight:800;">نشط حالياً ✓</span>
+                                </div>
+                                <p class="role-desc">تحديث ومتابعة موقف أسرة العناية المركزة (ICU)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Password input for anaesthesia if needed -->
+                    <div id="anaesthesia-pwd-box" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 hidden" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(226,232,240,0.8);" onclick="event.stopPropagation()">
+                        <div class="relative mb-2" style="position:relative; margin-bottom:8px;">
+                            <input type="password" id="anaesthesia-level-pwd" class="hub-role-input" placeholder="أدخل كلمة مرور مقيم التخدير..." onkeydown="if(event.key==='Enter') confirmUpgradeToRole('anaesthesia')" />
+                            <button type="button" onclick="toggleInputPwd('anaesthesia-level-pwd', 'anaesthesia-eye-icon')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#AEAEB2;">
+                                <i class="fas fa-eye" id="anaesthesia-eye-icon"></i>
+                            </button>
+                        </div>
+                        <div class="flex gap-2" style="display:flex; gap:8px;">
+                            <button type="button" onclick="confirmUpgradeToRole('anaesthesia')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 transition shadow-sm" style="flex:1; padding:8px 12px; border-radius:10px; border:none; background:#007AFF; color:white; font-weight:700; cursor:pointer; font-size:0.78rem;">تأكيد التبديل لمقيم تخدير</button>
+                            <button type="button" onclick="cancelRoleInput('anaesthesia')" class="py-1.5 px-3 rounded-lg text-xs font-bold border border-slate-300 dark:border-slate-700 text-slate-500" style="padding:8px 12px; border-radius:10px; border:1px solid #D1D1D6; background:transparent; color:#8A8A8E; font-weight:600; cursor:pointer; font-size:0.78rem;">إلغاء</button>
+                        </div>
+                        <p id="anaesthesia-pwd-error" class="text-[11px] text-rose-500 mt-1 min-h-[16px]" style="color:#ef4444; font-size:0.72rem; margin:4px 0 0; min-height:16px;"></p>
+                    </div>
+                </div>
+
+                <!-- 3. User Level Card -->
+                <div class="switcher-role-card role-card-user" id="card-role-user" onclick="selectRoleLevel('user')">
+                    <div class="flex items-start justify-between gap-2" style="display:flex; align-items:flex-start; justify-content:space-between;">
+                        <div class="flex items-center gap-3" style="display:flex; align-items:center; gap:10px;">
+                            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center text-lg flex-shrink-0" style="width:38px; height:38px; border-radius:12px; background:rgba(138, 138, 142,0.15); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
+                                👨‍⚕️
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2" style="display:flex; align-items:center; gap:6px;">
+                                    <h4 class="role-title">مستخدم عادي (User)</h4>
+                                    <span id="tag-active-user" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold" style="font-size:0.68rem; padding:2px 8px; border-radius:999px; background:rgba(138, 138, 142,0.15); color:#636366; font-weight:800;">نشط حالياً ✓</span>
+                                </div>
+                                <p class="role-desc">استعراض جداول الخفارات واليوميات والبحث عن الأطباء (وضع القراءة فقط)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Quick Actions -->
+            <div class="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between" style="margin-top:16px; padding-top:12px; border-top:1px solid rgba(142, 142, 147,0.2); display:flex; justify-content:space-between; align-items:center;">
+                <button type="button" onclick="handleDockLockAction(); closeRoleSwitcherModal();" class="text-xs font-bold text-rose-500 hover:text-rose-600 flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40" style="background:none; border:none; color:#ef4444; font-weight:700; cursor:pointer; font-size:0.75rem;">
+                    <i class="fas fa-sign-out-alt"></i> قفل التطبيق وخروج
+                </button>
+                <button type="button" onclick="closeRoleSwitcherModal()" class="text-xs font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700" style="border:1px solid #D1D1D6; border-radius:10px; background:transparent; color:#8A8A8E; font-weight:700; cursor:pointer; font-size:0.75rem; padding:6px 14px;">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FULL SYSTEM BACKUP & RESTORE MODAL (Owner Exclusive) -->
+    <div id="full-system-backup-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width:480px; text-align:right;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:40px; height:40px; border-radius:12px; background:rgba(10, 132, 255,0.15); display:flex; align-items:center; justify-content:center; color:#0A84FF; font-size:1.25rem;">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size:1.15rem; font-weight:800; margin:0; color:#2C2C2E;" class="dark:text-white">النسخ الاحتياطي الشامل للمنظومة</h3>
+                        <span style="font-size:0.75rem; color:#b45309; font-weight:700;"><i class="fas fa-crown text-amber-500 ml-1"></i> صلاحية المالك حصراً</span>
+                    </div>
+                </div>
+                <button type="button" onclick="closeFullSystemBackupModal()" style="background:none; border:none; font-size:1.2rem; color:#AEAEB2; cursor:pointer;" aria-label="إغلاق">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <p style="font-size:0.8rem; color:#8A8A8E; margin-bottom:16px; line-height:1.5;">
+                تنزيل واستعادة النسخة الاحتياطية الشاملة لكامل المنظومة (كافة المستشفيات، التخصصات، الأطباء، جداول الخفارات، بيانات طوارئ ER، والإعدادات).
+            </p>
+
+            <!-- Export Full System Card -->
+            <div style="background:rgba(241,245,249,0.7); border:1px solid #D1D1D6; border-radius:16px; padding:14px; margin-bottom:12px;">
+                <h4 style="font-size:0.8rem; font-weight:800; color:#2C2C2E; margin:0 0 10px; display:flex; align-items:center; gap:6px;">
+                    <i class="fas fa-download text-teal-600"></i>
+                    <span>تنزيل النسخة الاحتياطية الشاملة</span>
+                </h4>
+                <button type="button" onclick="exportFullSystemBackupFile()" style="width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(10, 132, 255,0.3); background:#ffffff; color:#007AFF; font-weight:800; font-size:0.82rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" class="hover:bg-teal-50 transition shadow-xs">
+                    <div style="text-align:right;">
+                        <div style="font-size:0.85rem; font-weight:800;">نسخة المنظومة الشاملة (JSON)</div>
+                        <div style="font-size:0.7rem; color:#8A8A8E; margin-top:2px;">كافة المستشفيات والجداول وإعدادات الطوارئ</div>
+                    </div>
+                    <i class="fas fa-network-wired text-lg text-teal-600"></i>
+                </button>
+            </div>
+
+            <!-- Restore Full System Card -->
+            <div style="background:rgba(241,245,249,0.7); border:1px solid #D1D1D6; border-radius:16px; padding:14px; margin-bottom:16px;">
+                <h4 style="font-size:0.8rem; font-weight:800; color:#2C2C2E; margin:0 0 10px; display:flex; align-items:center; gap:6px;">
+                    <i class="fas fa-upload text-indigo-600"></i>
+                    <span>استعادة المنظومة من ملف نسخة احتياطية</span>
+                </h4>
+                <button type="button" onclick="triggerRestoreFullSystemFilePicker()" style="width:100%; padding:12px 14px; border-radius:12px; border:2px dashed rgba(99,102,241,0.4); background:#ffffff; color:#4338ca; font-weight:800; font-size:0.82rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" class="hover:bg-indigo-50 transition shadow-xs">
+                    <div style="text-align:right;">
+                        <div style="font-size:0.85rem; font-weight:800;">استعادة المنظومة الشاملة 👑</div>
+                        <div style="font-size:0.7rem; color:#8A8A8E; margin-top:2px;">استعادة كاملة لقاعدة البيانات والمنظومة</div>
+                    </div>
+                    <i class="fas fa-cloud-arrow-up text-lg text-indigo-600"></i>
+                </button>
+            </div>
+
+            <!-- Local Safety Snapshots Section -->
+            <div style="background:rgba(254,243,199,0.4); border:1px solid rgba(245,158,11,0.3); border-radius:14px; padding:12px; margin-bottom:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <span style="font-size:0.78rem; font-weight:800; color:#92400e; display:flex; align-items:center; gap:6px;">
+                        <i class="fas fa-shield-halved text-amber-600"></i>
+                        <span>النسخ الآمنة التلقائية الحديثة (Snapshots)</span>
+                    </span>
+                </div>
+                <div id="safety-snapshots-list" style="font-size:0.72rem; color:#78350f;">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end;">
+                <button type="button" onclick="closeFullSystemBackupModal()" class="ios-btn secondary" style="padding:8px 18px; font-size:0.8rem;">
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="./hub-sync.js"></script>
+    <script src="./hub-core.js"></script>
+    <script src="./hub-avatar.js"></script>
+    <script src="./hub-accounts.js"></script>
+    <script src="./nav-component.js"></script>
+    <script>
+        // ============================================================
+        // IPHONE MEDICAL HUB CONTROLLER
+        // ============================================================
+        let currentDb = null;
+        let lastToastMsg = '';
+        let lastToastTime = 0;
+        let currentHospFilter = 'all';
+        let searchQuery = '';
+
+        function showToast(message, type = 'info', duration = 3000) {
+            const now = Date.now();
+            if (message === lastToastMsg && now - lastToastTime < 1500) return;
+            lastToastMsg = message;
+            lastToastTime = now;
+
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+            toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('show'));
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, duration);
+        }
+
+        async function initHub() {
+            try {
+                // Initialize theme
+                const theme = Hub.getTheme();
+                document.body.classList.toggle('dark', theme === 'dark');
+                updateThemeToggleIcon(theme);
+
+                // Initialize auth & session
+                if (!Hub.auth.checkSession()) {
+                    Hub.auth.logout();
+                    document.getElementById('lock-screen').classList.remove('hidden');
+                } else {
+                    document.getElementById('lock-screen').classList.add('hidden');
+                }
+
+                updateTopRoleBadge();
+
+                // Load database
+                currentDb = await Hub.loadDatabase();
+                applyDefaultHospFilter();
+                updateLiveClock();
+                setInterval(updateLiveClock, 1000);
+
+                renderHubDashboard();
+                runAdminActionFromHash();
+            } catch (err) {
+                console.error("Hub Init Error:", err);
+                showToast("تعذر تحميل البيانات من السيرفر، جاري استخدام الذاكرة المحلية", "error");
+            }
+        }
+
+        /** The account panel's Administrative Sector links here as #admin=<tool> when the tool lives on this page. */
+        function runAdminActionFromHash() {
+            const m = location.hash.match(/^#admin=(\w+)$/);
+            if (!m || !Hub.auth.isOwner() || !window.HubAccounts || !HubAccounts.ADMIN_ACTIONS.includes(m[1])) return;
+            history.replaceState(null, '', location.pathname);
+            if (typeof window[m[1]] === 'function') setTimeout(() => window[m[1]](), 300);
+        }
+
+        function togglePortalLockPwd() {
+            const pwdInput = document.getElementById('password-input');
+            const eyeIcon = document.getElementById('portal-lock-eye-icon');
+            if (!pwdInput) return;
+            const isPassword = pwdInput.type === 'password';
+            pwdInput.type = isPassword ? 'text' : 'password';
+            if (eyeIcon) {
+                eyeIcon.className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
+            }
+        }
+
+        function toggleSharedLogin(shared) {
+            document.getElementById('lock-form').hidden = !shared;
+            document.getElementById('account-lock-form').hidden = shared;
+            document.getElementById('lock-error').textContent = '';
+            document.getElementById(shared ? 'password-input' : 'account-user-input').focus();
+        }
+
+        async function handleAccountLogin() {
+            const user = document.getElementById('account-user-input').value.trim();
+            const pass = document.getElementById('account-pass-input').value;
+            const remember = document.getElementById('remember-me').checked;
+            const errorEl = document.getElementById('lock-error');
+            const btn = document.getElementById('account-login-btn');
+            if (!user || !pass) {
+                errorEl.textContent = 'الرجاء إدخال اسم المستخدم وكلمة المرور';
+                return;
+            }
+            errorEl.textContent = 'جاري التحقق...';
+            btn.disabled = true;
+            const res = await Hub.auth.accountLogin(user, pass, remember);
+            btn.disabled = false;
+            if (res && res.success) {
+                errorEl.textContent = '';
+                document.getElementById('account-pass-input').value = '';
+                document.getElementById('lock-screen').classList.add('hidden');
+                updateTopRoleBadge();
+                applyDefaultHospFilter();
+                renderHubDashboard();
+                showToast(`أهلاً ${res.account ? res.account.name : ''} 👋`, 'success');
+            } else {
+                errorEl.textContent = res?.error || 'اسم المستخدم أو كلمة المرور غير صحيحة';
+                document.getElementById('account-pass-input').select();
+            }
+        }
+
+        async function handleHubLogin() {
+            const pwd = document.getElementById('password-input').value.trim();
+            const remember = document.getElementById('remember-me').checked;
+            const errorEl = document.getElementById('lock-error');
+
+            if (!pwd) {
+                errorEl.textContent = 'الرجاء إدخال كلمة المرور';
+                return;
+            }
+
+            errorEl.textContent = 'جاري التحقق...';
+            const res = await Hub.auth.login(pwd, remember);
+            if (res && res.success) {
+                errorEl.textContent = '';
+
+                document.getElementById('lock-screen').classList.add('hidden');
+                updateTopRoleBadge();
+                applyDefaultHospFilter();
+                renderHubDashboard();
+
+                if (Hub.auth.isOwner()) {
+                    showToast('مرحباً بك! تم تسجيل الدخول كمالك للمنظومة 👑', 'success');
+                } else if (Hub.auth.isAdmin()) {
+                    const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
+                    showToast(`تم تسجيل الدخول كمدير لـ (${hName || 'المستشفى'}) 🛡️`, 'success');
+                } else if (Hub.auth.getRole() === 'anaesthesia') {
+                    const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
+                    showToast(`تم تسجيل الدخول كمقيم تخدير لـ (${hName || 'العناية'}) 💉`, 'success');
+                } else {
+                    showToast('تم تسجيل الدخول بنجاح كمستخدم عادي 👨‍⚕️', 'success');
+                }
+            } else {
+                errorEl.textContent = res?.error || 'كلمة المرور غير صحيحة، حاول مجدداً';
+                document.getElementById('password-input').value = '';
+                document.getElementById('password-input').focus();
+            }
+        }
+
+        function handleDockLockAction() {
+            if (Hub.auth.isLoggedIn()) {
+                if (confirm('هل تريد قفل التطبيق وتسجيل الخروج؟')) {
+                    sessionStorage.removeItem('hub_cached_owner_pwd');
+                    sessionStorage.removeItem('hub_cached_admin_pwd');
+                    Hub.auth.logout();
+                    document.getElementById('lock-screen').classList.remove('hidden');
+                    updateTopRoleBadge();
+                    renderHubDashboard();
+                }
+            } else {
+                document.getElementById('lock-screen').classList.remove('hidden');
+            }
+        }
+
+        // ============================================================
+        // USER LEVEL SWITCHER CONTROLLER
+        // ============================================================
+        function openRoleSwitcherModal() {
+            const modal = document.getElementById('role-switcher-modal');
+            if (!modal) return;
+
+            const role = Hub.auth.getRole();
+            const isOwner = Hub.auth.isOwner();
+            const isAdmin = Hub.auth.isAdmin();
+
+            // 1. Current badge indicator
+            const badgeEl = document.getElementById('switcher-current-role-badge');
+            const hospBadgeEl = document.getElementById('switcher-hospital-badge');
+            if (badgeEl) {
+                if (isOwner) {
+                    badgeEl.className = 'px-2.5 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300';
+                    badgeEl.textContent = 'المالك 👑';
+                } else if (isAdmin) {
+                    badgeEl.className = 'px-2.5 py-1 rounded-full text-xs font-black bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-300';
+                    const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : 'مدير';
+                    badgeEl.textContent = `مدير (${hName.length > 14 ? 'المستشفى' : hName}) 🛡️`;
+                } else if (role === 'anaesthesia') {
+                    badgeEl.className = 'px-2.5 py-1 rounded-full text-xs font-black bg-sky-100 text-sky-800 dark:bg-sky-900/50 dark:text-sky-300';
+                    const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
+                    badgeEl.textContent = `مقيم تخدير (${hName || 'العناية'}) 💉`;
+                } else {
+                    badgeEl.className = 'px-2.5 py-1 rounded-full text-xs font-black bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200';
+                    badgeEl.textContent = 'مستخدم عادي 👨‍⚕️';
+                }
+            }
+            if (hospBadgeEl) {
+                hospBadgeEl.textContent = ((isAdmin || role === 'anaesthesia') && !isOwner && Hub.auth.getAdminHospitalName) ? Hub.auth.getAdminHospitalName() : '';
+            }
+
+            // 2. Active cards & tags
+            ['owner', 'admin', 'anaesthesia', 'user'].forEach(r => {
+                const tag = document.getElementById(`tag-active-${r}`);
+                const card = document.getElementById(`card-role-${r}`);
+                const isActive = (r === 'owner' && isOwner) ||
+                                 (r === 'admin' && isAdmin && !isOwner) ||
+                                 (r === 'anaesthesia' && role === 'anaesthesia' && !isOwner) ||
+                                 (r === 'user' && !isAdmin && role !== 'anaesthesia' && !isOwner);
+                if (tag) {
+                    tag.classList.toggle('hidden', !isActive);
+                }
+                if (card) {
+                    card.classList.toggle('is-active-role', isActive);
+                }
+            });
+
+            // 3. Reset password boxes
+            cancelRoleInput('owner');
+            cancelRoleInput('admin');
+            cancelRoleInput('anaesthesia');
+
+            modal.classList.add('active');
+        }
+
+        function closeRoleSwitcherModal() {
+            const modal = document.getElementById('role-switcher-modal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function cancelRoleInput(role) {
+            const box = document.getElementById(`${role}-pwd-box`);
+            const input = document.getElementById(`${role}-level-pwd`);
+            const err = document.getElementById(`${role}-pwd-error`);
+            if (box) box.classList.add('hidden');
+            if (input) input.value = '';
+            if (err) err.textContent = '';
+        }
+
+        function toggleInputPwd(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (!input) return;
+            const isPwd = input.type === 'password';
+            input.type = isPwd ? 'text' : 'password';
+            if (icon) {
+                icon.className = isPwd ? 'fas fa-eye-slash' : 'fas fa-eye';
+            }
+        }
+
+        function selectRoleLevel(targetRole) {
+            const role = Hub.auth.getRole();
+            const isOwner = Hub.auth.isOwner();
+            const isAdmin = Hub.auth.isAdmin();
+
+            // Determine current and target rank: owner = 4, admin = 3, anaesthesia = 2, user = 1
+            const currentRank = isOwner ? 4 : (isAdmin ? 3 : (role === 'anaesthesia' ? 2 : 1));
+            const targetRank = targetRole === 'owner' ? 4 : (targetRole === 'admin' ? 3 : (targetRole === 'anaesthesia' ? 2 : 1));
+
+            // 1. Same level check
+            if (targetRank === currentRank) {
+                showToast('أنت تعمل حالياً بهذا المستوى بالفعل', 'info');
+                return;
+            }
+
+            // 2. DESCENDING PRIVILEGE: NO PASSWORD REQUIRED!
+            if (targetRank < currentRank) {
+                const targetHosp = Hub.auth.getAdminHospitalIds ? Hub.auth.getAdminHospitalIds() : ['*'];
+                if (targetRole === 'admin') {
+                    // Owner descending to Admin (no password needed)
+                    Hub.auth.saveSession('admin', '', true, targetHosp.length > 0 ? targetHosp : ['*']);
+                    updateTopRoleBadge();
+                    renderHubDashboard();
+                    closeRoleSwitcherModal();
+                    showToast('تم التبديل بنجاح إلى: مدير مستشفى 🛡️', 'success');
+                    return;
+                }
+                if (targetRole === 'anaesthesia') {
+                    // Owner or Admin descending to Anaesthesia Resident (no password needed)
+                    const activeHosp = Hub.getActiveHospitalId ? Hub.getActiveHospitalId() : 'iraqi';
+                    const targetHosp = Hub.auth.getAdminHospitalIds ? Hub.auth.getAdminHospitalIds() : [];
+                    const chosenHosp = (targetHosp.length > 0 && !targetHosp.includes('*')) ? targetHosp : [activeHosp];
+                    Hub.auth.saveSession('anaesthesia', '', true, chosenHosp);
+                    updateTopRoleBadge();
+                    renderHubDashboard();
+                    closeRoleSwitcherModal();
+                    const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
+                    showToast(`تم التبديل بنجاح إلى: مقيم تخدير (${hName || 'العناية'}) 💉`, 'success');
+                    return;
+                }
+                if (targetRole === 'user') {
+                    // Owner, Admin, or Anaesthesia descending to Regular User (no password needed)
+                    Hub.auth.saveSession('user', '', true, []);
+                    updateTopRoleBadge();
+                    renderHubDashboard();
+                    closeRoleSwitcherModal();
+                    showToast('تم التبديل بنجاح إلى: مستخدم عادي 👨‍⚕️', 'success');
+                    return;
+                }
+            }
+
+            // 3. ASCENDING PRIVILEGE: PASSWORD IS A STRICT MUST!
+            if (targetRole === 'owner' || targetRole === 'admin' || targetRole === 'anaesthesia') {
+                ['owner', 'admin', 'anaesthesia'].forEach(r => {
+                    if (r !== targetRole) cancelRoleInput(r);
+                });
+
+                const targetBox = document.getElementById(`${targetRole}-pwd-box`);
+                if (targetBox) targetBox.classList.remove('hidden');
+                const pwdInput = document.getElementById(`${targetRole}-level-pwd`);
+                const err = document.getElementById(`${targetRole}-pwd-error`);
+                if (err) err.textContent = '';
+                if (pwdInput) {
+                    pwdInput.value = '';
+                    setTimeout(() => pwdInput.focus(), 80);
+                }
+                return;
+            }
+        }
+
+        async function confirmUpgradeToRole(targetRole) {
+            const input = document.getElementById(`${targetRole}-level-pwd`);
+            const err = document.getElementById(`${targetRole}-pwd-error`);
+            const pwd = (input?.value || '').trim();
+
+            if (!pwd) {
+                if (err) err.textContent = 'يرجى إدخال كلمة المرور';
+                return;
+            }
+
+            // Verify credentials with role hint
+            if (err) err.textContent = 'جاري التحقق...';
+            const res = await Hub.auth.verifyPassword(pwd, targetRole);
+            if (!res.success) {
+                if (err) err.textContent = res.error || 'كلمة المرور غير صحيحة، حاول مجدداً';
+                if (input) {
+                    input.value = '';
+                    input.focus();
+                }
+                return;
+            }
+
+            if (targetRole === 'owner' && res.role !== 'owner') {
+                if (err) err.textContent = 'كلمة المرور غير صحيحة لصلاحية المالك';
+                if (input) {
+                    input.value = '';
+                    input.focus();
+                }
+                return;
+            }
+
+            if (targetRole === 'admin' && res.role !== 'admin' && res.role !== 'owner') {
+                if (err) err.textContent = 'كلمة المرور غير صحيحة لصلاحية الإدارة، حاول مجدداً';
+                if (input) {
+                    input.value = '';
+                    input.focus();
+                }
+                return;
+            }
+
+            if (targetRole === 'anaesthesia' && res.role !== 'anaesthesia' && res.role !== 'owner') {
+                if (err) err.textContent = 'كلمة المرور غير صحيحة لصلاحية مقيم التخدير، حاول مجدداً';
+                if (input) {
+                    input.value = '';
+                    input.focus();
+                }
+                return;
+            }
+
+            const currentActive = Hub.getActiveHospitalId ? Hub.getActiveHospitalId() : 'iraqi';
+            let grantRole = targetRole;
+            let grantHospitals = [];
+            if (res.role === 'owner') {
+                grantRole = targetRole === 'owner' ? 'owner' : targetRole;
+                grantHospitals = (grantRole === 'owner') ? ['*'] : ((res.adminHospitals && res.adminHospitals.length > 0) ? res.adminHospitals : ['*']);
+            } else if (grantRole === 'anaesthesia') {
+                grantHospitals = (res.adminHospitals && res.adminHospitals.length > 0)
+                    ? res.adminHospitals
+                    : [currentActive];
+            } else {
+                grantHospitals = res.adminHospitals || [];
+            }
+
+            Hub.auth.saveSession(grantRole, pwd, true, grantHospitals);
+
+            if (err) err.textContent = '';
+            updateTopRoleBadge();
+            renderHubDashboard();
+            closeRoleSwitcherModal();
+            const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
+            const isGlobal = grantHospitals.includes('*');
+            const titles = {
+                owner: 'مالك المنظومة 👑',
+                admin: isGlobal ? 'المدير العام (كافة المستشفيات) 👑' : `مدير مستشفى (${hName || 'المستشفى'}) 🛡️`,
+                anaesthesia: isGlobal ? 'مقيم التخدير العام (كافة المستشفيات) 💉' : `مقيم تخدير (${hName || 'العناية'}) 💉`,
+                user: 'مستخدم عادي 👨‍⚕️'
+            };
+            showToast(`تم التبديل بنجاح إلى: ${titles[grantRole] || grantRole}`, 'success');
+        }
+
+        // Global aliases
+        window.openRoleSwitcherModal = openRoleSwitcherModal;
+        window.handleRoleBadgeClick = openRoleSwitcherModal;
+
+        function updateTopRoleBadge() {
+            const role = Hub.auth.getRole();
+            const isOwner = Hub.auth.isOwner();
+            const isAdmin = Hub.auth.isAdmin();
+            const pill = document.getElementById('top-role-pill');
+            const icon = document.getElementById('top-role-icon');
+            const text = document.getElementById('top-role-text');
+            const dockText = document.getElementById('dock-lock-text');
+            const dockIcon = document.getElementById('dock-lock-icon');
+
+            if (!pill || !icon || !text) return;
+
+            pill.style.display = isOwner ? 'none' : '';
+            if (isOwner) {
+                pill.className = 'ios-role-pill owner';
+                icon.className = 'fas fa-crown';
+                text.textContent = 'المالك 👑';
+            } else if (isAdmin) {
+                pill.className = 'ios-role-pill admin';
+                icon.className = 'fas fa-shield-halved';
+                const isGlobal = Hub.auth.getAdminHospitalIds().includes('*');
+                const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : 'مدير';
+                text.textContent = isGlobal ? 'المدير العام 🛡️' : (hName.length > 16 ? 'مدير' : hName);
+            } else if (role === 'anaesthesia') {
+                pill.className = 'ios-role-pill anaesthesia';
+                icon.className = 'fas fa-syringe';
+                const isGlobal = Hub.auth.getAdminHospitalIds().includes('*');
+                const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
+                text.textContent = isGlobal ? 'مقيم التخدير العام 💉' : (hName ? `تخدير (${hName})` : 'مقيم تخدير');
+            } else if (Hub.auth.isLoggedIn()) {
+                pill.className = 'ios-role-pill user';
+                icon.className = 'fas fa-user-check';
+                text.textContent = 'مستخدم';
+            } else {
+                pill.className = 'ios-role-pill user';
+                icon.className = 'fas fa-lock';
+                text.textContent = 'دخول';
+            }
+
+            // Toggle Admin Scheduler tab in bottom dock
+            const schedBtn = document.getElementById('dock-btn-scheduler');
+            if (schedBtn) {
+                schedBtn.style.display = (isAdmin && !isOwner) ? 'flex' : 'none';
+            }
+
+            // Toggle top logout button visibility
+            const topLogoutBtn = document.getElementById('top-logout-btn');
+            if (topLogoutBtn) {
+                topLogoutBtn.style.display = Hub.auth.isLoggedIn() ? 'flex' : 'none';
+            }
+
+            updateDockLinks();
+        }
+
+        function updateDockLinks() {
+            const hospId = Hub.getActiveHospitalId ? Hub.getActiveHospitalId() : 'iraq';
+            const q = `?hospital=${encodeURIComponent(hospId)}`;
+            const links = {
+                'dock-link-icu': `./icu.html${q}`,
+                'dock-link-schedule': `./schedule.html${q}`,
+                'dock-link-specialists': `./specialists.html${q}`,
+                'dock-link-residents': `./residents.html${q}`,
+                'dock-link-signup': `./signup.html${q}`,
+                'dock-btn-scheduler': `./scheduler.html${q}`
+            };
+            for (const [id, url] of Object.entries(links)) {
+                const el = document.getElementById(id);
+                if (el) el.href = url;
+            }
+        }
+
+        function toggleThemeInstant() {
+            const current = Hub.getTheme();
+            const next = current === 'dark' ? 'light' : 'dark';
+            Hub.setTheme(next);
+            document.body.classList.toggle('dark', next === 'dark');
+            updateThemeToggleIcon(next);
+        }
+
+        function updateThemeToggleIcon(theme) {
+            const icon = document.getElementById('top-theme-icon');
+            if (!icon) return;
+            icon.className = theme === 'dark' ? 'fas fa-sun text-amber-400' : 'fas fa-moon';
+        }
+
+        function updateLiveClock() {
+            const el = document.getElementById('live-time-display');
+            if (!el) return;
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            const dateStr = Hub.getMedicalDate();
+            el.innerHTML = `<i class="fas fa-clock"></i> <span>${timeStr} · ${dateStr}</span>`;
+        }
+
+        function updateLiveIcuCounter() {
+            const counterEl = document.getElementById('live-icu-avail-counter');
+            if (!counterEl) return;
+            try {
+                const allStats = Hub.getAllHospitalsICUStats ? Hub.getAllHospitalsICUStats() : [];
+                let totalAvail = 0;
+                allStats.forEach(s => {
+                    totalAvail += (s.availableBeds || 0);
+                });
+                if (totalAvail > 0) {
+                    counterEl.textContent = `${totalAvail} شاغر`;
+                    counterEl.className = 'live-icu-avail-badge';
+                } else {
+                    counterEl.textContent = 'ممتلئ بالكامل';
+                    counterEl.className = 'live-icu-avail-badge full';
+                }
+            } catch(e) {
+                counterEl.textContent = 'موقف العناية';
+            }
+        }
+
+        function onSearchInput(val) {
+            searchQuery = (val || '').trim().toLowerCase();
+            renderHubDashboard();
+        }
+
+        /** Hospitals that are "mine": the account's hospital plus any it administers (not "all"). */
+        function myHospitalIds() {
+            if (!Hub.auth.isLoggedIn()) return [];
+            const ids = new Set();
+            const acc = Hub.auth.getAccount && Hub.auth.getAccount();
+            if (acc && acc.hosp) ids.add(acc.hosp);
+            (Hub.auth.getAdminHospitalIds() || []).forEach(id => { if (id !== '*') ids.add(id); });
+            return [...ids].filter(id => currentDb && currentDb.hospitals && currentDb.hospitals[id]);
+        }
+
+        function setHospFilter(filter, btn, remember = true) {
+            currentHospFilter = filter;
+            document.querySelectorAll('#hosp-segmented-filter .ios-segment-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
+            if (remember) { try { localStorage.setItem('hub_portal_filter', filter); } catch (e) {} }
+            renderHubDashboard();
+        }
+
+        /** Signed-in users start on their own hospital(s) unless they chose "all" before. */
+        function applyDefaultHospFilter() {
+            const mine = myHospitalIds();
+            let saved = null;
+            try { saved = localStorage.getItem('hub_portal_filter'); } catch (e) {}
+            const filter = mine.length && saved !== 'all' ? 'my' : 'all';
+            currentHospFilter = filter;
+            document.querySelectorAll('#hosp-segmented-filter .ios-segment-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
+        }
+
+        function renderHubDashboard() {
+            if (!currentDb || !currentDb.hospitals) return;
+            const prevScrollY = window.scrollY;
+
+            const hospitals = Object.values(currentDb.hospitals);
+            const isOwner = Hub.auth.isOwner();
+            const isAdmin = Hub.auth.isAdmin();
+
+            // Toggle Owner Bar & Segment buttons
+            const addBtnWrap = document.getElementById('add-hospital-container');
+            // The owner's tools live in the account panel (Administrative Sector).
+            if (addBtnWrap) addBtnWrap.style.display = 'none';
+
+            const myIds = myHospitalIds();
+            const myHospSeg = document.getElementById('seg-btn-my-hosp');
+            if (myHospSeg) myHospSeg.style.display = myIds.length ? 'inline-flex' : 'none';
+            const myLabel = document.getElementById('seg-my-label');
+            if (myLabel) myLabel.textContent = myIds.length === 1 ? 'مستشفاي' : 'مستشفياتي';
+            if (currentHospFilter === 'my' && !myIds.length) currentHospFilter = 'all';
+
+            // Global Statistics & On-Call Summary
+            const today = Hub.getMedicalDate();
+            const totalOnCallNow = Hub.getTotalActiveOnCallCount ? Hub.getTotalActiveOnCallCount(today) : 0;
+            const summaryEl = document.getElementById('live-oncall-summary');
+            if (summaryEl) {
+                summaryEl.textContent = `${totalOnCallNow} طبيب خفر في الخدمة الآن عبر ${hospitals.length} مستشفيات تعليمية`;
+            }
+
+            // Filter hospitals
+            let filtered = hospitals.filter(h => {
+                // Segment Filter
+                if (currentHospFilter === 'my') {
+                    if (!myIds.includes(h.id)) return false;
+                }
+                // Search Query
+                if (searchQuery) {
+                    const nameAr = (h.name_ar || '').toLowerCase();
+                    const nameEn = (h.hospitalName || '').toLowerCase();
+                    const loc = (h.location || '').toLowerCase();
+                    if (!nameAr.includes(searchQuery) && !nameEn.includes(searchQuery) && !loc.includes(searchQuery)) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            const grid = document.getElementById('hospitals-list-grid');
+            if (!grid) return;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-12 text-center text-slate-400 glass-card">
+                        <i class="fas fa-hospital-slash text-4xl mb-3 text-slate-300 dark:text-slate-600"></i>
+                        <div class="font-bold text-base">لا توجد نتائج مطابقة لبحثك</div>
+                        <div class="text-xs mt-1">تأكد من كتابة الاسم بصورة صحيحة أو قم بإلغاء الفلتر.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            collapseAllHospitalCards();
+            grid.innerHTML = filtered.map(h => {
+                const totalRes = (h.names || []).length;
+                const activeRes = (h.names || []).filter(n => n.active !== false && n.spec !== 'RESERVE').length;
+                const specCount = (h.specialties || []).filter(s => s.enabled !== false).length;
+                const onCallToday = Hub.getActiveOnCallResidentsCount ? Hub.getActiveOnCallResidentsCount(h, today) : ((h.schedule || []).filter(s => s.date === today && s.name && s.name.trim()).length);
+                const color = h.color || '#007AFF';
+                const icon = h.icon || 'fa-hospital';
+                const location = h.location || 'العراق';
+                const isHospAdmin = Hub.auth.isAdmin(h.id);
+                const icuStats = Hub.getICUStats ? Hub.getICUStats(h.id) : (h.icu || null);
+                const icuAvail = icuStats ? (icuStats.availableBeds !== undefined ? icuStats.availableBeds : Math.max(0, (icuStats.functionalBeds || 0) - (icuStats.occupiedBeds || 0))) : null;
+                const icuIsFull = (icuAvail !== null && icuAvail <= 0);
+
+                return `
+                    <div class="hosp-widget-card" id="card-${h.id}">
+                        <div>
+                            <!-- Header / Banner -->
+                            <div class="widget-top-banner">
+                                <div class="widget-squircle-icon" style="background: ${color}; box-shadow: 0 8px 22px ${color}45;">
+                                    <i class="fas ${icon}"></i>
+                                </div>
+                                <div class="widget-title-area">
+                                    <h3 class="widget-hosp-name">${h.name_ar || h.hospitalName}</h3>
+                                    <div class="widget-meta-row">
+                                        <span class="font-mono opacity-80">${h.hospitalName || ''}</span>
+                                        <span>·</span>
+                                        <span><i class="fas fa-location-dot ml-0.5"></i> ${location}</span>
+                                        <span class="widget-status-badge">🟢 24/7 نشط</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Metrics Row -->
+                            <div class="widget-metrics-wrap">
+                                <span class="metric-chip oncall-live">
+                                    <i class="fas fa-user-check"></i> ${onCallToday} في الخدمة الآن
+                                </span>
+                                <span class="metric-chip">
+                                    <i class="fas fa-user-doctor"></i> ${activeRes} مقيم نشط
+                                </span>
+                                <span class="metric-chip">
+                                    <i class="fas fa-stethoscope"></i> ${specCount} تخصص
+                                </span>
+                                ${h.erEnabled ? `
+                                <span class="metric-chip text-rose-600 border-rose-200 bg-rose-50/60 dark:text-rose-400 dark:border-rose-900/40" title="نظام خفارات الطوارئ ER مفعّل لهذا المستشفى">
+                                    <i class="fas fa-truck-medical text-rose-500"></i> ER مفعّل
+                                </span>
+                                ` : ''}
+                                ${icuStats ? `
+                                <a href="./icu.html?hospital=${h.id}" class="metric-chip ${icuIsFull ? 'border-rose-300 text-rose-600 dark:border-rose-800 dark:text-rose-400' : 'border-emerald-300 text-emerald-700 dark:border-emerald-800 dark:text-emerald-400'}" style="text-decoration:none;" title="معاينة موقف أسرة العناية المركزة">
+                                    <i class="fas fa-bed"></i> ${icuIsFull ? 'العناية ممتلئة' : `${icuAvail} شاغر`}
+                                </a>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Compact Primary Action: Centered Roster Button + Down Arrow -->
+                        <div class="hosp-primary-action-wrap">
+                            <a href="./Home.html?hospital=${h.id}" class="ios-btn primary hosp-roster-btn" onclick="Hub.setActiveHospitalId('${h.id}')">
+                                <i class="fas fa-users-viewfinder"></i> <span>الخفراء اليوم</span>
+                            </a>
+                            <button type="button" class="hosp-expand-arrow-btn" onclick="toggleHospitalCardExpand('${h.id}', event)" aria-label="عرض المزيد من الخيارات" title="المزيد من الخيارات" aria-expanded="false">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                        </div>
+
+                        <!-- Expandable Options (Drawer) -->
+                        <div class="hosp-expanded-options" id="hosp-options-${h.id}">
+                            <div class="widget-actions-grid">
+                                <a href="./schedule.html?hospital=${h.id}" class="ios-btn secondary" onclick="Hub.setActiveHospitalId('${h.id}')">
+                                    <i class="fas fa-calendar-week"></i> <span>جدول الخفارات</span>
+                                </a>
+                                <a href="./icu.html?hospital=${h.id}" class="ios-btn secondary hosp-icu-btn" onclick="Hub.setActiveHospitalId('${h.id}')" style="border-color:rgba(0, 122, 255,0.3); color:#007AFF;">
+                                    <i class="fas fa-procedures"></i> <span>موقف العناية</span>
+                                </a>
+                                <a href="./signup.html?hospital=${h.id}" class="ios-btn secondary">
+                                    <i class="fas fa-exchange-alt"></i> <span>تبديل خفر</span>
+                                </a>
+                                <a href="./specialists.html?hospital=${h.id}" class="ios-btn secondary">
+                                    <i class="fas fa-user-tie"></i> <span>أطباء الاختصاص</span>
+                                </a>
+                                ${((isHospAdmin && h.erEnabled) || isOwner) ? `
+                                <a href="./emergency.html?hospital=${h.id}" class="ios-btn secondary hosp-er-btn" style="border-color:rgba(225,29,72,0.3); color:#e11d48; background:rgba(225,29,72,0.06);" title="نظام وجداول خفارات الطوارئ لهذا المستشفى">
+                                    <i class="fas fa-truck-medical text-rose-500"></i> <span>خفارات الطوارئ (ER)</span>
+                                </a>
+                                ` : ''}
+                                ${isHospAdmin ? `
+                                <a href="./scheduler.html?hospital=${h.id}" class="ios-btn secondary">
+                                    <i class="fas fa-calendar-alt"></i> <span>مجدول الشهر</span>
+                                </a>
+                                <a href="./admin.html?hospital=${h.id}" class="ios-btn secondary">
+                                    <i class="fas fa-sliders"></i> <span>إدارة المستشفى</span>
+                                </a>
+                                <button type="button" onclick="exportHospitalBackupFromIndex('${h.id}')" class="ios-btn secondary" style="color:#059669;" title="تنزيل نسخة احتياطية لكافة بيانات وتخصصات ومقيمي هذا المستشفى">
+                                    <i class="fas fa-download"></i> <span>نسخ احتياطي</span>
+                                </button>` : ''}
+                            </div>
+
+                            ${isOwner ? `
+                                <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 space-y-2 text-[11px]">
+                                    <!-- ER Scheduler Toggle for Hospital (Owner Mode) -->
+                                    <div class="flex items-center justify-between p-2.5 rounded-xl transition-all ${h.erEnabled ? 'bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-900/50' : 'bg-rose-50/80 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/50'}">
+                                        <div class="flex items-center gap-2.5 font-bold ${h.erEnabled ? 'text-emerald-900 dark:text-emerald-200' : 'text-rose-900 dark:text-rose-200'}">
+                                            <div class="w-7 h-7 rounded-lg flex items-center justify-center ${h.erEnabled ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'}">
+                                                <i class="fas fa-truck-medical text-xs"></i>
+                                            </div>
+                                            <div>
+                                                <div class="leading-tight text-xs">نظام خفارات الطوارئ (ER)</div>
+                                                <div class="text-[10px] font-normal ${h.erEnabled ? 'text-emerald-700/80 dark:text-emerald-300/80' : 'text-rose-700/80 dark:text-rose-300/80'}">إتاحة الموقع لمدير هذا المستشفى</div>
+                                            </div>
+                                        </div>
+                                        <label class="er-toggle-container">
+                                            <span class="text-xs font-black ${h.erEnabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">${h.erEnabled ? 'مفعّل' : 'معطّل'}</span>
+                                            <input type="checkbox" ${h.erEnabled ? 'checked' : ''} onchange="toggleHospitalEREnabled('${h.id}', this.checked)" class="er-toggle-input">
+                                            <div class="er-toggle-track">
+                                                <div class="er-toggle-thumb"></div>
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    <div class="flex justify-between items-center pt-1 text-[11px]">
+                                        <span class="text-amber-600 dark:text-amber-400 font-bold"><i class="fas fa-crown ml-1"></i> المالك</span>
+                                        <button type="button" onclick="confirmDeleteHospital('${h.id}', '${h.name_ar || h.hospitalName}')" class="text-rose-500 font-bold hover:underline">
+                                            <i class="fas fa-trash-alt ml-1"></i> حذف المستشفى
+                                        </button>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            updateLiveIcuCounter();
+
+            if (typeof prevScrollY === 'number') {
+                window.scrollTo({ top: prevScrollY, behavior: 'instant' });
+            }
+        }
+
+        // ============================================================
+        // COMPACT CARD EXPAND / COLLAPSE CONTROLLER
+        // ============================================================
+        let currentlyExpandedHospId = null;
+
+        function toggleHospitalCardExpand(hospId, event) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+
+            const targetCard = document.getElementById(`card-${hospId}`);
+            if (!targetCard) return;
+
+            const isAlreadyExpanded = (currentlyExpandedHospId === hospId);
+
+            // Collapse any currently expanded card
+            collapseAllHospitalCards();
+
+            if (!isAlreadyExpanded) {
+                targetCard.classList.add('is-expanded');
+                const arrowBtn = targetCard.querySelector('.hosp-expand-arrow-btn');
+                if (arrowBtn) arrowBtn.setAttribute('aria-expanded', 'true');
+                currentlyExpandedHospId = hospId;
+            }
+        }
+
+        function collapseAllHospitalCards() {
+            if (!currentlyExpandedHospId) return;
+            const cards = document.querySelectorAll('.hosp-widget-card.is-expanded');
+            cards.forEach(c => {
+                c.classList.remove('is-expanded');
+                const arrowBtn = c.querySelector('.hosp-expand-arrow-btn');
+                if (arrowBtn) arrowBtn.setAttribute('aria-expanded', 'false');
+            });
+            currentlyExpandedHospId = null;
+        }
+
+        function exportHospitalBackupFromIndex(hospId) {
+            const hosp = Hub.getHospital(hospId);
+            if (!hosp) {
+                showToast('لم يتم العثور على بيانات المستشفى', 'error');
+                return;
+            }
+
+            const hospName = hosp.name_ar || hosp.hospitalName || 'المستشفى';
+            const specialties = (hosp.specialties || []).map(s => ({
+                id: s.id,
+                name_ar: s.name_ar || '',
+                name_en: s.name_en || '',
+                icon: s.icon || '🏥',
+                color: s.color || '#0f766e',
+                parentSpec: s.parentSpec !== undefined ? s.parentSpec : null,
+                acceptPool: Array.isArray(s.acceptPool) ? [...s.acceptPool] : [],
+                enabled: s.enabled !== false,
+                isCloned: !!s.isCloned,
+                sourceHospitalId: s.sourceHospitalId || null
+            }));
+
+            const residents = (hosp.names || []).map((r, idx) => ({
+                id: r.id || ('res-' + String(idx + 1).padStart(4, '0')),
+                name: r.name || '',
+                phone: r.phone || '',
+                spec: r.spec || '',
+                tag: r.tag || r.spec || '',
+                dept: r.dept || r.department || r.spec || '',
+                department: r.department || r.dept || r.spec || '',
+                active: r.active !== false,
+                hospitals: Array.isArray(r.hospitals) && r.hospitals.length ? [...r.hospitals] : [hospId]
+            }));
+
+            const backupData = {
+                format: 'hospital_hub_hospital_backup',
+                version: '3.0',
+                exportedAt: new Date().toISOString(),
+                exportDateFormatted: new Date().toLocaleString('ar-IQ'),
+                hospitalId: hospId,
+                hospitalName: hosp.hospitalName || '',
+                name_ar: hosp.name_ar || '',
+                location: hosp.location || '',
+                icon: hosp.icon || 'fa-hospital',
+                color: hosp.color || '#0f766e',
+                rotationHeroesUrl: hosp.rotationHeroesUrl || '',
+                totalSpecialties: specialties.length,
+                enabledSpecialtiesCount: specialties.filter(s => s.enabled).length,
+                totalResidents: residents.length,
+                activeResidentsCount: residents.filter(r => r.active).length,
+                inactiveResidentsCount: residents.filter(r => !r.active).length,
+                specialties: specialties,
+                residents: residents,
+                names: residents,
+                structure: {
+                    schedule: hosp.schedule || {},
+                    specialistSchedule: hosp.specialistSchedule || {},
+                    icu: hosp.icu || {}
+                }
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            const dateSlug = new Date().toISOString().slice(0, 10);
+            const safeHosp = hospId.replace(/[^a-zA-Z0-9_\u0600-\u06FF]/g, '_');
+            a.setAttribute("download", `hospital-backup-${safeHosp}-${dateSlug}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            showToast(`تم تنزيل النسخة الاحتياطية لمستشفى (${hospName}) بنجاح`, 'success');
+        }
+
+        // ============================================================
+        // FULL SYSTEM BACKUP & RESTORE (OWNER EXCLUSIVE)
+        // ============================================================
+        function openFullSystemBackupModal() {
+            if (!Hub.auth.isOwner()) {
+                showToast('النسخ الاحتياطي الشامل مخصص للمالك (Owner) حصراً 👑', 'error');
+                return;
+            }
+            const modal = document.getElementById('full-system-backup-modal');
+            if (modal) {
+                modal.classList.add('active');
+                renderSafetySnapshotsList();
+            }
+        }
+
+        function closeFullSystemBackupModal() {
+            const modal = document.getElementById('full-system-backup-modal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function renderSafetySnapshotsList() {
+            const listEl = document.getElementById('safety-snapshots-list');
+            if (!listEl) return;
+            const snaps = Hub.getSafetySnapshots ? Hub.getSafetySnapshots() : [];
+            if (!snaps || snaps.length === 0) {
+                listEl.innerHTML = '<span class="text-slate-400">لا توجد نسخ أمان محلية بعد. تُحفظ تلقائياً مع كل عملية حفظ.</span>';
+                return;
+            }
+            listEl.innerHTML = snaps.map((s, idx) => `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px dashed rgba(245,158,11,0.25);">
+                    <div>
+                        <div style="font-weight:700;">نسخة #${idx + 1} · ${new Date(s.timestamp).toLocaleString('ar-IQ')}</div>
+                        <div style="font-size:0.68rem; color:#8A8A8E;">${s.note || 'حفظ تلقائي'}</div>
+                    </div>
+                    <button type="button" onclick="restoreSnapshotIndex(${idx + 1})" class="ios-btn secondary" style="padding:3px 8px; font-size:0.7rem; color:#d97706;">استعادة</button>
+                </div>
+            `).join('');
+        }
+
+        async function restoreSnapshotIndex(idx) {
+            if (!confirm(`هل أنت متأكد من استعادة النسخة الآمنة #${idx}؟ ستتم إعادة قاعدة البيانات لحالتها عند هذا الحفظ.`)) return;
+            try {
+                showToast('جارٍ استعادة النسخة الآمنة...', 'info');
+                await Hub.restoreSafetySnapshot(idx);
+                showToast('تمت استعادة النسخة الآمنة بنجاح ✨', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } catch (e) {
+                showToast(e.message || 'فشلت الاستعادة', 'error');
+            }
+        }
+
+        function exportFullSystemBackupFile() {
+            if (!Hub.auth.isOwner()) {
+                showToast('النسخ الاحتياطي الشامل للمنظومة مخصص للمالك (Owner) حصراً', 'error');
+                return;
+            }
+            const dbObj = currentDb;
+            if (!dbObj || !dbObj.hospitals) {
+                showToast('قاعدة البيانات غير محملة بعد', 'error');
+                return;
+            }
+
+            let emergencyState = null;
+            try {
+                const rawEm = localStorage.getItem('hosp_hub_emergency_state_v3');
+                if (rawEm) emergencyState = JSON.parse(rawEm);
+            } catch (e) {}
+
+            const emergencyAllocations = {};
+            const emergencySchedules = {};
+            const allLocalStorage = {};
+
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (!key) continue;
+                    const val = localStorage.getItem(key);
+                    if (key.startsWith('hosp_hub_emergency_alloc_')) {
+                        try { emergencyAllocations[key.replace('hosp_hub_emergency_alloc_', '')] = JSON.parse(val); } catch (e) { emergencyAllocations[key.replace('hosp_hub_emergency_alloc_', '')] = val; }
+                    } else if (key.startsWith('hosp_hub_emergency_sched_')) {
+                        try { emergencySchedules[key.replace('hosp_hub_emergency_sched_', '')] = JSON.parse(val); } catch (e) { emergencySchedules[key.replace('hosp_hub_emergency_sched_', '')] = val; }
+                    } else if (key.startsWith('hosp_hub_') && key !== 'hosp_hub_token') {
+                        allLocalStorage[key] = val;
+                    }
+                }
+            } catch (e) {}
+
+            const fullBackupData = {
+                format: 'hosp_hub_full_system_backup',
+                version: '3.5',
+                exportedAt: new Date().toISOString(),
+                exportDateFormatted: new Date().toLocaleString('ar-IQ'),
+                hubDatabase: dbObj,
+                emergencyState: emergencyState,
+                emergencyAllocations: emergencyAllocations,
+                emergencySchedules: emergencySchedules,
+                allLocalStorage: allLocalStorage
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullBackupData, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            const dateSlug = new Date().toISOString().slice(0, 10);
+            a.setAttribute("download", `hosp-hub-FULL-SYSTEM-backup-${dateSlug}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            showToast('تم تنزيل النسخة الاحتياطية الشاملة لكافة بيانات ومستشفيات المنظومة بنجاح ✓', 'success');
+        }
+
+        function triggerRestoreFullSystemFilePicker() {
+            if (!Hub.auth.isOwner()) {
+                showToast('الاستعادة الشاملة للمنظومة مخصصة للمالك (Owner) حصراً', 'error');
+                return;
+            }
+            let input = document.getElementById('full-system-restore-file-input');
+            if (!input) {
+                input = document.createElement('input');
+                input.type = 'file';
+                input.id = 'full-system-restore-file-input';
+                input.accept = '.json,application/json';
+                input.style.display = 'none';
+                input.onchange = handleFullSystemBackupFileInput;
+                document.body.appendChild(input);
+            }
+            input.value = '';
+            input.click();
+        }
+
+        async function handleFullSystemBackupFileInput(event) {
+            const input = (event && event.target) || document.getElementById('full-system-restore-file-input');
+            const file = input && input.files && input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    await promptAndExecuteFullSystemRestore(parsed);
+                    if (input) input.value = '';
+                } catch (err) {
+                    console.error('Full system backup restore error:', err);
+                    alert('فشل قراءة الملف: ملف JSON غير صالح أو به أخطاء.');
+                    if (input) input.value = '';
+                }
+            };
+            reader.readAsText(file, 'utf-8');
+        }
+
+        async function promptAndExecuteFullSystemRestore(parsed) {
+            if (!Hub.auth.isOwner()) {
+                showToast('الاستعادة الشاملة للمنظومة مخصصة للمالك (Owner) حصراً', 'error');
+                return;
+            }
+
+            const dbObj = (parsed && parsed.hubDatabase) ? parsed.hubDatabase : (parsed && parsed.hospitals ? parsed : null);
+            if (!dbObj || !dbObj.hospitals) {
+                alert('الملف المحدد لا يحتوي على بيانات صالحة للاستعادة الشاملة للمنظومة.');
+                return;
+            }
+
+            const hospCount = Object.keys(dbObj.hospitals || {}).length;
+            const hospNames = Object.values(dbObj.hospitals || {}).map(h => h.name_ar || h.hospitalName).join('، ');
+            let totalDocs = 0;
+            Object.values(dbObj.hospitals || {}).forEach(h => {
+                totalDocs += (h.names || []).length;
+            });
+
+            const backupDate = parsed.exportDateFormatted || parsed.exportedAt || 'غير محدد';
+            const hasEmergency = !!(parsed.emergencyState || parsed.emergencySchedules);
+
+            const confirmMsg = `تأكيد استعادة النسخة الاحتياطية الشاملة لكامل المنظومة:\n\n` +
+                `• تاريخ النسخة: ${backupDate}\n` +
+                `• عدد المستشفيات: ${hospCount} (${hospNames})\n` +
+                `• إجمالي الأطباء: ${totalDocs} طبيب\n` +
+                `• جداول الخفارات لكافة المستشفيات: مشمولة بالكامل ✓\n` +
+                (hasEmergency ? `• بيانات وإعدادات موقع الطوارئ (ER): متوفرة ومشمولة بالكامل ✓\n` : '') +
+                `\nتحذير: هذه العملية ستعيد الموقع بالكامل بكافة مستشفياته وتخصصاته وأطبائه إلى حالتها في النسخة الاحتياطية.\n\n` +
+                `هل ترغب بالمتابعة وتطبيق الاستعادة الشاملة الآن؟`;
+
+            if (!confirm(confirmMsg)) return;
+
+            try {
+                showToast('جارٍ تطبيق الاستعادة الشاملة وحفظ البيانات في السيرفر...', 'info');
+                await Hub.restoreFullDatabase(parsed);
+                showToast('تمت استعادة كافة بيانات وإعدادات المنظومة بالكامل بنجاح ✨', 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1200);
+            } catch (err) {
+                console.error(err);
+                alert('خطأ أثناء الاستعادة الشاملة: ' + (err.message || err));
+            }
+        }
+
+        // Collapse card when it loses focus (clicking outside or on another card)
+        document.addEventListener('click', (e) => {
+            if (!currentlyExpandedHospId) return;
+            const expandedCard = document.getElementById(`card-${currentlyExpandedHospId}`);
+            if (!expandedCard) {
+                currentlyExpandedHospId = null;
+                return;
+            }
+            if (!expandedCard.contains(e.target)) {
+                collapseAllHospitalCards();
+            }
+        });
+
+        // Collapse on focus movement outside expanded card
+        document.addEventListener('focusin', (e) => {
+            if (!currentlyExpandedHospId) return;
+            const expandedCard = document.getElementById(`card-${currentlyExpandedHospId}`);
+            if (expandedCard && !expandedCard.contains(e.target)) {
+                collapseAllHospitalCards();
+            }
+        });
+
+        // Collapse on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && currentlyExpandedHospId) {
+                collapseAllHospitalCards();
+            }
+        });
+
+        // Add Hospital Modal
+        function openAddHospitalModal() {
+            if (!Hub.auth.isOwner()) {
+                showToast('إضافة مستشفى مخصصة للمالك (Owner) فقط', 'error');
+                return;
+            }
+            document.getElementById('add-hospital-modal').classList.add('active');
+        }
+
+        function closeAddHospitalModal() {
+            document.getElementById('add-hospital-modal').classList.remove('active');
+            document.getElementById('add-hospital-form').reset();
+        }
+
+        async function submitNewHospital(event) {
+            event.preventDefault();
+            const btn = document.getElementById('submit-hosp-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري الإنشاء...';
+
+            const hospData = {
+                name_ar: document.getElementById('new-hosp-name-ar').value.trim(),
+                hospitalName: document.getElementById('new-hosp-name-en').value.trim(),
+                id: document.getElementById('new-hosp-id').value.trim(),
+                location: document.getElementById('new-hosp-location').value.trim(),
+                icon: document.getElementById('new-hosp-icon').value,
+                color: document.getElementById('new-hosp-color').value,
+                userPassword: document.getElementById('new-hosp-user-pwd').value.trim(),
+                anaesthesiaPassword: document.getElementById('new-hosp-anaesthesia-pwd') ? document.getElementById('new-hosp-anaesthesia-pwd').value.trim() : '',
+                adminPassword: document.getElementById('new-hosp-admin-pwd').value.trim(),
+                ownerPassword: document.getElementById('new-hosp-owner-pwd') ? document.getElementById('new-hosp-owner-pwd').value.trim() : '',
+                cloneTemplate: document.getElementById('new-hosp-clone-specs').checked
+            };
+
+            try {
+                const newHosp = await Hub.addHospital(hospData);
+                closeAddHospitalModal();
+                showToast(`تم إنشاء مستشفى "${newHosp.name_ar}" بنجاح! 🎉`, 'success', 4000);
+                renderHubDashboard();
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'فشل إنشاء المستشفى', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check-circle ml-1"></i> حفظ وإنشاء المستشفى';
+            }
+        }
+
+        async function confirmDeleteHospital(hospId, hospName) {
+            if (!confirm(`تحذير هام!\nهل أنت متأكد تماماً من حذف مستشفى "${hospName}" بجميع سجلاته ومقيميه؟\nلا يمكن التراجع عن هذا الإجراء.`)) {
+                return;
+            }
+            try {
+                await Hub.deleteHospital(hospId);
+                showToast(`تم حذف مستشفى "${hospName}" بنجاح`, 'info');
+                renderHubDashboard();
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'تعذر حذف المستشفى', 'error');
+            }
+        }
+
+        async function toggleHospitalEREnabled(hospId, isChecked) {
+            try {
+                await Hub.updateHospital(hospId, { erEnabled: !!isChecked });
+                showToast(isChecked ? 'تم تفعيل نظام خفارات الطوارئ لهذا المستشفى بنجاح 🚨' : 'تم تعطيل نظام خفارات الطوارئ لهذا المستشفى', 'success');
+                renderHubDashboard();
+            } catch (err) {
+                console.error('Error toggling hospital ER status:', err);
+                showToast(err.message || 'فشل تعديل حالة نظام الطوارئ', 'error');
+                renderHubDashboard();
+            }
+        }
+
+        // ============================================================
+        // OWNER CENTRAL SPECIALTY STORE CONTROLLER
+        // ============================================================
+        function openGlobalSpecialtiesModal() {
+            if (!Hub.auth.isOwner()) {
+                showToast('هذه الميزة مخصصة للمالك فقط', 'error');
+                return;
+            }
+            renderGlobalSpecialtiesList();
+            document.getElementById('global-specialties-modal').classList.add('active');
+        }
+
+        function closeGlobalSpecialtiesModal() {
+            document.getElementById('global-specialties-modal').classList.remove('active');
+        }
+
+        function renderGlobalSpecialtiesList() {
+            const container = document.getElementById('global-specialties-items-container');
+            const search = (document.getElementById('global-spec-search-input')?.value || '').trim().toLowerCase();
+            const badge = document.getElementById('global-spec-count-badge');
+            if (!container) return;
+
+            const specs = Hub.getGlobalSpecialties();
+            if (badge) badge.textContent = `${specs.length} تخصص في المستودع`;
+
+            const filtered = specs.filter(s => {
+                if (!search) return true;
+                return (s.name_ar || '').toLowerCase().includes(search) || 
+                       (s.name_en || '').toLowerCase().includes(search) ||
+                       (s.id || '').toLowerCase().includes(search);
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="text-center py-6 text-xs text-slate-400">لا توجد تخصصات مطابقة للبحث</div>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(s => {
+                const parent = s.parentSpec ? specs.find(p => p.id === s.parentSpec) : null;
+                const poolCount = Array.isArray(s.acceptPool) ? s.acceptPool.length : 0;
+
+                return `
+                    <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 hover:border-purple-300 dark:hover:border-purple-700 transition">
+                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                            <span class="text-xl flex-shrink-0">${s.icon || '🏥'}</span>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-bold text-xs text-slate-800 dark:text-slate-100">${s.name_ar}</span>
+                                    <span class="text-[10px] text-slate-400 font-mono">${s.name_en || ''}</span>
+                                    ${parent ? `
+                                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                            تابع لـ: ${parent.name_ar}
+                                        </span>
+                                    ` : ''}
+                                    ${poolCount > 0 ? `
+                                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                            يستعير من ${poolCount} قسم
+                                        </span>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button type="button" onclick="openGlobalSpecEditModal('${s.id}')" class="p-1.5 rounded-lg text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/60 text-xs" title="تعديل في المستودع العام">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            <button type="button" onclick="deleteGlobalSpec('${s.id}', '${s.name_ar}')" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/60 text-xs" title="حذف من المستودع العام">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openGlobalSpecEditModal(specId = null) {
+            const title = document.getElementById('global-spec-modal-title');
+            const origIdInput = document.getElementById('global-spec-orig-id');
+            const idInput = document.getElementById('global-spec-id');
+            const nameArInput = document.getElementById('global-spec-name-ar');
+            const nameEnInput = document.getElementById('global-spec-name-en');
+            const iconInput = document.getElementById('global-spec-icon');
+            const parentSelect = document.getElementById('global-spec-parent');
+            const poolGrid = document.getElementById('global-spec-pool-grid');
+
+            const allSpecs = Hub.getGlobalSpecialties();
+
+            if (parentSelect) {
+                parentSelect.innerHTML = '<option value="">-- تخصص رئيسي مستقل (بدون تخصص أب) --</option>' +
+                    allSpecs.filter(s => s.id !== specId && !s.parentSpec).map(s => `
+                        <option value="${s.id}">${s.icon || '🏥'} ${s.name_ar}</option>
+                    `).join('');
+            }
+
+            let current = null;
+            if (specId) {
+                current = allSpecs.find(s => s.id === specId);
+            }
+
+            if (current) {
+                title.innerHTML = `<i class="fas fa-crown text-purple-600"></i> تعديل تخصص (${current.name_ar}) في المستودع العام`;
+                origIdInput.value = current.id;
+                idInput.value = current.id;
+                nameArInput.value = current.name_ar || '';
+                nameEnInput.value = current.name_en || '';
+                iconInput.value = current.icon || '🏥';
+                if (parentSelect) parentSelect.value = current.parentSpec || '';
+            } else {
+                title.innerHTML = `<i class="fas fa-plus text-purple-600"></i> إضافة تخصص عام جديد للمستودع`;
+                origIdInput.value = '';
+                idInput.value = '';
+                nameArInput.value = '';
+                nameEnInput.value = '';
+                iconInput.value = '🏥';
+                if (parentSelect) parentSelect.value = '';
+            }
+
+            // Populate pool checkboxes
+            if (poolGrid) {
+                const currentPool = new Set(Array.isArray(current?.acceptPool) ? current.acceptPool : []);
+                poolGrid.innerHTML = allSpecs.filter(s => s.id !== specId).map(s => {
+                    const checked = currentPool.has(s.id) ? 'checked' : '';
+                    return `
+                        <label class="flex items-center gap-1.5 text-[11px] p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+                            <input type="checkbox" name="global-pool-spec" value="${s.id}" ${checked} class="accent-blue-600 rounded" />
+                            <span>${s.icon || '🏥'} ${s.name_ar}</span>
+                        </label>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('global-spec-edit-modal').classList.add('active');
+        }
+
+        function closeGlobalSpecEditModal() {
+            document.getElementById('global-spec-edit-modal').classList.remove('active');
+        }
+
+        function selectAllGlobalPool() {
+            document.querySelectorAll('input[name="global-pool-spec"]').forEach(cb => cb.checked = true);
+        }
+
+        function clearAllGlobalPool() {
+            document.querySelectorAll('input[name="global-pool-spec"]').forEach(cb => cb.checked = false);
+        }
+
+        async function saveGlobalSpecEdit() {
+            const origId = document.getElementById('global-spec-orig-id').value;
+            let id = document.getElementById('global-spec-id').value.trim().toUpperCase();
+            const nameAr = document.getElementById('global-spec-name-ar').value.trim();
+            const nameEn = document.getElementById('global-spec-name-en').value.trim();
+            const icon = document.getElementById('global-spec-icon').value.trim() || '🏥';
+            const parentSpec = document.getElementById('global-spec-parent').value || null;
+
+            if (!nameAr) {
+                showToast('اسم التخصص بالعربية مطلوب', 'error');
+                return;
+            }
+
+            if (!id) {
+                if (nameEn) id = nameEn.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4);
+                if (!id || id.length < 2) id = 'SP' + Math.floor(100 + Math.random() * 900);
+            }
+
+            const pool = [];
+            document.querySelectorAll('input[name="global-pool-spec"]:checked').forEach(cb => {
+                pool.push(cb.value);
+            });
+
+            closeGlobalSpecEditModal();
+
+            try {
+                if (origId) {
+                    await Hub.updateGlobalSpecialty(origId, {
+                        id: id,
+                        name_ar: nameAr,
+                        name_en: nameEn,
+                        icon: icon,
+                        parentSpec: parentSpec,
+                        acceptPool: pool
+                    });
+                    showToast(`تم تحديث التخصص "${nameAr}" في المستودع العام بنجاح`, 'success');
+                } else {
+                    await Hub.addGlobalSpecialty({
+                        id: id,
+                        name_ar: nameAr,
+                        name_en: nameEn,
+                        icon: icon,
+                        parentSpec: parentSpec,
+                        acceptPool: pool
+                    });
+                    showToast(`تمت إضافة التخصص "${nameAr}" إلى المستودع العام بنجاح 🎉`, 'success');
+                }
+
+                currentDb = await Hub.loadDatabase(true);
+                renderGlobalSpecialtiesList();
+                renderHubDashboard();
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'خطأ أثناء حفظ التخصص في المستودع العام', 'error');
+            }
+        }
+
+        async function deleteGlobalSpec(specId, name) {
+            if (!Hub.auth.isOwner()) {
+                showToast('حذف التخصص من المستودع العام مخصص للمالك حصراً', 'error');
+                return;
+            }
+            if (!confirm(`تحذير هام: هل أنت متأكد من حذف التخصص "${name}" نهائياً من المستودع العام ومن كافة المستشفيات؟`)) {
+                return;
+            }
+            try {
+                await Hub.deleteGlobalSpecialty(specId);
+                currentDb = await Hub.loadDatabase(true);
+                renderGlobalSpecialtiesList();
+                renderHubDashboard();
+                showToast(`تم حذف التخصص "${name}" من المستودع العام بنجاح`, 'info');
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'تعذر حذف التخصص', 'error');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', initHub);
+        window.addEventListener('hub:data-changed', (e) => {
+            currentDb = e.detail.db;
+            renderHubDashboard();
+        });
+        window.addEventListener('hub:auth-changed', () => {
+            updateTopRoleBadge();
+            renderHubDashboard();
+        });
+    </script>
+</body>
+</html>

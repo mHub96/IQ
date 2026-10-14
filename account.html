@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <script src="./storage-scope.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#007AFF" />
+    <title>حسابي · Hosp Hub</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="./hub-accounts.css" />
+    <script src="./pwa.js" defer></script>
+    <style>
+        :root { color-scheme: light dark; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh; min-height: 100dvh;
+            font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+            background: radial-gradient(1200px 600px at 100% -10%, rgba(0, 122, 255, 0.12), transparent 60%), #F9F9FB;
+            color: var(--hacc-text);
+            -webkit-font-smoothing: antialiased;
+        }
+        body.dark { background: radial-gradient(1200px 600px at 100% -10%, rgba(10, 132, 255, 0.08), transparent 60%), #000000; }
+        .top {
+            position: sticky; top: 0; z-index: 50;
+            display: flex; align-items: center; gap: 10px;
+            padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+            background: color-mix(in srgb, var(--hacc-bg) 82%, transparent);
+            backdrop-filter: saturate(180%) blur(14px); -webkit-backdrop-filter: saturate(180%) blur(14px);
+            border-bottom: 1px solid var(--hacc-border);
+        }
+        .top h1 { flex: 1; margin: 0; font-size: 1rem; font-weight: 800; }
+        .back { color: var(--hacc-accent); text-decoration: none; font-weight: 800; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; }
+        main { width: 100%; max-width: 560px; margin: 0 auto; padding: 18px 16px calc(40px + env(safe-area-inset-bottom)); }
+        .card {
+            background: var(--hacc-bg);
+            border: 1px solid var(--hacc-border);
+            border-radius: 22px;
+            padding: 20px 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+            margin-bottom: 16px;
+        }
+        .card h2 { margin: 0 0 4px; font-size: 1.15rem; font-weight: 800; }
+        .card > p.lead { margin: 0 0 16px; color: var(--hacc-muted); font-size: 0.84rem; line-height: 1.7; }
+        .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; background: var(--hacc-surface); border-radius: 14px; margin-bottom: 16px; }
+        .seg a { text-align: center; padding: 10px 4px; border-radius: 11px; color: var(--hacc-muted); text-decoration: none; font-weight: 800; font-size: 0.82rem; }
+        .seg a[aria-current="page"] { background: var(--hacc-bg); color: var(--hacc-accent); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
+        .field { margin-bottom: 14px; }
+        .field label { display: block; font-size: 0.8rem; font-weight: 800; margin-bottom: 6px; }
+        .field .hint { font-size: 0.72rem; color: var(--hacc-muted); margin-top: 5px; line-height: 1.6; min-height: 1em; }
+        .field .hint.ok { color: #059669; }
+        .field .hint.bad { color: var(--hacc-danger); }
+        .field .hint.wait { color: var(--hacc-muted); }
+        input, select {
+            width: 100%;
+            min-height: 48px;
+            padding: 0 14px;
+            border-radius: 14px;
+            border: 1px solid var(--hacc-border);
+            background: var(--hacc-surface);
+            color: var(--hacc-text);
+            font: 500 16px/1.2 inherit; font-family: inherit;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--hacc-accent); box-shadow: 0 0 0 3px var(--hacc-accent-soft); }
+        input[dir="ltr"] { text-align: left; }
+        .pw-wrap { position: relative; }
+        .pw-wrap input { padding-left: 48px; }
+        .pw-eye { position: absolute; left: 6px; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; border: 0; background: none; color: var(--hacc-muted); cursor: pointer; border-radius: 10px; }
+        .meter { height: 5px; border-radius: 3px; background: var(--hacc-surface); margin-top: 6px; overflow: hidden; }
+        .meter i { display: block; height: 100%; width: 0; background: var(--hacc-danger); transition: width 0.2s ease, background 0.2s ease; }
+        .check { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--hacc-muted); margin: 4px 0 16px; cursor: pointer; }
+        .check input { width: 18px; height: 18px; min-height: 0; accent-color: var(--hacc-accent); }
+        .btn-block { width: 100%; }
+        .msg { min-height: 1.4em; font-size: 0.82rem; font-weight: 700; margin-top: 10px; text-align: center; line-height: 1.6; }
+        .msg.bad { color: var(--hacc-danger); }
+        .msg.ok { color: #059669; }
+        .links { display: flex; justify-content: space-between; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+        .links a { color: var(--hacc-accent); font-weight: 800; font-size: 0.82rem; text-decoration: none; }
+        .verify-box {
+            display: flex; gap: 10px; align-items: center;
+            padding: 12px 14px; border-radius: 14px;
+            background: var(--hacc-surface); font-size: 0.82rem; font-weight: 700;
+            margin: -2px 0 16px; line-height: 1.6;
+        }
+        .verify-box.ok { background: rgba(5, 150, 105, 0.1); color: #047857; }
+        body.dark .verify-box.ok { color: #34d399; }
+        .verify-box.bad { background: rgba(220, 38, 38, 0.08); color: var(--hacc-danger); }
+        .steps { display: flex; gap: 6px; margin-bottom: 16px; }
+        .steps span { flex: 1; height: 4px; border-radius: 2px; background: var(--hacc-surface); }
+        .steps span.on { background: var(--hacc-accent); }
+        fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+        fieldset:disabled { opacity: 0.45; }
+        .done { text-align: center; padding: 10px 0; }
+        .done .big { font-size: 3rem; }
+        .profile { display: flex; gap: 14px; align-items: center; }
+        .profile .hacc-avatar { width: 56px; height: 56px; font-size: 1.3rem; }
+        .profile .name { font-weight: 800; font-size: 1.05rem; }
+        .kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 0.84rem; margin-top: 14px; }
+        .kv dt { color: var(--hacc-muted); font-weight: 700; }
+        .kv dd { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+        details.card summary { cursor: pointer; font-weight: 800; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+        details.card summary::-webkit-details-marker { display: none; }
+        details.card[open] summary { margin-bottom: 14px; }
+        /* Approvals */
+        .tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; scrollbar-width: none; }
+        .tabs button { flex: none; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--hacc-border); background: var(--hacc-bg); color: var(--hacc-muted); font: 800 0.8rem inherit; font-family: inherit; cursor: pointer; }
+        .tabs button[aria-selected="true"] { background: var(--hacc-accent); border-color: var(--hacc-accent); color: #fff; }
+        body.dark .tabs button[aria-selected="true"] { color: #1C1C1E; }
+        .tabs .n { display: inline-block; min-width: 18px; padding: 0 5px; margin-right: 4px; border-radius: 9px; background: var(--hacc-like); color: #fff; font-size: 0.68rem; line-height: 18px; text-align: center; }
+        .search { margin-bottom: 12px; }
+        .acc { border: 1px solid var(--hacc-border); border-radius: 18px; padding: 14px; margin-bottom: 10px; background: var(--hacc-bg); }
+        .acc-head { display: flex; gap: 12px; align-items: center; }
+        .acc-head .hacc-avatar { width: 42px; height: 42px; }
+        .acc-name { font-weight: 800; font-size: 0.92rem; }
+        .acc-sub { font-size: 0.74rem; color: var(--hacc-muted); font-weight: 600; margin-top: 2px; overflow-wrap: anywhere; }
+        .acc-sub a { color: inherit; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.66rem; font-weight: 800; margin-inline-start: 4px; vertical-align: middle; }
+        .badge.pending { background: rgba(217, 119, 6, 0.14); color: #b45309; }
+        .badge.active { background: rgba(5, 150, 105, 0.12); color: #047857; }
+        .badge.disabled, .badge.rejected { background: rgba(220, 38, 38, 0.1); color: var(--hacc-danger); }
+        .badge.role { background: var(--hacc-accent-soft); color: var(--hacc-accent); }
+        .acc-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+        .acc-actions .hacc-btn { flex: 1; min-width: 110px; }
+        .hacc-btn.danger { color: var(--hacc-danger); }
+        .hacc-btn.good { background: #059669; border-color: #059669; color: #fff; }
+        .role-edit { display: grid; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--hacc-border); }
+        .hosp-pick { display: flex; flex-wrap: wrap; gap: 6px; }
+        .hosp-pick label { cursor: pointer; }
+        .hosp-pick input { position: absolute; opacity: 0; pointer-events: none; }
+        .hosp-pick span { display: inline-block; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--hacc-border); font-size: 0.75rem; font-weight: 700; }
+        .hosp-pick input:checked + span { background: var(--hacc-accent-soft); border-color: var(--hacc-accent); color: var(--hacc-accent); }
+        /* Tabs between profile / settings / management */
+        .apptabs { display: flex; gap: 4px; padding: 4px; background: var(--hacc-surface); border-radius: 14px; margin-bottom: 16px; }
+        .apptabs a { flex: 1; text-align: center; padding: 10px 4px; border-radius: 11px; color: var(--hacc-muted); text-decoration: none; font-weight: 800; font-size: 0.82rem; position: relative; }
+        .apptabs a[aria-current="page"] { background: var(--hacc-bg); color: var(--hacc-accent); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
+        .apptabs .n { position: absolute; top: 4px; left: 8px; min-width: 16px; padding: 0 4px; border-radius: 8px; background: var(--hacc-like); color: #fff; font-size: 0.62rem; line-height: 16px; }
+        .seg2 { display: inline-flex; gap: 4px; padding: 4px; background: var(--hacc-surface); border-radius: 12px; }
+        .seg2 button { border: 0; background: none; padding: 8px 16px; border-radius: 9px; font: 800 0.82rem inherit; font-family: inherit; color: var(--hacc-muted); cursor: pointer; min-height: 38px; }
+        .seg2 button[aria-pressed="true"] { background: var(--hacc-bg); color: var(--hacc-accent); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
+        .set-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .set-row + .set-row { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--hacc-border); }
+        .set-title { font-weight: 800; font-size: 0.9rem; }
+        .set-sub { color: var(--hacc-muted); font-size: 0.76rem; margin-top: 2px; line-height: 1.6; }
+        .nick { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 14px; background: var(--hacc-accent-soft); color: var(--hacc-accent); font-weight: 800; font-size: 1.05rem; direction: ltr; }
+        .nick bdi { unicode-bidi: isolate; }
+        .row-inline { display: flex; gap: 8px; align-items: flex-start; }
+        .row-inline input { flex: 1; }
+        .sex-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .sex-pick label, .hosp-pick label { cursor: pointer; position: relative; }
+        /* Visually hidden radios / checkboxes (the styled span is the control). */
+        .sex-pick input, .hosp-pick input { position: absolute; inset: 0; width: 1px; height: 1px; min-height: 0; margin: 0; opacity: 0; pointer-events: none; }
+        .sex-pick input { position: absolute; opacity: 0; pointer-events: none; }
+        .sex-pick span { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 14px; border: 1px solid var(--hacc-border); background: var(--hacc-surface); font-weight: 800; }
+        .sex-pick input:checked + span { border-color: var(--hacc-accent); background: var(--hacc-accent-soft); color: var(--hacc-accent); }
+        .sex-pick input:focus-visible + span { outline: 2px solid var(--hacc-accent); outline-offset: 2px; }
+        .devices { list-style: none; margin: 0; padding: 0; }
+        .devices li { display: flex; gap: 10px; align-items: center; padding: 10px 0; }
+        .devices li + li { border-top: 1px solid var(--hacc-border); }
+        .devices .dev-icon { width: 38px; height: 38px; border-radius: 12px; background: var(--hacc-surface); display: flex; align-items: center; justify-content: center; color: var(--hacc-muted); flex: none; }
+        .devices .dev-main { flex: 1; min-width: 0; }
+        .devices .dev-name { font-weight: 800; font-size: 0.85rem; }
+        .devices .dev-sub { font-size: 0.72rem; color: var(--hacc-muted); }
+        .editor { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--hacc-border); display: grid; gap: 12px; }
+        .editor h4 { margin: 0; font-size: 0.8rem; font-weight: 800; color: var(--hacc-muted); }
+        .limit-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .limit-row select { flex: 1; min-width: 150px; }
+        .limit-row input { width: 90px; flex: none; }
+        .mod-item { border: 1px solid var(--hacc-border); border-radius: 16px; padding: 12px 14px; margin-bottom: 10px; background: var(--hacc-bg); }
+        .mod-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+        .mod-author { font-weight: 800; font-size: 0.85rem; }
+        .mod-meta { font-size: 0.72rem; color: var(--hacc-muted); margin-top: 2px; }
+        .mod-body { margin-top: 8px; font-size: 0.88rem; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .filter-row { display: flex; gap: 8px; margin-bottom: 12px; }
+        .filter-row select, .filter-row input { flex: 1; }
+        .pf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+        .pf-grid select, .pf-grid input { min-height: 42px; font-size: 15px; }
+        [hidden] { display: none !important; }
+    </style>
+    <link rel="stylesheet" href="./hub-ios.css" />
+</head>
+<body class="light">
+    <header class="top">
+        <a class="back" href="./index.html?portal=true" onclick="event.preventDefault(); HubAccounts.goBack(this.href)"><i class="fas fa-arrow-right"></i> رجوع</a>
+        <h1 id="page-title">حسابي</h1>
+        <span data-hacc-slot></span>
+    </header>
+
+    <main>
+        <!-- Signed-in tabs -->
+        <nav class="apptabs" id="apptabs" aria-label="أقسام الحساب" hidden>
+            <a href="#me" data-view="me">حسابي</a>
+            <a href="#settings" data-view="settings">الإعدادات</a>
+            <a href="#manage" data-view="manage" id="tab-manage" hidden>الإدارة <span class="n" id="tab-manage-n" hidden></span></a>
+        </nav>
+
+        <!-- ============ SIGN IN ============ -->
+        <section id="view-signin" hidden>
+            <nav class="seg" aria-label="الحساب">
+                <a href="#signin" aria-current="page">تسجيل الدخول</a>
+                <a href="#signup">حساب جديد</a>
+                <a href="#forgot">نسيت كلمة المرور</a>
+            </nav>
+            <form class="card" id="signin-form" novalidate>
+                <h2>تسجيل الدخول</h2>
+                <p class="lead">ادخل باسم المستخدم وكلمة المرور الخاصة بحسابك الشخصي.</p>
+                <div class="field">
+                    <label for="si-user">اسم المستخدم</label>
+                    <input id="si-user" name="username" dir="ltr" autocomplete="username" autocapitalize="none" spellcheck="false" required />
+                </div>
+                <div class="field">
+                    <label for="si-pass">كلمة المرور</label>
+                    <div class="pw-wrap">
+                        <input id="si-pass" name="password" type="password" dir="ltr" autocomplete="current-password" required />
+                        <button type="button" class="pw-eye" aria-label="إظهار كلمة المرور"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+                <label class="check"><input type="checkbox" id="si-remember" checked /> تذكرني على هذا الجهاز (30 يوماً)</label>
+                <button class="hacc-btn primary btn-block" type="submit">دخول</button>
+                <div class="msg" id="si-msg" role="alert"></div>
+                <div class="links">
+                    <a href="#forgot">نسيت كلمة المرور؟</a>
+                    <a href="#signup">ليس لديك حساب؟ أنشئ حساباً</a>
+                </div>
+            </form>
+            <div class="card" id="signin-theme">
+                <div class="set-row">
+                    <div><div class="set-title">المظهر</div></div>
+                    <div class="seg2" data-role="theme-seg">
+                        <button type="button" data-theme="light">☀️ فاتح</button>
+                        <button type="button" data-theme="dark">🌙 داكن</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ SIGN UP ============ -->
+        <section id="view-signup" hidden>
+            <nav class="seg" aria-label="الحساب">
+                <a href="#signin">تسجيل الدخول</a>
+                <a href="#signup" aria-current="page">حساب جديد</a>
+                <a href="#forgot">نسيت كلمة المرور</a>
+            </nav>
+            <form class="card" id="signup-form" novalidate>
+                <h2>إنشاء حساب جديد</h2>
+                <p class="lead">نتحقق من اسمك ورقم هاتفك مقارنةً بجدول المستشفى أثناء الكتابة، ثم يُرسل طلبك إلى مالك المنظومة ومدراء مستشفاك للموافقة.</p>
+                <div class="steps" aria-hidden="true"><span id="st1"></span><span id="st2"></span><span id="st3"></span></div>
+
+                <div class="field">
+                    <label for="su-hosp">المستشفى الحالي</label>
+                    <select id="su-hosp" required><option value="">جاري تحميل المستشفيات…</option></select>
+                </div>
+                <div class="field">
+                    <label for="su-name">الاسم الحقيقي (كما في جدول الخفارات)</label>
+                    <input id="su-name" autocomplete="name" placeholder="مثال: د. محمد علي حسين" required />
+                </div>
+                <div class="field">
+                    <label for="su-phone">رقم الهاتف المسجّل في الجدول</label>
+                    <input id="su-phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="07XX XXX XXXX" required />
+                </div>
+                <div class="verify-box" id="su-verify" aria-live="polite">
+                    <i class="fas fa-id-card"></i><span>اختر المستشفى واكتب اسمك ورقم هاتفك للتحقق.</span>
+                </div>
+
+                <fieldset id="su-step2" disabled>
+                    <div class="field">
+                        <span class="field-label" style="display:block;font-size:0.8rem;font-weight:800;margin-bottom:6px">الجنس</span>
+                        <div class="sex-pick" role="radiogroup" aria-label="الجنس">
+                            <label><input type="radio" name="su-sex" value="m" required /><span>👨‍⚕️ ذكر</span></label>
+                            <label><input type="radio" name="su-sex" value="f" /><span>👩‍⚕️ أنثى</span></label>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label for="su-user">اسم المستخدم (للدخول)</label>
+                        <input id="su-user" dir="ltr" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="e.g. m.ali" maxlength="24" required />
+                        <div class="hint" id="su-user-hint">٣–٢٤ حرفاً: أحرف إنجليزية صغيرة وأرقام و . و _</div>
+                    </div>
+                    <div class="field">
+                        <label for="su-pass">كلمة المرور</label>
+                        <div class="pw-wrap">
+                            <input id="su-pass" type="password" dir="ltr" autocomplete="new-password" minlength="8" required />
+                            <button type="button" class="pw-eye" aria-label="إظهار كلمة المرور"><i class="fas fa-eye"></i></button>
+                        </div>
+                        <div class="meter"><i id="su-meter"></i></div>
+                        <div class="hint" id="su-pass-hint">٨ أحرف على الأقل.</div>
+                    </div>
+                    <div class="field">
+                        <label for="su-pass2">تأكيد كلمة المرور</label>
+                        <input id="su-pass2" type="password" dir="ltr" autocomplete="new-password" required />
+                        <div class="hint" id="su-pass2-hint"></div>
+                    </div>
+                </fieldset>
+                <button class="hacc-btn primary btn-block" type="submit" id="su-submit" disabled>إرسال طلب الموافقة</button>
+                <div class="msg" id="su-msg" role="alert"></div>
+            </form>
+            <div class="card done" id="su-done" hidden>
+                <div class="big">📨</div>
+                <h2>تم إرسال طلبك</h2>
+                <p class="lead" id="su-done-text">سيصلك إشعار عند الموافقة.</p>
+                <a class="hacc-btn primary" href="#signin">الذهاب لتسجيل الدخول</a>
+            </div>
+        </section>
+
+        <!-- ============ FORGOT PASSWORD ============ -->
+        <section id="view-forgot" hidden>
+            <nav class="seg" aria-label="الحساب">
+                <a href="#signin">تسجيل الدخول</a>
+                <a href="#signup">حساب جديد</a>
+                <a href="#forgot" aria-current="page">نسيت كلمة المرور</a>
+            </nav>
+            <form class="card" id="forgot-form" novalidate>
+                <h2>نسيت كلمة المرور؟</h2>
+                <p class="lead">أرسل طلباً إلى مدير مستشفاك. بعد موافقته تعود إلى هذه الصفحة وتختار كلمة مرور جديدة.</p>
+                <div class="field">
+                    <label for="fg-user">اسم المستخدم</label>
+                    <input id="fg-user" dir="ltr" autocomplete="username" autocapitalize="none" spellcheck="false" required />
+                </div>
+                <div class="field">
+                    <label for="fg-phone">رقم الهاتف المسجّل في الحساب</label>
+                    <input id="fg-phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="07XX XXX XXXX" required />
+                </div>
+                <div class="links" style="margin:0 0 14px">
+                    <button class="hacc-btn primary" type="submit" style="flex:1">إرسال الطلب</button>
+                    <button class="hacc-btn" type="button" id="fg-status" style="flex:1">متابعة حالة الطلب</button>
+                </div>
+                <div class="msg" id="fg-msg" role="alert"></div>
+            </form>
+            <form class="card" id="reset-form" hidden novalidate>
+                <h2>🔓 تمت الموافقة</h2>
+                <p class="lead">اختر كلمة مرور جديدة. سيتم تسجيل خروجك من جميع الأجهزة الأخرى.</p>
+                <div class="field">
+                    <label for="rs-pass">كلمة المرور الجديدة</label>
+                    <div class="pw-wrap">
+                        <input id="rs-pass" type="password" dir="ltr" autocomplete="new-password" minlength="8" required />
+                        <button type="button" class="pw-eye" aria-label="إظهار كلمة المرور"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="rs-pass2">تأكيد كلمة المرور</label>
+                    <input id="rs-pass2" type="password" dir="ltr" autocomplete="new-password" required />
+                </div>
+                <button class="hacc-btn primary btn-block" type="submit">حفظ كلمة المرور</button>
+                <div class="msg" id="rs-msg" role="alert"></div>
+            </form>
+        </section>
+
+        <!-- ============ PROFILE: everything personal is in the account panel ============ -->
+        <section id="view-me" hidden>
+            <div class="card" id="me-card"></div>
+            <button class="hacc-btn primary btn-block" type="button" data-open="profile"><i class="fas fa-id-card"></i> الملف الشخصي</button>
+            <button class="hacc-btn btn-block" type="button" data-open="settings" style="margin-top:10px"><i class="fas fa-sliders"></i> الإعدادات</button>
+        </section>
+        <section id="view-settings" hidden></section>
+
+        <!-- ============ MANAGE (owner: everything; admins: their hospitals) ============ -->
+        <section id="view-manage" hidden>
+            <div class="tabs" role="tablist" id="mg-tabs">
+                <button type="button" role="tab" data-filter="pending" aria-selected="true">طلبات الحسابات <span class="n" data-n="accounts" hidden></span></button>
+                <button type="button" role="tab" data-filter="resets" aria-selected="false">كلمات المرور <span class="n" data-n="resets" hidden></span></button>
+                <button type="button" role="tab" data-filter="active" aria-selected="false">الحسابات المفعّلة</button>
+                <button type="button" role="tab" data-filter="all" aria-selected="false">الكل</button>
+                <button type="button" role="tab" data-filter="comments" aria-selected="false">التعليقات</button>
+                <button type="button" role="tab" data-filter="system" aria-selected="false" data-owner-only hidden>إعدادات عامة</button>
+            </div>
+            <div class="filter-row">
+                <select id="mg-hosp" aria-label="المستشفى"></select>
+                <input id="mg-search" type="search" placeholder="بحث…" aria-label="بحث" />
+            </div>
+            <div id="mg-list"><div class="hacc-empty">جاري التحميل…</div></div>
+            <datalist id="mg-specs"></datalist>
+            <button type="button" class="hacc-btn btn-block" id="mg-more" hidden>عرض المزيد</button>
+        </section>
+    </main>
+
+    <script src="./hub-sync.js"></script>
+    <script src="./hub-core.js"></script>
+    <script src="./hub-avatar.js"></script>
+    <script src="./hub-accounts.js"></script>
+    <script>
+    (() => {
+        'use strict';
+        const $ = id => document.getElementById(id);
+        const { esc, toast, timeAgo, ROLE_NAMES, errorText } = HubAccounts;
+        const USERNAME_RE = /^[a-z0-9][a-z0-9._]{2,23}$/;
+        const NICK_RE = /^[\p{L}\p{N}][\p{L}\p{N}._-]{2,23}$/u;
+        const VIEWS = ['signin', 'signup', 'forgot', 'me', 'settings', 'manage'];
+        const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+        const setMsg = (el, text, kind = '') => { el.textContent = text || ''; el.className = (el.className.split(' ')[0]) + (kind ? ' ' + kind : ''); };
+        const hospitalName = id => { if (id === '*') return 'كل المستشفيات'; const h = Hub.getHospital(id); return h ? (h.name_ar || h.hospitalName) : id; };
+        const localPhone = p => { const d = String(p || '').replace(/\D/g, ''); return d.length === 10 ? '0' + d : p; };
+        const initial = name => esc(String(name || '?').replace(/^د\.?\s*/, '').trim().charAt(0));
+        const SEX = { m: 'ذكر', f: 'أنثى' };
+        let me = null; // fresh profile from the server
+
+        // -------------------- Theme (the switch lives in the account panel; signed-out pages keep one) --------------------
+        function paintTheme() {
+            const t = Hub.getTheme();
+            document.querySelectorAll('[data-role="theme-seg"] button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.theme === t)));
+        }
+        document.querySelectorAll('[data-role="theme-seg"] button').forEach(b => b.addEventListener('click', () => { Hub.setTheme(b.dataset.theme); paintTheme(); }));
+        Hub.setTheme(Hub.getTheme());
+        paintTheme();
+        const BOARD_NAMES = { arab: 'البورد العربي', iraqi: 'البورد العراقي', other: 'بورد آخر', none: 'بدون بورد' };
+        const STAGE_NAMES = ['', 'الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة', 'السادسة', 'السابعة', 'الثامنة'];
+        const MONTHS = ['', 'كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'];
+        const profileLine = a => !a.board ? '<span class="badge pending">الملف غير مكتمل</span>'
+            : [BOARD_NAMES[a.board], a.board !== 'none' && a.stage_now ? `المرحلة ${STAGE_NAMES[a.stage_now] || a.stage_now}${a.board_years ? ' من ' + a.board_years : ''}` : '', a.specialty]
+                .filter(Boolean).map(esc).join(' · ') + (a.profile_complete ? '' : ' <span class="badge pending">غير مكتمل</span>');
+
+        // -------------------- Routing --------------------
+        function route() {
+            const hash = (location.hash || '').replace('#', '');
+            let view = hash.split('-')[0];
+            const signedIn = Hub.auth.isLoggedIn();
+            const approver = ['owner', 'admin'].includes(Hub.auth.getRole());
+            if (!VIEWS.includes(view)) view = signedIn ? 'me' : 'signin';
+            if (view === 'manage' && !approver) view = signedIn ? 'me' : 'signin';
+            if ((view === 'me' || view === 'settings') && !signedIn) view = 'signin';
+            if (view === 'signin' && Hub.auth.getAccount()) view = 'me';
+            VIEWS.forEach(v => { $('view-' + v).hidden = v !== view; });
+            const tabs = $('apptabs');
+            tabs.hidden = !['me', 'settings', 'manage'].includes(view);
+            $('tab-manage').hidden = !approver;
+            tabs.querySelectorAll('a').forEach(a => { if (a.dataset.view === view) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+            $('page-title').textContent = { signin: 'تسجيل الدخول', signup: 'حساب جديد', forgot: 'استعادة كلمة المرور', me: 'حسابي', settings: 'الإعدادات', manage: 'الإدارة' }[view];
+            if (view === 'me' || view === 'settings') {
+                VIEWS.forEach(v => { $('view-' + v).hidden = v !== 'me'; });
+                renderMe(view === 'settings' ? 'settings' : 'profile');
+            }
+            if (view === 'manage') { selectTab(hash === 'manage-resets' ? 'resets' : hash === 'manage-comments' ? 'comments' : hash === 'manage-system' && Hub.auth.isOwner() ? 'system' : mg.filter); }
+            if (view === 'signup') initSignup();
+            if (approver) loadPendingCounts();
+            window.scrollTo(0, 0);
+        }
+        window.addEventListener('hashchange', route);
+
+        document.querySelectorAll('.pw-eye').forEach(btn => btn.addEventListener('click', () => {
+            const input = btn.parentElement.querySelector('input');
+            const show = input.type === 'password';
+            input.type = show ? 'text' : 'password';
+            btn.querySelector('i').className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
+            btn.setAttribute('aria-label', show ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور');
+        }));
+
+        async function loadMe() {
+            if (!Hub.auth.getAccount()) { me = null; return null; }
+            try {
+                const res = await Hub.api('GET', '/api/accounts/me', undefined, { retries: 1 });
+                me = res.account ? { ...res.account, thisDevice: res.device } : null;
+                if (me) Hub.auth.refreshAccount(res.account, res.role, res.adminHospitals);
+            } catch (e) { me = Hub.auth.getAccount(); }
+            return me;
+        }
+
+        // -------------------- Sign in --------------------
+        $('signin-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type=submit]');
+            const msg = $('si-msg');
+            btn.disabled = true;
+            setMsg(msg, 'جاري التحقق…');
+            const res = await Hub.auth.accountLogin($('si-user').value, $('si-pass').value, $('si-remember').checked);
+            btn.disabled = false;
+            if (res.success) {
+                setMsg(msg, 'تم تسجيل الدخول ✓', 'ok');
+                localStorage.setItem('pwa_last_page', './index.html');
+                setTimeout(() => { location.href = './index.html?portal=true'; }, 300);
+            } else {
+                setMsg(msg, res.error, 'bad');
+                $('si-pass').select();
+            }
+        });
+
+        // -------------------- Sign up --------------------
+        const su = { verified: null, userFree: false, checkSeq: 0, init: false };
+        const sexValue = () => (document.querySelector('input[name="su-sex"]:checked') || {}).value || '';
+
+        async function initSignup() {
+            if (su.init) return;
+            su.init = true;
+            await Hub.loadDatabase().catch(() => {});
+            const sel = $('su-hosp');
+            const hospitals = Hub.getHospitals().filter(h => h && h.id);
+            sel.innerHTML = '<option value="">اختر المستشفى…</option>' + hospitals
+                .map(h => `<option value="${esc(h.id)}">${esc(h.name_ar || h.hospitalName || h.id)}</option>`).join('');
+            const active = Hub.getActiveHospitalId && Hub.getActiveHospitalId();
+            if (active && hospitals.some(h => h.id === active)) sel.value = active;
+            paintSteps();
+        }
+
+        function paintSteps() {
+            const s1 = !!($('su-hosp').value && $('su-name').value.trim() && $('su-phone').value.trim());
+            $('st1').classList.toggle('on', s1);
+            $('st2').classList.toggle('on', !!su.verified);
+            $('st3').classList.toggle('on', !!su.verified && passwordOk() && su.userFree && !!sexValue());
+        }
+
+        function verifyBox(kind, html) {
+            const box = $('su-verify');
+            box.className = 'verify-box' + (kind ? ' ' + kind : '');
+            box.innerHTML = html;
+        }
+
+        const runCheck = debounce(async () => {
+            const hosp = $('su-hosp').value, name = $('su-name').value.trim(), phone = $('su-phone').value.trim();
+            su.verified = null;
+            $('su-step2').disabled = true;
+            updateSubmit();
+            if (!hosp || name.split(/\s+/).filter(Boolean).length < 2 || phone.replace(/\D/g, '').length < 10) {
+                verifyBox('', '<i class="fas fa-id-card"></i><span>اختر المستشفى واكتب اسمك الثنائي على الأقل ورقم هاتفك للتحقق.</span>');
+                paintSteps();
+                return;
+            }
+            const seq = ++su.checkSeq;
+            verifyBox('', '<i class="fas fa-circle-notch fa-spin"></i><span>جاري التحقق من الجدول…</span>');
+            try {
+                const res = await Hub.api('POST', '/api/accounts/check', { hosp, name, phone }, { useToken: false, retries: 1 });
+                if (seq !== su.checkSeq) return;
+                if (res.match && res.taken) {
+                    verifyBox('bad', '<i class="fas fa-user-lock"></i><span>هذا الطبيب لديه حساب (أو طلب) مسبقاً. استخدم «تسجيل الدخول» أو «نسيت كلمة المرور».</span>');
+                } else if (res.match) {
+                    su.verified = { hosp, name, phone, rosterName: res.name };
+                    verifyBox('ok', `<i class="fas fa-circle-check"></i><span>تم التحقق: <b>${esc(res.name)}</b> – ${esc(hospitalName(hosp))}</span>`);
+                    $('su-step2').disabled = false;
+                    // Pre-select the sex recorded for this doctor in the ER scheduler (still editable).
+                    if (res.sex && !sexValue()) {
+                        const radio = document.querySelector(`input[name="su-sex"][value="${res.sex}"]`);
+                        if (radio) { radio.checked = true; paintSteps(); updateSubmit(); }
+                    }
+                } else {
+                    verifyBox('bad', '<i class="fas fa-circle-xmark"></i><span>لم نجد طبيباً بهذا الاسم ورقم الهاتف في هذا المستشفى. تأكد من الاسم الأول والثاني ومن الرقم المسجّل في الجدول، أو راجع مدير المستشفى.</span>');
+                }
+            } catch (err) {
+                if (seq !== su.checkSeq) return;
+                verifyBox('bad', `<i class="fas fa-wifi"></i><span>${esc(errorText(err))}</span>`);
+            }
+            paintSteps();
+            updateSubmit();
+        }, 550);
+
+        ['su-hosp', 'su-name', 'su-phone'].forEach(id => $(id).addEventListener('input', () => { paintSteps(); runCheck(); }));
+        document.querySelectorAll('input[name="su-sex"]').forEach(r => r.addEventListener('change', () => { paintSteps(); updateSubmit(); }));
+
+        const checkUsername = debounce(async () => {
+            const u = $('su-user').value.trim().toLowerCase();
+            const hint = $('su-user-hint');
+            su.userFree = false;
+            updateSubmit();
+            if (!u) { setMsg(hint, '٣–٢٤ حرفاً: أحرف إنجليزية صغيرة وأرقام و . و _'); return; }
+            if (!USERNAME_RE.test(u)) { setMsg(hint, 'استخدم أحرفاً إنجليزية صغيرة وأرقاماً و . و _ فقط (٣ أحرف على الأقل).', 'bad'); return; }
+            setMsg(hint, 'جاري التحقق من توفر الاسم…', 'wait');
+            try {
+                const res = await Hub.api('GET', '/api/accounts/username?u=' + encodeURIComponent(u), undefined, { useToken: false, retries: 1 });
+                if ($('su-user').value.trim().toLowerCase() !== u) return;
+                su.userFree = !!res.free;
+                setMsg(hint, res.free ? '✓ الاسم متاح' : '✗ هذا الاسم مستخدم، اختر اسماً آخر', res.free ? 'ok' : 'bad');
+            } catch (err) { setMsg(hint, errorText(err), 'bad'); }
+            paintSteps();
+            updateSubmit();
+        }, 450);
+        $('su-user').addEventListener('input', e => {
+            const lower = e.target.value.toLowerCase().replace(/\s/g, '');
+            if (lower !== e.target.value) e.target.value = lower;
+            checkUsername();
+        });
+
+        function strength(p) {
+            let s = 0;
+            if (p.length >= 8) s++;
+            if (p.length >= 12) s++;
+            if (/[a-z]/.test(p) && /[A-Z]/.test(p)) s++;
+            if (/\d/.test(p)) s++;
+            if (/[^A-Za-z0-9]/.test(p)) s++;
+            return Math.min(4, s);
+        }
+        function passwordOk() { const p = $('su-pass').value; return p.length >= 8 && p === $('su-pass2').value; }
+        function paintPassword() {
+            const p = $('su-pass').value;
+            const s = strength(p);
+            const meter = $('su-meter');
+            meter.style.width = (p ? (s + 1) * 20 : 0) + '%';
+            meter.style.background = ['#dc2626', '#ea580c', '#ca8a04', '#16a34a', '#059669'][s];
+            setMsg($('su-pass-hint'), !p ? '٨ أحرف على الأقل.' : p.length < 8 ? 'قصيرة جداً (٨ أحرف على الأقل).' : ['ضعيفة', 'مقبولة', 'جيدة', 'قوية', 'قوية جداً'][s], p && p.length < 8 ? 'bad' : (s >= 2 ? 'ok' : ''));
+            const p2 = $('su-pass2').value;
+            setMsg($('su-pass2-hint'), p2 ? (p2 === p ? '✓ متطابقة' : '✗ غير متطابقة') : '', p2 ? (p2 === p ? 'ok' : 'bad') : '');
+            paintSteps();
+            updateSubmit();
+        }
+        $('su-pass').addEventListener('input', paintPassword);
+        $('su-pass2').addEventListener('input', paintPassword);
+
+        function updateSubmit() { $('su-submit').disabled = !(su.verified && su.userFree && passwordOk() && sexValue()); }
+
+        $('signup-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            if ($('su-submit').disabled) return;
+            const msg = $('su-msg');
+            const username = $('su-user').value.trim().toLowerCase();
+            $('su-submit').disabled = true;
+            setMsg(msg, 'جاري تأمين كلمة المرور وإرسال الطلب…');
+            try {
+                const key = await Hub.auth.deriveAccountKey(username, $('su-pass').value);
+                const res = await Hub.api('POST', '/api/accounts/signup', { ...su.verified, username, key, sex: sexValue() }, { useToken: false, retries: 0 });
+                $('signup-form').hidden = true;
+                $('su-done').hidden = false;
+                $('su-done-text').textContent = `أهلاً ${res.name}! أُرسل طلبك إلى مالك المنظومة ومدراء ${hospitalName(su.verified.hosp)}. يمكنك تسجيل الدخول باسم المستخدم «${username}» بعد الموافقة.`;
+                $('si-user').value = username;
+            } catch (err) {
+                const code = err && err.data && err.data.error;
+                setMsg(msg, ({
+                    username_taken: 'اسم المستخدم أصبح مستخدماً، اختر اسماً آخر.',
+                    already_registered: 'هذا الطبيب لديه حساب أو طلب مسبقاً.',
+                    no_match: 'تعذر التحقق من الاسم ورقم الهاتف.',
+                    bad_sex: 'اختر الجنس.',
+                })[code] || errorText(err), 'bad');
+                updateSubmit();
+            }
+        });
+
+        // -------------------- Forgot password --------------------
+        const fgSaved = (() => { try { return JSON.parse(sessionStorage.getItem('hacc_forgot') || 'null'); } catch (e) { return null; } })();
+        if (fgSaved) { $('fg-user').value = fgSaved.username; $('fg-phone').value = fgSaved.phone; }
+        const fgValues = () => ({ username: $('fg-user').value.trim().toLowerCase(), phone: $('fg-phone').value.trim() });
+
+        $('forgot-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            const v = fgValues();
+            if (!v.username || !v.phone) return setMsg($('fg-msg'), 'اكتب اسم المستخدم ورقم الهاتف.', 'bad');
+            try {
+                await Hub.api('POST', '/api/accounts/forgot', v, { useToken: false, retries: 1 });
+                sessionStorage.setItem('hacc_forgot', JSON.stringify(v));
+                setMsg($('fg-msg'), 'إذا كانت البيانات صحيحة فقد أُرسل طلبك إلى مدير المستشفى. عد إلى هنا واضغط «متابعة حالة الطلب» بعد الموافقة.', 'ok');
+            } catch (err) { setMsg($('fg-msg'), errorText(err), 'bad'); }
+        });
+
+        $('fg-status').addEventListener('click', async () => {
+            const v = fgValues();
+            if (!v.username || !v.phone) return setMsg($('fg-msg'), 'اكتب اسم المستخدم ورقم الهاتف.', 'bad');
+            try {
+                const res = await Hub.api('POST', '/api/accounts/reset', v, { useToken: false, retries: 1 });
+                if (res.state === 'approved') {
+                    setMsg($('fg-msg'), '');
+                    $('reset-form').hidden = false;
+                    $('rs-pass').focus();
+                } else {
+                    setMsg($('fg-msg'), res.state === 'requested' ? '⏳ طلبك ما زال بانتظار موافقة المدير.' : 'لا يوجد طلب موافق عليه لهذه البيانات.', res.state === 'requested' ? '' : 'bad');
+                }
+            } catch (err) { setMsg($('fg-msg'), errorText(err), 'bad'); }
+        });
+
+        $('reset-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            const p = $('rs-pass').value;
+            if (p.length < 8) return setMsg($('rs-msg'), 'كلمة المرور قصيرة (٨ أحرف على الأقل).', 'bad');
+            if (p !== $('rs-pass2').value) return setMsg($('rs-msg'), 'كلمتا المرور غير متطابقتين.', 'bad');
+            const v = fgValues();
+            try {
+                const key = await Hub.auth.deriveAccountKey(v.username, p);
+                await Hub.api('POST', '/api/accounts/reset', { ...v, key }, { useToken: false, retries: 0 });
+                sessionStorage.removeItem('hacc_forgot');
+                toast('تم تغيير كلمة المرور ✓', 'success');
+                $('si-user').value = v.username;
+                $('reset-form').hidden = true;
+                location.hash = '#signin';
+            } catch (err) {
+                setMsg($('rs-msg'), err && err.data && err.data.error === 'not_approved' ? 'انتهت صلاحية الموافقة. أرسل طلباً جديداً.' : errorText(err), 'bad');
+            }
+        });
+
+        // -------------------- Profile & settings: the account panel --------------------
+        function renderMe(which) {
+            const acc = Hub.auth.getAccount();
+            $('me-card').innerHTML = acc
+                ? `<div class="profile">${HubAccounts.avatarHtml(acc, 56)}
+                    <div><div class="name">${esc(acc.name)}</div><div class="hacc-muted" dir="ltr" style="text-align:right">@${esc(acc.username)}</div></div></div>`
+                : `<h2>${esc(ROLE_NAMES[Hub.auth.getRole()] || 'مستخدم')}</h2><p class="lead" style="margin:0">مسجّل بكلمة المرور المشتركة. <a href="#signup">أنشئ حساباً شخصياً</a>.</p>`;
+            HubAccounts.openPanel(which);
+        }
+        document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => HubAccounts.openPanel(b.dataset.open)));
+
+        // -------------------- Device list (management) --------------------
+        function deviceIcon(label) {
+            return /iPhone|Android|iPad/.test(label || '') ? 'fa-mobile-screen' : 'fa-laptop';
+        }
+
+        function devicesHtml(devices, { thisDevice, removable }) {
+            if (!devices || !devices.length) return '<li class="hacc-muted" style="padding:8px 0">لا توجد أجهزة مسجّلة.</li>';
+            return [...devices].sort((a, b) => (b.last || 0) - (a.last || 0)).map(d => `<li data-device="${esc(d.id)}">
+                <span class="dev-icon"><i class="fas ${deviceIcon(d.label)}"></i></span>
+                <span class="dev-main"><span class="dev-name">${esc(d.label || 'جهاز')}${d.id === thisDevice ? ' <span class="hacc-chip">هذا الجهاز</span>' : ''}</span>
+                <span class="dev-sub" style="display:block">آخر نشاط ${esc(timeAgo(d.last || d.first))} · أول دخول ${esc(new Date(d.first).toLocaleDateString('ar-IQ'))}</span></span>
+                ${removable ? '<button type="button" class="hacc-btn sm danger" data-act="remove-device">إلغاء الربط</button>' : ''}</li>`).join('');
+        }
+
+        function limitText(n) {
+            return !n ? 'غير محدود' : n === 1 ? 'جهاز واحد فقط' : `${n} أجهزة كحد أقصى`;
+        }
+
+        // -------------------- Management --------------------
+        const mg = { filter: 'pending', items: [], comments: [], query: '', hosp: '', more: false };
+
+        async function loadPendingCounts() {
+            try {
+                const res = await Hub.api('GET', '/api/notifications', undefined, { retries: 0 });
+                const p = res.pending || {};
+                const total = (p.accounts || 0) + (p.resets || 0);
+                $('tab-manage-n').textContent = total;
+                $('tab-manage-n').hidden = !total;
+                document.querySelectorAll('#mg-tabs [data-n]').forEach(el => {
+                    const n = p[el.dataset.n] || 0;
+                    el.textContent = n;
+                    el.hidden = !n;
+                });
+            } catch (e) {}
+        }
+
+        function fillSpecs() {
+            const list = $('mg-specs');
+            if (list.childElementCount) return;
+            list.innerHTML = (Hub.getGlobalSpecialties ? Hub.getGlobalSpecialties() : []).map(sp => sp.name_ar).filter(Boolean).map(n => `<option value="${esc(n)}"></option>`).join('');
+        }
+
+        function fillHospitalFilter() {
+            fillSpecs();
+            const sel = $('mg-hosp');
+            const scope = Hub.auth.isOwner() ? ['*'] : Hub.auth.getAdminHospitalIds();
+            const hospitals = Hub.getHospitals().filter(h => scope.includes('*') || scope.includes(h.id));
+            const current = sel.value;
+            sel.innerHTML = (hospitals.length > 1 ? '<option value="">كل المستشفيات</option>' : '') +
+                hospitals.map(h => `<option value="${esc(h.id)}">${esc(h.name_ar || h.hospitalName || h.id)}</option>`).join('');
+            if ([...sel.options].some(o => o.value === current)) sel.value = current;
+            mg.hosp = sel.value;
+        }
+
+        function selectTab(filter) {
+            mg.filter = filter;
+            document.querySelectorAll('#mg-tabs [data-filter]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.filter === filter)));
+            loadManage();
+        }
+        document.querySelectorAll('#mg-tabs [data-filter]').forEach(b => b.addEventListener('click', () => selectTab(b.dataset.filter)));
+        $('mg-search').addEventListener('input', debounce(e => { mg.query = e.target.value.trim().toLowerCase(); renderManage(); }, 150));
+        $('mg-hosp').addEventListener('change', e => { mg.hosp = e.target.value; mg.filter === 'comments' ? loadManage() : renderManage(); });
+        $('mg-more').addEventListener('click', () => loadComments(true));
+
+        async function loadManage() {
+            document.querySelectorAll('[data-owner-only]').forEach(el => { el.hidden = !Hub.auth.isOwner(); });
+            $('mg-list').innerHTML = '<div class="hacc-empty">جاري التحميل…</div>';
+            $('mg-more').hidden = true;
+            document.querySelector('#view-manage .filter-row').hidden = mg.filter === 'system';
+            await Hub.loadDatabase().catch(() => {});
+            fillHospitalFilter();
+            if (mg.filter === 'comments') return loadComments(false);
+            if (mg.filter === 'system') return renderSystem();
+            try {
+                const res = await Hub.api('GET', '/api/accounts?filter=' + mg.filter, undefined, { retries: 1 });
+                mg.items = res.accounts || [];
+                renderManage();
+            } catch (err) {
+                if (!(err instanceof Hub.ApiError)) console.error('Management screen:', err);
+                $('mg-list').innerHTML = `<div class="hacc-empty">${esc(errorText(err))}</div>`;
+            }
+        }
+
+        // Owner: system-wide settings.
+        async function renderSystem() {
+            let month = 10;
+            try { month = (await Hub.api('GET', '/api/accounts/stage-month', undefined, { retries: 1 })).month; } catch (e) {}
+            $('mg-list').innerHTML = `<div class="card">
+                <h2>ترقية المراحل السنوية</h2>
+                <p class="lead">في اليوم الأول من هذا الشهر من كل عام ترتفع مرحلة كل المقيمين في كل المستشفيات مرحلةً واحدة، حتى السنة الأخيرة من البورد. يمكنك دائماً تعديل مرحلة أي مقيم يدوياً من بطاقته.</p>
+                <div class="limit-row">
+                    <select id="sys-month">${MONTHS.slice(1).map((m, i) => `<option value="${i + 1}" ${i + 1 === month ? 'selected' : ''}>${m}</option>`).join('')}</select>
+                    <button class="hacc-btn primary" id="sys-month-save">حفظ</button>
+                </div></div>`;
+            $('sys-month-save').addEventListener('click', async () => {
+                const m = Number($('sys-month').value);
+                if (m !== month && !confirm(`تغيير شهر الترقية إلى ${MONTHS[m]}؟ تبقى المراحل الحالية كما هي، والترقية القادمة تكون في ${MONTHS[m]}.`)) return;
+                try {
+                    await Hub.api('POST', '/api/accounts/stage-month', { month: m }, { retries: 0 });
+                    month = m;
+                    toast('تم حفظ شهر الترقية ✓', 'success');
+                } catch (err) { toast(errorText(err), 'error'); }
+            });
+        }
+
+        function renderManage() {
+            if (mg.filter === 'comments') return renderComments();
+            if (mg.filter === 'system') return;
+            const isOwner = Hub.auth.isOwner();
+            const myId = (Hub.auth.getAccount() || {}).id;
+            const q = mg.query;
+            const items = mg.items.filter(a => (!mg.hosp || a.hosp === mg.hosp)
+                && (!q || [a.name, a.username, a.phone, localPhone(a.phone), a.anon_tag].some(v => String(v || '').toLowerCase().includes(q))));
+            if (!items.length) {
+                $('mg-list').innerHTML = `<div class="hacc-empty">${{ pending: 'لا توجد طلبات حسابات جديدة 🎉', resets: 'لا توجد طلبات كلمات مرور', active: 'لا توجد حسابات', all: 'لا توجد حسابات' }[mg.filter]}</div>`;
+                return;
+            }
+            const hospitals = Hub.getHospitals();
+            $('mg-list').innerHTML = items.map(a => {
+                const canManage = isOwner || (a.role === 'user' && a.id !== myId);
+                const statusText = { pending: 'بانتظار الموافقة', active: 'مفعّل', disabled: 'موقوف', rejected: 'مرفوض' }[a.status] || a.status;
+                const actions = [];
+                if (canManage) {
+                    if (a.status === 'pending') actions.push('<button class="hacc-btn good" data-act="approve">✓ موافقة</button>', '<button class="hacc-btn danger" data-act="reject">✗ رفض</button>');
+                    if (a.reset === 'requested') actions.push('<button class="hacc-btn good" data-act="approve_reset">🔓 السماح بتغيير كلمة المرور</button>', '<button class="hacc-btn" data-act="deny_reset">تجاهل الطلب</button>');
+                    if (a.status === 'active' && mg.filter !== 'resets') actions.push('<button class="hacc-btn danger" data-act="disable">إيقاف الحساب</button>');
+                    if (a.status === 'disabled') actions.push('<button class="hacc-btn" data-act="enable">إعادة التفعيل</button>');
+                }
+                const scope = a.hospitals || [];
+                const limit = a.max_devices || 0;
+                const limitMode = limit === 0 ? '0' : limit === 1 ? '1' : 'n';
+                const editor = canManage && a.status !== 'rejected' ? `<details class="edit-wrap"><summary class="hacc-link">⚙️ الصلاحيات والأجهزة</summary><div class="editor">
+                    ${isOwner ? `<div><h4>الصلاحية</h4>
+                        <select data-role="role" style="margin-top:6px">${['user', 'anaesthesia', 'admin', 'owner'].map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
+                        <div class="hosp-pick" data-role="hosps" style="margin-top:8px" ${['admin', 'anaesthesia'].includes(a.role) ? '' : 'hidden'}>
+                            <label><input type="checkbox" value="*" ${scope.includes('*') ? 'checked' : ''}><span>كل المستشفيات</span></label>
+                            ${hospitals.map(h => `<label><input type="checkbox" value="${esc(h.id)}" ${scope.includes(h.id) || (!scope.length && h.id === a.hosp) ? 'checked' : ''}><span>${esc(h.name_ar || h.hospitalName || h.id)}</span></label>`).join('')}
+                        </div>
+                        <button class="hacc-btn primary sm" data-act="set_role" style="margin-top:8px">حفظ الصلاحية</button></div>` : ''}
+                    ${isOwner ? `<div data-role="profile"><h4>الملف الشخصي</h4>
+                        <div class="pf-grid">
+                            <select data-f="board" aria-label="نوع البورد"><option value="">نوع البورد…</option>${Object.entries(BOARD_NAMES).map(([k, v]) => `<option value="${k}" ${a.board === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+                            <input data-f="specialty" list="mg-specs" value="${esc(a.specialty || '')}" placeholder="الاختصاص" aria-label="الاختصاص" />
+                            <select data-f="stage" aria-label="المرحلة الحالية"><option value="">المرحلة…</option>${[1, 2, 3, 4, 5, 6, 7, 8].map(n => `<option value="${n}" ${a.stage_now === n ? 'selected' : ''}>المرحلة ${STAGE_NAMES[n]}</option>`).join('')}</select>
+                            <select data-f="boardYears" aria-label="سنوات البورد"><option value="">سنوات البورد…</option>${[3, 4, 5, 6, 7, 8].map(n => `<option value="${n}" ${a.board_years === n ? 'selected' : ''}>${n} سنوات</option>`).join('')}</select>
+                            <select data-f="sex" aria-label="الجنس"><option value="m" ${a.sex === 'm' ? 'selected' : ''}>ذكر</option><option value="f" ${a.sex === 'f' ? 'selected' : ''}>أنثى</option></select>
+                            <select data-f="hosp" aria-label="المستشفى">${hospitals.map(h => `<option value="${esc(h.id)}" ${a.hosp === h.id ? 'selected' : ''}>${esc(h.name_ar || h.hospitalName || h.id)}</option>`).join('')}</select>
+                        </div>
+                        <button class="hacc-btn primary sm" data-act="set_profile" style="margin-top:8px">حفظ الملف</button></div>` : ''}
+                    <div><h4>الأجهزة المسموح بها</h4>
+                        <div class="limit-row" style="margin-top:6px">
+                            <select data-role="limit-mode">
+                                <option value="0" ${limitMode === '0' ? 'selected' : ''}>غير محدود</option>
+                                <option value="1" ${limitMode === '1' ? 'selected' : ''}>جهاز واحد فقط</option>
+                                <option value="n" ${limitMode === 'n' ? 'selected' : ''}>عدد محدد…</option>
+                            </select>
+                            <input type="number" min="2" max="20" data-role="limit-n" value="${limit > 1 ? limit : 2}" ${limitMode === 'n' ? '' : 'hidden'} aria-label="عدد الأجهزة" />
+                            <button class="hacc-btn primary sm" data-act="set_devices">حفظ</button>
+                        </div></div>
+                    <div><h4>الأجهزة المرتبطة (${(a.devices || []).length})</h4>
+                        <ul class="devices">${devicesHtml(a.devices, { removable: true })}</ul>
+                        ${(a.devices || []).length ? '<button class="hacc-btn sm danger" data-act="reset_devices">إلغاء ربط كل الأجهزة</button>' : ''}</div>
+                    ${isOwner && a.status !== 'pending' && a.id !== myId ? '<div><button class="hacc-btn sm danger" data-act="delete">حذف الحساب نهائياً</button></div>' : ''}
+                    </div></details>` : '';
+                return `<article class="acc" data-id="${esc(a.id)}">
+                    <div class="acc-head">${HubAccounts.avatarHtml(a, 42)}
+                    <div style="min-width:0;flex:1"><div class="acc-name">${esc(a.name)}
+                        <span class="badge ${esc(a.status)}">${esc(statusText)}</span>${a.role !== 'user' ? `<span class="badge role">${esc(ROLE_NAMES[a.role] || a.role)}</span>` : ''}${a.reset === 'requested' ? '<span class="badge pending">طلب كلمة مرور</span>' : ''}${a.max_devices ? `<span class="badge role">🔒 ${esc(limitText(a.max_devices))}</span>` : ''}</div>
+                    <div class="acc-sub"><span dir="ltr">@${esc(a.username)}</span> · ${esc(SEX[a.sex] || '')} · ${esc(hospitalName(a.hosp))} · <a href="tel:${esc(localPhone(a.phone))}" dir="ltr">${esc(localPhone(a.phone))}</a></div>
+                    <div class="acc-sub">${profileLine(a)}</div>
+                    <div class="acc-sub">${a.status === 'pending' ? 'طلب ' : 'أُنشئ '}${esc(timeAgo(a.created_at))}${a.decided_by ? ' · بواسطة ' + esc(String(a.decided_by).replace(/^\w+:/, '')) : ''}${a.last_seen ? ' · آخر ظهور ' + esc(timeAgo(a.last_seen)) : ''}</div></div></div>
+                    ${actions.length ? `<div class="acc-actions">${actions.join('')}</div>` : ''}${editor}</article>`;
+            }).join('');
+
+            $('mg-list').querySelectorAll('[data-act]').forEach(btn => btn.addEventListener('click', () => act(btn)));
+            $('mg-list').querySelectorAll('[data-role="limit-mode"]').forEach(sel => sel.addEventListener('change', () => {
+                sel.parentElement.querySelector('[data-role="limit-n"]').hidden = sel.value !== 'n';
+            }));
+            $('mg-list').querySelectorAll('[data-role="role"]').forEach(sel => sel.addEventListener('change', () => {
+                sel.parentElement.querySelector('[data-role="hosps"]').hidden = !['admin', 'anaesthesia'].includes(sel.value);
+            }));
+        }
+
+        async function act(btn) {
+            const card = btn.closest('.acc');
+            const id = card.dataset.id;
+            const action = btn.dataset.act.replace('-', '_');
+            const a = mg.items.find(x => x.id === id);
+            const body = { id, action };
+            if (action === 'set_role') {
+                body.role = card.querySelector('[data-role="role"]').value;
+                body.hospitals = [...card.querySelectorAll('[data-role="hosps"] input:checked')].map(i => i.value);
+                if (['admin', 'anaesthesia'].includes(body.role) && !body.hospitals.length) { toast('اختر مستشفى واحداً على الأقل.', 'error'); return; }
+            }
+            if (action === 'set_profile') {
+                const f = name => card.querySelector(`[data-role="profile"] [data-f="${name}"]`).value;
+                body.profile = { board: f('board') || null, specialty: f('specialty').trim() || null, stage: f('stage') || null, boardYears: f('boardYears') || null, sex: f('sex'), hosp: f('hosp') };
+                if (body.profile.stage && body.profile.boardYears && Number(body.profile.stage) > Number(body.profile.boardYears)) { toast('المرحلة أكبر من عدد سنوات البورد.', 'error'); return; }
+            }
+            if (action === 'set_devices') {
+                const mode = card.querySelector('[data-role="limit-mode"]').value;
+                body.maxDevices = mode === 'n' ? Math.max(2, Math.min(20, Number(card.querySelector('[data-role="limit-n"]').value) || 2)) : Number(mode);
+            }
+            if (action === 'remove_device') {
+                body.deviceId = btn.closest('li').dataset.device;
+            }
+            const confirmText = {
+                reject: `رفض طلب ${a.name}؟`,
+                disable: `إيقاف حساب ${a.name}؟ سيتم تسجيل خروجه من كل الأجهزة.`,
+                delete: `حذف حساب ${a.name} نهائياً مع إعجاباته وتعليقاته؟`,
+                remove_device: 'إلغاء ربط هذا الجهاز؟ سيتم تسجيل خروجه فوراً.',
+                reset_devices: `إلغاء ربط كل أجهزة ${a.name}؟ سيتم تسجيل خروجه منها.`,
+                set_role: body.role !== a.role ? `تغيير صلاحية ${a.name} إلى «${ROLE_NAMES[body.role]}»؟` : null,
+            }[action];
+            if (confirmText && !confirm(confirmText)) return;
+            btn.disabled = true;
+            try {
+                const res = await Hub.api('POST', '/api/accounts/decide', body, { retries: 0 });
+                toast({ approve: 'تمت الموافقة ✓', reject: 'تم رفض الطلب', disable: 'تم إيقاف الحساب', enable: 'تم تفعيل الحساب', approve_reset: 'تم السماح بتغيير كلمة المرور ✓', deny_reset: 'تم تجاهل الطلب', set_role: 'تم حفظ الصلاحية ✓', set_profile: 'تم حفظ الملف ✓', set_devices: 'تم حفظ حد الأجهزة ✓', remove_device: 'تم إلغاء ربط الجهاز', reset_devices: 'تم إلغاء ربط كل الأجهزة', delete: 'تم حذف الحساب' }[action] || 'تم', 'success');
+                if (res.account) Object.assign(a, res.account);
+                const stillListed = action !== 'delete' && ({ pending: a.status === 'pending', resets: a.reset === 'requested', active: a.status === 'active', all: true })[mg.filter];
+                const openEditor = !!card.querySelector('details.edit-wrap[open]');
+                if (!stillListed) mg.items = mg.items.filter(x => x.id !== id);
+                renderManage();
+                if (openEditor) { const again = document.querySelector(`.acc[data-id="${CSS.escape(id)}"] details.edit-wrap`); if (again) again.open = true; }
+                loadPendingCounts();
+                HubAccounts.pollNotifications();
+            } catch (err) {
+                btn.disabled = false;
+                toast(errorText(err), 'error');
+            }
+        }
+
+        // Comments moderation: owner every hospital, admins their own.
+        async function loadComments(more) {
+            const before = more && mg.comments.length ? mg.comments[mg.comments.length - 1].cid : '';
+            try {
+                const q = new URLSearchParams();
+                if (mg.hosp) q.set('hosp', mg.hosp);
+                if (before) q.set('before', before);
+                const res = await Hub.api('GET', '/api/social/recent?' + q, undefined, { retries: 1 });
+                mg.comments = more ? mg.comments.concat(res.comments) : res.comments;
+                mg.more = res.comments.length === 50;
+                renderComments();
+            } catch (err) {
+                $('mg-list').innerHTML = `<div class="hacc-empty">${esc(errorText(err))}</div>`;
+            }
+        }
+
+        function renderComments() {
+            const q = mg.query;
+            const items = mg.comments.filter(c => !q || [c.author, c.realName, c.body].some(v => String(v || '').toLowerCase().includes(q)));
+            $('mg-more').hidden = !mg.more;
+            if (!items.length) { $('mg-list').innerHTML = '<div class="hacc-empty">لا توجد تعليقات</div>'; return; }
+            $('mg-list').innerHTML = items.map(c => `<article class="mod-item" data-cid="${c.cid}">
+                <div class="mod-head"><span class="mod-author">${c.anon ? '🕶️ ' : ''}<bdi>${esc(c.author)}</bdi>${c.realName ? ` <span class="hacc-reveal" title="ظاهر للمالك فقط">(${esc(c.realName)})</span>` : ''}</span>
+                <button class="hacc-btn sm danger" data-act="del-comment">حذف</button></div>
+                <div class="mod-meta">${esc(hospitalName(c.hosp))} · بطاقة ${esc(c.cardKey)} · ${esc(c.date)} · ${esc(timeAgo(c.ts))}</div>
+                <div class="mod-body">${esc(c.body)}</div></article>`).join('');
+            $('mg-list').querySelectorAll('[data-act="del-comment"]').forEach(btn => btn.addEventListener('click', async () => {
+                const cid = Number(btn.closest('.mod-item').dataset.cid);
+                if (!confirm('حذف هذا التعليق؟')) return;
+                btn.disabled = true;
+                try {
+                    await Hub.api('POST', '/api/social/comment/delete', { cid }, { retries: 0 });
+                    mg.comments = mg.comments.filter(c => c.cid !== cid);
+                    renderComments();
+                    toast('تم حذف التعليق', 'success');
+                } catch (err) { btn.disabled = false; toast(errorText(err), 'error'); }
+            }));
+        }
+
+        route();
+    })();
+    </script>
+</body>
+</html>

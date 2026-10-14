@@ -1,0 +1,4083 @@
+/**
+ * HOSP HUB - Emergency Department Bundled Default Database
+ * Auto-generated fallback data
+ */
+window.DEFAULT_EMERGENCY_DATA = {
+  "hospitalId": "iraqi",
+  "hospitalName": "مستشفى الصدر التعليمي",
+  "monthYear": "أيلول 2026",
+  "month": 9,
+  "year": 2026,
+  "orderNumber": "٤٨٢١",
+  "rsEnabled": true,
+  "rsStartDate": "2026-09-15",
+  "rsEndDate": "2026-09-20",
+  "headOfResidents": "د. عادل ناصر",
+  "hospitalDirector": "د. علي عبد معن",
+  "residents": [
+    {
+      "id": "er_res_1",
+      "row": 4,
+      "name": "د. عماد سمير عبدالرضا",
+      "sex": "M",
+      "specialty": "Cardiothoracic Surgery",
+      "board": "Arabic",
+      "stage": "الثالثة",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 2,
+      "rs_target": 0,
+      "notes": "END OF SERIVE is on 30/09/2026",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": [
+        "preNight"
+      ],
+      "noConsecutiveDays": true
+    },
+    {
+      "id": "er_res_2",
+      "row": 5,
+      "name": "د. شهد كريم عبدالكاظم",
+      "sex": "F",
+      "specialty": "Cardiothoracic Surgery",
+      "board": "None",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "PRIMARY EXAMINATION",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_3",
+      "row": 6,
+      "name": "د. علي حسين عبدالرضا",
+      "sex": "M",
+      "specialty": "Cardiothoracic Surgery",
+      "board": "Arabic",
+      "stage": "الثانية",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_4",
+      "row": 7,
+      "name": "د. ايهاب عبدالكريم غالب",
+      "sex": "M",
+      "specialty": "Cardiothoracic Surgery",
+      "board": "None",
+      "stage": "بدون",
+      "er_target": 3,
+      "con_target": 0,
+      "dc_target": 2,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_5",
+      "row": 8,
+      "name": "د. رامي مهند عبدالله",
+      "sex": "M",
+      "specialty": "Cardiothoracic Surgery",
+      "board": "None",
+      "stage": "",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_6",
+      "row": 9,
+      "name": "د. علي عبدالرحمن عبدالصمد",
+      "sex": "M",
+      "specialty": "Cardiothoracic Surgery",
+      "board": "None",
+      "stage": "بدون",
+      "er_target": 3,
+      "con_target": 0,
+      "dc_target": 2,
+      "rs_target": 0,
+      "notes": "HAS EXTRA ER",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_7",
+      "row": 10,
+      "name": "د. حسين علي عاشور",
+      "sex": "M",
+      "specialty": "Cardiothoracic Surgery",
+      "board": "None",
+      "stage": "",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_8",
+      "row": 11,
+      "name": "د. همام حبيب عبدالله",
+      "sex": "M",
+      "specialty": "Cardiothoracic Surgery",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 0,
+      "con_target": 3,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_9",
+      "row": 12,
+      "name": "د. حسين يحيى صبار",
+      "sex": "M",
+      "specialty": "Cardiothoracic Surgery",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 3,
+      "con_target": 0,
+      "dc_target": 2,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_10",
+      "row": 13,
+      "name": "د. منتظر صفاء ماجد",
+      "sex": "M",
+      "specialty": "Cardiothoracic Surgery",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 3,
+      "con_target": 0,
+      "dc_target": 2,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_11",
+      "row": 14,
+      "name": "د. امال سامي ثامر",
+      "sex": "F",
+      "specialty": "Dermatology",
+      "board": "None",
+      "stage": "3.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_12",
+      "row": 15,
+      "name": "د. مروة محمد عبدالوهاب",
+      "sex": "F",
+      "specialty": "Dermatology",
+      "board": "None",
+      "stage": "3.0",
+      "er_target": 0,
+      "con_target": 3,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_13",
+      "row": 16,
+      "name": "د. علي وهاب سوادي",
+      "sex": "M",
+      "specialty": "Dermatology",
+      "board": "None",
+      "stage": "3.0",
+      "er_target": 0,
+      "con_target": 2,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_14",
+      "row": 17,
+      "name": "د. منتظر مؤيد حسين",
+      "sex": "M",
+      "specialty": "Dermatology",
+      "board": "None",
+      "stage": "3.0",
+      "er_target": 0,
+      "con_target": 2,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_15",
+      "row": 18,
+      "name": "د. رفل علي رسمي",
+      "sex": "F",
+      "specialty": "Dermatology",
+      "board": "None",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 3,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_16",
+      "row": 19,
+      "name": "د. زهراء قتيبة عبد",
+      "sex": "F",
+      "specialty": "Dermatology",
+      "board": "None",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 3,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_17",
+      "row": 20,
+      "name": "د. علي حسن خريبط",
+      "sex": "M",
+      "specialty": "Dermatology",
+      "board": "None",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 3,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_18",
+      "row": 21,
+      "name": "د. زين العابدين مصطفى محمد",
+      "sex": "M",
+      "specialty": "ENT",
+      "board": "Arabic",
+      "stage": "1.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_19",
+      "row": 22,
+      "name": "د. زهراء احمد عبدالكاظم",
+      "sex": "F",
+      "specialty": "Emergency Medicine",
+      "board": "None",
+      "stage": "-",
+      "er_target": 8,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_20",
+      "row": 23,
+      "name": "د. ايات عباس مطشر",
+      "sex": "F",
+      "specialty": "ENT",
+      "board": "Arabic",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_21",
+      "row": 24,
+      "name": "د. زينب عبدالكريم احمد غانم",
+      "sex": "F",
+      "specialty": "ENT",
+      "board": "None",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_22",
+      "row": 25,
+      "name": "د. فاطمة صبيح صاحب",
+      "sex": "F",
+      "specialty": "ENT",
+      "board": "None",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_23",
+      "row": 26,
+      "name": "د. دعاء علي مجيد",
+      "sex": "F",
+      "specialty": "ENT",
+      "board": "None",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_24",
+      "row": 27,
+      "name": "د. مصطفى عبدالصاحب",
+      "sex": "M",
+      "specialty": "ENT",
+      "board": "Arabic",
+      "stage": "4.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_25",
+      "row": 28,
+      "name": "د. مايا عادل عبدالهادي",
+      "sex": "F",
+      "specialty": "ENT",
+      "board": "Arabic",
+      "stage": "3.0",
+      "er_target": 1,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_26",
+      "row": 29,
+      "name": "د. ام البنين عيدان كاظم",
+      "sex": "F",
+      "specialty": "ENT",
+      "board": "Arabic",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "Already has 15 duties in her own specialty",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_27",
+      "row": 30,
+      "name": "د. دنيا فارس حسون",
+      "sex": "F",
+      "specialty": "Family Medicine",
+      "board": "Iraqi",
+      "stage": "2.0",
+      "er_target": 4,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HAS EXTRA ER",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_28",
+      "row": 31,
+      "name": "د. زهراء كريم صالح",
+      "sex": "F",
+      "specialty": "Family Medicine",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_29",
+      "row": 32,
+      "name": "د. فرح علي عبدالحسين",
+      "sex": "F",
+      "specialty": "Family Medicine",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 4,
+      "con_target": 2,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_30",
+      "row": 33,
+      "name": "د. رسل سامي راضي",
+      "sex": "F",
+      "specialty": "Family Medicine",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 0,
+      "con_target": 4,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "(Dr. Ali Jawad's Wife) Consultatory in the holidays",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [
+        "الجمعة"
+      ],
+      "prefShifts": [],
+      "noConsecutiveDays": true
+    },
+    {
+      "id": "er_res_31",
+      "row": 34,
+      "name": "د. الحسين جاسب فاخر",
+      "sex": "M",
+      "specialty": "General Surgery",
+      "board": "Iraqi",
+      "stage": "4.0",
+      "er_target": 1,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_32",
+      "row": 35,
+      "name": "د. محمد هاشم خضير",
+      "sex": "M",
+      "specialty": "General Surgery",
+      "board": "Arabic",
+      "stage": "4.0",
+      "er_target": 1,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_33",
+      "row": 36,
+      "name": "د. فاطمة فاضل كاظم",
+      "sex": "F",
+      "specialty": "General Surgery",
+      "board": "Iraqi",
+      "stage": "3.0",
+      "er_target": 1,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_34",
+      "row": 37,
+      "name": "د. كرار علي زغير",
+      "sex": "M",
+      "specialty": "General Surgery",
+      "board": "Iraqi",
+      "stage": "3.0",
+      "er_target": 1,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_35",
+      "row": 38,
+      "name": "د. نجم هدو راضي",
+      "sex": "M",
+      "specialty": "General Surgery",
+      "board": "Arabic",
+      "stage": "3.0",
+      "er_target": 1,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_36",
+      "row": 39,
+      "name": "د. براء حسن عبدالهادي",
+      "sex": "F",
+      "specialty": "General Surgery",
+      "board": "Arabic",
+      "stage": "2.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_37",
+      "row": 40,
+      "name": "د. علي جميل حنتوش",
+      "sex": "M",
+      "specialty": "General Surgery",
+      "board": "Arabic",
+      "stage": "2.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_38",
+      "row": 41,
+      "name": "د. خالد ابراهيم عبدالقادر",
+      "sex": "M",
+      "specialty": "General Surgery",
+      "board": "Arabic",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_39",
+      "row": 42,
+      "name": "د. حازم عبدالواحد محمد",
+      "sex": "M",
+      "specialty": "General Surgery",
+      "board": "Arabic",
+      "stage": "2.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_40",
+      "row": 43,
+      "name": "د. احمد الراوي",
+      "sex": "M",
+      "specialty": "General Surgery",
+      "board": "None",
+      "stage": "1.0",
+      "er_target": 6,
+      "con_target": 0,
+      "dc_target": 2,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": [],
+      "noConsecutiveDays": true
+    },
+    {
+      "id": "er_res_41",
+      "row": 44,
+      "name": "د. احمد حارث عبدالمحسن",
+      "sex": "M",
+      "specialty": "General Surgery",
+      "board": "Arabic",
+      "stage": "1.0",
+      "er_target": 6,
+      "con_target": 0,
+      "dc_target": 2,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": [],
+      "noConsecutiveDays": true
+    },
+    {
+      "id": "er_res_42",
+      "row": 45,
+      "name": "د. رافع احمد عاشور",
+      "sex": "M",
+      "specialty": "General Surgery",
+      "board": "Arabic",
+      "stage": "1.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "PRIMARY EXAMINATION",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_43",
+      "row": 46,
+      "name": "د. محمد حيدر باقر",
+      "sex": "M",
+      "specialty": "General Surgery",
+      "board": "None",
+      "stage": "1.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "PRIMARY EXAMINATION",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_44",
+      "row": 47,
+      "name": "د. محمد فتحي عبدالرزاق",
+      "sex": "M",
+      "specialty": "General Surgery",
+      "board": "None",
+      "stage": "1.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "PRIMARY EXAMINATION",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_45",
+      "row": 48,
+      "name": "د. سعيد جندي لهمود",
+      "sex": "M",
+      "specialty": "General Surgery",
+      "board": "None",
+      "stage": "1.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "PRIMARY EXAMINATION",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_46",
+      "row": 49,
+      "name": "د. هبة سعدون مجبل",
+      "sex": "F",
+      "specialty": "General Practitioner",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_47",
+      "row": 50,
+      "name": "د. وفاء عبدالعال جدوع",
+      "sex": "F",
+      "specialty": "General Practitioner",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_48",
+      "row": 51,
+      "name": "د. منى عبدالباري",
+      "sex": "F",
+      "specialty": "General Practitioner",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 0,
+      "con_target": 3,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_49",
+      "row": 52,
+      "name": "د. احمد ناصرقاسم",
+      "sex": "M",
+      "specialty": "General Practitioner",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 0,
+      "con_target": 2,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_50",
+      "row": 53,
+      "name": "د. نورة فالح كاطع",
+      "sex": "F",
+      "specialty": "Haematology",
+      "board": "Arabic",
+      "stage": "2.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_51",
+      "row": 54,
+      "name": "د. ايمان نعيم خيول",
+      "sex": "F",
+      "specialty": "Internal Medicine",
+      "board": "None",
+      "stage": "2.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_52",
+      "row": 55,
+      "name": "د. عيسى وليد عيسى",
+      "sex": "M",
+      "specialty": "Internal Medicine",
+      "board": "Iraqi",
+      "stage": "1.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_53",
+      "row": 56,
+      "name": "د. ياسر علي فاضل",
+      "sex": "M",
+      "specialty": "Internal Medicine",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_54",
+      "row": 57,
+      "name": "د. منتظر حميد هاشم",
+      "sex": "M",
+      "specialty": "Internal Medicine",
+      "board": "Iraqi",
+      "stage": "1.0",
+      "er_target": 1,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "In another hospital",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_55",
+      "row": 58,
+      "name": "د. محمد راضي خضر",
+      "sex": "M",
+      "specialty": "Neurosurgery",
+      "board": "Arabic",
+      "stage": "4.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE (NO MORE IN THE IRAQI HOSP. 😔)",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_56",
+      "row": 59,
+      "name": "د. علي عبد ماضي",
+      "sex": "M",
+      "specialty": "Neurosurgery",
+      "board": "Arabic",
+      "stage": "4.0",
+      "er_target": 1,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_57",
+      "row": 60,
+      "name": "د. عبدالرحمن صفاء",
+      "sex": "M",
+      "specialty": "Neurosurgery",
+      "board": "Arabic",
+      "stage": "4.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_58",
+      "row": 61,
+      "name": "د. يوسف علي يوسف",
+      "sex": "M",
+      "specialty": "Neurosurgery",
+      "board": "Arabic",
+      "stage": "4.0",
+      "er_target": 1,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_59",
+      "row": 62,
+      "name": "د. فاطمة خليل",
+      "sex": "F",
+      "specialty": "Neurosurgery",
+      "board": "Iraqi",
+      "stage": "3.0",
+      "er_target": 1,
+      "con_target": 0,
+      "dc_target": 2,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_60",
+      "row": 63,
+      "name": "د. ليث انور",
+      "sex": "M",
+      "specialty": "Neurosurgery",
+      "board": "Iraqi",
+      "stage": "3.0",
+      "er_target": 1,
+      "con_target": 0,
+      "dc_target": 2,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_61",
+      "row": 64,
+      "name": "د. محمد رياض جعفر",
+      "sex": "M",
+      "specialty": "Neurosurgery",
+      "board": "Arabic",
+      "stage": "3.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_62",
+      "row": 65,
+      "name": "د. سرمد نوفل",
+      "sex": "M",
+      "specialty": "Neurosurgery",
+      "board": "Arabic",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_63",
+      "row": 66,
+      "name": "د. احمد عبدالله حسن",
+      "sex": "M",
+      "specialty": "Neurosurgery",
+      "board": "Iraqi",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_64",
+      "row": 67,
+      "name": "د. اسعد حسن فرحان",
+      "sex": "M",
+      "specialty": "Neurosurgery",
+      "board": "Iraqi",
+      "stage": "2.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 2,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_65",
+      "row": 68,
+      "name": "د. محمد عبدالحسين محسن",
+      "sex": "M",
+      "specialty": "Neurosurgery",
+      "board": "Arabic",
+      "stage": "2.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 2,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_66",
+      "row": 69,
+      "name": "د. علي مهدي منصور",
+      "sex": "M",
+      "specialty": "Neurosurgery",
+      "board": "Iraqi",
+      "stage": "1.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_67",
+      "row": 70,
+      "name": "د. نور الهدى عضيد",
+      "sex": "F",
+      "specialty": "Oncology",
+      "board": "None",
+      "stage": "4.0",
+      "er_target": 1,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_68",
+      "row": 71,
+      "name": "د. صفاء كاظم حسن",
+      "sex": "F",
+      "specialty": "Oncology",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_69",
+      "row": 72,
+      "name": "د. خيرية شهد عكلة",
+      "sex": "F",
+      "specialty": "Oncology",
+      "board": "Arabic",
+      "stage": "4.0",
+      "er_target": 1,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_70",
+      "row": 73,
+      "name": "د. فاطمة مضر علي",
+      "sex": "F",
+      "specialty": "Oncology",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 3,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_71",
+      "row": 74,
+      "name": "د. هبة اياد طارق",
+      "sex": "F",
+      "specialty": "Plastic Surgery",
+      "board": "Arabic",
+      "stage": "3.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_72",
+      "row": 75,
+      "name": "د. حميدة حبيب عباس",
+      "sex": "F",
+      "specialty": "Oncology",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 3,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_73",
+      "row": 76,
+      "name": "د. حنين علي عبدالصمد",
+      "sex": "F",
+      "specialty": "General Practitioner",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "GP",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_74",
+      "row": 77,
+      "name": "د. علي ياسين محمد",
+      "sex": "M",
+      "specialty": "Cardiothoracic Surgery",
+      "board": "Iraqi",
+      "stage": "3.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_75",
+      "row": 78,
+      "name": "د. عبدالحليم حسن موسى",
+      "sex": "M",
+      "specialty": "Cardiothoracic Surgery",
+      "board": "Iraqi",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_76",
+      "row": 79,
+      "name": "د. زهراء سهيل نجم",
+      "sex": "F",
+      "specialty": "Oncology",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 3,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_77",
+      "row": 80,
+      "name": "د. سارة عدنان مالك",
+      "sex": "F",
+      "specialty": "Family Medicine",
+      "board": "None",
+      "stage": "-",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_78",
+      "row": 81,
+      "name": "د. مريم سالم جارالله",
+      "sex": "F",
+      "specialty": "Family Medicine",
+      "board": "None",
+      "stage": "-",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_79",
+      "row": 82,
+      "name": "د. سحر فالح حسن",
+      "sex": "F",
+      "specialty": "Family Medicine",
+      "board": "Iraqi",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_80",
+      "row": 83,
+      "name": "د. احمد خضر بجاي",
+      "sex": "M",
+      "specialty": "General Surgery",
+      "board": "Arabic",
+      "stage": "3.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_81",
+      "row": 84,
+      "name": "د. فهد يوسف عبدالله",
+      "sex": "M",
+      "specialty": "General Surgery",
+      "board": "Arabic",
+      "stage": "3.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_82",
+      "row": 85,
+      "name": "د. حسنين فيصل",
+      "sex": "M",
+      "specialty": "General Surgery",
+      "board": "Arabic",
+      "stage": "3.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_83",
+      "row": 86,
+      "name": "د. دعاء كريم",
+      "sex": "F",
+      "specialty": "General Surgery",
+      "board": "None",
+      "stage": "3.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_84",
+      "row": 87,
+      "name": "د. ماهر محمود عبدالله",
+      "sex": "M",
+      "specialty": "General Surgery",
+      "board": "Arabic",
+      "stage": "3.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_85",
+      "row": 88,
+      "name": "د. علي عبدالامير",
+      "sex": "M",
+      "specialty": "General Surgery",
+      "board": "Arabic",
+      "stage": "3.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_86",
+      "row": 89,
+      "name": "د. مروة ليث",
+      "sex": "F",
+      "specialty": "Oncology",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 3,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_87",
+      "row": 90,
+      "name": "د. محمد محروس علي",
+      "sex": "M",
+      "specialty": "General Surgery",
+      "board": "None",
+      "stage": "",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_88",
+      "row": 91,
+      "name": "د. قنوت حيدر كاظم",
+      "sex": "F",
+      "specialty": "General Surgery",
+      "board": "Arabic",
+      "stage": "",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_89",
+      "row": 92,
+      "name": "د. أيام زاهر عبدالمجيد",
+      "sex": "F",
+      "specialty": "Internal Medicine",
+      "board": "None",
+      "stage": "3.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_90",
+      "row": 93,
+      "name": "د. عبدالرحمن محمد مكي",
+      "sex": "M",
+      "specialty": "Internal Medicine",
+      "board": "None",
+      "stage": "3.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_91",
+      "row": 94,
+      "name": "د. دعاء نبيل عبدالجليل",
+      "sex": "F",
+      "specialty": "Internal Medicine",
+      "board": "None",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_92",
+      "row": 95,
+      "name": "د. احرار غانم نوري",
+      "sex": "F",
+      "specialty": "Internal Medicine",
+      "board": "None",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_93",
+      "row": 96,
+      "name": "د. بشير كريم مهنا",
+      "sex": "M",
+      "specialty": "Internal Medicine",
+      "board": "Iraqi",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_94",
+      "row": 97,
+      "name": "د. علا طالب عبدالامير",
+      "sex": "F",
+      "specialty": "Internal Medicine",
+      "board": "None",
+      "stage": "1.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_95",
+      "row": 98,
+      "name": "د. زهراء عماد خضير",
+      "sex": "F",
+      "specialty": "Internal Medicine",
+      "board": "None",
+      "stage": "1.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_96",
+      "row": 99,
+      "name": "د. وسن عباس عبدالكريم",
+      "sex": "F",
+      "specialty": "Internal Medicine",
+      "board": "None",
+      "stage": "1.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_97",
+      "row": 100,
+      "name": "د. احمد عبدالزهرة طه",
+      "sex": "M",
+      "specialty": "Internal Medicine",
+      "board": "None",
+      "stage": "",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_98",
+      "row": 101,
+      "name": "د. مهاجر زياد راشد",
+      "sex": "M",
+      "specialty": "Internal Medicine",
+      "board": "Arabic",
+      "stage": "",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_99",
+      "row": 102,
+      "name": "د. ام البنين عبدالله عبدالحسين",
+      "sex": "F",
+      "specialty": "Internal Medicine",
+      "board": "None",
+      "stage": "",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_100",
+      "row": 103,
+      "name": "د. مريم مشرق ياسين",
+      "sex": "F",
+      "specialty": "Oncology",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 3,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_101",
+      "row": 104,
+      "name": "د. اياد يعرب",
+      "sex": "M",
+      "specialty": "Neurosurgery",
+      "board": "Arabic",
+      "stage": "3.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_102",
+      "row": 105,
+      "name": "د. نور الهدى عادل عبدالله",
+      "sex": "F",
+      "specialty": "Oncology",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 3,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_103",
+      "row": 106,
+      "name": "د. علي اسعد يحيى",
+      "sex": "M",
+      "specialty": "Oncology",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 3,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_104",
+      "row": 107,
+      "name": "د. احمد مرتضى جواد",
+      "sex": "M",
+      "specialty": "Oncology",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 4,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_105",
+      "row": 108,
+      "name": "د. الحسن حسين جبار",
+      "sex": "M",
+      "specialty": "Neurosurgery",
+      "board": "None",
+      "stage": "1.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_106",
+      "row": 109,
+      "name": "د. علي عارف",
+      "sex": "M",
+      "specialty": "Neurosurgery",
+      "board": "Arabic",
+      "stage": "1.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_107",
+      "row": 110,
+      "name": "د. مجيد حميد مجيد",
+      "sex": "M",
+      "specialty": "Neurosurgery",
+      "board": "Arabic",
+      "stage": "1.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_108",
+      "row": 111,
+      "name": "د. علي محمد احمد",
+      "sex": "M",
+      "specialty": "Oncology",
+      "board": "Arabic",
+      "stage": "",
+      "er_target": 3,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_109",
+      "row": 112,
+      "name": "د. عمار صلاح",
+      "sex": "M",
+      "specialty": "Neurosurgery",
+      "board": "None",
+      "stage": "",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_110",
+      "row": 113,
+      "name": "د. أحمد علي يحيى",
+      "sex": "M",
+      "specialty": "Oncology",
+      "board": "None",
+      "stage": "-",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_111",
+      "row": 114,
+      "name": "د. عباس احمد رجب",
+      "sex": "M",
+      "specialty": "Oncology",
+      "board": "Arabic",
+      "stage": "3.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_112",
+      "row": 115,
+      "name": "د. محمد شاكر",
+      "sex": "M",
+      "specialty": "Ophthalmology",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_113",
+      "row": 116,
+      "name": "د. محمد عماد جميل",
+      "sex": "M",
+      "specialty": "Ophthalmology",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_114",
+      "row": 117,
+      "name": "د. حسين علي جبار",
+      "sex": "M",
+      "specialty": "Orthopaedics",
+      "board": "None",
+      "stage": "-",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_115",
+      "row": 118,
+      "name": "د. زهير فائق صادق",
+      "sex": "M",
+      "specialty": "Orthopaedics",
+      "board": "None",
+      "stage": "",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_116",
+      "row": 119,
+      "name": "د. حسين ابراهيم علي",
+      "sex": "M",
+      "specialty": "Orthopaedics",
+      "board": "None",
+      "stage": "",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_117",
+      "row": 120,
+      "name": "د. علي ضياء عبدالنبي",
+      "sex": "M",
+      "specialty": "Orthopaedics",
+      "board": "None",
+      "stage": "",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_118",
+      "row": 121,
+      "name": "د. محمد ليث عباس",
+      "sex": "M",
+      "specialty": "Orthopaedics",
+      "board": "None",
+      "stage": "",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_119",
+      "row": 122,
+      "name": "د. حسين عبدالامير كاطع",
+      "sex": "M",
+      "specialty": "Orthopaedics",
+      "board": "None",
+      "stage": "",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_120",
+      "row": 123,
+      "name": "د. طه مشتاق",
+      "sex": "M",
+      "specialty": "Orthopaedics",
+      "board": "None",
+      "stage": "",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_121",
+      "row": 124,
+      "name": "د. نور خالد طارش",
+      "sex": "F",
+      "specialty": "Plastic Surgery",
+      "board": "None",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_122",
+      "row": 125,
+      "name": "د. زهراء توفيق عبدالله",
+      "sex": "F",
+      "specialty": "Plastic Surgery",
+      "board": "Arabic",
+      "stage": "",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_123",
+      "row": 126,
+      "name": "د. غفران محمد خلف",
+      "sex": "F",
+      "specialty": "Plastic Surgery",
+      "board": "Arabic",
+      "stage": "",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_124",
+      "row": 127,
+      "name": "د. نازك احمد ماجد",
+      "sex": "F",
+      "specialty": "Radiology",
+      "board": "Arabic",
+      "stage": "1.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_125",
+      "row": 128,
+      "name": "د. زينب جبار محسن",
+      "sex": "F",
+      "specialty": "Radiology",
+      "board": "Arabic",
+      "stage": "1.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_126",
+      "row": 129,
+      "name": "د. احمد حسين علي",
+      "sex": "M",
+      "specialty": "Urosurgery",
+      "board": "None",
+      "stage": "FINAL",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_127",
+      "row": 130,
+      "name": "د. رسل منذر خليل",
+      "sex": "F",
+      "specialty": "Plastic Surgery",
+      "board": "Arabic",
+      "stage": "1.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_128",
+      "row": 131,
+      "name": "د. هبة اياد طارق",
+      "sex": "F",
+      "specialty": "Plastic Surgery",
+      "board": "Arabic",
+      "stage": "1.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "HIDE",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_129",
+      "row": 132,
+      "name": "د. احمد كريم غتر",
+      "sex": "M",
+      "specialty": "Urosurgery",
+      "board": "None",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 0,
+      "notes": "PRIMARY EXAMINATION",
+      "active": false,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_130",
+      "row": 133,
+      "name": "د. ضرغام عامر حسان",
+      "sex": "M",
+      "specialty": "Urosurgery",
+      "board": "Arabic",
+      "stage": "2.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 2,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_131",
+      "row": 134,
+      "name": "د. مرتضى امين عبدالحضر",
+      "sex": "M",
+      "specialty": "Urosurgery",
+      "board": "Arabic",
+      "stage": "1.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 2,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_132",
+      "row": 135,
+      "name": "د. عذراء صبيح بدر",
+      "sex": "F",
+      "specialty": "Urosurgery",
+      "board": "Arabic",
+      "stage": "1.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 2,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_133",
+      "row": 136,
+      "name": "د. علي عقيل عبد",
+      "sex": "M",
+      "specialty": "Urosurgery",
+      "board": "Arabic",
+      "stage": "1.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_134",
+      "row": 137,
+      "name": "د. علي صباح كاظم",
+      "sex": "M",
+      "specialty": "Urosurgery",
+      "board": "Arabic",
+      "stage": "1.0",
+      "er_target": 2,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_135",
+      "row": 138,
+      "name": "د. عبدالله عبدالمجيد ماضي",
+      "sex": "M",
+      "specialty": "Urosurgery",
+      "board": "None",
+      "stage": "0.0",
+      "er_target": 3,
+      "con_target": 0,
+      "dc_target": 2,
+      "rs_target": 0,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    },
+    {
+      "id": "er_res_136",
+      "row": 139,
+      "name": "د. عادل ناصر",
+      "sex": "M",
+      "specialty": "Cardiothoracic Surgery",
+      "board": "Arabic",
+      "stage": "2.0",
+      "er_target": 0,
+      "con_target": 0,
+      "dc_target": 0,
+      "rs_target": 1,
+      "notes": "",
+      "active": true,
+      "hospitals": [
+        "iraqi"
+      ],
+      "phone": "",
+      "expiryMonth": "",
+      "prefDays": [],
+      "prefShifts": []
+    }
+  ],
+  "schedules": {
+    "er": [
+      {
+        "dayNumber": 1,
+        "date": "2026-09-01",
+        "dayName": "الثلاثاء",
+        "morning": "د. دنيا فارس حسون",
+        "afternoon": "د. فاطمة فاضل كاظم",
+        "preNight": "د. ضرغام عامر حسان",
+        "lateNight": "د. محمد شاكر",
+        "notes": ""
+      },
+      {
+        "dayNumber": 2,
+        "date": "2026-09-02",
+        "dayName": "الأربعاء",
+        "morning": "د. زهراء احمد عبدالكاظم",
+        "afternoon": "د. نور الهدى عادل عبدالله",
+        "preNight": "د. نجم هدو راضي",
+        "lateNight": "د. عبدالله عبدالمجيد ماضي",
+        "notes": ""
+      },
+      {
+        "dayNumber": 3,
+        "date": "2026-09-03",
+        "dayName": "الخميس",
+        "morning": "د. زهراء احمد عبدالكاظم",
+        "afternoon": "د. امال سامي ثامر",
+        "preNight": "د. اسعد حسن فرحان",
+        "lateNight": "د. محمد هاشم خضير",
+        "notes": ""
+      },
+      {
+        "dayNumber": 4,
+        "date": "2026-09-04",
+        "dayName": "الجمعة",
+        "morning": "د. ايمان نعيم خيول",
+        "afternoon": "د. مريم مشرق ياسين",
+        "preNight": "د. احمد مرتضى جواد",
+        "lateNight": "د. عماد سمير عبدالرضا",
+        "notes": ""
+      },
+      {
+        "dayNumber": 5,
+        "date": "2026-09-05",
+        "dayName": "السبت",
+        "morning": "د. نورة فالح كاطع",
+        "afternoon": "د. عذراء صبيح بدر",
+        "preNight": "د. علي اسعد يحيى",
+        "lateNight": "د. منتظر حميد هاشم",
+        "notes": ""
+      },
+      {
+        "dayNumber": 6,
+        "date": "2026-09-06",
+        "dayName": "الأحد",
+        "morning": "د. هبة سعدون مجبل",
+        "afternoon": "د. دنيا فارس حسون",
+        "preNight": "د. منتظر صفاء ماجد",
+        "lateNight": "د. ضرغام عامر حسان",
+        "notes": ""
+      },
+      {
+        "dayNumber": 7,
+        "date": "2026-09-07",
+        "dayName": "الاثنين",
+        "morning": "د. زهراء احمد عبدالكاظم",
+        "afternoon": "د. فاطمة خليل",
+        "preNight": "د. احمد حارث عبدالمحسن",
+        "lateNight": "د. كرار علي زغير",
+        "notes": "كرار نايت بدل ايهاب"
+      },
+      {
+        "dayNumber": 8,
+        "date": "2026-09-08",
+        "dayName": "الثلاثاء",
+        "morning": "د. وفاء عبدالعال جدوع",
+        "afternoon": "د. نور الهدى عادل عبدالله",
+        "preNight": "د. ليث انور",
+        "lateNight": "د. علي صباح كاظم",
+        "notes": ""
+      },
+      {
+        "dayNumber": 9,
+        "date": "2026-09-09",
+        "dayName": "الأربعاء",
+        "morning": "د. احمد مرتضى جواد",
+        "afternoon": "د. براء حسن عبدالهادي",
+        "preNight": "د. مرتضى امين عبدالحضر",
+        "lateNight": "د. علي مهدي منصور",
+        "notes": ""
+      },
+      {
+        "dayNumber": 10,
+        "date": "2026-09-10",
+        "dayName": "الخميس",
+        "morning": "د. دنيا فارس حسون",
+        "afternoon": "د. فاطمة مضر علي",
+        "preNight": "د. محمد شاكر",
+        "lateNight": "د. علي محمد احمد",
+        "notes": ""
+      },
+      {
+        "dayNumber": 11,
+        "date": "2026-09-11",
+        "dayName": "الجمعة",
+        "morning": "د. فرح علي عبدالحسين",
+        "afternoon": "د. علي عبدالرحمن عبدالصمد",
+        "preNight": "د. احمد مرتضى جواد",
+        "lateNight": "د. الحسين جاسب فاخر",
+        "notes": ""
+      },
+      {
+        "dayNumber": 12,
+        "date": "2026-09-12",
+        "dayName": "السبت",
+        "morning": "د. مريم مشرق ياسين",
+        "afternoon": "د. فاطمة مضر علي",
+        "preNight": "د. حازم عبدالواحد محمد",
+        "lateNight": "د. احمد حارث عبدالمحسن",
+        "notes": ""
+      },
+      {
+        "dayNumber": 13,
+        "date": "2026-09-13",
+        "dayName": "الأحد",
+        "morning": "د. زهراء احمد عبدالكاظم",
+        "afternoon": "د. حميدة حبيب عباس",
+        "preNight": "د. حسين يحيى صبار",
+        "lateNight": "د. اسعد حسن فرحان",
+        "notes": ""
+      },
+      {
+        "dayNumber": 14,
+        "date": "2026-09-14",
+        "dayName": "الاثنين",
+        "morning": "د. حنين علي عبدالصمد",
+        "afternoon": "د. امال سامي ثامر",
+        "preNight": "د. علي جميل حنتوش",
+        "lateNight": "د. احمد مرتضى جواد",
+        "notes": ""
+      },
+      {
+        "dayNumber": 15,
+        "date": "2026-09-15",
+        "dayName": "الثلاثاء",
+        "morning": "د. وفاء عبدالعال جدوع",
+        "afternoon": "د. مروة ليث",
+        "preNight": "د. عماد سمير عبدالرضا",
+        "lateNight": "د. علي اسعد يحيى",
+        "notes": ""
+      },
+      {
+        "dayNumber": 16,
+        "date": "2026-09-16",
+        "dayName": "الأربعاء",
+        "morning": "د. فرح علي عبدالحسين",
+        "afternoon": "د. حميدة حبيب عباس",
+        "preNight": "د. علي محمد احمد",
+        "lateNight": "د. ايهاب عبدالكريم غالب",
+        "notes": ""
+      },
+      {
+        "dayNumber": 17,
+        "date": "2026-09-17",
+        "dayName": "الخميس",
+        "morning": "د. زهراء احمد عبدالكاظم",
+        "afternoon": "د. عذراء صبيح بدر",
+        "preNight": "د. محمد عبدالحسين محسن",
+        "lateNight": "د. يوسف علي يوسف",
+        "notes": ""
+      },
+      {
+        "dayNumber": 18,
+        "date": "2026-09-18",
+        "dayName": "الجمعة",
+        "morning": "د. فرح علي عبدالحسين",
+        "afternoon": "د. مروة ليث",
+        "preNight": "د. علي عبدالرحمن عبدالصمد",
+        "lateNight": "د. ايهاب عبدالكريم غالب",
+        "notes": "ايهاب نايت بدل كرار"
+      },
+      {
+        "dayNumber": 19,
+        "date": "2026-09-19",
+        "dayName": "السبت",
+        "morning": "د. نور الهدى عضيد",
+        "afternoon": "د. ايمان نعيم خيول",
+        "preNight": "د. محمد عماد جميل",
+        "lateNight": "د. احمد الراوي",
+        "notes": ""
+      },
+      {
+        "dayNumber": 20,
+        "date": "2026-09-20",
+        "dayName": "الأحد",
+        "morning": "د. دنيا فارس حسون",
+        "afternoon": "د. نور الهدى عادل عبدالله",
+        "preNight": "د. عبدالله عبدالمجيد ماضي",
+        "lateNight": "د. منتظر صفاء ماجد",
+        "notes": ""
+      },
+      {
+        "dayNumber": 21,
+        "date": "2026-09-21",
+        "dayName": "الاثنين",
+        "morning": "د. زهراء احمد عبدالكاظم",
+        "afternoon": "د. براء حسن عبدالهادي",
+        "preNight": "د. حازم عبدالواحد محمد",
+        "lateNight": "د. محمد عماد جميل",
+        "notes": ""
+      },
+      {
+        "dayNumber": 22,
+        "date": "2026-09-22",
+        "dayName": "الثلاثاء",
+        "morning": "د. زهراء سهيل نجم",
+        "afternoon": "د. فاطمة مضر علي",
+        "preNight": "د. علي محمد احمد",
+        "lateNight": "د. علي اسعد يحيى",
+        "notes": ""
+      },
+      {
+        "dayNumber": 23,
+        "date": "2026-09-23",
+        "dayName": "الأربعاء",
+        "morning": "د. هبة سعدون مجبل",
+        "afternoon": "د. عيسى وليد عيسى",
+        "preNight": "د. ايهاب عبدالكريم غالب",
+        "lateNight": "د. حسين يحيى صبار",
+        "notes": ""
+      },
+      {
+        "dayNumber": 24,
+        "date": "2026-09-24",
+        "dayName": "الخميس",
+        "morning": "د. زهراء احمد عبدالكاظم",
+        "afternoon": "د. مروة ليث",
+        "preNight": "د. محمد عبدالحسين محسن",
+        "lateNight": "د. علي عبد ماضي",
+        "notes": ""
+      },
+      {
+        "dayNumber": 25,
+        "date": "2026-09-25",
+        "dayName": "الجمعة",
+        "morning": "د. خيرية شهد عكلة",
+        "afternoon": "د. حميدة حبيب عباس",
+        "preNight": "د. علي حسين عبدالرضا",
+        "lateNight": "د. علي عقيل عبد",
+        "notes": ""
+      },
+      {
+        "dayNumber": 26,
+        "date": "2026-09-26",
+        "dayName": "السبت",
+        "morning": "د. عبدالله عبدالمجيد ماضي",
+        "afternoon": "د. نورة فالح كاطع",
+        "preNight": "د. علي عبدالرحمن عبدالصمد",
+        "lateNight": "د. احمد الراوي",
+        "notes": ""
+      },
+      {
+        "dayNumber": 27,
+        "date": "2026-09-27",
+        "dayName": "الأحد",
+        "morning": "د. زهراء سهيل نجم",
+        "afternoon": "د. مريم مشرق ياسين",
+        "preNight": "د. علي مهدي منصور",
+        "lateNight": "د. منتظر صفاء ماجد",
+        "notes": ""
+      },
+      {
+        "dayNumber": 28,
+        "date": "2026-09-28",
+        "dayName": "الاثنين",
+        "morning": "د. زهراء احمد عبدالكاظم",
+        "afternoon": "د. حسين يحيى صبار",
+        "preNight": "د. علي عقيل عبد",
+        "lateNight": "د. علي جميل حنتوش",
+        "notes": ""
+      },
+      {
+        "dayNumber": 29,
+        "date": "2026-09-29",
+        "dayName": "الثلاثاء",
+        "morning": "د. زهراء سهيل نجم",
+        "afternoon": "د. مايا عادل عبدالهادي",
+        "preNight": "د. عيسى وليد عيسى",
+        "lateNight": "د. مرتضى امين عبدالحضر",
+        "notes": ""
+      },
+      {
+        "dayNumber": 30,
+        "date": "2026-09-30",
+        "dayName": "الأربعاء",
+        "morning": "د. حنين علي عبدالصمد",
+        "afternoon": "د. فرح علي عبدالحسين",
+        "preNight": "د. علي صباح كاظم",
+        "lateNight": "د. علي حسين عبدالرضا",
+        "notes": ""
+      },
+      {
+        "dayNumber": 1,
+        "date": "2026-10-01",
+        "dayName": "الخميس",
+        "morning": "",
+        "afternoon": "",
+        "preNight": "",
+        "lateNight": "",
+        "notes": ""
+      }
+    ],
+    "con": [
+      {
+        "dayNumber": 1,
+        "date": "2026-09-01",
+        "dayName": "الثلاثاء",
+        "doctor": "د. مروة محمد عبدالوهاب"
+      },
+      {
+        "dayNumber": 2,
+        "date": "2026-09-02",
+        "dayName": "الأربعاء",
+        "doctor": "د. زهراء قتيبة عبد"
+      },
+      {
+        "dayNumber": 3,
+        "date": "2026-09-03",
+        "dayName": "الخميس",
+        "doctor": "د. همام حبيب عبدالله"
+      },
+      {
+        "dayNumber": 4,
+        "date": "2026-09-04",
+        "dayName": "الجمعة",
+        "doctor": "د. رسل سامي راضي"
+      },
+      {
+        "dayNumber": 5,
+        "date": "2026-09-05",
+        "dayName": "السبت",
+        "doctor": "د. علي حسن خريبط"
+      },
+      {
+        "dayNumber": 6,
+        "date": "2026-09-06",
+        "dayName": "الأحد",
+        "doctor": "د. مروة محمد عبدالوهاب"
+      },
+      {
+        "dayNumber": 7,
+        "date": "2026-09-07",
+        "dayName": "الاثنين",
+        "doctor": "د. همام حبيب عبدالله"
+      },
+      {
+        "dayNumber": 8,
+        "date": "2026-09-08",
+        "dayName": "الثلاثاء",
+        "doctor": "د. علي وهاب سوادي"
+      },
+      {
+        "dayNumber": 9,
+        "date": "2026-09-09",
+        "dayName": "الأربعاء",
+        "doctor": "د. زهراء قتيبة عبد"
+      },
+      {
+        "dayNumber": 10,
+        "date": "2026-09-10",
+        "dayName": "الخميس",
+        "doctor": "د. علي حسن خريبط"
+      },
+      {
+        "dayNumber": 11,
+        "date": "2026-09-11",
+        "dayName": "الجمعة",
+        "doctor": "د. رسل سامي راضي"
+      },
+      {
+        "dayNumber": 12,
+        "date": "2026-09-12",
+        "dayName": "السبت",
+        "doctor": "د. فرح علي عبدالحسين"
+      },
+      {
+        "dayNumber": 13,
+        "date": "2026-09-13",
+        "dayName": "الأحد",
+        "doctor": "د. زهراء قتيبة عبد"
+      },
+      {
+        "dayNumber": 14,
+        "date": "2026-09-14",
+        "dayName": "الاثنين",
+        "doctor": "د. رفل علي رسمي"
+      },
+      {
+        "dayNumber": 15,
+        "date": "2026-09-15",
+        "dayName": "الثلاثاء",
+        "doctor": "د. علي وهاب سوادي"
+      },
+      {
+        "dayNumber": 16,
+        "date": "2026-09-16",
+        "dayName": "الأربعاء",
+        "doctor": "د. احمد ناصرقاسم"
+      },
+      {
+        "dayNumber": 17,
+        "date": "2026-09-17",
+        "dayName": "الخميس",
+        "doctor": "د. همام حبيب عبدالله"
+      },
+      {
+        "dayNumber": 18,
+        "date": "2026-09-18",
+        "dayName": "الجمعة",
+        "doctor": "د. رسل سامي راضي"
+      },
+      {
+        "dayNumber": 19,
+        "date": "2026-09-19",
+        "dayName": "السبت",
+        "doctor": "د. رفل علي رسمي"
+      },
+      {
+        "dayNumber": 20,
+        "date": "2026-09-20",
+        "dayName": "الأحد",
+        "doctor": "د. منتظر مؤيد حسين"
+      },
+      {
+        "dayNumber": 21,
+        "date": "2026-09-21",
+        "dayName": "الاثنين",
+        "doctor": "د. رفل علي رسمي"
+      },
+      {
+        "dayNumber": 22,
+        "date": "2026-09-22",
+        "dayName": "الثلاثاء",
+        "doctor": "د. احمد ناصرقاسم"
+      },
+      {
+        "dayNumber": 23,
+        "date": "2026-09-23",
+        "dayName": "الأربعاء",
+        "doctor": "د. منى عبدالباري"
+      },
+      {
+        "dayNumber": 24,
+        "date": "2026-09-24",
+        "dayName": "الخميس",
+        "doctor": "د. منتظر مؤيد حسين"
+      },
+      {
+        "dayNumber": 25,
+        "date": "2026-09-25",
+        "dayName": "الجمعة",
+        "doctor": "د. رسل سامي راضي"
+      },
+      {
+        "dayNumber": 26,
+        "date": "2026-09-26",
+        "dayName": "السبت",
+        "doctor": "د. فرح علي عبدالحسين"
+      },
+      {
+        "dayNumber": 27,
+        "date": "2026-09-27",
+        "dayName": "الأحد",
+        "doctor": "د. مروة محمد عبدالوهاب"
+      },
+      {
+        "dayNumber": 28,
+        "date": "2026-09-28",
+        "dayName": "الاثنين",
+        "doctor": "د. منى عبدالباري"
+      },
+      {
+        "dayNumber": 29,
+        "date": "2026-09-29",
+        "dayName": "الثلاثاء",
+        "doctor": "د. علي حسن خريبط"
+      },
+      {
+        "dayNumber": 30,
+        "date": "2026-09-30",
+        "dayName": "الأربعاء",
+        "doctor": "د. منى عبدالباري"
+      },
+      {
+        "dayNumber": 1,
+        "date": "2026-10-01",
+        "dayName": "الخميس",
+        "doctor": ""
+      }
+    ],
+    "dc": [
+      {
+        "dayNumber": 1,
+        "date": "2026-09-01",
+        "dayName": "الثلاثاء",
+        "doctor": "د. احمد حارث عبدالمحسن"
+      },
+      {
+        "dayNumber": 2,
+        "date": "2026-09-02",
+        "dayName": "الأربعاء",
+        "doctor": "د. مرتضى امين عبدالحضر"
+      },
+      {
+        "dayNumber": 3,
+        "date": "2026-09-03",
+        "dayName": "الخميس",
+        "doctor": "د. عبدالله عبدالمجيد ماضي"
+      },
+      {
+        "dayNumber": 4,
+        "date": "2026-09-04",
+        "dayName": "الجمعة",
+        "doctor": "د. علي عبدالرحمن عبدالصمد"
+      },
+      {
+        "dayNumber": 5,
+        "date": "2026-09-05",
+        "dayName": "السبت",
+        "doctor": "د. عماد سمير عبدالرضا"
+      },
+      {
+        "dayNumber": 6,
+        "date": "2026-09-06",
+        "dayName": "الأحد",
+        "doctor": "د. عذراء صبيح بدر"
+      },
+      {
+        "dayNumber": 7,
+        "date": "2026-09-07",
+        "dayName": "الاثنين",
+        "doctor": "د. حسين يحيى صبار"
+      },
+      {
+        "dayNumber": 8,
+        "date": "2026-09-08",
+        "dayName": "الثلاثاء",
+        "doctor": "د. محمد عبدالحسين محسن"
+      },
+      {
+        "dayNumber": 9,
+        "date": "2026-09-09",
+        "dayName": "الأربعاء",
+        "doctor": "د. احمد حارث عبدالمحسن"
+      },
+      {
+        "dayNumber": 10,
+        "date": "2026-09-10",
+        "dayName": "الخميس",
+        "doctor": "د. اسعد حسن فرحان"
+      },
+      {
+        "dayNumber": 11,
+        "date": "2026-09-11",
+        "dayName": "الجمعة",
+        "doctor": "د. ضرغام عامر حسان"
+      },
+      {
+        "dayNumber": 12,
+        "date": "2026-09-12",
+        "dayName": "السبت",
+        "doctor": "د. فاطمة خليل"
+      },
+      {
+        "dayNumber": 13,
+        "date": "2026-09-13",
+        "dayName": "الأحد",
+        "doctor": "د. عذراء صبيح بدر"
+      },
+      {
+        "dayNumber": 14,
+        "date": "2026-09-14",
+        "dayName": "الاثنين",
+        "doctor": "د. محمد عبدالحسين محسن"
+      },
+      {
+        "dayNumber": 15,
+        "date": "2026-09-15",
+        "dayName": "الثلاثاء",
+        "doctor": "د. اسعد حسن فرحان"
+      },
+      {
+        "dayNumber": 16,
+        "date": "2026-09-16",
+        "dayName": "الأربعاء",
+        "doctor": "د. عبدالله عبدالمجيد ماضي"
+      },
+      {
+        "dayNumber": 17,
+        "date": "2026-09-17",
+        "dayName": "الخميس",
+        "doctor": "د. احمد الراوي"
+      },
+      {
+        "dayNumber": 18,
+        "date": "2026-09-18",
+        "dayName": "الجمعة",
+        "doctor": "د. احمد الراوي"
+      },
+      {
+        "dayNumber": 19,
+        "date": "2026-09-19",
+        "dayName": "السبت",
+        "doctor": "د. منتظر صفاء ماجد"
+      },
+      {
+        "dayNumber": 20,
+        "date": "2026-09-20",
+        "dayName": "الأحد",
+        "doctor": "د. ايهاب عبدالكريم غالب"
+      },
+      {
+        "dayNumber": 21,
+        "date": "2026-09-21",
+        "dayName": "الاثنين",
+        "doctor": "د. مرتضى امين عبدالحضر"
+      },
+      {
+        "dayNumber": 22,
+        "date": "2026-09-22",
+        "dayName": "الثلاثاء",
+        "doctor": "د. عماد سمير عبدالرضا"
+      },
+      {
+        "dayNumber": 23,
+        "date": "2026-09-23",
+        "dayName": "الأربعاء",
+        "doctor": "د. علي عبدالرحمن عبدالصمد"
+      },
+      {
+        "dayNumber": 24,
+        "date": "2026-09-24",
+        "dayName": "الخميس",
+        "doctor": "د. حسين يحيى صبار"
+      },
+      {
+        "dayNumber": 25,
+        "date": "2026-09-25",
+        "dayName": "الجمعة",
+        "doctor": "د. ليث انور"
+      },
+      {
+        "dayNumber": 26,
+        "date": "2026-09-26",
+        "dayName": "السبت",
+        "doctor": "د. ايهاب عبدالكريم غالب"
+      },
+      {
+        "dayNumber": 27,
+        "date": "2026-09-27",
+        "dayName": "الأحد",
+        "doctor": "د. فاطمة خليل"
+      },
+      {
+        "dayNumber": 28,
+        "date": "2026-09-28",
+        "dayName": "الاثنين",
+        "doctor": "د. ضرغام عامر حسان"
+      },
+      {
+        "dayNumber": 29,
+        "date": "2026-09-29",
+        "dayName": "الثلاثاء",
+        "doctor": "د. منتظر صفاء ماجد"
+      },
+      {
+        "dayNumber": 30,
+        "date": "2026-09-30",
+        "dayName": "الأربعاء",
+        "doctor": "د. ليث انور"
+      },
+      {
+        "dayNumber": 1,
+        "date": "2026-10-01",
+        "dayName": "الخميس",
+        "doctor": ""
+      }
+    ],
+    "rs": [
+      {
+        "dayNumber": 1,
+        "date": "2026-09-01",
+        "dayName": "الثلاثاء",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 2,
+        "date": "2026-09-02",
+        "dayName": "الأربعاء",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 3,
+        "date": "2026-09-03",
+        "dayName": "الخميس",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 4,
+        "date": "2026-09-04",
+        "dayName": "الجمعة",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 5,
+        "date": "2026-09-05",
+        "dayName": "السبت",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 6,
+        "date": "2026-09-06",
+        "dayName": "الأحد",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 7,
+        "date": "2026-09-07",
+        "dayName": "الاثنين",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 8,
+        "date": "2026-09-08",
+        "dayName": "الثلاثاء",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 9,
+        "date": "2026-09-09",
+        "dayName": "الأربعاء",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 10,
+        "date": "2026-09-10",
+        "dayName": "الخميس",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 11,
+        "date": "2026-09-11",
+        "dayName": "الجمعة",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 12,
+        "date": "2026-09-12",
+        "dayName": "السبت",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 13,
+        "date": "2026-09-13",
+        "dayName": "الأحد",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 14,
+        "date": "2026-09-14",
+        "dayName": "الاثنين",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 15,
+        "date": "2026-09-15",
+        "dayName": "الثلاثاء",
+        "er_lateNight": "د. علي مهدي منصور",
+        "er_preNight": "د. عادل ناصر",
+        "er_afternoon": "د. محمد عماد جميل",
+        "er_morning": "د. عذراء صبيح بدر",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 16,
+        "date": "2026-09-16",
+        "dayName": "الأربعاء",
+        "er_lateNight": "د. منتظر حميد هاشم",
+        "er_preNight": "د. محمد شاكر",
+        "er_afternoon": "د. اسعد حسن فرحان",
+        "er_morning": "د. وفاء عبدالعال جدوع",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 17,
+        "date": "2026-09-17",
+        "dayName": "الخميس",
+        "er_lateNight": "د. علي اسعد يحيى",
+        "er_preNight": "د. علي وهاب سوادي",
+        "er_afternoon": "د. نور الهدى عادل عبدالله",
+        "er_morning": "د. هبة سعدون مجبل",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 18,
+        "date": "2026-09-18",
+        "dayName": "الجمعة",
+        "er_lateNight": "د. علي حسن خريبط",
+        "er_preNight": "د. علي محمد احمد",
+        "er_afternoon": "د. رفل علي رسمي",
+        "er_morning": "د. زهراء قتيبة عبد",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 19,
+        "date": "2026-09-19",
+        "dayName": "السبت",
+        "er_lateNight": "د. علي صباح كاظم",
+        "er_preNight": "د. منتظر مؤيد حسين",
+        "er_afternoon": "د. مريم مشرق ياسين",
+        "er_morning": "د. مروة محمد عبدالوهاب",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 20,
+        "date": "2026-09-20",
+        "dayName": "الأحد",
+        "er_lateNight": "د. علي عقيل عبد",
+        "er_preNight": "د. ضرغام عامر حسان",
+        "er_afternoon": "د. زهراء سهيل نجم",
+        "er_morning": "د. زهراء احمد عبدالكاظم",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 21,
+        "date": "2026-09-21",
+        "dayName": "الاثنين",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 22,
+        "date": "2026-09-22",
+        "dayName": "الثلاثاء",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 23,
+        "date": "2026-09-23",
+        "dayName": "الأربعاء",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 24,
+        "date": "2026-09-24",
+        "dayName": "الخميس",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 25,
+        "date": "2026-09-25",
+        "dayName": "الجمعة",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 26,
+        "date": "2026-09-26",
+        "dayName": "السبت",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 27,
+        "date": "2026-09-27",
+        "dayName": "الأحد",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 28,
+        "date": "2026-09-28",
+        "dayName": "الاثنين",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 29,
+        "date": "2026-09-29",
+        "dayName": "الثلاثاء",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 30,
+        "date": "2026-09-30",
+        "dayName": "الأربعاء",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      },
+      {
+        "dayNumber": 1,
+        "date": "2026-10-01",
+        "dayName": "الخميس",
+        "er_lateNight": "",
+        "er_preNight": "",
+        "er_afternoon": "",
+        "er_morning": "",
+        "ward_private": "",
+        "ward_floor4": "",
+        "ward_floor5": ""
+      }
+    ]
+  }
+};

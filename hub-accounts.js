@@ -1,0 +1,1064 @@
+/**
+ * Personal accounts on every page: notification bell, notification panel, and likes / comments
+ * on duty cards. Load after hub-core.js. Everything is rendered with escaped text only.
+ */
+(function (window, document) {
+    'use strict';
+
+    const Hub = window.Hub;
+    if (!Hub) {
+        console.error('hub-accounts.js must be loaded after hub-core.js');
+        return;
+    }
+
+    const POLL_MS = 60 * 1000;
+    const SUMMARY_TTL_MS = 45 * 1000;
+    const ROLE_NAMES = { owner: 'المالك', admin: 'مدير مستشفى', anaesthesia: 'مقيم تخدير', user: 'مقيم' };
+
+    // ------------------------------------------------------------------
+    // Small helpers
+    // ------------------------------------------------------------------
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const rtf = (() => { try { return new Intl.RelativeTimeFormat('ar', { numeric: 'auto' }); } catch (e) { return null; } })();
+
+    function timeAgo(ts) {
+        const s = Math.round((ts - Date.now()) / 1000);
+        const abs = Math.abs(s);
+        if (!rtf) return new Date(ts).toLocaleString('ar-IQ');
+        if (abs < 60) return 'الآن';
+        if (abs < 3600) return rtf.format(Math.round(s / 60), 'minute');
+        if (abs < 86400) return rtf.format(Math.round(s / 3600), 'hour');
+        if (abs < 7 * 86400) return rtf.format(Math.round(s / 86400), 'day');
+        return new Date(ts).toLocaleDateString('ar-IQ', { day: 'numeric', month: 'short' });
+    }
+
+    function isoToLocal(iso) {
+        const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        return m ? `${m[3]}/${m[2]}/${m[1]}` : String(iso || '');
+    }
+
+    function hospitalName(id) {
+        const h = Hub.getHospital && Hub.getHospital(id);
+        return (h && (h.name_ar || h.hospitalName)) || id || '';
+    }
+
+    function toast(msg, type = 'info') {
+        let host = document.getElementById('hacc-toasts');
+        if (!host) {
+            host = document.createElement('div');
+            host.id = 'hacc-toasts';
+            host.setAttribute('role', 'status');
+            host.setAttribute('aria-live', 'polite');
+            document.body.appendChild(host);
+        }
+        const el = document.createElement('div');
+        el.className = `hacc-toast ${type}`;
+        el.textContent = msg;
+        host.appendChild(el);
+        requestAnimationFrame(() => el.classList.add('show'));
+        setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, 3200);
+    }
+
+    /** Round cartoon avatar of a person ({ avatar, sex, name }); initials if hub-avatar.js is missing. */
+    function avatarHtml(person, size = 36, extraClass = '') {
+        const p = person || {};
+        if (window.HubAvatar) {
+            const cfg = window.HubAvatar.forAccount({ avatar: p.avatar, sex: p.sex, name: p.name || p.author || p.username });
+            return `<span class="hav-wrap ${extraClass}" style="width:${size}px;height:${size}px">${window.HubAvatar.svg(cfg, size, p.sex)}</span>`;
+        }
+        return `<span class="hacc-avatar ${extraClass}">${esc(String(p.name || p.author || '?').replace(/^د\.?\s*/, '').charAt(0))}</span>`;
+    }
+
+    const signedIn = () => Hub.auth.isLoggedIn();
+    const account = () => Hub.auth.getAccount();
+    const isApprover = () => ['owner', 'admin'].includes(Hub.auth.getRole());
+
+    function errorText(err) {
+        const code = err && err.data && err.data.error;
+        return ({
+            rate_limited: 'محاولات كثيرة. انتظر قليلاً ثم حاول مجدداً.',
+            account_required: 'هذه الميزة تحتاج حساباً شخصياً.',
+            forbidden: 'لا تملك صلاحية لهذا الإجراء.',
+            unauthorized: 'انتهت الجلسة. سجّل الدخول مجدداً.',
+            duty_closed: 'انتهى يوم هذه الخفارة؛ لا يمكن التفاعل معها الآن.',
+        })[code] || 'تعذر الاتصال بالخادم. حاول مجدداً.';
+    }
+
+    // ------------------------------------------------------------------
+    // Bottom sheet (used by the notification panel and the comment threads)
+    // ------------------------------------------------------------------
+    let openSheetEl = null;
+
+    // Each open sheet adds one history entry, so the phone's back button / gesture closes it.
+    let sheetHistory = false;
+    let ignorePop = false;
+    window.addEventListener('popstate', () => {
+        if (ignorePop) { ignorePop = false; return; }
+        if (openSheetEl) { sheetHistory = false; closeSheet(true); }
+    });
+
+    // Scroll lock that keeps the reader's place: overflow:hidden on <html> + <body> resets the page
+    // to the top on pages whose body has overflow-x:hidden, so the body is pinned at its offset instead.
+    let lockedY = null;
+    let replacingSheet = false;
+    let pinnedBars = [];
+    function lockScroll() {
+        if (lockedY !== null) return;
+        lockedY = window.scrollY;
+        // Sticky top bars would travel up with the pinned body; hold them where they are on screen.
+        pinnedBars = [...document.querySelectorAll('.hub-nav-bar, body > .top')].filter(el => getComputedStyle(el).position === 'sticky').map(el => {
+            const r = el.getBoundingClientRect();
+            const cs = getComputedStyle(el);
+            // A placeholder keeps the bar's space so the page does not shift under the sheet.
+            const hold = document.createElement('div');
+            hold.className = 'hacc-bar-hold';
+            hold.style.height = (el.offsetHeight + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom)) + 'px';
+            el.before(hold);
+            el._hold = hold;
+            el.style.position = 'fixed';
+            el.style.top = r.top + 'px';
+            el.style.left = r.left + 'px';
+            el.style.width = r.width + 'px';
+            return el;
+        });
+        document.body.style.top = -lockedY + 'px';
+        document.documentElement.classList.add('hacc-no-scroll');
+    }
+    function unlockScroll() {
+        if (lockedY === null) return;
+        const y = lockedY;
+        lockedY = null;
+        document.documentElement.classList.remove('hacc-no-scroll');
+        document.body.style.top = '';
+        pinnedBars.forEach(el => {
+            el.style.position = el.style.top = el.style.left = el.style.width = '';
+            if (el._hold) { el._hold.remove(); el._hold = null; }
+        });
+        pinnedBars = [];
+        window.scrollTo({ top: y, left: 0, behavior: 'instant' });
+    }
+
+    function openSheet(html, { label = '', onClose, tall = false } = {}) {
+        const replacing = !!openSheetEl;
+        replacingSheet = replacing;
+        closeSheet(true);
+        replacingSheet = false;
+        if (!replacing && !sheetHistory) {
+            try { history.pushState({ haccSheet: true }, ''); sheetHistory = true; } catch (e) {}
+        }
+        const wrap = document.createElement('div');
+        wrap.className = 'hacc-sheet-backdrop';
+        wrap.innerHTML = `<section class="hacc-sheet${tall ? ' tall' : ''}" role="dialog" aria-modal="true" aria-label="${esc(label)}">
+            <div class="hacc-sheet-grip" aria-hidden="true"></div>${html}</section>`;
+        wrap.addEventListener('click', e => { if (e.target === wrap) closeSheet(); });
+        wrap._onClose = onClose;
+        document.body.appendChild(wrap);
+        lockScroll();
+        requestAnimationFrame(() => wrap.classList.add('open'));
+        openSheetEl = wrap;
+        enableSwipeToClose(wrap.querySelector('.hacc-sheet'));
+        return wrap.querySelector('.hacc-sheet');
+    }
+
+    function closeSheet(fromHistory) {
+        if (!openSheetEl) return;
+        const el = openSheetEl;
+        openSheetEl = null;
+        if (fromHistory !== true && sheetHistory) {
+            sheetHistory = false;
+            ignorePop = true;
+            history.back();
+        }
+        // A sheet replacing this one keeps the lock (and the saved place).
+        if (fromHistory !== true || !replacingSheet) unlockScroll();
+        el.classList.remove('open');
+        if (el._onClose) el._onClose();
+        setTimeout(() => el.remove(), 250);
+    }
+
+    function enableSwipeToClose(sheet) {
+        const grip = sheet.querySelector('.hacc-sheet-grip');
+        let startY = null, dy = 0;
+        grip.addEventListener('touchstart', e => { startY = e.touches[0].clientY; dy = 0; sheet.style.transition = 'none'; }, { passive: true });
+        grip.addEventListener('touchmove', e => {
+            if (startY === null) return;
+            dy = Math.max(0, e.touches[0].clientY - startY);
+            sheet.style.transform = `translateY(${dy}px)`;
+        }, { passive: true });
+        grip.addEventListener('touchend', () => {
+            sheet.style.transition = '';
+            sheet.style.transform = '';
+            if (dy > 90) closeSheet();
+            startY = null;
+        });
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+
+    // Every page's pop-ups are bottom sheets on phones (hub-ios.css): swipe one down from its top
+    // edge to close it, like iOS. Closing = a tap on the backdrop, which every page already handles.
+    (function sheetSwipe() {
+        const SHEET = '.modal-overlay > .modal-card, .modal-overlay > .hub-modal-card, .hub-modal-overlay > .modal-card, .hub-modal-overlay > .hub-modal-card';
+        let card = null, startY = 0, dy = 0;
+        document.addEventListener('touchstart', e => {
+            if (window.innerWidth > 768) return;
+            const c = e.target.closest && e.target.closest(SHEET);
+            if (!c || c.scrollTop > 0) return;
+            const top = c.getBoundingClientRect().top;
+            if (e.touches[0].clientY - top > 56) return; // only from the grabber / title area
+            card = c; startY = e.touches[0].clientY; dy = 0;
+            card.style.transition = 'none';
+        }, { passive: true });
+        document.addEventListener('touchmove', e => {
+            if (!card) return;
+            dy = Math.max(0, e.touches[0].clientY - startY);
+            card.style.transform = `translateY(${dy}px)`;
+        }, { passive: true });
+        document.addEventListener('touchend', () => {
+            if (!card) return;
+            const c = card; card = null;
+            c.style.transition = 'transform .28s cubic-bezier(.32,.72,0,1)';
+            if (dy > 90) {
+                c.style.transform = 'translateY(100%)';
+                setTimeout(() => {
+                    const overlay = c.parentElement;
+                    overlay.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+                    c.style.transform = ''; c.style.transition = '';
+                }, 220);
+            } else {
+                c.style.transform = '';
+                setTimeout(() => { c.style.transition = ''; }, 300);
+            }
+        });
+    })();
+
+    // ------------------------------------------------------------------
+    // Notifications
+    // ------------------------------------------------------------------
+    const notif = { items: [], unread: null, pending: null, timer: null, loading: null };
+
+    function bellCount() {
+        const pending = notif.pending ? (notif.pending.accounts || 0) + (notif.pending.resets || 0) : 0;
+        return (notif.unread || 0) + pending;
+    }
+
+    function paintBells() {
+        const n = bellCount();
+        document.querySelectorAll('.hacc-bell').forEach(b => {
+            const badge = b.querySelector('.hacc-bell-count');
+            badge.textContent = n > 99 ? '99+' : String(n);
+            badge.hidden = n === 0;
+            b.setAttribute('aria-label', n ? `الإشعارات (${n} جديدة)` : 'الإشعارات');
+        });
+        // Number on the installed app icon (supported on Android Chrome / desktop PWAs).
+        try {
+            if (navigator.setAppBadge) n ? navigator.setAppBadge(n) : navigator.clearAppBadge();
+        } catch (e) {}
+    }
+
+    async function pollNotifications() {
+        if (!signedIn()) return;
+        if (notif.loading) return notif.loading;
+        notif.loading = (async () => {
+            try {
+                const res = await Hub.api('GET', '/api/notifications', undefined, { retries: 0 });
+                const hadUnread = notif.unread;
+                notif.items = res.items || [];
+                notif.unread = res.unread || 0;
+                notif.pending = res.pending || null;
+                paintBells();
+                if (hadUnread !== null && notif.unread > hadUnread && document.visibilityState === 'visible' && notif.items[0] && !notif.items[0].seen) {
+                    toast(describe(notif.items[0]).text, 'info');
+                }
+                if (openSheetEl && openSheetEl.dataset.kind === 'notifications') renderNotificationList(openSheetEl.querySelector('.hacc-sheet'));
+            } catch (e) {
+                // Offline or signed out: keep the last state.
+            } finally {
+                notif.loading = null;
+            }
+        })();
+        return notif.loading;
+    }
+
+    function startPolling() {
+        stopPolling();
+        if (!signedIn()) { notif.items = []; notif.unread = null; notif.pending = null; paintBells(); return; }
+        pollNotifications();
+        notif.timer = setInterval(() => { if (document.visibilityState === 'visible') pollNotifications(); }, POLL_MS);
+    }
+
+    function stopPolling() {
+        if (notif.timer) clearInterval(notif.timer);
+        notif.timer = null;
+    }
+
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pollNotifications(); });
+    window.addEventListener('hub:auth-changed', () => { startPolling(); refreshNavSlots(); });
+
+    /** Text, icon and action for one notification. */
+    function describe(n) {
+        const d = n.data || {};
+        const others = d.count > 1 ? ` و${d.count - 1} ${d.count - 1 === 1 ? 'شخص آخر' : 'آخرين'}` : '';
+        const when = d.d ? ` (${isoToLocal(d.d)})` : '';
+        switch (n.type) {
+            case 'like':
+                return { icon: '❤️', text: `${d.last || 'أحدهم'}${others} أُعجب ببطاقة خفارتك${when}`, open: () => openThread({ h: d.h, d: isoToLocal(d.d), n: d.name }, 'likes') };
+            case 'comment':
+                return { icon: '💬', text: `${d.last || 'أحدهم'} علّق على بطاقة خفارتك${when}${d.text ? ': «' + d.text + '»' : ''}`, open: () => openThread({ h: d.h, d: isoToLocal(d.d), n: d.name }, 'comments') };
+            case 'reply':
+                return { icon: '↩️', text: `${d.last || 'أحدهم'} ردّ على تعليقك في بطاقة ${d.name || ''}${d.text ? ': «' + d.text + '»' : ''}`, open: () => openThread({ h: d.h, d: isoToLocal(d.d), n: d.name }, 'comments') };
+            case 'signup_request':
+                return { icon: '🆕', text: `طلب حساب جديد: ${d.name} (@${d.username}) – ${hospitalName(d.hosp)}`, href: './account.html#manage' };
+            case 'reset_request':
+                return { icon: '🔑', text: `طلب إعادة تعيين كلمة المرور: ${d.name} (@${d.username})`, href: './account.html#manage-resets' };
+            case 'account_approved':
+                return { icon: '✅', text: 'تمت الموافقة على حسابك. أهلاً بك!' };
+            case 'reset_approved':
+                return { icon: '🔓', text: 'تمت الموافقة على طلب تغيير كلمة المرور.' };
+            case 'role_changed':
+                return { icon: '⭐', text: `تم تغيير صلاحياتك إلى: ${ROLE_NAMES[d.role] || d.role}` };
+            default:
+                return { icon: '🔔', text: 'إشعار جديد' };
+        }
+    }
+
+    function openNotifications() {
+        const sheet = openSheet(`<header class="hacc-sheet-head">
+                <h2>الإشعارات</h2>
+                <button type="button" class="hacc-link" data-act="all-read">تعليم الكل كمقروء</button>
+            </header>
+            <div class="hacc-sheet-body" data-role="list"><div class="hacc-empty">جاري التحميل…</div></div>`, { label: 'الإشعارات' });
+        openSheetEl.dataset.kind = 'notifications';
+        sheet.querySelector('[data-act="all-read"]').addEventListener('click', markAllRead);
+        renderNotificationList(sheet);
+        pollNotifications();
+    }
+
+    function renderNotificationList(sheet) {
+        const list = sheet.querySelector('[data-role="list"]');
+        const parts = [];
+        const p = notif.pending;
+        if (p && (p.accounts || p.resets)) {
+            parts.push(`<a class="hacc-pending" href="./account.html#manage">
+                <span class="hacc-pending-icon">🛡️</span>
+                <span>${p.accounts ? `${p.accounts} طلب حساب بانتظار الموافقة` : ''}${p.accounts && p.resets ? ' · ' : ''}${p.resets ? `${p.resets} طلب كلمة مرور` : ''}</span>
+                <span class="hacc-chevron" aria-hidden="true">‹</span></a>`);
+        }
+        if (!account()) {
+            parts.push(`<div class="hacc-cta">أنت مسجّل بكلمة مرور مشتركة. أنشئ حساباً شخصياً لتصلك إشعارات الإعجابات والتعليقات.
+                <a class="hacc-btn primary sm" href="./account.html#signup">إنشاء حساب</a></div>`);
+        }
+        if (account() && push.state === 'off') {
+            parts.push(`<div class="hacc-cta">🔔 فعّل الإشعارات على هذا الجهاز لتصلك حتى عندما يكون التطبيق مغلقاً.
+                <button type="button" class="hacc-btn primary sm" data-act="push-on">تفعيل الإشعارات</button></div>`);
+        }
+        if (!notif.items.length && account()) parts.push('<div class="hacc-empty">لا توجد إشعارات بعد</div>');
+        notif.items.forEach((n, i) => {
+            const d = describe(n);
+            parts.push(`<button type="button" class="hacc-notif ${n.seen ? '' : 'unread'}" data-i="${i}">
+                <span class="hacc-notif-icon" aria-hidden="true">${d.icon}</span>
+                <span class="hacc-notif-main"><span class="hacc-notif-text">${esc(d.text)}</span>
+                <time class="hacc-notif-time">${esc(timeAgo(n.ts))}</time></span></button>`);
+        });
+        list.innerHTML = parts.join('');
+        const pushBtn = list.querySelector('[data-act="push-on"]');
+        if (pushBtn) pushBtn.addEventListener('click', async () => {
+            pushBtn.disabled = true;
+            const r = await enablePush();
+            toast(r.ok ? 'تم تفعيل الإشعارات ✓' : r.error, r.ok ? 'success' : 'error');
+            renderNotificationList(sheet);
+        });
+        list.querySelectorAll('.hacc-notif').forEach(btn => btn.addEventListener('click', () => {
+            const n = notif.items[Number(btn.dataset.i)];
+            const d = describe(n);
+            if (!n.seen) markRead([n.nid]);
+            if (d.href) { window.location.href = d.href; return; }
+            if (d.open) { closeSheet(); setTimeout(d.open, 260); }
+        }));
+    }
+
+    async function markRead(nids) {
+        notif.items.forEach(n => { if (nids.includes(n.nid)) n.seen = 1; });
+        notif.unread = notif.items.filter(n => !n.seen).length;
+        paintBells();
+        try { await Hub.api('POST', '/api/notifications/seen', { nids }, { retries: 0 }); } catch (e) {}
+    }
+
+    async function markAllRead() {
+        notif.items.forEach(n => { n.seen = 1; });
+        notif.unread = 0;
+        paintBells();
+        if (openSheetEl) renderNotificationList(openSheetEl.querySelector('.hacc-sheet'));
+        try { await Hub.api('POST', '/api/notifications/seen', {}, { retries: 0 }); } catch (e) {}
+    }
+
+    // ------------------------------------------------------------------
+    // Navigation buttons (bell + account)
+    // ------------------------------------------------------------------
+    function navButtons() {
+        if (!signedIn()) {
+            return `<a class="hacc-nav-btn hacc-nav-account" href="./account.html" title="حسابي" aria-label="حسابي"><i class="fas fa-user-circle"></i></a>`;
+        }
+        const acc = account();
+        const initial = acc ? avatarHtml(acc, 34) : '<i class="fas fa-user"></i>';
+        return `<button type="button" class="hacc-nav-btn hacc-bell" onclick="HubAccounts.openNotifications()" aria-label="الإشعارات">
+                <i class="fas fa-bell"></i><span class="hacc-bell-count" hidden>0</span></button>
+            <button type="button" class="hacc-nav-btn hacc-nav-account ${acc ? 'has-account has-avatar' : ''}" onclick="HubAccounts.openPanel()" title="${acc ? esc(acc.name) : 'حسابي والإعدادات'}" aria-label="حسابي والإعدادات">${initial}${acc && acc.profile_complete === false ? '<span class="hacc-dot" aria-label="الملف غير مكتمل"></span>' : ''}</button>`;
+    }
+
+    // ------------------------------------------------------------------
+    // Account panel (hub-panel.js, loaded on first use)
+    // ------------------------------------------------------------------
+    let panelLoading = null;
+    function openPanel(tab) {
+        if (!window.HubPanel) {
+            panelLoading = panelLoading || new Promise((resolve, reject) => {
+                const el = document.createElement('script');
+                const self = document.querySelector('script[src*="hub-accounts.js"]');
+                el.src = (self ? self.src.replace(/hub-accounts\.js.*$/, '') : './') + 'hub-panel.js';
+                el.onload = resolve;
+                el.onerror = () => { panelLoading = null; reject(new Error('panel')); };
+                document.head.appendChild(el);
+            });
+            return panelLoading.then(() => window.HubPanel.open(tab)).catch(() => toast('تعذر فتح لوحة الحساب. تحقق من الاتصال.', 'error'));
+        }
+        return window.HubPanel.open(tab);
+    }
+
+    /** Once a day, remind accounts with an incomplete profile (board, specialty, stage). */
+    function nudgeProfile() {
+        const acc = account();
+        if (!acc || acc.profile_complete !== false || document.getElementById('hacc-nudge')) return;
+        const today = new Date().toDateString();
+        try { if (localStorage.getItem('hacc_nudge_day') === today) return; } catch (e) {}
+        const el = document.createElement('div');
+        el.id = 'hacc-nudge';
+        el.setAttribute('role', 'status');
+        el.innerHTML = `<span class="hacc-nudge-icon" aria-hidden="true">📝</span>
+            <span class="hacc-nudge-text"><b>أكمل ملفك الشخصي</b><br>نوع البورد، الاختصاص، المرحلة وسنوات البورد.</span>
+            <button type="button" class="hacc-btn sm primary" data-act="go">إكمال</button>
+            <button type="button" class="hacc-icon-btn" data-act="later" aria-label="لاحقاً">✕</button>`;
+        const done = () => { try { localStorage.setItem('hacc_nudge_day', today); } catch (e) {} el.remove(); };
+        el.querySelector('[data-act="go"]').addEventListener('click', () => { done(); openPanel('profile'); });
+        el.querySelector('[data-act="later"]').addEventListener('click', done);
+        document.body.appendChild(el);
+        requestAnimationFrame(() => el.classList.add('show'));
+    }
+
+    function refreshNavSlots() {
+        document.querySelectorAll('[data-hacc-slot]').forEach(slot => { slot.innerHTML = navButtons(); });
+        paintBells();
+    }
+
+    // Pages render their own headers; any element with data-hacc-slot gets the buttons.
+    const slotObserver = new MutationObserver(muts => {
+        for (const m of muts) {
+            for (const node of m.addedNodes) {
+                if (node.nodeType !== 1) continue;
+                const slots = node.matches && node.matches('[data-hacc-slot]') ? [node] : node.querySelectorAll ? node.querySelectorAll('[data-hacc-slot]') : [];
+                slots.forEach(s => { if (!s.firstChild) s.innerHTML = navButtons(); });
+                if (slots.length) paintBells();
+            }
+        }
+    });
+
+    // ------------------------------------------------------------------
+    // Profile refresh: role changes made by an approver apply without signing in again
+    // ------------------------------------------------------------------
+    async function refreshProfile() {
+        if (!account()) return;
+        try {
+            const res = await Hub.api('GET', '/api/accounts/me', undefined, { retries: 0 });
+            if (res && res.account) {
+                const before = (account() || {}).profile_complete;
+                Hub.auth.refreshAccount(res.account, res.role, res.adminHospitals);
+                if (before !== res.account.profile_complete) refreshNavSlots();
+                setTimeout(nudgeProfile, 2500);
+            }
+        } catch (e) {}
+    }
+
+    // ------------------------------------------------------------------
+    // Likes and comments on duty cards
+    // ------------------------------------------------------------------
+    const summaryCache = new Map(); // "<h>|<d>" -> { at, cards, canReact, pending }
+
+    function cardKey(c) { return `${c.h}|${c.d}|${c.n}`; }
+
+    async function fetchSummary(h, d, names, force) {
+        const key = `${h}|${d}`;
+        const cached = summaryCache.get(key);
+        const missing = names.filter(n => !(cached && n in cached.cards));
+        if (cached && !force && !missing.length && Date.now() - cached.at < SUMMARY_TTL_MS) return cached;
+        if (cached && cached.pending) return cached.pending;
+        const q = new URLSearchParams({ h, d });
+        names.slice(0, 60).forEach(n => q.append('n', n));
+        const pending = Hub.api('GET', '/api/social?' + q, undefined, { retries: 1 }).then(res => {
+            const entry = { at: Date.now(), cards: res.cards || {}, canReact: !!res.canReact };
+            names.forEach(n => { if (!(n in entry.cards)) entry.cards[n] = { likes: 0, comments: 0, mine: false }; });
+            summaryCache.set(key, entry);
+            return entry;
+        }).finally(() => { const c = summaryCache.get(key); if (c) c.pending = null; });
+        if (cached) cached.pending = pending;
+        else summaryCache.set(key, { at: 0, cards: {}, canReact: false, pending });
+        return pending;
+    }
+
+    function socialBarHtml(card, s) {
+        const likes = s ? s.likes : 0, comments = s ? s.comments : 0, mine = s && s.mine;
+        return `<button type="button" class="hacc-act like ${mine ? 'on' : ''}" data-act="like" aria-pressed="${mine ? 'true' : 'false'}"
+                    aria-label="${mine ? 'إلغاء الإعجاب' : 'إعجاب'}${likes ? ' (' + likes + ')' : ''}" title="إعجاب">
+                <i class="${mine ? 'fa-solid' : 'fa-regular'} fa-heart" aria-hidden="true"></i>${likes ? `<span class="hacc-act-n">${likes > 99 ? '99+' : likes}</span>` : ''}</button>
+            <button type="button" class="hacc-act comment" data-act="comment" aria-label="التعليقات${comments ? ' (' + comments + ')' : ''}" title="التعليقات">
+                <i class="fa-regular fa-comment" aria-hidden="true"></i>${comments ? `<span class="hacc-act-n">${comments > 99 ? '99+' : comments}</span>` : ''}</button>`;
+    }
+
+    /**
+     * Adds the like / comment bar to roster cards.
+     * cards: [{ el, h, d, n }] where el is the element the bar is appended to, h the hospital id,
+     * d the duty date (DD/MM/YYYY) and n the resident's name as shown on the card.
+     */
+    async function decorate(cards) {
+        if (!cards.length || !signedIn()) return;
+        const groups = new Map();
+        for (const c of cards) {
+            let bar = c.el.querySelector(':scope > .hacc-acts');
+            if (!bar) {
+                bar = document.createElement('div');
+                bar.className = 'hacc-acts';
+                bar.setAttribute('role', 'group');
+                bar.setAttribute('aria-label', 'التفاعل مع البطاقة');
+                bar.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
+                bar.addEventListener('click', e => e.stopPropagation());
+                bar.addEventListener('mousemove', e => e.stopPropagation());
+                c.el.insertBefore(bar, c.el.firstChild);
+            }
+            bar._card = { h: c.h, d: c.d, n: c.n };
+            const key = `${c.h}|${c.d}`;
+            if (!groups.has(key)) groups.set(key, []);
+            groups.get(key).push(bar);
+            // Paint immediately from the cache so a re-render never flickers.
+            const cached = summaryCache.get(key);
+            if (!bar.firstChild || cached) paintBar(bar, cached && cached.cards[c.n], cached ? cached.canReact : !!account());
+        }
+        for (const [key, bars] of groups) {
+            const [h, d] = key.split('|');
+            try {
+                const res = await fetchSummary(h, d, bars.map(b => b._card.n));
+                bars.forEach(b => b.isConnected && paintBar(b, res.cards[b._card.n], res.canReact));
+            } catch (e) { /* counts stay hidden while offline */ }
+        }
+    }
+
+    function paintBar(bar, s, canReact) {
+        bar.innerHTML = socialBarHtml(bar._card, s, canReact);
+        bar.querySelectorAll('[data-act]').forEach(btn => btn.addEventListener('click', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            const act = btn.dataset.act;
+            if (act === 'like') toggleLike(bar);
+            else openThread(bar._card, 'comments', true);
+        }));
+    }
+
+    function requireAccount() {
+        if (account()) return true;
+        const sheet = openSheet(`<div class="hacc-sheet-body hacc-center">
+            <div class="hacc-big-icon">👤</div>
+            <h2>الإعجاب والتعليق يحتاجان حساباً شخصياً</h2>
+            <p class="hacc-muted">أنت مسجّل حالياً بكلمة المرور المشتركة. أنشئ حسابك (باسمك ورقم هاتفك المسجّل في الجدول) أو سجّل دخولك إليه.</p>
+            <div class="hacc-row">
+                <a class="hacc-btn primary" href="./account.html#signup">إنشاء حساب</a>
+                <a class="hacc-btn" href="./account.html#signin">تسجيل الدخول</a>
+            </div></div>`, { label: 'حساب شخصي مطلوب' });
+        return !sheet;
+    }
+
+    async function toggleLike(bar) {
+        if (!requireAccount()) return;
+        const card = bar._card;
+        const entry = summaryCache.get(`${card.h}|${card.d}`);
+        const s = (entry && entry.cards[card.n]) || { likes: 0, comments: 0, mine: false };
+        const on = !s.mine;
+        // Optimistic update, rolled back if the server refuses.
+        const before = { ...s };
+        s.mine = on;
+        s.likes = Math.max(0, s.likes + (on ? 1 : -1));
+        if (entry) entry.cards[card.n] = s;
+        paintBar(bar, s, true);
+        if (on) bar.querySelector('.hacc-act.like')?.classList.add('pop');
+        if (navigator.vibrate && on) navigator.vibrate(12);
+        try {
+            const res = await Hub.api('POST', '/api/social/like', { ...card, on }, { retries: 1 });
+            s.likes = res.likes;
+            s.mine = res.mine;
+        } catch (err) {
+            Object.assign(s, before);
+            toast(errorText(err), 'error');
+        }
+        syncBars(card, s);
+    }
+
+    /** Same card may be visible more than once (e.g. after a re-render): keep them in step. */
+    function syncBars(card, s) {
+        document.querySelectorAll('.hacc-acts').forEach(b => {
+            if (b._card && cardKey(b._card) === cardKey(card)) paintBar(b, s, true);
+        });
+    }
+
+    async function openThread(card, tab = 'comments', focusComposer = false) {
+        const canReact = !!account();
+        const sheet = openSheet(`<header class="hacc-sheet-head">
+                <div><h2>${esc(card.n)}</h2><div class="hacc-muted">${esc(hospitalName(card.h))} · ${esc(card.d)}</div></div>
+                <button type="button" class="hacc-icon-btn" data-act="close" aria-label="إغلاق">✕</button>
+            </header>
+            <div class="hacc-tabs" role="tablist">
+                <button type="button" role="tab" data-tab="comments" aria-selected="${tab === 'comments'}">التعليقات <span data-role="nc"></span></button>
+                <button type="button" role="tab" data-tab="likes" aria-selected="${tab === 'likes'}">الإعجابات <span data-role="nl"></span></button>
+            </div>
+            <div class="hacc-sheet-body" data-role="body"><div class="hacc-empty">جاري التحميل…</div></div>
+            ${canReact ? `<form class="hacc-composer" data-role="composer" ${tab === 'likes' ? 'hidden' : ''}>
+                <div class="hacc-replying" data-role="replying" hidden>
+                    <span>↩️ الرد على <bdi data-role="reply-name"></bdi></span>
+                    <button type="button" class="hacc-icon-btn sm" data-act="cancel-reply" aria-label="إلغاء الرد">✕</button>
+                </div>
+                <div class="hacc-identity" role="radiogroup" aria-label="التعليق باسم">
+                    <label><input type="radio" name="hacc-as" value="real" checked> <span>باسمي</span></label>
+                    <label><input type="radio" name="hacc-as" value="anon"> <span>🕶️ <bdi data-role="anon-label">${esc((account() || {}).anon_tag || 'مجهول')}</bdi></span></label>
+                    <button type="button" class="hacc-link" data-act="nick" title="تغيير اللقب المجهول من الإعدادات">تغيير اللقب</button>
+                </div>
+                <div class="hacc-compose-row">
+                    <textarea rows="1" maxlength="600" placeholder="اكتب تعليقاً…" aria-label="تعليق" required></textarea>
+                    <button type="submit" class="hacc-send" aria-label="إرسال">➤</button>
+                </div>
+            </form>` : `<div class="hacc-composer hacc-cta">للتعليق والإعجاب <a href="./account.html#signup">أنشئ حساباً شخصياً</a></div>`}`,
+            { label: 'التعليقات والإعجابات' });
+
+        let data = null;
+        let current = tab;
+        let replyTo = null;
+        const body = sheet.querySelector('[data-role="body"]');
+        const composer = sheet.querySelector('[data-role="composer"]');
+        sheet.querySelector('[data-act="close"]').addEventListener('click', closeSheet);
+
+        const render = () => {
+            sheet.querySelector('[data-role="nc"]').textContent = data ? `(${data.comments.length})` : '';
+            sheet.querySelector('[data-role="nl"]').textContent = data ? `(${data.likes.length})` : '';
+            sheet.querySelectorAll('[data-tab]').forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === current)));
+            if (composer) composer.hidden = current !== 'comments';
+            if (!data) return;
+            if (current === 'likes') {
+                body.innerHTML = data.likes.length
+                    ? `<ul class="hacc-people">${data.likes.map(l => `<li>${avatarHtml(l, 36)}
+                        <span class="hacc-person-name">${esc(l.name)}${l.mine ? ' <span class="hacc-chip">أنت</span>' : ''}</span>
+                        <span class="hacc-heart-dot" aria-hidden="true">❤</span></li>`).join('')}</ul>`
+                    : '<div class="hacc-empty">لا إعجابات بعد. كن أول من يُعجب ❤️</div>';
+            } else {
+                const canReply = !!composer && composer.isConnected && data.open !== false;
+                const ids = new Set(data.comments.map(c => c.cid));
+                const roots = data.comments.filter(c => !c.parent || !ids.has(c.parent));
+                const repliesOf = cid => data.comments.filter(c => c.parent === cid && ids.has(cid));
+                const item = (c, size) => `<li data-cid="${c.cid}">
+                        ${c.anon ? `<span class="hacc-avatar anon" style="width:${size}px;height:${size}px">🕶️</span>` : avatarHtml({ ...c, name: c.author }, size)}
+                        <div class="hacc-bubble-wrap">
+                          <div class="hacc-bubble"><div class="hacc-author">${esc(c.author)}${c.mine ? ' <span class="hacc-chip">أنت</span>' : ''}</div>
+                          <div class="hacc-text">${esc(c.body)}</div></div>
+                          <div class="hacc-meta"><time>${esc(timeAgo(c.ts))}</time>${c.edited ? '<span>معدّل</span>' : ''}
+                          ${c.realName ? `<span class="hacc-reveal" title="ظاهر للمالك فقط">👁 ${esc(c.realName)}</span>` : ''}
+                          ${canReply ? '<button type="button" class="hacc-link" data-act="reply">ردّ</button>' : ''}
+                          ${c.canEdit ? '<button type="button" class="hacc-link" data-act="edit">تعديل</button>' : ''}
+                          ${c.canDelete ? '<button type="button" class="hacc-link danger" data-act="delete">حذف</button>' : ''}</div>
+                        </div>`;
+                body.innerHTML = data.comments.length
+                    ? `<ul class="hacc-comments">${roots.map(c => {
+                        const kids = repliesOf(c.cid);
+                        return item(c, 36) + (kids.length ? `<ul class="hacc-replies">${kids.map(k => item(k, 28) + '</li>').join('')}</ul>` : '') + '</li>';
+                    }).join('')}</ul>`
+                    : '<div class="hacc-empty">لا تعليقات بعد. اكتب أول تعليق 💬</div>';
+                body.querySelectorAll('[data-act="reply"]').forEach(btn => btn.addEventListener('click', () => startReply(Number(btn.closest('li').dataset.cid))));
+                body.querySelectorAll('[data-act="delete"]').forEach(btn => btn.addEventListener('click', () => removeComment(Number(btn.closest('li').dataset.cid))));
+                body.querySelectorAll('[data-act="edit"]').forEach(btn => btn.addEventListener('click', () => editComment(btn.closest('li'))));
+                if (!keepScroll) body.scrollTop = body.scrollHeight;
+                keepScroll = false;
+            }
+        };
+        let keepScroll = false;
+
+        const setReplyTo = c => {
+            replyTo = c || null;
+            if (!composer) return;
+            const banner = composer.querySelector('[data-role="replying"]');
+            banner.hidden = !replyTo;
+            if (replyTo) banner.querySelector('[data-role="reply-name"]').textContent = replyTo.author;
+            composer.querySelector('textarea').placeholder = replyTo ? 'اكتب ردّاً…' : 'اكتب تعليقاً…';
+        };
+        const startReply = cid => {
+            const c = data && data.comments.find(x => x.cid === cid);
+            if (!c || !composer) return;
+            setReplyTo(c);
+            const ta = composer.querySelector('textarea');
+            ta.focus();
+        };
+
+        const load = async () => {
+            try {
+                data = await Hub.api('GET', '/api/social/thread?' + new URLSearchParams(card), undefined, { retries: 1 });
+                if (composer && data.myAnonTag) composer.querySelector('[data-role="anon-label"]').textContent = data.myAnonTag;
+                if (composer && data.open === false) {
+                    // Another day's card: read-only (likes and comments belong to that duty day).
+                    composer.outerHTML = '<div class="hacc-composer hacc-cta">🔒 انتهى يوم هذه الخفارة؛ التعليقات للقراءة فقط.</div>';
+                }
+                render();
+                updateCounts();
+            } catch (err) {
+                body.innerHTML = `<div class="hacc-empty">${esc(errorText(err))}</div>`;
+            }
+        };
+
+        const updateCounts = () => {
+            const entry = summaryCache.get(`${card.h}|${card.d}`);
+            if (!entry || !data) return;
+            const s = entry.cards[card.n] || (entry.cards[card.n] = { likes: 0, comments: 0, mine: false });
+            s.likes = data.likes.length;
+            s.comments = data.comments.length;
+            s.mine = data.likes.some(l => l.mine);
+            syncBars(card, s);
+        };
+
+        const editComment = li => {
+            const cid = Number(li.dataset.cid);
+            const c = data.comments.find(x => x.cid === cid);
+            const textEl = li.querySelector('.hacc-text');
+            textEl.innerHTML = `<textarea class="hacc-edit" maxlength="600" rows="2" aria-label="تعديل التعليق"></textarea>
+                <div class="hacc-edit-actions"><button type="button" class="hacc-btn sm primary" data-act="save">حفظ</button>
+                <button type="button" class="hacc-btn sm" data-act="cancel">إلغاء</button></div>`;
+            const ta = textEl.querySelector('textarea');
+            ta.value = c.body;
+            ta.focus();
+            textEl.querySelector('[data-act="cancel"]').addEventListener('click', render);
+            textEl.querySelector('[data-act="save"]').addEventListener('click', async () => {
+                const text = ta.value.trim();
+                if (!text) return;
+                try {
+                    const res = await Hub.api('POST', '/api/social/comment/edit', { cid, body: text }, { retries: 0 });
+                    c.body = res.body;
+                    c.edited = true;
+                    render();
+                } catch (err) { toast(errorText(err), 'error'); }
+            });
+        };
+
+        const removeComment = async cid => {
+            if (!confirm('حذف هذا التعليق؟')) return;
+            try {
+                await Hub.api('POST', '/api/social/comment/delete', { cid }, { retries: 1 });
+                data.comments = data.comments.filter(c => c.cid !== cid);
+                if (replyTo && replyTo.cid === cid) setReplyTo(null);
+                keepScroll = true;
+                render();
+                updateCounts();
+            } catch (err) { toast(errorText(err), 'error'); }
+        };
+
+        sheet.querySelectorAll('[data-tab]').forEach(t => t.addEventListener('click', () => { current = t.dataset.tab; render(); }));
+
+        if (composer) {
+            composer.querySelector('[data-act="cancel-reply"]').addEventListener('click', () => setReplyTo(null));
+            composer.querySelector('[data-act="nick"]').addEventListener('click', () => { closeSheet(); setTimeout(() => openPanel('settings'), 260); });
+            const ta = composer.querySelector('textarea');
+            ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 120) + 'px'; });
+            ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); composer.requestSubmit(); } });
+            composer.addEventListener('submit', async e => {
+                e.preventDefault();
+                const text = ta.value.trim();
+                if (!text) return;
+                const anon = composer.querySelector('input[name="hacc-as"]:checked').value === 'anon';
+                const send = composer.querySelector('.hacc-send');
+                send.disabled = true;
+                try {
+                    const payload = { ...card, body: text, anon };
+                    if (replyTo) payload.parentCid = replyTo.cid;
+                    const res = await Hub.api('POST', '/api/social/comment', payload, { retries: 0 });
+                    ta.value = '';
+                    ta.style.height = '';
+                    const sent = res.comment;
+                    if (!sent.anon && !sent.avatar) { const me = account() || {}; sent.avatar = me.avatar || null; sent.sex = me.sex || null; }
+                    const wasReply = !!replyTo;
+                    setReplyTo(null);
+                    if (data) {
+                        data.comments.push(sent);
+                        current = 'comments';
+                        keepScroll = wasReply;
+                        render();
+                        updateCounts();
+                        const el = body.querySelector(`li[data-cid="${sent.cid}"]`);
+                        if (el && wasReply) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                    }
+                } catch (err) {
+                    toast(errorText(err), 'error');
+                } finally {
+                    send.disabled = false;
+                }
+            });
+            if (focusComposer) setTimeout(() => ta.focus(), 280);
+        }
+        await load();
+    }
+
+    // ------------------------------------------------------------------
+    // Push notifications (shown by service-worker.js even when the app is closed)
+    // ------------------------------------------------------------------
+    const push = { state: 'unknown' };
+    const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    const standalone = () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+
+    function pushSupported() {
+        return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+    }
+
+    function urlB64ToBytes(b64) {
+        const s = atob(b64.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((b64.length + 3) % 4));
+        return Uint8Array.from(s, c => c.charCodeAt(0));
+    }
+
+    /** 'unsupported' | 'needs-install' (iPhone: add to the home screen first) | 'denied' | 'on' | 'off' */
+    async function pushStatus() {
+        if (!pushSupported()) push.state = isIos && !standalone() ? 'needs-install' : 'unsupported';
+        else if (Notification.permission === 'denied') push.state = 'denied';
+        else {
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                const sub = await reg.pushManager.getSubscription();
+                push.state = sub && Notification.permission === 'granted' ? 'on' : 'off';
+            } catch (e) { push.state = 'off'; }
+        }
+        return push.state;
+    }
+
+    async function sendSubscription(sub) {
+        await Hub.api('POST', '/api/push/subscribe', { subscription: sub.toJSON() }, { retries: 1 });
+        try { localStorage.setItem('hacc_push_synced', String(Date.now())); } catch (e) {}
+    }
+
+    async function enablePush() {
+        if (!account()) return { ok: false, error: 'الإشعارات تحتاج حساباً شخصياً.' };
+        const st = await pushStatus();
+        if (st === 'needs-install') return { ok: false, error: 'على الآيفون: أضف التطبيق إلى الشاشة الرئيسية (مشاركة ← إضافة إلى الشاشة الرئيسية) ثم فعّل الإشعارات من داخله.' };
+        if (st === 'unsupported') return { ok: false, error: 'هذا المتصفح لا يدعم الإشعارات.' };
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                await pushStatus();
+                return { ok: false, error: 'لم يتم السماح بالإشعارات. يمكنك السماح بها من إعدادات المتصفح.' };
+            }
+            const { key } = await Hub.api('GET', '/api/push/key', undefined, { useToken: false, retries: 1 });
+            if (!key) return { ok: false, error: 'الإشعارات غير مفعّلة على الخادم بعد.' };
+            const reg = await navigator.serviceWorker.ready;
+            let sub = await reg.pushManager.getSubscription();
+            if (sub && sub.options && sub.options.applicationServerKey) {
+                // Subscribed with an older server key: start over.
+                const current = new Uint8Array(sub.options.applicationServerKey);
+                const wanted = urlB64ToBytes(key);
+                if (current.length !== wanted.length || current.some((b, i) => b !== wanted[i])) { await sub.unsubscribe(); sub = null; }
+            }
+            if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToBytes(key) });
+            await sendSubscription(sub);
+            push.state = 'on';
+            return { ok: true };
+        } catch (err) {
+            await pushStatus();
+            return { ok: false, error: err && err.status ? errorText(err) : 'تعذر تفعيل الإشعارات على هذا الجهاز.' };
+        }
+    }
+
+    async function disablePush() {
+        try {
+            const reg = await navigator.serviceWorker.ready;
+            const sub = await reg.pushManager.getSubscription();
+            if (sub) {
+                await Hub.api('POST', '/api/push/unsubscribe', { endpoint: sub.endpoint }, { retries: 1 }).catch(() => {});
+                await sub.unsubscribe();
+            }
+        } catch (e) {}
+        push.state = 'off';
+        return { ok: true };
+    }
+
+    /** Keeps the server copy of this device's subscription fresh (it can change, or the account can). */
+    async function resyncPush() {
+        if (!account() || (await pushStatus()) !== 'on') return;
+        let last = 0;
+        try { last = Number(localStorage.getItem('hacc_push_synced')) || 0; } catch (e) {}
+        if (Date.now() - last < 24 * 3600 * 1000) return;
+        try {
+            const reg = await navigator.serviceWorker.ready;
+            const sub = await reg.pushManager.getSubscription();
+            if (sub) await sendSubscription(sub);
+        } catch (e) {}
+    }
+
+    /** Tapping a like / comment push lands on Home.html#thread=<date>|<name>: open that thread. */
+    function openThreadFromHash() {
+        const m = location.hash.match(/^#thread=([^|]*)\|(.*)$/);
+        if (!m || !/Home\.html$/i.test(location.pathname)) return;
+        const h = new URLSearchParams(location.search).get('hospital') || (Hub.getActiveHospitalId && Hub.getActiveHospitalId());
+        const d = decodeURIComponent(m[1]);
+        const local = /^\d{4}-\d{2}-\d{2}$/.test(d) ? d.split('-').reverse().join('/') : d;
+        history.replaceState(null, '', location.pathname + location.search);
+        setTimeout(() => openThread({ h, d: local, n: decodeURIComponent(m[2]) }, 'comments'), 400);
+    }
+
+    // ------------------------------------------------------------------
+    // Start
+    // ------------------------------------------------------------------
+    function start() {
+        refreshNavSlots();
+        slotObserver.observe(document.body, { childList: true, subtree: true });
+        startPolling();
+        refreshProfile();
+        pushStatus().then(resyncPush);
+        openThreadFromHash();
+        window.addEventListener('hashchange', openThreadFromHash);
+        initIosChrome();
+        scheduleInstallOffer();
+    }
+
+    /** Owner tools that live on the portal page (index.html) or in the shared navigation script. */
+    const ADMIN_PAGES = {
+        openAddHospitalModal: './index.html?portal=true',
+        openGlobalSpecialtiesModal: './index.html?portal=true',
+        openFullSystemBackupModal: './index.html?portal=true',
+        openAllPasswordsModalNav: './index.html?portal=true',
+    };
+    const ADMIN_ACTIONS = Object.keys(ADMIN_PAGES);
+    function adminAction(fn) {
+        if (!ADMIN_ACTIONS.includes(fn)) return;
+        const run = typeof window[fn] === 'function' ? window[fn] : null;
+        if (run) { closeSheet(); setTimeout(() => run(), 280); return; }
+        location.href = ADMIN_PAGES[fn] + '#admin=' + fn;
+    }
+
+    function goBack(fallback = './index.html?portal=true') {
+        let internal = false;
+        try { internal = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) {}
+        if (internal && history.length > 1) history.back();
+        else location.href = fallback;
+    }
+
+    // ------------------------------------------------------------------
+    // iOS chrome: the bars turn to glass once content scrolls under them; cards rise in
+    // ------------------------------------------------------------------
+    function initIosChrome() {
+        let scrolled = null;
+        const update = () => {
+            if (lockedY !== null) return; // the page is pinned under a sheet
+            const now = window.scrollY > 6;
+            if (now !== scrolled) { scrolled = now; document.body.classList.toggle('ios-scrolled', now); }
+        };
+        update();
+        window.addEventListener('scroll', update, { passive: true });
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        // The first screenful of cards rises in with a short stagger (once per page).
+        requestAnimationFrame(() => {
+            const cards = [...document.querySelectorAll('.glass-card, .hospital-card, .roster-card')]
+                .filter(el => { const r = el.getBoundingClientRect(); return r.width && r.top < innerHeight; }).slice(0, 10);
+            cards.forEach((el, i) => { el.style.animationDelay = (i * 40) + 'ms'; el.classList.add('ios-rise'); });
+            setTimeout(() => cards.forEach(el => { el.classList.remove('ios-rise'); el.style.animationDelay = ''; }), 1200);
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // Install offer: Android gets the system prompt, iPhone gets the Add to Home Screen steps
+    // ------------------------------------------------------------------
+    const INSTALL_SNOOZE_MS = 7 * 24 * 3600 * 1000;
+    const isPhone = () => window.matchMedia && window.matchMedia('(max-width: 900px) and (pointer: coarse)').matches;
+    const iosShareIcon = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M8 7l4-4 4 4"/><path d="M7 10H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1"/></svg>';
+    const addIcon = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/></svg>';
+
+    function installState() {
+        const P = window.HubPWA;
+        if (!P || P.installed()) return 'installed';
+        if (P.canPrompt()) return 'prompt';
+        if (P.isIos()) return 'ios';
+        return 'none';
+    }
+
+    /** Opens the install sheet. Returns false when this device cannot install (or already has). */
+    function offerInstall() {
+        const state = installState();
+        if (state === 'installed' || state === 'none') return false;
+        const sheet = openSheet(`<div class="ios-install">
+                <img class="ios-install-icon" src="./pwa-icon.svg" alt="" width="76" height="76">
+                <h2>بوابة المستشفيات على شاشتك الرئيسية</h2>
+                <p class="hacc-muted">افتحها بلمسة كتطبيق كامل، واستلم إشعارات الإعجابات والتعليقات والردود حتى والتطبيق مغلق.</p>
+                <ul class="ios-install-perks">
+                    <li><span>⚡️</span>فتح فوري بملء الشاشة</li>
+                    <li><span>🔔</span>إشعارات فورية</li>
+                    <li><span>📶</span>يعمل مع ضعف الإنترنت</li>
+                </ul>
+                ${state === 'prompt' ? `<button type="button" class="ios-install-cta" data-act="install">تثبيت التطبيق</button>` : `<ol class="ios-install-steps">
+                    <li><b>1</b><span>اضغط زر المشاركة ${iosShareIcon} في شريط Safari</span></li>
+                    <li><b>2</b><span>اختر «إضافة إلى الشاشة الرئيسية» ${addIcon}</span></li>
+                    <li><b>3</b><span>اضغط «إضافة» في الأعلى</span></li>
+                </ol>`}
+                <button type="button" class="ios-install-later" data-act="later">ليس الآن</button>
+            </div>`, { label: 'تثبيت التطبيق' });
+        const snooze = () => { try { localStorage.setItem('ios_install_offer', String(Date.now())); } catch (e) {} };
+        snooze();
+        sheet.querySelector('[data-act="later"]').addEventListener('click', closeSheet);
+        const btn = sheet.querySelector('[data-act="install"]');
+        if (btn) btn.addEventListener('click', async () => {
+            const ok = await window.HubPWA.install();
+            closeSheet();
+            if (ok) toast('تم تثبيت التطبيق ✓', 'success');
+        });
+        return true;
+    }
+
+    /** Offered once a week on phones that have not installed the app, when nothing else is open. */
+    function scheduleInstallOffer() {
+        if (!isPhone()) return;
+        let last = 0;
+        try { last = Number(localStorage.getItem('ios_install_offer')) || 0; } catch (e) { return; }
+        if (Date.now() - last < INSTALL_SNOOZE_MS) return;
+        const tryOffer = () => {
+            if (openSheetEl || document.querySelector('.modal-overlay.active, .hub-modal-overlay.active')) return;
+            if (installState() === 'ios' || installState() === 'prompt') offerInstall();
+        };
+        // Android: Chrome decides when the app is installable; iPhone: right away.
+        window.addEventListener('beforeinstallprompt', () => setTimeout(tryOffer, 2500), { once: true });
+        setTimeout(tryOffer, 6000);
+    }
+
+    window.HubAccounts = {
+        offerInstall,
+        installState,
+        navButtons,
+        avatarHtml,
+        goBack,
+        adminAction,
+        ADMIN_ACTIONS,
+        openPanel,
+        openSheet,
+        closeSheet,
+        refreshNavSlots,
+        openNotifications,
+        pollNotifications,
+        decorate,
+        openThread,
+        toast,
+        esc,
+        timeAgo,
+        ROLE_NAMES,
+        errorText,
+        push: {
+            status: pushStatus,
+            enable: enablePush,
+            disable: disablePush,
+            test: () => Hub.api('POST', '/api/push/test', {}, { retries: 0 }),
+        },
+    };
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+    else start();
+})(window, document);

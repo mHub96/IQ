@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <script src="./storage-scope.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>جدول الخفارات الشهري · Monthly Duty Schedule 🇮🇶</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="./nav-component.css" />
+    <link rel="stylesheet" href="./hub-accounts.css" />
+
+    <style>
+        :root {
+            --sat: env(safe-area-inset-top, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
+            direction: rtl;
+            text-align: right;
+            min-height: 100vh;
+            background: #d1d9e6;
+            color: #1a2332;
+            transition: background 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+            padding-bottom: calc(var(--sab) + 85px);
+        }
+
+        body.dark {
+            background: #000000;
+            color: #e8edf5;
+        }
+
+        body.dark::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.08;
+            background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.25'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-size: 120px 120px;
+        }
+
+        .glass-card {
+            border-radius: 1.5rem;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        body:not(.dark) .glass-card {
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark .glass-card {
+            background: rgba(16, 22, 34, 0.84);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(10, 132, 255, 0.14);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+        }
+
+        .btn-gradient {
+            border: none;
+            font-weight: 800;
+            padding: 0.65rem 1.3rem;
+            border-radius: 1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #007AFF, #0A84FF);
+            color: white;
+            box-shadow: 0 6px 20px rgba(0, 122, 255, 0.25);
+            font-size: 0.84rem;
+        }
+        body.dark .btn-gradient {
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
+            color: #000000;
+            box-shadow: 0 6px 20px rgba(10, 132, 255, 0.25);
+        }
+        .btn-gradient:active { transform: scale(0.96); }
+
+        .btn-ghost {
+            border-radius: 1rem;
+            padding: 0.6rem 1.1rem;
+            font-weight: 700;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 1px solid #D1D1D6;
+            background: rgba(255, 255, 255, 0.8);
+            color: #636366;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        body.dark .btn-ghost {
+            border-color: rgba(10, 132, 255, 0.2);
+            background: rgba(255, 255, 255, 0.04);
+            color: #E5E5EA;
+        }
+        .btn-ghost:hover { background: rgba(0, 0, 0, 0.05); }
+        body.dark .btn-ghost:hover { background: rgba(10, 132, 255, 0.1); }
+        .btn-ghost:active { transform: scale(0.96); }
+
+        /* Segmented View Switcher */
+        .segmented-control {
+            display: inline-flex;
+            background: rgba(226, 232, 240, 0.7);
+            padding: 4px;
+            border-radius: 14px;
+            gap: 4px;
+        }
+        body.dark .segmented-control {
+            background: rgba(16, 22, 34, 0.9);
+            border: 1px solid rgba(10, 132, 255, 0.14);
+        }
+        .segmented-btn {
+            padding: 7px 16px;
+            border-radius: 11px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: #8A8A8E;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        body.dark .segmented-btn { color: #AEAEB2; }
+        .segmented-btn.active {
+            background: #ffffff;
+            color: #007AFF;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        body.dark .segmented-btn.active {
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
+            color: #000000;
+            box-shadow: 0 2px 10px rgba(10, 132, 255, 0.25);
+        }
+
+        /* Specialty Pills Row */
+        .pills-scroll {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: thin;
+        }
+        .spec-pill {
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            border: 1px solid #D1D1D6;
+            background: rgba(255, 255, 255, 0.8);
+            color: #636366;
+            transition: all 0.2s ease;
+        }
+        body.dark .spec-pill {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(10, 132, 255, 0.16);
+            color: #D1D1D6;
+        }
+        .spec-pill.active {
+            background: #007AFF;
+            color: white;
+            border-color: #007AFF;
+        }
+        body.dark .spec-pill.active {
+            background: #0A84FF;
+            color: #000000;
+            border-color: #0A84FF;
+            font-weight: 800;
+        }
+
+        /* Action Button: Today Jump */
+        .btn-today-action {
+            border-radius: 1rem;
+            padding: 0.5rem 1rem;
+            font-weight: 800;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            background: linear-gradient(135deg, rgba(0, 122, 255, 0.12), rgba(10, 132, 255, 0.22));
+            border: 1.5px solid #007AFF;
+            color: #007AFF;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+        }
+        body.dark .btn-today-action {
+            background: linear-gradient(135deg, rgba(10, 132, 255, 0.16), rgba(10, 132, 255, 0.28));
+            border-color: #0A84FF;
+            color: #0A84FF;
+            box-shadow: 0 4px 14px rgba(10, 132, 255, 0.2);
+        }
+        .btn-today-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 122, 255, 0.25);
+        }
+        body.dark .btn-today-action:hover {
+            box-shadow: 0 6px 20px rgba(10, 132, 255, 0.35);
+        }
+        .btn-today-action:active {
+            transform: scale(0.95);
+        }
+
+        /* Matrix Table Container & Styling (Frozen Header & Scrollable Viewport) */
+        .matrix-table-container {
+            overflow: auto;
+            max-height: calc(100vh - 240px);
+            min-height: 420px;
+            border-radius: 1.25rem;
+            border: 1.5px solid rgba(226, 232, 240, 0.95);
+            background: #ffffff;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            scrollbar-width: thin;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: auto;
+        }
+        @media (max-width: 640px) {
+            .matrix-table-container {
+                max-height: calc(100dvh - 210px);
+                min-height: 380px;
+            }
+        }
+        body.dark .matrix-table-container {
+            background: #0f1520;
+            border-color: rgba(10, 132, 255, 0.18);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+        }
+        .matrix-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 1100px;
+            font-size: 0.8rem;
+        }
+        .matrix-table th, .matrix-table td {
+            padding: 9px 8px;
+            border-bottom: 1.5px solid #E5E5EA;
+            border-left: 1px solid #E5E5EA;
+            text-align: center;
+            vertical-align: middle;
+            background-clip: padding-box;
+        }
+        body.dark .matrix-table th, body.dark .matrix-table td {
+            border-bottom-color: rgba(255, 255, 255, 0.07);
+            border-left-color: rgba(255, 255, 255, 0.06);
+            background-clip: padding-box;
+        }
+
+        /* 1. Frozen Header Row (Number and Name of Days - 100% OPAQUE) */
+        .matrix-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            padding: 12px 8px;
+            background: #F2F2F7 !important;
+            opacity: 1 !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            background-clip: padding-box;
+        }
+        body.dark .matrix-table thead th {
+            background: #151e2e !important;
+            opacity: 1 !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+            background-clip: padding-box;
+        }
+
+        /* Weekend & Today Header Solid Colors */
+        .matrix-table thead th.is-friday-col {
+            background: #fee2e2 !important;
+        }
+        body.dark .matrix-table thead th.is-friday-col {
+            background: #201319 !important;
+        }
+        .matrix-table thead th.is-saturday-col {
+            background: #ffedd5 !important;
+        }
+        body.dark .matrix-table thead th.is-saturday-col {
+            background: #221711 !important;
+        }
+        .matrix-table thead th.is-today-col {
+            background: #D9EBFF !important;
+            border-top: 3px solid #007AFF !important;
+            border-left: 2px solid #007AFF !important;
+            border-right: 2px solid #007AFF !important;
+        }
+        body.dark .matrix-table thead th.is-today-col {
+            background: #142834 !important;
+            border-top: 3px solid #0A84FF !important;
+            border-left: 2px solid #0A84FF !important;
+            border-right: 2px solid #0A84FF !important;
+        }
+
+        /* Day Numbers & Names */
+        .day-number-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            font-weight: 900;
+            text-align: center;
+            line-height: 1.1;
+            color: #1C1C1E;
+        }
+        body.dark .day-number-text {
+            color: #F2F2F7;
+        }
+        .day-name-text {
+            font-size: 0.74rem;
+            font-weight: 800;
+            text-align: center;
+            margin-top: 3px;
+            color: #8A8A8E;
+        }
+        body.dark .day-name-text {
+            color: #AEAEB2;
+        }
+
+        /* Weekend Highlighting: Friday & Saturday */
+        .is-friday-col .day-number-text, .is-friday-col .day-name-text {
+            color: #e11d48 !important;
+        }
+        body.dark .is-friday-col .day-number-text, body.dark .is-friday-col .day-name-text {
+            color: #fb7185 !important;
+        }
+        .is-saturday-col .day-number-text, .is-saturday-col .day-name-text {
+            color: #ea580c !important;
+        }
+        body.dark .is-saturday-col .day-number-text, body.dark .is-saturday-col .day-name-text {
+            color: #f97316 !important;
+        }
+
+        /* Solid Weekend Column Backgrounds in Body */
+        .matrix-table td.is-friday-col {
+            background: #fff8f8 !important;
+        }
+        body.dark .matrix-table td.is-friday-col {
+            background: #171115 !important;
+        }
+        .matrix-table td.is-saturday-col {
+            background: #fffaf5 !important;
+        }
+        body.dark .matrix-table td.is-saturday-col {
+            background: #171310 !important;
+        }
+
+        /* 2. Top-Right Corner Intersection (Frozen Top AND Right - Highest Z-Index) */
+        .matrix-table th.sticky-col {
+            position: sticky;
+            top: 0;
+            right: 0;
+            z-index: 50 !important;
+            background: #E5E5EA !important;
+            opacity: 1 !important;
+            box-shadow: -4px 4px 12px rgba(0, 0, 0, 0.08);
+            background-clip: padding-box;
+        }
+        body.dark .matrix-table th.sticky-col {
+            background: #1a263c !important;
+            opacity: 1 !important;
+            box-shadow: -4px 4px 16px rgba(0, 0, 0, 0.7);
+            background-clip: padding-box;
+        }
+
+        /* 3. Sticky Specialty Column in Body (Frozen Right - 100% Solid Opaque) */
+        .matrix-table td.sticky-col {
+            position: sticky;
+            right: 0;
+            z-index: 25 !important;
+            text-align: center !important;
+            min-width: 175px;
+            max-width: 200px;
+            background: #ffffff !important;
+            opacity: 1 !important;
+            border-left: 2.5px solid #007AFF !important;
+            box-shadow: -4px 0 14px rgba(0, 0, 0, 0.07);
+            background-clip: padding-box;
+        }
+        body.dark .matrix-table td.sticky-col {
+            background: #121927 !important;
+            opacity: 1 !important;
+            border-left: 2.5px solid #0A84FF !important;
+            box-shadow: -4px 0 18px rgba(0, 0, 0, 0.6);
+            background-clip: padding-box;
+        }
+
+        /* Crucial: On row hover, KEEP td.sticky-col 100% OPAQUE, NEVER TRANSPARENT! */
+        .matrix-table tbody tr:hover td.sticky-col {
+            background: #F9F9FB !important;
+            opacity: 1 !important;
+        }
+        body.dark .matrix-table tbody tr:hover td.sticky-col {
+            background: #172235 !important;
+            opacity: 1 !important;
+        }
+
+        .header-specialty-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            font-weight: 900;
+            font-size: 0.9rem;
+            color: #007AFF;
+            text-align: center;
+        }
+        body.dark .header-specialty-title {
+            color: #0A84FF;
+        }
+
+        .specialty-cell-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 4px;
+            text-align: center;
+            width: 100%;
+        }
+        .specialty-icon-chip {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .specialty-cell-badge:hover .specialty-icon-chip {
+            transform: scale(1.08);
+        }
+        .specialty-name-text {
+            font-weight: 900;
+            font-size: 0.85rem;
+            line-height: 1.35;
+            text-align: center;
+            color: #1C1C1E;
+            max-width: 160px;
+            word-wrap: break-word;
+        }
+        body.dark .specialty-name-text {
+            color: #F9F9FB;
+        }
+
+        /* Solid Zebra Striping & Row Hover (Zero Transparency) */
+        .matrix-table tbody tr td {
+            background: #ffffff;
+            position: relative;
+            z-index: 1;
+        }
+        body.dark .matrix-table tbody tr td {
+            background: #0f1520;
+        }
+        .matrix-table tbody tr:nth-child(even) td:not(.is-today-col):not(.sticky-col):not(.is-friday-col):not(.is-saturday-col) {
+            background: #F9F9FB;
+        }
+        body.dark .matrix-table tbody tr:nth-child(even) td:not(.is-today-col):not(.sticky-col):not(.is-friday-col):not(.is-saturday-col) {
+            background: #131b29;
+        }
+        .matrix-table tbody tr:hover td:not(.is-today-col):not(.sticky-col):not(.is-friday-col):not(.is-saturday-col) {
+            background: #F2F2F7 !important;
+        }
+        body.dark .matrix-table tbody tr:hover td:not(.is-today-col):not(.sticky-col):not(.is-friday-col):not(.is-saturday-col) {
+            background: #182438 !important;
+        }
+
+        /* Doctor Duty Chip with Z-Index Below Sticky Elements */
+        .doctor-duty-chip {
+            padding: 5px 8px;
+            border-radius: 11px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            background: #ffffff;
+            color: #1C1C1E;
+            border: 1.5px solid #D1D1D6;
+            margin: 3px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            white-space: nowrap;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+            position: relative;
+            z-index: 2; /* Far below sticky-col (25) and th (30/50) */
+        }
+        body.dark .doctor-duty-chip {
+            background: #182233;
+            border-color: rgba(255, 255, 255, 0.12);
+            color: #F9F9FB;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+        }
+        .doctor-duty-chip:hover {
+            transform: translateY(-1px);
+            z-index: 5; /* Lower than sticky-col (25) and th (30/50) */
+            border-color: var(--spec-card-color, #007AFF);
+            box-shadow: 0 4px 14px rgba(0, 122, 255, 0.18);
+        }
+        body.dark .doctor-duty-chip:hover {
+            border-color: #0A84FF;
+            box-shadow: 0 4px 14px rgba(10, 132, 255, 0.3);
+        }
+        .doctor-duty-chip.matched-doctor-chip {
+            background: linear-gradient(135deg, #fef08a, #facc15) !important;
+            color: #1C1C1E !important;
+            border-color: #eab308 !important;
+            font-weight: 900 !important;
+            box-shadow: 0 4px 14px rgba(234, 179, 8, 0.4) !important;
+        }
+        body.dark .doctor-duty-chip.matched-doctor-chip {
+            background: linear-gradient(135deg, #0A84FF, #0062CC) !important;
+            color: #000000 !important;
+            border-color: #f59e0b !important;
+        }
+        .duty-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: 0 0 6px currentColor;
+        }
+        .duty-doctor-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .empty-slot-dash {
+            font-size: 0.85rem;
+            color: #D1D1D6;
+            font-weight: bold;
+        }
+        body.dark .empty-slot-dash {
+            color: #48484A;
+        }
+
+        /* Today Column Styling: Solid, Distinct & Opaque */
+        .matrix-table td.is-today-col {
+            background: #EEF6FF !important;
+            border-left: 2px solid #007AFF !important;
+            border-right: 2px solid #007AFF !important;
+            position: relative;
+            z-index: 2;
+        }
+        body.dark .matrix-table td.is-today-col {
+            background: #111a26 !important;
+            border-left: 2px solid #0A84FF !important;
+            border-right: 2px solid #0A84FF !important;
+            position: relative;
+            z-index: 2;
+        }
+
+        .today-header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #007AFF, #0A84FF);
+            color: #ffffff;
+            margin-top: 3px;
+            box-shadow: 0 2px 6px rgba(0, 122, 255, 0.25);
+            letter-spacing: 0.02em;
+        }
+        body.dark .today-header-badge {
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
+            color: #000000;
+            box-shadow: 0 2px 6px rgba(10, 132, 255, 0.25);
+        }
+
+        /* Elegant Today Focus Effect (Soft Luminous Focus Halo) */
+        @keyframes elegantFocusPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.7), 0 2px 8px rgba(0, 0, 0, 0.06);
+                transform: scale(1);
+            }
+            30% {
+                box-shadow: 0 0 0 8px rgba(0, 122, 255, 0.2), 0 4px 16px rgba(0, 122, 255, 0.25);
+                transform: scale(1.02);
+            }
+            70% {
+                box-shadow: 0 0 0 12px rgba(0, 122, 255, 0.06), 0 3px 12px rgba(0, 122, 255, 0.15);
+                transform: scale(1.01);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 122, 255, 0), 0 2px 8px rgba(0, 0, 0, 0.06);
+                transform: scale(1);
+            }
+        }
+        body.dark @keyframes elegantFocusPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(10, 132, 255, 0.8), 0 2px 10px rgba(0, 0, 0, 0.6);
+                transform: scale(1);
+            }
+            30% {
+                box-shadow: 0 0 0 8px rgba(10, 132, 255, 0.25), 0 4px 20px rgba(10, 132, 255, 0.35);
+                transform: scale(1.02);
+            }
+            70% {
+                box-shadow: 0 0 0 12px rgba(10, 132, 255, 0.08), 0 3px 14px rgba(10, 132, 255, 0.2);
+                transform: scale(1.01);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(10, 132, 255, 0), 0 2px 10px rgba(0, 0, 0, 0.6);
+                transform: scale(1);
+            }
+        }
+
+        .today-elegant-active {
+            animation: elegantFocusPulse 1.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            z-index: 35 !important;
+        }
+
+        /* Gentle Column Glow */
+        @keyframes elegantColFade {
+            0% {
+                outline: 2px solid rgba(0, 122, 255, 0.8);
+            }
+            50% {
+                outline: 2px solid rgba(0, 122, 255, 0.4);
+            }
+            100% {
+                outline: 2px solid transparent;
+            }
+        }
+        body.dark @keyframes elegantColFade {
+            0% {
+                outline: 2px solid rgba(10, 132, 255, 0.8);
+            }
+            50% {
+                outline: 2px solid rgba(10, 132, 255, 0.4);
+            }
+            100% {
+                outline: 2px solid transparent;
+            }
+        }
+        .today-col-glow {
+            animation: elegantColFade 1.2s ease-out;
+        }
+
+        /* Single Specialty Day Card Styling */
+        .day-duty-card {
+            padding: 14px 16px;
+            border-radius: 18px;
+            border: 1.5px solid #E5E5EA;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+        body.dark .day-duty-card {
+            background: rgba(16, 22, 34, 0.88);
+            border-color: rgba(10, 132, 255, 0.16);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+        }
+        .day-duty-card:hover {
+            transform: translateY(-2px);
+            border-color: #007AFF;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+        }
+        body.dark .day-duty-card:hover {
+            border-color: #0A84FF;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        }
+        .day-duty-card.today {
+            border-color: #007AFF;
+            background: linear-gradient(135deg, rgba(0, 122, 255, 0.06), #ffffff);
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.25);
+        }
+        body.dark .day-duty-card.today {
+            border-color: #0A84FF;
+            background: linear-gradient(135deg, rgba(10, 132, 255, 0.1), rgba(16, 22, 34, 0.95));
+            box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.3);
+        }
+
+        /* Contact Pill */
+        .phone-btn {
+            font-family: 'JetBrains Mono', monospace;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: rgba(0, 122, 255, 0.1);
+            color: #007AFF;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        body.dark .phone-btn {
+            background: rgba(10, 132, 255, 0.15);
+            color: #0A84FF;
+        }
+
+        /* ============================================================
+           COMPACT MOBILE TRANSPOSED MATRIX STYLES
+           ============================================================ */
+        .matrix-table.is-mobile-transposed {
+            min-width: max-content !important;
+            width: max-content !important;
+        }
+
+        /* 1. Mobile Corner TH (Frozen Top AND Right) */
+        .matrix-table th.mobile-corner-th {
+            position: sticky;
+            top: 0;
+            right: 0;
+            z-index: 50 !important;
+            width: 52px !important;
+            min-width: 52px !important;
+            max-width: 52px !important;
+            background: #E5E5EA !important;
+            opacity: 1 !important;
+            padding: 6px 2px !important;
+            box-shadow: -3px 3px 8px rgba(0, 0, 0, 0.07);
+            background-clip: padding-box;
+            border-bottom: 2px solid #D1D1D6 !important;
+            border-left: 2px solid #007AFF !important;
+        }
+        body.dark .matrix-table th.mobile-corner-th {
+            background: #1a263c !important;
+            border-bottom-color: rgba(10, 132, 255, 0.3) !important;
+            border-left-color: #0A84FF !important;
+            box-shadow: -3px 3px 12px rgba(0, 0, 0, 0.7);
+        }
+
+        /* 2. Mobile Specialty Column Headers (Frozen Top) */
+        .matrix-table th.mobile-spec-th {
+            position: sticky;
+            top: 0;
+            z-index: 30 !important;
+            width: 135px;
+            min-width: 130px;
+            max-width: 150px;
+            padding: 7px 5px !important;
+            background: #F2F2F7 !important;
+            opacity: 1 !important;
+            border-bottom: 2px solid #D1D1D6 !important;
+            border-left: 1px solid #E5E5EA !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            background-clip: padding-box;
+            vertical-align: middle;
+        }
+        body.dark .matrix-table th.mobile-spec-th {
+            background: #151e2e !important;
+            border-bottom-color: rgba(10, 132, 255, 0.25) !important;
+            border-left-color: rgba(255, 255, 255, 0.08) !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+        }
+
+        .mobile-spec-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+        }
+        .mobile-spec-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            font-size: 0.85rem;
+        }
+        .mobile-spec-name {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #2C2C2E;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+        }
+        body.dark .mobile-spec-name {
+            color: #F2F2F7;
+        }
+
+        /* 3. Mobile Day Column in Body (Frozen Right) */
+        .matrix-table td.mobile-day-td {
+            position: sticky;
+            right: 0;
+            z-index: 25 !important;
+            width: 52px !important;
+            min-width: 52px !important;
+            max-width: 52px !important;
+            background: #ffffff !important;
+            opacity: 1 !important;
+            border-left: 2.5px solid #007AFF !important;
+            border-bottom: 1px solid #E5E5EA !important;
+            box-shadow: -3px 0 8px rgba(0, 0, 0, 0.05);
+            background-clip: padding-box;
+            padding: 4px 2px !important;
+            text-align: center;
+        }
+        body.dark .matrix-table td.mobile-day-td {
+            background: #121927 !important;
+            border-left-color: #0A84FF !important;
+            border-bottom-color: rgba(255, 255, 255, 0.07) !important;
+            box-shadow: -3px 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .mobile-day-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .mobile-day-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.88rem;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+        .mobile-day-name {
+            font-size: 0.62rem;
+            font-weight: 800;
+            margin-top: 1px;
+            line-height: 1;
+        }
+        .mobile-today-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #10b981;
+            position: absolute;
+            top: -2px;
+            right: 2px;
+            box-shadow: 0 0 6px #10b981;
+            /* No animation: the old `ecgPulse` name had no keyframes, so the dot never moved,
+               yet the endless animation kept the page busy on every frame (battery drain). */
+        }
+
+        /* 4. Mobile Body Specialty Cells */
+        .matrix-table td.mobile-spec-cell {
+            width: 135px;
+            min-width: 130px;
+            max-width: 150px;
+            padding: 5px 4px !important;
+            border-left: 1px solid #E5E5EA;
+            border-bottom: 1px solid #E5E5EA;
+            vertical-align: middle;
+            text-align: center;
+        }
+        body.dark .matrix-table td.mobile-spec-cell {
+            border-left-color: rgba(255, 255, 255, 0.06);
+            border-bottom-color: rgba(255, 255, 255, 0.07);
+        }
+
+        /* 5. Mobile Row Backgrounds (Today, Friday, Saturday) */
+        .mobile-day-row.is-today-row td {
+            background-color: #EEF6FF !important;
+        }
+        body.dark .mobile-day-row.is-today-row td {
+            background-color: #0d222b !important;
+        }
+        .mobile-day-row.is-today-row td.mobile-day-td {
+            background-color: #D9EBFF !important;
+        }
+        body.dark .mobile-day-row.is-today-row td.mobile-day-td {
+            background-color: #142834 !important;
+        }
+
+        .mobile-day-row.is-friday-row:not(.is-today-row) td {
+            background-color: #fff8f8 !important;
+        }
+        body.dark .mobile-day-row.is-friday-row:not(.is-today-row) td {
+            background-color: #1a1216 !important;
+        }
+        .mobile-day-row.is-friday-row td.mobile-day-td {
+            background-color: #fee2e2 !important;
+        }
+        body.dark .mobile-day-row.is-friday-row td.mobile-day-td {
+            background-color: #24141c !important;
+        }
+
+        .mobile-day-row.is-saturday-row:not(.is-today-row) td {
+            background-color: #fffaf5 !important;
+        }
+        body.dark .mobile-day-row.is-saturday-row:not(.is-today-row) td {
+            background-color: #1a1512 !important;
+        }
+        .mobile-day-row.is-saturday-row td.mobile-day-td {
+            background-color: #ffedd5 !important;
+        }
+        body.dark .mobile-day-row.is-saturday-row td.mobile-day-td {
+            background-color: #241812 !important;
+        }
+
+        /* 6. Mobile Duty Chips (Compact & Clean) */
+        .doctor-duty-chip.mobile-chip {
+            padding: 3px 6px;
+            margin: 2px auto;
+            font-size: 0.72rem;
+            font-weight: 800;
+            border-radius: 8px;
+            max-width: 120px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+        .doctor-duty-chip.mobile-chip .duty-doctor-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 95px;
+        }
+        .doctor-duty-chip.mobile-chip .duty-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* 7. Row glow animation for jump to today */
+        @keyframes rowPulseHighlight {
+            0% { box-shadow: inset 0 0 0 2px #007AFF; }
+            50% { box-shadow: inset 0 0 16px rgba(0, 122, 255, 0.45); }
+            100% { box-shadow: inset 0 0 0 2px #007AFF; }
+        }
+        @keyframes rowPulseHighlightDark {
+            0% { box-shadow: inset 0 0 0 2px #0A84FF; }
+            50% { box-shadow: inset 0 0 16px rgba(10, 132, 255, 0.45); }
+            100% { box-shadow: inset 0 0 0 2px #0A84FF; }
+        }
+        .mobile-day-row.today-row-glow td {
+            animation: rowPulseHighlight 1.6s ease-in-out 2;
+        }
+        body.dark .mobile-day-row.today-row-glow td {
+            animation: rowPulseHighlightDark 1.6s ease-in-out 2;
+        }
+
+        @media print {
+            .no-print, .segmented-control, .pills-scroll, #universal-nav, .hub-mobile-bottom-dock, .ios-bottom-dock {
+                display: none !important;
+            }
+            body { background: white !important; color: black !important; padding: 0 !important; }
+            .matrix-table-container { border: 1px solid #000; }
+        }
+    </style>
+    <link rel="stylesheet" href="./tailwind.css" />
+    <link rel="stylesheet" href="./hub-ios.css" />
+</head>
+<body class="light">
+
+    <!-- Universal Navigation Bar Container -->
+    <div id="universal-nav"></div>
+
+    <!-- Main Schedule Container -->
+    <main class="max-w-7xl mx-auto px-3 sm:px-6 pt-5 pb-10" id="schedule-main-content">
+
+        <!-- Top Header & Hospital Identity -->
+        <div class="glass-card p-4 sm:p-6 mb-5">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-teal-600 dark:bg-teal-500 text-white dark:text-slate-950 flex items-center justify-center text-2xl shadow-lg shadow-teal-700/20 dark:shadow-teal-500/20 flex-shrink-0">
+                        <i class="fas fa-calendar-days"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-xl sm:text-2xl font-black" id="hosp-display-name">جدول الخفارات الشهري</h1>
+                        </div>
+                        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5" id="hosp-location-text">
+                            استعراض جدول الأطباء الخفر لكافة التخصصات الطبية والجراحية
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Month Navigation Controls -->
+                <div class="flex items-center gap-2 self-center md:self-auto no-print flex-wrap justify-center">
+                    <button type="button" onclick="navigateMonth(1)" class="btn-ghost" title="الشهر القادم">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <div class="px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-extrabold text-sm sm:text-base text-slate-800 dark:text-white shadow-sm flex items-center gap-2 min-w-[170px] justify-center">
+                        <i class="fas fa-calendar-day text-teal-600 dark:text-teal-400"></i>
+                        <span id="current-month-display">أيلول 2026</span>
+                    </div>
+                    <button type="button" onclick="navigateMonth(-1)" class="btn-ghost" title="الشهر السابق">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button type="button" id="btn-jump-today" onclick="jumpToCurrentMonth()" class="btn-today-action" title="تحديد والتركيز على خفارات اليوم">
+                        <i class="fas fa-location-crosshairs"></i>
+                        <span>اليوم</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- View Modes & Live Filter Toolbar -->
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mt-5 pt-4 border-t border-slate-200 dark:border-slate-800/80 no-print">
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- Schedule Role Switcher (Residents vs Specialists) -->
+                    <div class="segmented-control" id="schedule-role-selector">
+                        <button type="button" id="btn-role-residents" class="segmented-btn active" onclick="setScheduleRole('residents')" title="عرض جدول خفارات المقيمين">
+                            <i class="fas fa-user-doctor"></i> <span>المقيمين</span>
+                        </button>
+                        <button type="button" id="btn-role-specialists" class="segmented-btn" onclick="setScheduleRole('specialists')" title="عرض جدول خفارات الاختصاصيين">
+                            <i class="fas fa-user-tie"></i> <span>الاختصاصيين</span>
+                        </button>
+                    </div>
+
+                    <!-- Mode Switcher -->
+                    <div class="segmented-control">
+                        <button type="button" id="btn-mode-matrix" class="segmented-btn active" onclick="setViewMode('matrix')">
+                            <i class="fas fa-table-cells"></i> <span>الجدول الشامل</span>
+                        </button>
+                        <button type="button" id="btn-mode-single" class="segmented-btn" onclick="setViewMode('single')">
+                            <i class="fas fa-stethoscope"></i> <span>تخصص محدد</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search Input & Print -->
+                <div class="flex items-center gap-2 flex-1 max-w-md">
+                    <div class="relative flex-1">
+                        <input type="text" id="doctor-search-input" oninput="handleDoctorSearch(this.value)" placeholder="بحث عن اسم طبيب في الجدول..." 
+                               class="w-full px-3 py-2 pr-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 text-xs sm:text-sm font-semibold text-slate-800 dark:text-white outline-none focus:border-teal-600 dark:focus:border-teal-400 transition" />
+                        <i class="fas fa-search absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    </div>
+                    <button type="button" onclick="window.print()" class="btn-ghost" title="طباعة الجدول">
+                        <i class="fas fa-print"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Single Specialty Selector Pills (Shown when in Single Mode) -->
+            <div id="single-spec-pills-container" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 no-print hidden">
+                <div class="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">اختر التخصص الطبي لعرض جدول خفاراته:</div>
+                <div class="pills-scroll" id="spec-pills-list"></div>
+            </div>
+        </div>
+
+        <!-- Schedule View Container: Matrix Mode -->
+        <section id="view-matrix-section" class="glass-card p-3 sm:p-4 mb-6">
+            <div class="flex items-center justify-between mb-3 px-1 flex-wrap gap-2">
+                <div class="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    <span id="matrix-stats-text">جاري تحميل جدول الشهر...</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="matrix-layout-toggle-btn" onclick="toggleMatrixLayoutMode()" class="btn-ghost text-xs py-1 px-2.5 flex items-center gap-1.5 font-bold" title="تبديل اتجاه الجدول (أيام أفقية / رأسية)">
+                        <i class="fas fa-arrows-rotate" id="matrix-layout-icon"></i>
+                        <span id="matrix-layout-text">عرض الهاتف</span>
+                    </button>
+                    <div class="text-[11px] text-slate-400 dark:text-slate-500 hidden md:block" id="matrix-scroll-hint">
+                        * اسحب رأسياً لتصفح الأيام وأفقياً للتنقل بين التخصصات
+                    </div>
+                </div>
+            </div>
+
+            <div class="matrix-table-container">
+                <table class="matrix-table" id="schedule-matrix-table">
+                    <thead id="matrix-table-head"></thead>
+                    <tbody id="matrix-table-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Schedule View Container: Single Specialty Mode -->
+        <section id="view-single-section" class="glass-card p-4 sm:p-6 mb-6 hidden">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-200 dark:border-slate-800">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl" id="single-spec-icon">🔪</span>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white" id="single-spec-title">جدول الجراحة العامة</h2>
+                        <span class="text-xs text-slate-500 dark:text-slate-400" id="single-spec-sub">الشهر الحالي</span>
+                    </div>
+                </div>
+                <span class="text-xs font-bold px-3 py-1 rounded-full bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-800" id="single-spec-duties-count">
+                    0 خفارة مسجلة
+                </span>
+            </div>
+
+            <!-- List of Days for this Specialty -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" id="single-spec-days-grid"></div>
+        </section>
+
+        <!-- Quick Detail Modal -->
+        <div id="duty-detail-modal" class="hub-modal-overlay">
+            <div class="hub-modal-card" style="max-width:380px; text-align:right; padding:22px;">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fas fa-stethoscope text-teal-600 dark:text-teal-400"></i> تفاصيل الخفر
+                    </h3>
+                    <button type="button" onclick="closeDutyDetailModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+                <div id="modal-duty-body" class="space-y-3 text-xs sm:text-sm"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Scripts -->
+    <script src="./hub-sync.js"></script>
+    <script src="./hub-core.js"></script>
+    <script src="./hub-avatar.js"></script>
+    <script src="./pwa.js"></script>
+    <script src="./hub-accounts.js"></script>
+    <script src="./nav-component.js"></script>
+
+    <script>
+        let currentYear = 2026;
+        let currentMonth = 9; // 1-indexed (September)
+        let currentHospital = null;
+        let currentViewMode = 'matrix'; // 'matrix' | 'single'
+        let currentScheduleRole = 'residents'; // 'residents' | 'specialists'
+        let selectedSpecialtyId = null;
+        let searchQuery = '';
+
+        const MONTH_NAMES_AR = [
+            'كانون الثاني / يناير', 'شباط / فبراير', 'آذار / مارس', 'نيسان / أبريل',
+            'أيار / مايو', 'حزيران / يونيو', 'تموز / يوليو', 'آب / أغسطس',
+            'أيلول / سبتمبر', 'تشرين الأول / أكتوبر', 'تشرين الثاني / نوفمبر', 'كانون الأول / ديسمبر'
+        ];
+
+        const DAY_NAMES_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+
+        async function initSchedule() {
+            if (!Hub.auth.isLoggedIn()) {
+                window.location.href = './index.html';
+                return;
+            }
+
+            // Universal Nav
+            if (window.initUniversalNav) {
+                window.initUniversalNav('schedule');
+            }
+
+            await Hub.loadDatabase();
+
+            // Set current medical date
+            const todayStr = Hub.getMedicalDate(); // DD/MM/YYYY
+            const parts = todayStr.split('/');
+            let todayDayNum = null;
+            if (parts.length === 3) {
+                todayDayNum = parseInt(parts[0], 10);
+                currentMonth = parseInt(parts[1], 10);
+                currentYear = parseInt(parts[2], 10);
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('type') === 'specialists' || urlParams.get('role') === 'specialists') {
+                currentScheduleRole = 'specialists';
+            }
+            updateScheduleRoleButtons();
+
+            currentHospital = Hub.getActiveHospital();
+            renderHospitalInfo();
+            renderMonthControls();
+            renderSpecialtyPills();
+            renderSchedule();
+
+            // Auto-focus and scroll to today on initial load
+            if (todayDayNum) {
+                setTimeout(() => {
+                    scrollToToday(todayDayNum);
+                }, 350);
+            }
+
+            // Event listeners
+            window.addEventListener('hub:hospital-switched', () => {
+                currentHospital = Hub.getActiveHospital();
+                renderHospitalInfo();
+                renderSpecialtyPills();
+                renderSchedule();
+            });
+
+            window.addEventListener('hub:data-changed', () => {
+                currentHospital = Hub.getActiveHospital();
+                renderSchedule();
+            });
+        }
+
+        function setScheduleRole(role) {
+            currentScheduleRole = (role === 'specialists') ? 'specialists' : 'residents';
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.set('type', currentScheduleRole);
+                window.history.replaceState({}, '', url.toString());
+            } catch (e) {}
+            updateScheduleRoleButtons();
+            renderHospitalInfo();
+            renderSchedule();
+        }
+
+        function updateScheduleRoleButtons() {
+            const btnRes = document.getElementById('btn-role-residents');
+            const btnSpec = document.getElementById('btn-role-specialists');
+            if (btnRes && btnSpec) {
+                if (currentScheduleRole === 'specialists') {
+                    btnSpec.classList.add('active');
+                    btnRes.classList.remove('active');
+                } else {
+                    btnRes.classList.add('active');
+                    btnSpec.classList.remove('active');
+                }
+            }
+        }
+
+        function renderHospitalInfo() {
+            if (!currentHospital) return;
+            const nameEl = document.getElementById('hosp-display-name');
+            const locEl = document.getElementById('hosp-location-text');
+            const roleLabel = currentScheduleRole === 'specialists' ? 'خفارات الاختصاصيين' : 'خفارات المقيمين';
+            if (nameEl) nameEl.textContent = `جدول ${roleLabel} · ${currentHospital.name_ar || currentHospital.hospitalName}`;
+            if (locEl) locEl.textContent = `${currentHospital.location || 'العراق'} · ${currentScheduleRole === 'specialists' ? 'جدول الأطباء الاختصاصيين المعتمد' : 'جدول الأطباء الخفر المقيمين المعتمد'}`;
+            document.title = `${currentHospital.name_ar || currentHospital.hospitalName} · جدول ${roleLabel}`;
+        }
+
+        function renderMonthControls() {
+            const display = document.getElementById('current-month-display');
+            if (display) {
+                display.textContent = `${MONTH_NAMES_AR[currentMonth - 1]} ${currentYear}`;
+            }
+        }
+
+        function navigateMonth(delta) {
+            currentMonth += delta;
+            if (currentMonth > 12) {
+                currentMonth = 1;
+                currentYear++;
+            } else if (currentMonth < 1) {
+                currentMonth = 12;
+                currentYear--;
+            }
+            renderMonthControls();
+            renderSchedule();
+        }
+
+        function jumpToCurrentMonth() {
+            const todayStr = Hub.getMedicalDate();
+            const parts = todayStr.split('/');
+            if (parts.length === 3) {
+                const targetD = parseInt(parts[0], 10);
+                const targetM = parseInt(parts[1], 10);
+                const targetY = parseInt(parts[2], 10);
+
+                const monthChanged = (currentMonth !== targetM || currentYear !== targetY);
+                currentMonth = targetM;
+                currentYear = targetY;
+
+                renderMonthControls();
+                renderSchedule();
+
+                setTimeout(() => {
+                    scrollToToday(targetD);
+                }, monthChanged ? 150 : 30);
+            }
+        }
+
+        function scrollToToday(dayNum) {
+            if (currentViewMode === 'matrix') {
+                const tableContainer = document.querySelector('.matrix-table-container');
+                if (!tableContainer) return;
+
+                if (isMobileLayout()) {
+                    // Mobile transposed view: Days are rows, scroll vertically
+                    const todayRow = document.getElementById('today-row') || document.getElementById(`day-row-${dayNum}`);
+                    if (todayRow) {
+                        const rowTop = todayRow.offsetTop;
+                        const containerHeight = tableContainer.clientHeight;
+                        const rowHeight = todayRow.clientHeight;
+                        const scrollPos = rowTop - (containerHeight / 2) + (rowHeight / 2);
+
+                        tableContainer.scrollTo({
+                            top: Math.max(0, scrollPos),
+                            behavior: 'smooth'
+                        });
+
+                        // Trigger pulse glow on row and sticky day cell
+                        todayRow.classList.remove('today-row-glow');
+                        void todayRow.offsetWidth;
+                        todayRow.classList.add('today-row-glow');
+
+                        const dayCell = todayRow.querySelector('.mobile-day-td');
+                        if (dayCell) {
+                            dayCell.classList.remove('today-elegant-active');
+                            void dayCell.offsetWidth;
+                            dayCell.classList.add('today-elegant-active');
+                        }
+                    }
+                } else {
+                    // Desktop view: Days are header columns, scroll horizontally
+                    const todayHeader = document.getElementById('today-header-col');
+                    if (todayHeader) {
+                        const containerWidth = tableContainer.clientWidth;
+                        const headerOffset = todayHeader.offsetLeft;
+                        const headerWidth = todayHeader.offsetWidth;
+                        const scrollPos = headerOffset - (containerWidth / 2) + (headerWidth / 2);
+                        
+                        tableContainer.scrollTo({
+                            left: scrollPos,
+                            behavior: 'smooth'
+                        });
+
+                        // Trigger elegant focus halo animation on header
+                        todayHeader.classList.remove('today-elegant-active');
+                        void todayHeader.offsetWidth;
+                        todayHeader.classList.add('today-elegant-active');
+
+                        // Subtle, graceful column highlight
+                        document.querySelectorAll('.is-today-col').forEach(el => {
+                            el.classList.remove('today-col-glow');
+                            void el.offsetWidth;
+                            el.classList.add('today-col-glow');
+                        });
+                    }
+                }
+            } else {
+                const todayCard = document.getElementById('today-single-card') || document.querySelector('.day-duty-card.today');
+                if (todayCard) {
+                    todayCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    todayCard.classList.remove('today-elegant-active');
+                    void todayCard.offsetWidth;
+                    todayCard.classList.add('today-elegant-active');
+                }
+            }
+        }
+
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            const btnMatrix = document.getElementById('btn-mode-matrix');
+            const btnSingle = document.getElementById('btn-mode-single');
+            const secMatrix = document.getElementById('view-matrix-section');
+            const secSingle = document.getElementById('view-single-section');
+            const pillsContainer = document.getElementById('single-spec-pills-container');
+
+            if (mode === 'matrix') {
+                btnMatrix.classList.add('active');
+                btnSingle.classList.remove('active');
+                secMatrix.classList.remove('hidden');
+                secSingle.classList.add('hidden');
+                pillsContainer.classList.add('hidden');
+            } else {
+                btnSingle.classList.add('active');
+                btnMatrix.classList.remove('active');
+                secSingle.classList.remove('hidden');
+                secMatrix.classList.add('hidden');
+                pillsContainer.classList.remove('hidden');
+            }
+            renderSchedule();
+        }
+
+        function renderSpecialtyPills() {
+            const container = document.getElementById('spec-pills-list');
+            if (!container || !currentHospital) return;
+
+            const specs = (currentHospital.specialties || []).filter(s => s.enabled !== false);
+            if (!selectedSpecialtyId && specs.length > 0) {
+                selectedSpecialtyId = specs[0].id;
+            }
+
+            container.innerHTML = specs.map(s => `
+                <button type="button" class="spec-pill ${s.id === selectedSpecialtyId ? 'active' : ''}" 
+                        onclick="selectSpecialty('${s.id}')">
+                    <span>${s.icon || '🏥'}</span>
+                    <span>${(window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(s.id) : (s.name_ar || s.id)}</span>
+                </button>
+            `).join('');
+        }
+
+        function selectSpecialty(specId) {
+            selectedSpecialtyId = specId;
+            renderSpecialtyPills();
+            renderSingleSpecialtyView();
+        }
+
+        function handleDoctorSearch(query) {
+            searchQuery = (query || '').trim().toLowerCase();
+            renderSchedule();
+        }
+
+        function getDaysInMonth(year, month) {
+            return new Date(year, month, 0).getDate();
+        }
+
+        function renderSchedule() {
+            if (currentViewMode === 'matrix') {
+                renderMatrixView();
+            } else {
+                renderSingleSpecialtyView();
+            }
+        }
+
+        // ================================================================
+        // 1. MATRIX VIEW (All Specialties Table - Responsive PC & Mobile)
+        // ================================================================
+        let matrixLayoutMode = 'auto'; // 'auto' | 'mobile' | 'desktop'
+
+        function isMobileLayout() {
+            if (matrixLayoutMode === 'mobile') return true;
+            if (matrixLayoutMode === 'desktop') return false;
+            return window.innerWidth <= 768;
+        }
+
+        function toggleMatrixLayoutMode() {
+            const currentlyMobile = isMobileLayout();
+            matrixLayoutMode = currentlyMobile ? 'desktop' : 'mobile';
+            updateMatrixLayoutButton();
+            renderMatrixView();
+        }
+
+        function updateMatrixLayoutButton() {
+            const btn = document.getElementById('matrix-layout-toggle-btn');
+            const icon = document.getElementById('matrix-layout-icon');
+            const text = document.getElementById('matrix-layout-text');
+            const hint = document.getElementById('matrix-scroll-hint');
+            if (!btn || !text) return;
+
+            const isMob = isMobileLayout();
+            if (isMob) {
+                text.textContent = 'عرض الهاتف (رأسي)';
+                btn.className = 'btn-ghost text-xs py-1 px-2.5 flex items-center gap-1.5 text-teal-700 dark:text-teal-400 border-teal-500/40 dark:border-teal-400/40 font-bold';
+                if (icon) icon.className = 'fas fa-mobile-alt';
+                if (hint) hint.textContent = '* اسحب رأسياً لتصفح الأيام وأفقياً للتنقل بين التخصصات';
+            } else {
+                text.textContent = 'عرض الكمبيوتر (أفقي)';
+                btn.className = 'btn-ghost text-xs py-1 px-2.5 flex items-center gap-1.5 text-slate-600 dark:text-slate-300 font-bold';
+                if (icon) icon.className = 'fas fa-desktop';
+                if (hint) hint.textContent = '* يمكنك السحب أفقياً لاستعراض كافة أيام الشهر';
+            }
+        }
+
+        function renderMatrixView() {
+            if (!currentHospital) return;
+
+            const table = document.getElementById('schedule-matrix-table');
+            const thead = document.getElementById('matrix-table-head');
+            const tbody = document.getElementById('matrix-table-body');
+            const statsText = document.getElementById('matrix-stats-text');
+            if (!thead || !tbody) return;
+
+            updateMatrixLayoutButton();
+
+            const daysCount = getDaysInMonth(currentYear, currentMonth);
+            const todayStr = Hub.getMedicalDate();
+            const [todayD, todayM, todayY] = todayStr.split('/').map(Number);
+            const isCurrentMonth = (todayM === currentMonth && todayY === currentYear);
+
+            // Month Schedule Data
+            const monthEntries = Hub.getHospitalMonthSchedule(currentHospital.id, currentYear, currentMonth, currentScheduleRole);
+            if (statsText) {
+                const roleLabel = currentScheduleRole === 'specialists' ? 'خفارة اختصاصي' : 'خفارة مقيم';
+                statsText.textContent = `تم تسجيل ${monthEntries.length} ${roleLabel} عبر ${currentHospital.specialties?.length || 0} تخصص لشهر ${MONTH_NAMES_AR[currentMonth - 1]}`;
+            }
+
+            // Active Specialties
+            let specs = (currentHospital.specialties || []).filter(s => s.enabled !== false);
+            if (specs.length === 0) {
+                thead.innerHTML = '';
+                tbody.innerHTML = `<tr><td colspan="${daysCount + 1}" class="py-8 text-center text-slate-400">لا توجد تخصصات مضافة لهذا المستشفى</td></tr>`;
+                return;
+            }
+
+            // Map entries by specCode -> day -> list of doctor names
+            const scheduleMap = {};
+            monthEntries.forEach(entry => {
+                const parts = (entry.date || '').split('/');
+                if (parts.length === 3) {
+                    const d = parseInt(parts[0], 10);
+                    const sCode = entry.specCode || entry.spec;
+                    if (!scheduleMap[sCode]) scheduleMap[sCode] = {};
+                    if (!scheduleMap[sCode][d]) scheduleMap[sCode][d] = [];
+                    scheduleMap[sCode][d].push(entry);
+                }
+            });
+
+            const isMobile = isMobileLayout();
+
+            if (isMobile) {
+                // ============================================================
+                // MOBILE COMPACT TRANSPOSED VIEW:
+                // - Top Row (thead): Specialties (Frozen top: sticky; top: 0)
+                // - Right Column (tbody): Days of Month (Frozen right: sticky; right: 0)
+                // ============================================================
+                if (table) table.classList.add('is-mobile-transposed');
+
+                // Header row: Corner (اليوم) + Specialties
+                let headHtml = `<tr>
+                    <th class="sticky-col mobile-corner-th">
+                        <div class="flex flex-col items-center justify-center gap-0.5 text-teal-700 dark:text-teal-400 font-black text-[11px]">
+                            <i class="fas fa-calendar-day text-xs"></i>
+                            <span>اليوم</span>
+                        </div>
+                    </th>`;
+
+                specs.forEach(spec => {
+                    const specColor = spec.color || '#0f766e';
+                    const specName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(spec.id) : (spec.name_ar || spec.id);
+                    const isClone = Boolean(spec.isClone);
+                    let cloneParentName = null;
+                    if (isClone && spec.clonedFromHospitalId) {
+                        const srcH = Hub.getHospital ? Hub.getHospital(spec.clonedFromHospitalId) : null;
+                        cloneParentName = srcH ? (srcH.name_ar || srcH.hospitalName || spec.clonedFromHospitalId) : spec.clonedFromHospitalId;
+                    }
+                    headHtml += `
+                        <th class="mobile-spec-th" style="--spec-color: ${specColor};">
+                            <div class="mobile-spec-header" title="${isClone ? `مرآة حية من ${cloneParentName}` : specName}">
+                                <span class="mobile-spec-icon" style="background: ${specColor}18; color: ${specColor}; border: 1.5px solid ${specColor}40;">
+                                    ${spec.icon || '🏥'}
+                                </span>
+                                <span class="mobile-spec-name" title="${specName}">
+                                    ${specName}
+                                    ${isClone ? `<span class="text-[9px] text-indigo-500 font-normal block">(${cloneParentName})</span>` : ''}
+                                </span>
+                            </div>
+                        </th>
+                    `;
+                });
+                headHtml += `</tr>`;
+                thead.innerHTML = headHtml;
+
+                // Body rows: Each row is a Day (1..daysCount)
+                let bodyHtml = '';
+                for (let d = 1; d <= daysCount; d++) {
+                    const dateObj = new Date(currentYear, currentMonth - 1, d);
+                    const dayName = DAY_NAMES_AR[dateObj.getDay()];
+                    const dayOfWeek = dateObj.getDay();
+                    const isFriday = dayOfWeek === 5;
+                    const isSaturday = dayOfWeek === 6;
+                    const isToday = isCurrentMonth && (d === todayD);
+
+                    const rowClasses = [
+                        isToday ? 'is-today-row' : '',
+                        isFriday ? 'is-friday-row' : '',
+                        isSaturday ? 'is-saturday-row' : ''
+                    ].filter(Boolean).join(' ');
+
+                    bodyHtml += `<tr id="${isToday ? 'today-row' : `day-row-${d}`}" class="mobile-day-row ${rowClasses}">`;
+
+                    // Frozen Right Cell: The Day
+                    bodyHtml += `
+                        <td class="sticky-col mobile-day-td ${isToday ? 'is-today-cell' : ''}">
+                            <div class="mobile-day-block">
+                                <span class="mobile-day-num ${isToday ? 'text-teal-700 dark:text-amber-400 font-black' : (isFriday ? 'text-rose-600 dark:text-rose-400 font-bold' : (isSaturday ? 'text-orange-600 dark:text-orange-400 font-bold' : 'text-slate-800 dark:text-white font-bold'))}">${d}</span>
+                                <span class="mobile-day-name ${isFriday ? 'text-rose-500' : (isSaturday ? 'text-orange-500' : 'text-slate-500 dark:text-slate-400')}">${dayName}</span>
+                                ${isToday ? '<span class="mobile-today-dot" title="اليوم"></span>' : ''}
+                            </div>
+                        </td>
+                    `;
+
+                    // Cells for each specialty on day d
+                    specs.forEach(spec => {
+                        const specColor = spec.color || '#0f766e';
+                        const specName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(spec.id) : (spec.name_ar || spec.id);
+                        const duties = scheduleMap[spec.id]?.[d] || [];
+                        let cellContent = '';
+
+                        if (duties.length > 0) {
+                            cellContent = duties.map(entry => {
+                                const name = (entry.name || '').trim();
+                                const isMatched = searchQuery && name.toLowerCase().includes(searchQuery);
+                                const highlightClass = isMatched ? 'matched-doctor-chip' : '';
+                                const safeEntry = encodeURIComponent(JSON.stringify(entry));
+                                return `
+                                    <span class="doctor-duty-chip mobile-chip ${highlightClass}" 
+                                          style="--spec-card-color: ${specColor};"
+                                          onclick="openDutyDetailModal('${spec.id}', '${specName}', '${d}/${currentMonth}/${currentYear}', '${safeEntry}')"
+                                          title="اضغط لعرض تفاصيل الخفر">
+                                        <span class="duty-dot" style="background: ${specColor};"></span>
+                                        <span class="duty-doctor-name">${name}</span>
+                                    </span>
+                                `;
+                            }).join('');
+                        } else {
+                            cellContent = `<span class="empty-slot-dash text-slate-300 dark:text-slate-700 font-bold">—</span>`;
+                        }
+
+                        bodyHtml += `<td class="mobile-spec-cell">${cellContent}</td>`;
+                    });
+
+                    bodyHtml += `</tr>`;
+                }
+                tbody.innerHTML = bodyHtml;
+
+            } else {
+                // ============================================================
+                // DESKTOP CLASSIC VIEW:
+                // - Top Row (thead): Days of Month (Frozen top: sticky; top: 0)
+                // - Right Column (tbody): Specialties (Frozen right: sticky; right: 0)
+                // ============================================================
+                if (table) table.classList.remove('is-mobile-transposed');
+
+                // Build Header Row (Centered & Bold Day Numbers and Day Names)
+                let headHtml = `<tr>
+                    <th class="sticky-col">
+                        <div class="header-specialty-title">
+                            <i class="fas fa-stethoscope ml-1 text-teal-600 dark:text-teal-400"></i>
+                            <span>التخصص الطبي</span>
+                        </div>
+                    </th>`;
+
+                for (let d = 1; d <= daysCount; d++) {
+                    const dateObj = new Date(currentYear, currentMonth - 1, d);
+                    const dayName = DAY_NAMES_AR[dateObj.getDay()];
+                    const dayOfWeek = dateObj.getDay();
+                    const isFriday = dayOfWeek === 5;
+                    const isSaturday = dayOfWeek === 6;
+                    const isToday = isCurrentMonth && (d === todayD);
+
+                    const colClasses = [
+                        isToday ? 'is-today-col' : '',
+                        isFriday ? 'is-friday-col' : '',
+                        isSaturday ? 'is-saturday-col' : ''
+                    ].filter(Boolean).join(' ');
+
+                    headHtml += `
+                        <th id="${isToday ? 'today-header-col' : `day-header-${d}`}" class="${colClasses}">
+                            <div class="day-number-text ${isToday ? 'text-teal-700 dark:text-amber-400' : ''}">${d}</div>
+                            <div class="day-name-text">${dayName}</div>
+                            ${isToday ? '<span class="today-header-badge"><i class="fas fa-bullseye ml-0.5 text-[9px]"></i> اليوم</span>' : ''}
+                        </th>
+                    `;
+                }
+                headHtml += `</tr>`;
+                thead.innerHTML = headHtml;
+
+                // Build Body Rows (Specialties Centered & Bold with Colored Badges)
+                let bodyHtml = '';
+                specs.forEach(spec => {
+                    const specColor = spec.color || '#0f766e';
+                    const specName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(spec.id) : (spec.name_ar || spec.id);
+                    const isClone = Boolean(spec.isClone);
+                    let cloneParentName = null;
+                    if (isClone && spec.clonedFromHospitalId) {
+                        const srcH = Hub.getHospital ? Hub.getHospital(spec.clonedFromHospitalId) : null;
+                        cloneParentName = srcH ? (srcH.name_ar || srcH.hospitalName || spec.clonedFromHospitalId) : spec.clonedFromHospitalId;
+                    }
+
+                    bodyHtml += `<tr>`;
+                    bodyHtml += `
+                        <td class="sticky-col">
+                            <div class="specialty-cell-badge">
+                                <span class="specialty-icon-chip" style="background: ${specColor}18; color: ${specColor}; border: 1.5px solid ${specColor}40;">
+                                    ${spec.icon || '🏥'}
+                                </span>
+                                <span class="specialty-name-text">
+                                    ${specName}
+                                    ${isClone ? `<span class="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 block"><i class="fas fa-clone text-[9px] ml-0.5"></i> مرآة: ${cloneParentName}</span>` : ''}
+                                </span>
+                            </div>
+                        </td>
+                    `;
+
+                    for (let d = 1; d <= daysCount; d++) {
+                        const dateObj = new Date(currentYear, currentMonth - 1, d);
+                        const dayOfWeek = dateObj.getDay();
+                        const isFriday = dayOfWeek === 5;
+                        const isSaturday = dayOfWeek === 6;
+                        const isToday = isCurrentMonth && (d === todayD);
+                        const duties = scheduleMap[spec.id]?.[d] || [];
+                        
+                        let cellContent = '';
+                        if (duties.length > 0) {
+                            cellContent = duties.map(entry => {
+                                const name = (entry.name || '').trim();
+                                const isMatched = searchQuery && name.toLowerCase().includes(searchQuery);
+                                const highlightClass = isMatched ? 'matched-doctor-chip' : '';
+                                const safeEntry = encodeURIComponent(JSON.stringify(entry));
+                                return `
+                                    <span class="doctor-duty-chip ${highlightClass}" 
+                                          style="--spec-card-color: ${specColor};"
+                                          onclick="openDutyDetailModal('${spec.id}', '${specName}', '${d}/${currentMonth}/${currentYear}', '${safeEntry}')"
+                                          title="اضغط لعرض تفاصيل الخفر">
+                                        <span class="duty-dot" style="background: ${specColor};"></span>
+                                        <span class="duty-doctor-name">${name}</span>
+                                    </span>
+                                `;
+                            }).join('');
+                        } else {
+                            cellContent = `<span class="empty-slot-dash">—</span>`;
+                        }
+
+                        const colClasses = [
+                            isToday ? 'is-today-col' : '',
+                            isFriday ? 'is-friday-col' : '',
+                            isSaturday ? 'is-saturday-col' : ''
+                        ].filter(Boolean).join(' ');
+
+                        bodyHtml += `<td class="${colClasses}">${cellContent}</td>`;
+                    }
+
+                    bodyHtml += `</tr>`;
+                });
+
+                tbody.innerHTML = bodyHtml;
+            }
+
+            setupTableScrollChaining();
+        }
+
+        // ================================================================
+        // SMOOTH WHEEL SCROLL CHAINING TO PAGE
+        // When table hits top or bottom end, pass remaining scroll to window
+        // ================================================================
+        function setupTableScrollChaining() {
+            const containers = document.querySelectorAll('.matrix-table-container');
+            containers.forEach(container => {
+                if (container._scrollChainingInitialized) return;
+                container._scrollChainingInitialized = true;
+
+                container.addEventListener('wheel', (e) => {
+                    if (!e.deltaY) return;
+                    const atTop = container.scrollTop <= 0;
+                    const atBottom = Math.ceil(container.scrollTop + container.clientHeight) >= container.scrollHeight - 1;
+
+                    if ((e.deltaY < 0 && atTop) || (e.deltaY > 0 && atBottom)) {
+                        window.scrollBy({
+                            top: e.deltaY,
+                            behavior: 'auto'
+                        });
+                    }
+                }, { passive: true });
+            });
+        }
+
+        // ================================================================
+        // 2. SINGLE SPECIALTY VIEW
+        // ================================================================
+        function renderSingleSpecialtyView() {
+            if (!currentHospital) return;
+
+            const spec = (currentHospital.specialties || []).find(s => s.id === selectedSpecialtyId);
+            if (!spec) return;
+
+            document.getElementById('single-spec-icon').textContent = spec.icon || '🏥';
+            const singleSpecName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(spec.id) : (spec.name_ar || spec.id);
+            document.getElementById('single-spec-title').textContent = `جدول ${singleSpecName}`;
+            document.getElementById('single-spec-sub').textContent = `${MONTH_NAMES_AR[currentMonth - 1]} ${currentYear} · ${currentHospital.name_ar || currentHospital.hospitalName}`;
+
+            const daysCount = getDaysInMonth(currentYear, currentMonth);
+            const todayStr = Hub.getMedicalDate();
+            const [todayD, todayM, todayY] = todayStr.split('/').map(Number);
+            const isCurrentMonth = (todayM === currentMonth && todayY === currentYear);
+
+            // Month Schedule Data
+            const monthEntries = Hub.getHospitalMonthSchedule(currentHospital.id, currentYear, currentMonth, currentScheduleRole);
+            const specEntries = monthEntries.filter(e => (e.specCode || e.spec) === spec.id);
+
+            const countBadge = document.getElementById('single-spec-duties-count');
+            if (countBadge) countBadge.textContent = `${specEntries.length} خفارة مسجلة`;
+
+            const grid = document.getElementById('single-spec-days-grid');
+            if (!grid) return;
+
+            let html = '';
+            for (let d = 1; d <= daysCount; d++) {
+                const dateStr = `${String(d).padStart(2, '0')}/${String(currentMonth).padStart(2, '0')}/${currentYear}`;
+                const dateObj = new Date(currentYear, currentMonth - 1, d);
+                const dayName = DAY_NAMES_AR[dateObj.getDay()];
+                const dayOfWeek = dateObj.getDay();
+                const isFriday = dayOfWeek === 5;
+                const isSaturday = dayOfWeek === 6;
+                const isToday = isCurrentMonth && (d === todayD);
+
+                const duties = specEntries.filter(e => e.date === dateStr);
+
+                const weekendClass = isFriday ? 'border-rose-200 dark:border-rose-900/40 bg-rose-50/20 dark:bg-rose-950/10' : (isSaturday ? 'border-orange-200 dark:border-orange-900/40 bg-orange-50/20 dark:bg-orange-950/10' : '');
+                const dayNumberColor = isToday ? 'text-teal-700 dark:text-amber-400' : (isFriday ? 'text-rose-600 dark:text-rose-400' : (isSaturday ? 'text-orange-600 dark:text-orange-400' : 'text-slate-800 dark:text-white'));
+                const dayNameColor = isFriday ? 'text-rose-500' : (isSaturday ? 'text-orange-500' : 'text-slate-500 dark:text-slate-400');
+
+                html += `
+                    <div id="${isToday ? 'today-single-card' : `day-card-${d}`}" class="day-duty-card ${isToday ? 'today' : ''} ${weekendClass}">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800/80 flex flex-col items-center justify-center flex-shrink-0 font-mono shadow-sm">
+                                <span class="text-sm font-black ${dayNumberColor} leading-tight">${d}</span>
+                                <span class="text-[9px] font-bold ${dayNameColor}">${dayName}</span>
+                            </div>
+                            <div class="min-w-0">
+                                ${duties.length > 0 ? duties.map(entry => {
+                                    const resident = Hub.getResident(entry.name);
+                                    const phone = resident?.phone || '';
+                                    return `
+                                        <div class="mb-1 last:mb-0">
+                                            <div class="font-black text-xs sm:text-sm text-slate-800 dark:text-white truncate">
+                                                ${entry.name}
+                                            </div>
+                                            ${phone && phone !== 'رقم غير متوفر' ? `
+                                                <div class="mt-1 flex items-center gap-2">
+                                                    <a href="tel:${phone}" class="phone-btn">
+                                                        <i class="fas fa-phone-alt"></i> ${phone}
+                                                    </a>
+                                                    <a href="https://wa.me/${phone.replace(/[^0-9]/g, '')}" target="_blank" class="text-emerald-500 text-xs hover:scale-110 transition">
+                                                        <i class="fab fa-whatsapp"></i>
+                                                    </a>
+                                                </div>
+                                            ` : '<span class="text-[10px] text-slate-400">الرقم غير متوفر</span>'}
+                                        </div>
+                                    `;
+                                }).join('') : `
+                                    <span class="text-xs text-slate-400 italic font-semibold">لا يوجد خفر مسجل</span>
+                                `}
+                            </div>
+                        </div>
+
+                        ${isToday ? '<span class="today-header-badge self-start"><i class="fas fa-bullseye ml-0.5 text-[9px]"></i> اليوم</span>' : ''}
+                    </div>
+                `;
+            }
+
+            grid.innerHTML = html;
+        }
+
+        // ================================================================
+        // MODAL DETAIL POPUP
+        // ================================================================
+        function openDutyDetailModal(specId, specName, dateStr, encodedEntry) {
+            const entry = JSON.parse(decodeURIComponent(encodedEntry));
+            const resident = Hub.getResident(entry.name);
+            const phone = resident?.phone || '';
+            const modal = document.getElementById('duty-detail-modal');
+            const body = document.getElementById('modal-duty-body');
+
+            if (!modal || !body) return;
+
+            body.innerHTML = `
+                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                    <div class="text-[11px] text-slate-400 font-bold mb-1">الطبيب الخفر</div>
+                    <div class="text-base font-black text-slate-900 dark:text-white mb-1">${entry.name}</div>
+                    <div class="text-xs text-teal-600 dark:text-teal-400 font-semibold">${specName}</div>
+                </div>
+
+                <div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 text-xs">
+                    <span class="text-slate-500">تاريخ الخفارة:</span>
+                    <span class="font-mono font-bold text-slate-800 dark:text-white">${dateStr}</span>
+                </div>
+
+                ${phone && phone !== 'رقم غير متوفر' ? `
+                    <div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 text-xs">
+                        <span class="text-slate-500">رقم الهاتف:</span>
+                        <a href="tel:${phone}" class="phone-btn font-mono font-bold">${phone}</a>
+                    </div>
+                    <div class="flex gap-2 mt-3">
+                        <a href="tel:${phone}" class="btn-gradient flex-1 text-center justify-center">
+                            <i class="fas fa-phone ml-1"></i> اتصال هاتفي
+                        </a>
+                        <a href="https://wa.me/${phone.replace(/[^0-9]/g, '')}" target="_blank" class="btn-ghost flex items-center justify-center px-4 text-emerald-600 border-emerald-300">
+                            <i class="fab fa-whatsapp text-lg"></i>
+                        </a>
+                    </div>
+                ` : '<div class="text-xs text-slate-400 text-center py-1">رقم الهاتف غير متوفر في دليل المقيمين</div>'}
+            `;
+
+            modal.classList.add('active');
+        }
+
+        function closeDutyDetailModal() {
+            const modal = document.getElementById('duty-detail-modal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        let resizeTimer = null;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                if (currentViewMode === 'matrix' && matrixLayoutMode === 'auto') {
+                    renderMatrixView();
+                }
+            }, 180);
+        });
+
+        window.addEventListener('DOMContentLoaded', initSchedule);
+    </script>
+</body>
+</html>
+

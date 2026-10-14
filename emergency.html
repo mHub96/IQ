@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="h-full">
+<head>
+    <script src="./storage-scope.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <script src="./pwa.js"></script>
+    <title>نظام خفارات الطوارئ والأقسام الخافرة | HOSP HUB</title>
+    
+    <!-- Google Fonts & Local Formal Arabic Fonts & Tailwind -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800;900&family=Almarai:wght@300;400;700;800&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cairo:wght@300;400;500;600;700;800;900&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Scheherazade+New:wght@400;500;600;700&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- SheetJS for client-side Excel Import/Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        @font-face {
+            font-family: 'Amiri';
+            font-style: normal;
+            font-weight: 400;
+            src: url('./fonts/Amiri-Regular.ttf') format('truetype');
+        }
+        @font-face {
+            font-family: 'Amiri';
+            font-style: normal;
+            font-weight: 700;
+            src: url('./fonts/Amiri-Bold.ttf') format('truetype');
+        }
+    </style>
+    <style id="dynamic-custom-print-font-style"></style>
+    <script>
+        (function() {
+            try {
+                const role = localStorage.getItem('hospital_hub_session_role');
+                const erSession = localStorage.getItem('hosp_hub_er_owner_session') === 'true' || sessionStorage.getItem('hosp_hub_er_owner_session') === 'true';
+                if (role === 'owner' || erSession) {
+                    document.documentElement.classList.add('er-owner-authenticated');
+                } else if (role === 'admin') {
+                    // Check if hospital is admin-authorized and erEnabled
+                    const adminHosps = JSON.parse(localStorage.getItem('hospital_hub_admin_hospitals') || '[]');
+                    const dbCache = JSON.parse(localStorage.getItem('hospital_hub_db_cache_v2') || '{}');
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const urlHosp = urlParams.get('hospital');
+                    const targetHosp = (urlHosp && adminHosps.includes(urlHosp)) ? urlHosp : adminHosps[0];
+                    if (targetHosp && dbCache.hospitals && dbCache.hospitals[targetHosp] && dbCache.hospitals[targetHosp].erEnabled) {
+                        document.documentElement.classList.add('er-owner-authenticated');
+                    }
+                }
+            } catch(e) {}
+        })();
+    </script>
+    <style>
+        html.er-owner-authenticated #er-auth-guard {
+            display: none !important;
+        }
+        html.er-owner-authenticated body.er-locked {
+            overflow: auto !important;
+        }
+    </style>
+
+    
+    <style>
+        * { font-family: 'Cairo', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.85);
+        }
+        .dark .glass-panel {
+            background: rgba(0, 0, 0, 0.92);
+            border: 1px solid rgba(51, 65, 85, 0.85);
+        }
+        .tab-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .db-cell-input {
+            width: 100%;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            transition: all 0.15s ease-in-out;
+        }
+        .db-cell-input:hover {
+            border-color: rgba(203, 213, 225, 0.8);
+            background: rgba(248, 250, 252, 0.6);
+        }
+        .dark .db-cell-input:hover {
+            border-color: rgba(71, 85, 105, 0.8);
+            background: rgba(44, 44, 46, 0.6);
+        }
+        .db-cell-input:focus {
+            outline: none;
+            border-color: #e11d48;
+            background: #ffffff;
+            box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.15);
+        }
+        .dark .db-cell-input:focus {
+            background: #1C1C1E;
+            border-color: #f43f5e;
+            box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.2);
+        }
+        .duty-card {
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .duty-card:hover {
+            transform: translateY(-2px);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 3D COLORED SLAB SCHEDULE CELL HIGHLIGHTS */
+        .sched-slab-resident {
+            background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%) !important;
+            border-color: #d97706 !important;
+            border-bottom: 2.5px solid #b45309 !important;
+            border-right: 2px solid #b45309 !important;
+            box-shadow: 0 2px 5px rgba(180, 83, 9, 0.28) !important;
+            color: #451a03 !important;
+        }
+        .dark .sched-slab-resident {
+            background: linear-gradient(180deg, #78350f 0%, #451a03 100%) !important;
+            border-color: #f59e0b !important;
+            border-bottom: 2.5px solid #d97706 !important;
+            border-right: 2px solid #d97706 !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.45) !important;
+            color: #fef3c7 !important;
+        }
+
+        .sched-slab-female {
+            background: linear-gradient(180deg, #ffe4e6 0%, #fecdd3 100%) !important;
+            border-color: #f43f5e !important;
+            border-bottom: 2.5px solid #e11d48 !important;
+            border-right: 2px solid #e11d48 !important;
+            box-shadow: 0 2px 5px rgba(225, 29, 72, 0.25) !important;
+            color: #4c0519 !important;
+        }
+        .dark .sched-slab-female {
+            background: linear-gradient(180deg, #881337 0%, #4c0519 100%) !important;
+            border-color: #fb7185 !important;
+            border-bottom: 2.5px solid #f43f5e !important;
+            border-right: 2px solid #f43f5e !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.45) !important;
+            color: #ffe4e6 !important;
+        }
+
+        .sched-slab-male {
+            background: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 100%) !important;
+            border-color: #0284c7 !important;
+            border-bottom: 2.5px solid #0369a1 !important;
+            border-right: 2px solid #0369a1 !important;
+            box-shadow: 0 2px 5px rgba(3, 105, 161, 0.25) !important;
+            color: #082f49 !important;
+        }
+        .dark .sched-slab-male {
+            background: linear-gradient(180deg, #0c4a6e 0%, #082f49 100%) !important;
+            border-color: #38bdf8 !important;
+            border-bottom: 2.5px solid #0284c7 !important;
+            border-right: 2px solid #0284c7 !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.45) !important;
+            color: #e0f2fe !important;
+        }
+
+        .sched-slab-resident .doc-name-span,
+        .sched-slab-female .doc-name-span,
+        .sched-slab-male .doc-name-span {
+            color: inherit !important;
+            font-weight: 900 !important;
+        }
+
+        /* PRINT STYLES - STRICT SINGLE A4 PORTRAIT PAGE */
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            @page {
+                size: A4 portrait;
+                margin: 4mm 5mm !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .no-print, header, nav, #duty-dashboard-grid, .tab-btn, #schedule-view-container, .fixed {
+                display: none !important;
+            }
+            #official-print-area {
+                display: block !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+                color: black !important;
+                visibility: visible !important;
+            }
+            #official-print-area * {
+                visibility: visible !important;
+            }
+            .print-table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                font-size: 7.2pt !important;
+                line-height: 1.15 !important;
+            }
+            .print-table th, .print-table td {
+                border: 1px solid #000 !important;
+                padding: 2.2px 3.5px !important;
+                text-align: center !important;
+            }
+            .print-table tr {
+                page-break-inside: avoid !important;
+            }
+        }
+
+        /* OWNER LOCK GATE */
+        body.er-locked #main-emergency-app {
+            display: none !important;
+        }
+        @keyframes erShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+        .animate-shake {
+            animation: erShake 0.4s ease-in-out;
+        }
+    </style>
+    <link rel="stylesheet" href="./hub-accounts.css" />
+    <link rel="stylesheet" href="./tailwind.css" />
+    <style>
+        /* Phones: the tool buttons become a swipeable strip; section headers wrap. */
+        @media (max-width: 640px) {
+            .er-header-row { height: auto; min-height: 4rem; flex-wrap: wrap; padding-top: 6px; padding-bottom: 6px; }
+            .er-toolbar { order: 3; width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; }
+            .er-toolbar::-webkit-scrollbar { display: none; }
+            .er-toolbar > * { flex: none; scroll-snap-align: start; }
+            .flex.items-center.justify-between.flex-wrap > .flex.items-center.gap-2 { flex-wrap: wrap; }
+            div:has(> div > #meta-rs-start) { flex-wrap: wrap; }
+            #meta-rs-start, #meta-rs-end { min-width: 0; max-width: 100%; }
+        }
+    </style>
+    <link rel="stylesheet" href="./hub-ios.css" />
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-full transition-colors duration-200 er-locked">
+
+    <!-- OWNER SECURITY GATE OVERLAY (Strict Protection: Owner Password Required) -->
+    <div id="er-auth-guard" class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl">
+        <div class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden text-right">
+            <!-- Decorative gradient backgrounds -->
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-rose-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-amber-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10">
+                <!-- Icon Emblem -->
+                <div class="flex items-center justify-center mb-5">
+                    <div class="relative">
+                        <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-rose-600 via-rose-500 to-amber-500 flex items-center justify-center text-white shadow-xl shadow-rose-500/30 text-3xl">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <div class="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-slate-900 border-2 border-white dark:border-slate-800 flex items-center justify-center text-amber-400 text-xs shadow-md">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Title & Security Notice -->
+                <div class="text-center mb-6">
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 mb-2">
+                        <i class="fas fa-shield-halved"></i>
+                        <span>تسجيل الدخول للنظام · System Access</span>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-1.5">
+                        نظام خفارات الطوارئ (ER)
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm mx-auto">
+                        هذا النظام مخصص لمالك التطبيق (Owner) ولمديري المستشفيات المفعّل لها نظام خفارات الطوارئ. يرجى إدخال كلمة المرور للمتابعة.
+                    </p>
+                </div>
+
+                <!-- Password Submission Form -->
+                <form id="er-owner-auth-form" onsubmit="event.preventDefault(); submitOwnerAuth();" class="space-y-4">
+                    <div>
+                        <label for="er-owner-pass-input" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                            كلمة المرور (المالك أو مدير المستشفى):
+                        </label>
+                        <div class="relative">
+                            <input type="password" 
+                                   id="er-owner-pass-input" 
+                                   required 
+                                   autofocus
+                                   placeholder="أدخل كلمة المرور..." 
+                                   class="w-full px-4 py-3 pl-11 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 text-sm font-sans transition" />
+                            <button type="button" 
+                                    onclick="toggleErOwnerPassVisibility()" 
+                                    class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+                                    title="إظهار / إخفاء كلمة المرور">
+                                <i id="er-owner-pass-eye" class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div id="er-auth-error-msg" class="hidden text-rose-500 dark:text-rose-400 text-xs font-bold mt-2 flex items-center gap-1.5">
+                            <i class="fas fa-triangle-exclamation"></i>
+                            <span id="er-auth-error-text"></span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-1">
+                        <label class="flex items-center gap-2 cursor-pointer select-none">
+                            <input type="checkbox" id="er-remember-owner-session" checked class="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-rose-600 focus:ring-rose-500 bg-slate-100 dark:bg-slate-800">
+                            <span>تذكر جلسة المالك على هذا الجهاز</span>
+                        </label>
+                    </div>
+
+                    <div class="pt-2 space-y-2">
+                        <button type="submit" 
+                                id="er-owner-submit-btn" 
+                                class="w-full py-3 px-4 rounded-2xl font-bold text-sm text-white bg-gradient-to-r from-rose-600 via-rose-500 to-amber-600 hover:from-rose-700 hover:to-amber-700 shadow-lg shadow-rose-500/25 active:scale-[0.98] transition flex items-center justify-center gap-2">
+                            <i class="fas fa-unlock-keyhole"></i>
+                            <span>تأكيد والدخول للنظام</span>
+                        </button>
+
+                        <a href="./index.html" 
+                           class="w-full py-2.5 px-4 rounded-2xl font-bold text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition flex items-center justify-center gap-2">
+                            <i class="fas fa-arrow-right"></i>
+                            <span>العودة إلى البوابة الرئيسية</span>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application Wrapper (Hidden until owner is authenticated) -->
+    <div id="main-emergency-app" class="min-h-full flex flex-col">
+
+    <!-- Top Navigation Header -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-slate-200/80 dark:border-slate-800 shadow-xs no-print">
+        <div class="w-full max-w-[1720px] mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 er-header-row">
+            
+            <!-- Left Branding & Back Navigation -->
+            <div class="flex items-center gap-3">
+                <a href="./index.html" class="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="العودة إلى HOSP HUB">
+                    <i class="fas fa-arrow-right"></i>
+                    <span>الرئيسية</span>
+                </a>
+                <a href="./admin.html" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="لوحة الإدارة">
+                    <i class="fas fa-shield-halved text-rose-500"></i>
+                    <span class="hidden sm:inline">لوحة الإدارة</span>
+                </a>
+                <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-rose-600 to-red-500 flex items-center justify-center text-white shadow-md shadow-rose-500/20">
+                        <i class="fas fa-truck-medical text-base"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-sm sm:text-base font-black tracking-tight flex items-center gap-1.5">
+                            <span>نظام خفارات الطوارئ</span>
+                            <span class="text-[10px] bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 px-2 py-0.5 rounded-full font-bold">EMERGENCY HUB</span>
+                        </h1>
+                        <p class="text-[10px] text-slate-500 hidden md:block">إدارة وتوزيع خفارات المقيمين الأقدمين وفق الضوابط والأنصبة الرسمية</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Actions -->
+            <div class="flex items-center gap-2 er-toolbar">
+                <!-- Full Emergency Backup Button -->
+                <button type="button" onclick="backupResidentsDatabase()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition shadow-xs" title="حفظ وتنزيل نسخة احتياطية شاملة لكافة بيانات وجداول وإعدادات الطوارئ (JSON)">
+                    <i class="fas fa-download text-emerald-600 dark:text-emerald-400"></i>
+                    <span class="hidden sm:inline">نسخ احتياطي شامل</span>
+                </button>
+                <!-- Full Emergency Restore Button -->
+                <button type="button" onclick="triggerRestoreResidentsDatabase()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 transition shadow-xs" title="استعادة النسخة الاحتياطية الشاملة لكافة الجداول والبيانات والإعدادات (JSON)">
+                    <i class="fas fa-upload text-blue-600 dark:text-blue-400"></i>
+                    <span class="hidden sm:inline">استعادة نسخة</span>
+                </button>
+                <input type="file" id="emergency-header-restore-input" accept=".json,application/json" onchange="handleRestoreResidentsFile(event)" class="hidden" style="display:none;">
+
+                <button type="button" onclick="openHospitalSyncModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 transition shadow-xs" title="مزامنة وتطابق أسماء الأطباء مع سجلات المستشفى">
+                    <i class="fas fa-arrows-rotate"></i>
+                    <span class="hidden lg:inline">مزامنة المستشفى</span>
+                </button>
+                <button type="button" onclick="exportFullScheduleToExcel()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 shadow-xs transition">
+                    <i class="fas fa-file-excel text-emerald-500"></i>
+                    <span class="hidden md:inline">تصدير Excel</span>
+                </button>
+                <button type="button" onclick="openPrintOptionsModal(state.activeTab)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 shadow-xs transition" title="تخصيص ألوان وتصميم ورقة الطباعة الرسمية">
+                    <i class="fas fa-palette text-rose-500"></i>
+                    <span class="hidden md:inline">خيارات الطباعة</span>
+                </button>
+                <button type="button" onclick="prepareOfficialPrint()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 shadow-xs transition">
+                    <i class="fas fa-print text-slate-600"></i>
+                    <span class="hidden md:inline">طباعة رسمية A4</span>
+                </button>
+                <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
+                <div class="flex items-center gap-1.5">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/60 shadow-xs" title="أنت مسجل بصلاحية المالك الكاملة">
+                        <i class="fas fa-crown text-amber-500"></i>
+                        <span>المالك (Owner)</span>
+                    </span>
+                    <button type="button" onclick="lockOwnerERAccess()" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/50 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-700 transition" title="قفل نظام الطوارئ">
+                        <i class="fas fa-lock"></i>
+                        <span class="hidden md:inline">قفل</span>
+                    </button>
+                </div>
+                <button type="button" onclick="toggleDarkMode()" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="تبديل الوضع الليلي">
+                    <i class="fas fa-moon dark:hidden"></i>
+                    <i class="fas fa-sun hidden dark:inline"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container (Widescreen 16:9 Frame) -->
+    <main class="w-full max-w-[1720px] mx-auto px-3 sm:px-6 lg:px-8 py-5 space-y-5">
+
+        <!-- Administrative Order Bar & Selector Controls -->
+        <section class="glass-panel rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 no-print space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-center">
+                <!-- Hospital Selector -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1">المستشفى المحدد</label>
+                    <select id="meta-hosp-select" onchange="onHospitalChange(this.value)" class="w-full text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-rose-500/20">
+                        <option value="iraqi">مستشفى الصدر التعليمي</option>
+                        <option value="basra">مستشفى البصرة التعليمي</option>
+                        <option value="mawani">مستشفى الموانئ التعليمي</option>
+                    </select>
+                </div>
+
+                <!-- Month & Year Selector -->
+                <div class="flex items-center gap-2">
+                    <div class="flex-1">
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1">شهر الجدول</label>
+                        <select id="meta-month-select" onchange="onMonthYearChange(this.value, document.getElementById('meta-year-input').value)" class="w-full text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                            <option value="1">كانون الثاني (1)</option>
+                            <option value="2">شباط (2)</option>
+                            <option value="3">آذار (3)</option>
+                            <option value="4">نيسان (4)</option>
+                            <option value="5">أيار (5)</option>
+                            <option value="6">حزيران (6)</option>
+                            <option value="7">تموز (7)</option>
+                            <option value="8">آب (8)</option>
+                            <option value="9">أيلول (9)</option>
+                            <option value="10">تشرين الأول (10)</option>
+                            <option value="11">تشرين الثاني (11)</option>
+                            <option value="12">كانون الأول (12)</option>
+                        </select>
+                    </div>
+                    <div class="w-24">
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1">السنة</label>
+                        <input type="number" id="meta-year-input" min="2025" max="2030" value="2026" onchange="onMonthYearChange(document.getElementById('meta-month-select').value, this.value)" class="w-full text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-center font-mono">
+                    </div>
+                </div>
+
+                <!-- Administrative Order Number & Sequential Suggestion -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1">رقم الأمر الإداري</label>
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" id="meta-order-number" onchange="onOrderNumberChange(this.value)" placeholder="4821" class="flex-1 text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-mono">
+                        <button type="button" onclick="suggestSequentialOrderNumber()" class="px-2.5 py-2 rounded-xl text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition shrink-0" title="اقتراح رقم متسلسل رسمي جديد">
+                            <i class="fas fa-wand-sparkles"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Order Date & Reset Button -->
+                <div class="flex items-center gap-2">
+                    <div class="flex-1">
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1">تاريخ الأمر الإداري</label>
+                        <input type="date" id="meta-order-date" onchange="onOrderDateChange(this.value)" class="w-full text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-mono">
+                    </div>
+                    <div class="pt-4">
+                        <button type="button" onclick="resetEmergencyToDefaults()" class="p-2.5 rounded-xl text-xs font-bold text-slate-500 hover:text-rose-600 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 transition" title="استعادة النسخة الأصلية للجدول">
+                            <i class="fas fa-rotate-left"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Second Row: Signatories & Rotators Strike Toggle -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 items-center text-xs">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1">رئيس الأطباء المقيمين الأقدمين</label>
+                    <input type="text" id="meta-head-residents" onblur="onHeadOfResidentsChange(this.value)" onchange="onHeadOfResidentsChange(this.value)" placeholder="اسم رئيس الأطباء المقيمين..." class="w-full text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1">مدير المستشفى</label>
+                    <input type="text" id="meta-head-hospital" onblur="onHeadOfHospitalChange(this.value)" onchange="onHeadOfHospitalChange(this.value)" placeholder="اسم مدير المستشفى..." class="w-full text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                </div>
+                <div class="flex items-center justify-between sm:justify-end gap-2 pt-4 sm:pt-0">
+                    <button type="button" onclick="toggleRotatorsStrike()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition flex items-center gap-2">
+                        <i class="fas fa-triangle-exclamation text-amber-500"></i>
+                        <span>حالة إضراب المقيمين (RS)</span>
+                        <span id="rs-toggle-badge" class="text-[10px] bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400 px-2 py-0.5 rounded-full font-bold">معطّل</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Rotators Strike (RS) Date Settings Bar (Shown when RS is enabled) -->
+            <div id="rs-settings-bar" class="p-3 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 flex items-center justify-between flex-wrap gap-3 text-xs" style="display: none;">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-bullhorn text-amber-600 dark:text-amber-400"></i>
+                    <span class="font-bold text-amber-900 dark:text-amber-200">فترة إضراب المقيمين الدوريين (RS):</span>
+                    <span class="text-[11px] text-amber-700 dark:text-amber-300">يتم إسناد خفارات إضافية للمقيمين الأقدمين في الطوارئ والردهات خلال هذه الفترة.</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1.5">
+                        <label class="text-[11px] font-bold text-amber-900 dark:text-amber-200">من تاريخ:</label>
+                        <input type="date" id="meta-rs-start" onchange="onRsDateChange('rsStartDate', this.value)" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 text-slate-800 dark:text-slate-100 font-mono">
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <label class="text-[11px] font-bold text-amber-900 dark:text-amber-200">إلى تاريخ:</label>
+                        <input type="date" id="meta-rs-end" onchange="onRsDateChange('rsEndDate', this.value)" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 text-slate-800 dark:text-slate-100 font-mono">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Monthly Duty Dashboard (Counts required, allocated, and scheduled duties) -->
+        <section id="duty-dashboard-grid" class="no-print space-y-4">
+            <!-- Rendered dynamically by updateDutyDashboard() -->
+        </section>
+
+        <!-- Dynamic Schedule View Container -->
+        <section id="schedule-view-container" class="glass-panel rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-xs">
+            <!-- Rendered dynamically by emergency.js -->
+        </section>
+
+    </main>
+
+    <!-- Official Single A4 Print Container -->
+    <div id="official-print-area" class="hidden">
+        <!-- Injected dynamically by prepareOfficialPrint() -->
+    </div>
+
+    <!-- Floating Toast Notification Container -->
+    <div id="hub-toast-container" class="fixed bottom-4 left-4 z-50 flex flex-col gap-2 pointer-events-none no-print"></div>
+
+    <!-- ========================================================================= -->
+    <!-- MODALS SECTION -->
+    <!-- ========================================================================= -->
+
+    <!-- 1. Doctor Picker Modal -->
+    <div id="doctor-picker-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 no-print">
+        <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
+            <!-- Modal Header -->
+            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div>
+                    <h3 class="font-black text-sm text-slate-800 dark:text-slate-100">اختيار طبيب للخفارة</h3>
+                    <p class="text-[11px] text-slate-500" id="picker-day-info">اليوم والوردية</p>
+                </div>
+                <button type="button" onclick="closeDoctorPickerModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Modal Search & Clear Slot -->
+            <div class="p-4 border-b border-slate-100 dark:border-slate-800 space-y-2 bg-slate-50/50 dark:bg-slate-900/40">
+                <div class="relative">
+                    <i class="fas fa-search absolute right-3 top-3 text-slate-400 text-xs"></i>
+                    <input type="text" id="picker-search-input" oninput="filterPickerList()" placeholder="بحث باسم الطبيب أو الاختصاص..." class="w-full pr-8 pl-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30">
+                </div>
+                <div class="flex items-center justify-between gap-2 text-xs">
+                    <span class="text-[11px] text-slate-500">يُعرض فقط الأطباء الذين لم يستنفذوا أنصبتهم المحددة</span>
+                    <button type="button" onclick="clearActiveSlot()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition">
+                        <i class="fas fa-eraser ml-1"></i> إفراغ الخانة
+                    </button>
+                </div>
+            </div>
+
+            <!-- Doctors Scroll List -->
+            <div id="picker-doctors-list" class="p-3 max-h-[360px] overflow-y-auto space-y-1.5">
+                <!-- Rendered dynamically -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-3 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                <button type="button" onclick="closeDoctorPickerModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Conflict Explanation & Clear Modal -->
+    <div id="conflict-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 no-print">
+        <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
+            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                    <i class="fas fa-triangle-exclamation text-lg"></i>
+                    <h3 class="font-black text-sm text-slate-800 dark:text-slate-100">توضيح تعارض الخفارة</h3>
+                </div>
+                <button type="button" onclick="closeConflictModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-3 text-xs" id="conflict-modal-details">
+                <!-- Injected dynamically -->
+            </div>
+
+            <div class="p-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                <button type="button" id="conflict-modal-empty-btn" class="px-4 py-2 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 transition flex items-center gap-1.5">
+                    <i class="fas fa-eraser"></i>
+                    <span>تفريغ هذه الخانة فقط</span>
+                </button>
+                <button type="button" onclick="closeConflictModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition">
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Auto-Generate Choice Modal -->
+    <div id="auto-generate-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 no-print">
+        <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
+            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2 text-rose-600">
+                    <i class="fas fa-wand-magic-sparkles text-base"></i>
+                    <h3 class="font-black text-sm text-slate-800 dark:text-slate-100" id="auto-modal-title">توليد الجدول آلياً</h3>
+                </div>
+                <button type="button" onclick="closeAutoGenerateModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4 text-xs">
+                <p class="text-slate-600 dark:text-slate-300 leading-relaxed font-bold">
+                    يحتوي الجدول الحالي على خفارات معينة مسبقاً. كيف ترغب في المتابعة؟
+                </p>
+
+                <div class="space-y-2.5">
+                    <button type="button" id="auto-opt-fill-empty" class="w-full p-3.5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-rose-500 bg-white dark:bg-slate-900 text-right transition flex items-start gap-3 group">
+                        <div class="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fas fa-fill-drip"></i>
+                        </div>
+                        <div>
+                            <div class="font-black text-slate-800 dark:text-slate-100 group-hover:text-rose-600">إكمال الشواغر فقط</div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">الاحتفاظ بالخفارات الحالية وتوزيع الخفارات المتبقية فقط وفق الأنصبة والأولويات.</div>
+                        </div>
+                    </button>
+
+                    <button type="button" id="auto-opt-fresh" class="w-full p-3.5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-rose-500 bg-white dark:bg-slate-900 text-right transition flex items-start gap-3 group">
+                        <div class="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-950 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fas fa-rotate-right"></i>
+                        </div>
+                        <div>
+                            <div class="font-black text-rose-600">مسح وإعادة التوزيع بالكامل</div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">تفريغ كافة الخانات وتوزيع كامل خفارات الشهر آلياً من البداية.</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-3 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                <button type="button" onclick="closeAutoGenerateModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Resident Duty Preferences Modal (z-[70] to overlay in front of DB modal) -->
+    <div id="resident-prefs-modal" style="z-index: 99999;" class="fixed inset-0 z-[70] bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 no-print">
+        <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
+            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 flex items-center justify-center text-sm font-bold">
+                        <i class="fas fa-sliders"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-sm text-slate-800 dark:text-slate-100">تفضيلات ورغبات خفارات الطبيب</h3>
+                        <p class="text-[11px] text-slate-500" id="prefs-modal-docname">اسم الطبيب</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeResidentPrefsModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4 text-xs overflow-y-auto flex-1">
+                <!-- Female Notice (Rule 1: Females never distributed to prenight or night shifts) -->
+                <div id="prefs-female-notice" class="hidden p-3 rounded-2xl bg-pink-50 dark:bg-pink-950/40 border border-pink-200 dark:border-pink-800 text-pink-700 dark:text-pink-300 flex items-start gap-2.5">
+                    <i class="fas fa-venus text-pink-500 mt-0.5 text-sm shrink-0"></i>
+                    <div>
+                        <span class="font-black block text-xs">قاعدة خفارات الطبيبات المعتمدة:</span>
+                        <p class="text-[11px] leading-relaxed text-pink-600/90 dark:text-pink-300/90 mt-0.5">
+                            يتم استبعاد وجبات <strong>البرينايت (8م - 2ص)</strong> و<strong>الليلية (2ص - 8ص)</strong> تلقائياً للطبيبات في التوزيع الآلي، ولا يتم التعيين فيها إلا يدوياً من قبلك.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Shift Preferences -->
+                <div>
+                    <label class="block font-black text-slate-700 dark:text-slate-300 mb-2">الوجبات المفضلة للطوارئ:</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer">
+                            <input type="checkbox" value="morning" class="pref-shift-cb rounded text-rose-600">
+                            <span class="font-bold">الصباحية (8ص - 2م)</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer">
+                            <input type="checkbox" value="afternoon" class="pref-shift-cb rounded text-rose-600">
+                            <span class="font-bold">بعد الصباحية (2م - 8م)</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer" id="pref-shift-wrap-prenight">
+                            <input type="checkbox" value="preNight" class="pref-shift-cb rounded text-rose-600">
+                            <span class="font-bold">البرينايت (8م - 2ص)</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer" id="pref-shift-wrap-latenight">
+                            <input type="checkbox" value="lateNight" class="pref-shift-cb rounded text-rose-600">
+                            <span class="font-bold">الليلية (2ص - 8ص)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Day Preferences -->
+                <div>
+                    <label class="block font-black text-slate-700 dark:text-slate-300 mb-2">الأيام المفضلة في الأسبوع:</label>
+                    <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                        <label class="flex items-center gap-1.5 p-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer text-[11px]">
+                            <input type="checkbox" value="الأحد" class="pref-day-cb rounded text-rose-600">
+                            <span>الأحد</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 p-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer text-[11px]">
+                            <input type="checkbox" value="الإثنين" class="pref-day-cb rounded text-rose-600">
+                            <span>الإثنين</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 p-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer text-[11px]">
+                            <input type="checkbox" value="الثلاثاء" class="pref-day-cb rounded text-rose-600">
+                            <span>الثلاثاء</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 p-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer text-[11px]">
+                            <input type="checkbox" value="الأربعاء" class="pref-day-cb rounded text-rose-600">
+                            <span>الأربعاء</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 p-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer text-[11px]">
+                            <input type="checkbox" value="الخميس" class="pref-day-cb rounded text-rose-600">
+                            <span>الخميس</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 p-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer text-[11px]">
+                            <input type="checkbox" value="الجمعة" class="pref-day-cb rounded text-rose-600">
+                            <span>الجمعة</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 p-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer text-[11px]">
+                            <input type="checkbox" value="السبت" class="pref-day-cb rounded text-rose-600">
+                            <span>السبت</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 1. Specific Days of the Month (Calendar View with Exclude/Prefer Switch) -->
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                        <label class="block font-black text-slate-700 dark:text-slate-300 text-xs flex items-center gap-1.5">
+                            <i class="fas fa-calendar-alt text-teal-600 dark:text-teal-400"></i>
+                            <span>تحديد أيام معينة من الشهر:</span>
+                        </label>
+                        <!-- Switch for Days Mode: Exclude vs Prefer -->
+                        <div class="inline-flex rounded-xl p-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-bold">
+                            <button type="button" id="pref-days-mode-exclude-btn" onclick="setPrefDaysMode('exclude')" class="px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                <i class="fas fa-ban text-[10px]"></i>
+                                <span>استبعاد الأيام</span>
+                            </button>
+                            <button type="button" id="pref-days-mode-prefer-btn" onclick="setPrefDaysMode('prefer')" class="px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                <i class="fas fa-check text-[10px]"></i>
+                                <span>أيام مفضلة للخفارة</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Month Calendar Title Display -->
+                    <div class="flex items-center justify-between px-3 py-1.5 mb-2 rounded-xl bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700">
+                        <span class="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                            <i class="far fa-calendar text-slate-500"></i>
+                            <span id="pref-month-days-header">تقويم شهر تشرين الأول 2026</span>
+                        </span>
+                        <span id="pref-days-mode-desc" class="text-[10px] font-bold"></span>
+                    </div>
+
+                    <!-- Month Calendar Grid with 7 Weekday Headers -->
+                    <div class="p-2.5 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+                        <div class="grid grid-cols-7 gap-1 text-center font-bold text-[10px] text-slate-400 dark:text-slate-500 mb-1.5 pb-1 border-b border-slate-200 dark:border-slate-800">
+                            <div>السبت</div>
+                            <div>الأحد</div>
+                            <div>الإثنين</div>
+                            <div>الثلاثاء</div>
+                            <div>الأربعاء</div>
+                            <div>الخميس</div>
+                            <div>الجمعة</div>
+                        </div>
+                        <div id="pref-days-calendar-grid" class="grid grid-cols-7 gap-1">
+                            <!-- Populated dynamically via JS matching month's days and start weekday -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Period Intervals (with Exclude vs Strictly Within Switch) -->
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                        <label class="block font-black text-slate-700 dark:text-slate-300 text-xs flex items-center gap-1.5">
+                            <i class="fas fa-calendar-days text-amber-500"></i>
+                            <span>فترات زمنية محددة:</span>
+                        </label>
+                        <!-- Switch for Interval Mode: Exclude vs Strictly Within -->
+                        <div class="inline-flex rounded-xl p-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-bold">
+                            <button type="button" id="pref-interval-mode-exclude-btn" onclick="setPrefIntervalMode('exclude')" class="px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                <i class="fas fa-ban text-[10px]"></i>
+                                <span>استبعاد الفترة</span>
+                            </button>
+                            <button type="button" id="pref-interval-mode-strict-btn" onclick="setPrefIntervalMode('strictly_within')" class="px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                <i class="fas fa-arrows-to-dot text-[10px]"></i>
+                                <span>حصر الخفارات ضمنها</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span id="pref-interval-mode-desc" class="text-[11px] text-slate-500 font-medium"></span>
+                        <button type="button" onclick="addPrefIntervalRow()" class="px-2.5 py-1 rounded-xl text-xs font-bold text-teal-600 hover:text-white hover:bg-teal-600 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 transition flex items-center gap-1.5 shadow-2xs">
+                            <i class="fas fa-plus text-[10px]"></i>
+                            <span>إضافة فترة زمنية</span>
+                        </button>
+                    </div>
+
+                    <div id="pref-intervals-list" class="space-y-2 max-h-36 overflow-y-auto pr-0.5">
+                        <!-- Dynamic Interval Rows -->
+                    </div>
+                </div>
+
+                <!-- Consecutive Days Preference -->
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <label class="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer hover:bg-slate-100/60 dark:hover:bg-slate-800/40 transition">
+                        <input type="checkbox" id="pref-no-consecutive" class="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 accent-rose-600">
+                        <div>
+                            <span class="font-bold text-slate-800 dark:text-slate-200 text-xs">تجنب الخفارات في أيام متتالية (يوم بعد يوم أو أكثر)</span>
+                            <p class="text-[10px] text-slate-400 mt-0.5">مفضل افتراضياً لجميع الأطباء لمنع الإجهاد وضمان فاصل زمني كافٍ بين الخفارات</p>
+                        </div>
+                    </label>
+                </div>
+
+                <p class="text-[11px] text-slate-400">
+                    * يراعي التوزيع الآلي الأيام والفترات المستبعدة بدقة تامة ويمنع تكليف الطبيب فيها نهائياً.
+                </p>
+            </div>
+
+            <div class="p-3 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2 shrink-0">
+                <button type="button" onclick="closeResidentPrefsModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition">
+                    إلغاء
+                </button>
+                <button type="button" onclick="saveResidentPreferences()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-sm transition">
+                    حفظ التفضيلات
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Residents Database Dedicated Popup Panel / Modal -->
+    <div id="residents-db-modal" class="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-md hidden flex items-center justify-center p-2 sm:p-4 no-print">
+        <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-[1700px] h-[92vh] flex flex-col overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
+            <!-- Modal Header -->
+            <div class="p-4 sm:px-6 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between bg-slate-100/60 dark:bg-slate-900/60 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                        <i class="fas fa-users-gear text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-sm sm:text-base font-black text-slate-800 dark:text-slate-100">قاعدة بيانات الأطباء المقيمين والأنصبة الرسمية</h2>
+                            <span id="residents-db-modal-hosp" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300"></span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">لوحة مستقلة لإدارة الأطباء، الأنصبة، الاختصاصات، المراحل، وحالات النشاط دون التأثير على الجداول</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="undoDBAction()" class="db-undo-btn px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center gap-1.5 shadow-2xs opacity-40 cursor-not-allowed" title="تراجع عن آخر تعديل في اللوحة (Ctrl+Z)" disabled>
+                        <i class="fas fa-undo text-slate-500"></i>
+                        <span>تراجع</span>
+                    </button>
+                    <button type="button" onclick="redoDBAction()" class="db-redo-btn px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center gap-1.5 shadow-2xs opacity-40 cursor-not-allowed" title="إعادة تطبيق التعديل (Ctrl+Y)" disabled>
+                        <i class="fas fa-redo text-slate-500"></i>
+                        <span>إعادة</span>
+                    </button>
+                    <button type="button" onclick="closeResidentsDbModal()" class="w-9 h-9 rounded-2xl flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 transition" title="إغلاق">
+                        <i class="fas fa-times text-base"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Content (Scrollable) -->
+            <div id="residents-db-modal-body" class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
+                <!-- Rendered dynamically by emergency.js -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-3 sm:px-6 bg-slate-100/60 dark:bg-slate-900/60 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between shrink-0 text-xs">
+                <div class="text-slate-500 flex items-center gap-2">
+                    <i class="fas fa-shield-halved text-emerald-500"></i>
+                    <span>يتم حفظ جميع التعديلات تلقائياً وفوراً في التخزين المحلي للمستشفى الحالي</span>
+                </div>
+                <button type="button" onclick="closeResidentsDbModal()" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 transition shadow-xs">
+                    إغلاق اللوحة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Stage Options Bubble Picker Modal (z-[70] to overlay in front of DB modal) -->
+    <div id="stage-options-modal" style="z-index: 99999;" class="fixed inset-0 z-[70] bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4 no-print">
+        <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
+            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div>
+                    <h3 class="font-black text-sm text-slate-800 dark:text-slate-100">تحديد مرحلة البورد</h3>
+                    <p class="text-[11px] text-slate-500 font-bold" id="stage-modal-docname">اسم الطبيب</p>
+                </div>
+                <button type="button" onclick="closeStageOptionsModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <div class="p-4 space-y-2" id="stage-modal-options">
+                <!-- Injected dynamically by openStageOptionsModal() -->
+            </div>
+
+            <div class="p-3 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                <button type="button" onclick="closeStageOptionsModal()" class="px-4 py-1.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6.5 Specialty Options & Color Picker Modal (z-[70] to overlay in front of DB modal) -->
+    <div id="specialty-options-modal" class="fixed inset-0 z-[70] bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4 no-print">
+        <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
+            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div>
+                    <h3 class="font-black text-sm text-slate-800 dark:text-slate-100">تحديد الاختصاص وتخصيص اللون</h3>
+                    <p class="text-[11px] text-slate-500 font-bold" id="specialty-modal-docname">اسم الطبيب</p>
+                </div>
+                <button type="button" onclick="closeSpecialtyOptionsModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <div class="p-4 space-y-2 max-h-[60vh] overflow-y-auto" id="specialty-modal-options">
+                <!-- Injected dynamically by openSpecialtyPickerModal() -->
+            </div>
+
+            <div class="p-3 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                <button type="button" onclick="closeSpecialtyOptionsModal()" class="px-4 py-1.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6.6 Import Allocations from Previous Month Modal (z-[70] to overlay in front of DB modal) -->
+    <div id="import-allocations-modal" class="fixed inset-0 z-[70] bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4 no-print">
+        <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150">
+            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center">
+                        <i class="fas fa-clock-rotate-left text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-sm text-slate-800 dark:text-slate-100">استيراد الأنصبة والإحصائيات من شهر سابق</h3>
+                        <p class="text-[11px] text-slate-500">نقل أنصبة الخفارات وحالات التنشيط للشهر الحالي</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeImportMonthAllocationsModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4 text-xs" id="import-allocations-modal-body">
+                <!-- Injected dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. Print Options Modal (Full Color Customization) -->
+    <div id="print-options-modal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 no-print">
+        <div class="glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-150 max-h-[92vh] flex flex-col">
+            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5 text-rose-600">
+                    <div class="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 flex items-center justify-center">
+                        <i class="fas fa-palette text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-sm text-slate-800 dark:text-slate-100">خيارات وتخصيص ألوان الطباعة الرسمية</h3>
+                        <p class="text-[11px] text-slate-500">تخصيص ألوان الترويسة، عطلة الجمعة والسبت، والحدود</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closePrintOptionsModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4 text-xs overflow-y-auto flex-1">
+                <!-- Theme Presets -->
+                <div>
+                    <label class="block font-black text-slate-700 dark:text-slate-300 mb-2">النماذج السريعة المعتمدة:</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="applyPrintPreset('official')" class="p-2.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 hover:border-emerald-500 text-right transition flex flex-col gap-1 bg-white dark:bg-slate-900 group">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-xs text-slate-800 dark:text-slate-100 group-hover:text-emerald-600">النموذج الوزاري PDF</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-black ring-1 ring-slate-400"></span>
+                                    <span class="w-3.5 h-3.5 rounded-full bg-[#5ea37d]"></span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] text-slate-500">ترويسة سوداء + تمييز جمعة وسبت أخضر</span>
+                        </button>
+
+                        <button type="button" onclick="applyPrintPreset('bw')" class="p-2.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 hover:border-slate-500 text-right transition flex flex-col gap-1 bg-white dark:bg-slate-900 group">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-xs text-slate-800 dark:text-slate-100">أبيض وأسود كلاسيكي</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-slate-200 border"></span>
+                                    <span class="w-3.5 h-3.5 rounded-full bg-white border"></span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] text-slate-500">طباعة ليزرية اقتصادية</span>
+                        </button>
+
+                        <button type="button" onclick="applyPrintPreset('navy')" class="p-2.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 hover:border-blue-500 text-right transition flex flex-col gap-1 bg-white dark:bg-slate-900 group">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-xs text-slate-800 dark:text-slate-100">أزرق كحلي ملكي</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-blue-900"></span>
+                                    <span class="w-3.5 h-3.5 rounded-full bg-blue-200"></span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] text-slate-500">ترويسة كحلية + تمييز أزرق فاتح</span>
+                        </button>
+
+                        <button type="button" onclick="applyPrintPreset('emerald')" class="p-2.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 hover:border-teal-500 text-right transition flex flex-col gap-1 bg-white dark:bg-slate-900 group">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-xs text-slate-800 dark:text-slate-100">أخضر زمردي</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-800"></span>
+                                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-200"></span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] text-slate-500">طابع صحي وطبي مميز</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Formal Arabic Fonts & Custom Font Upload -->
+                <div class="space-y-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <div class="flex items-center justify-between">
+                        <label class="block font-black text-slate-700 dark:text-slate-300">
+                            <i class="fas fa-font text-rose-500 mr-1"></i>
+                            الخط الرسمي للطباعة والأوامر الإدارية:
+                        </label>
+                        <label class="px-2.5 py-1 rounded-xl text-[11px] font-bold text-rose-600 hover:text-white hover:bg-rose-600 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 transition flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                            <i class="fas fa-cloud-arrow-up text-xs"></i>
+                            <span>رفع خط مخصص</span>
+                            <input type="file" id="print-font-upload-input" accept=".ttf,.otf,.woff,.woff2" class="hidden" onchange="handleCustomFontUpload(event)">
+                        </label>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <select id="print-opt-font-family" onchange="onPrintFontChange(this.value)" class="w-full text-xs p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-200 cursor-pointer">
+                            <option value="'Cairo', sans-serif">كايرو (Cairo) - الخط الإداري الحديث المعتمد</option>
+                            <option value="'Amiri', serif">أميري (Amiri) - الخط الوزاري الرسمي المعتمد (الكتب الرسمية والأوامر)</option>
+                            <option value="'Noto Naskh Arabic', serif">نوتو نسخ (Noto Naskh Arabic) - نسخ حكومي عالي الوضوح</option>
+                            <option value="'Scheherazade New', serif">شهرزاد (Scheherazade New) - خط نسخي رسمي تقليدي</option>
+                            <option value="'Tajawal', sans-serif">تجوال (Tajawal) - خط إداري متوازن وأنيق</option>
+                            <option value="'Almarai', sans-serif">المراعي (Almarai) - خط رسمي معاصر عالي الدقة</option>
+                            <option value="'Alexandria', sans-serif">الإسكندرية (Alexandria) - خط رسمي هندسي حديث</option>
+                            <option value="'Traditional Arabic', serif">الخط العربي التقليدي (Traditional Arabic)</option>
+                            <option value="'Simplified Arabic', sans-serif">الخط العربي المبسط (Simplified Arabic)</option>
+                            <option value="'CustomPrintFont', sans-serif" id="print-opt-custom-option" class="hidden">خط مخصص تم رفعه</option>
+                        </select>
+                        
+                        <!-- Custom Font Status / Info Badge -->
+                        <div id="custom-font-status-wrap" class="hidden flex items-center justify-between p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-[11px] text-emerald-800 dark:text-emerald-300">
+                            <div class="flex items-center gap-1.5 overflow-hidden">
+                                <i class="fas fa-circle-check text-emerald-600 shrink-0"></i>
+                                <span class="truncate">الخط المخصص الفعّال: <strong id="custom-font-name-label"></strong></span>
+                            </div>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button type="button" onclick="downloadActiveCustomFontFile()" class="text-blue-600 hover:text-blue-700 text-xs px-2 py-0.5 rounded hover:bg-blue-50 dark:hover:bg-blue-950/40 transition flex items-center gap-1" title="حفظ نسخة إلى مجلد fonts">
+                                    <i class="fas fa-download"></i> حفظ نسخة
+                                </button>
+                                <button type="button" onclick="removeCustomUploadedFont()" class="text-rose-600 hover:text-rose-700 text-xs px-2 py-0.5 rounded hover:bg-rose-50 dark:hover:bg-rose-950/40 transition flex items-center gap-1" title="إلغاء الخط المخصص">
+                                    <i class="fas fa-trash-alt"></i> إزالة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Pickers -->
+                <div class="space-y-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <label class="block font-black text-slate-700 dark:text-slate-300">تخصيص الألوان يدوياً في أي وقت:</label>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <span class="font-bold">خلفية الترويسة:</span>
+                            <input type="color" id="print-opt-header-bg" onchange="onCustomPrintColorChange()" class="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent">
+                        </div>
+
+                        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <span class="font-bold">نص الترويسة:</span>
+                            <input type="color" id="print-opt-header-text" onchange="onCustomPrintColorChange()" class="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent">
+                        </div>
+
+                        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <span class="font-bold">تمييز الجمعة والسبت:</span>
+                            <input type="color" id="print-opt-weekend-bg" onchange="onCustomPrintColorChange()" class="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent">
+                        </div>
+
+                        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <span class="font-bold">نص الجمعة والسبت:</span>
+                            <input type="color" id="print-opt-weekend-text" onchange="onCustomPrintColorChange()" class="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent">
+                        </div>
+
+                        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 sm:col-span-2">
+                            <span class="font-bold">لون خطوط وحدود الجدول:</span>
+                            <input type="color" id="print-opt-border-color" onchange="onCustomPrintColorChange()" class="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Clear Date & Number Option (Manual handwritten ink fill) -->
+                <div class="p-3 rounded-2xl bg-amber-50/60 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xs font-bold shrink-0">
+                            <i class="fas fa-pen-nib"></i>
+                        </div>
+                        <div>
+                            <div class="font-black text-xs text-slate-800 dark:text-slate-100">تفريغ العدد والتاريخ (خط تنقيط للكتابة بالقلم)</div>
+                            <div class="text-[10px] text-slate-500">مسح الأرقام وإظهار سطر منقط بجانب "العدد /" و "التاريخ /" للملء اليدوي</div>
+                        </div>
+                    </div>
+                    <button type="button" id="toggle-clear-print-meta-btn" onclick="toggleClearPrintMeta()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-300 shrink-0">
+                        <i class="fas fa-eraser"></i>
+                        <span>تفريغ</span>
+                    </button>
+                </div>
+
+                <!-- Live Mini Preview -->
+                <div class="p-3 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5">
+                    <span class="text-[10px] font-bold text-slate-400">معاينة مباشرة لشكل الجدول المطبوع:</span>
+                    <table class="w-full text-center border-collapse text-[10px]" id="print-preview-table">
+                        <thead>
+                            <tr id="preview-header-row">
+                                <th class="p-1 border">اليوم</th>
+                                <th class="p-1 border">التاريخ</th>
+                                <th class="p-1 border">الصباحية</th>
+                                <th class="p-1 border">الليلية</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr id="preview-normal-row" class="bg-white text-black">
+                                <td class="p-1 border">الخميس</td>
+                                <td class="p-1 border">03/09/2026</td>
+                                <td class="p-1 border">د. زهراء احمد</td>
+                                <td class="p-1 border">د. محمد شاكر</td>
+                            </tr>
+                            <tr id="preview-weekend-row">
+                                <td class="p-1 border font-bold">الجمعة</td>
+                                <td class="p-1 border">04/09/2026</td>
+                                <td class="p-1 border font-bold">د. إيمان نعيم</td>
+                                <td class="p-1 border font-bold">د. ضرغام عامر</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 shrink-0">
+                <button type="button" onclick="closePrintOptionsModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition">
+                    إغلاق
+                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="savePrintOptions()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 transition shadow-xs">
+                        حفظ التفضيلات
+                    </button>
+                    <button type="button" onclick="saveAndPrintImmediately()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-sm transition flex items-center gap-1.5">
+                        <i class="fas fa-print"></i>
+                        <span>طباعة الآن</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div><!-- #main-emergency-app -->
+
+    <!-- Scripts -->
+    <script src="./hub-sync.js"></script>
+    <script src="./hub-core.js"></script>
+    <script src="./hub-avatar.js"></script>
+    <script src="./hub-accounts.js"></script>
+    <script src="./emergency-data.js"></script>
+    <script src="./emergency.js"></script>
+
+    <script>
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('hub-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        }
+        (function() {
+            if (localStorage.getItem('hub-theme') === 'dark' || (!localStorage.getItem('hub-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+    </script>
+</body>
+</html>

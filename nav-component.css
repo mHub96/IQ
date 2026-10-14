@@ -1,0 +1,1089 @@
+/* ============================================================
+   UNIVERSAL NAVIGATION BAR — STYLING
+   ============================================================ */
+
+.hub-nav-bar {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: calc(0.55rem + env(safe-area-inset-top, 0px)) 1.25rem 0.55rem;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.92);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
+    direction: rtl;
+}
+
+body.dark .hub-nav-bar {
+    background: rgba(14, 20, 32, 0.92);
+    border-bottom: 1px solid rgba(10, 132, 255, 0.15);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Nav Left (Hospital Selector & Brand) */
+.hub-nav-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.hub-nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 800;
+    font-size: 0.95rem;
+    text-decoration: none;
+    color: #2C2C2E;
+    transition: opacity 0.2s ease;
+}
+
+body.dark .hub-nav-brand {
+    color: #F2F2F7;
+}
+
+.hub-nav-brand:hover {
+    opacity: 0.85;
+}
+
+.hub-nav-brand .brand-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #007AFF, #0A84FF);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+body.dark .hub-nav-brand .brand-icon {
+    background: linear-gradient(135deg, #0A84FF, #0062CC);
+    color: #000000;
+    box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3);
+}
+
+/* Hospital Selector Dropdown */
+.hospital-selector-wrap {
+    position: relative;
+}
+
+.hospital-selector-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    border: 1.5px solid #D1D1D6;
+    background: rgba(241, 245, 249, 0.7);
+    color: #2C2C2E;
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+body.dark .hospital-selector-btn {
+    border-color: rgba(10, 132, 255, 0.25);
+    background: rgba(255, 255, 255, 0.04);
+    color: #E5E5EA;
+}
+
+.hospital-selector-btn:hover {
+    border-color: #007AFF;
+    background: rgba(0, 122, 255, 0.08);
+}
+
+body.dark .hospital-selector-btn:hover {
+    border-color: #0A84FF;
+    background: rgba(10, 132, 255, 0.1);
+}
+
+.hospital-selector-btn i.fa-chevron-down {
+    font-size: 0.65rem;
+    opacity: 0.6;
+    transition: transform 0.2s ease;
+}
+
+.hospital-selector-wrap.open .hospital-selector-btn i.fa-chevron-down {
+    transform: rotate(180deg);
+}
+
+.hospital-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 250px;
+    background: #ffffff;
+    border: 1px solid #E5E5EA;
+    border-radius: 1.2rem;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+    padding: 0.5rem;
+    display: none;
+    z-index: 10001;
+    animation: hubDropdownFade 0.2s ease;
+}
+
+body.dark .hospital-dropdown-menu {
+    background: #141c2a;
+    border-color: rgba(10, 132, 255, 0.2);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+}
+
+.hospital-selector-wrap.open .hospital-dropdown-menu {
+    display: block;
+}
+
+@keyframes hubDropdownFade {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.hospital-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 0.8rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    color: #2C2C2E;
+    font-weight: 600;
+    font-size: 0.82rem;
+    text-decoration: none;
+}
+
+body.dark .hospital-dropdown-item {
+    color: #E5E5EA;
+}
+
+.hospital-dropdown-item:hover {
+    background: rgba(0, 122, 255, 0.08);
+}
+
+body.dark .hospital-dropdown-item:hover {
+    background: rgba(10, 132, 255, 0.1);
+}
+
+.hospital-dropdown-item.active {
+    background: #007AFF;
+    color: #ffffff;
+}
+
+body.dark .hospital-dropdown-item.active {
+    background: linear-gradient(135deg, #0A84FF, #0062CC);
+    color: #000000;
+}
+
+.hospital-dropdown-item .hosp-item-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.05);
+    font-size: 0.85rem;
+}
+
+.hospital-dropdown-item.active .hosp-item-icon {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Nav Center (Pages Links) */
+.hub-nav-center {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.hub-nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+    color: #8A8A8E;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+body.dark .hub-nav-link {
+    color: #AEAEB2;
+}
+
+.hub-nav-link:hover {
+    color: #2C2C2E;
+    background: rgba(0, 0, 0, 0.04);
+}
+
+body.dark .hub-nav-link:hover {
+    color: #F2F2F7;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.hub-nav-link.active {
+    background: #007AFF;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 122, 255, 0.25);
+}
+
+body.dark .hub-nav-link.active {
+    background: linear-gradient(135deg, #0A84FF, #0062CC);
+    color: #000000;
+    box-shadow: 0 4px 14px rgba(10, 132, 255, 0.25);
+}
+
+.hub-nav-link .lock-icon {
+    font-size: 0.65rem;
+    opacity: 0.7;
+}
+
+/* Nav Right (Role, Theme, Logout) */
+.hub-nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.role-badge.owner {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(10, 132, 255, 0.25));
+    border-color: rgba(10, 132, 255, 0.6);
+    color: #92400e;
+    box-shadow: 0 0 10px rgba(10, 132, 255, 0.2);
+    font-weight: 800;
+}
+
+body.dark .role-badge.owner {
+    background: linear-gradient(135deg, rgba(10, 132, 255, 0.3), rgba(245, 158, 11, 0.22));
+    border-color: rgba(10, 132, 255, 0.75);
+    color: #fef08a;
+    box-shadow: 0 0 14px rgba(10, 132, 255, 0.35);
+}
+
+.role-badge.admin {
+    background: rgba(0, 122, 255, 0.12);
+    border-color: rgba(0, 122, 255, 0.35);
+    color: #007AFF;
+    font-weight: 800;
+}
+
+body.dark .role-badge.admin {
+    background: rgba(100, 181, 255, 0.15);
+    border-color: rgba(100, 181, 255, 0.4);
+    color: #64B5FF;
+}
+
+.role-badge.anaesthesia {
+    background: rgba(10, 132, 255, 0.12);
+    border-color: rgba(10, 132, 255, 0.4);
+    color: #0A84FF;
+    font-weight: 800;
+}
+
+body.dark .role-badge.anaesthesia {
+    background: rgba(100, 181, 255, 0.18);
+    border-color: rgba(100, 181, 255, 0.45);
+    color: #80BDFF;
+}
+
+.role-badge.user {
+    background: rgba(59, 130, 246, 0.08);
+    border-color: rgba(59, 130, 246, 0.2);
+    color: #2563eb;
+}
+
+body.dark .role-badge.user {
+    color: #60a5fa;
+}
+
+.role-badge.guest {
+    background: rgba(138, 138, 142, 0.08);
+    border-color: rgba(138, 138, 142, 0.25);
+    color: #636366;
+}
+
+body.dark .role-badge.guest {
+    background: rgba(142, 142, 147, 0.1);
+    border-color: rgba(142, 142, 147, 0.25);
+    color: #AEAEB2;
+}
+
+.hub-nav-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid #D1D1D6;
+    background: rgba(241, 245, 249, 0.6);
+    color: #636366;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+body.dark .hub-nav-btn {
+    border-color: rgba(10, 132, 255, 0.2);
+    background: rgba(255, 255, 255, 0.04);
+    color: #AEAEB2;
+}
+
+.hub-nav-btn:hover {
+    border-color: #007AFF;
+    color: #007AFF;
+    transform: scale(1.05);
+}
+
+body.dark .hub-nav-btn:hover {
+    border-color: #0A84FF;
+    color: #0A84FF;
+}
+
+.hub-nav-btn.owner-key-btn {
+    border-color: rgba(217, 119, 6, 0.4);
+    background: rgba(217, 119, 6, 0.1);
+    color: #d97706;
+}
+.hub-nav-btn.owner-key-btn:hover {
+    border-color: #d97706;
+    background: #d97706;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
+}
+body.dark .hub-nav-btn.owner-key-btn {
+    border-color: rgba(10, 132, 255, 0.4);
+    background: rgba(10, 132, 255, 0.12);
+    color: #0A84FF;
+}
+body.dark .hub-nav-btn.owner-key-btn:hover {
+    border-color: #0A84FF;
+    background: linear-gradient(135deg, #0A84FF, #0062CC);
+    color: #000000;
+    box-shadow: 0 4px 12px rgba(10, 132, 255, 0.4);
+}
+
+.hub-btn-logout {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.06);
+    color: #ef4444;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.hub-btn-logout:hover {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+/* Mobile Toggle */
+.hub-mobile-toggle {
+    display: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid #D1D1D6;
+    background: transparent;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: #2C2C2E;
+}
+
+body.dark .hub-mobile-toggle {
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #E5E5EA;
+}
+
+/* Upgrade & Role Switcher Modal */
+.hub-modal-overlay,
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    direction: rtl;
+}
+
+.hub-modal-overlay.active,
+.modal-overlay.active {
+    display: flex;
+}
+
+.hub-modal-card,
+.modal-card {
+    background: #ffffff;
+    border-radius: 1.8rem;
+    padding: 1.75rem;
+    width: 100%;
+    max-width: 440px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+    border: 1px solid #E5E5EA;
+    text-align: right;
+    animation: hubModalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    direction: rtl;
+    box-sizing: border-box;
+}
+
+body.dark .hub-modal-card,
+body.dark .modal-card {
+    background: #141c2a;
+    border-color: rgba(10, 132, 255, 0.2);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+    color: #F9F9FB;
+}
+
+@keyframes hubModalIn {
+    from { opacity: 0; transform: scale(0.95) translateY(12px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.hub-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    border: 1.5px solid #D1D1D6;
+    background: rgba(248, 250, 252, 0.9);
+    font-size: 0.9rem;
+    font-weight: 600;
+    outline: none;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    box-sizing: border-box;
+    text-align: right;
+}
+body.dark .hub-input {
+    background: #0f1520;
+    border-color: #1f2937;
+    color: #F2F2F7;
+}
+.hub-input:focus {
+    border-color: #007AFF;
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+}
+body.dark .hub-input:focus {
+    border-color: #409CFF;
+    box-shadow: 0 0 0 3px rgba(64, 156, 255, 0.2);
+}
+
+/* Password Input & Eye Toggle in Upgrade Modal */
+.hub-password-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.hub-password-input {
+    width: 100%;
+    padding: 12px 46px 12px 16px;
+    border-radius: 12px;
+    border: 2px solid #D1D1D6;
+    background: #ffffff;
+    color: #1C1C1E !important;
+    -webkit-text-fill-color: #1C1C1E !important;
+    font-size: 1.05rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace, -apple-system, sans-serif;
+    outline: none;
+    text-align: center;
+    direction: ltr;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.hub-password-input::placeholder {
+    color: #8A8A8E;
+    font-weight: 500;
+    font-size: 0.88rem;
+}
+
+.hub-password-input:focus {
+    border-color: #007AFF;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
+}
+
+body.dark .hub-password-input {
+    border-color: rgba(10, 132, 255, 0.35);
+    background: #2C2C2E;
+    color: #F9F9FB !important;
+    -webkit-text-fill-color: #F9F9FB !important;
+}
+
+body.dark .hub-password-input::placeholder {
+    color: #AEAEB2;
+}
+
+body.dark .hub-password-input:focus {
+    border-color: #0A84FF;
+    background: #1C1C1E;
+    box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.25);
+}
+
+.hub-password-eye-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    color: #8A8A8E;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+    padding: 0;
+    transition: all 0.2s ease;
+    z-index: 2;
+}
+
+.hub-password-eye-btn:hover {
+    color: #007AFF;
+    background: rgba(0, 122, 255, 0.1);
+}
+
+body.dark .hub-password-eye-btn {
+    color: #AEAEB2;
+}
+
+body.dark .hub-password-eye-btn:hover {
+    color: #0A84FF;
+    background: rgba(10, 132, 255, 0.15);
+}
+
+@keyframes shakeError {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+}
+
+.shake-error {
+    animation: shakeError 0.4s ease-in-out;
+    border-color: #ef4444 !important;
+}
+
+@media (max-width: 900px) {
+    .hub-nav-center {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #ffffff;
+        flex-direction: column;
+        padding: 0.8rem 1rem;
+        border-bottom: 1px solid #E5E5EA;
+        border-radius: 0 0 1.25rem 1.25rem;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
+        gap: 0.45rem;
+        animation: mobileMenuSlide 0.25s ease;
+    }
+
+    @keyframes mobileMenuSlide {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    body.dark .hub-nav-center {
+        background: #101622;
+        border-color: rgba(10, 132, 255, 0.18);
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+    }
+
+    .hub-nav-bar.menu-open .hub-nav-center {
+        display: flex;
+    }
+
+    .hub-nav-link {
+        width: 100%;
+        justify-content: flex-start;
+        padding: 0.75rem 1rem;
+        min-height: 46px;
+        font-size: 0.86rem;
+        border-radius: 12px;
+    }
+
+    .hub-mobile-toggle {
+        display: flex;
+    }
+
+    .hub-nav-brand span.brand-text {
+        display: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .hub-nav-bar {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: calc(0.55rem + env(safe-area-inset-top, 0px)) 1.25rem 0.55rem;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.92);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
+    direction: rtl;
+}
+    .role-badge {
+        padding: 0.35rem 0.65rem;
+        font-size: 0.7rem;
+    }
+    .role-badge span {
+        max-width: 85px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .hub-btn-logout {
+        padding: 0.35rem 0.55rem;
+    }
+    .hub-btn-logout span {
+        display: none;
+    }
+    .hub-nav-btn {
+        width: 34px;
+        height: 34px;
+        font-size: 0.9rem;
+    }
+    .hub-modal-card {
+        max-width: calc(100vw - 24px) !important;
+        padding: 1.25rem 1rem !important;
+        border-radius: 1.4rem !important;
+    }
+    #hub-passwords-modal .hub-modal-card {
+        max-width: calc(100vw - 24px) !important;
+        padding: 1.25rem 1rem !important;
+    }
+}
+
+
+/* Tactile Active States for Buttons & Navigation */
+.hub-nav-link:active, .hub-nav-btn:active, .hospital-selector-btn:active, .role-badge:active, .hub-btn-logout:active {
+    transform: scale(0.96);
+    transition: transform 0.15s ease;
+}
+
+/* Universal Floating Bottom Navigation Dock (Standard across ALL pages and screen sizes) */
+.hub-mobile-bottom-dock, .ios-bottom-dock {
+    position: fixed;
+    bottom: max(10px, env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9998;
+    width: calc(100% - 16px);
+    max-width: 560px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(24px) saturate(190%);
+    -webkit-backdrop-filter: blur(24px) saturate(190%);
+    border-radius: 999px;
+    border: 1px solid rgba(226, 232, 240, 0.85);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 3px 6px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    direction: rtl;
+}
+
+body.dark .hub-mobile-bottom-dock, body.dark .ios-bottom-dock {
+    background: rgba(14, 20, 32, 0.94);
+    border: 1px solid rgba(10, 132, 255, 0.18);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(10, 132, 255, 0.08);
+}
+
+.hub-mobile-bottom-dock .dock-tab-btn, .ios-bottom-dock .dock-tab-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 4px 4px;
+    border-radius: 999px;
+    color: #8A8A8E;
+    text-decoration: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.62rem;
+    font-weight: 700;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    flex: 1;
+    min-width: 0;
+}
+
+body.dark .hub-mobile-bottom-dock .dock-tab-btn, body.dark .ios-bottom-dock .dock-tab-btn {
+    color: #AEAEB2;
+}
+
+.hub-mobile-bottom-dock .dock-tab-btn:hover, .ios-bottom-dock .dock-tab-btn:hover {
+    color: #007AFF;
+    background: rgba(0, 122, 255, 0.06);
+}
+
+body.dark .hub-mobile-bottom-dock .dock-tab-btn:hover, body.dark .ios-bottom-dock .dock-tab-btn:hover {
+    color: #0A84FF;
+    background: rgba(10, 132, 255, 0.08);
+}
+
+.hub-mobile-bottom-dock .dock-tab-btn i, .ios-bottom-dock .dock-tab-btn i {
+    font-size: 1rem;
+}
+
+.hub-mobile-bottom-dock .dock-tab-btn span, .ios-bottom-dock .dock-tab-btn span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.hub-mobile-bottom-dock .dock-tab-btn.active, .ios-bottom-dock .dock-tab-btn.active {
+    color: #007AFF;
+    background: rgba(0, 122, 255, 0.12);
+}
+
+body.dark .hub-mobile-bottom-dock .dock-tab-btn.active, body.dark .ios-bottom-dock .dock-tab-btn.active {
+    color: #0A84FF;
+    background: rgba(10, 132, 255, 0.15);
+}
+
+.hub-mobile-bottom-dock .dock-tab-btn:active, .ios-bottom-dock .dock-tab-btn:active {
+    transform: scale(0.92);
+}
+
+/* Ensure body has comfortable bottom clearance across all devices */
+body {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* 3D Tactile Sub-Page Flip Animation for Cards & Grids */
+@keyframes subpageFlipForward {
+    0% {
+        opacity: 0;
+        transform: perspective(1200px) rotateY(-14deg) translateX(25px) scale(0.98);
+    }
+    60% {
+        transform: perspective(1200px) rotateY(2deg) translateX(-4px) scale(1.005);
+    }
+    100% {
+        opacity: 1;
+        transform: perspective(1200px) rotateY(0deg) translateX(0) scale(1);
+    }
+}
+
+@keyframes subpageFlipBackward {
+    0% {
+        opacity: 0;
+        transform: perspective(1200px) rotateY(14deg) translateX(-25px) scale(0.98);
+    }
+    60% {
+        transform: perspective(1200px) rotateY(-2deg) translateX(4px) scale(1.005);
+    }
+    100% {
+        opacity: 1;
+        transform: perspective(1200px) rotateY(0deg) translateX(0) scale(1);
+    }
+}
+
+.subpage-flipping-forward {
+    animation: subpageFlipForward 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transform-origin: center right;
+}
+
+.subpage-flipping-backward {
+    animation: subpageFlipBackward 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transform-origin: center left;
+}
+
+/* ============================================================
+   SEAMLESS APP VIEW TRANSITIONS & PERSISTENT SHELL
+   ============================================================ */
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-group(root) {
+    animation-duration: 0.22s;
+}
+
+::view-transition-old(root) {
+    animation: 0.18s ease-out both hubFadeOut;
+}
+
+::view-transition-new(root) {
+    animation: 0.22s ease-in both hubFadeIn;
+}
+
+@keyframes hubFadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-3px); }
+}
+
+@keyframes hubFadeIn {
+    from { opacity: 0; transform: translateY(3px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Pin the navigation elements so they stay fixed across pages without reload flicker */
+.hub-nav-bar {
+    view-transition-name: hub-top-nav-bar;
+}
+
+.hub-mobile-bottom-dock {
+    view-transition-name: hub-bottom-app-dock;
+}
+
+/* Seamless Top Loading Progress Indicator */
+#hub-nav-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    z-index: 999999;
+    background: linear-gradient(90deg, #0A84FF, #409CFF, #0A84FF);
+    transform: scaleX(0);
+    transform-origin: 100% 50%; /* RTL orientation */
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+    opacity: 0;
+    pointer-events: none;
+}
+#hub-nav-progress.loading {
+    opacity: 1;
+    transform: scaleX(0.75);
+}
+#hub-nav-progress.done {
+    opacity: 1;
+    transform: scaleX(1);
+    transition: transform 0.1s ease, opacity 0.25s ease 0.12s;
+}
+
+/* ============================================================
+   HIGH-CONTRAST ROLE SWITCHER & PASSWORDS MODAL STYLES
+   ============================================================ */
+#role-switcher-modal.modal-overlay,
+#hub-passwords-modal.hub-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+#role-switcher-modal.modal-overlay.active,
+#hub-passwords-modal.hub-modal-overlay.active {
+    display: flex !important;
+}
+
+.hub-modal-card {
+    background: #ffffff !important;
+    border: 1.5px solid #D1D1D6 !important;
+    border-radius: 20px !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.18) !important;
+    color: #1C1C1E !important;
+    max-width: 440px;
+    width: 100%;
+    text-align: right;
+}
+body.dark .hub-modal-card,
+html.dark .hub-modal-card {
+    background: #131c2e !important;
+    border-color: rgba(10, 132, 255, 0.25) !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75) !important;
+    color: #F9F9FB !important;
+}
+
+.hub-role-current-banner {
+    background: #F2F2F7 !important;
+    border: 1px solid #E5E5EA !important;
+    border-radius: 14px !important;
+    padding: 10px 14px !important;
+}
+body.dark .hub-role-current-banner,
+html.dark .hub-role-current-banner {
+    background: #2C2C2E !important;
+    border-color: #48484A !important;
+}
+
+.switcher-role-card {
+    border: 1.5px solid #D1D1D6 !important;
+    border-radius: 16px !important;
+    padding: 12px 14px !important;
+    background: #ffffff !important;
+    cursor: pointer !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+}
+.switcher-role-card:hover {
+    border-color: #AEAEB2 !important;
+    background: #F9F9FB !important;
+    transform: translateY(-1px);
+}
+body.dark .switcher-role-card,
+html.dark .switcher-role-card {
+    background: #2C2C2E !important;
+    border: 1.5px solid #48484A !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+}
+body.dark .switcher-role-card:hover,
+html.dark .switcher-role-card:hover {
+    background: #243046 !important;
+    border-color: #636366 !important;
+}
+
+.switcher-role-card .role-title {
+    font-size: 0.88rem !important;
+    font-weight: 800 !important;
+    margin: 0 !important;
+    color: #1C1C1E !important;
+}
+body.dark .switcher-role-card .role-title,
+html.dark .switcher-role-card .role-title {
+    color: #ffffff !important;
+}
+
+.switcher-role-card .role-desc {
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+    margin: 3px 0 0 !important;
+    color: #636366 !important;
+}
+body.dark .switcher-role-card .role-desc,
+html.dark .switcher-role-card .role-desc {
+    color: #D1D1D6 !important;
+}
+
+#card-role-owner,
+.switcher-role-card.role-card-owner {
+    display: none !important;
+}
+
+.switcher-role-card.role-card-owner.is-active-role {
+    border-color: #d97706 !important;
+    box-shadow: 0 0 0 2px #d97706, 0 4px 14px rgba(217, 119, 6, 0.25) !important;
+}
+.switcher-role-card.role-card-admin.is-active-role {
+    border-color: #007AFF !important;
+    box-shadow: 0 0 0 2px #007AFF, 0 4px 14px rgba(0, 122, 255, 0.25) !important;
+}
+.switcher-role-card.role-card-anaesthesia.is-active-role {
+    border-color: #0A84FF !important;
+    box-shadow: 0 0 0 2px #0A84FF, 0 4px 14px rgba(10, 132, 255, 0.25) !important;
+}
+.switcher-role-card.role-card-user.is-active-role {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px #3b82f6, 0 4px 14px rgba(59, 130, 246, 0.25) !important;
+}
+
+
+.hub-role-input {
+    width: 100% !important;
+    padding: 9px 12px !important;
+    border-radius: 10px !important;
+    border: 1.5px solid #D1D1D6 !important;
+    background: #ffffff !important;
+    color: #1C1C1E !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    outline: none !important;
+    transition: all 0.2s ease !important;
+}
+.hub-role-input:focus {
+    border-color: #007AFF !important;
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15) !important;
+}
+body.dark .hub-role-input,
+html.dark .hub-role-input {
+    background: #1C1C1E !important;
+    border-color: #48484A !important;
+    color: #F9F9FB !important;
+}
+body.dark .hub-role-input:focus,
+html.dark .hub-role-input:focus {
+    border-color: #0A84FF !important;
+    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2) !important;
+}
+
+/* Password Modal Pulse Animation & Scope Badge */
+.pwd-pulse-active {
+    box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.45) !important;
+    background-color: #fef3c7 !important;
+    transition: all 0.25s ease !important;
+}
+body.dark .pwd-pulse-active,
+html.dark .pwd-pulse-active {
+    background-color: #451a03 !important;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.5) !important;
+}
+
+#hub-pwd-scope-badge {
+    transition: all 0.25s ease;
+}
+body.dark #hub-pwd-scope-badge {
+    color: #f59e0b !important;
+    background: rgba(245, 158, 11, 0.12) !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
+}

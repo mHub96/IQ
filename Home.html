@@ -1,0 +1,3237 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <script src="./storage-scope.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <title>الخفراء اليوم · Duty Roster 🇮🇶</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@600;700;800;900&family=Cairo:wght@700;800;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700&family=Readex+Pro:wght@600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
+    <link rel="stylesheet" href="./nav-component.css" />
+    <link rel="stylesheet" href="./hub-accounts.css" />
+    <script src="./pwa.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            direction: rtl;
+            text-align: right;
+            min-height: 100vh;
+            padding: 0;
+            transition: background 0.6s ease, color 0.4s ease;
+            overflow-x: hidden;
+        }
+        body.light {
+            background: #d1d9e6;
+            color: #1a2332;
+        }
+        body.dark {
+            background: #000000;
+            color: #e8edf5;
+        }
+
+        body.dark::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.08;
+            background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.25'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-size: 120px 120px;
+        }
+
+        .glass-card {
+            border-radius: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        body.light .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+        }
+        body.dark .glass-card {
+            background: rgba(16, 22, 34, 0.82);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(10, 132, 255, 0.12);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Hospital Header */
+        .hospital-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 0.55rem;
+            padding: 1.25rem 0 1.1rem;
+            margin: 0.3rem 0 0.8rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .hospital-header::before {
+            content: '';
+            position: absolute;
+            right: 15%;
+            bottom: 0;
+            left: 15%;
+            height: 1px;
+            background: rgba(16, 185, 129, 0.32);
+        }
+        .hospital-mark {
+            width: 5rem;
+            height: 5rem;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            font-size: 2rem;
+            color: #ffffff;
+            background: #007AFF;
+            box-shadow: 0 0 0 8px rgba(0, 122, 255, 0.1), 0 12px 26px rgba(0, 122, 255, 0.24);
+            transition: background 0.6s ease, box-shadow 0.6s ease, transform 0.3s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+        body.dark .hospital-mark {
+            background: #0A84FF;
+            color: #000000;
+            box-shadow: 0 0 0 8px rgba(10, 132, 255, 0.15), 0 12px 26px rgba(10, 132, 255, 0.25);
+        }
+
+        /* Golden Shimmer Animation for Easter Egg */
+        @keyframes shimmer-golden {
+            0% {
+                box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4), 0 12px 26px rgba(0, 122, 255, 0.24);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 40px 20px rgba(251, 191, 36, 0.6), 0 12px 30px rgba(251, 191, 36, 0.3);
+                transform: scale(1.08);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4), 0 12px 26px rgba(0, 122, 255, 0.24);
+                transform: scale(1);
+            }
+        }
+        .hospital-mark.shimmer-golden {
+            animation: shimmer-golden 0.8s ease 2;
+        }
+
+        /* Playful Wiggle Animation on Logo Press (Easter Egg) */
+        @keyframes logo-wiggle {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            20% { transform: rotate(-14deg) scale(1.08); }
+            40% { transform: rotate(12deg) scale(1.1); }
+            60% { transform: rotate(-8deg) scale(1.06); }
+            80% { transform: rotate(5deg) scale(1.03); }
+        }
+        .hospital-mark.wiggle {
+            animation: logo-wiggle 0.38s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+        }
+
+        .hospital-header-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            min-width: 0;
+        }
+
+        .hospital-title {
+            font-family: 'Alexandria', 'Cairo', 'Readex Pro', 'Playfair Display', 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: clamp(1.8rem, 4.2vw, 2.85rem);
+            font-weight: 800;
+            line-height: 1.3;
+            letter-spacing: normal;
+            margin: 0.25rem 0 0.35rem;
+            word-break: break-word;
+        }
+        body.light .hospital-title {
+            color: #172554;
+        }
+        body.dark .hospital-title {
+            color: #F9F9FB;
+        }
+        .hospital-eyebrow {
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #007AFF;
+            margin-bottom: 0.15rem;
+        }
+        body.dark .hospital-eyebrow {
+            color: #0A84FF;
+        }
+        .hospital-subtitle {
+            color: #8A8A8E;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-top: 0.2rem;
+        }
+        body.dark .hospital-subtitle {
+            color: #a8b3c9;
+        }
+
+        /* Top Action Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .theme-toggle-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1.5px solid #D1D1D6;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #ffffff;
+            color: #1C1C1E;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+        body.dark .theme-toggle-btn {
+            background: rgba(10, 132, 255, 0.08);
+            border-color: rgba(10, 132, 255, 0.25);
+            color: #fcd34d;
+            box-shadow: none;
+        }
+
+        .top-action-btn {
+            border-radius: 1.2rem;
+            padding: 0.5rem 1.2rem;
+            font-size: 0.65rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid;
+            background: #4f46e5;
+            border-color: #4338ca;
+            color: white;
+        }
+        body.dark .top-action-btn {
+            background: rgba(79, 70, 229, 0.15);
+            border-color: rgba(79, 70, 229, 0.25);
+            color: #a5b4fc;
+        }
+        .top-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.2);
+        }
+        .top-action-btn.leader {
+            background: #d97706;
+            border-color: #b45309;
+            color: white;
+        }
+        body.dark .top-action-btn.leader {
+            background: rgba(217, 119, 6, 0.15);
+            border-color: rgba(217, 119, 6, 0.2);
+            color: #fcd34d;
+        }
+        .top-action-btn.report {
+            background: #2563eb;
+            border-color: #1d4ed8;
+            color: white;
+        }
+        body.dark .top-action-btn.report {
+            background: rgba(37, 99, 235, 0.15);
+            border-color: rgba(37, 99, 235, 0.2);
+            color: #93c5fd;
+        }
+        .top-action-btn.reset {
+            background: #dc2626;
+            border-color: #b91c1c;
+            color: white;
+        }
+        body.dark .top-action-btn.reset {
+            background: rgba(220, 38, 38, 0.15);
+            border-color: rgba(220, 38, 38, 0.2);
+            color: #fca5a5;
+        }
+
+        .btn-ghost {
+            border-radius: 1.2rem;
+            padding: 0.5rem 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid;
+            font-size: 0.75rem;
+        }
+        body.light .btn-ghost {
+            background: rgba(255, 255, 255, 0.5);
+            border-color: rgba(0, 0, 0, 0.08);
+            color: #1a2332;
+        }
+        body.dark .btn-ghost {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(10, 132, 255, 0.12);
+            color: #f0f3f8;
+        }
+
+        .current-time-bubble {
+            direction: ltr !important;
+            text-align: left;
+            font-size: 0.76rem;
+            padding: 0.35rem 1.15rem;
+            border-radius: 999px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(10, 132, 255, 0.15);
+            background: linear-gradient(135deg, rgba(254, 243, 199, 0.95), rgba(253, 230, 138, 0.95));
+            color: #78350f;
+            border: 1.5px solid #fde68a;
+        }
+        body.dark .current-time-bubble {
+            background: linear-gradient(135deg, rgba(10, 132, 255, 0.18), rgba(184, 148, 46, 0.12));
+            color: #0A84FF;
+            border-color: rgba(10, 132, 255, 0.35);
+            box-shadow: 0 2px 12px rgba(10, 132, 255, 0.2);
+        }
+
+        .counter-badge {
+            font-size: 0.68rem;
+            padding: 0.3rem 0.9rem;
+            border-radius: 100px;
+            font-weight: 700;
+            display: inline-block;
+            border: 1px solid;
+            transition: all 0.3s ease;
+        }
+        body.light .counter-badge {
+            background: #e0f2fe;
+            color: #0369a1;
+            border-color: #bae6fd;
+        }
+        body.dark .counter-badge {
+            background: rgba(10, 132, 255, 0.12);
+            color: #0A84FF;
+            border-color: rgba(10, 132, 255, 0.2);
+        }
+
+        /* Nav Row with Secret Unlock Buttons */
+        .nav-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem 0.6rem;
+            padding: 0.4rem 0.6rem;
+            margin: 0.4rem auto 1rem auto;
+            max-width: 700px;
+            border-radius: 2.5rem;
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.9rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-decoration: none;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            backdrop-filter: blur(2px);
+        }
+        body.light .nav-btn {
+            background: #ffffff;
+            color: #1C1C1E;
+            border: 1.5px solid #D1D1D6;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        body.light .nav-btn i {
+            color: #007AFF;
+        }
+        body.dark .nav-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: #e8edf5;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        body.dark .nav-btn i {
+            color: #0A84FF;
+        }
+        .nav-btn.locked {
+            opacity: 0.35;
+            pointer-events: none;
+            filter: grayscale(0.6);
+            cursor: default;
+        }
+        .nav-btn:hover:not(.locked):not(.disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .nav-btn.disabled {
+            opacity: 0.65;
+            cursor: not-allowed !important;
+            filter: grayscale(0.25);
+            position: relative;
+        }
+        .nav-btn.disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        body.light .nav-btn.disabled {
+            background: #F2F2F7;
+            color: #8A8A8E;
+            border-color: #D1D1D6;
+        }
+        body.light .nav-btn.disabled i {
+            color: #AEAEB2;
+        }
+        body.dark .nav-btn.disabled {
+            background: rgba(255, 255, 255, 0.03);
+            color: #AEAEB2;
+            border-color: rgba(255, 255, 255, 0.06);
+        }
+        body.dark .nav-btn.disabled i {
+            color: #8A8A8E;
+        }
+        .nav-btn .badge-soon {
+            display: inline-flex;
+            align-items: center;
+            padding: 1px 6px;
+            font-size: 0.62rem;
+            font-weight: 800;
+            border-radius: 9999px;
+            background: linear-gradient(135deg, #ef4444, #f97316);
+            color: #ffffff;
+            margin-right: 4px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 5px rgba(239, 68, 68, 0.3);
+            text-transform: uppercase;
+            line-height: 1.2;
+            vertical-align: middle;
+        }
+        .nav-row .sep {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: rgba(128, 128, 128, 0.4);
+            display: inline-block;
+            margin: 0 2px;
+        }
+
+        /* Trending Resident Panel with Inverted Spotlight Theme (Night in Day, Day in Night) */
+        .trending-panel {
+            border-radius: 1.8rem;
+            padding: 1.1rem 1.5rem 0.9rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.35rem;
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+            margin-bottom: 1.2rem;
+            cursor: pointer;
+            position: relative;
+            min-height: 80px;
+            border: 1.5px solid;
+        }
+        /* Day Mode Page -> Trending Card has Night Theme (Dark Obsidian VIP) */
+        body.light .trending-panel {
+            background: #1C1C1E;
+            border-color: rgba(10, 132, 255, 0.45);
+            box-shadow: 0 14px 38px rgba(0, 0, 0, 0.25), 0 0 25px rgba(10, 132, 255, 0.15);
+            color: #F9F9FB;
+        }
+        /* Night Mode Page -> Trending Card has Day Theme (Luminous Bright Spotlight) */
+        body.dark .trending-panel {
+            background: #ffffff;
+            border-color: rgba(10, 132, 255, 0.65);
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(255, 255, 255, 0.1);
+            color: #1C1C1E;
+        }
+        .trending-panel:hover {
+            transform: translateY(-2px);
+            border-color: rgba(10, 132, 255, 0.8);
+        }
+        .trending-panel:active {
+            transform: scale(0.98);
+            transition-duration: 0.08s;
+        }
+        .trending-top {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            width: 100%;
+            padding: 0.1rem 0;
+        }
+        .trending-badge-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 1.2rem 0.25rem 0.9rem;
+            border-radius: 100px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: none;
+            animation: flutter 1.8s ease-in-out infinite;
+            transform-origin: center;
+            user-select: none;
+            line-height: 1.5;
+            white-space: nowrap;
+            letter-spacing: 0.02em;
+            position: relative;
+        }
+        .trending-badge-btn:hover {
+            transform: scale(1.04);
+        }
+        .trending-badge-btn:active {
+            transform: scale(0.94);
+            transition-duration: 0.08s;
+        }
+        .trending-badge-btn i {
+            font-size: 0.85rem;
+        }
+        .trending-badge-btn.flutter-stopped {
+            animation: none !important;
+        }
+        @keyframes flutter {
+            0%, 100% { transform: rotate(-1deg) scale(1); }
+            25% { transform: rotate(2deg) scale(1.03); }
+            50% { transform: rotate(-2deg) scale(0.97); }
+            75% { transform: rotate(1deg) scale(1.02); }
+        }
+        body.light .trending-badge-btn {
+            background: linear-gradient(180deg, #FDE047, #F59E0B);
+            color: #000000;
+            box-shadow: 0 3px 0 #B45309, 0 4px 16px rgba(251, 191, 36, 0.35);
+            border: 1px solid #FEF08A;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        body.dark .trending-badge-btn {
+            background: linear-gradient(180deg, #d97706, #b45309);
+            color: #ffffff;
+            box-shadow: 0 3px 0 #78350f, 0 4px 12px rgba(180, 83, 9, 0.3);
+            border: 1px solid #f59e0b;
+            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+        }
+        .trending-stats {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.15rem 0.8rem;
+            border-radius: 100px;
+            white-space: nowrap;
+            border: 1px solid;
+        }
+        body.light .trending-stats {
+            color: #fcd34d;
+            background: rgba(251, 191, 36, 0.15);
+            border-color: rgba(251, 191, 36, 0.35);
+        }
+        body.dark .trending-stats {
+            color: #b45309;
+            background: rgba(251, 191, 36, 0.2);
+            border-color: rgba(251, 191, 36, 0.45);
+        }
+        .trending-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.05rem;
+            text-align: center;
+            padding: 0.15rem 0;
+            width: 100%;
+        }
+        .trending-name {
+            font-size: 1.5rem;
+            font-weight: 800;
+            line-height: 1.3;
+            letter-spacing: 0.01em;
+        }
+        body.light .trending-name { color: #F9F9FB !important; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); }
+        body.dark .trending-name { color: #1C1C1E !important; font-weight: 800; }
+        .trending-spec {
+            font-size: 0.82rem;
+            font-weight: 600;
+            opacity: 0.95;
+        }
+        body.light .trending-spec { color: #D1D1D6 !important; }
+        body.dark .trending-spec { color: #48484A !important; }
+
+        /* Roster Grid & 3D Tilt Cards */
+        .roster-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding: 0.2rem 0;
+        }
+        .roster-card-wrapper {
+            max-width: 480px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .roster-card {
+            border-radius: 1.5rem;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid;
+            gap: 0;
+            position: relative;
+            overflow: hidden;
+            cursor: default;
+            transform: translateY(0) scale(1) perspective(600px) rotateX(0) rotateY(0);
+            box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.06), -8px -8px 18px rgba(255, 255, 255, 0.8), 0 4px 0 rgba(0, 0, 0, 0.02), 0 8px 24px rgba(0, 0, 0, 0.02), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            will-change: transform;
+            min-height: 168px;
+            width: 100%;
+            background: transparent;
+            border-color: transparent;
+        }
+        body.light .roster-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1.5px solid rgba(200, 210, 220, 0.6);
+            box-shadow: 0 8px 26px rgba(0, 0, 0, 0.07), 0 2px 6px rgba(0, 0, 0, 0.03);
+        }
+        body.dark .roster-card {
+            background: rgba(14, 20, 32, 0.94);
+            border: 1px solid rgba(10, 132, 255, 0.12);
+            box-shadow: 12px 12px 28px rgba(0, 0, 0, 0.7), -10px -10px 24px rgba(255, 255, 255, 0.02), 0 5px 0 rgba(0, 0, 0, 0.5), 0 0 50px rgba(10, 132, 255, 0.01), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+        }
+        body.light .roster-card.clone-card {
+            background: linear-gradient(150deg, #f8faff 0%, #edf2fc 100%);
+            border: 1.5px solid rgba(147, 165, 207, 0.75);
+            box-shadow: 0 10px 28px rgba(79, 70, 229, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        body.dark .roster-card.clone-card {
+            background: linear-gradient(150deg, #121729 0%, #1a1a36 100%);
+            border: 1px solid rgba(167, 139, 250, 0.32);
+            box-shadow: 12px 12px 28px rgba(0, 0, 0, 0.75), 0 0 35px rgba(129, 140, 248, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+        .clone-parent-title {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 0.45rem;
+            margin-top: 0.1rem;
+        }
+        .clone-parent-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.22rem 0.85rem;
+            border-radius: 9999px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            transition: all 0.2s ease;
+        }
+        body.light .clone-parent-badge {
+            background: rgba(79, 70, 229, 0.08);
+            color: #4338ca;
+            border: 1px solid rgba(99, 102, 241, 0.28);
+        }
+        body.dark .clone-parent-badge {
+            background: rgba(129, 140, 248, 0.12);
+            color: #c7d2fe;
+            border: 1px solid rgba(165, 180, 252, 0.25);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.15);
+        }
+        .roster-card .card-body {
+            padding: 1.25rem 1.25rem 1.15rem;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 0.15rem;
+            position: relative;
+        }
+        .roster-card .resident-name {
+            font-weight: 800;
+            font-size: clamp(1.4rem, 4.2vw, 1.65rem);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+            gap: 0.3rem;
+            margin: 0.15rem auto 0.05rem;
+            padding: 0.05rem 0;
+            line-height: 1.3;
+        }
+        body.light .roster-card .resident-name { color: #1C1C1E !important; font-weight: 800; }
+        body.dark .roster-card .resident-name { color: #ffffff !important; font-weight: 800; }
+        .roster-card .resident-phone {
+            font-size: 0.88rem;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            direction: ltr;
+            unicode-bidi: isolate;
+            text-align: center;
+            margin: 0 auto 0.75rem auto;
+            letter-spacing: 0.05em;
+        }
+        body.light .roster-card .resident-phone { color: #636366 !important; opacity: 0.9; }
+        body.dark .roster-card .resident-phone { color: #AEAEB2 !important; opacity: 0.85; }
+
+        /* Specialty Bubbles & Smooth Flip Flip Clock */
+        .roster-card .specialty-bubbles {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            column-gap: 0.6rem;
+            row-gap: 0.6rem;
+            justify-content: center;
+            margin: 0 auto 0.45rem auto;
+            width: 100%;
+            max-width: 88%;
+        }
+        .roster-card .specialty-flip {
+            display: inline-grid;
+            border: none;
+            padding: 0;
+            background: transparent;
+            cursor: pointer;
+            perspective: 700px;
+            position: relative;
+            touch-action: manipulation;
+            overflow: visible;
+            flex: 0 0 auto;
+            isolation: isolate;
+            will-change: width, transform;
+            transition: transform 0.2s ease, filter 0.2s ease, width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+            min-width: auto;
+        }
+        .roster-card .specialty-bubble {
+            font-size: 0.88rem;
+            font-weight: 700;
+            padding: 0.32rem 0.95rem;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            border: 2px solid;
+            background: rgba(10, 132, 255, 0.06);
+            border-color: rgba(10, 132, 255, 0.12);
+            color: #0A84FF;
+            line-height: 1.35;
+            min-height: 32px;
+            white-space: nowrap;
+            overflow: hidden;
+            grid-area: 1 / 1;
+            backface-visibility: hidden;
+            transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+            width: auto;
+            min-width: max-content;
+        }
+        .roster-card .specialty-back {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: row-reverse;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            transform: rotateY(180deg);
+            font-family: 'JetBrains Mono', monospace;
+            direction: ltr;
+            color: #10b981;
+            white-space: nowrap;
+            overflow: visible;
+            border-radius: inherit;
+            clip-path: inset(0 round 999px);
+            padding: 0.15rem 0.6rem;
+            background: rgba(16, 185, 129, 0.08);
+            border: 2px solid #10b981;
+            backface-visibility: hidden;
+            width: auto;
+            min-width: max-content;
+        }
+        .roster-card .specialty-flip.flipped .specialty-front {
+            transform: rotateY(-180deg);
+        }
+        .roster-card .specialty-flip.flipped .specialty-back {
+            transform: rotateY(0);
+        }
+        .roster-card .specialty-timer-label {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            font-size: 0.64rem;
+            direction: rtl;
+        }
+        body.light .roster-card .specialty-bubble {
+            background: #eff6ff;
+            color: #1d4ed8 !important;
+            border-color: #bfdbfe;
+        }
+        body.dark .roster-card .specialty-bubble {
+            color: #0A84FF !important;
+            border-color: rgba(10, 132, 255, 0.15);
+            background: rgba(10, 132, 255, 0.04);
+        }
+
+        /* Golden Specialty Bubbles for Multi-Specialty Residents */
+        .roster-card .specialty-bubble.specialty-gold,
+        .roster-card .specialty-flip.multiple .specialty-bubble,
+        body.light .roster-card .specialty-bubble.specialty-gold,
+        body.light .roster-card .specialty-flip.multiple .specialty-bubble,
+        body.dark .roster-card .specialty-bubble.specialty-gold,
+        body.dark .roster-card .specialty-flip.multiple .specialty-bubble {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+            color: #1C1C1E !important;
+            border: 1px solid #d97706 !important;
+            box-shadow: 0 3px 12px rgba(245, 158, 11, 0.38) !important;
+            font-weight: 800 !important;
+        }
+        .roster-card .specialty-bubble.specialty-gold .specialty-timer-label,
+        .roster-card .specialty-flip.multiple .specialty-timer-label {
+            color: #2C2C2E !important;
+            font-weight: 700;
+        }
+        .roster-card .specialty-bubble.specialty-gold .countdown-timer,
+        .roster-card .specialty-flip.multiple .countdown-timer {
+            color: #000000 !important;
+            font-weight: 900;
+        }
+
+        /* --- Divider --- */
+        .roster-card .divider {
+            width: 50%;
+            height: 1px;
+            background: rgba(10, 132, 255, 0.06);
+            margin: 0.1rem auto;
+            border-radius: 10px;
+        }
+        body.light .roster-card .divider {
+            background: rgba(0, 0, 0, 0.06);
+        }
+
+        /* --- Action Buttons: one row; [like][comment] | [WhatsApp][Call], all 40px tall --- */
+        .card-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 0.45rem;
+            width: 100%;
+        }
+        .roster-card .action-btn-sm {
+            flex: 1 1 0;
+            min-width: 0;
+            min-height: 40px;
+            padding: 0 0.75rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            line-height: 1;
+            white-space: nowrap;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .roster-card .action-btn-sm:active { transform: scale(0.97); }
+        .roster-card .action-btn-sm i { font-size: 0.95rem; }
+        .roster-card .action-btn-sm.wa { color: #047857; background: rgba(5, 150, 105, 0.09); border-color: rgba(5, 150, 105, 0.22); }
+        .roster-card .action-btn-sm.call { color: #1d4ed8; background: rgba(37, 99, 235, 0.08); border-color: rgba(37, 99, 235, 0.2); }
+        @media (hover: hover) {
+            .roster-card .action-btn-sm.wa:hover { background: rgba(5, 150, 105, 0.15); }
+            .roster-card .action-btn-sm.call:hover { background: rgba(37, 99, 235, 0.14); }
+        }
+        body.dark .roster-card .action-btn-sm.wa { color: #6ee7b7; background: rgba(52, 211, 153, 0.1); border-color: rgba(52, 211, 153, 0.22); }
+        body.dark .roster-card .action-btn-sm.call { color: #93c5fd; background: rgba(96, 165, 250, 0.1); border-color: rgba(96, 165, 250, 0.22); }
+        .roster-card .action-btn-sm.opacity-40 {
+            opacity: 0.35;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        /* Status Badges */
+        .roster-card .card-status {
+            position: absolute;
+            top: 1.1rem;
+            left: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.28rem 0.65rem 0.28rem 0.65rem;
+            border: 1px solid rgba(16, 185, 129, 0.24);
+            border-left: none;
+            border-radius: 0 100px 100px 0;
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            font-size: 0.68rem;
+            font-weight: 800;
+            line-height: 1;
+            box-shadow: 5px 5px 14px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            z-index: 2;
+        }
+        body.light .roster-card .card-status {
+            background: #ecfdf5;
+            border-color: #a7f3d0;
+            color: #065f46;
+        }
+        .roster-card-wrapper.trending .roster-card .card-status {
+            border-color: rgba(251, 191, 36, 0.28);
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+        }
+        /* Crimson Alert when remaining time < 60 min */
+        .roster-card-wrapper.crimson .roster-card .card-status {
+            border-color: rgba(220, 38, 38, 0.25);
+            background: rgba(220, 38, 38, 0.1);
+            color: #dc2626;
+        }
+
+        /* Symmetrical ICU Available Beds Counter Badge (Right Side) */
+        .roster-card .card-icu-status {
+            position: absolute;
+            top: 1.1rem;
+            right: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.28rem 0.65rem;
+            border: 1px solid;
+            border-right: none;
+            border-radius: 100px 0 0 100px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            line-height: 1;
+            box-shadow: -5px 5px 14px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            z-index: 10;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            user-select: none;
+        }
+        .roster-card .card-icu-status:hover {
+            transform: scale(1.05);
+        }
+        /* Green when beds available */
+        .roster-card .card-icu-status.status-icu-avail {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: #10b981;
+        }
+        body.light .roster-card .card-icu-status.status-icu-avail {
+            background: #ecfdf5;
+            border-color: #a7f3d0;
+            color: #065f46;
+        }
+        /* Red when beds are full */
+        .roster-card .card-icu-status.status-icu-full {
+            background: rgba(239, 68, 68, 0.14);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #ef4444;
+            animation: icuStatusAlertPulse 1.8s infinite ease-in-out;
+        }
+        body.light .roster-card .card-icu-status.status-icu-full {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #b91c1c;
+        }
+
+        @keyframes icuStatusAlertPulse {
+            0%, 100% { box-shadow: -5px 5px 14px rgba(239, 68, 68, 0.15); }
+            50% { box-shadow: -5px 5px 22px rgba(239, 68, 68, 0.45); transform: scale(1.04); }
+        }
+
+        /* Full ICU Alarm Bell */
+        .icu-alarm-indicator {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #ef4444;
+            margin-left: 2px;
+            animation: icuBellShake 1.4s infinite ease-in-out;
+        }
+        @keyframes icuBellShake {
+            0%, 100% { transform: rotate(0deg); }
+            15% { transform: rotate(16deg); }
+            30% { transform: rotate(-16deg); }
+            45% { transform: rotate(10deg); }
+            60% { transform: rotate(-10deg); }
+            75% { transform: rotate(0deg); }
+        }
+
+        /* 3D Horizontal Card Flip Mechanics */
+        .roster-card-wrapper {
+            perspective: 1000px;
+        }
+        .roster-card.icu-flip-card {
+            transform-style: preserve-3d;
+            transition: transform 0.65s cubic-bezier(0.4, 0.2, 0.2, 1);
+            position: relative;
+            overflow: visible !important;
+        }
+        .roster-card.icu-flip-card.flipped {
+            transform: rotateY(180deg) !important;
+        }
+        .roster-card.icu-flip-card .card-face {
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 1.5rem;
+        }
+        .roster-card.icu-flip-card .card-front {
+            transform: rotateY(0deg);
+        }
+        .roster-card.icu-flip-card .card-back {
+            position: absolute;
+            inset: 0;
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 1.15rem 1.25rem 1.1rem;
+            z-index: 5;
+            background: inherit;
+            border-radius: 1.5rem;
+            box-shadow: inherit;
+        }
+        body.light .roster-card.icu-flip-card .card-back {
+            background: rgba(255, 255, 255, 0.98);
+            border: 1.5px solid rgba(200, 210, 220, 0.6);
+        }
+        body.dark .roster-card.icu-flip-card .card-back {
+            background: rgba(14, 20, 32, 0.98);
+            border: 1px solid rgba(10, 132, 255, 0.18);
+        }
+
+        .icu-back-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.4rem;
+            width: 100%;
+            margin: 0.35rem 0;
+        }
+        .icu-back-stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 0.2rem;
+            border-radius: 0.85rem;
+            background: rgba(138, 138, 142, 0.07);
+            border: 1px solid rgba(142, 142, 147, 0.15);
+        }
+        body.light .icu-back-stat-item {
+            background: #F9F9FB;
+            border-color: #E5E5EA;
+        }
+        body.dark .icu-back-stat-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.07);
+        }
+        .icu-back-stat-item.avail {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.35);
+        }
+        .icu-back-stat-item.avail .icu-back-stat-num {
+            color: #10b981;
+        }
+        .icu-back-stat-item.full {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.35);
+        }
+        .icu-back-stat-item.full .icu-back-stat-num {
+            color: #ef4444;
+        }
+        .icu-back-stat-num {
+            font-size: 1.25rem;
+            font-weight: 900;
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.1;
+        }
+        .icu-back-stat-label {
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: #8A8A8E;
+            margin-top: 0.15rem;
+            white-space: nowrap;
+        }
+        body.dark .icu-back-stat-label {
+            color: #AEAEB2;
+        }
+        .icu-back-close-btn {
+            background: transparent;
+            border: none;
+            color: #AEAEB2;
+            font-size: 0.95rem;
+            cursor: pointer;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+        .icu-back-close-btn:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .icu-back-hub-btn {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.55rem 0.8rem;
+            border-radius: 0.85rem;
+            font-size: 0.76rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #007AFF, #0A84FF);
+            color: #ffffff;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
+            transition: all 0.2s ease;
+        }
+        .icu-back-hub-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 122, 255, 0.35);
+        }
+        .icu-back-edit-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            padding: 0.55rem 0.8rem;
+            border-radius: 0.85rem;
+            font-size: 0.76rem;
+            font-weight: 800;
+            border: 1px solid rgba(10, 132, 255, 0.4);
+            background: rgba(10, 132, 255, 0.1);
+            color: #0A84FF;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        body.dark .icu-back-edit-btn {
+            color: #64B5FF;
+            border-color: rgba(100, 181, 255, 0.35);
+            background: rgba(100, 181, 255, 0.08);
+        }
+        .icu-back-edit-btn:hover {
+            background: rgba(10, 132, 255, 0.2);
+        }
+
+        /* Modal Overlays & Leaderboard 3D Podium Chart */
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(16px);
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s ease;
+            padding: 1.5rem;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-card {
+            max-width: 600px;
+            width: 100%;
+            border-radius: 2rem;
+            padding: 1.5rem;
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            background: #ffffff;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        body.dark .modal-card {
+            background: #141c2a;
+            border: 1px solid rgba(10, 132, 255, 0.08);
+        }
+        /* Leaderboard: title and close button stay visible while the list scrolls. */
+        #trending-modal .modal-card > div:first-child {
+            position: sticky;
+            top: -1.5rem;
+            z-index: 2;
+            margin: -1.5rem -1.5rem 0.75rem;
+            padding: 1.1rem 1.5rem 0.6rem;
+            background: #ffffff;
+            border-radius: 2rem 2rem 0 0;
+        }
+        body.dark #trending-modal .modal-card > div:first-child { background: #141c2a; }
+        .modal-overlay.active .modal-card {
+            transform: scale(1) translateY(0);
+        }
+        .filter-tabs {
+            display: flex;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.3rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid rgba(10, 132, 255, 0.04);
+        }
+        .filter-tab {
+            padding: 0.15rem 0.8rem;
+            border-radius: 100px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(10, 132, 255, 0.06);
+            color: #636366;
+            background: transparent;
+        }
+        .filter-tab.active {
+            background: rgba(10, 132, 255, 0.08);
+            border-color: rgba(10, 132, 255, 0.15);
+            color: #0A84FF;
+        }
+
+        /* 3D Step Podium Chart for Top 3 Performers */
+        .step-chart-wrapper {
+            border-radius: 1.2rem;
+            padding: 0.5rem 0.5rem 0.6rem;
+            margin: 0.2rem 0;
+            border: 1px solid rgba(10, 132, 255, 0.06);
+            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+        }
+        body.dark .step-chart-wrapper {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(10, 132, 255, 0.08);
+        }
+        .step-chart-title {
+            text-align: center;
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: #636366;
+            opacity: 0.45;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid rgba(10, 132, 255, 0.04);
+            margin-bottom: 0.3rem;
+        }
+        body.dark .step-chart-title {
+            color: #a8b3c9;
+            opacity: 0.5;
+        }
+        .step-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 0.8rem;
+            padding: 0.1rem;
+            height: 130px;
+            width: 100%;
+            position: relative;
+        }
+        .step-bar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.1rem;
+            flex: 1;
+            max-width: 60px;
+            min-width: 35px;
+            height: 100%;
+            justify-content: flex-end;
+        }
+        .step-bar .bar-wrap {
+            width: 100%;
+            max-width: 60px;
+            height: 65px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .step-bar .bar {
+            width: 100%;
+            max-width: 50px;
+            border-radius: 4px 4px 0 0;
+            min-height: 3px;
+            transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            will-change: height;
+        }
+        .step-bar .bar.gold {
+            background: linear-gradient(180deg, #fbbf24, #f59e0b);
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
+        }
+        .step-bar .bar.silver {
+            background: linear-gradient(180deg, #AEAEB2, #6b7280);
+            box-shadow: 0 0 10px rgba(142, 142, 147, 0.15);
+        }
+        .step-bar .bar.bronze {
+            background: linear-gradient(180deg, #cd7f32, #a0522d);
+            box-shadow: 0 0 10px rgba(205, 127, 50, 0.15);
+        }
+        .step-bar .bar-value {
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: #1a2332;
+            line-height: 1;
+        }
+        body.dark .step-bar .bar-value { color: #f0f3f8; }
+        .step-bar .bar-label {
+            font-size: 0.5rem;
+            font-weight: 700;
+            text-align: center;
+            color: #636366;
+            word-wrap: break-word;
+            max-width: 60px;
+            line-height: 1.2;
+            padding: 0 2px;
+            min-height: 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        body.dark .step-bar .bar-label { color: #a8b3c9; }
+        .step-medal-icon {
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+
+        /* Fireworks Canvas Overlay */
+        #fireworks-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9998;
+        }
+        #fireworks-container canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .main-content-wrap {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Toast Notifications */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+            width: 90%;
+            max-width: 420px;
+        }
+        .toast {
+            padding: 12px 20px;
+            border-radius: 1rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast-success { background: rgba(16, 185, 129, 0.94); color: white; }
+        .toast-error { background: rgba(239, 68, 68, 0.94); color: white; }
+        .toast-info { background: rgba(59, 130, 246, 0.94); color: white; }
+
+        /* Mobile Screen Layouts */
+        @media (max-width: 768px) {
+            .main-content-wrap {
+                padding-left: 10px !important;
+                padding-right: 10px !important;
+                padding-bottom: calc(2rem + env(safe-area-inset-bottom, 16px)) !important;
+            }
+            .hospital-header {
+                padding: 0.85rem 0 0.7rem;
+                margin: 0 0 0.5rem;
+                gap: 0.4rem;
+            }
+            .hospital-mark {
+                width: 4.2rem;
+                height: 4.2rem;
+                font-size: 1.7rem;
+            }
+            .hospital-title {
+                font-size: clamp(1.4rem, 5.2vw, 1.85rem) !important;
+                line-height: 1.3;
+                margin: 0.15rem 0 0.25rem;
+            }
+            .hospital-eyebrow {
+                font-size: 0.72rem;
+            }
+            .hospital-subtitle {
+                font-size: 0.72rem;
+            }
+            .top-bar {
+                gap: 0.35rem;
+                margin-bottom: 0.6rem;
+            }
+            .top-action-btn {
+                padding: 0.42rem 0.8rem;
+                font-size: 0.62rem;
+                min-height: 38px;
+            }
+            .theme-toggle-btn {
+                width: 38px;
+                height: 38px;
+            }
+            .trending-card {
+                padding: 1rem;
+                border-radius: 1.25rem;
+                margin-bottom: 0.85rem;
+            }
+            .trending-name {
+                font-size: 1.25rem !important;
+            }
+            .trending-badge {
+                font-size: 0.65rem;
+                padding: 0.25rem 0.6rem;
+            }
+            .roster-card-wrapper {
+                max-width: 100% !important;
+                margin: 0 0 0.65rem;
+            }
+            .roster-card {
+                border-radius: 1.25rem;
+                min-height: 145px;
+            }
+            .roster-card .card-body {
+                padding: 0.75rem 0.9rem;
+            }
+            .roster-card .resident-name {
+                font-size: 1.32rem !important;
+            }
+            .roster-card .specialty-bubble {
+                font-size: 0.72rem;
+                padding: 0.22rem 0.6rem;
+            }
+            .card-actions {
+                gap: 6px;
+            }
+            .modal-card {
+                max-width: calc(100vw - 24px) !important;
+                padding: 1.25rem 1rem !important;
+                border-radius: 1.4rem !important;
+            }
+            #trending-modal .modal-card > div:first-child {
+                top: -1.25rem;
+                margin: -1.25rem -1rem 0.75rem;
+                padding: 1rem 1rem 0.6rem;
+                border-radius: 1.4rem 1.4rem 0 0;
+            }
+        }
+
+        .footer-credit {
+            font-size: 0.7rem;
+            opacity: 0.5;
+            padding: 0.8rem 0;
+            text-align: center;
+            border-top: 1px solid rgba(128, 128, 128, 0.1);
+            margin-top: 1.5rem;
+        }
+    
+        /* Native App Polishing */
+        * { -webkit-tap-highlight-color: transparent; }
+        button:active, .glass-card:active, a:active {
+            transform: scale(0.98);
+            transition: transform 0.15s ease;
+        }
+        body {
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
+            -webkit-overflow-scrolling: touch;
+        }
+    </style>
+    <link rel="stylesheet" href="./tailwind.css" />
+    <link rel="stylesheet" href="./hub-ios.css" />
+</head>
+<body class="light" id="app-body">
+
+    <!-- Canvas Fireworks Overlay with Full Particle Physics Simulation -->
+    <div id="fireworks-container"></div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
+
+    <!-- MAIN APP WRAPPER -->
+    <div id="main-content" class="max-w-2xl mx-auto px-4 py-4 main-content-wrap">
+        
+        <!-- Top Action Bar -->
+        <div class="top-bar">
+            <div class="flex items-center gap-2">
+            </div>
+            <div class="spacer flex-1"></div>
+            <div class="flex items-center gap-2">
+                <button onclick="showTrendingModal()" class="top-action-btn leader"><i class="fas fa-trophy"></i> المتصدرين</button>
+                <button onclick="generateAndCopyReport()" id="report-btn" class="top-action-btn report"><i class="fas fa-file-alt"></i> نسخ التقرير</button>
+                <button id="admin-reset-btn" onclick="showResetModal()" class="top-action-btn reset hidden"><i class="fas fa-sync-alt"></i> تصفير</button>
+            </div>
+        </div>
+
+        <!-- Hospital Header -->
+        <header class="hospital-header">
+            <!-- Secret Unlock Easter Egg on Logo -->
+            <div class="hospital-mark" id="hospital-symbol" aria-hidden="true">
+                <i class="fas fa-hospital" id="hospital-symbol-icon"></i>
+            </div>
+            <div class="hospital-header-content">
+                <div class="hospital-eyebrow" id="hospital-location">Basra · Iraq</div>
+                <h1 id="hospital-name" class="hospital-title">المستشفى التعليمي</h1>
+                <p class="hospital-subtitle">On-Call Residents · Duty Roster</p>
+            </div>
+            <div class="hospital-meta flex justify-center items-center w-full max-w-[29rem] mt-2">
+                <div class="current-time-bubble" dir="ltr">
+                    <i class="fas fa-clock text-amber-500"></i>
+                    <span>Current Time:</span>
+                    <span id="current-time-display" class="font-mono font-bold"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Nav Row with Rotation Heroes (Initially Locked) -->
+        <div class="nav-row">
+            <a href="https://khafarat-alsadr.netlify.app/" class="nav-btn locked" id="btn-rotation-heroes"><i class="fas fa-user-md"></i><span>Rotation Heroes</span></a>
+        </div>
+
+        <!-- Trending Resident Panel -->
+        <div id="trending-container" class="mb-4"></div>
+
+        <!-- On-Call Roster Cards Grid -->
+        <div id="roster-container" class="roster-grid"></div>
+
+        <div class="footer-credit text-secondary">All rights reserved for Dr. Mohammed Riyadh · 2026</div>
+    </div>
+
+    <!-- Leaderboard Modal with 3D Step Podium Chart -->
+    <div id="trending-modal" class="modal-overlay" onclick="if(event.target===this) closeTrendingModal()">
+        <div class="modal-card glass-card">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2"><i class="fas fa-trophy text-amber-500"></i> لوحة المتصدرين</h3>
+                <button onclick="closeTrendingModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-2xl transition-colors"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="filter-tabs" id="leaderboard-tabs">
+                <button class="filter-tab active" data-filter="today" onclick="switchLeaderboardFilter('today')">اليوم</button>
+                <button class="filter-tab" data-filter="month" onclick="switchLeaderboardFilter('month')">هذا الشهر</button>
+                <button class="filter-tab" data-filter="all" onclick="switchLeaderboardFilter('all')">الكل</button>
+            </div>
+            <div id="trending-content" class="space-y-2 mt-2"></div>
+        </div>
+    </div>
+
+    <!-- Admin Reset Modal -->
+    <div id="reset-modal" class="modal-overlay" onclick="if(event.target===this) closeResetModal()">
+        <div class="modal-card glass-card" style="max-width:420px;">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-lg font-bold text-red-600 flex items-center gap-2"><i class="fas fa-exclamation-triangle"></i> إعادة ضبط التفاعلات</h3>
+                <button onclick="closeResetModal()" class="text-slate-400 hover:text-slate-600 text-xl"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">اختر نطاق تصفير عداد الزيارات والتفاعلات للمستشفى الحالي:</p>
+            <div class="space-y-2 mb-4 text-xs font-semibold">
+                <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 cursor-pointer">
+                    <input type="radio" name="reset-range" value="today" checked class="accent-red-500" />
+                    <span>تصفير تفاعلات اليوم فقط</span>
+                </label>
+                <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 cursor-pointer">
+                    <input type="radio" name="reset-range" value="month" class="accent-red-500" />
+                    <span>تصفير تفاعلات هذا الشهر</span>
+                </label>
+                <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 cursor-pointer">
+                    <input type="radio" name="reset-range" value="all" class="accent-red-500" />
+                    <span>تصفير كافة السجلات نهائياً</span>
+                </label>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="executeReset()" class="flex-1 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md transition-all">تأكيد التصفير</button>
+                <button onclick="closeResetModal()" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="./hub-sync.js"></script>
+    <script src="./hub-core.js"></script>
+    <script src="./hub-avatar.js"></script>
+    <script src="./hub-accounts.js"></script>
+    <script src="./nav-component.js"></script>
+    <script>
+        // ================================================================
+        // APPLICATION STATE
+        // ================================================================
+        let currentHospital = null;
+        let updateInterval = null;
+        let countdownInterval = null;
+        let currentLeaderboardFilter = 'today';
+        let confettiClickCounter = 0;
+        const clickCooldown = {};
+        const COOLDOWN_TIME = 3000;
+
+        const DAY_START = 8; // 08:00 AM
+        const TOTAL_MINUTES = 24 * 60;
+
+        // ================================================================
+        // FIREWORKS CANVAS WITH FULL PARTICLE PHYSICS
+        // ================================================================
+        let fwCanvas, fwCtx, fwWidth, fwHeight;
+        let fwRockets = [], fwParticles = [];
+        let fwAnimationId = null;
+        let fwRunning = false;
+
+        function fwRandomColor() {
+            const palettes = [
+                ["#ff3b3b", "#ff6b2b", "#ff9f1c", "#ffe66d"],
+                ["#38bdf8", "#4f7cff", "#818cf8", "#a78bfa"],
+                ["#ff4fd8", "#c77dff", "#f472b6", "#f9a8d4"],
+                ["#fbbf24", "#f59e0b", "#fcd34d", "#fef08a"],
+                ["#34d399", "#4dff88", "#6ee7b7", "#a7f3d0"],
+                ["#ffffff", "#E5E5EA", "#F2F2F7", "#D1D1D6"],
+                ["#ff6b6b", "#ffd93d", "#6bcb77", "#4d96ff", "#9b59b6"]
+            ];
+            const palette = palettes[Math.floor(Math.random() * palettes.length)];
+            return palette[Math.floor(Math.random() * palette.length)];
+        }
+
+        function fwRandomColorPalette() {
+            const palettes = [
+                ["#ff3b3b", "#ff6b2b", "#ff9f1c", "#ffe66d"],
+                ["#38bdf8", "#4f7cff", "#818cf8", "#a78bfa"],
+                ["#ff4fd8", "#c77dff", "#f472b6", "#f9a8d4"],
+                ["#fbbf24", "#f59e0b", "#fcd34d", "#fef08a"],
+                ["#34d399", "#4dff88", "#6ee7b7", "#a7f3d0"],
+                ["#ffffff", "#E5E5EA", "#F2F2F7", "#D1D1D6"],
+                ["#ff6b6b", "#ffd93d", "#6bcb77", "#4d96ff", "#9b59b6"]
+            ];
+            return palettes[Math.floor(Math.random() * palettes.length)];
+        }
+
+        function hexToRGBA(hex, alpha) {
+            if (!hex || hex[0] !== '#') return `rgba(255, 255, 255, ${alpha})`;
+            let r = 255, g = 255, b = 255;
+            if (hex.length === 7) {
+                r = parseInt(hex.slice(1, 3), 16);
+                g = parseInt(hex.slice(3, 5), 16);
+                b = parseInt(hex.slice(5, 7), 16);
+            }
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        // Particle with drag, gravity, drift, trail, flicker, and glow
+        class FwParticle {
+            constructor(x, y, vx, vy, color, flash = false, palette = null) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.color = color;
+                this.palette = palette || [color];
+                this.life = 1;
+                this.decay = flash ? 0.025 + Math.random() * 0.035 : 0.004 + Math.random() * 0.007;
+                this.gravity = flash ? 0.005 : 0.018 + Math.random() * 0.012;
+                this.size = flash ? 2.5 + Math.random() * 4 : 0.65 + Math.random() * 1.7;
+                this.flash = flash;
+                this.brightness = flash ? 1 : 0.65 + Math.random() * 0.35;
+                this.trailLength = flash ? 2 : 5 + Math.floor(Math.random() * 8);
+                this.trail = [];
+                this.flicker = 0.85 + Math.random() * 0.15;
+                this.spark = Math.random() < 0.18;
+                this.wind = (Math.random() - 0.5) * 0.003;
+                if (!flash && palette && palette.length > 1) {
+                    this.secondaryColor = palette[Math.floor(Math.random() * palette.length)];
+                } else {
+                    this.secondaryColor = color;
+                }
+                this.glowIntensity = 0.3 + Math.random() * 0.5;
+            }
+
+            update() {
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > this.trailLength) this.trail.shift();
+                const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                const drag = speed > 4 ? 0.985 : 0.978;
+                this.vx *= drag;
+                this.vy *= drag;
+                this.vy += this.gravity;
+                this.vx += this.wind;
+                this.x += this.vx;
+                this.y += this.vy;
+                this.flicker = 0.82 + Math.random() * 0.18;
+                let decay = this.decay;
+                if (this.spark) decay *= 1.35;
+                this.life -= decay;
+            }
+
+            draw(ctx) {
+                if (this.life <= 0) return;
+                const alpha = this.life * this.brightness * this.flicker;
+                for (let i = 0; i < this.trail.length; i++) {
+                    const p = this.trail[i];
+                    const progress = i / this.trail.length;
+                    const trailAlpha = progress * progress * this.life * this.brightness * 0.65;
+                    if (trailAlpha <= 0.01) continue;
+                    const radius = this.size * (0.15 + progress * 0.55);
+                    const trailColor = i % 2 === 0 ? this.color : this.secondaryColor;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+                    ctx.fillStyle = hexToRGBA(trailColor, trailAlpha);
+                    ctx.fill();
+                }
+                const particleAlpha = this.life * this.brightness * this.flicker;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = hexToRGBA(this.color, particleAlpha * 0.08);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * this.life, 0, Math.PI * 2);
+                ctx.shadowBlur = this.flash ? 30 : 7 + this.life * 8;
+                ctx.shadowColor = this.color;
+                ctx.fillStyle = hexToRGBA(this.secondaryColor, particleAlpha);
+                ctx.fill();
+                if (!this.flash && this.life > 0.45) {
+                    const coreAlpha = Math.min(1, this.life * 1.4) * this.brightness * 0.85;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size * 0.35, 0, Math.PI * 2);
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = `rgba(255,255,255,${coreAlpha})`;
+                    ctx.fill();
+                }
+                ctx.shadowBlur = 0;
+            }
+
+            isDead() {
+                return this.life <= 0 || this.y > fwHeight + 100 || this.x < -100 || this.x > fwWidth + 100;
+            }
+        }
+
+        // Rocket with multi-type burst physics
+        class FwRocket {
+            constructor(x) {
+                this.x = x || (0.02 + Math.random() * 0.96) * fwWidth;
+                this.y = fwHeight + 10 + Math.random() * 60;
+                this.targetY = (0.06 + Math.random() * 0.45) * fwHeight;
+                this.speed = 5 + Math.random() * 4;
+                this.color = fwRandomColor();
+                this.palette = fwRandomColorPalette();
+                this.trail = [];
+                this.exploded = false;
+                this.drift = (Math.random() - 0.5) * 0.4;
+                this.explosionType = Math.random();
+                this.curve = (Math.random() - 0.5) * 0.02;
+            }
+
+            update() {
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > 16) this.trail.shift();
+                this.x += this.drift + Math.sin(this.y * 0.01) * this.curve;
+                this.y -= this.speed;
+                this.speed *= 0.997;
+                if (this.y <= this.targetY) {
+                    this.explode();
+                    this.exploded = true;
+                }
+            }
+
+            explode() {
+                const count = 50 + Math.floor(Math.random() * 50);
+                const type = this.explosionType;
+
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    let speed;
+                    if (type < 0.1) {
+                        speed = 3 + Math.random() * 2;
+                    } else if (type < 0.25) {
+                        const r = Math.random();
+                        speed = r < 0.5 ? 4 + Math.random() * 3 : 1.5 + Math.random() * 2;
+                    } else if (type < 0.4) {
+                        const clusterAngle = Math.floor(Math.random() * 8) * (Math.PI / 4);
+                        const spread = 0.3 + Math.random() * 0.5;
+                        const a = clusterAngle + (Math.random() - 0.5) * spread;
+                        speed = 2.5 + Math.random() * 3.5;
+                        fwParticles.push(new FwParticle(
+                            this.x, this.y,
+                            Math.cos(a) * speed,
+                            Math.sin(a) * speed,
+                            this.palette[Math.floor(Math.random() * this.palette.length)],
+                            false,
+                            this.palette
+                        ));
+                        continue;
+                    } else {
+                        speed = Math.pow(Math.random(), 0.6) * (1.2 + Math.random() * 4.5);
+                    }
+
+                    const color = this.palette[Math.floor(Math.random() * this.palette.length)];
+                    fwParticles.push(new FwParticle(
+                        this.x, this.y,
+                        Math.cos(angle) * speed,
+                        Math.sin(angle) * speed,
+                        color,
+                        false,
+                        this.palette
+                    ));
+                }
+
+                // Flash particles: 6-12
+                for (let i = 0; i < 6 + Math.floor(Math.random() * 6); i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 0.5 + Math.random() * 2;
+                    fwParticles.push(new FwParticle(this.x, this.y, Math.cos(angle) * speed, Math.sin(angle) * speed, "#ffffff", true));
+                }
+
+                // Secondary twinkles: 12-20
+                for (let i = 0; i < 12 + Math.floor(Math.random() * 8); i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 1 + Math.random() * 2;
+                    const color = this.palette[Math.floor(Math.random() * this.palette.length)];
+                    fwParticles.push(new FwParticle(this.x, this.y, Math.cos(angle) * speed, Math.sin(angle) * speed, color, false, this.palette));
+                }
+            }
+
+            draw(ctx) {
+                for (let i = 0; i < this.trail.length; i++) {
+                    const p = this.trail[i];
+                    const alpha = i / this.trail.length;
+                    const radius = 1.5 * alpha * 0.8;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+                    const trailColor = i % 3 === 0 ? this.color : "#ffffff";
+                    ctx.fillStyle = hexToRGBA(trailColor, alpha * 0.5);
+                    ctx.fill();
+                }
+
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2.5, 0, Math.PI * 2);
+                ctx.shadowBlur = 18;
+                ctx.shadowColor = this.color;
+                ctx.fillStyle = "#ffffff";
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 8, 0, Math.PI * 2);
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = hexToRGBA(this.color, 0.15);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function initFireworksCanvas() {
+            const container = document.getElementById('fireworks-container');
+            if (!container) return;
+            const existing = container.querySelector('canvas');
+            if (existing) existing.remove();
+            const canvas = document.createElement('canvas');
+            canvas.id = 'fwCanvas';
+            container.appendChild(canvas);
+            fwCanvas = canvas;
+            fwCtx = canvas.getContext('2d');
+            resizeFireworksCanvas();
+            window.addEventListener('resize', resizeFireworksCanvas);
+        }
+
+        function resizeFireworksCanvas() {
+            if (!fwCanvas) return;
+            const dpr = window.devicePixelRatio || 1;
+            fwWidth = window.innerWidth;
+            fwHeight = window.innerHeight;
+            fwCanvas.width = fwWidth * dpr;
+            fwCanvas.height = fwHeight * dpr;
+            fwCanvas.style.width = fwWidth + 'px';
+            fwCanvas.style.height = fwHeight + 'px';
+            fwCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function fwLaunchRocket(x) {
+            if (!fwRunning) return;
+            fwRockets.push(new FwRocket(x));
+        }
+
+        function fwLaunchBurst(count) {
+            for (let i = 0; i < count; i++) {
+                const delay = i * (300 + Math.random() * 600);
+                setTimeout(() => {
+                    if (!fwRunning) return;
+                    const x = 0.02 + Math.random() * 0.96;
+                    fwLaunchRocket(x * fwWidth);
+                }, delay);
+            }
+        }
+
+        function fwAnimate() {
+            if (!fwRunning) return;
+            fwCtx.clearRect(0, 0, fwWidth, fwHeight);
+
+            for (let i = fwRockets.length - 1; i >= 0; i--) {
+                const r = fwRockets[i];
+                r.update();
+                r.draw(fwCtx);
+                if (r.exploded) fwRockets.splice(i, 1);
+            }
+
+            for (let i = fwParticles.length - 1; i >= 0; i--) {
+                const p = fwParticles[i];
+                p.update();
+                p.draw(fwCtx);
+                if (p.isDead()) fwParticles.splice(i, 1);
+            }
+
+            fwAnimationId = requestAnimationFrame(fwAnimate);
+        }
+
+        function startFireworks() {
+            if (fwRunning) return;
+            fwRunning = true;
+            fwRockets = [];
+            fwParticles = [];
+            if (fwCtx) fwCtx.clearRect(0, 0, fwWidth, fwHeight);
+            if (fwAnimationId) cancelAnimationFrame(fwAnimationId);
+            fwAnimate();
+        }
+
+        function stopFireworks() {
+            fwRunning = false;
+            if (fwAnimationId) {
+                cancelAnimationFrame(fwAnimationId);
+                fwAnimationId = null;
+            }
+            if (fwCtx) fwCtx.clearRect(0, 0, fwWidth, fwHeight);
+            fwRockets = [];
+            fwParticles = [];
+        }
+
+        function triggerFireworks() {
+            if (!fwCanvas) initFireworksCanvas();
+            startFireworks();
+            const count = 20 + Math.floor(Math.random() * 20);
+            fwLaunchBurst(count);
+            showToast('✨ ألعاب نارية احتفالية!', 'info', 2500);
+
+            const checkInterval = setInterval(() => {
+                if (fwRockets.length === 0 && fwParticles.length === 0) {
+                    clearInterval(checkInterval);
+                    stopFireworks();
+                }
+            }, 500);
+
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                stopFireworks();
+            }, 25000);
+        }
+
+        function fireConfettiFromPosition(clientX, clientY) {
+            try {
+                if (typeof confetti !== 'function') return;
+                const x = clientX / window.innerWidth;
+                const y = clientY / window.innerHeight;
+                const clampedX = Math.min(Math.max(x, 0.05), 0.95);
+                const clampedY = Math.min(Math.max(y, 0.05), 0.95);
+
+                confetti({
+                    particleCount: 60,
+                    spread: 65,
+                    origin: { x: clampedX, y: clampedY },
+                    startVelocity: 30,
+                    ticks: 220,
+                    zIndex: 9999,
+                    colors: ['#fbbf24', '#f59e0b', '#dc2626', '#f97316', '#fcd34d', '#ffffff', '#a855f7']
+                });
+
+                setTimeout(() => {
+                    confetti({
+                        particleCount: 30,
+                        spread: 40,
+                        origin: { x: clampedX + 0.02, y: clampedY - 0.02 },
+                        startVelocity: 20,
+                        ticks: 150,
+                        zIndex: 9999,
+                        colors: ['#fbbf24', '#fcd34d', '#ffffff']
+                    });
+                }, 80);
+
+                confettiClickCounter++;
+                if (confettiClickCounter % 10 === 0) {
+                    triggerFireworks();
+                }
+            } catch (e) {
+                console.warn('Confetti error:', e);
+            }
+        }
+
+        // ================================================================
+        // 5-CLICK HOSPITAL LOGO EASTER EGG (SECRET UNLOCK)
+        // ================================================================
+        let symbolClickCount = 0;
+        let symbolUnlocked = false;
+        let clickResetTimer = null;
+        let activationConfirmationTimer = null;
+
+        function resetSecretClickCounter() {
+            symbolClickCount = 0;
+            if (clickResetTimer) { clearTimeout(clickResetTimer); clickResetTimer = null; }
+            if (activationConfirmationTimer) { clearTimeout(activationConfirmationTimer); activationConfirmationTimer = null; }
+        }
+
+        function activateSecretButtons(silent = false) {
+            if (symbolUnlocked) return;
+            symbolUnlocked = true;
+            const hospitalSymbol = document.getElementById('hospital-symbol');
+            const btnRotation = document.getElementById('btn-rotation-heroes');
+            const btnExchange = document.getElementById('btn-duty-exchange');
+
+            if (hospitalSymbol) {
+                if (!silent) {
+                    hospitalSymbol.classList.add('shimmer-golden');
+                    hospitalSymbol.addEventListener('animationend', function onAnimationEnd() {
+                        hospitalSymbol.classList.remove('shimmer-golden');
+                        hospitalSymbol.style.background = 'linear-gradient(135deg, #fbbf24, #f59e0b)';
+                        hospitalSymbol.style.boxShadow = '0 0 0 8px rgba(251,191,36,0.2), 0 12px 26px rgba(251,191,36,0.3)';
+                        const icon = hospitalSymbol.querySelector('i');
+                        if (icon) icon.style.color = '#1a2332';
+                        hospitalSymbol.removeEventListener('animationend', onAnimationEnd);
+                    });
+                } else {
+                    hospitalSymbol.style.background = 'linear-gradient(135deg, #fbbf24, #f59e0b)';
+                    hospitalSymbol.style.boxShadow = '0 0 0 8px rgba(251,191,36,0.2), 0 12px 26px rgba(251,191,36,0.3)';
+                    const icon = hospitalSymbol.querySelector('i');
+                    if (icon) icon.style.color = '#1a2332';
+                }
+            }
+            if (btnRotation) btnRotation.classList.remove('locked');
+            if (btnExchange) btnExchange.classList.remove('locked');
+
+            if (!silent) {
+                showToast('🌟 تم تفعيل الميزات: Rotation Heroes و Duty Exchange!', 'success', 4000);
+            }
+        }
+
+        function setupEasterEgg() {
+            const hospitalSymbol = document.getElementById('hospital-symbol');
+            if (!hospitalSymbol) return;
+
+            // Setup Rotation Heroes click handling (disabled vs active)
+            const btnRotation = document.getElementById('btn-rotation-heroes');
+            if (btnRotation && !btnRotation._hasEasterEggListener) {
+                btnRotation._hasEasterEggListener = true;
+                btnRotation.addEventListener('click', function(e) {
+                    if (btnRotation.classList.contains('locked')) {
+                        e.preventDefault();
+                        return;
+                    }
+                    if (btnRotation.classList.contains('disabled') || !btnRotation.getAttribute('href')) {
+                        e.preventDefault();
+                        showToast('⏳ ميزة Rotation Heroes غير متوفرة لهذا المستشفى حالياً - قريباً!', 'info', 3500);
+                    }
+                });
+            }
+
+            // Setup Duty Exchange click handling (auto-select hospital)
+            const btnExchange = document.getElementById('btn-duty-exchange');
+            if (btnExchange && !btnExchange._hasEasterEggListener) {
+                btnExchange._hasEasterEggListener = true;
+                btnExchange.addEventListener('click', function(e) {
+                    if (btnExchange.classList.contains('locked')) {
+                        e.preventDefault();
+                        return;
+                    }
+                    const hid = currentHospital?.id || Hub.getActiveHospitalId();
+                    Hub.setActiveHospitalId(hid);
+                    window.location.href = `./signup.html?hospital=${encodeURIComponent(hid)}`;
+                    e.preventDefault();
+                });
+            }
+
+            hospitalSymbol.addEventListener('click', function(event) {
+                // Playful wiggle animation on each click
+                hospitalSymbol.classList.remove('wiggle');
+                void hospitalSymbol.offsetWidth;
+                hospitalSymbol.classList.add('wiggle');
+
+                if (symbolUnlocked) return;
+                if (clickResetTimer) { clearTimeout(clickResetTimer); clickResetTimer = null; }
+                if (activationConfirmationTimer) { clearTimeout(activationConfirmationTimer); activationConfirmationTimer = null; }
+                
+                const rawClicks = currentHospital?.heroesUnlockClicks;
+                const reqClicks = (rawClicks !== undefined && rawClicks !== null && rawClicks !== '') ? Math.max(0, parseInt(rawClicks, 10)) : 5;
+
+                if (reqClicks <= 0) {
+                    activateSecretButtons(true);
+                    return;
+                }
+
+                symbolClickCount++;
+                if (symbolClickCount === reqClicks) {
+                    activationConfirmationTimer = setTimeout(function() {
+                        activateSecretButtons(false);
+                        resetSecretClickCounter();
+                    }, 400);
+                } else if (symbolClickCount > reqClicks) {
+                    resetSecretClickCounter();
+                } else {
+                    clickResetTimer = setTimeout(function() { resetSecretClickCounter(); }, 500);
+                }
+            });
+        }
+
+        // ================================================================
+        // 3D CARD TILT PHYSICS & ICU CARD 3D FLIP MECHANICS
+        // ================================================================
+        function handleCardTilt(e, card) {
+            if (card.classList.contains('flipped')) return;
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const rotateX = (y - centerY) / 16;
+            const rotateY = (centerX - x) / 16;
+            card.style.transform = `perspective(600px) translateY(-4px) scale(1.01) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        }
+
+        function resetCardTilt(card) {
+            if (card.classList.contains('flipped')) return;
+            card.style.transform = '';
+        }
+
+        function toggleIcuCardFlip(e, el) {
+            if (e) {
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            const card = el.closest('.roster-card');
+            if (!card) return;
+
+            const isFlipped = card.classList.contains('flipped');
+            // Close any other open flipped cards first
+            document.querySelectorAll('.roster-card.flipped').forEach(c => {
+                if (c !== card) c.classList.remove('flipped');
+            });
+
+            if (isFlipped) {
+                card.classList.remove('flipped');
+            } else {
+                card.style.transform = '';
+                card.classList.add('flipped');
+            }
+        }
+
+        window.toggleIcuCardFlip = toggleIcuCardFlip;
+
+        window.openQuickIcuEdit = function(hospitalId) {
+            window.location.href = `./icu.html?hospital=${encodeURIComponent(hospitalId)}&edit=true`;
+        };
+
+        // Click outside or press Escape to flip back
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.roster-card.icu-flip-card')) {
+                document.querySelectorAll('.roster-card.icu-flip-card.flipped').forEach(card => {
+                    card.classList.remove('flipped');
+                });
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.roster-card.icu-flip-card.flipped').forEach(card => {
+                    card.classList.remove('flipped');
+                });
+            }
+        });
+
+        // ================================================================
+        // SPECIALTY BUBBLE NATURAL MEASUREMENT & SMOOTH FLIP
+        // ================================================================
+        function measureNaturalWidth(element) {
+            const clone = element.cloneNode(true);
+            clone.style.cssText = `
+                position: fixed !important;
+                left: -9999px !important;
+                top: -9999px !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                transform: none !important;
+                width: auto !important;
+                height: auto !important;
+                min-width: max-content !important;
+                max-width: none !important;
+                overflow: visible !important;
+                display: flex !important;
+                align-items: center !important;
+                gap: 0.35rem !important;
+                padding: 0.15rem 0.6rem !important;
+                border-radius: 100px !important;
+                border: 2px solid #10b981 !important;
+                background: rgba(16,185,129,0.08) !important;
+                white-space: nowrap !important;
+                pointer-events: none !important;
+                z-index: 99999 !important;
+            `;
+            document.body.appendChild(clone);
+            const width = clone.getBoundingClientRect().width;
+            document.body.removeChild(clone);
+            return width;
+        }
+
+        function setSpecialtyTimerState(button, flipped) {
+            const front = button.querySelector('.specialty-front');
+            const back = button.querySelector('.specialty-back');
+            if (!front || !back) return;
+
+            clearTimeout(Number(button.dataset.flipTimeout));
+
+            let targetWidth;
+            if (flipped) {
+                const backContent = back.cloneNode(true);
+                targetWidth = measureNaturalWidth(backContent);
+            } else {
+                const frontContent = front.cloneNode(true);
+                targetWidth = measureNaturalWidth(frontContent);
+            }
+
+            targetWidth = Math.max(targetWidth, 45);
+            const currentHeight = front.getBoundingClientRect().height || 30;
+
+            button.style.height = currentHeight + 'px';
+            button.style.width = targetWidth + 'px';
+            button.style.minWidth = targetWidth + 'px';
+
+            requestAnimationFrame(() => {
+                button.classList.toggle('flipped', flipped);
+                button.style.width = targetWidth + 'px';
+                button.style.minWidth = targetWidth + 'px';
+            });
+
+            if (flipped) {
+                button.dataset.flipTimeout = String(setTimeout(() => setSpecialtyTimerState(button, false), 2600));
+            } else {
+                delete button.dataset.flipTimeout;
+                setTimeout(() => {
+                    if (!button.classList.contains('flipped')) {
+                        button.style.width = '';
+                        button.style.minWidth = '';
+                        button.style.height = '';
+                    }
+                }, 460);
+            }
+        }
+
+        function toggleSpecialtyTimer(button) {
+            const wasFlipped = button.classList.contains('flipped');
+            document.querySelectorAll('.specialty-flip.flipped').forEach(el => {
+                if (el !== button) setSpecialtyTimerState(el, false);
+            });
+            setSpecialtyTimerState(button, !wasFlipped);
+        }
+
+        // ================================================================
+        // ROSTER RENDERING & MEDICAL DATA
+        // ================================================================
+        function timeStrToMinutes(str) {
+            const match = str.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+            if (!match) return null;
+            let hrs = parseInt(match[1]);
+            const mins = parseInt(match[2]);
+            const ampm = match[3].toUpperCase();
+            if (ampm === 'PM' && hrs !== 12) hrs += 12;
+            if (ampm === 'AM' && hrs === 12) hrs = 0;
+            let total = hrs * 60 + mins;
+            if (total < DAY_START * 60) total += 24 * 60;
+            return total - (DAY_START * 60);
+        }
+
+        function parseDutyTime(dutyTimeStr) {
+            if (!dutyTimeStr) return null;
+            const parts = dutyTimeStr.split(' - ');
+            if (parts.length !== 2) return null;
+            const start = timeStrToMinutes(parts[0].trim());
+            const end = timeStrToMinutes(parts[1].trim());
+            if (start === null || end === null) return null;
+            return { start, end };
+        }
+
+        function getCurrentMinutes() {
+            const now = new Date();
+            let total = now.getHours() * 60 + now.getMinutes();
+            if (total < DAY_START * 60) total += 24 * 60;
+            return total - (DAY_START * 60);
+        }
+
+        function getCurrentResidentForSpecialty(specCode) {
+            if (!currentHospital) return null;
+            const targetDate = Hub.getMedicalDate();
+            const currentMin = getCurrentMinutes();
+
+            const specObj = (currentHospital.specialties || []).find(s => s.id === specCode);
+            let targetHosp = currentHospital;
+            let targetSpecCode = specCode;
+            let isClone = false;
+            let parentHospitalName = null;
+
+            if (specObj && specObj.isClone && specObj.clonedFromHospitalId && specObj.clonedFromSpecId) {
+                const srcHosp = Hub.getHospital ? Hub.getHospital(specObj.clonedFromHospitalId) : null;
+                if (srcHosp) {
+                    targetHosp = srcHosp;
+                    targetSpecCode = specObj.clonedFromSpecId;
+                    isClone = true;
+                    parentHospitalName = srcHosp.name_ar || srcHosp.hospitalName || specObj.clonedFromHospitalId;
+                }
+            }
+
+            const todayEntries = (targetHosp.schedule || []).filter(s => s.date === targetDate && s.specCode === targetSpecCode);
+            if (todayEntries.length === 0) return null;
+
+            for (const entry of todayEntries) {
+                let dutyTime = entry.dutyTime;
+                let timeData = null;
+                if (!dutyTime) {
+                    if (todayEntries.length === 1) {
+                        timeData = { start: 0, end: TOTAL_MINUTES };
+                    } else {
+                        const slotIdx = entry.dutySlot || 0;
+                        const numSlots = todayEntries.length;
+                        const slotDuration = TOTAL_MINUTES / numSlots;
+                        timeData = { start: slotIdx * slotDuration, end: (slotIdx + 1) * slotDuration };
+                    }
+                } else {
+                    timeData = parseDutyTime(dutyTime);
+                }
+                if (!timeData) continue;
+                let start = timeData.start;
+                let end = timeData.end;
+                let isMatch = false;
+                if (end <= start) {
+                    if (currentMin >= start || currentMin < end) isMatch = true;
+                } else {
+                    if (currentMin >= start && currentMin < end) isMatch = true;
+                }
+                if (isMatch) {
+                    return {
+                        ...entry,
+                        specCode: specCode,
+                        isClone: isClone,
+                        parentHospitalName: parentHospitalName,
+                        parentHospitalId: specObj?.clonedFromHospitalId,
+                        sourceHospital: targetHosp
+                    };
+                }
+            }
+            return null;
+        }
+
+        function getAllCurrentResidents() {
+            if (!currentHospital) return [];
+            const resultMap = {};
+            const allSpecs = new Set();
+            const today = Hub.getMedicalDate();
+
+            (currentHospital.schedule || []).forEach(s => { if (s.date === today) allSpecs.add(s.specCode); });
+            (currentHospital.specialties || []).forEach(spec => {
+                if (spec.enabled !== false) {
+                    if (spec.isClone && spec.clonedFromHospitalId && spec.clonedFromSpecId) {
+                        const srcHosp = Hub.getHospital ? Hub.getHospital(spec.clonedFromHospitalId) : null;
+                        if (srcHosp) {
+                            const hasEntry = (srcHosp.schedule || []).some(s => s.specCode === spec.clonedFromSpecId && s.date === today);
+                            if (hasEntry) allSpecs.add(spec.id);
+                        }
+                    } else {
+                        const hasEntry = (currentHospital.schedule || []).some(s => s.specCode === spec.id && s.date === today);
+                        if (hasEntry) allSpecs.add(spec.id);
+                    }
+                }
+            });
+
+            for (const specCode of allSpecs) {
+                const resident = getCurrentResidentForSpecialty(specCode);
+                if (resident) {
+                    const key = resident.name;
+                    const specObj = (currentHospital.specialties || []).find(s => s.id === specCode);
+                    let dutyTime = resident.dutyTime;
+                    let timeData = null;
+                    const hospToQuery = resident.sourceHospital || currentHospital;
+                    const querySpecCode = resident.isClone ? (resident.clonedFromSpecId || specObj?.clonedFromSpecId || specCode) : specCode;
+
+                    if (!dutyTime) {
+                        const entriesForDay = (hospToQuery.schedule || []).filter(s => s.date === today && s.specCode === querySpecCode);
+                        if (entriesForDay.length === 1) {
+                            timeData = { start: 0, end: TOTAL_MINUTES };
+                        } else {
+                            const slotIdx = resident.dutySlot || 0;
+                            const slotDuration = TOTAL_MINUTES / (entriesForDay.length || 1);
+                            timeData = { start: slotIdx * slotDuration, end: (slotIdx + 1) * slotDuration };
+                        }
+                    } else {
+                        timeData = parseDutyTime(dutyTime);
+                    }
+
+                    let startMin = 0, endMin = TOTAL_MINUTES;
+                    if (timeData) {
+                        startMin = timeData.start;
+                        endMin = timeData.end;
+                        if (endMin <= startMin) endMin = endMin + TOTAL_MINUTES;
+                    }
+                    const currentMin = getCurrentMinutes();
+                    let remainingMinutes = Math.max(0, endMin - currentMin);
+                    if (remainingMinutes > TOTAL_MINUTES) remainingMinutes = TOTAL_MINUTES;
+
+                    if (!resultMap[key]) {
+                        let phone = (hospToQuery.names || []).find(n => n.name === resident.name)?.phone;
+                        if (!phone) {
+                            const cleanResName = resident.name.replace(/^(د\.|د|dr\.|dr|mr\.|mr|ms\.|ms|أ\.|أ|م\.|م|ص\.|ص)[\s\:\/]+/gi, '').trim();
+                            const matchedDoc = (hospToQuery.names || []).find(n => (n.name || '').replace(/^(د\.|د|dr\.|dr|mr\.|mr|ms\.|ms|أ\.|أ|م\.|م|ص\.|ص)[\s\:\/]+/gi, '').trim() === cleanResName)
+                                            || (window.Hub && Hub.getResidents ? Hub.getResidents().find(r => (r.name || '').replace(/^(د\.|د|dr\.|dr|mr\.|mr|ms\.|ms|أ\.|أ|م\.|م|ص\.|ص)[\s\:\/]+/gi, '').trim() === cleanResName) : null);
+                            phone = matchedDoc?.phone || "رقم غير متوفر";
+                        }
+                        const visitEntries = (hospToQuery.schedule || []).filter(s => {
+                            const dMatch = s.date === today || (window.Hub && Hub.normalizeDateString && Hub.normalizeDateString(s.date) === Hub.normalizeDateString(today));
+                            if (!dMatch) return false;
+                            if (s.name === resident.name) return true;
+                            const cleanA = String(s.name || '').replace(/^(د\.|د|dr\.|dr|mr\.|mr|ms\.|ms|أ\.|أ|م\.|م|ص\.|ص)[\s\:\/]+/gi, '').trim();
+                            const cleanB = String(resident.name || '').replace(/^(د\.|د|dr\.|dr|mr\.|mr|ms\.|ms|أ\.|أ|م\.|م|ص\.|ص)[\s\:\/]+/gi, '').trim();
+                            return cleanA === cleanB;
+                        });
+                        const totalVisits = visitEntries.reduce((sum, entry) => sum + (entry.VisitCount || 0), 0);
+                        resultMap[key] = {
+                            name: resident.name,
+                            phone: phone,
+                            specs: [],
+                            dutyTime: dutyTime,
+                            startMin: startMin,
+                            endMin: endMin,
+                            remainingMinutes: remainingMinutes,
+                            criticalSpecCode: specCode,
+                            visitCount: totalVisits,
+                            isClone: Boolean(resident.isClone),
+                            parentHospitalName: resident.parentHospitalName || null,
+                            parentHospitalId: resident.parentHospitalId || (specObj?.clonedFromHospitalId) || null,
+                            clonedFromSpecId: resident.clonedFromSpecId || (specObj?.clonedFromSpecId) || null
+                        };
+                    } else {
+                        if (resident.isClone) {
+                            resultMap[key].isClone = true;
+                            if (resident.parentHospitalName) resultMap[key].parentHospitalName = resident.parentHospitalName;
+                            if (resident.parentHospitalId) resultMap[key].parentHospitalId = resident.parentHospitalId;
+                            if (resident.clonedFromSpecId) resultMap[key].clonedFromSpecId = resident.clonedFromSpecId;
+                        }
+                    }
+
+                    const resolvedName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(specCode, currentHospital.id) : (specObj?.name_ar || specCode);
+                    const specName = (specObj?.name_ar === 'الاطفال' || specCode === 'Pe') ? 'طب الأطفال' : (specObj?.name_ar || resolvedName);
+                    const specIcon = specObj?.icon || "🏥";
+
+                    resultMap[key].specs.push({
+                        code: specCode,
+                        name: specName,
+                        icon: specIcon,
+                        endMin: endMin,
+                        remainingMinutes: remainingMinutes,
+                        isClone: Boolean(resident.isClone),
+                        parentHospitalName: resident.parentHospitalName
+                    });
+
+                    if (endMin < resultMap[key].endMin) {
+                        resultMap[key].dutyTime = dutyTime;
+                        resultMap[key].startMin = startMin;
+                        resultMap[key].endMin = endMin;
+                        resultMap[key].remainingMinutes = remainingMinutes;
+                        resultMap[key].criticalSpecCode = specCode;
+                    }
+                }
+            }
+
+            // Sort residents according to the hospital specialties order
+            const specOrderMap = {};
+            (currentHospital.specialties || []).forEach((spec, idx) => {
+                specOrderMap[spec.id] = idx;
+            });
+
+            const residentsArray = Object.values(resultMap);
+            residentsArray.forEach(res => {
+                // Sort resident's inner specialty bubbles as well
+                res.specs.sort((a, b) => {
+                    const orderA = specOrderMap[a.code] !== undefined ? specOrderMap[a.code] : 999;
+                    const orderB = specOrderMap[b.code] !== undefined ? specOrderMap[b.code] : 999;
+                    return orderA - orderB;
+                });
+            });
+
+            residentsArray.sort((a, b) => {
+                const bestA = a.specs.length > 0 && specOrderMap[a.specs[0].code] !== undefined ? specOrderMap[a.specs[0].code] : 999;
+                const bestB = b.specs.length > 0 && specOrderMap[b.specs[0].code] !== undefined ? specOrderMap[b.specs[0].code] : 999;
+                if (bestA !== bestB) return bestA - bestB;
+                return a.name.localeCompare(b.name, 'ar');
+            });
+
+            return residentsArray;
+        }
+
+        function renderRoster() {
+            const container = document.getElementById('roster-container');
+            const countTag = document.getElementById('count-tag');
+            if (!currentHospital) {
+                container.innerHTML = '<div class="text-center py-10 text-slate-400">جاري تحميل بيانات المستشفى...</div>';
+                return;
+            }
+
+            const currentResidents = getAllCurrentResidents();
+            const trending = getTrendingResidentForToday();
+
+            if (countTag) {
+                countTag.innerHTML = `<i class="fas fa-users mr-1"></i> ${currentResidents.length} خفر في الخدمة الآن`;
+            }
+
+            if (currentResidents.length === 0) {
+                container.innerHTML = `
+                    <div class="glass-card p-8 text-center text-slate-400">
+                        <i class="fas fa-user-clock text-4xl mb-3 text-slate-300 dark:text-slate-600"></i>
+                        <div class="font-bold text-base">لا يوجد أطباء مسجلين في الخدمة حالياً لهذا اليوم.</div>
+                        <div class="text-xs mt-1">تأكد من تسجيل خفارات اليوم عبر صفحة تسجيل الخفراء.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const currentMin = getCurrentMinutes();
+
+            container.innerHTML = currentResidents.map(resident => {
+                const isTrending = trending && trending.name === resident.name;
+                const isCrimson = resident.remainingMinutes < 60 && resident.remainingMinutes > 0;
+                const isPhoneValid = resident.phone && resident.phone.replace(/[^0-9]/g, '').length >= 10;
+                const phoneClean = resident.phone.replace(/[^0-9]/g, '');
+
+                const isMultiSpec = Array.isArray(resident.specs) && resident.specs.length > 1;
+                const isIcuResident = Array.isArray(resident.specs) && resident.specs.some(s => s.code === 'ICU' || s.code === 'A');
+
+                let icuCounterHtml = '';
+                let icuBackFaceHtml = '';
+                let cardFlipClass = '';
+
+                if (isIcuResident && currentHospital) {
+                    cardFlipClass = 'icu-flip-card';
+                    const icuStats = (window.Hub && Hub.getICUStats) ? Hub.getICUStats(currentHospital.id) : (currentHospital.icu || { totalBeds: 12, functionalBeds: 10, occupiedBeds: 7, availableBeds: 3 });
+                    const availableBeds = icuStats ? (icuStats.availableBeds !== undefined ? icuStats.availableBeds : Math.max(0, (icuStats.functionalBeds || 0) - (icuStats.occupiedBeds || 0))) : 0;
+                    const isFull = (availableBeds <= 0);
+                    const canEditICU = window.Hub && Hub.canEditICU ? Hub.canEditICU(currentHospital.id) : false;
+
+                    icuCounterHtml = `
+                        <button type="button" class="card-icu-status ${isFull ? 'status-icu-full' : 'status-icu-avail'}"
+                                onclick="toggleIcuCardFlip(event, this)"
+                                title="اضغط لمعاينة تفاصيل موقف أسرة العناية المركزة">
+                            ${isFull ? `<span class="icu-alarm-indicator" title="العناية ممتلئة بالكامل!"><i class="fas fa-bell"></i></span>` : ''}
+                            <i class="fas fa-bed"></i>
+                            <span>${isFull ? 'ممتلئ' : `${availableBeds} شاغر`}</span>
+                        </button>
+                    `;
+
+                    icuBackFaceHtml = `
+                        <div class="card-face card-back" onclick="event.stopPropagation()">
+                            <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:0.35rem;">
+                                <div style="display:flex; align-items:center; gap:0.4rem;">
+                                    <span style="font-size:1rem; color:#007AFF;" class="dark:text-amber-400"><i class="fas fa-procedures"></i></span>
+                                    <span style="font-size:0.85rem; font-weight:800; color:#1C1C1E;" class="dark:text-white">موقف أسرة العناية المركزة</span>
+                                </div>
+                                <button type="button" class="icu-back-close-btn" onclick="toggleIcuCardFlip(event, this)" title="إغلاق والعودة للخفارات">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="icu-back-stats-grid">
+                                <div class="icu-back-stat-item">
+                                    <div class="icu-back-stat-num">${icuStats.totalBeds}</div>
+                                    <div class="icu-back-stat-label">الأسرة الفعلية</div>
+                                </div>
+                                <div class="icu-back-stat-item">
+                                    <div class="icu-back-stat-num">${icuStats.functionalBeds}</div>
+                                    <div class="icu-back-stat-label">الصالح منها</div>
+                                </div>
+                                <div class="icu-back-stat-item">
+                                    <div class="icu-back-stat-num">${icuStats.occupiedBeds}</div>
+                                    <div class="icu-back-stat-label">المشغولة</div>
+                                </div>
+                                <div class="icu-back-stat-item ${isFull ? 'full' : 'avail'}">
+                                    <div class="icu-back-stat-num">${availableBeds}</div>
+                                    <div class="icu-back-stat-label">${isFull ? 'ممتلئة' : 'الشاغرة المتاحة'}</div>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:0.45rem; width:100%; margin-top:0.45rem;">
+                                <a href="./icu.html?hospital=${encodeURIComponent(currentHospital.id)}" class="icu-back-hub-btn" onclick="event.stopPropagation()">
+                                    <i class="fas fa-chart-pie ml-1"></i> صفحة موقف العناية
+                                </a>
+                                ${canEditICU ? `
+                                <button type="button" onclick="event.stopPropagation(); openQuickIcuEdit('${currentHospital.id}')" class="icu-back-edit-btn" title="تعديل أعداد الأسرة">
+                                    <i class="fas fa-edit"></i> تعديل
+                                </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                const specialtyBubbles = resident.specs.map(spec => {
+                    let rem = spec.endMin - currentMin;
+                    if (rem < 0) rem = 0;
+                    if (rem > TOTAL_MINUTES) rem = TOTAL_MINUTES;
+                    const hours = Math.floor(rem / 60);
+                    const minutes = Math.floor(rem % 60);
+                    const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+
+                    return `
+                        <button type="button" class="specialty-flip ${isMultiSpec ? 'multiple' : ''}" data-end-min="${spec.endMin}" onclick="toggleSpecialtyTimer(this)" aria-label="Show remaining time for ${spec.name}">
+                            <span class="specialty-bubble specialty-front ${isMultiSpec ? 'specialty-gold' : ''}">${spec.name} ${spec.icon || ''}</span>
+                            <span class="specialty-bubble specialty-back ${isMultiSpec ? 'specialty-gold' : ''}">
+                                <span class="specialty-timer-label">المتبقي</span>
+                                <span class="countdown-timer font-mono font-bold" data-end-min="${spec.endMin}">${timeStr}</span>
+                            </span>
+                        </button>
+                    `;
+                }).join('');
+
+                let wrapperClasses = 'roster-card-wrapper';
+                if (isTrending) wrapperClasses += ' trending';
+                if (isCrimson) wrapperClasses += ' crimson';
+                if (resident.isClone) wrapperClasses += ' clone-wrapper';
+
+                const cloneCardClass = resident.isClone ? 'clone-card' : '';
+
+                return `
+                    <div class="${wrapperClasses}">
+                        <div class="roster-card ${cardFlipClass} ${cloneCardClass}" data-end-min="${resident.endMin}"
+                             onmousemove="handleCardTilt(event, this)"
+                             onmouseleave="resetCardTilt(this)">
+                            <div class="card-face card-front card-body">
+                                <span class="card-status ${isTrending ? 'status-trending' : ''}"
+                                      onclick="event.stopPropagation(); trackResidentContact('${resident.name.replace(/'/g, "\\'")}', '${(resident.criticalSpecCode || '').replace(/'/g, "\\'")}', '${(resident.parentHospitalId || '').replace(/'/g, "\\'")}');"
+                                      title="عدد التفاعلات والزيارات - اضغط لتسجيل تفاعل"
+                                      style="cursor: pointer;">
+                                    <i class="fas fa-eye"></i> ${resident.visitCount}
+                                </span>
+                                ${icuCounterHtml}
+                                ${resident.isClone && resident.parentHospitalName ? `
+                                    <div class="clone-parent-title">
+                                        <span class="clone-parent-badge" title="جدول هذا الطبيب مستنسخ كمرآة حية من ${resident.parentHospitalName}">
+                                            <i class="fas fa-hospital-user"></i>
+                                            <span>${resident.parentHospitalName}</span>
+                                        </span>
+                                    </div>
+                                ` : ''}
+                                <div class="specialty-bubbles">${specialtyBubbles}</div>
+                                <div class="resident-name">${resident.name}</div>
+                                <div class="resident-phone">${resident.phone}</div>
+                                <div class="divider"></div>
+                                <div class="card-actions">
+                                    <a href="${isPhoneValid ? 'whatsapp://send?phone=' + phoneClean : '#'}" 
+                                       class="action-btn-sm wa ${!isPhoneValid ? 'opacity-40' : ''}"
+                                       onclick="${isPhoneValid ? `trackResidentContact('${resident.name.replace(/'/g, "\\'")}', '${(resident.criticalSpecCode || '').replace(/'/g, "\\'")}', '${(resident.parentHospitalId || '').replace(/'/g, "\\'")}');` : 'event.preventDefault();'}">
+                                        <i class="fab fa-whatsapp"></i> WhatsApp
+                                    </a>
+                                    <a href="${isPhoneValid ? 'tel:' + (phoneClean.startsWith('964') ? '+' + phoneClean : phoneClean) : '#'}" 
+                                       class="action-btn-sm call ${!isPhoneValid ? 'opacity-40' : ''}"
+                                       onclick="${isPhoneValid ? `trackResidentContact('${resident.name.replace(/'/g, "\\'")}', '${(resident.criticalSpecCode || '').replace(/'/g, "\\'")}', '${(resident.parentHospitalId || '').replace(/'/g, "\\'")}');` : 'event.preventDefault();'}">
+                                        <i class="fas fa-phone"></i> Call
+                                    </a>
+                                </div>
+                            </div>
+                            ${icuBackFaceHtml}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Likes and comments (one request for the whole roster; see hub-accounts.js).
+            if (window.HubAccounts) {
+                const today = Hub.getMedicalDate();
+                const wrappers = container.querySelectorAll('.roster-card-wrapper');
+                HubAccounts.decorate(currentResidents.map((resident, i) => ({
+                    el: wrappers[i] && wrappers[i].querySelector('.card-front .card-actions'),
+                    h: resident.parentHospitalId || currentHospital.id,
+                    d: today,
+                    n: resident.name
+                })).filter(c => c.el));
+            }
+        }
+
+        function updateCountdowns() {
+            const currentMin = getCurrentMinutes();
+            document.querySelectorAll('.countdown-timer').forEach(timerEl => {
+                const endMin = parseInt(timerEl.dataset.endMin || '0');
+                if (!endMin) return;
+                let remaining = endMin - currentMin;
+                if (remaining < 0) remaining = 0;
+                if (remaining > TOTAL_MINUTES) remaining = TOTAL_MINUTES;
+                const hours = Math.floor(remaining / 60);
+                const minutes = Math.floor(remaining % 60);
+                timerEl.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+            });
+
+            document.querySelectorAll('.roster-card-wrapper').forEach(wrapper => {
+                const card = wrapper.querySelector('.roster-card');
+                if (!card) return;
+                const endMin = parseInt(card.dataset.endMin || '0');
+                if (!endMin) return;
+                let remaining = endMin - currentMin;
+                if (remaining < 0) remaining = 0;
+                wrapper.classList.toggle('crimson', remaining < 60 && remaining > 0);
+            });
+
+            // Update header time
+            const now = new Date();
+            const timeEl = document.getElementById('current-time-display');
+            if (timeEl) {
+                const hrs = now.getHours();
+                const mins = now.getMinutes();
+                const ampm = hrs >= 12 ? 'PM' : 'AM';
+                const h12 = hrs % 12 || 12;
+                timeEl.textContent = `${String(h12).padStart(2, '0')}:${String(mins).padStart(2, '0')} ${ampm}`;
+            }
+        }
+
+        // ================================================================
+        // TRENDING PANEL & 3D PODIUM LEADERBOARD
+        // ================================================================
+        function getTrendingResidentForToday() {
+            if (!currentHospital) return null;
+            const residents = getAllCurrentResidents();
+            if (!residents || residents.length === 0) return null;
+
+            // Only original residents of this hospital can be Trending in this hospital
+            let maxVisits = 0, trendingRes = null;
+            residents.filter(r => !r.isClone).forEach(res => {
+                const visits = res.visitCount || 0;
+                if (visits > maxVisits) {
+                    maxVisits = visits;
+                    trendingRes = res;
+                }
+            });
+
+            if (!trendingRes || maxVisits === 0) return null;
+
+            const firstSpec = trendingRes.specs?.[0];
+            return {
+                name: trendingRes.name,
+                phone: trendingRes.phone || "رقم غير متوفر",
+                specName: firstSpec ? firstSpec.name : (trendingRes.criticalSpecCode || "طبيب خافر"),
+                icon: firstSpec ? (firstSpec.icon || "🏥") : "🏥",
+                VisitCount: maxVisits,
+                isClone: Boolean(trendingRes.isClone),
+                parentHospitalName: trendingRes.parentHospitalName || null
+            };
+        }
+
+        function renderTrending() {
+            const container = document.getElementById('trending-container');
+            const trending = getTrendingResidentForToday();
+
+            if (trending) {
+                container.innerHTML = `
+                    <div class="trending-panel" id="trendingPanel">
+                        <div class="trending-top">
+                            <button class="trending-badge-btn" id="trendingBadgeBtn" title="اضغط لعرض لوحة المتصدرين">
+                                <i class="fas fa-crown"></i> !TRENDING
+                            </button>
+                            <span class="trending-stats">
+                                <i class="fas fa-eye"></i> ${trending.VisitCount || 0}
+                            </span>
+                        </div>
+                        <div class="trending-center">
+                            <div class="trending-name">${trending.name}</div>
+                            <div class="trending-spec">${trending.icon} ${trending.specName}${trending.isClone && trending.parentHospitalName ? ` <span class="text-xs opacity-80 font-normal">(${trending.parentHospitalName})</span>` : ''}</div>
+                        </div>
+                    </div>
+                `;
+
+                const badge = document.getElementById('trendingBadgeBtn');
+                const panel = document.getElementById('trendingPanel');
+
+                if (badge) {
+                    badge.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        this.classList.add('flutter-stopped');
+                        showTrendingModal();
+                        const rect = this.getBoundingClientRect();
+                        const cx = rect.left + rect.width / 2;
+                        const cy = rect.top + rect.height / 2;
+                        fireConfettiFromPosition(cx, cy);
+                    });
+                }
+
+                if (panel) {
+                    panel.addEventListener('click', function(e) {
+                        if (badge && (e.target === badge || badge.contains(e.target))) return;
+                        fireConfettiFromPosition(e.clientX, e.clientY);
+                    });
+                }
+            } else {
+                container.innerHTML = `
+                    <div class="glass-card p-3 text-center text-slate-400 text-xs">
+                        <i class="fas fa-chart-line mr-1"></i> لا يوجد متصدر اليوم حتى الآن. التفاعلات والزيارات ستظهر هنا تلقائياً.
+                    </div>
+                `;
+            }
+        }
+
+        function showTrendingModal() {
+            document.getElementById('trending-modal').classList.add('active');
+            switchLeaderboardFilter(currentLeaderboardFilter);
+        }
+
+        function closeTrendingModal() {
+            document.getElementById('trending-modal').classList.remove('active');
+        }
+
+        function switchLeaderboardFilter(filter) {
+            currentLeaderboardFilter = filter;
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.filter === filter);
+            });
+
+            const content = document.getElementById('trending-content');
+            if (!currentHospital) return;
+
+            const now = new Date();
+            const todayStr = Hub.getMedicalDate();
+            const monthStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+            // Do NOT include cloned/mirrored specialties in the leaderboard of this hospital!
+            // Mirrored residents compete only in their original hospital's leaderboard.
+            let entries = (currentHospital.schedule || []).filter(s => !s.isClone && s.VisitCount && s.VisitCount > 0);
+
+            if (filter === 'today') {
+                entries = entries.filter(s => s.date === todayStr);
+            } else if (filter === 'month') {
+                entries = entries.filter(s => {
+                    const parts = s.date.split('/');
+                    return parts.length === 3 && `${parts[1]}/${parts[2]}` === monthStr;
+                });
+            }
+
+            const leaderboard = {};
+            entries.forEach(entry => {
+                if (!leaderboard[entry.name]) {
+                    leaderboard[entry.name] = { name: entry.name, specCode: entry.specCode, totalVisits: 0 };
+                }
+                leaderboard[entry.name].totalVisits += (entry.VisitCount || 0);
+            });
+
+            const sorted = Object.values(leaderboard).sort((a, b) => b.totalVisits - a.totalVisits);
+
+            if (sorted.length === 0) {
+                content.innerHTML = `<div class="text-center py-6 text-slate-400 text-sm"><div class="text-3xl mb-1">🏆</div><div>لا توجد تفاعلات مسجلة في هذا النطاق بعد.</div></div>`;
+                return;
+            }
+
+            const topThree = sorted.slice(0, 3);
+            const others = sorted.slice(3);
+
+            let html = '';
+            if (topThree.length > 0) {
+                const maxVisits = topThree[0]?.totalVisits || 1;
+                const ordered = [topThree[1] || topThree[0], topThree[0], topThree[2] || topThree[0]];
+                const medals = ['silver', 'gold', 'bronze'];
+                const medalIcons = ['🥈', '🥇', '🥉'];
+
+                html += `
+                    <div class="step-chart-wrapper">
+                        <div class="step-chart-title">✦ TOP PERFORMERS ✦</div>
+                        <div class="step-chart">
+                `;
+                ordered.forEach((item, index) => {
+                    const maxHeight = 60;
+                    const ratio = item.totalVisits / maxVisits;
+                    const heightPx = Math.max(ratio * maxHeight, 6);
+                    const specObj = (currentHospital.specialties || []).find(s => s.id === item.specCode);
+                    const specName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(item.specCode, currentHospital.id) : (specObj?.name_ar || item.specCode);
+                    const icon = specObj?.icon || "🏥";
+
+                    html += `
+                        <div class="step-bar">
+                            <div class="bar-value">${item.totalVisits}</div>
+                            <div class="bar-wrap">
+                                <div class="bar ${medals[index]}" style="height: ${heightPx}px;"></div>
+                            </div>
+                            <div class="bar-label">${icon} ${item.name}</div>
+                            <div class="step-medal-icon">${medalIcons[index]}</div>
+                        </div>
+                    `;
+                });
+                html += `</div></div>`;
+            }
+
+            if (others.length > 0) {
+                html += '<div class="space-y-1.5 mt-2">';
+                others.forEach((item, idx) => {
+                    const specObj = (currentHospital.specialties || []).find(s => s.id === item.specCode);
+                    const itemSpecName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(item.specCode, currentHospital.id) : (specObj?.name_ar || item.specCode);
+                    html += `
+                        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700">
+                            <div class="flex items-center gap-3">
+                                <span class="font-mono font-bold text-xs w-6 text-slate-400">#${idx + 4}</span>
+                                <div>
+                                    <div class="font-bold text-xs text-slate-800 dark:text-slate-200">${item.name}</div>
+                                    <div class="text-[0.65rem] text-slate-500">${specObj?.icon || '🏥'} ${itemSpecName}</div>
+                                </div>
+                            </div>
+                            <span class="font-mono font-black text-amber-500 text-xs"><i class="fas fa-eye text-[0.65rem]"></i> ${item.totalVisits}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            content.innerHTML = html;
+        }
+
+        // ================================================================
+        // INTERACTION TRACKING
+        // ================================================================
+        async function trackResidentContact(residentName, specCode = null, sourceHospitalId = null) {
+            const now = Date.now();
+            const key = `contact_${residentName}`;
+            if (clickCooldown[key] && (now - clickCooldown[key]) < COOLDOWN_TIME) {
+                showToast('⏳ تم تسجيل تفاعل مؤخراً، يرجى الانتظار قليلاً', 'info', 2000);
+                return;
+            }
+            clickCooldown[key] = now;
+
+            if (!currentHospital) return;
+            try {
+                await Hub.incrementVisitCount(currentHospital.id, residentName, specCode, sourceHospitalId);
+                showToast(`✅ تم تسجيل تفاعل مع ${residentName}`, 'success', 2200);
+                renderRoster();
+                renderTrending();
+                fireConfettiFromPosition(window.innerWidth / 2, window.innerHeight * 0.7);
+            } catch (err) {
+                console.error("Tracking Error:", err);
+            }
+        }
+
+        // ================================================================
+        // ADMIN RESET MODAL
+        // ================================================================
+        function showResetModal() {
+            if (!Hub.auth.isAdmin()) {
+                showToast('يتطلب هذا الإجراء صلاحيات المدير', 'error');
+                return;
+            }
+            document.getElementById('reset-modal').classList.add('active');
+        }
+
+        function closeResetModal() {
+            document.getElementById('reset-modal').classList.remove('active');
+        }
+
+        async function executeReset() {
+            const range = document.querySelector('input[name="reset-range"]:checked')?.value || 'today';
+            // Close modal immediately
+            closeResetModal();
+
+            try {
+                await Hub.resetStatistics(currentHospital.id, range);
+                showToast('تمت إعادة ضبط التفاعلات بنجاح', 'success');
+                renderRoster();
+                renderTrending();
+            } catch (err) {
+                showToast(err.message || 'فشل التصفير', 'error');
+            }
+        }
+
+        // ================================================================
+        // REPORT GENERATOR (WHATSAPP READY WITH REPO LINK)
+        // ================================================================
+        function generateAndCopyReport() {
+            const currentResidents = getAllCurrentResidents();
+            if (currentResidents.length === 0) {
+                showToast('لا يوجد مقيمين في الخدمة حالياً للتقرير', 'info');
+                return;
+            }
+
+            const hospName = currentHospital.name_ar || currentHospital.hospitalName;
+            const hospLoc = currentHospital.location || 'Basra · Iraq';
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+            let report = `🏥 *جدول المقيمين الخفراء في الخدمة*\n`;
+            report += `📍 *${hospName}* (${hospLoc})\n`;
+            report += `📅 *التاريخ:* ${Hub.getMedicalDate()}\n`;
+            report += `⏰ *الوقت:* ${timeStr}\n`;
+            report += `┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n`;
+
+            currentResidents.forEach(res => {
+                const specs = res.specs.map(s => `${s.icon} ${s.name}`).join(' + ');
+                report += `🩺 *${specs}*\n`;
+                report += `👨‍⚕️ *${res.name}*\n`;
+                report += `☎️ _${res.phone}_\n\n`;
+            });
+
+            report += `┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n`;
+            report += `تم التوليد عبر: بوابة المستشفيات التعليمية 🇮🇶\n`;
+            report += `🔗 https://mhub96.github.io/IQ/Home.html\n`;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(report).then(() => {
+                    showToast('✅ تم نسخ التقرير بنجاح إلى الحافظة!', 'success');
+                    fireConfettiFromPosition(window.innerWidth / 2, window.innerHeight * 0.4);
+                }).catch(() => fallbackCopy(report));
+            } else {
+                fallbackCopy(report);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showToast('✅ تم نسخ التقرير بنجاح!', 'success');
+            fireConfettiFromPosition(window.innerWidth / 2, window.innerHeight * 0.4);
+        }
+
+        // ================================================================
+        // TOAST NOTIFICATIONS
+        // ================================================================
+        let toastTimeout = null;
+        function showToast(message, type = 'info', duration = 3000) {
+            if (toastTimeout) {
+                clearTimeout(toastTimeout);
+                document.getElementById('toast-container').querySelectorAll('.toast').forEach(t => t.remove());
+            }
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <i class="fas ${icons[type] || icons.info}"></i>
+                <span>${message}</span>
+                <button class="toast-close mr-auto cursor-pointer opacity-60 hover:opacity-100 bg-none border-none text-inherit" onclick="this.parentElement.remove()">&times;</button>
+            `;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('show'));
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+                toastTimeout = null;
+            }, duration);
+        }
+
+        // ================================================================
+        // THEME MANAGEMENT
+        // ================================================================
+        function applyTheme(theme) {
+            const body = document.getElementById('app-body') || document.body;
+            const sunIcon = document.getElementById('theme-sun-icon');
+            const moonIcon = document.getElementById('theme-moon-icon');
+            const isDark = theme === 'dark';
+
+            document.documentElement.classList.toggle('dark', isDark);
+            document.documentElement.classList.toggle('light', !isDark);
+
+            if (body) {
+                body.classList.toggle('dark', isDark);
+                body.classList.toggle('light', !isDark);
+            }
+
+            if (sunIcon) sunIcon.classList.toggle('hidden', !isDark);
+            if (moonIcon) moonIcon.classList.toggle('hidden', isDark);
+        }
+
+        function toggleTheme() {
+            const newTheme = Hub.toggleTheme();
+            applyTheme(newTheme);
+        }
+
+        // ================================================================
+        // MULTI-HOSPITAL DATA BINDING
+        // ================================================================
+        function applyHospitalData() {
+            currentHospital = Hub.getActiveHospital();
+            if (!currentHospital) return;
+
+            // Update DOM title, header, icon, location
+            const hospName = currentHospital.name_ar || currentHospital.hospitalName || 'المستشفى التعليمي';
+            const hospLocation = currentHospital.location || 'Basra · Iraq';
+            const hospIcon = currentHospital.icon || 'fa-hospital';
+
+            document.title = `${hospName} · الخفراء اليوم 🇮🇶`;
+            const nameEl = document.getElementById('hospital-name');
+            const locEl = document.getElementById('hospital-location');
+            const iconEl = document.getElementById('hospital-symbol-icon');
+            const btnExchange = document.getElementById('btn-duty-exchange');
+            const btnRotation = document.getElementById('btn-rotation-heroes');
+
+            if (nameEl) nameEl.textContent = hospName;
+            if (locEl) locEl.textContent = hospLocation;
+            if (iconEl) iconEl.className = `fas ${hospIcon}`;
+
+            // Update Duty Exchange button with target hospital parameter
+            if (btnExchange) {
+                btnExchange.href = `./signup.html?hospital=${encodeURIComponent(currentHospital.id)}`;
+            }
+
+            // Update Rotation Heroes button according to hospital configuration
+            if (btnRotation) {
+                const heroesUrl = (currentHospital.rotationHeroesUrl || '').trim();
+                const existingBadge = btnRotation.querySelector('.badge-soon');
+                if (heroesUrl) {
+                    btnRotation.href = heroesUrl;
+                    btnRotation.removeAttribute('target');
+                    btnRotation.removeAttribute('rel');
+                    btnRotation.classList.remove('disabled');
+                    btnRotation.removeAttribute('aria-disabled');
+                    btnRotation.title = "الانتقال إلى منصة Rotation Heroes";
+                    if (existingBadge) existingBadge.remove();
+                } else {
+                    btnRotation.removeAttribute('href');
+                    btnRotation.removeAttribute('target');
+                    btnRotation.classList.add('disabled');
+                    btnRotation.setAttribute('aria-disabled', 'true');
+                    btnRotation.title = "ميزة Rotation Heroes غير متوفرة لهذا المستشفى حالياً - قريباً";
+                    if (!existingBadge) {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge-soon';
+                        badge.textContent = 'SOON';
+                        btnRotation.appendChild(badge);
+                    }
+                }
+            }
+
+            // Admin Reset Button visibility based on dual password role
+            const adminResetBtn = document.getElementById('admin-reset-btn');
+            if (adminResetBtn) {
+                if (Hub.auth.isAdmin(currentHospital?.id)) adminResetBtn.classList.remove('hidden');
+                else adminResetBtn.classList.add('hidden');
+            }
+        }
+
+        // ================================================================
+        // INITIALIZATION
+        // ================================================================
+        async function initHome() {
+            // If user is not authenticated, redirect to login portal
+            if (!Hub.auth.isLoggedIn()) {
+                window.location.href = './index.html';
+                return;
+            }
+
+            initFireworksCanvas();
+            setupEasterEgg();
+
+            // Load Unified Database
+            await Hub.loadDatabase();
+
+            // Persist active hospital so future visits and refreshes stay on it
+            const activeHospId = Hub.getActiveHospitalId();
+            Hub.setActiveHospitalId(activeHospId);
+
+            // Initialize Universal Navigation Bar
+            if (window.initUniversalNav) {
+                window.initUniversalNav('roster');
+            }
+
+            // Sync theme from Hub
+            applyTheme(Hub.getTheme());
+
+            applyHospitalData();
+            renderRoster();
+            renderTrending();
+            updateCountdowns();
+
+            // Setup reactive listeners
+            window.addEventListener('hub:hospital-switched', () => {
+                applyHospitalData();
+                renderRoster();
+                renderTrending();
+                updateCountdowns();
+            });
+
+            window.addEventListener('hub:data-changed', () => {
+                applyHospitalData();
+                renderRoster();
+                renderTrending();
+                updateCountdowns();
+            });
+
+            window.addEventListener('hub:theme-changed', (e) => {
+                applyTheme(e.detail.theme);
+            });
+
+            window.addEventListener('hub:auth-changed', () => {
+                applyHospitalData();
+            });
+
+            // Start live intervals
+            if (updateInterval) clearInterval(updateInterval);
+            if (countdownInterval) clearInterval(countdownInterval);
+            updateInterval = setInterval(() => {
+                renderRoster();
+                renderTrending();
+            }, 30000);
+            countdownInterval = setInterval(() => {
+                updateCountdowns();
+            }, 1000);
+        }
+
+        window.addEventListener('DOMContentLoaded', initHome);
+    </script>
+</body>
+</html>

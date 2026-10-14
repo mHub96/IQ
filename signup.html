@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <script src="./storage-scope.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <script src="./pwa.js"></script>
+    <title>تبديل وتسجيل الخفارات · Duty Exchange · Hospital Main Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="./nav-component.css" />
+    <link rel="stylesheet" href="./hub-accounts.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
+            background: #d1d9e6;
+            color: #1a2332;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        
+        body.dark::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.08;
+            background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.25'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-size: 120px 120px;
+        }
+        body.dark {
+            background: #000000;
+            color: #e8edf5;
+        }
+
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px 40px;
+        }
+
+        #toast-container {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            width: 92%;
+            max-width: 440px;
+            pointer-events: none;
+        }
+
+        .toast-item {
+            width: 100%;
+            padding: 14px 20px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            transform: translateY(-30px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: auto;
+            direction: rtl;
+        }
+        .toast-item.show { transform: translateY(0); opacity: 1; }
+        .toast-item.success { background: #10b981; }
+        .toast-item.error { background: #ef4444; }
+        .toast-item.info { background: #3b82f6; }
+
+        .app-card {
+            background: white;
+            border-radius: 28px;
+            padding: 28px;
+            border: 1px solid #E5E5EA;
+            box-shadow: 0 12px 36px rgba(0,0,0,0.06);
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 500px;
+        }
+        body.dark .app-card {
+            background: rgba(16, 22, 34, 0.84);
+            border-color: rgba(10, 132, 255, 0.16);
+            box-shadow: 0 16px 45px rgba(0,0,0,0.6);
+            backdrop-filter: blur(14px);
+        }
+
+        .app-card.card-success {
+            border-color: #10b981 !important;
+            box-shadow: 0 0 0 3px rgba(16,185,129,0.15), 0 12px 36px rgba(16,185,129,0.12) !important;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #1C1C1E;
+            margin-bottom: 8px;
+        }
+        body.dark .form-group label {
+            color: #E5E5EA;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 13px 16px;
+            border-radius: 14px;
+            border: 1.5px solid #D1D1D6;
+            background: #ffffff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            outline: none;
+            transition: border 0.3s, box-shadow 0.3s;
+            font-family: inherit;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23475569' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: left 16px center;
+            cursor: pointer;
+            color: #1C1C1E;
+        }
+        body.dark .form-select {
+            background: #0f151e;
+            border-color: #2a3346;
+            color: #e8edf5;
+        }
+        .form-select:focus {
+            border-color: #007AFF;
+            box-shadow: 0 0 0 4px rgba(0, 122, 255,0.15);
+        }
+        body.dark .form-select:focus {
+            border-color: #0A84FF;
+            box-shadow: 0 0 0 4px rgba(10, 132, 255,0.15);
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .ghost-text {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            padding: 13px 16px;
+            z-index: 5;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+            font-family: inherit;
+            direction: rtl;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .ghost-text .offset { color: transparent; }
+        .ghost-text .suggestion-bright { color: #8A8A8E; font-weight: 500; }
+        body.dark .ghost-text .suggestion-bright { color: rgba(255, 255, 255, 0.45); }
+
+        .input-text {
+            width: 100%;
+            padding: 13px 16px;
+            border-radius: 14px;
+            border: 1.5px solid #D1D1D6;
+            background: #ffffff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            outline: none;
+            transition: border 0.3s, box-shadow 0.3s;
+            font-family: inherit;
+            position: relative;
+            z-index: 10;
+            direction: rtl;
+            color: #1C1C1E;
+        }
+        body.dark .input-text {
+            background: #0f151e;
+            border-color: #2a3346;
+            color: #e8edf5;
+        }
+        .input-text:focus {
+            border-color: #007AFF;
+            box-shadow: 0 0 0 4px rgba(0, 122, 255,0.15);
+        }
+        body.dark .input-text:focus {
+            border-color: #0A84FF;
+            box-shadow: 0 0 0 4px rgba(10, 132, 255,0.15);
+        }
+
+        .dropdown-arrow {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 20;
+            color: #AEAEB2;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.04);
+            font-size: 0.65rem;
+            transition: 0.2s;
+        }
+        .dropdown-arrow:hover {
+            background: rgba(0,0,0,0.08);
+            color: #636366;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            right: 0;
+            width: 100%;
+            max-height: 220px;
+            overflow-y: auto;
+            background: white;
+            border: 2px solid #007AFF;
+            border-radius: 14px;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.15);
+            padding: 4px 0;
+        }
+        body.dark .dropdown-menu {
+            background: #141a24;
+            border-color: #0A84FF;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+        }
+        .dropdown-menu div {
+            padding: 10px 16px;
+            cursor: pointer;
+            color: #1a2332;
+            font-weight: 600;
+            transition: 0.15s;
+            border-bottom: 1px solid #F2F2F7;
+            font-size: 0.9rem;
+        }
+        body.dark .dropdown-menu div {
+            color: #e8edf5;
+            border-color: #1e2632;
+        }
+        .dropdown-menu div:hover, .dropdown-menu div.selected {
+            background: #007AFF;
+            color: white;
+        }
+        body.dark .dropdown-menu div:hover, body.dark .dropdown-menu div.selected {
+            background: #0A84FF;
+            color: #000000;
+        }
+
+        .info-box {
+            background: #F9F9FB;
+            border-radius: 14px;
+            padding: 12px 16px;
+            border: 1px solid #E5E5EA;
+            font-size: 0.85rem;
+            margin-top: 6px;
+        }
+        body.dark .info-box {
+            background: #0f151e;
+            border-color: #2a3346;
+        }
+        .info-box .label { color: #AEAEB2; font-weight: 600; display: block; margin-bottom: 4px; }
+        .info-box .value { font-weight: 800; font-size: 0.92rem; }
+
+        .btn-update {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #007AFF, #0A84FF);
+            color: white;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 14px;
+            font-family: inherit;
+            box-shadow: 0 8px 24px rgba(0, 122, 255,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        body.dark .btn-update {
+            background: linear-gradient(135deg, #0A84FF, #0062CC);
+            box-shadow: 0 8px 24px rgba(10, 132, 255,0.25);
+            color: #000000;
+        }
+        .btn-update:hover:not(:disabled) { transform: translateY(-2px); }
+        .btn-update:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* Mobile Screen Layouts */
+        @media (max-width: 768px) {
+            .main-wrapper {
+                padding: 10px 10px calc(2rem + env(safe-area-inset-bottom, 16px)) !important;
+            }
+            .app-card {
+                padding: 1.25rem 1rem !important;
+                border-radius: 1.3rem !important;
+                max-width: 100% !important;
+            }
+            .form-select, .input-text {
+                font-size: 1rem !important; /* Prevent iOS zoom */
+                min-height: 48px;
+                padding: 11px 14px;
+            }
+            .btn-update {
+                min-height: 48px;
+                font-size: 0.95rem;
+                padding: 12px;
+            }
+            .info-box {
+                padding: 0.75rem 0.9rem;
+            }
+        }
+
+        .footer-credit {
+            text-align: center;
+            font-size: 0.68rem;
+            color: #AEAEB2;
+            margin-top: 20px;
+            padding-top: 14px;
+            border-top: 1px solid #E5E5EA;
+            opacity: 0.6;
+        }
+        body.dark .footer-credit { border-color: #2a3346; }
+    
+        button:active, .btn:active, .tab-btn:active {
+            transform: scale(0.97);
+            transition: transform 0.15s ease;
+        }
+        body.dark .btn-submit, body.dark .submit-btn, body.dark button[type="submit"] {
+            background: linear-gradient(135deg, #0A84FF, #0062CC) !important;
+            color: #000000 !important;
+            font-weight: 800 !important;
+            box-shadow: 0 4px 16px rgba(10, 132, 255, 0.25) !important;
+        }
+    </style>
+    <link rel="stylesheet" href="./tailwind.css" />
+    <link rel="stylesheet" href="./hub-ios.css" />
+</head>
+<body>
+
+    <!-- Universal Navigation Component -->
+    <div id="universal-nav"></div>
+
+    <div id="toast-container"></div>
+
+    <main class="main-wrapper">
+        <div class="app-card" id="app-card">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                    <h1 class="text-xl font-black flex items-center gap-2">
+                        <i class="fas fa-exchange-alt text-teal-600 dark:text-teal-400"></i>
+                        <span>تبديل الخفارات</span>
+                    </h1>
+                    <div class="text-xs font-bold text-slate-400 mt-0.5">
+                        Duty Exchange System
+                    </div>
+                </div>
+                <div class="text-left">
+                    <span class="text-xs font-mono font-bold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300" id="selected-date-badge">
+                        --/--/----
+                    </span>
+                </div>
+            </div>
+
+            <!-- STEP 1: Hospital Select -->
+            <div class="form-group">
+                <label for="hosp-select">
+                    <i class="fas fa-hospital text-teal-600 dark:text-teal-400"></i>
+                    <span>1. اختر المستشفى:</span>
+                </label>
+                <select id="hosp-select" class="form-select" onchange="onHospitalChange()"></select>
+            </div>
+
+            <!-- STEP 2: Specialty Select -->
+            <div class="form-group" id="spec-group">
+                <label for="spec-select">
+                    <i class="fas fa-stethoscope text-teal-600 dark:text-teal-400"></i>
+                    <span>2. اختر التخصص الطبي:</span>
+                </label>
+                <select id="spec-select" class="form-select" onchange="onSpecialtyChange()">
+                    <option value="">-- اختر التخصص أولاً --</option>
+                </select>
+            </div>
+
+            <!-- STEP 3: Date of Exchange Select -->
+            <div class="form-group" id="date-group" style="display:none;">
+                <label for="exchange-date-input">
+                    <i class="fas fa-calendar-day text-teal-600 dark:text-teal-400"></i>
+                    <span>3. تاريخ تبديل الخفارة (اليوم المحدد):</span>
+                </label>
+                <input type="date" id="exchange-date-input" class="form-select font-mono text-left" dir="ltr" onchange="onDateChange()" />
+                <div class="text-[11px] text-slate-400 mt-1">افتراضياً: تاريخ فتح الرابط (تاريخ اليوم الطبي)</div>
+            </div>
+
+            <!-- STEP 4: Current Duty Status & Multi-Resident Target Picker -->
+            <div id="duty-status-group" style="display:none;">
+                <div class="info-box mb-3" id="current-duty-box">
+                    <span class="label">الخفر المسجل حالياً في هذا اليوم:</span>
+                    <span class="value text-teal-600 dark:text-teal-400" id="current-holder">—</span>
+                </div>
+
+                <!-- Multiple Residents Picker (Appears IF more than 1 resident on this day and specialty) -->
+                <div class="form-group p-3 rounded-xl border-2 border-amber-300 dark:border-amber-700/60 bg-amber-50/50 dark:bg-amber-950/30" id="target-resident-wrap" style="display:none;">
+                    <label for="target-resident-select" class="text-amber-800 dark:text-amber-300 font-bold">
+                        <i class="fas fa-users-viewfinder text-amber-500"></i>
+                        <span>يوجد أكثر من خفر مسجل · اختر الطبيب المراد التبديل معه:</span>
+                    </label>
+                    <select id="target-resident-select" class="form-select border-amber-300 dark:border-amber-700" onchange="onTargetResidentChange()"></select>
+                </div>
+            </div>
+
+            <!-- STEP 5: New Resident Input (The one taking over the duty) -->
+            <div id="name-section" style="display:none;">
+                <div class="form-group">
+                    <label for="name-input">
+                        <i class="fas fa-user-plus text-teal-600 dark:text-teal-400"></i>
+                        <span id="name-input-label">اسم المقيم البديل (الخفر الجديد):</span>
+                    </label>
+                    <div class="input-wrap">
+                        <div class="ghost-text" id="ghost-text"></div>
+                        <input type="text" id="name-input" class="input-text"
+                               placeholder="ابتدأ بكتابة اسم الطبيب البديل..."
+                               oninput="handleNameInput()"
+                               onkeydown="handleNameKeys(event)"
+                               onfocus="closeMenu()"
+                               onblur="setTimeout(closeMenu, 300)"
+                               autocomplete="off" />
+                        <span class="dropdown-arrow" onclick="toggleMenu(event)">▼</span>
+                        <div class="dropdown-menu" id="name-menu"></div>
+                    </div>
+                </div>
+
+                <button id="update-btn" class="btn-update" onclick="submitDutyExchange()" disabled>
+                    <i class="fas fa-check-circle"></i>
+                    <span id="update-btn-text">تأكيد وتثبيت تبديل الخفارة</span>
+                </button>
+            </div>
+
+            <div id="status-msg" class="text-xs mt-3 text-center min-h-6"></div>
+
+            <div class="footer-credit">
+                All rights reserved for Dr. Mohammed Riyadh · Hospital Main Hub
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="./hub-sync.js"></script>
+    <script src="./hub-core.js"></script>
+    <script src="./hub-avatar.js"></script>
+    <script src="./hub-accounts.js"></script>
+    <script src="./nav-component.js"></script>
+    <script>
+        // State
+        let allHospitals = [];
+        let currentHospital = null;
+        let currentResidents = [];
+        let matchingDuties = [];
+        let selectedOldResidentName = null;
+
+        function showToast(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast-item ${type}`;
+            const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+            toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('show'));
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, duration);
+        }
+
+        // Date Helpers
+        function getTodayIsoDate() {
+            const now = new Date();
+            if (now.getHours() < 8) {
+                now.setDate(now.getDate() - 1);
+            }
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        function isoToMedicalDate(isoStr) {
+            if (!isoStr) return Hub.getMedicalDate();
+            const parts = isoStr.split('-');
+            if (parts.length !== 3) return isoStr;
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
+        function medicalToIsoDate(medStr) {
+            if (!medStr) return getTodayIsoDate();
+            const parts = medStr.split('/');
+            if (parts.length !== 3) return medStr;
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+
+        async function initDutyExchange() {
+            if (!Hub.auth.isLoggedIn()) {
+                window.location.href = './index.html';
+                return;
+            }
+
+            initUniversalNav('signup');
+
+            try {
+                await Hub.loadDatabase();
+                allHospitals = Hub.getHospitals();
+
+                // Hospital from URL or active hospital
+                const urlParams = new URLSearchParams(window.location.search);
+                const queryHosp = urlParams.get('hospital') || urlParams.get('hosp');
+                let targetHid = Hub.getActiveHospitalId();
+                if (queryHosp && allHospitals.some(h => h.id === queryHosp)) {
+                    targetHid = queryHosp;
+                } else if (!allHospitals.some(h => h.id === targetHid) && allHospitals.length > 0) {
+                    targetHid = allHospitals[0].id;
+                }
+
+                Hub.setActiveHospitalId(targetHid);
+                currentHospital = Hub.getHospital(targetHid);
+                populateHospitalSelect(targetHid);
+
+                // Initialize Date input with today's medical date
+                const dateInput = document.getElementById('exchange-date-input');
+                const todayIso = getTodayIsoDate();
+                dateInput.value = todayIso;
+                document.getElementById('selected-date-badge').textContent = isoToMedicalDate(todayIso);
+
+                populateSpecialties();
+
+            } catch (err) {
+                console.error(err);
+                showToast('خطأ في تحميل البيانات', 'error');
+            }
+        }
+
+        function populateHospitalSelect(selectedId) {
+            const select = document.getElementById('hosp-select');
+            if (!select) return;
+            select.innerHTML = allHospitals.map(h => 
+                `<option value="${h.id}" ${h.id === selectedId ? 'selected' : ''}>${h.icon ? '🏥 ' : ''}${h.name_ar || h.hospitalName}</option>`
+            ).join('');
+            select.value = selectedId;
+        }
+
+        function onHospitalChange() {
+            const hospId = document.getElementById('hosp-select').value;
+            currentHospital = Hub.getHospital(hospId);
+            if (!currentHospital) return;
+
+            Hub.setActiveHospitalId(hospId);
+
+            // Update URL search param without full reload
+            if (window.history && window.history.replaceState) {
+                const url = new URL(window.location.href);
+                url.searchParams.set('hospital', hospId);
+                window.history.replaceState({}, '', url);
+            }
+
+            // Reset downstream sections
+            document.getElementById('date-group').style.display = 'none';
+            document.getElementById('duty-status-group').style.display = 'none';
+            document.getElementById('name-section').style.display = 'none';
+            document.getElementById('status-msg').textContent = '';
+            document.getElementById('app-card').classList.remove('card-success');
+
+            populateSpecialties();
+        }
+
+        // Keep dropdown synced if switched via universal navbar
+        window.addEventListener('hub:hospital-switched', (e) => {
+            const newHid = e.detail?.hospitalId;
+            const select = document.getElementById('hosp-select');
+            if (newHid && select && select.value !== newHid) {
+                select.value = newHid;
+                onHospitalChange();
+            }
+        });
+
+        function populateSpecialties() {
+            const select = document.getElementById('spec-select');
+            select.innerHTML = '<option value="">-- اختر التخصص الطبي --</option>';
+
+            const specs = (currentHospital?.specialties || []).filter(s => s.enabled !== false);
+            specs.forEach(spec => {
+                const opt = document.createElement('option');
+                opt.value = spec.id;
+                opt.textContent = `${spec.icon || '🏥'} ${spec.name_ar}`;
+                select.appendChild(opt);
+            });
+        }
+
+        function onSpecialtyChange() {
+            const specId = document.getElementById('spec-select').value;
+            const dateGroup = document.getElementById('date-group');
+            const card = document.getElementById('app-card');
+            card.classList.remove('card-success');
+
+            if (!specId) {
+                dateGroup.style.display = 'none';
+                document.getElementById('duty-status-group').style.display = 'none';
+                document.getElementById('name-section').style.display = 'none';
+                return;
+            }
+
+            // Step 3: Show Date Selector (Default is the date of opening the link)
+            dateGroup.style.display = 'block';
+            inspectDutyAndRender();
+        }
+
+        function onDateChange() {
+            const isoDate = document.getElementById('exchange-date-input').value;
+            document.getElementById('selected-date-badge').textContent = isoToMedicalDate(isoDate);
+            inspectDutyAndRender();
+        }
+
+        function inspectDutyAndRender() {
+            const specId = document.getElementById('spec-select').value;
+            const isoDate = document.getElementById('exchange-date-input').value;
+            const medDate = isoToMedicalDate(isoDate);
+
+            const dutyGroup = document.getElementById('duty-status-group');
+            const targetWrap = document.getElementById('target-resident-wrap');
+            const targetSelect = document.getElementById('target-resident-select');
+            const holder = document.getElementById('current-holder');
+            const nameSection = document.getElementById('name-section');
+            const nameInput = document.getElementById('name-input');
+            const ghost = document.getElementById('ghost-text');
+            const btn = document.getElementById('update-btn');
+            const msg = document.getElementById('status-msg');
+
+            msg.textContent = '';
+            nameInput.value = '';
+            ghost.innerHTML = '';
+            btn.disabled = true;
+            closeMenu();
+
+            if (!specId || !isoDate) {
+                dutyGroup.style.display = 'none';
+                nameSection.style.display = 'none';
+                return;
+            }
+
+            dutyGroup.style.display = 'block';
+            nameSection.style.display = 'block';
+
+            // Find matching duties on this date and specialty
+            matchingDuties = (currentHospital?.schedule || []).filter(s => s.specCode === specId && s.date === medDate);
+
+            // Populate resident suggestions for this specialty
+            if (window.Hub && typeof window.Hub.getEligibleResidentsForSpecialty === 'function') {
+                currentResidents = window.Hub.getEligibleResidentsForSpecialty(currentHospital, specId);
+            } else {
+                const specObj = (currentHospital?.specialties || []).find(s => s.id === specId);
+                const acceptPool = specObj?.acceptPool || [];
+                const parentSpec = specObj?.parentSpec || null;
+                const allSpecs = currentHospital?.specialties || [];
+                const childSpecIds = allSpecs.filter(s => s.parentSpec === specId).map(s => s.id);
+
+                currentResidents = (currentHospital?.names || []).filter(n => {
+                    if (n.active === false || n.spec === 'RESERVE') return false;
+                    const rSpec = n.spec || n.tag;
+                    const rTag = n.tag || n.spec;
+                    if (rSpec === specId || rTag === specId) return true;
+                    if (parentSpec && (rSpec === parentSpec || rTag === parentSpec)) return true;
+                    if (childSpecIds.includes(rSpec) || childSpecIds.includes(rTag)) return true;
+                    if (acceptPool.length > 0 && (acceptPool.includes(rSpec) || acceptPool.includes(rTag))) return true;
+                    return false;
+                });
+            }
+            if (currentResidents.length === 0) {
+                currentResidents = currentHospital?.names || [];
+            }
+
+            if (matchingDuties.length === 0) {
+                // No resident on duty yet
+                holder.textContent = 'لا يوجد خفر مسجل في هذا اليوم لهذا التخصص';
+                holder.style.color = '#AEAEB2';
+                targetWrap.style.display = 'none';
+                selectedOldResidentName = null;
+                const labelEl = document.getElementById('name-input-label');
+                if (labelEl) labelEl.textContent = 'اسم المقيم الخفر الجديد:';
+                const btnTextEl = document.getElementById('update-btn-text');
+                if (btnTextEl) btnTextEl.textContent = 'تثبيت الخفارة';
+
+            } else if (matchingDuties.length === 1) {
+                // Exactly one resident on duty
+                const resident = matchingDuties[0];
+                holder.innerHTML = `<span class="font-bold">${resident.name}</span> <span class="text-xs opacity-75 font-mono">(${resident.timestamp || 'خفارة مسجلة'})</span>`;
+                holder.style.color = '#007AFF';
+                targetWrap.style.display = 'none';
+                selectedOldResidentName = resident.name;
+                const labelEl = document.getElementById('name-input-label');
+                if (labelEl) labelEl.textContent = `اسم المقيم البديل (ليحل محل ${resident.name}):`;
+                const btnTextEl = document.getElementById('update-btn-text');
+                if (btnTextEl) btnTextEl.textContent = `تأكيد التبديل مع ${resident.name}`;
+
+            } else {
+                // More than one resident on duty: User selects which one to switch with!
+                holder.innerHTML = `<span class="font-bold">${matchingDuties.length} أطباء خفراء مسجلين في هذا اليوم</span>`;
+                holder.style.color = '#b45309';
+                targetWrap.style.display = 'block';
+
+                targetSelect.innerHTML = matchingDuties.map((d, i) => 
+                    `<option value="${d.name}">د. ${d.name.replace(/^د\.?\s*/, '')} (${d.timestamp || 'خفارة'})</option>`
+                ).join('');
+
+                selectedOldResidentName = targetSelect.value;
+                const labelEl = document.getElementById('name-input-label');
+                if (labelEl) labelEl.textContent = `اسم المقيم البديل (ليحل محل ${selectedOldResidentName}):`;
+                const btnTextEl = document.getElementById('update-btn-text');
+                if (btnTextEl) btnTextEl.textContent = `تأكيد التبديل مع ${selectedOldResidentName}`;
+            }
+
+            nameInput.focus();
+        }
+
+        function onTargetResidentChange() {
+            selectedOldResidentName = document.getElementById('target-resident-select').value;
+            document.getElementById('name-input-label').textContent = `اسم المقيم البديل (ليحل محل ${selectedOldResidentName}):`;
+            document.getElementById('update-btn-text').textContent = `تأكيد التبديل مع ${selectedOldResidentName}`;
+        }
+
+        // Name Autocomplete Handlers
+        function handleNameInput() {
+            const input = document.getElementById('name-input');
+            const ghost = document.getElementById('ghost-text');
+            const val = input.value;
+            const btn = document.getElementById('update-btn');
+            const menu = document.getElementById('name-menu');
+
+            ghost.innerHTML = '';
+            ghost.removeAttribute('data-full');
+            btn.disabled = true;
+
+            if (!val.trim()) {
+                menu.style.display = 'none';
+                return;
+            }
+
+            const valClean = val.toLowerCase().replace(/^د\.?\s*/, '');
+            const matches = currentResidents.filter(n => {
+                const nClean = n.name.toLowerCase().replace(/^د\.?\s*/, '');
+                return nClean.startsWith(valClean) || n.name.toLowerCase().startsWith(val.toLowerCase());
+            });
+            const partials = currentResidents.filter(n => {
+                const nClean = n.name.toLowerCase().replace(/^د\.?\s*/, '');
+                return nClean.includes(valClean) && !nClean.startsWith(valClean);
+            });
+
+            const all = [...matches, ...partials];
+
+            if (all.length > 0) {
+                const match = all[0];
+                ghost.setAttribute('data-full', match.name);
+                let display = match.name;
+                if (!val.startsWith('د.') && !val.startsWith('د ')) {
+                    display = display.replace(/^د\.?\s*/, '');
+                }
+
+                if (display.toLowerCase().startsWith(val.toLowerCase())) {
+                    ghost.innerHTML = `<span class="offset">${val}</span><span class="suggestion-bright">${display.substring(val.length)}</span>`;
+                } else {
+                    ghost.innerHTML = `<span class="suggestion-bright">${display}</span>`;
+                }
+                btn.disabled = false;
+            }
+
+            if (all.length > 0 && document.activeElement === input) {
+                menu.innerHTML = all.slice(0, 15).map(n =>
+                    `<div onclick="selectName('${n.name.replace(/'/g, "\'")}')">${n.name}</div>`
+                ).join('');
+                menu.style.display = 'block';
+            } else {
+                menu.style.display = 'none';
+            }
+        }
+
+        function handleNameKeys(e) {
+            const ghost = document.getElementById('ghost-text');
+            const full = ghost.getAttribute('data-full');
+            const menu = document.getElementById('name-menu');
+            const items = menu.querySelectorAll('div');
+
+            if (e.key === "Tab" && full) {
+                e.preventDefault();
+                selectName(full);
+            }
+
+            if (e.key === "Enter") {
+                const selected = menu.querySelector('div.selected');
+                if (selected) {
+                    e.preventDefault();
+                    selectName(selected.textContent);
+                } else if (full) {
+                    e.preventDefault();
+                    selectName(full);
+                }
+            }
+
+            if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                if (items.length > 0) {
+                    e.preventDefault();
+                    let idx = -1;
+                    items.forEach((item, i) => {
+                        if (item.classList.contains('selected')) {
+                            idx = i;
+                            item.classList.remove('selected');
+                        }
+                    });
+                    idx = e.key === "ArrowDown" ? Math.min(idx + 1, items.length - 1) : Math.max(idx - 1, 0);
+                    if (idx >= 0) {
+                        items[idx].classList.add('selected');
+                        items[idx].scrollIntoView({ block: 'nearest' });
+                    }
+                }
+            }
+        }
+
+        function toggleMenu(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('name-menu');
+            if (menu.style.display === 'block') {
+                menu.style.display = 'none';
+                return;
+            }
+
+            if (currentResidents.length === 0) {
+                menu.innerHTML = '<div style="color:#AEAEB2;font-size:0.8rem;text-align:center;padding:12px;">لا يوجد مقيمين</div>';
+            } else {
+                menu.innerHTML = currentResidents.slice(0, 20).map(n =>
+                    `<div onclick="selectName('${n.name.replace(/'/g, "\'")}')">${n.name}</div>`
+                ).join('');
+            }
+            menu.style.display = 'block';
+        }
+
+        function selectName(name) {
+            document.getElementById('name-input').value = name;
+            document.getElementById('ghost-text').innerHTML = '';
+            document.getElementById('update-btn').disabled = false;
+            document.getElementById('name-menu').style.display = 'none';
+            document.getElementById('name-input').focus();
+        }
+
+        function closeMenu() {
+            const menu = document.getElementById('name-menu');
+            if (menu) menu.style.display = 'none';
+        }
+
+        // Submit Duty Exchange
+        async function submitDutyExchange() {
+            const hospId = document.getElementById('hosp-select').value;
+            const specId = document.getElementById('spec-select').value;
+            const isoDate = document.getElementById('exchange-date-input').value;
+            const medDate = isoToMedicalDate(isoDate);
+            const name = document.getElementById('name-input').value.trim();
+            const btn = document.getElementById('update-btn');
+            const msg = document.getElementById('status-msg');
+            const card = document.getElementById('app-card');
+
+            if (!hospId || !specId || !isoDate || !name) {
+                showToast('الرجاء إكمال كافة الحقول المطلوبة', 'error');
+                return;
+            }
+
+            const formattedName = (name.startsWith('د.') || name.startsWith('د ')) ? name : `د. ${name}`;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> <span id="update-btn-text">جاري حفظ التبديل في السيرفر...</span>';
+
+            try {
+                await Hub.exchangeDuty(hospId, specId, formattedName, medDate, selectedOldResidentName);
+
+                card.classList.add('card-success');
+                msg.innerHTML = `<span style="color:#10b981;font-weight:700;">✅ تم تثبيت تبديل الخفارة بنجاح بتاريخ ${medDate} إلى: ${formattedName}</span>`;
+                showToast(`تم تبديل الخفارة بنجاح: ${formattedName}`, 'success');
+
+                btn.innerHTML = '<i class="fas fa-check-circle ml-2"></i> <span id="update-btn-text">تم التثبيت بنجاح!</span>';
+
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check-circle ml-1"></i> <span id="update-btn-text">تأكيد وتثبيت تبديل الخفارة</span>';
+                    inspectDutyAndRender();
+                }, 1000);
+
+            } catch (err) {
+                console.error(err);
+                msg.innerHTML = `<span style="color:#ef4444;font-weight:700;">❌ فشل تبديل الخفارة: ${err.message || ''}</span>`;
+                showToast(err.message || 'فشل حفظ الخفر على السيرفر', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check-circle ml-1"></i> <span id="update-btn-text">تأكيد وتثبيت تبديل الخفارة</span>';
+                inspectDutyAndRender();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', initDutyExchange);
+    </script>
+</body>
+</html>

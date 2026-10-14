@@ -1,10 +1,11 @@
 // service-worker.js - Hospital Main Hub
 // Pages and scripts are served network-first so every deploy reaches installed apps on
 // their next launch; the cache is only the offline fallback. API calls are never cached.
-const CACHE_VERSION = 'v3.8.1';
-// Next to the live site on the same origin (mhub96.github.io/IQ-beta/), the beta's caches carry
+const CACHE_VERSION = 'v3.8.2';
+// Next to the live site on the same origin (mhub96.github.io/IQ-new/), the beta's caches carry
 // their own prefix, and only those are ever cleaned up here: the live site's caches are left alone.
-const SCOPE_PREFIX = /\/IQ-beta\//i.test(self.registration.scope) ? 'iq-beta-' : '';
+const SCOPE_MATCH = /\/(IQ-[^/]+)\//i.exec(new URL(self.registration.scope).pathname);
+const SCOPE_PREFIX = SCOPE_MATCH ? SCOPE_MATCH[1].toLowerCase() + '-' : '';
 const CACHE_NAME = `${SCOPE_PREFIX}hospital-hub-${CACHE_VERSION}`;
 const CDN_CACHE = 'hospital-hub-cdn-v1';
 const NETWORK_TIMEOUT_MS = 4000;

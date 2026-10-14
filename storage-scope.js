@@ -1,9 +1,10 @@
 // Storage namespace for the beta when it is served next to the live site on the same origin
-// (mhub96.github.io/IQ-beta/ beside mhub96.github.io/IQ/). Both sites use the same localStorage
+// (mhub96.github.io/IQ-new/ beside mhub96.github.io/IQ/). Both sites use the same localStorage
 // and sessionStorage keys (sign-in token, data cache, ER mirror); without this a beta sign-in
 // would replace the live one in the same browser. Loaded first on every page; elsewhere it does nothing.
 (function () {
-    var m = /^\/(IQ-beta)\//i.exec(location.pathname);
+    // Any /IQ-<name>/ copy gets its own namespace; the live site at /IQ/ never matches.
+    var m = /^\/(IQ-[^/]+)\//i.exec(location.pathname);
     if (!m) return;
     var P = m[1] + ':';
     var S = Storage.prototype;

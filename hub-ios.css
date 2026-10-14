@@ -384,6 +384,58 @@ body.dark .hacc-tabs button[aria-selected="true"] { background: #636366 !importa
   }
   /* The leaderboard's pinned title sits under the grabber. */
   #trending-modal .modal-card > div:first-child { border-radius: 0 !important; margin-top: 0 !important; top: -1.25rem; }
+  /* One scroll area per sheet: lists inside a sheet grow with it instead of scrolling on their own
+     (a scroller inside a scroller traps the finger and cuts lists off on phones). */
+  .modal-card [class*="max-h-"][class*="overflow-y-auto"], .hub-modal-card [class*="max-h-"][class*="overflow-y-auto"] {
+    max-height: none !important; overflow-y: visible !important;
+  }
+  /* No blur layers inside a sheet: the sheet is opaque, and stacked blurs make iOS drop content. */
+  .modal-card *, .hub-modal-card * { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  /* Sheets scroll up and down only; nothing in them is wider than the screen, so no sideways wobble. */
+  .modal-card, .hub-modal-card { overflow-x: hidden !important; }
+  /* The passwords sheet had a fixed phone width of its own. */
+  #hub-passwords-modal .hub-modal-card { max-width: none !important; }
+}
+/* Fields set to width:100% with padding stay inside their pop-up. */
+.modal-card *, .hub-modal-card * { box-sizing: border-box; }
+/* A long option no longer widens its drop-down past the pop-up (Safari sizes selects by their text). */
+.modal-card select, .hub-modal-card select, .glass-panel select { max-width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* Closed pop-ups are not drawn at all. Some pages only fade closed pop-ups to opacity 0, which
+   kept a dozen invisible full-screen blur layers over the page; iPhones run out of graphics
+   memory with that many and start dropping parts of the page and of the open pop-up.
+   (Pop-ups opened with an inline display style still win over this rule.) */
+.modal-overlay:not(.active), .hub-modal-overlay:not(.active) { display: none; }
+
+/* Emergency page pop-ups (Tailwind "fixed inset-0 … hidden" overlays with a .glass-panel card):
+   solid cards. A see-through blurred card inside a blurred overlay renders transparent on iOS,
+   so the page showed through the pop-up. */
+.fixed.inset-0[id$="-modal"] > .glass-panel {
+  background: var(--ios-card) !important;
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+.dark .fixed.inset-0[id$="-modal"] > .glass-panel { background: var(--ios-card2) !important; }
+@media (max-width: 768px) {
+  /* …and on phones they are bottom sheets like every other pop-up, scrolling inside the sheet. */
+  .fixed.inset-0[id$="-modal"] {
+    z-index: 100000 !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+    padding: calc(10px + env(safe-area-inset-top, 0px)) 0 0 !important;
+  }
+  .fixed.inset-0[id$="-modal"] > .glass-panel {
+    width: 100% !important;
+    max-width: none !important;
+    border-radius: 34px 34px 0 0 !important;
+    border-bottom: 0 !important;
+    max-height: calc(100dvh - 10px - env(safe-area-inset-top, 0px)) !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    animation: ios-sheet-up 0.5s var(--ios-spring) both !important;
+  }
+  /* Cards whose header and footer stay put keep scrolling their middle part; the others scroll whole. */
+  .fixed.inset-0[id$="-modal"] > .glass-panel:not(.flex-col) { overflow-y: auto !important; overflow-x: hidden !important; overscroll-behavior: contain; }
+  .fixed.inset-0[id$="-modal"] > .glass-panel:not(.flex-col) [class*="max-h-"][class*="overflow-y-auto"] { max-height: none !important; overflow-y: visible !important; }
+  .fixed.inset-0[id$="-modal"] > .glass-panel[class*="h-[92vh]"] { height: calc(100dvh - 10px - env(safe-area-inset-top, 0px)) !important; }
 }
 
 @keyframes ios-sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }

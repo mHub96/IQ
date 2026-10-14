@@ -589,6 +589,9 @@
             // Reactive updates when database or hospital changes
             window.addEventListener('hub:data-changed', () => renderIcuDashboard());
             window.addEventListener('hub:auth-changed', () => renderIcuDashboard());
+            // The page can stay open for hours: redraw now and then so update times turn grey once 12 hours old.
+            setInterval(() => { if (!document.hidden) renderIcuDashboard(); }, 5 * 60 * 1000);
+            document.addEventListener('visibilitychange', () => { if (!document.hidden) renderIcuDashboard(); });
             window.addEventListener('hub:theme-changed', (e) => {
                 document.body.className = e.detail.theme;
             });
@@ -701,21 +704,26 @@
                 else if (stat.occupancyRate >= 75) progressColor = '#f59e0b'; // amber
 
                 // Format timestamp
+                // English date and time; green while the update is less than 12 hours old, grey after that.
                 let formattedDate = 'غير محدد';
+                let isFresh = false;
                 if (stat.lastUpdated) {
-                    try {
-                        const d = new Date(stat.lastUpdated);
-                        formattedDate = d.toLocaleDateString('ar-IQ', {
-                            day: 'numeric',
-                            month: 'numeric',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        });
-                    } catch(e) {
+                    const d = new Date(stat.lastUpdated);
+                    if (isNaN(d)) {
                         formattedDate = stat.lastUpdated;
+                    } else {
+                        formattedDate = d.toLocaleString('en-US', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                        });
+                        isFresh = Date.now() - d.getTime() < 12 * 60 * 60 * 1000;
                     }
                 }
+                const dateClass = isFresh ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500';
 
                 return `
                     <div class="icu-hosp-card ${glowClass} p-6">
@@ -791,7 +799,7 @@
                             ` : ''}
 
                             <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-bold mb-4">
-                                <span><i class="fas fa-history ml-1"></i> ${formattedDate}</span>
+                                <span class="${dateClass}"><i class="fas fa-history ml-1"></i> <span dir="ltr">${formattedDate}</span></span>
                                 <span><i class="fas fa-user-md ml-1"></i> ${stat.updatedBy || 'مقيم التخدير'}</span>
                             </div>
                         </div>

@@ -94,7 +94,7 @@
     // Pop-ups: while one is open on screen, the shell's tab bar steps aside.
     var overlayOn = false, queued = false;
     function overlayOpen() {
-        return !!document.querySelector('.modal-overlay.active, .hub-modal-overlay.active, .hacc-sheet-backdrop.open, #role-switcher-modal[style*="flex"], #hub-passwords-modal[style*="flex"]')
+        return !!document.querySelector('.modal-overlay.active, .hub-modal-overlay.active, .hacc-sheet-backdrop.open, #role-switcher-modal[style*="flex"], #hub-passwords-modal[style*="flex"], .fixed.inset-0[id$="-modal"]:not(.hidden)')
             || html.classList.contains('hacc-no-scroll');
     }
     function reportOverlay(force) {

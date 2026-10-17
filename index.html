@@ -1189,7 +1189,7 @@
                     <a href="./account.html#signup" style="color:var(--hacc-accent);">إنشاء حساب جديد</a>
                     <a href="./account.html#forgot" style="color:var(--hacc-accent);">نسيت كلمة المرور؟</a>
                 </div>
-                <button type="button" onclick="toggleSharedLogin(true)" style="background:none; border:0; color:#AEAEB2; font-size:0.74rem; font-weight:700; cursor:pointer; text-decoration:underline;">الدخول بكلمة المرور المشتركة (مؤقتاً)</button>
+                <button type="button" id="shared-login-link" onclick="toggleSharedLogin(true)" style="background:none; border:0; color:#AEAEB2; font-size:0.74rem; font-weight:700; cursor:pointer; text-decoration:underline;">الدخول بكلمة المرور المشتركة (مؤقتاً)</button>
             </form>
 
             <!-- Shared password (kept during the move to personal accounts) -->
@@ -1937,6 +1937,7 @@
                 }
 
                 updateTopRoleBadge();
+                applySharedLoginOption();
 
                 // Load database
                 currentDb = await Hub.loadDatabase();
@@ -1969,6 +1970,21 @@
             if (eyeIcon) {
                 eyeIcon.className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
             }
+        }
+
+        /** The shared passwords are offered only while the owner has them switched on (checked by the server too). */
+        function applySharedLoginOption() {
+            const apply = on => {
+                const link = document.getElementById('shared-login-link');
+                if (link) link.hidden = !on;
+                if (!on && !document.getElementById('lock-form').hidden) toggleSharedLogin(false);
+            };
+            try { const c = localStorage.getItem('hub_shared_pw_on'); if (c !== null) apply(c === '1'); } catch (e) {}
+            Hub.api('GET', '/api/auth-config', undefined, { useToken: false, retries: 1 }).then(res => {
+                const on = !!(res && res.sharedPasswords);
+                try { localStorage.setItem('hub_shared_pw_on', on ? '1' : '0'); } catch (e) {}
+                apply(on);
+            }).catch(() => {});
         }
 
         function toggleSharedLogin(shared) {

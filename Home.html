@@ -2138,6 +2138,50 @@
             }
         }
 
+        /**
+         * Opens a link inside the app, in a frame over the whole screen, with an exit button.
+         * Inside the app shell it covers the shell's window too (tab bar included).
+         */
+        function openFullScreenFrame(url, title) {
+            if (!/^https?:\/\//i.test(url || '')) return;
+            let doc = document;
+            try { if (window.top !== window && window.top.document && window.top.document.body) doc = window.top.document; } catch (e) {}
+            const old = doc.getElementById('hub-full-frame');
+            if (old) old.remove();
+            const wrap = doc.createElement('div');
+            wrap.id = 'hub-full-frame';
+            wrap.setAttribute('role', 'dialog');
+            wrap.setAttribute('aria-label', title);
+            wrap.innerHTML = `
+                <style>
+                    #hub-full-frame { position: fixed; inset: 0; z-index: 2147483000; background: #0b1220; display: flex; flex-direction: column; animation: hffIn .22s ease-out; }
+                    @keyframes hffIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+                    #hub-full-frame iframe { flex: 1; width: 100%; height: 100%; border: 0; background: #fff; }
+                    #hub-full-frame .hff-exit { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 10px); left: 12px; z-index: 2;
+                        display: inline-flex; align-items: center; gap: 7px; padding: 9px 15px 9px 13px; border: 0; border-radius: 999px; cursor: pointer;
+                        font: 800 14px/1 'IBM Plex Sans Arabic', -apple-system, system-ui, sans-serif; color: #fff;
+                        background: rgba(15, 23, 42, 0.72); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+                        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.16); }
+                    #hub-full-frame .hff-exit:active { transform: scale(0.95); }
+                    #hub-full-frame .hff-exit span { font-size: 16px; line-height: 0; }
+                    #hub-full-frame .hff-loading { position: absolute; inset: 0; display: grid; place-items: center; color: #cbd5e1;
+                        font: 700 14px 'IBM Plex Sans Arabic', -apple-system, system-ui, sans-serif; pointer-events: none; }
+                </style>
+                <div class="hff-loading">جاري فتح ${title}…</div>
+                <iframe allow="fullscreen; clipboard-write; geolocation" referrerpolicy="strict-origin-when-cross-origin" title="${title}"></iframe>
+                <button type="button" class="hff-exit" aria-label="خروج"><span>✕</span> خروج</button>`;
+            const frame = wrap.querySelector('iframe');
+            frame.addEventListener('load', () => { const l = wrap.querySelector('.hff-loading'); if (l) l.remove(); });
+            frame.src = url;
+            const win = doc.defaultView;
+            const close = () => { wrap.remove(); win.removeEventListener('keydown', onKey); window.removeEventListener('keydown', onKey); };
+            const onKey = e => { if (e.key === 'Escape') close(); };
+            wrap.querySelector('.hff-exit').addEventListener('click', close);
+            win.addEventListener('keydown', onKey);
+            if (win !== window) window.addEventListener('keydown', onKey);
+            doc.body.appendChild(wrap);
+        }
+
         function setupEasterEgg() {
             const hospitalSymbol = document.getElementById('hospital-symbol');
             if (!hospitalSymbol) return;
@@ -2154,7 +2198,10 @@
                     if (btnRotation.classList.contains('disabled') || !btnRotation.getAttribute('href')) {
                         e.preventDefault();
                         showToast('⏳ ميزة Rotation Heroes غير متوفرة لهذا المستشفى حالياً - قريباً!', 'info', 3500);
+                        return;
                     }
+                    e.preventDefault();
+                    openFullScreenFrame(btnRotation.getAttribute('href'), 'Rotation Heroes');
                 });
             }
 

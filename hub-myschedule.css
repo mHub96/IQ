@@ -264,6 +264,12 @@ html.dark .ms-btn.primary, body.dark .ms-btn.primary { color: #10131a; }
 .ms-btn.ghost-danger { color: var(--ms-minus); }
 .ms-btn[disabled] { opacity: 0.55; pointer-events: none; }
 .ms-export { width: 100%; margin-top: 14px; }
+/* Phone calendar: add this month's duties (reminder 24 h before) / remove them */
+.ms-cal-actions { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 10px; }
+.ms-cal-add { width: 100%; text-decoration: none; background: var(--ms-navy); border-color: var(--ms-navy); color: #fff; }
+html.dark .ms-cal-add, body.dark .ms-cal-add { color: #10131a; }
+.ms-cal-remove { font-size: 0.74rem; font-weight: 800; color: var(--ms-minus); text-decoration: none; padding: 4px 8px; display: inline-flex; align-items: center; gap: 6px; }
+.ms-cal-actions small { font-size: 0.66rem; color: var(--ms-ink3); }
 .ms-foot-note { text-align: center; font-size: 0.68rem; color: var(--ms-ink3); margin-top: 8px; line-height: 1.6; }
 
 /* ---------- ER preferences portal (replica of the ER page's panel) ---------- */

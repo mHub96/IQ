@@ -224,6 +224,7 @@ node --test worker/test/sync.test.mjs                           # from the repo 
 node --test --test-concurrency=1 worker/test/api.test.mjs       # needs a fresh import
 node --test --test-concurrency=1 worker/test/client.test.mjs    # needs a fresh import
 node --test --test-concurrency=1 worker/test/accounts.test.mjs  # accounts, approvals, likes, comments
+node --test --test-concurrency=1 worker/test/shared-pw.test.mjs # owner's on/off switch for the shared passwords
 ```
 
 `node worker/scripts/build-import.mjs <snapshot.json>` turns a database snapshot (same format as the

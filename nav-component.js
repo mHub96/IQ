@@ -1089,7 +1089,55 @@
         const err = document.getElementById('hub-passwords-error');
         if (err) err.textContent = '';
         modal.classList.add('active');
+        renderSharedPasswordsSwitch(modal);
     };
+
+    /** Owner: switch signing in with the shared passwords on or off (the server enforces it). */
+    async function renderSharedPasswordsSwitch(modal) {
+        const card = modal.querySelector('.hub-modal-card');
+        if (!card) return;
+        let box = card.querySelector('#hub-shared-switch');
+        if (!box) {
+            box = document.createElement('div');
+            box.id = 'hub-shared-switch';
+            box.style.cssText = 'display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border-radius:12px; margin-bottom:14px; border:1px solid rgba(120,120,128,0.25);';
+            card.firstElementChild.after(box);
+        }
+        const paint = (on, busy) => {
+            const known = on === true || on === false;
+            box.style.background = !known ? 'rgba(120,120,128,0.08)' : on ? 'rgba(52,199,89,0.1)' : 'rgba(255,59,48,0.08)';
+            box.innerHTML = `
+                <div style="min-width:0;">
+                    <div style="font-size:0.82rem; font-weight:800;">الدخول بكلمات المرور المشتركة</div>
+                    <div style="font-size:0.72rem; font-weight:700; color:${!known ? '#8A8A8E' : on ? '#248A3D' : '#D70015'};">
+                        ${!known ? 'جاري التحقق…' : on ? '● مفعّل: يظهر خيار الدخول بها في نافذة الدخول' : '● متوقف: مخفي من نافذة الدخول ومرفوض من الخادم (عدا كلمة مرور المالك)'}
+                    </div>
+                </div>
+                ${known ? `<button type="button" data-act="toggle" ${busy ? 'disabled' : ''} style="flex-shrink:0; border:0; border-radius:999px; padding:7px 14px; font-size:0.78rem; font-weight:800; cursor:pointer; color:#fff; background:${on ? '#FF3B30' : '#34C759'};">
+                    ${busy ? '…' : on ? 'إيقاف' : 'تفعيل'}</button>` : ''}`;
+            const btn = box.querySelector('[data-act="toggle"]');
+            if (btn) btn.addEventListener('click', async () => {
+                const next = !on;
+                if (!next && !confirm('إيقاف الدخول بكلمات المرور المشتركة؟\n\nسيخرج فوراً كل من دخل بها (عدا المالك)، ولن يُقبل الدخول بها حتى تعيد تفعيلها. الحسابات الشخصية لا تتأثر.')) return;
+                paint(on, true);
+                try {
+                    const res = await window.Hub.api('POST', '/api/shared-passwords', { active: next }, { retries: 0 });
+                    on = !!res.sharedPasswords;
+                    try { localStorage.setItem('hub_shared_pw_on', on ? '1' : '0'); } catch (e) {}
+                } catch (e) {
+                    alert('تعذر تغيير الإعداد. تحقق من الاتصال وحاول مجدداً.');
+                }
+                paint(on, false);
+            });
+        };
+        paint(null);
+        try {
+            const res = await window.Hub.api('GET', '/api/auth-config', undefined, { useToken: false, retries: 1 });
+            paint(!!res.sharedPasswords);
+        } catch (e) {
+            box.innerHTML = '<div style="font-size:0.75rem; color:#8A8A8E;">تعذر قراءة حالة كلمات المرور المشتركة (تحقق من الاتصال).</div>';
+        }
+    }
 
     window.closeAllPasswordsModalNav = function() {
         const modal = document.getElementById('hub-passwords-modal');

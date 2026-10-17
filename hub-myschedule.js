@@ -175,6 +175,11 @@
             <div class="ms-section-title">خفاراتي في ${esc(monthTitle(ym))} <small>${esc(hospitalName(data.hosp))}</small></div>
             <div class="ms-list" data-role="list">${duties.length ? duties.map(dutyHtml).join('') : `<div class="ms-empty">لا توجد خفارات باسمك في ${esc(monthTitle(ym))}.<br><small>نبحث في جدول خفارات ${esc(hospitalName(data.hosp))} وجدول الطوارئ باسم «${esc(data.name)}»${data.erName && data.erName !== data.name ? ` و«${esc(data.erName)}»` : ''}.</small></div>`}</div>
             ${duties.length ? '<button type="button" class="ms-btn gold ms-export" data-act="pdf"><i class="fas fa-file-pdf"></i> تصدير الجدول PDF</button>' : ''}
+            ${duties.length && data.cal ? `<div class="ms-cal-actions">
+                <a class="ms-btn ms-cal-add" data-act="cal-add" href="${esc(calUrl('add'))}" target="_blank" rel="noopener"><i class="fas fa-bell"></i> إضافة خفارات ${esc(MONTHS[parseYm(ym).m])} إلى تقويم هاتفي</a>
+                <a class="ms-cal-remove" data-act="cal-remove" href="${esc(calUrl('remove'))}" target="_blank" rel="noopener"><i class="fas fa-calendar-xmark"></i> إزالة تذكيرات هذا الشهر من التقويم</a>
+                <small>تذكير قبل كل خفارة بـ 24 ساعة · iPhone و Android</small>
+            </div>` : ''}
             <p class="ms-foot-note">الملاحظات والعلامات خاصة بك ولا يراها غيرك.</p>`;
 
         root.querySelector('[data-act="prev"]').addEventListener('click', () => showMonth(shiftYm(ym, -1)));
@@ -184,6 +189,15 @@
         root.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => toggleEditor(b.dataset.edit)));
         const pdf = root.querySelector('[data-act="pdf"]');
         if (pdf) pdf.addEventListener('click', () => exportPdf(pdf));
+        const calAdd = root.querySelector('[data-act="cal-add"]');
+        if (calAdd) calAdd.addEventListener('click', () => toast(/android/i.test(navigator.userAgent)
+            ? 'افتح الملف الذي نُزّل (duties.ics) واختر تطبيق التقويم ثم «استيراد / حفظ»'
+            : 'في النافذة التي تظهر اضغط «إضافة الكل» (Add All)', 'info'));
+        const calRemove = root.querySelector('[data-act="cal-remove"]');
+        if (calRemove) calRemove.addEventListener('click', e => {
+            if (!confirm(`إزالة تذكيرات خفارات ${monthTitle(ym)} من تقويم الهاتف؟\n\nسيُفتح ملف إلغاء لنفس الخفارات؛ افتحه بتطبيق التقويم ليلغيها.`)) { e.preventDefault(); return; }
+            toast('افتح الملف بتطبيق التقويم لتطبيق الإلغاء', 'info');
+        });
         bindPortal(root);
 
         // First view of the current month: bring today's (or the next) duty into view.
@@ -191,6 +205,14 @@
             const next = duties.find(d => d.date >= today);
             if (next) requestAnimationFrame(() => { const el = root.querySelector(`.ms-duty[data-date="${next.date}"]`); if (el && host) host.scrollTop = 0; });
         }
+    }
+
+    /** This month's calendar file (/api/cal): add = events with a reminder 24 h before; remove = their cancellation. */
+    function calUrl(mode) {
+        const names = {};
+        (data.duties || []).forEach(d => { if (d.src === 'hospital') names[d.spec] = view(d).title; });
+        const base = (Hub.getSyncStatus && Hub.getSyncStatus().apiBase) || '';
+        return `${base}/api/cal?mode=${mode}&t=${encodeURIComponent(data.cal)}&h=${encodeURIComponent(hospitalName(data.hosp))}&n=${encodeURIComponent(JSON.stringify(names))}`;
     }
 
     function dutyHtml(d) {

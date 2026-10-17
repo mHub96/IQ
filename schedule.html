@@ -1057,7 +1057,7 @@
                                class="w-full px-3 py-2 pr-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 text-xs sm:text-sm font-semibold text-slate-800 dark:text-white outline-none focus:border-teal-600 dark:focus:border-teal-400 transition" />
                         <i class="fas fa-search absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                     </div>
-                    <button type="button" onclick="window.print()" class="btn-ghost" title="طباعة الجدول">
+                    <button type="button" onclick="printSchedule()" class="btn-ghost" title="طباعة الجدول على ورقة A4 واحدة">
                         <i class="fas fa-print"></i>
                     </button>
                 </div>
@@ -1157,6 +1157,169 @@
         ];
 
         const DAY_NAMES_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+
+        // ================================================================
+        // PRINT: the month on a single A4 sheet (a table built for paper, fitted to the page)
+        // ================================================================
+        const escPrint = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        const shortDoctorName = n => String(n || '').replace(/^(د\s*\.|د\s|الدكتور(ة)?\s|دكتور(ة)?\s)\s*/, '').trim().split(/\s+/).slice(0, 2).join(' ');
+        function shortDutyTime(t) {
+            const m = String(t || '').match(/(\d{1,2}):(\d{2})\s*(AM|PM)\s*-\s*(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+            if (!m) return '';
+            const one = (h, mm, ap) => `${Number(h) % 12 || 12}${mm !== '00' ? ':' + mm : ''}${ap.toUpperCase() === 'AM' ? 'ص' : 'م'}`;
+            return `${one(m[1], m[2], m[3])}–${one(m[4], m[5], m[6])}`;
+        }
+
+        /** The sheet's HTML for the month on screen (all specialties with duties, or the one chosen in "تخصص محدد"). */
+        function buildPrintSheet(compact) {
+            const daysCount = getDaysInMonth(currentYear, currentMonth);
+            const entries = Hub.getHospitalMonthSchedule(currentHospital.id, currentYear, currentMonth, currentScheduleRole);
+            const map = {};
+            entries.forEach(e => {
+                const p = (e.date || '').split('/');
+                if (p.length !== 3 || !(e.name || '').trim()) return;
+                const code = e.specCode || e.spec, d = parseInt(p[0], 10);
+                map[code] = map[code] || {};
+                (map[code][d] = map[code][d] || []).push(e);
+            });
+            let specs = (currentHospital.specialties || []).filter(s => s.enabled !== false);
+            if (currentViewMode === 'single' && selectedSpecialtyId) specs = specs.filter(s => s.id === selectedSpecialtyId);
+            else specs = specs.filter(s => map[s.id]); // columns without a single duty this month are left out
+            const roleLabel = currentScheduleRole === 'specialists' ? 'خفارات الاختصاصيين' : 'خفارات المقيمين';
+            const monthLabel = `${MONTH_NAMES_AR[currentMonth - 1]} ${currentYear}`;
+            const hospName = currentHospital.name_ar || currentHospital.hospitalName || '';
+            const accent = /^#[0-9a-f]{3,8}$/i.test(currentHospital.color || '') ? currentHospital.color : '#0f766e';
+            const single = specs.length === 1 && currentViewMode === 'single';
+            const total = specs.reduce((n, s) => n + Object.values(map[s.id] || {}).reduce((k, l) => k + l.length, 0), 0);
+            const q = searchQuery;
+
+            const nameCell = list => list.map(e => {
+                const full = (e.name || '').trim();
+                const name = compact ? shortDoctorName(full) : full;
+                const t = list.length > 1 ? shortDutyTime(e.dutyTime) : '';
+                const hit = q && full.toLowerCase().includes(q);
+                return `<div class="n${hit ? ' hit' : ''}">${escPrint(name)}${t ? ` <span class="t">${t}</span>` : ''}</div>`;
+            }).join('');
+
+            let head = `<th class="day">اليوم</th>`;
+            specs.forEach(s => {
+                const nm = (Hub.getSpecialtyName ? Hub.getSpecialtyName(s.id) : '') || s.name_ar || s.id;
+                head += `<th style="--c:${escPrint(s.color || accent)}">${single ? 'الطبيب الخافر' : escPrint(nm)}</th>`;
+            });
+            let body = '';
+            for (let d = 1; d <= daysCount; d++) {
+                const dow = new Date(currentYear, currentMonth - 1, d).getDay();
+                body += `<tr class="${dow === 5 ? 'fri' : dow === 6 ? 'sat' : ''}"><td class="day"><b>${d}</b><span>${DAY_NAMES_AR[dow]}</span></td>`;
+                specs.forEach(s => {
+                    const list = (map[s.id] || {})[d] || [];
+                    body += `<td>${list.length ? nameCell(list) : '<span class="dash">—</span>'}</td>`;
+                });
+                body += '</tr>';
+            }
+            const printed = new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            const title = single ? `${(Hub.getSpecialtyName ? Hub.getSpecialtyName(specs[0].id) : '') || specs[0].name_ar} · ${roleLabel}` : `جدول ${roleLabel}`;
+            return {
+                landscape: specs.length > 4,
+                html: specs.length ? `
+                <div class="hpr-page" dir="rtl" style="--accent:${accent}">
+                    <header class="hpr-head">
+                        <div>
+                            <div class="hpr-hosp">${escPrint(hospName)}</div>
+                            <div class="hpr-title">${escPrint(title)} <span>· ${escPrint(monthLabel)}</span></div>
+                        </div>
+                        <div class="hpr-brand"><b>Hospital Hub</b><span>بوابة المستشفيات التعليمية</span></div>
+                    </header>
+                    <table class="hpr-table${single ? ' single' : ''}"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>
+                    <footer class="hpr-foot">
+                        <span><i class="sw fri"></i> الجمعة <i class="sw sat"></i> السبت · ${total} خفارة${specs.length > 1 ? ` في ${specs.length} تخصص` : ''}</span>
+                        <span dir="ltr">Printed ${escPrint(printed)}</span>
+                    </footer>
+                </div>` : '',
+            };
+        }
+
+        const PRINT_CSS = `
+            @media screen { #hub-print-root { position: fixed; left: -20000px; top: 0; visibility: hidden; pointer-events: none; } }
+            #hub-print-root, #hub-print-root * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            #hub-print-root .hpr-page { font-family: 'IBM Plex Sans Arabic', 'Cairo', 'Segoe UI', Tahoma, sans-serif; color: #0f172a; background: #fff; font-size: var(--fs, 9pt); }
+            #hub-print-root .hpr-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; padding-bottom: 2.2mm; margin-bottom: 2.5mm; border-bottom: 0.6mm solid var(--accent); }
+            #hub-print-root .hpr-hosp { font-size: 15pt; font-weight: 800; line-height: 1.2; }
+            #hub-print-root .hpr-title { font-size: 10pt; font-weight: 700; color: #334155; margin-top: 0.6mm; }
+            #hub-print-root .hpr-title span { color: var(--accent); }
+            #hub-print-root .hpr-brand { text-align: left; font-size: 7.5pt; color: #64748b; line-height: 1.35; }
+            #hub-print-root .hpr-brand b { display: block; font-size: 9pt; color: #0f172a; letter-spacing: 0.04em; }
+            #hub-print-root .hpr-table { width: 100%; border-collapse: collapse; table-layout: fixed; border: 0.35mm solid #334155; }
+            #hub-print-root .hpr-table th { background: #1e293b; color: #fff; font-weight: 800; font-size: 0.92em; line-height: 1.2; padding: 1.2mm 0.8mm; border: 0.2mm solid #475569; border-top: 1mm solid var(--c, var(--accent)); vertical-align: middle; text-align: center; word-break: break-word; }
+            #hub-print-root .hpr-table td { border: 0.2mm solid #cbd5e1; padding: 0.5mm 0.8mm; text-align: center; vertical-align: middle; line-height: 1.18; word-break: break-word; }
+            #hub-print-root .hpr-table tbody tr:nth-child(even) td { background: #f8fafc; }
+            #hub-print-root .hpr-table tr.fri td { background: #fef2f2; }
+            #hub-print-root .hpr-table tr.sat td { background: #fff7ed; }
+            #hub-print-root .hpr-table th.day, #hub-print-root .hpr-table td.day { width: 15mm; }
+            #hub-print-root .hpr-table td.day { background: #f1f5f9 !important; white-space: nowrap; }
+            #hub-print-root .hpr-table td.day b { font-size: 1.1em; margin-left: 1mm; }
+            #hub-print-root .hpr-table td.day span { font-size: 0.82em; color: #475569; }
+            #hub-print-root .hpr-table tr.fri td.day { background: #fee2e2 !important; color: #b91c1c; }
+            #hub-print-root .hpr-table tr.sat td.day { background: #ffedd5 !important; color: #c2410c; }
+            #hub-print-root .hpr-table.single th.day, #hub-print-root .hpr-table.single td.day { width: 32mm; }
+            #hub-print-root .hpr-table .n { font-weight: 600; }
+            #hub-print-root .hpr-table .n + .n { border-top: 0.15mm dashed #cbd5e1; margin-top: 0.3mm; padding-top: 0.3mm; }
+            #hub-print-root .hpr-table .n.hit { font-weight: 800; background: #fef3c7; }
+            #hub-print-root .hpr-table .t { font-size: 0.8em; color: #64748b; font-weight: 500; }
+            #hub-print-root .hpr-table .dash { color: #cbd5e1; }
+            #hub-print-root .hpr-foot { display: flex; justify-content: space-between; margin-top: 2mm; font-size: 7.5pt; color: #64748b; }
+            #hub-print-root .sw { display: inline-block; width: 3mm; height: 3mm; border-radius: 0.6mm; vertical-align: -0.4mm; margin: 0 1mm 0 0.5mm; border: 0.2mm solid #cbd5e1; }
+            #hub-print-root .sw.fri { background: #fee2e2; } #hub-print-root .sw.sat { background: #ffedd5; }`;
+
+        /** Prints the sheet on one A4 page. Inside the app shell the shell's window prints it (phones print the top page). */
+        function printSchedule() {
+            if (!currentHospital) return;
+            let win = window;
+            try { if (window.top !== window && window.top.document && window.top.document.body) win = window.top; } catch (e) {}
+            const doc = win.document;
+            const old = doc.getElementById('hub-print-root');
+            if (old) old.remove();
+            const first = buildPrintSheet(false);
+            if (!first.html) { showToastSafe('لا توجد خفارات مسجلة في هذا الشهر للطباعة'); return; }
+            const landscape = first.landscape;
+            const W = landscape ? 297 : 210, H = landscape ? 210 : 297, M = 8;
+            const root = doc.createElement('div');
+            root.id = 'hub-print-root';
+            root.innerHTML = `<style>${PRINT_CSS}
+                @media print {
+                    @page { size: A4 ${landscape ? 'landscape' : 'portrait'}; margin: ${M}mm; }
+                    html, body { background: #fff !important; height: auto !important; min-height: 0 !important; overflow: visible !important; padding: 0 !important; margin: 0 !important; }
+                    body > *:not(#hub-print-root) { display: none !important; }
+                    #hub-print-root { display: block !important; position: static !important; visibility: visible !important; }
+                }</style><div class="hpr-fit" style="width:${W - 2 * M}mm"></div>`;
+            doc.body.appendChild(root);
+            const fit = root.querySelector('.hpr-fit');
+            // Largest font (and full names if they fit) that keeps the whole month on the page.
+            const probe = doc.createElement('div');
+            probe.style.cssText = 'height:100mm;position:absolute;visibility:hidden';
+            root.appendChild(probe);
+            const availH = probe.getBoundingClientRect().height / 100 * (H - 2 * M) - 2;
+            probe.remove();
+            let done = false;
+            for (const compact of [false, true]) {
+                fit.innerHTML = compact ? buildPrintSheet(true).html : first.html;
+                const page = fit.firstElementChild;
+                for (const fs of [10, 9.5, 9, 8.5, 8, 7.5, 7, 6.5, 6, 5.5, 5]) {
+                    if (!compact && fs < 6.5) break; // below this, short names read better than tiny full names
+                    page.style.setProperty('--fs', fs + 'pt');
+                    if (page.getBoundingClientRect().height <= availH) { done = true; break; }
+                }
+                if (done) break;
+            }
+            if (!done) {
+                const page = fit.firstElementChild;
+                page.style.zoom = String(Math.max(0.4, availH / page.getBoundingClientRect().height));
+            }
+            const cleanup = () => { win.removeEventListener('afterprint', cleanup); setTimeout(() => root.remove(), 500); };
+            win.addEventListener('afterprint', cleanup);
+            win.focus();
+            win.print();
+        }
+        function showToastSafe(msg) { if (typeof showToast === 'function') showToast(msg, 'info'); else alert(msg); }
 
         async function initSchedule() {
             if (!Hub.auth.isLoggedIn()) {

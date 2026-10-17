@@ -14,7 +14,7 @@
  * Worker, to stay inside the free plan's CPU budget.
  */
 
-import { DAY, json, readJson, overLimit, plainText } from './lib.js';
+import { DAY, json, readJson, overLimit, plainText, signToken, verifyToken } from './lib.js';
 import { nameKey, nameTokens, namesMatch, phoneKey, isoDate } from './names.js';
 import { notifyHospitalResidents, dispatchPush } from './accounts.js';
 
@@ -38,6 +38,8 @@ const ER_SLOTS = {
 
 /** Routes under /api/accounts/my-duties, /api/accounts/duty-mark and /api/er-portal. Null when not matched. */
 export async function routeDuties(path, method, request, env, auth, url, ctx) {
+  // The phone's calendar opens this link itself (no sign-in header): a ticket from my-duties stands in.
+  if (path === '/api/cal' && method === 'GET') return dutyCalendar(env, url);
   if (!/^\/api\/(accounts\/(my-duties|duty-mark)|er-portal)(\/|$)/.test(path)) return null;
   if (!auth) return json({ error: 'unauthorized' }, 401);
   // My Schedule and the preferences portal are for the hospital's residents (not rotators or division officers).
@@ -114,11 +116,19 @@ export function pickResident(rows, account) {
 async function myDuties(env, auth, url) {
   if (!auth.a) return json({ error: 'account_required' }, 403);
   const ym = String(url.searchParams.get('ym') || '');
-  const m = ym.match(YM_RE);
-  if (!m) return json({ error: 'bad_month' }, 400);
-  const year = Number(m[1]), month = Number(m[2]);
+  if (!YM_RE.test(ym)) return json({ error: 'bad_month' }, 400);
   const acc = await env.DB.prepare('SELECT id, name, name_key, hosp, phone FROM accounts WHERE id = ?').bind(auth.a).first();
   if (!acc) return json({ error: 'account_required' }, 403);
+  const out = await collectDuties(env, acc, ym);
+  // Ticket for this month's calendar file (/api/cal), which the phone's calendar opens without the session.
+  out.cal = await signToken(env, { cal: acc.id, ym, e: Date.now() + 7 * DAY });
+  return json(out);
+}
+
+/** One account's duties (hospital roster + ER scheduler) and marks for a month (YYYY-MM). */
+async function collectDuties(env, acc, ym) {
+  const m = ym.match(YM_RE);
+  const year = Number(m[1]), month = Number(m[2]);
 
   const er = await findErResident(env, acc);
   const keys = new Set([acc.name_key || nameKey(acc.name)]);
@@ -138,7 +148,7 @@ async function myDuties(env, auth, url) {
                        (SELECT json_extract(data, ?2) FROM records WHERE coll = 'er' AND id = ?3)) AS data`
     ).bind(erId, `$.monthlySchedules."${acc.hosp}_${year}_${month}"`, ER_STATE_ID),
     env.DB.prepare('SELECT dkey, kind, flag, flag_text, note, updated_at FROM duty_marks WHERE account_id = ?1 AND dkey LIKE ?2')
-      .bind(auth.a, `${ym}-%`),
+      .bind(acc.id, `${ym}-%`),
   ]);
 
   const duties = [];
@@ -165,7 +175,113 @@ async function myDuties(env, auth, url) {
   duties.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
   const marks = {};
   for (const k of marksRes.results || []) marks[k.dkey] = { kind: k.kind, flag: k.flag, flagText: k.flag_text, note: k.note, at: k.updated_at };
-  return json({ ok: true, ym, hosp: acc.hosp, name: acc.name, erName: er ? er.name : null, duties, marks });
+  return { ok: true, ym, hosp: acc.hosp, name: acc.name, erName: er ? er.name : null, duties, marks };
+}
+
+// ---------------------------------------------------------------------------
+// Calendar file (.ics): a month of duties with a reminder 24 hours before each, or (mode=remove)
+// the cancellation of the same events. UIDs are stable and SEQUENCE grows with time, so the later
+// file always wins over the earlier one in the calendar app.
+// ---------------------------------------------------------------------------
+
+const IRAQ_UTC_OFFSET_H = 3; // Iraq has no daylight saving
+// ER shift [start hour, length in hours]. Hours before 08:00 fall on the next calendar day (the duty day starts at 08:00).
+const ER_TIMES = {
+  morning: [8, 6], afternoon: [14, 6], preNight: [20, 6], lateNight: [2, 6],
+  er_morning: [8, 6], er_afternoon: [14, 6], er_preNight: [20, 6], er_lateNight: [2, 6],
+};
+const ER_TITLES = {
+  er: { morning: 'طوارئ · الصباحية', afternoon: 'طوارئ · بعد الصباحية', preNight: 'طوارئ · البرينايت', lateNight: 'طوارئ · الليلية' },
+  con: { doctor: 'الاستشارية الخافرة' },
+  dc: { doctor: 'شهادات الوفاة' },
+  rs: {
+    er_morning: 'إضراب طوارئ · صباحية', er_afternoon: 'إضراب طوارئ · بعد الصباحية', er_preNight: 'إضراب طوارئ · برينايت',
+    er_lateNight: 'إضراب طوارئ · ليلية', ward_private: 'إضراب ردهات · الجناح الخاص', ward_floor4: 'إضراب ردهات · طابق 4', ward_floor5: 'إضراب ردهات · طابق 5',
+  },
+};
+
+/** "08:00PM - 08:00AM" -> [start hour, start minute, length in hours]; a whole duty day (08:00, 24 h) otherwise. */
+export function hospitalTimes(t) {
+  const m = String(t || '').match(/(\d{1,2}):(\d{2})\s*(AM|PM)?\s*-\s*(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+  if (!m) return [8, 0, 24];
+  const h24 = (h, ap) => (ap ? (Number(h) % 12) + (ap.toUpperCase() === 'PM' ? 12 : 0) : Number(h) % 24);
+  const sh = h24(m[1], m[3]), sm = Number(m[2]);
+  const eh = h24(m[4], m[6]), em = Number(m[5]);
+  let len = (eh * 60 + em - (sh * 60 + sm)) / 60;
+  if (len <= 0) len += 24;
+  return [sh, sm, len];
+}
+
+/** UTC time (ms) of h:min Iraq time on duty day `iso` (YYYY-MM-DD); hours before 08:00 are the next morning. */
+export function dutyStartUtc(iso, h, min) {
+  const [y, mo, d] = iso.split('-').map(Number);
+  return Date.UTC(y, mo - 1, d + (h < 8 ? 1 : 0), h - IRAQ_UTC_OFFSET_H, min);
+}
+
+const icsTime = ms => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+const icsText = s => String(s || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+/** Lines longer than 75 octets are folded (RFC 5545) without splitting a UTF-8 character. */
+function icsFold(line) {
+  const enc = new TextEncoder();
+  if (enc.encode(line).length <= 75) return line;
+  const out = [];
+  let cur = '', size = 0;
+  for (const ch of line) {
+    const n = enc.encode(ch).length;
+    if (size + n > (out.length ? 74 : 75)) { out.push(cur); cur = ''; size = 0; }
+    cur += ch; size += n;
+  }
+  out.push(cur);
+  return out.join('\r\n ');
+}
+
+export function buildDutyIcs(data, { remove, names, hospName, accountId, now = Date.now() }) {
+  const seq = Math.floor((now - Date.UTC(2026, 0, 1)) / 1000);
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Hospital Hub//My Schedule//AR', 'CALSCALE:GREGORIAN',
+    `METHOD:${remove ? 'CANCEL' : 'PUBLISH'}`, 'X-WR-CALNAME:خفاراتي · Hospital Hub', 'X-WR-TIMEZONE:Asia/Baghdad'];
+  for (const d of data.duties) {
+    let title, h, min = 0, len;
+    if (d.src === 'hospital') {
+      [h, min, len] = hospitalTimes(d.time);
+      title = (names && names[d.spec]) || d.spec || 'خفارة المستشفى';
+    } else {
+      [h, len] = ER_TIMES[d.slot] || [8, 24];
+      title = (ER_TITLES[d.type] || {})[d.slot] || 'خفارة الطوارئ';
+    }
+    const start = dutyStartUtc(d.date, h, min);
+    lines.push('BEGIN:VEVENT', `UID:${accountId}-${d.key.replace(/[^\w-]+/g, '_')}@hosp-hub`, `SEQUENCE:${seq}`, `DTSTAMP:${icsTime(now)}`,
+      `DTSTART:${icsTime(start)}`, `DTEND:${icsTime(start + len * 3600 * 1000)}`,
+      `SUMMARY:${icsText(`🩺 خفارة: ${title}`)}`,
+      `LOCATION:${icsText(hospName || '')}`,
+      `DESCRIPTION:${icsText('من «جدولي» في بوابة المستشفيات (Hospital Hub)')}`,
+      `STATUS:${remove ? 'CANCELLED' : 'CONFIRMED'}`, 'TRANSP:OPAQUE');
+    if (!remove) lines.push('BEGIN:VALARM', 'ACTION:DISPLAY', 'TRIGGER:-PT24H', `DESCRIPTION:${icsText(`غداً خفارتك: ${title}`)}`, 'END:VALARM');
+    lines.push('END:VEVENT');
+  }
+  lines.push('END:VCALENDAR');
+  return lines.map(icsFold).join('\r\n') + '\r\n';
+}
+
+async function dutyCalendar(env, url) {
+  const text = (msg, status) => new Response(msg, { status, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+  const t = await verifyToken(env, url.searchParams.get('t') || '');
+  if (!t || !t.cal || !YM_RE.test(t.ym || '') || !(t.e > Date.now())) return text('انتهت صلاحية رابط التقويم. افتح «جدولي» من جديد ثم اضغط الزر.', 403);
+  const acc = await env.DB.prepare("SELECT id, name, name_key, hosp, phone FROM accounts WHERE id = ? AND status = 'active'").bind(t.cal).first();
+  if (!acc) return text('الحساب غير متاح', 403);
+  const data = await collectDuties(env, acc, t.ym);
+  const names = {};
+  try {
+    for (const [k, v] of Object.entries(JSON.parse(url.searchParams.get('n') || '{}')).slice(0, 80)) names[String(k).slice(0, 40)] = plainText(v, 80);
+  } catch {}
+  const remove = url.searchParams.get('mode') === 'remove';
+  const ics = buildDutyIcs(data, { remove, names, hospName: plainText(url.searchParams.get('h'), 120), accountId: acc.id });
+  return new Response(ics, {
+    headers: {
+      'Content-Type': 'text/calendar; charset=utf-8',
+      'Content-Disposition': `${url.searchParams.get('dl') ? 'attachment' : 'inline'}; filename="duties-${t.ym}${remove ? '-remove' : ''}.ics"`,
+      'Cache-Control': 'no-store',
+    },
+  });
 }
 
 async function saveMark(request, env, auth) {

@@ -65,6 +65,8 @@ async function route(request, env, ctx) {
     return json({ ok: true, service: 'hosp-hub-api', time: Date.now() });
   }
   if (path === '/api/login' && method === 'POST') return login(request, env);
+  // Public: whether the sign-in panel offers the shared passwords.
+  if (path === '/api/auth-config' && method === 'GET') return json({ sharedPasswords: !(await sharedPasswordsOff(env)) });
 
   const auth = await authenticate(request, env);
 
@@ -92,6 +94,7 @@ async function route(request, env, ctx) {
   if (path === '/api/secrets' && method === 'PUT') return putSecrets(request, env, auth);
   if (path === '/api/history' && method === 'GET') return getHistory(env, auth, url);
   if (path === '/api/revoke-sessions' && method === 'POST') return revokeSessions(env, auth);
+  if (path === '/api/shared-passwords' && method === 'POST') return setSharedPasswords(request, env, auth);
 
   return json({ error: 'not_found' }, 404);
 }
@@ -122,12 +125,19 @@ async function login(request, env) {
       .bind(ip, bucket).run();
     return json({ success: false, error: 'كلمة المرور غير صحيحة' });
   }
+  // Shared passwords switched off by the owner: only the owner's password still opens (the owner's way in
+  // if their personal account is ever unavailable). Same answer as a wrong password, so nothing is revealed.
+  if (result.role !== 'owner' && await sharedPasswordsOff(env)) {
+    await env.DB.prepare('INSERT INTO login_fail (ip, bucket, n) VALUES (?, ?, 1) ON CONFLICT(ip, bucket) DO UPDATE SET n = n + 1')
+      .bind(ip, bucket).run();
+    return json({ success: false, error: 'كلمة المرور غير صحيحة' });
+  }
 
   // The owner may sign in "as" a lower role (used by the role picker on the login page).
   let role = result.role;
   let hospitals = result.adminHospitals;
   const hint = String(body.roleHint || '').toLowerCase();
-  if (role === 'owner' && ROLES.includes(hint)) {
+  if (role === 'owner' && ROLES.includes(hint) && !(await sharedPasswordsOff(env))) {
     role = hint;
     hospitals = ['*'];
   }
@@ -178,13 +188,35 @@ async function authenticate(request, env) {
   if (!payload || !TOKEN_ROLES.includes(payload.r) || payload.e < Date.now()) return null;
   // Personal accounts have their own session counter (password change / ban signs them out).
   if (payload.a) return resolveAccountAuth(env, payload);
-  if (payload.g !== await sessionGeneration(env)) return null;
+  // Shared-password sessions: the session counter, and (switched off) only the owner's stay signed in.
+  const { results } = await env.DB.prepare("SELECT k, v FROM kv WHERE k IN ('session_gen', 'shared_pw_off')").all();
+  const kv = Object.fromEntries((results || []).map(r => [r.k, r.v]));
+  if (payload.g !== (kv.session_gen ? Number(kv.session_gen) : 1)) return null;
+  if (kv.shared_pw_off === '1' && payload.r !== 'owner') return null;
   return payload;
 }
 
 async function sessionGeneration(env) {
   const row = await env.DB.prepare("SELECT v FROM kv WHERE k = 'session_gen'").first();
   return row ? Number(row.v) : 1;
+}
+
+async function sharedPasswordsOff(env) {
+  const row = await env.DB.prepare("SELECT v FROM kv WHERE k = 'shared_pw_off'").first();
+  return !!row && row.v === '1';
+}
+
+/** Owner: switch signing in with the shared passwords on or off. Body: { active: boolean } */
+async function setSharedPasswords(request, env, auth) {
+  if (!isOwner(auth)) return json({ error: 'forbidden' }, 403);
+  let body;
+  try { body = await request.json(); } catch { return json({ error: 'bad_request' }, 400); }
+  const active = body.active !== false;
+  await env.DB.batch([
+    env.DB.prepare("INSERT INTO kv (k, v) VALUES ('shared_pw_off', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v").bind(active ? '0' : '1'),
+    env.DB.prepare('INSERT INTO audit (ts, role, msg, n) VALUES (?, ?, ?, ?)').bind(Date.now(), auth.r, active ? 'Shared passwords on' : 'Shared passwords off', 1),
+  ]);
+  return json({ ok: true, sharedPasswords: active });
 }
 
 async function revokeSessions(env, auth) {

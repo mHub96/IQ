@@ -81,6 +81,7 @@
             margin: 0.3rem 0 0.8rem;
             position: relative;
             overflow: hidden;
+            --hc: #007AFF;   /* the hospital's colour (applyHospitalData) */
         }
         .hospital-header::before {
             content: '';
@@ -91,24 +92,85 @@
             height: 1px;
             background: rgba(16, 185, 129, 0.32);
         }
+        /* Hospital emblem: a glossy tile in the hospital's own colour (--hc, set from its settings)
+           with a soft halo and a small medical badge. Real sizes (no transform scaling), so the
+           text below never slides under it. */
         .hospital-mark {
-            width: 5rem;
-            height: 5rem;
+            position: relative;
+            flex-shrink: 0;
+            width: 4.6rem;
+            height: 4.6rem;
+            margin: 0.45rem auto 0.6rem;
             display: grid;
             place-items: center;
-            border-radius: 50%;
-            font-size: 2rem;
+            border-radius: 30%;
+            font-size: 1.95rem;
             color: #ffffff;
-            background: #007AFF;
-            box-shadow: 0 0 0 8px rgba(0, 122, 255, 0.1), 0 12px 26px rgba(0, 122, 255, 0.24);
+            background: var(--hc);
+            background: linear-gradient(150deg, color-mix(in srgb, var(--hc) 62%, #ffffff) 0%, var(--hc) 48%, color-mix(in srgb, var(--hc) 72%, #000000) 100%);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.45),
+                inset 0 -8px 16px rgba(0, 0, 0, 0.16),
+                0 14px 28px -10px color-mix(in srgb, var(--hc) 70%, transparent),
+                0 4px 10px -4px rgba(15, 23, 42, 0.25);
             transition: background 0.6s ease, box-shadow 0.6s ease, transform 0.3s ease;
             cursor: pointer;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Glass highlight on the upper half */
+        .hospital-mark::before {
+            content: '';
+            position: absolute;
+            inset: 2px 2px 45% 2px;
+            border-radius: 28% 28% 45% 45% / 40% 40% 30% 30%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0));
+            pointer-events: none;
+        }
+        /* Halo ring */
+        .hospital-mark::after {
+            content: '';
+            position: absolute;
+            inset: -7px;
+            border-radius: 34%;
+            border: 1.5px solid color-mix(in srgb, var(--hc) 28%, transparent);
+            background: color-mix(in srgb, var(--hc) 7%, transparent);
+            z-index: -1;
+            pointer-events: none;
+        }
+        .hospital-mark > i {
+            position: relative;
+            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.22));
+        }
+        .hospital-mark-badge {
+            position: absolute;
+            left: -0.35rem;
+            bottom: -0.35rem;
+            width: 1.7rem;
+            height: 1.7rem;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            color: var(--hc);
+            background: #ffffff;
+            box-shadow: 0 0 0 2.5px #F2F2F7, 0 3px 8px rgba(15, 23, 42, 0.22);
         }
         body.dark .hospital-mark {
-            background: #0A84FF;
-            color: #000000;
-            box-shadow: 0 0 0 8px rgba(10, 132, 255, 0.15), 0 12px 26px rgba(10, 132, 255, 0.25);
+            background: linear-gradient(150deg, color-mix(in srgb, var(--hc) 75%, #ffffff) 0%, color-mix(in srgb, var(--hc) 88%, #ffffff) 45%, var(--hc) 100%);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                inset 0 -8px 16px rgba(0, 0, 0, 0.2),
+                0 14px 30px -10px color-mix(in srgb, var(--hc) 80%, transparent);
+        }
+        body.dark .hospital-mark::after {
+            border-color: color-mix(in srgb, var(--hc) 45%, transparent);
+            background: color-mix(in srgb, var(--hc) 14%, transparent);
+        }
+        body.dark .hospital-mark-badge {
+            background: #1C1C1E;
+            color: color-mix(in srgb, var(--hc) 70%, #ffffff);
+            box-shadow: 0 0 0 2.5px #000000, 0 3px 8px rgba(0, 0, 0, 0.5);
         }
 
         /* Golden Shimmer Animation for Easter Egg */
@@ -175,10 +237,12 @@
             letter-spacing: 0.08em;
             text-transform: uppercase;
             color: #007AFF;
+            color: color-mix(in srgb, var(--hc) 88%, #000000);
             margin-bottom: 0.15rem;
         }
         body.dark .hospital-eyebrow {
             color: #0A84FF;
+            color: color-mix(in srgb, var(--hc) 65%, #ffffff);
         }
         .hospital-subtitle {
             color: #8A8A8E;
@@ -1409,9 +1473,15 @@
                 gap: 0.4rem;
             }
             .hospital-mark {
-                width: 4.2rem;
-                height: 4.2rem;
-                font-size: 1.7rem;
+                width: 3.6rem;
+                height: 3.6rem;
+                font-size: 1.5rem;
+                margin: 0.5rem auto 0.55rem;
+            }
+            .hospital-mark-badge {
+                width: 1.4rem;
+                height: 1.4rem;
+                font-size: 0.66rem;
             }
             .hospital-title {
                 font-size: clamp(1.4rem, 5.2vw, 1.85rem) !important;
@@ -1535,6 +1605,7 @@
             <!-- Secret Unlock Easter Egg on Logo -->
             <div class="hospital-mark" id="hospital-symbol" aria-hidden="true">
                 <i class="fas fa-hospital" id="hospital-symbol-icon"></i>
+                <span class="hospital-mark-badge"><i class="fas fa-staff-snake"></i></span>
             </div>
             <div class="hospital-header-content">
                 <div class="hospital-eyebrow" id="hospital-location">Basra · Iraq</div>
@@ -3127,6 +3198,8 @@
             if (nameEl) nameEl.textContent = hospName;
             if (locEl) locEl.textContent = hospLocation;
             if (iconEl) iconEl.className = `fas ${hospIcon}`;
+            const headerEl = document.querySelector('.hospital-header');
+            if (headerEl && /^#[0-9a-f]{3,8}$/i.test(currentHospital.color || '')) headerEl.style.setProperty('--hc', currentHospital.color);
 
             // Update Duty Exchange button with target hospital parameter
             if (btnExchange) {

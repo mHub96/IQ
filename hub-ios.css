@@ -472,7 +472,6 @@ html.role-rotator a[href*="signup.html"], html.role-rotator #dock-link-signup { 
   body.dark .top-action-btn.report { background: var(--ios-tint-soft) !important; color: #409CFF !important; }
   body.dark .top-action-btn.reset { background: rgba(255, 69, 58, 0.18) !important; color: #FF6961 !important; }
   .hospital-header { padding-top: 2px !important; padding-bottom: 6px !important; gap: 4px !important; }
-  .hospital-mark { transform: scale(0.62); margin: -8px auto -20px !important; }
   .hospital-title { font-size: 28px !important; font-weight: 800 !important; line-height: 1.25 !important; }
   .hospital-subtitle { font-size: 10px !important; letter-spacing: 0.12em !important; }
   .hospital-eyebrow { font-size: 11px !important; }

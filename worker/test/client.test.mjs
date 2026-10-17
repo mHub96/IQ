@@ -107,13 +107,18 @@ test('first save after loading uploads nothing unexpected', async () => {
   assert.equal(b.Hub.getSyncStatus().pendingChanges, 0);
 });
 
-test('a user exchanges a duty and another device sees it', async () => {
-  const a = await signedIn(PW.user);
+test('a user exchanges a duty in their hospital and another device sees it', async () => {
   const hid = 'iraqi';
+  const own = 'own-hospital-user-' + Date.now().toString(36);       // the hospital's own user password
+  const owner = await signedIn(PW.owner);
+  await owner.Hub.api('PUT', '/api/secrets', { secrets: { [hid]: { user: own } } });
+  const a = await signedIn(own);
+  await assert.rejects(a.Hub.exchangeDuty('basra', 'GS', 'د. اختبار التبديل', a.Hub.getMedicalDate()), /مستشفاك فقط/);
   const today = a.Hub.getMedicalDate();
   await a.Hub.exchangeDuty(hid, 'GS', 'د. اختبار التبديل', today);
   const b = await signedIn(PW.user);
   const found = b.Hub.getHospital(hid).schedule.some(s => s.date === today && s.specCode === 'GS' && s.name === 'د. اختبار التبديل');
+  await owner.Hub.api('PUT', '/api/secrets', { secrets: { [hid]: { user: PW.user } } });
   assert.ok(found);
 });
 

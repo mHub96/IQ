@@ -2610,9 +2610,9 @@
                                 <a href="./icu.html?hospital=${h.id}" class="ios-btn secondary hosp-icu-btn" onclick="Hub.setActiveHospitalId('${h.id}')" style="border-color:rgba(0, 122, 255,0.3); color:#007AFF;">
                                     <i class="fas fa-procedures"></i> <span>موقف العناية</span>
                                 </a>
-                                <a href="./signup.html?hospital=${h.id}" class="ios-btn secondary">
+                                ${Hub.auth.canExchangeIn(h.id) ? `<a href="./signup.html?hospital=${h.id}" class="ios-btn secondary">
                                     <i class="fas fa-exchange-alt"></i> <span>تبديل خفر</span>
-                                </a>
+                                </a>` : ''}
                                 <a href="./specialists.html?hospital=${h.id}" class="ios-btn secondary">
                                     <i class="fas fa-user-tie"></i> <span>أطباء الاختصاص</span>
                                 </a>

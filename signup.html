@@ -545,7 +545,13 @@
 
             try {
                 await Hub.loadDatabase();
-                allHospitals = Hub.getHospitals();
+                // Exchanges are made in the doctor's own hospital only.
+                allHospitals = Hub.getHospitals().filter(h => Hub.auth.canExchangeIn(h.id));
+                if (!allHospitals.length) {
+                    showToast('تبديل الخفارات متاح لأطباء المستشفى في مستشفاهم فقط', 'error');
+                    setTimeout(() => window.location.replace('./index.html?portal=true'), 2200);
+                    return;
+                }
 
                 // Hospital from URL or active hospital
                 const urlParams = new URLSearchParams(window.location.search);

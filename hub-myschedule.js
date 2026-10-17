@@ -63,6 +63,7 @@
     let portal = null;    // last /er-portal/mine response
     let openEditor = null;
     let selDate = '';
+    let nextKey = '';     // the next duty's key (highlighted)
 
     // ------------------------------------------------------------------
     // Data
@@ -75,14 +76,24 @@
         return res;
     }
 
+    const FULL_DAY = '24 ساعة · 8:00 ص – 8:00 ص';
+    /** A duty's name and time (its start and end, or the whole 24-hour duty day). */
     function view(d) {
         if (d.src === 'hospital') {
             const name = (Hub.getSpecialtyName && Hub.getSpecialtyName(d.spec, data.hosp)) || d.spec || 'خفارة المستشفى';
-            return { title: name, time: fmtTime(d.time), srcLabel: 'المستشفى', er: false };
+            return { title: name, time: d.time ? fmtTime(d.time) : FULL_DAY, er: false };
         }
         const l = (ER_LABELS[d.type] || {})[d.slot] || [d.type, ''];
-        return { title: l[0], time: l[1], srcLabel: d.type === 'er' ? 'الطوارئ' : d.type === 'rs' ? 'الإضراب' : 'الطوارئ', er: true };
+        return { title: l[0], time: l[1] || FULL_DAY, er: true };
     }
+    /** The next duty (today's or the first one after it), shown only in the month it falls in. */
+    function nextDuty(duties) {
+        const today = iraqToday();
+        if (ym !== today.slice(0, 7)) return null;
+        return duties.find(d => d.date >= today) || null;
+    }
+    const PLATFORM = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1) ? 'ios'
+        : /Android/i.test(navigator.userAgent) ? 'android' : 'other';
     const markOf = d => (data && data.marks && data.marks[d.key]) || null;
 
     // ------------------------------------------------------------------
@@ -114,6 +125,7 @@
         const root = host.querySelector('.ms');
         const today = iraqToday();
         const duties = data.duties || [];
+        nextKey = (nextDuty(duties) || {}).key || '';
         const byDate = {};
         duties.forEach(d => { (byDate[d.date] = byDate[d.date] || []).push(d); });
         const count = (f) => duties.filter(f).length;
@@ -176,9 +188,9 @@
             <div class="ms-list" data-role="list">${duties.length ? duties.map(dutyHtml).join('') : `<div class="ms-empty">لا توجد خفارات باسمك في ${esc(monthTitle(ym))}.<br><small>نبحث في جدول خفارات ${esc(hospitalName(data.hosp))} وجدول الطوارئ باسم «${esc(data.name)}»${data.erName && data.erName !== data.name ? ` و«${esc(data.erName)}»` : ''}.</small></div>`}</div>
             ${duties.length ? '<button type="button" class="ms-btn gold ms-export" data-act="pdf"><i class="fas fa-file-pdf"></i> تصدير الجدول PDF</button>' : ''}
             ${duties.length && data.cal ? `<div class="ms-cal-actions">
-                <a class="ms-btn ms-cal-add" data-act="cal-add" href="${esc(calUrl('add'))}" target="_blank" rel="noopener"><i class="fas fa-bell"></i> إضافة خفارات ${esc(MONTHS[parseYm(ym).m])} إلى تقويم هاتفي</a>
-                <a class="ms-cal-remove" data-act="cal-remove" href="${esc(calUrl('remove'))}" target="_blank" rel="noopener"><i class="fas fa-calendar-xmark"></i> إزالة تذكيرات هذا الشهر من التقويم</a>
-                <small>تذكير قبل كل خفارة بـ 24 ساعة · iPhone و Android</small>
+                <a class="ms-btn ms-cal-add" data-act="cal-add" href="${esc(calLink('add'))}" ${PLATFORM === 'ios' ? 'target="_blank" rel="noopener"' : ''}><i class="${PLATFORM === 'ios' ? 'fab fa-apple' : PLATFORM === 'android' ? 'fab fa-android' : 'fas fa-calendar-plus'}"></i> ${PLATFORM === 'other' ? `تنزيل خفارات ${esc(MONTHS[parseYm(ym).m])} كملف تقويم` : `إضافة خفارات ${esc(MONTHS[parseYm(ym).m])} إلى تقويم ${PLATFORM === 'ios' ? 'iPhone' : 'Android'}`}</a>
+                <a class="ms-cal-remove" data-act="cal-remove" href="${esc(calLink('remove'))}" ${PLATFORM === 'ios' ? 'target="_blank" rel="noopener"' : ''}><i class="fas fa-calendar-xmark"></i> إزالة تذكيرات هذا الشهر من التقويم</a>
+                <small>تذكير قبل كل خفارة بـ 24 ساعة</small>
             </div>` : ''}
             <p class="ms-foot-note">الملاحظات والعلامات خاصة بك ولا يراها غيرك.</p>`;
 
@@ -190,9 +202,9 @@
         const pdf = root.querySelector('[data-act="pdf"]');
         if (pdf) pdf.addEventListener('click', () => exportPdf(pdf));
         const calAdd = root.querySelector('[data-act="cal-add"]');
-        if (calAdd) calAdd.addEventListener('click', () => toast(/android/i.test(navigator.userAgent)
-            ? 'افتح الملف الذي نُزّل (duties.ics) واختر تطبيق التقويم ثم «استيراد / حفظ»'
-            : 'في النافذة التي تظهر اضغط «إضافة الكل» (Add All)', 'info'));
+        if (calAdd) calAdd.addEventListener('click', () => toast(PLATFORM === 'ios' ? 'في نافذة التقويم اضغط «إضافة الكل» (Add All)'
+            : PLATFORM === 'android' ? 'اختر تطبيق التقويم (Google أو Samsung) ثم «حفظ / استيراد»'
+            : 'افتح الملف الذي نُزّل بتطبيق التقويم', 'info'));
         const calRemove = root.querySelector('[data-act="cal-remove"]');
         if (calRemove) calRemove.addEventListener('click', e => {
             if (!confirm(`إزالة تذكيرات خفارات ${monthTitle(ym)} من تقويم الهاتف؟\n\nسيُفتح ملف إلغاء لنفس الخفارات؛ افتحه بتطبيق التقويم ليلغيها.`)) { e.preventDefault(); return; }
@@ -205,6 +217,20 @@
             const next = duties.find(d => d.date >= today);
             if (next) requestAnimationFrame(() => { const el = root.querySelector(`.ms-duty[data-date="${next.date}"]`); if (el && host) host.scrollTop = 0; });
         }
+    }
+
+    /**
+     * The calendar button's link for this phone: iPhone opens the file in Safari, which offers the events
+     * to the Calendar app ("Add All"); Android asks the phone for its calendar app (an intent for the
+     * file, falling back to downloading it); a computer downloads the file.
+     */
+    function calLink(mode) {
+        const url = calUrl(mode);
+        if (PLATFORM === 'android') {
+            const u = new URL(url);
+            return `intent://${u.host}${u.pathname}${u.search}#Intent;scheme=${u.protocol.replace(':', '')};action=android.intent.action.VIEW;type=text/calendar;S.browser_fallback_url=${encodeURIComponent(url + '&dl=1')};end`;
+        }
+        return PLATFORM === 'other' ? url + '&dl=1' : url;
     }
 
     /** This month's calendar file (/api/cal): add = events with a reminder 24 h before; remove = their cancellation. */
@@ -220,12 +246,14 @@
         const mk = markOf(d) || {};
         const f = flagOf(mk.flag);
         const today = iraqToday();
-        return `<article class="ms-duty ${v.er ? 'src-er' : ''} ${mk.kind ? 'kind-' + mk.kind : ''} ${d.date === today ? 'is-today' : ''}" data-date="${d.date}" data-key="${esc(d.key)}">
+        const isNext = d.key === nextKey;
+        return `<article class="ms-duty ${mk.kind ? 'kind-' + mk.kind : ''} ${d.date === today ? 'is-today' : ''} ${isNext ? 'is-next' : ''}" data-date="${d.date}" data-key="${esc(d.key)}">
+            ${isNext ? `<span class="ms-next-badge"><i class="fas fa-bell"></i> ${d.date === today ? 'خفارتك اليوم' : 'الخفارة القادمة'}</span>` : ''}
             ${mk.kind === 'bought' ? '<span class="ms-badge-big p">+$</span>' : mk.kind === 'sold' ? '<span class="ms-badge-big m">-$</span>' : ''}
             <div class="ms-date"><b>${Number(d.date.slice(8))}</b><span>${DAY_NAMES[dowOf(d.date)]}</span></div>
             <div class="ms-main">
                 <div class="ms-t">${esc(v.title)}</div>
-                <div class="ms-s"><span class="ms-src ${v.er ? 'er' : ''}">${v.srcLabel}</span>${v.time ? `<span class="ms-time">${esc(v.time)}</span>` : ''}${d.date === today ? '<b style="color:var(--ms-gold)">اليوم</b>' : ''}</div>
+                <div class="ms-s"><span class="ms-time"><i class="far fa-clock"></i> ${esc(v.time)}</span></div>
                 ${mk.kind || f ? `<div class="ms-tags">
                     ${mk.kind === 'bought' ? '<span class="ms-tag p"><span class="cur">+$</span> خفارة مشتراة</span>' : ''}
                     ${mk.kind === 'sold' ? '<span class="ms-tag m"><span class="cur">-$</span> خفارة مباعة</span>' : ''}
@@ -342,46 +370,53 @@
     function pdfHtml() {
         const acc = Hub.auth.getAccount() || {};
         const duties = data.duties || [];
-        const today = iraqToday();
-        const byDate = {};
-        duties.forEach(d => { (byDate[d.date] = byDate[d.date] || []).push(d); });
-        const lead = WEEK.indexOf(dowOf(`${ym}-01`));
-        const n = daysIn(ym);
-        const cells = [];
-        for (let i = 0; i < lead; i++) cells.push('<td class="pad"></td>');
-        for (let d = 1; d <= n; d++) {
-            const iso = `${ym}-${pad2(d)}`;
-            cells.push(`<td class="${iso === today ? 'today' : ''}"><div class="dn">${d}</div>${(byDate[iso] || []).map(x => {
-                const v = view(x), mk = markOf(x) || {};
-                return `<div class="it ${v.er ? 'er' : ''}">${mk.kind === 'bought' ? `<span class="b p">${ltr('+$')}</span>` : mk.kind === 'sold' ? `<span class="b m">${ltr('-$')}</span>` : ''}${esc(v.title)}</div>`;
-            }).join('')}</td>`);
-        }
-        while (cells.length % 7) cells.push('<td class="pad"></td>');
-        const rows = [];
-        for (let i = 0; i < cells.length; i += 7) rows.push(`<tr>${cells.slice(i, i + 7).join('')}</tr>`);
+        const next = nextDuty(duties);
         const bought = duties.filter(d => (markOf(d) || {}).kind === 'bought').length;
         const sold = duties.filter(d => (markOf(d) || {}).kind === 'sold').length;
-        return `<div class="ph">
-                <div><h1>جدول خفاراتي</h1><div class="sub">${esc(acc.name || data.name || '')} · ${esc(hospitalName(data.hosp))}</div></div>
-                <div class="mon"><b>${esc(monthTitle(ym))}</b><span>${duties.length} خفارة</span></div>
+        const { m } = parseYm(ym);
+        const dayLabel = iso => `${DAY_NAMES[dowOf(iso)]} ${Number(iso.slice(8))} ${MONTHS[Number(iso.slice(5, 7))]}`;
+        const rows = duties.map((d, i) => {
+            const v = view(d), mk = markOf(d) || {}, f = flagOf(mk.flag), dow = dowOf(d.date);
+            const isNext = next && d.key === next.key;
+            const status = [
+                mk.kind === 'bought' ? `<span class="pill p"><span class="cur">${ltr('+$')}</span> مشتراة</span>` : '',
+                mk.kind === 'sold' ? `<span class="pill m"><span class="cur">${ltr('-$')}</span> مباعة</span>` : '',
+                f ? `<span class="pill f">${esc(f.label)}${mk.flagText ? ': ' + esc(mk.flagText) : ''}</span>` : '',
+                mk.note ? `<div class="note">${esc(mk.note)}</div>` : '',
+            ].join(' ').trim();
+            return `<tr class="${mk.kind || ''} ${isNext ? 'next' : ''} ${dow === 5 || dow === 6 ? 'wk' : ''}">
+                <td class="num">${i + 1}</td>
+                <td class="dt"><b>${d.date.slice(8)}/${d.date.slice(5, 7)}</b></td>
+                <td class="dy">${DAY_NAMES[dow]}</td>
+                <td class="nm"><b>${esc(v.title)}</b>${isNext ? ' <span class="nx">القادمة</span>' : ''}</td>
+                <td class="tm">${esc(v.time)}</td>
+                <td class="st">${status || '<span class="dash">—</span>'}</td>
+            </tr>`;
+        }).join('');
+        return `<div class="pbar"></div>
+            <header class="ph">
+                <div class="who">
+                    <div class="kicker">جدول الخفارات الشهري · Duty Schedule</div>
+                    <h1>${esc(acc.name || data.name || '')}</h1>
+                    <div class="sub">${esc(hospitalName(data.hosp))}${acc.specialty ? ' · ' + esc(acc.specialty) : ''}</div>
+                </div>
+                <div class="mon"><span>الشهر</span><b>${esc(MONTHS[m])}</b><em>${parseYm(ym).y}</em></div>
+            </header>
+            <div class="psum">
+                <div><b>${duties.length}</b><span>عدد الخفارات</span></div>
+                <div><b class="p">${ltr('+' + bought)}</b><span>مشتراة</span></div>
+                <div><b class="m">${ltr('−' + sold)}</b><span>مباعة</span></div>
+                <div class="wide"><b>${next ? esc(dayLabel(next.date)) : '—'}</b><span>${next ? 'الخفارة القادمة · ' + esc(view(next).title) : 'الخفارة القادمة'}</span></div>
             </div>
-            <table class="pcal"><thead><tr>${WEEK.map(i => `<th>${DAY_NAMES[i]}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>
-            <h2>تفاصيل الخفارات</h2>
-            <table class="plist"><thead><tr><th style="width:62px">التاريخ</th><th style="width:58px">اليوم</th><th>الخفارة</th><th style="width:118px">الوقت</th><th style="width:60px">الجهة</th><th style="width:150px">الحالة والملاحظات</th></tr></thead>
-            <tbody>${duties.map(d => {
-                const v = view(d), mk = markOf(d) || {}, f = flagOf(mk.flag);
-                return `<tr class="${mk.kind || ''}"><td>${d.date.slice(8)}/${d.date.slice(5, 7)}</td><td>${DAY_NAMES[dowOf(d.date)]}</td><td><b>${esc(v.title)}</b></td>
-                    <td>${esc(v.time || '—')}</td><td><span class="pill ${v.er ? 'e' : 'h'}">${v.srcLabel}</span></td>
-                    <td>${mk.kind === 'bought' ? `<span class="pill p"><span class="cur">${ltr('+$')}</span> مشتراة</span> ` : mk.kind === 'sold' ? `<span class="pill m"><span class="cur">${ltr('-$')}</span> مباعة</span> ` : ''}${f ? `<span class="pill f">${esc(f.label)}${mk.flagText ? ': ' + esc(mk.flagText) : ''}</span>` : ''}${mk.note ? `<div style="margin-top:3px;color:#5b6476">${esc(mk.note)}</div>` : ''}${!mk.kind && !f && !mk.note ? '—' : ''}</td></tr>`;
-            }).join('')}</tbody></table>
-            <div class="ptot">
-                <div><b>${duties.length}</b>كل الخفارات</div>
-                <div><b>${duties.filter(d => d.src === 'hospital').length}</b>المستشفى</div>
-                <div><b>${duties.filter(d => d.src === 'er').length}</b>الطوارئ</div>
-                <div><b style="color:#1f6f50">${ltr('+' + bought)}</b>مشتراة</div>
-                <div><b style="color:#9c3540">${ltr('−' + sold)}</b>مباعة</div>
-            </div>
-            <div class="pfoot"><span>بوابة المستشفيات · Hospital Hub</span><span dir="ltr">${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Baghdad', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span></div>`;
+            <table class="plist">
+                <thead><tr><th class="num">#</th><th class="dt">التاريخ</th><th class="dy">اليوم</th><th>الخفارة</th><th class="tm">الوقت</th><th class="st">الحالة والملاحظات</th></tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+            <div class="pfoot">
+                <span>بوابة المستشفيات التعليمية · Hospital Hub</span>
+                <span>الأوقات بتوقيت بغداد</span>
+                <span dir="ltr">${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Baghdad', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+            </div>`;
     }
 
     /** True when the capture is not an empty white page (some browsers draw nothing for foreignObject). */
@@ -397,15 +432,22 @@
         btn.disabled = true;
         const label = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري إنشاء الملف…';
+        // The page is laid out under a cover while it is captured, so nothing of it shows on screen.
+        const stage = document.createElement('div');
+        stage.className = 'ms-pdf-stage';
         const page = document.createElement('div');
         page.className = 'ms-pdf';
         page.innerHTML = pdfHtml();
-        document.body.appendChild(page);
+        stage.appendChild(page);
+        const cover = document.createElement('div');
+        cover.className = 'ms-pdf-cover';
+        cover.innerHTML = '<div><i class="fas fa-file-pdf"></i><b>جاري إنشاء ملف PDF…</b><span>لحظات من فضلك</span></div>';
+        document.body.append(stage, cover);
         try {
             await Promise.all([loadScript(LIBS.html2canvas), loadScript(LIBS.jspdf)]);
             if (document.fonts && document.fonts.ready) await document.fonts.ready;
             // The browser's own rendering (exact Arabic text); html2canvas's drawing if the browser refuses it.
-            const opts = { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false };
+            const opts = { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false, ignoreElements: el => el.classList && el.classList.contains('ms-pdf-cover') };
             let canvas;
             try {
                 canvas = await window.html2canvas(page, { ...opts, foreignObjectRendering: true });
@@ -439,7 +481,8 @@
         } catch (err) {
             toast('تعذر إنشاء الملف. تحقق من الاتصال وحاول مجدداً.', 'error');
         } finally {
-            page.remove();
+            stage.remove();
+            cover.remove();
             btn.disabled = false;
             btn.innerHTML = label;
         }

@@ -314,46 +314,73 @@ html.dark .msp-female, body.dark .msp-female { color: #f0a3c4; background: rgba(
 .msp-status { text-align: center; font-size: 0.72rem; color: var(--ms-ink2); margin-top: 6px; }
 .msp-status .ok { color: var(--ms-plus); font-weight: 800; }
 
-/* ---------- PDF page (rendered off screen, captured to an A4 PDF) ---------- */
+/* ---------- PDF page (laid out under a cover, captured to an A4 PDF) ---------- */
+.ms-pdf-stage { position: fixed; top: 0; left: 0; width: 794px; z-index: 2147483600; pointer-events: none; }
+.ms-pdf-cover {
+  position: fixed; inset: 0; z-index: 2147483647; display: grid; place-items: center;
+  background: var(--ms-paper, #fbfaf7); color: var(--ms-ink, #1b2333);
+}
+.ms-pdf-cover > div { display: flex; flex-direction: column; align-items: center; gap: 8px; font-family: inherit; }
+.ms-pdf-cover i { font-size: 2.2rem; color: #9c3540; animation: ms-pdf-pulse 1s ease-in-out infinite alternate; }
+.ms-pdf-cover b { font-size: 1rem; }
+.ms-pdf-cover span { font-size: 0.78rem; color: #8d94a3; }
+@keyframes ms-pdf-pulse { from { transform: scale(0.92); opacity: 0.7; } to { transform: scale(1.06); opacity: 1; } }
+html.dark .ms-pdf-cover, body.dark .ms-pdf-cover { background: #10131a; color: #eef0f4; }
 .ms-pdf {
-  position: absolute; left: 0; top: 0; z-index: -1; width: 794px; padding: 34px 36px 30px; box-sizing: border-box;
+  position: relative; width: 794px; padding: 0 40px 30px; box-sizing: border-box;
   background: #fff; color: #1b2333; direction: rtl;
   /* System Arabic fonts: html2canvas misplaces the text of IBM Plex Sans Arabic (very tall metrics). */
   font-family: -apple-system, 'SF Arabic', 'Geeza Pro', 'Segoe UI', Tahoma, Arial, sans-serif;
 }
-.ms-pdf * { font-family: inherit !important; }
-.ms-pdf * { letter-spacing: normal !important; }
-
-.ms-pdf .ph { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px double #24365c; padding-bottom: 12px; margin-bottom: 14px; }
-.ms-pdf .ph h1 { margin: 0; font-size: 24px; color: #24365c; font-weight: 800; }
-.ms-pdf .ph .sub { font-size: 13px; color: #5b6476; margin-top: 4px; }
-.ms-pdf .ph .mon { text-align: left; }
-.ms-pdf .ph .mon b { display: block; font-size: 20px; color: #a8834a; font-weight: 800; }
-.ms-pdf .ph .mon span { font-size: 11px; color: #8d94a3; }
+.ms-pdf * { font-family: inherit !important; letter-spacing: normal !important; box-sizing: border-box; }
+.ms-pdf .pbar { height: 8px; margin: 0 -40px 26px; background: linear-gradient(90deg, #a8834a 0 22%, #24365c 22% 100%); }
+.ms-pdf .ph { display: flex; justify-content: space-between; align-items: stretch; gap: 16px; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid #e6e2d9; }
+.ms-pdf .ph .kicker { font-size: 11px; font-weight: 700; color: #a8834a; }
+.ms-pdf .ph h1 { margin: 4px 0 0; font-size: 25px; line-height: 1.3; color: #1b2333; font-weight: 800; }
+.ms-pdf .ph .sub { font-size: 13px; color: #5b6476; margin-top: 3px; }
+.ms-pdf .ph .mon { min-width: 120px; border-radius: 12px; background: #24365c; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 16px; }
+.ms-pdf .ph .mon span { font-size: 10px; opacity: 0.75; }
+.ms-pdf .ph .mon b { font-size: 20px; font-weight: 800; line-height: 1.35; }
+.ms-pdf .ph .mon em { font-style: normal; font-size: 13px; color: #e2c48f; font-weight: 700; }
+.ms-pdf .psum { display: flex; gap: 8px; margin-bottom: 16px; }
+.ms-pdf .psum div { flex: 1; border: 1px solid #e6e2d9; border-radius: 10px; padding: 8px 10px; background: #fbfaf7; text-align: center; }
+.ms-pdf .psum div.wide { flex: 2.4; text-align: right; border-color: #e2c48f; background: #fbf5ea; }
+.ms-pdf .psum b { display: block; font-size: 18px; line-height: 1.4; color: #1b2333; font-weight: 800; }
+.ms-pdf .psum .wide b { font-size: 15px; }
+.ms-pdf .psum b.p { color: #1f6f50; } .ms-pdf .psum b.m { color: #9c3540; }
+.ms-pdf .psum span { font-size: 10.5px; color: #5b6476; }
 .ms-pdf table { width: 100%; border-collapse: collapse; }
-.ms-pdf .pcal th { background: #24365c; color: #fff; font-size: 11px; padding: 6px 0; font-weight: 700; }
-.ms-pdf .pcal td { border: 1px solid #d9d4c8; vertical-align: top; height: 66px; width: 14.28%; padding: 4px 4px; font-size: 9.5px; }
-.ms-pdf .pcal td.pad { background: #f6f4ef; }
-.ms-pdf .pcal td.today { background: #f7efe0; }
-.ms-pdf .pcal .dn { display: block; height: 16px; line-height: 16px; font-size: 12px; font-weight: 800; color: #1b2333; }
-.ms-pdf .pcal .it { display: block; height: 16px; line-height: 16px; border-radius: 4px; padding: 0 4px; margin-top: 3px; color: #fff; background: #2f4a7a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 9px; }
-.ms-pdf .pcal .it.er { background: #7a2e3a; }
-.ms-pdf .pcal .it .b { float: left; direction: ltr; height: 12px; line-height: 12px; margin-top: 2px; font-weight: 800; background: #fff; border-radius: 3px; padding: 0 3px; font-family: Arial, sans-serif; font-size: 8.5px; }
-.ms-pdf .pcal .it .b.p { color: #1f6f50; }
-.ms-pdf .pcal .it .b.m { color: #9c3540; }
-.ms-pdf h2 { font-size: 14px; color: #24365c; margin: 18px 0 8px; font-weight: 800; }
-.ms-pdf .plist th { background: #f1ede4; color: #24365c; font-size: 11px; padding: 6px 6px; text-align: right; border-bottom: 2px solid #24365c; }
-.ms-pdf .plist td { font-size: 11px; line-height: 17px; padding: 5px 6px; border-bottom: 1px solid #e6e2d9; vertical-align: top; }
-.ms-pdf .plist tr.bought td { background: #eef6f2; }
-.ms-pdf .plist tr.sold td { background: #f8eeef; }
+.ms-pdf .plist { border: 1px solid #d9d4c8; }
+.ms-pdf .plist th { background: #24365c; color: #fff; font-size: 11px; font-weight: 700; padding: 8px 8px; text-align: right; }
+.ms-pdf .plist td { font-size: 11.5px; line-height: 17px; padding: 7px 8px; border-top: 1px solid #ebe7de; vertical-align: middle; }
+.ms-pdf .plist tbody tr:nth-child(even) td { background: #faf8f4; }
+.ms-pdf .plist tr.wk td.dy { color: #9c3540; font-weight: 700; }
+.ms-pdf .plist .num { width: 30px; text-align: center; color: #8d94a3; }
+.ms-pdf .plist .dt { width: 58px; }
+.ms-pdf .plist .dy { width: 70px; }
+.ms-pdf .plist .tm { width: 172px; white-space: nowrap; }
+.ms-pdf .plist td.tm { color: #3b4456; }
+.ms-pdf .plist .st { width: 138px; }
+.ms-pdf .plist tr.bought td { background: #eef6f2 !important; }
+.ms-pdf .plist tr.sold td { background: #f8eeef !important; }
+.ms-pdf .plist tr.sold .nm b { text-decoration: line-through; }
+.ms-pdf .plist tr.next td { background: #fbf3e4 !important; border-top: 1.5px solid #a8834a; border-bottom: 1.5px solid #a8834a; }
+.ms-pdf .nx { display: inline-block; height: 16px; line-height: 16px; padding: 0 7px; border-radius: 8px; background: #a8834a; color: #fff; font-size: 9.5px; font-weight: 800; margin-right: 4px; }
+.ms-pdf .dash { color: #c9c4b8; }
+.ms-pdf .note { margin-top: 3px; color: #5b6476; font-size: 10.5px; }
 .ms-pdf .pill { display: inline-block; height: 17px; line-height: 17px; padding: 0 7px; border-radius: 9px; font-weight: 800; font-size: 10px; white-space: nowrap; }
-.ms-pdf .pill .cur { display: inline-block; direction: ltr; font-family: Arial, sans-serif; }
+.ms-pdf .pill .cur { display: inline-block; direction: ltr; font-family: Arial, sans-serif !important; }
 .ms-pdf .pill.p { background: #1f6f50; color: #fff; }
 .ms-pdf .pill.m { background: #9c3540; color: #fff; }
 .ms-pdf .pill.f { background: #f3e6d1; color: #8a5514; }
-.ms-pdf .pill.h { background: #e4e9f3; color: #2f4a7a; }
-.ms-pdf .pill.e { background: #f3e3e6; color: #7a2e3a; }
-.ms-pdf .ptot { display: flex; gap: 10px; margin-top: 14px; }
-.ms-pdf .ptot div { flex: 1; border: 1px solid #e6e2d9; border-radius: 8px; padding: 8px; text-align: center; font-size: 11px; color: #5b6476; }
-.ms-pdf .ptot b { display: block; font-size: 18px; color: #1b2333; }
-.ms-pdf .pfoot { margin-top: 16px; padding-top: 8px; border-top: 1px solid #e6e2d9; font-size: 9.5px; color: #8d94a3; display: flex; justify-content: space-between; }
+.ms-pdf .pfoot { margin-top: 18px; padding-top: 9px; border-top: 1px solid #e6e2d9; font-size: 9.5px; color: #8d94a3; display: flex; justify-content: space-between; }
+
+/* The next duty */
+.ms-duty.is-next { border-color: var(--ms-gold); border-right-color: var(--ms-gold); box-shadow: 0 0 0 2px var(--ms-gold-soft), 0 6px 18px -8px var(--ms-gold); padding-top: 22px; }
+.ms-next-badge {
+  position: absolute; top: -1px; right: 14px; display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.64rem; font-weight: 800; color: #fff; background: var(--ms-gold);
+  padding: 3px 9px; border-radius: 0 0 9px 9px;
+}
+.ms-duty.is-next .ms-date { background: var(--ms-gold-soft); color: var(--ms-gold); }
+.ms-time i { opacity: 0.7; margin-left: 3px; }

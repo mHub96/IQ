@@ -400,3 +400,15 @@ body.dark .hacc-identity input:checked + span { color: #1C1C1E; }
 .hp-admin-tile i { width: 34px; height: 34px; flex: none; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; background: var(--hacc-accent-soft); color: var(--hacc-accent); }
 .hp-admin-tile b { display: block; font-size: 0.82rem; line-height: 1.4; }
 .hp-admin-tile small { display: block; font-size: 0.7rem; color: var(--hacc-muted); line-height: 1.5; margin-top: 2px; }
+/* First in the tab: the accounts manager */
+.hp-admin-lead {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 14px; padding: 14px;
+  border-radius: 16px; text-decoration: none; color: #fff;
+  background: linear-gradient(135deg, #1e3a8a, #2563eb); box-shadow: 0 10px 24px -12px rgba(37, 99, 235, 0.7);
+}
+.hp-admin-lead:active { transform: scale(0.985); }
+.hp-admin-lead > i:first-child { width: 42px; height: 42px; flex: none; display: grid; place-items: center; border-radius: 12px; background: rgba(255, 255, 255, 0.18); font-size: 1.15rem; }
+.hp-admin-lead span { flex: 1; min-width: 0; }
+.hp-admin-lead b { display: block; font-size: 0.95rem; }
+.hp-admin-lead small { display: block; font-size: 0.72rem; opacity: 0.85; margin-top: 2px; line-height: 1.5; }
+.hp-admin-lead > i:last-child { opacity: 0.8; }

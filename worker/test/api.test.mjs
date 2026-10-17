@@ -41,6 +41,10 @@ async function loadAll(token, endpoint = '/api/db') {
 
 const login = async (password, extra = {}) => (await call('POST', '/api/login', { body: { password, ...extra } })).data;
 const tokens = {};
+// A hospital given its own user password (set below): its doctors exchange duties there, and only there.
+const HU = Object.keys(SOURCE.hospitals)[0];
+const HU_PW = 'own-hospital-user-' + Date.now().toString(36);
+const OTHER = Object.keys(SOURCE.hospitals).find(h => h !== HU);
 
 test('health', async () => {
   const r = await call('GET', '/api/health');
@@ -93,12 +97,33 @@ test('signed-in users get the full database, identical to the source', async () 
   assert.equal(JSON.stringify(db).includes(PW.owner), false, 'no passwords in data');
 });
 
+test("a hospital's user password is scoped to that hospital", async () => {
+  await call('PUT', '/api/secrets', { token: tokens.owner, body: { secrets: { [HU]: { user: HU_PW } } } });
+  const r = await login(HU_PW);
+  assert.equal(r.role, 'user');
+  assert.deepEqual(r.adminHospitals, [HU]);
+  tokens.huser = r.token;
+});
+
+test('duty exchanges: own hospital only', async () => {
+  const rows = await loadAll(tokens.user);
+  const own = rows.find(r => r[0] === 'sched' && r[1].startsWith(HU + ':'));
+  const other = rows.find(r => r[0] === 'sched' && r[1].startsWith(OTHER + ':'));
+  const op = (s, note) => ({ c: 'sched', id: s[1], h: HU, o: s[3], bv: s[4], d: { ...s[5], note } });
+  // The global user password belongs to no hospital.
+  assert.deepEqual((await call('POST', '/api/sync', { token: tokens.user, body: { ops: [op(own, 'x')] } })).data.rejected, [0]);
+  // Another hospital's duty, even when the client claims it is its own hospital's.
+  assert.deepEqual((await call('POST', '/api/sync', { token: tokens.huser, body: { ops: [op(other, 'x')] } })).data.rejected, [0]);
+  const ok = await call('POST', '/api/sync', { token: tokens.huser, body: { ops: [op(own, 'own')] } });
+  assert.deepEqual(ok.data.applied, [[0, own[4] + 1]]);
+});
+
 test('a user can edit a duty but not hospital settings', async () => {
   const rows = await loadAll(tokens.user);
-  const sched = rows.find(r => r[0] === 'sched');
+  const sched = rows.find(r => r[0] === 'sched' && r[1].startsWith(HU + ':'));
   const hosp = rows.find(r => r[0] === 'hospital');
   const r = await call('POST', '/api/sync', {
-    token: tokens.user,
+    token: tokens.huser,
     body: { msg: 'test', ops: [
       { c: 'sched', id: sched[1], h: sched[2], o: sched[3], bv: sched[4], d: { ...sched[5], note: 'edited' } },
       { c: 'hospital', id: hosp[1], h: hosp[2], o: hosp[3], bv: hosp[4], d: { ...hosp[5], name_ar: 'hacked' } },
@@ -111,11 +136,11 @@ test('a user can edit a duty but not hospital settings', async () => {
 
 test('a stale write gets a conflict with the current version instead of overwriting', async () => {
   const rows = await loadAll(tokens.user);
-  const sched = rows.filter(r => r[0] === 'sched')[1];
+  const sched = rows.filter(r => r[0] === 'sched' && r[1].startsWith(HU + ':'))[1];
   const op = v => ({ c: 'sched', id: sched[1], h: sched[2], o: sched[3], bv: v, d: { ...sched[5], note: 'first' } });
-  const first = await call('POST', '/api/sync', { token: tokens.user, body: { ops: [op(sched[4])] } });
+  const first = await call('POST', '/api/sync', { token: tokens.huser, body: { ops: [op(sched[4])] } });
   assert.equal(first.data.applied.length, 1);
-  const stale = await call('POST', '/api/sync', { token: tokens.user, body: { ops: [{ ...op(sched[4]), d: { ...sched[5], note: 'second' } }] } });
+  const stale = await call('POST', '/api/sync', { token: tokens.huser, body: { ops: [{ ...op(sched[4]), d: { ...sched[5], note: 'second' } }] } });
   assert.equal(stale.data.applied.length, 0);
   assert.equal(stale.data.conflicts.length, 1);
   const [, v, data] = stale.data.conflicts[0];
@@ -124,25 +149,25 @@ test('a stale write gets a conflict with the current version instead of overwrit
 });
 
 test('stored text cannot carry HTML or break out of inline handlers', async () => {
-  const hid = Object.keys(SOURCE.hospitals)[0];
+  const hid = HU;
   const id = `${hid}:xsstest`;
   const evil = `<img src=x onerror=alert(1)>"\\');alert(2);//\`x\``;
-  const r = await call('POST', '/api/sync', { token: tokens.user, body: { ops: [{ c: 'sched', id, h: hid, o: 9998, bv: 0, d: { date: '02/01/2030', specCode: 'GS', name: evil } }] } });
+  const r = await call('POST', '/api/sync', { token: tokens.huser, body: { ops: [{ c: 'sched', id, h: hid, o: 9998, bv: 0, d: { date: '02/01/2030', specCode: 'GS', name: evil } }] } });
   assert.equal(r.data.applied.length, 1);
   const row = (await loadAll(tokens.user)).find(x => x[1] === id);
   assert.equal(/[<>"'`\\]/.test(row[5].name), false, row[5].name);
   assert.ok(row[5].name.includes('alert'), 'text kept, only dangerous characters changed');
-  await call('POST', '/api/sync', { token: tokens.user, body: { ops: [{ c: 'sched', id, bv: 1, del: 1 }] } });
+  await call('POST', '/api/sync', { token: tokens.huser, body: { ops: [{ c: 'sched', id, bv: 1, del: 1 }] } });
 });
 
 test('create and delete a duty', async () => {
-  const hid = Object.keys(SOURCE.hospitals)[0];
+  const hid = HU;
   const id = `${hid}:testentry`;
-  const created = await call('POST', '/api/sync', { token: tokens.user, body: { ops: [{ c: 'sched', id, h: hid, o: 9999, bv: 0, d: { date: '01/01/2030', specCode: 'GS', name: 'Test' } }] } });
+  const created = await call('POST', '/api/sync', { token: tokens.huser, body: { ops: [{ c: 'sched', id, h: hid, o: 9999, bv: 0, d: { date: '01/01/2030', specCode: 'GS', name: 'Test' } }] } });
   assert.deepEqual(created.data.applied, [[0, 1]]);
-  const dup = await call('POST', '/api/sync', { token: tokens.user, body: { ops: [{ c: 'sched', id, h: hid, o: 9999, bv: 0, d: { date: 'x' } }] } });
+  const dup = await call('POST', '/api/sync', { token: tokens.huser, body: { ops: [{ c: 'sched', id, h: hid, o: 9999, bv: 0, d: { date: 'x' } }] } });
   assert.equal(dup.data.conflicts.length, 1, 'creating an existing id is a conflict');
-  const deleted = await call('POST', '/api/sync', { token: tokens.user, body: { ops: [{ c: 'sched', id, bv: 1, del: 1 }] } });
+  const deleted = await call('POST', '/api/sync', { token: tokens.huser, body: { ops: [{ c: 'sched', id, bv: 1, del: 1 }] } });
   assert.deepEqual(deleted.data.applied, [[0, 0]]);
   const rows = await loadAll(tokens.user);
   assert.equal(rows.some(r => r[1] === id), false);

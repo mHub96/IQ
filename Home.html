@@ -3245,6 +3245,8 @@
             if (nameEl) nameEl.textContent = hospName;
             if (locEl) locEl.textContent = hospLocation;
             if (iconEl) iconEl.className = `fas ${hospIcon}`;
+            // Duty exchanges: the doctor's own hospital only.
+            if (btnExchange) btnExchange.style.display = Hub.auth.canExchangeIn(currentHospital.id) ? '' : 'none';
             const headerEl = document.querySelector('.hospital-header');
             if (headerEl && /^#[0-9a-f]{3,8}$/i.test(currentHospital.color || '')) headerEl.style.setProperty('--hc', currentHospital.color);
 

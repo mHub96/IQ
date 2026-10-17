@@ -29,10 +29,11 @@ const MAX_PORTAL_DAYS = 45;
 const NOT_RESIDENT = ['rotator', 'aa_user', 'aa_admin'];
 
 // ER month record layout (see emergency.js): which fields of each day row hold a doctor's name.
+// Death certificates are not read from the ER scheduler: they are exchanged on the hospital's
+// roster, so the roster (its "الوفيات" column) is the one source for them.
 const ER_SLOTS = {
   er: ['morning', 'afternoon', 'preNight', 'lateNight'],
   con: ['doctor'],
-  dc: ['doctor'],
   rs: ['er_morning', 'er_afternoon', 'er_preNight', 'er_lateNight', 'ward_private', 'ward_floor4', 'ward_floor5'],
 };
 

@@ -324,6 +324,7 @@
     // Administrative sector (owner): every owner tool in one place
     // ------------------------------------------------------------------
     function renderAdmin(body) {
+        const lead = `<a class="hp-admin-lead" href="./account.html#manage-all"><i class="fas fa-users-gear"></i><span><b>إدارة الحسابات</b><small>كل الحسابات: الأدوار والمستشفيات والأجهزة والإيقاف</small></span><i class="fas fa-chevron-left"></i></a>`;
         const groups = [
             ['الحسابات', [
                 ['fa-user-check', 'طلبات الحسابات والموافقات', 'موافقة ورفض وإدارة الحسابات والأجهزة', { href: './account.html#manage' }],
@@ -341,7 +342,7 @@
                 ['fa-lock', 'كلمات المرور المشتركة', 'كلمات مرور المالك والمدراء والمستخدمين', { fn: 'openAllPasswordsModalNav' }],
             ]],
         ];
-        body.innerHTML = groups.map(([title, items]) => `<section class="hp-section"><h3>${title}</h3><div class="hp-admin-grid">${items.map(([icon, label, sub, act]) => act.href
+        body.innerHTML = lead + groups.map(([title, items]) => `<section class="hp-section"><h3>${title}</h3><div class="hp-admin-grid">${items.map(([icon, label, sub, act]) => act.href
             ? `<a class="hp-admin-tile" href="${act.href}"><i class="fas ${icon}"></i><span><b>${label}</b><small>${sub}</small></span></a>`
             : `<button type="button" class="hp-admin-tile" data-fn="${act.fn}"><i class="fas ${icon}"></i><span><b>${label}</b><small>${sub}</small></span></button>`).join('')}</div></section>`).join('');
         body.querySelectorAll('[data-fn]').forEach(b => b.addEventListener('click', () => A.adminAction(b.dataset.fn)));

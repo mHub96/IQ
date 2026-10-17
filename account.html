@@ -541,7 +541,7 @@
                 VIEWS.forEach(v => { $('view-' + v).hidden = v !== 'me'; });
                 renderMe(view === 'settings' ? 'settings' : 'profile');
             }
-            if (view === 'manage') { selectTab(hash === 'manage-resets' ? 'resets' : hash === 'manage-comments' ? 'comments' : hash === 'manage-system' && Hub.auth.isOwner() ? 'system' : mg.filter); }
+            if (view === 'manage') { selectTab(hash === 'manage-resets' ? 'resets' : hash === 'manage-all' ? 'all' : hash === 'manage-comments' ? 'comments' : hash === 'manage-system' && Hub.auth.isOwner() ? 'system' : mg.filter); }
             if (view === 'signup') initSignup();
             if (approver) loadPendingCounts();
             window.scrollTo(0, 0);
@@ -1056,6 +1056,8 @@
         function selectTab(filter) {
             mg.filter = filter;
             document.querySelectorAll('#mg-tabs [data-filter]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.filter === filter)));
+            const sel = document.querySelector(`#mg-tabs [data-filter="${filter}"]`);
+            if (sel) sel.scrollIntoView({ block: 'nearest', inline: 'nearest' });
             loadManage();
         }
         document.querySelectorAll('#mg-tabs [data-filter]').forEach(b => b.addEventListener('click', () => selectTab(b.dataset.filter)));

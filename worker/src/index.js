@@ -164,19 +164,19 @@ async function matchPassword(env, pwd) {
   if (g.anaesthesia && pwd === g.anaesthesia) return { role: 'anaesthesia', adminHospitals: ['*'] };
   if (g.user && pwd === g.user) return { role: 'user', adminHospitals: [] };
 
-  const owner = [], admin = [], anaesthesia = [];
-  let user = false;
+  const owner = [], admin = [], anaesthesia = [], user = [];
   for (const [scope, p] of Object.entries(byScope)) {
     if (scope === 'global') continue;
     if (p.owner && pwd === p.owner) owner.push(scope);
     if (p.admin && pwd === p.admin) admin.push(scope);
     if (p.anaesthesia && pwd === p.anaesthesia) anaesthesia.push(scope);
-    if (p.user && pwd === p.user) user = true;
+    if (p.user && pwd === p.user) user.push(scope);
   }
   if (owner.length) return { role: 'owner', adminHospitals: ['*'] };
   if (admin.length) return { role: 'admin', adminHospitals: admin };
   if (anaesthesia.length) return { role: 'anaesthesia', adminHospitals: anaesthesia };
-  if (user) return { role: 'user', adminHospitals: [] };
+  // A hospital's own user password: that hospital is the user's (duty exchanges there only).
+  if (user.length) return { role: 'user', adminHospitals: user };
   return null;
 }
 
@@ -228,6 +228,8 @@ async function revokeSessions(env, auth) {
 const isOwner = a => a && a.r === 'owner';
 const inScope = (a, hosp) => a.h && (a.h.includes('*') || (hosp && a.h.includes(hosp)));
 const canUseEr = a => a && (isOwner(a) || a.r === 'admin');
+/** The doctor's own hospital: a personal account's hospital, or one the session is scoped to. */
+const ownHospital = (a, hosp) => !!hosp && ((a.a && a.hosp === hosp) || inScope(a, hosp));
 
 /** Server-side copy of the permission rules the pages already apply in the UI. */
 function allowed(a, op) {
@@ -235,9 +237,10 @@ function allowed(a, op) {
   const isNew = !op.bv;
   switch (op.c) {
     case 'sched':
-      // The hospital's doctors exchange duties. Rotators only view and comment; division officers
-      // have their own roster (aa.js).
-      return ['user', 'anaesthesia', 'admin'].includes(a.r);
+      // The hospital's doctors exchange duties, in their own hospital only (the hospital is the id's
+      // prefix, not the client's word). Rotators only view and comment; division officers have their
+      // own roster (aa.js).
+      return ['user', 'anaesthesia', 'admin'].includes(a.r) && ownHospital(a, String(op.id || '').split(':')[0]);
     case 'icu':
       return a.r === 'anaesthesia' && inScope(a, op.h);
     case 'hospital':

@@ -1728,6 +1728,7 @@
     async function exchangeDuty(hospitalId, specCode, newResidentName, targetDate = null, oldResidentName = null) {
         if (auth.isRotator()) throw new Error('حساب الروتيتر للعرض والتعليق فقط');
         if (!AA && auth.isOfficer()) throw new Error('موظفو الشؤون الإدارية يبدّلون خفاراتهم في جدول الشؤون الإدارية فقط');
+        if (!auth.canExchangeIn(hospitalId)) throw new Error('يمكنك تبديل الخفارات في مستشفاك فقط');
         const hospital = getHospital(hospitalId);
         if (!hospital) throw new Error('المستشفى غير موجود');
 
@@ -3701,6 +3702,20 @@
 
         canExchangeDuties() {
             return this.isLoggedIn() && this.getRole() !== 'rotator';
+        },
+
+        /** Duty exchanges are made in the doctor's own hospital only (the owner: everywhere). The API applies the same rule. */
+        canExchangeIn(hospId) {
+            if (!hospId || !this.isLoggedIn()) return false;
+            const role = this.getRole();
+            if (role === 'owner') return true;
+            if (role === 'rotator') return false;
+            if (AA) return hospId === AA && this.canAccessDivision(hospId);
+            if (AA_ROLES.includes(role)) return false;
+            const acc = this.getAccount();
+            if (acc && acc.hosp === hospId) return true;
+            const ids = this.getAdminHospitalIds();
+            return ids.includes('*') || ids.includes(hospId);
         },
 
         isOwner() {

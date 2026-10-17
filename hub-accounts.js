@@ -882,7 +882,9 @@
 
     async function disablePush() {
         try {
-            const reg = await navigator.serviceWorker.ready;
+            // getRegistration (not .ready, which never settles without an active service worker).
+            const reg = 'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : null;
+            if (!reg || !reg.pushManager) throw new Error('no service worker');
             const sub = await reg.pushManager.getSubscription();
             if (sub) {
                 await Hub.api('POST', '/api/push/unsubscribe', { endpoint: sub.endpoint }, { retries: 1 }).catch(() => {});

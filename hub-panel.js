@@ -124,7 +124,8 @@
 
     async function logout() {
         if (!confirm('تسجيل الخروج من هذا الجهاز؟')) return;
-        await A.push.disable().catch(() => {});
+        // Turning push off is best effort: never let it hold up signing out.
+        await Promise.race([A.push.disable().catch(() => {}), new Promise(r => setTimeout(r, 2500))]);
         Hub.auth.logout();
         location.href = './index.html?portal=true';
     }

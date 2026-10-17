@@ -38,9 +38,10 @@
     // Administrative Affairs division context
     // ------------------------------------------------------------------
     // Officers of a division always use their own division. The owner and a hospital's admins enter
-    // it from the hospital card (?aa=<hospital>) and leave with ?aa=off; while inside, every tab
-    // opens the division's version of its page (the pages switch data on the aa parameter, see
-    // hub-core.js) and the doctors-only tabs are hidden.
+    // it from the hospital card (?aa=<hospital>); while inside, every tab opens the division's
+    // version of its page (the pages switch data on the aa parameter, see hub-core.js) and the
+    // doctors-only tabs are hidden. The hub (the portal without ?aa, from the home tab or a page's
+    // hub button) is each user's own: the hospitals hub for them, the division hub for officers.
     const AA_ROLES = ['aa_user', 'aa_admin'];
     const AA_PAGES = ['index.html', 'Home.html', 'schedule.html', 'signup.html', 'admin.html', 'scheduler.html'];
     const NEUTRAL_PAGES = ['account.html'];   // the same in and out of a division
@@ -74,8 +75,10 @@
             if (wanted === 'off' || wanted === '') setAaContext(null);
             else if (mayEnter(wanted)) setAaContext(wanted);
         }
-        const ctx = aaContext();
         if (NEUTRAL_PAGES.includes(page)) { url.searchParams.delete('aa'); return url; }
+        // The owner / an admin going to the hub (no ?aa) leaves the division.
+        if (page === 'index.html' && wanted === null && !officerHosp()) setAaContext(null);
+        const ctx = aaContext();
         if (!ctx) { url.searchParams.delete('aa'); return url; }
         if (!AA_PAGES.includes(page)) {
             // Doctors-only page: officers stay in their division; the owner or an admin leaves it.
@@ -236,7 +239,6 @@
         tabbar.classList.toggle('off', !signedIn());      // the sign-in screen has no tabs
         tabbar.classList.toggle('rotator', read('hospital_hub_session_role') === 'rotator'); // no duty exchange tab
         tabbar.classList.toggle('aa', !!aaContext());      // division: roster, schedule and exchange only
-        tabbar.classList.toggle('aa-exit', !!aaContext() && !officerHosp());
         let title = '';
         try { title = active.frame.contentDocument.title; } catch (e) {}
         if (title) document.title = title;
@@ -261,8 +263,8 @@
 
     function tabUrl(tab) {
         const ctx = aaContext();
-        if (ctx) return (tab === 'home' ? HOME_ROUTE + '&' : TAB_PAGE[tab] + '?hospital=' + encodeURIComponent(ctx) + '&') + 'aa=' + encodeURIComponent(ctx);
-        if (tab === 'home') return HOME_ROUTE;
+        if (tab === 'home') return HOME_ROUTE;   // each user's own hub (see contextual)
+        if (ctx) return TAB_PAGE[tab] + '?hospital=' + encodeURIComponent(ctx) + '&aa=' + encodeURIComponent(ctx);
         const h = read('hospital_hub_active_id') || '';
         return TAB_PAGE[tab] + (h ? '?hospital=' + encodeURIComponent(h) : '');
     }
@@ -272,14 +274,15 @@
         if (!a) return;
         e.preventDefault();
         const tab = a.dataset.tab;
-        if (tab === 'aa-exit') { go(HOME_ROUTE + '&aa=off'); return; }
-        // Tapping the tab you are on scrolls it back to the top, as on iOS.
-        if (active && TAB_OF[active.page] === tab && (tab !== 'home' || active.page === 'index.html')) {
+        // Tapping the tab you are on scrolls it back to the top, as on iOS. The division's hub is not the
+        // owner's / an admin's home: for them the home tab goes back to the hospitals hub.
+        const leavingDivision = tab === 'home' && !!aaContext() && !officerHosp();
+        if (active && TAB_OF[active.page] === tab && (tab !== 'home' || active.page === 'index.html') && !leavingDivision) {
             try { active.frame.contentWindow.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e2) {}
             return;
         }
         const page = TAB_PAGE[tab];
-        const v = views.get(page);
+        const v = leavingDivision ? null : views.get(page);
         // A warm view for the same hospital is shown as it is, exactly where the user left it.
         if (v && !v.stale && v.hosp === hospital() && !v.pendingUrl) { show(v); return; }
         go(tabUrl(tab));

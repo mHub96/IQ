@@ -75,8 +75,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Arabic
 #app-tabbar.rotator .app-tab[data-tab="signup"] { display: none; }
 /* Administrative Affairs division: its roster, schedule and duty exchange only. */
 #app-tabbar.aa .app-tab[data-tab="icu"], #app-tabbar.aa .app-tab[data-tab="specialists"], #app-tabbar.aa .app-tab[data-tab="residents"] { display: none; }
-/* The owner and hospital admins leave the division from the bar (officers stay in theirs). */
-#app-tabbar:not(.aa-exit) .app-tab[data-tab="aa-exit"] { display: none; }
 
 .app-tab {
   position: relative; z-index: 1;

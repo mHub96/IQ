@@ -2051,8 +2051,7 @@
                     sessionStorage.removeItem('hub_cached_admin_pwd');
                     Hub.auth.logout();
                     document.getElementById('lock-screen').classList.remove('hidden');
-                    updateTopRoleBadge();
-                    renderHubDashboard();
+                    location.replace('./index.html?portal=true');
                 }
             } else {
                 document.getElementById('lock-screen').classList.remove('hidden');
@@ -2309,7 +2308,8 @@
 
             if (!pill || !icon || !text) return;
 
-            pill.style.display = isOwner ? 'none' : '';
+            // Signed in, the profile photo opens the account panel: the role button is only for guests (sign in).
+            pill.style.display = Hub.auth.isLoggedIn() ? 'none' : '';
             if (Hub.auth.isOfficer()) {
                 // Administrative Affairs officers: division admin or division user.
                 pill.className = 'ios-role-pill ' + (role === 'aa_admin' ? 'admin' : 'user');

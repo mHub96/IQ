@@ -12,17 +12,19 @@
  * - Personal accounts, notifications and likes / comments live in accounts.js.
  */
 
-import { DAY, json, signToken, verifyToken, encrypt, decrypt, bucketOf } from './lib.js';
+import { DAY, json, signToken, verifyToken, encrypt, decrypt, bucketOf, neutralize } from './lib.js';
 import { routeAccounts, resolveAccountAuth } from './accounts.js';
 import { routeDuties } from './duties.js';
+import { routeAA, isOfficer, AA_ROLES } from './aa.js';
 import { nameKey } from './names.js';
 import { dutyDayNow } from './profile.js';
 
 const VISIT_COOLDOWN_MS = 60 * 1000;
 
 const ROLES = ['user', 'anaesthesia', 'admin', 'owner'];
-// Roles a login token may carry: the shared-password roles plus rotator (personal accounts only).
-const TOKEN_ROLES = [...ROLES, 'rotator'];
+// Roles a login token may carry: the shared-password roles plus the personal-account-only roles
+// (rotators, and the officers of a hospital's Administrative Affairs division).
+const TOKEN_ROLES = [...ROLES, 'rotator', ...AA_ROLES];
 const PAGE_ROWS = 1500;
 const HISTORY_KEEP_DAYS = 120;
 const LOGIN_FAIL_LIMIT = 20;
@@ -70,6 +72,8 @@ async function route(request, env, ctx) {
     return auth ? json({ ok: true, role: auth.r, adminHospitals: auth.h, exp: auth.e, account: auth.a || null }) : json({ error: 'unauthorized' }, 401);
   }
   if (path === '/api/db' && method === 'GET') return readRecords(env, auth, url, false);
+  const aaRoute = await routeAA(path, method, request, env, auth, url);
+  if (aaRoute) return aaRoute;
   const dutiesRoute = await routeDuties(path, method, request, env, auth, url, ctx);
   if (dutiesRoute) return dutiesRoute;
   const accountRoute = await routeAccounts(path, method, request, env, auth, url, ctx);
@@ -199,7 +203,9 @@ function allowed(a, op) {
   const isNew = !op.bv;
   switch (op.c) {
     case 'sched':
-      return a.r !== 'rotator'; // every signed-in role except rotators (view and comment only) can exchange duties
+      // The hospital's doctors exchange duties. Rotators only view and comment; division officers
+      // have their own roster (aa.js).
+      return ['user', 'anaesthesia', 'admin'].includes(a.r);
     case 'icu':
       return a.r === 'anaesthesia' && inScope(a, op.h);
     case 'hospital':
@@ -221,8 +227,9 @@ function allowed(a, op) {
 
 async function readRecords(env, auth, url, er) {
   const after = Math.max(0, Number(url.searchParams.get('after')) || 0);
-  const full = auth ? 1 : 0;
-  // Guests get the roster structure without phone numbers.
+  // Guests get the roster structure without phone numbers; so do division officers, who only use
+  // their division's own data.
+  const full = auth && !isOfficer(auth) ? 1 : 0;
   const collFilter = er ? "coll IN ('er')" : "coll NOT IN ('er', 'er_conflict')";
   const since = Number(url.searchParams.get('since'));
   if (since > 0) return readChanges(env, auth, full, collFilter, since);
@@ -386,17 +393,6 @@ async function sync(request, env, auth) {
 // ER scheduler data is admin-only and may legitimately contain markup (print templates).
 const RAW_COLLS = new Set(['er', 'er_conflict']);
 
-/**
- * Makes stored text safe to drop into HTML and inline handlers, whatever a page does with it:
- * removes < > ` and swaps quotes/backslashes for look-alikes (" -> ”, ' -> ’, \ -> /).
- * Works on JSON text directly, so it costs one pass and no re-parsing.
- */
-function neutralize(jsonText) {
-  return jsonText
-    .replace(/[<>`]/g, '')
-    .replace(/'/g, '\u2019')
-    .replace(/\\(["\\])/g, (_, c) => (c === '"' ? '\u201D' : '/'));
-}
 
 /** Contact-tap counter: an atomic increment so concurrent taps never overwrite each other. */
 /**

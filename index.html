@@ -1266,7 +1266,7 @@
                 </div>
                 <div class="live-title-wrap">
                     <h2>
-                        <span>الخفارات الطبية نشطة</span>
+                        <span id="live-title-text">الخفارات الطبية نشطة</span>
                         <span class="widget-status-badge"><i class="fas fa-circle text-[8px] animate-pulse"></i> مباشر</span>
                     </h2>
                     <p id="live-oncall-summary">جاري فحص جدول الأطباء الخفراء...</p>
@@ -1304,7 +1304,7 @@
         </section>
 
         <!-- SEARCH & SEGMENTED FILTER -->
-        <section class="ios-filter-section">
+        <section class="ios-filter-section" data-doctors-only>
             <div class="ios-search-wrap">
                 <i class="fas fa-search ios-search-icon"></i>
                 <input type="text" id="hosp-search-input" class="ios-search-input" placeholder="بحث عن مستشفى أو قسم..." oninput="onSearchInput(this.value)" />
@@ -1887,6 +1887,7 @@
     <!-- Scripts -->
     <script src="./hub-sync.js"></script>
     <script src="./hub-core.js"></script>
+    <script src="./hub-aa.js"></script>
     <script src="./hub-avatar.js"></script>
     <script src="./hub-accounts.js"></script>
     <script src="./nav-component.js"></script>
@@ -2309,7 +2310,12 @@
             if (!pill || !icon || !text) return;
 
             pill.style.display = isOwner ? 'none' : '';
-            if (isOwner) {
+            if (Hub.auth.isOfficer()) {
+                // Administrative Affairs officers: division admin or division user.
+                pill.className = 'ios-role-pill ' + (role === 'aa_admin' ? 'admin' : 'user');
+                icon.className = role === 'aa_admin' ? 'fas fa-shield-halved' : 'fas fa-building';
+                text.textContent = role === 'aa_admin' ? 'مدير الشؤون الإدارية' : 'الشؤون الإدارية';
+            } else if (isOwner) {
                 pill.className = 'ios-role-pill owner';
                 icon.className = 'fas fa-crown';
                 text.textContent = 'المالك 👑';
@@ -2468,8 +2474,12 @@
             const totalOnCallNow = Hub.getTotalActiveOnCallCount ? Hub.getTotalActiveOnCallCount(today) : 0;
             const summaryEl = document.getElementById('live-oncall-summary');
             if (summaryEl) {
-                summaryEl.textContent = `${totalOnCallNow} طبيب خفر في الخدمة الآن عبر ${hospitals.length} مستشفيات تعليمية`;
+                summaryEl.textContent = Hub.aa.active
+                    ? `${totalOnCallNow} موظف خفر في الخدمة الآن · الشؤون الإدارية`
+                    : `${totalOnCallNow} طبيب خفر في الخدمة الآن عبر ${hospitals.length} مستشفيات تعليمية`;
             }
+            const liveTitle = document.getElementById('live-title-text');
+            if (liveTitle) liveTitle.textContent = Hub.aa.active ? 'خفارات الشؤون الإدارية نشطة' : 'الخفارات الطبية نشطة';
 
             // Filter hospitals
             let filtered = hospitals.filter(h => {
@@ -2513,7 +2523,12 @@
                 const icon = h.icon || 'fa-hospital';
                 const location = h.location || 'العراق';
                 const isHospAdmin = Hub.auth.isAdmin(h.id);
-                const icuStats = Hub.getICUStats ? Hub.getICUStats(h.id) : (h.icu || null);
+                const icuStats = Hub.aa.active ? null : (Hub.getICUStats ? Hub.getICUStats(h.id) : (h.icu || null));
+                // Administrative Affairs division of this hospital (owner, its admins and its officers).
+                const divisionBtn = !Hub.aa.active && Hub.auth.canAccessDivision(h.id) ? `
+                                <a href="./index.html?portal=true&aa=${encodeURIComponent(h.id)}" class="ios-btn secondary hosp-aa-btn" style="border-color:rgba(71,85,105,0.35); color:#475569;" title="الشؤون الإدارية لهذا المستشفى: العناوين الوظيفية والموظفون وجدول خفاراتهم">
+                                    <i class="fas fa-building"></i> <span>الشؤون الإدارية</span>
+                                </a>` : '';
                 const icuAvail = icuStats ? (icuStats.availableBeds !== undefined ? icuStats.availableBeds : Math.max(0, (icuStats.functionalBeds || 0) - (icuStats.occupiedBeds || 0))) : null;
                 const icuIsFull = (icuAvail !== null && icuAvail <= 0);
 
@@ -2597,12 +2612,13 @@
                                 <a href="./admin.html?hospital=${h.id}" class="ios-btn secondary">
                                     <i class="fas fa-sliders"></i> <span>إدارة المستشفى</span>
                                 </a>
-                                <button type="button" onclick="exportHospitalBackupFromIndex('${h.id}')" class="ios-btn secondary" style="color:#059669;" title="تنزيل نسخة احتياطية لكافة بيانات وتخصصات ومقيمي هذا المستشفى">
+                                <button type="button" onclick="exportHospitalBackupFromIndex('${h.id}')" class="ios-btn secondary" style="color:#059669;" title="تنزيل نسخة احتياطية لكافة بيانات وتخصصات ومقيمي هذا المستشفى" data-doctors-only>
                                     <i class="fas fa-download"></i> <span>نسخ احتياطي</span>
                                 </button>` : ''}
+                                ${divisionBtn}
                             </div>
 
-                            ${isOwner ? `
+                            ${isOwner && !Hub.aa.active ? `
                                 <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 space-y-2 text-[11px]">
                                     <!-- ER Scheduler Toggle for Hospital (Owner Mode) -->
                                     <div class="flex items-center justify-between p-2.5 rounded-xl transition-all ${h.erEnabled ? 'bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-900/50' : 'bg-rose-50/80 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/50'}">

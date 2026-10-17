@@ -12,6 +12,9 @@
     const STAGE_NAMES = ['', 'الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة', 'السادسة', 'السابعة', 'الثامنة', 'التاسعة', 'العاشرة'];
     const MONTHS = ['', 'كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'];
     const SEX = { m: 'ذكر', f: 'أنثى' };
+    // Accounts without a resident profile or "My Schedule": rotators and Administrative Affairs officers.
+    const OFFICER_ROLES = ['aa_user', 'aa_admin'];
+    const NO_PROFILE = ['rotator', ...OFFICER_ROLES];
     const NICK_RE = /^[\p{L}\p{N}][\p{L}\p{N}._-]{2,23}$/u;
     const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
     const hospitalName = id => { const h = Hub.getHospital && Hub.getHospital(id); return h ? (h.name_ar || h.hospitalName) : (id || ''); };
@@ -57,8 +60,8 @@
             </header>
             <div class="hacc-tabs" role="tablist">
                 ${acc ? `<button type="button" role="tab" data-tab="profile">الملف الشخصي</button>
-                ${acc.role !== 'rotator' ? '<button type="button" role="tab" data-tab="schedule">جدولي</button>' : ''}
-                <button type="button" role="tab" data-tab="comments">تعليقاتي</button>` : ''}
+                ${!NO_PROFILE.includes(acc.role) ? '<button type="button" role="tab" data-tab="schedule">جدولي</button>' : ''}
+                ${!OFFICER_ROLES.includes(acc.role) ? '<button type="button" role="tab" data-tab="comments">تعليقاتي</button>' : ''}` : ''}
                 <button type="button" role="tab" data-tab="settings">الإعدادات</button>
                 ${Hub.auth.isOwner() ? '<button type="button" role="tab" data-tab="admin">القطاع الإداري</button>' : ''}
             </div>
@@ -71,7 +74,8 @@
             </footer>`, { label: 'لوحة الحساب', tall: true });
         if (!acc && tab !== 'admin') tab = 'settings';
         if (tab === 'admin' && !Hub.auth.isOwner()) tab = acc ? 'profile' : 'settings';
-        if (tab === 'schedule' && acc && acc.role === 'rotator') tab = 'profile';
+        if (tab === 'schedule' && acc && NO_PROFILE.includes(acc.role)) tab = 'profile';
+        if (tab === 'comments' && acc && OFFICER_ROLES.includes(acc.role)) tab = 'profile';
         sheet.querySelector('[data-act="close"]').addEventListener('click', A.closeSheet);
         sheet.querySelector('[data-act="logout"]').addEventListener('click', logout);
         sheet.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => show(b.dataset.tab)));
@@ -130,9 +134,34 @@
     // ------------------------------------------------------------------
     function stageText(n) { return n ? `المرحلة ${STAGE_NAMES[n] || n}` : '—'; }
 
+    /** Rotators and Administrative Affairs officers: no board, specialty or stage. */
+    function renderBasicProfile(body, a) {
+        const officer = OFFICER_ROLES.includes(a.role);
+        body.innerHTML = `
+            <div class="hp-avatar-card">
+                ${A.avatarHtml(a, 96, 'hp-avatar-big')}
+                <div><b>صورتك الرمزية</b><div class="hacc-muted">رسم كرتوني بدلاً من الصورة الشخصية</div>
+                <button type="button" class="hacc-btn sm primary" data-act="edit-avatar" style="margin-top:8px">🎨 تعديل الصورة الرمزية</button></div>
+            </div>
+            <dl class="hp-kv">
+                <dt>الاسم</dt><dd>${esc(a.name)}</dd>
+                <dt>${officer ? 'المستشفى' : 'مستشفى الروتيشن'}</dt><dd>${esc(hospitalName(a.hosp))}</dd>
+                ${officer ? `<dt>القسم</dt><dd>الشؤون الإدارية</dd><dt>العنوان الوظيفي</dt><dd>${esc(a.aa_job_name || '—')}</dd>` : ''}
+                <dt>الصلاحية</dt><dd>${esc(ROLE_NAMES[a.role] || a.role)}</dd>
+                <dt>الجنس</dt><dd>${esc(SEX[a.sex] || '—')}</dd>
+                ${a.phone ? `<dt>الهاتف</dt><dd dir="ltr">${esc(localPhone(a.phone))}</dd>` : ''}
+                <dt>عضو منذ</dt><dd>${esc(new Date(a.created_at).toLocaleDateString('ar-IQ', { year: 'numeric', month: 'long', day: 'numeric' }))}</dd>
+            </dl>
+            <p class="hacc-muted">${officer
+                ? 'الاسم والهاتف والعنوان الوظيفي مرتبطة بقاعدة بيانات الشؤون الإدارية؛ لتغييرها راجع مدير الشؤون الإدارية أو مدير المستشفى.'
+                : 'حساب الروتيتر لتصفح الموقع والتواصل مع المقيمين. لتغيير الاسم أو المستشفى راجع مالك المنظومة.'}</p>`;
+        body.querySelector('[data-act="edit-avatar"]').addEventListener('click', () => avatarEditor(body));
+    }
+
     function renderProfile(body) {
         const a = me || Hub.auth.getAccount();
         if (!a) { body.innerHTML = ''; return; }
+        if (NO_PROFILE.includes(a.role)) return renderBasicProfile(body, a);
         const specs = (Hub.getGlobalSpecialties ? Hub.getGlobalSpecialties() : []).map(s => s.name_ar).filter(Boolean);
         const years = a.board_years || '';
         const month = a.stage_month || 10;

@@ -1612,6 +1612,7 @@
     <!-- Scripts -->
     <script src="./hub-sync.js"></script>
     <script src="./hub-core.js"></script>
+    <script src="./hub-aa.js"></script>
     <script src="./hub-avatar.js"></script>
     <script src="./hub-accounts.js"></script>
     <script src="./nav-component.js"></script>
@@ -2560,7 +2561,9 @@
                 const phoneClean = resident.phone.replace(/[^0-9]/g, '');
 
                 const isMultiSpec = Array.isArray(resident.specs) && resident.specs.length > 1;
-                const isIcuResident = Array.isArray(resident.specs) && resident.specs.some(s => s.code === 'ICU' || s.code === 'A');
+                // ICU bed status belongs to the doctors' anaesthesia duty (not to division job titles or their mirrors).
+                const isIcuResident = !Hub.aa.active && !Hub.aa.isMirrorId(resident.parentHospitalId)
+                    && Array.isArray(resident.specs) && resident.specs.some(s => s.code === 'ICU' || s.code === 'A');
 
                 let icuCounterHtml = '';
                 let icuBackFaceHtml = '';
@@ -2696,8 +2699,9 @@
                 `;
             }).join('');
 
-            // Likes and comments (one request for the whole roster; see hub-accounts.js).
-            if (window.HubAccounts) {
+            // Likes and comments (one request for the whole roster; see hub-accounts.js). They are for the
+            // doctors' duty cards only: not in the Administrative Affairs division or on its mirrored cards.
+            if (window.HubAccounts && !Hub.aa.active) {
                 const today = Hub.getMedicalDate();
                 const wrappers = container.querySelectorAll('.roster-card-wrapper');
                 HubAccounts.decorate(currentResidents.map((resident, i) => ({
@@ -2705,7 +2709,7 @@
                     h: resident.parentHospitalId || currentHospital.id,
                     d: today,
                     n: resident.name
-                })).filter(c => c.el));
+                })).filter(c => c.el && !Hub.aa.isMirrorId(c.h)));
             }
         }
 

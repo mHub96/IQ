@@ -32,8 +32,64 @@
 
     const read = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
     const write = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
-    const hospital = () => read('hospital_hub_active_id') || '';
     const signedIn = () => !!read('hospital_hub_session_role');
+
+    // ------------------------------------------------------------------
+    // Administrative Affairs division context
+    // ------------------------------------------------------------------
+    // Officers of a division always use their own division. The owner and a hospital's admins enter
+    // it from the hospital card (?aa=<hospital>) and leave with ?aa=off; while inside, every tab
+    // opens the division's version of its page (the pages switch data on the aa parameter, see
+    // hub-core.js) and the doctors-only tabs are hidden.
+    const AA_ROLES = ['aa_user', 'aa_admin'];
+    const AA_PAGES = ['index.html', 'Home.html', 'schedule.html', 'signup.html', 'admin.html', 'scheduler.html'];
+    const NEUTRAL_PAGES = ['account.html'];   // the same in and out of a division
+    const AA_KEY = 'hub_aa_ctx';
+    const role = () => read('hospital_hub_session_role') || '';
+    function officerHosp() {
+        if (!AA_ROLES.includes(role())) return null;
+        try { return (JSON.parse(read('hospital_hub_account') || 'null') || {}).hosp || null; } catch (e) { return null; }
+    }
+    function mayEnter(h) {
+        if (role() === 'owner') return true;
+        if (role() !== 'admin') return false;
+        try { const scope = JSON.parse(read('hospital_hub_session_admin_hospitals') || '[]'); return scope.includes('*') || scope.includes(h); } catch (e) { return false; }
+    }
+    function aaContext() {
+        const own = officerHosp();
+        if (own) return own;
+        let h = null;
+        try { h = sessionStorage.getItem(AA_KEY); } catch (e) {}
+        return h && mayEnter(h) ? h : null;
+    }
+    function setAaContext(h) {
+        const before = aaContext();
+        try { if (h) sessionStorage.setItem(AA_KEY, h); else sessionStorage.removeItem(AA_KEY); } catch (e) {}
+        if (aaContext() !== before) for (const v of views.values()) v.stale = true;   // every view reloads in the new mode
+    }
+    /** The address a page should really open at in the current context (enters / leaves the division on ?aa=). */
+    function contextual(url, page) {
+        const wanted = url.searchParams.get('aa');
+        if (wanted !== null) {
+            if (wanted === 'off' || wanted === '') setAaContext(null);
+            else if (mayEnter(wanted)) setAaContext(wanted);
+        }
+        const ctx = aaContext();
+        if (NEUTRAL_PAGES.includes(page)) { url.searchParams.delete('aa'); return url; }
+        if (!ctx) { url.searchParams.delete('aa'); return url; }
+        if (!AA_PAGES.includes(page)) {
+            // Doctors-only page: officers stay in their division; the owner or an admin leaves it.
+            if (officerHosp()) return new URL(HOME_ROUTE + '&aa=' + encodeURIComponent(ctx), base);
+            setAaContext(null);
+            url.searchParams.delete('aa');
+            return url;
+        }
+        url.searchParams.set('aa', ctx);
+        if (page !== 'index.html') url.searchParams.set('hospital', ctx);
+        return url;
+    }
+    // Views are re-pointed when the hospital or the division context changes.
+    const hospital = () => (read('hospital_hub_active_id') || '') + '|' + (aaContext() || '');
 
     function pageOf(href) {
         let u;
@@ -97,6 +153,9 @@
             if (loc.pathname.endsWith('/app.html')) { removeView(v); go(loc.hash.slice(1) || HOME_ROUTE); }
             return;
         }
+        // A page that navigated itself (no Navigation API) into the wrong mode is re-pointed.
+        const ctxUrl = contextual(new URL(loc.href), page);
+        if (docKey(ctxUrl) !== docKey(loc)) { navigateView(v, ctxUrl); return; }
         if (page !== v.page) {
             const other = views.get(page);
             if (other && other !== v) {
@@ -129,7 +188,7 @@
         if (v.stale) {
             v.stale = false;
             const loc = viewLocation(v);
-            if (loc) navigateView(v, loc);
+            if (loc) navigateView(v, contextual(loc, v.page));
         }
         v.frame.classList.add('active');
         setViewActive(v, true);
@@ -146,9 +205,10 @@
 
     /** Opens a URL of the app: shows its live view, loading or re-pointing it only when needed. */
     function go(href) {
-        const url = new URL(href, base);
+        let url = new URL(href, base);
         const page = pageOf(url.href);
         if (!page) { location.href = url.href; return; }
+        url = contextual(url, page);
         let v = views.get(page);
         if (!v) {
             v = createView(page, url);
@@ -175,6 +235,8 @@
         tabbar.classList.toggle('covered', !!active.overlay);
         tabbar.classList.toggle('off', !signedIn());      // the sign-in screen has no tabs
         tabbar.classList.toggle('rotator', read('hospital_hub_session_role') === 'rotator'); // no duty exchange tab
+        tabbar.classList.toggle('aa', !!aaContext());      // division: roster, schedule and exchange only
+        tabbar.classList.toggle('aa-exit', !!aaContext() && !officerHosp());
         let title = '';
         try { title = active.frame.contentDocument.title; } catch (e) {}
         if (title) document.title = title;
@@ -198,8 +260,10 @@
     window.addEventListener('resize', () => active && placePill(TAB_OF[active.page]));
 
     function tabUrl(tab) {
+        const ctx = aaContext();
+        if (ctx) return (tab === 'home' ? HOME_ROUTE + '&' : TAB_PAGE[tab] + '?hospital=' + encodeURIComponent(ctx) + '&') + 'aa=' + encodeURIComponent(ctx);
         if (tab === 'home') return HOME_ROUTE;
-        const h = hospital();
+        const h = read('hospital_hub_active_id') || '';
         return TAB_PAGE[tab] + (h ? '?hospital=' + encodeURIComponent(h) : '');
     }
 
@@ -208,6 +272,7 @@
         if (!a) return;
         e.preventDefault();
         const tab = a.dataset.tab;
+        if (tab === 'aa-exit') { go(HOME_ROUTE + '&aa=off'); return; }
         // Tapping the tab you are on scrolls it back to the top, as on iOS.
         if (active && TAB_OF[active.page] === tab && (tab !== 'home' || active.page === 'index.html')) {
             try { active.frame.contentWindow.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e2) {}
@@ -230,7 +295,9 @@
         const conn = navigator.connection || {};
         if (conn.saveData || (navigator.deviceMemory && navigator.deviceMemory < 2)) return;
         const rotator = read('hospital_hub_session_role') === 'rotator';
-        const queue = Object.keys(TAB_PAGE).filter(t => t !== 'home' && !(rotator && t === 'signup')).map(t => ({ page: TAB_PAGE[t], tab: t }));
+        const inDivision = !!aaContext();
+        const queue = Object.keys(TAB_PAGE).filter(t => t !== 'home' && !(rotator && t === 'signup') && !(inDivision && !AA_PAGES.includes(TAB_PAGE[t])))
+            .map(t => ({ page: TAB_PAGE[t], tab: t }));
         const idle = cb => (window.requestIdleCallback ? requestIdleCallback(cb, { timeout: 2500 }) : setTimeout(cb, 300));
         const next = () => {
             if (!signedIn()) { warmed = false; return; }

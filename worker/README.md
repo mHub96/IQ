@@ -144,6 +144,7 @@ npx wrangler d1 execute hosp-hub --remote --file migrations/0003_profiles.sql   
 npx wrangler d1 execute hosp-hub --remote --file migrations/0004_avatars.sql    # once (additive)
 npx wrangler d1 execute hosp-hub --remote --file migrations/0005_visit_cooldown.sql  # once (additive)
 npx wrangler d1 execute hosp-hub --remote --file migrations/0007_my_schedule_er_portal.sql  # once (additive)
+npx wrangler d1 execute hosp-hub --remote --file migrations/0008_admin_affairs.sql  # once (additive)
 ```
 
 Apply a new migration **before** deploying Worker code that uses it, and check it succeeded. If `--file`
@@ -175,6 +176,25 @@ After editing pages: `cd tools && npm install && npm run css` rebuilds `tailwind
   their preferences from "جدولي" (same fields as the ER preferences panel). Requests stay in `er_pref_requests`;
   the ER page copies them into its residents database when it shows that month (and before an automatic
   distribution) and stamps them `applied_at`. The server never writes the ER scheduler's shared record.
+
+## Administrative Affairs division (الشؤون الإدارية)
+
+- Every hospital has a division with its own job titles, officers, daily roster and monthly schedule, in the
+  same shape as the doctors' data but stored apart in `aa_records` (migration 0008, `src/aa.js`) and never part
+  of `/api/db`. It is read and written through `/api/aa/db` and `/api/aa/sync?h=<hospital>` by the owner, the
+  hospital's admins and the division's own accounts (`aa_admin` edits everything, `aa_user` only exchanges
+  duties).
+- The pages are the doctors' pages in "division mode" (`hub-core.js`): officers are always in it; the owner and
+  hospital admins enter it from the hospital card (`?aa=<hospital>`, kept by the app shell, left with the
+  "الأطباء" tab). `hub-aa.js` switches the wording (resident -> officer, specialty -> job title) and hides the
+  doctors-only parts.
+- Officers sign up on `account.html` (hospital, job title, name, phone): the name and phone are checked against
+  the division's officers (`/api/aa/check`); someone not in it may still ask and is added under the chosen job
+  title when approved. The owner and hospital admins approve as division user or division admin.
+- Mirror: a hospital admin can show chosen job titles in the doctors' roster from the "clone" tab of the
+  specialties dialog (source "الشؤون الإدارية"). This stores a clone specialty pointing at `aa__<hospital>` in
+  the doctors' hospital record; `/api/aa/mirror` serves only those job titles' duties. Until the beta is live,
+  the live site shows such a clone as an empty column, so mirror on production only after promotion.
 
 ## Everyday operations
 

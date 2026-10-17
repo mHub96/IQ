@@ -91,6 +91,8 @@
         .verify-box.ok { background: rgba(5, 150, 105, 0.1); color: #047857; }
         body.dark .verify-box.ok { color: #34d399; }
         .verify-box.bad { background: rgba(220, 38, 38, 0.08); color: var(--hacc-danger); }
+        .verify-box.warn { background: rgba(217, 119, 6, 0.12); color: #b45309; }
+        body.dark .verify-box.warn { color: #fbbf24; }
         .steps { display: flex; gap: 6px; margin-bottom: 16px; }
         .steps span { flex: 1; height: 4px; border-radius: 2px; background: var(--hacc-surface); }
         .steps span.on { background: var(--hacc-accent); }
@@ -131,8 +133,8 @@
         .approve-as select { flex: 1; min-height: 42px; }
         .acc-sub.suggest { color: #0a7d55; font-weight: 700; }
         body.dark .acc-sub.suggest { color: #5fd3a3; }
-        /* Account kind on the sign-up page (resident / rotator). */
-        .seg.su-kind { grid-template-columns: 1fr 1fr; }
+        /* Account kind on the sign-up page (resident / rotator / administrative officer). */
+        .seg.su-kind { grid-template-columns: 1fr 1fr 1fr; }
         .seg.su-kind button { border: 0; background: transparent; padding: 10px 4px; border-radius: 11px; color: var(--hacc-muted); font: inherit; font-weight: 800; font-size: 0.82rem; cursor: pointer; }
         .seg.su-kind button[aria-selected="true"] { background: var(--hacc-bg); color: var(--hacc-accent); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
         .hacc-btn.danger { color: var(--hacc-danger); }
@@ -257,6 +259,7 @@
             <div class="seg su-kind" role="tablist" aria-label="نوع الحساب">
                 <button type="button" role="tab" data-kind="resident" aria-selected="true">👨‍⚕️ مقيم في جدول المستشفى</button>
                 <button type="button" role="tab" data-kind="rotator" aria-selected="false">🔄 روتيتر</button>
+                <button type="button" role="tab" data-kind="officer" aria-selected="false">🏢 موظف إداري</button>
             </div>
             <form class="card" id="signup-form" novalidate>
                 <h2>إنشاء حساب جديد</h2>
@@ -349,6 +352,57 @@
                 </div>
                 <button class="hacc-btn primary btn-block" type="submit" id="ro-submit" disabled>إرسال طلب الموافقة</button>
                 <div class="msg" id="ro-msg" role="alert"></div>
+            </form>
+            <form class="card" id="officer-form" novalidate hidden>
+                <h2>حساب موظف إداري</h2>
+                <p class="lead">لموظفي الشؤون الإدارية في المستشفى (المعاون الإداري، الصيانة، المصاعد، الأمن…). نتحقق من اسمك ورقم هاتفك مقارنةً بقاعدة بيانات الشؤون الإدارية، ثم يُرسل طلبك إلى مالك المنظومة ومدراء المستشفى للموافقة.</p>
+                <div class="field">
+                    <label for="of-hosp">المستشفى الذي تعمل فيه</label>
+                    <select id="of-hosp" required><option value="">جاري تحميل المستشفيات…</option></select>
+                </div>
+                <div class="field">
+                    <label for="of-job">العنوان الوظيفي</label>
+                    <select id="of-job" required disabled><option value="">اختر المستشفى أولاً</option></select>
+                    <div class="hint" id="of-job-hint">العناوين الوظيفية التي أضافتها الشؤون الإدارية في المستشفى.</div>
+                </div>
+                <div class="field">
+                    <label for="of-name">الاسم الكامل</label>
+                    <input id="of-name" autocomplete="name" maxlength="60" placeholder="مثال: علي حسين جاسم" required />
+                </div>
+                <div class="field">
+                    <label for="of-phone">رقم الهاتف</label>
+                    <input id="of-phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="07XX XXX XXXX" required />
+                </div>
+                <div class="verify-box" id="of-verify" aria-live="polite">
+                    <i class="fas fa-id-card"></i><span>اختر المستشفى واكتب اسمك ورقم هاتفك للتحقق.</span>
+                </div>
+                <div class="field">
+                    <span class="field-label" style="display:block;font-size:0.8rem;font-weight:800;margin-bottom:6px">الجنس</span>
+                    <div class="sex-pick" role="radiogroup" aria-label="الجنس">
+                        <label><input type="radio" name="of-sex" value="m" required /><span>👨‍💼 ذكر</span></label>
+                        <label><input type="radio" name="of-sex" value="f" /><span>👩‍💼 أنثى</span></label>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="of-user">اسم المستخدم (للدخول)</label>
+                    <input id="of-user" dir="ltr" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="e.g. a.hussein" maxlength="24" required />
+                    <div class="hint" id="of-user-hint">٣–٢٤ حرفاً: أحرف إنجليزية صغيرة وأرقام و . و _</div>
+                </div>
+                <div class="field">
+                    <label for="of-pass">كلمة المرور</label>
+                    <div class="pw-wrap">
+                        <input id="of-pass" type="password" dir="ltr" autocomplete="new-password" minlength="8" required />
+                        <button type="button" class="pw-eye" aria-label="إظهار كلمة المرور"><i class="fas fa-eye"></i></button>
+                    </div>
+                    <div class="hint" id="of-pass-hint">٨ أحرف على الأقل.</div>
+                </div>
+                <div class="field">
+                    <label for="of-pass2">تأكيد كلمة المرور</label>
+                    <input id="of-pass2" type="password" dir="ltr" autocomplete="new-password" required />
+                    <div class="hint" id="of-pass2-hint"></div>
+                </div>
+                <button class="hacc-btn primary btn-block" type="submit" id="of-submit" disabled>إرسال طلب الموافقة</button>
+                <div class="msg" id="of-msg" role="alert"></div>
             </form>
             <div class="card done" id="su-done" hidden>
                 <div class="big">📨</div>
@@ -460,6 +514,9 @@
         const BOARD_NAMES = { arab: 'البورد العربي', iraqi: 'البورد العراقي', other: 'بورد آخر', none: 'بدون بورد' };
         const STAGE_NAMES = ['', 'الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة', 'السادسة', 'السابعة', 'الثامنة'];
         const MONTHS = ['', 'كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'];
+        const OFFICER_ROLES = ['aa_user', 'aa_admin'];
+        const NO_PROFILE = ['rotator', ...OFFICER_ROLES];
+        const ALL_ROLES = ['user', 'anaesthesia', 'admin', 'owner', 'rotator', ...OFFICER_ROLES];
         const profileLine = a => !a.board ? '<span class="badge pending">الملف غير مكتمل</span>'
             : [BOARD_NAMES[a.board], a.board !== 'none' && a.stage_now ? `المرحلة ${STAGE_NAMES[a.stage_now] || a.stage_now}${a.board_years ? ' من ' + a.board_years : ''}` : '', a.specialty]
                 .filter(Boolean).map(esc).join(' · ') + (a.profile_complete ? '' : ' <span class="badge pending">غير مكتمل</span>');
@@ -544,17 +601,21 @@
             if (active && hospitals.some(h => h.id === active)) sel.value = active;
             $('ro-hosp').innerHTML = sel.innerHTML;
             $('ro-hosp').value = sel.value;
+            $('of-hosp').innerHTML = sel.innerHTML;
+            $('of-hosp').value = sel.value;
             paintSteps();
         }
 
         // -------------------- Sign up as a rotator --------------------
         const ro = { userFree: false };
         document.querySelectorAll('.su-kind [data-kind]').forEach(b => b.addEventListener('click', () => {
-            const rot = b.dataset.kind === 'rotator';
+            const kind = b.dataset.kind;
             document.querySelectorAll('.su-kind [data-kind]').forEach(x => x.setAttribute('aria-selected', String(x === b)));
-            $('signup-form').hidden = rot;
-            $('rotator-form').hidden = !rot;
+            $('signup-form').hidden = kind !== 'resident';
+            $('rotator-form').hidden = kind !== 'rotator';
+            $('officer-form').hidden = kind !== 'officer';
             $('su-done').hidden = true;
+            if (kind === 'officer') loadOfficerJobs();
         }));
         const roSex = () => (document.querySelector('input[name="ro-sex"]:checked') || {}).value || '';
         const roNameOk = () => { const n = $('ro-name').value.trim().replace(/\s+/g, ' '); return n.length >= 5 && n.split(' ').length >= 2; };
@@ -611,6 +672,140 @@
                 const code = err && err.data && err.data.error;
                 setMsg(msg, ({ username_taken: 'اسم المستخدم أصبح مستخدماً، اختر اسماً آخر.', bad_name: 'اكتب الاسم الأول والثاني على الأقل (أحرف فقط).', bad_sex: 'اختر الجنس.', bad_hospital: 'اختر المستشفى.' })[code] || errorText(err), 'bad');
                 roUpdate();
+            }
+        });
+
+        // -------------------- Sign up as an administrative officer --------------------
+        // Job titles come from the hospital's Administrative Affairs division. The name and phone are
+        // checked against the division's officers; someone not in it yet may still send the request.
+        const of = { userFree: false, check: null, checkSeq: 0, jobsFor: null };
+        const ofSex = () => (document.querySelector('input[name="of-sex"]:checked') || {}).value || '';
+        const ofNameOk = () => { const n = $('of-name').value.trim().replace(/\s+/g, ' '); return n.length >= 5 && n.split(' ').length >= 2; };
+        const ofPhoneOk = () => /^7\d{9}$/.test($('of-phone').value.replace(/\D/g, '').replace(/^(00)?964/, '').replace(/^0/, ''));
+        const ofPassOk = () => $('of-pass').value.length >= 8 && $('of-pass').value === $('of-pass2').value;
+        const ofUpdate = () => {
+            $('of-submit').disabled = !($('of-hosp').value && $('of-job').value && ofNameOk() && ofPhoneOk() && of.check && !of.check.taken && ofSex() && of.userFree && ofPassOk());
+        };
+        async function loadOfficerJobs() {
+            const hosp = $('of-hosp').value;
+            const sel = $('of-job');
+            if (!hosp) { sel.innerHTML = '<option value="">اختر المستشفى أولاً</option>'; sel.disabled = true; ofUpdate(); return; }
+            if (of.jobsFor === hosp) return;
+            of.jobsFor = hosp;
+            sel.disabled = true;
+            sel.innerHTML = '<option value="">جاري التحميل…</option>';
+            try {
+                const res = await Hub.api('GET', '/api/aa/jobs?h=' + encodeURIComponent(hosp), undefined, { useToken: false, retries: 1 });
+                if ($('of-hosp').value !== hosp) return;
+                const jobs = res.jobs || [];
+                sel.innerHTML = jobs.length
+                    ? '<option value="">اختر العنوان الوظيفي…</option>' + jobs.map(j => `<option value="${esc(j.id)}">${esc((j.icon ? j.icon + ' ' : '') + j.name_ar)}</option>`).join('')
+                    : '<option value="">لم تُضف الشؤون الإدارية عناوين وظيفية بعد</option>';
+                sel.disabled = !jobs.length;
+                setMsg($('of-job-hint'), jobs.length ? 'العناوين الوظيفية التي أضافتها الشؤون الإدارية في المستشفى.' : 'لا يمكن التسجيل قبل أن يضيف مدير الشؤون الإدارية العناوين الوظيفية. راجع إدارة المستشفى.', jobs.length ? '' : 'bad');
+            } catch (err) {
+                of.jobsFor = null;
+                sel.innerHTML = '<option value="">تعذر التحميل</option>';
+                setMsg($('of-job-hint'), errorText(err), 'bad');
+            }
+            ofUpdate();
+        }
+        function ofVerifyBox(kind, html) {
+            const box = $('of-verify');
+            box.className = 'verify-box' + (kind ? ' ' + kind : '');
+            box.innerHTML = html;
+        }
+        const ofRunCheck = debounce(async () => {
+            const hosp = $('of-hosp').value, name = $('of-name').value.trim(), phone = $('of-phone').value.trim();
+            of.check = null;
+            ofUpdate();
+            if (!hosp || !ofNameOk() || !ofPhoneOk()) {
+                ofVerifyBox('', '<i class="fas fa-id-card"></i><span>اختر المستشفى واكتب اسمك الثنائي على الأقل ورقم هاتفك للتحقق.</span>');
+                return;
+            }
+            const seq = ++of.checkSeq;
+            ofVerifyBox('', '<i class="fas fa-circle-notch fa-spin"></i><span>جاري التحقق من قاعدة بيانات الشؤون الإدارية…</span>');
+            try {
+                const res = await Hub.api('POST', '/api/aa/check', { hosp, name, phone }, { useToken: false, retries: 1 });
+                if (seq !== of.checkSeq) return;
+                of.check = res;
+                if (res.match && res.taken) {
+                    ofVerifyBox('bad', '<i class="fas fa-user-lock"></i><span>هذا الموظف لديه حساب (أو طلب) مسبقاً. استخدم «تسجيل الدخول» أو «نسيت كلمة المرور».</span>');
+                } else if (res.match) {
+                    ofVerifyBox('ok', `<i class="fas fa-circle-check"></i><span>تم التحقق: <b>${esc(res.name)}</b> – ${esc(hospitalName(hosp))}</span>`);
+                    if (res.job && !$('of-job').value && [...$('of-job').options].some(o => o.value === res.job)) $('of-job').value = res.job;
+                } else {
+                    ofVerifyBox('warn', '<i class="fas fa-triangle-exclamation"></i><span>لم نجد هذا الاسم ورقم الهاتف في قاعدة بيانات الشؤون الإدارية لهذا المستشفى. يمكنك إرسال الطلب، لكن <b>قد لا تتم الموافقة عليه</b>؛ وعند الموافقة يُضاف اسمك إلى قاعدة البيانات تحت العنوان الوظيفي الذي اخترته.</span>');
+                }
+            } catch (err) {
+                if (seq !== of.checkSeq) return;
+                ofVerifyBox('bad', `<i class="fas fa-wifi"></i><span>${esc(errorText(err))}</span>`);
+            }
+            ofUpdate();
+        }, 550);
+        $('of-hosp').addEventListener('change', () => { loadOfficerJobs(); ofRunCheck(); });
+        $('of-job').addEventListener('change', ofUpdate);
+        ['of-name', 'of-phone'].forEach(id => $(id).addEventListener('input', ofRunCheck));
+        document.querySelectorAll('input[name="of-sex"]').forEach(r => r.addEventListener('change', ofUpdate));
+        const ofCheckUser = debounce(async () => {
+            const u = $('of-user').value.trim().toLowerCase();
+            const hint = $('of-user-hint');
+            of.userFree = false;
+            ofUpdate();
+            if (!u) { setMsg(hint, '٣–٢٤ حرفاً: أحرف إنجليزية صغيرة وأرقام و . و _'); return; }
+            if (!USERNAME_RE.test(u)) { setMsg(hint, 'استخدم أحرفاً إنجليزية صغيرة وأرقاماً و . و _ فقط (٣ أحرف على الأقل).', 'bad'); return; }
+            setMsg(hint, 'جاري التحقق من توفر الاسم…', 'wait');
+            try {
+                const res = await Hub.api('GET', '/api/accounts/username?u=' + encodeURIComponent(u), undefined, { useToken: false, retries: 1 });
+                if ($('of-user').value.trim().toLowerCase() !== u) return;
+                of.userFree = !!res.free;
+                setMsg(hint, res.free ? '✓ الاسم متاح' : '✗ هذا الاسم مستخدم، اختر اسماً آخر', res.free ? 'ok' : 'bad');
+            } catch (err) { setMsg(hint, errorText(err), 'bad'); }
+            ofUpdate();
+        }, 450);
+        $('of-user').addEventListener('input', e => {
+            const lower = e.target.value.toLowerCase().replace(/\s/g, '');
+            if (lower !== e.target.value) e.target.value = lower;
+            ofCheckUser();
+        });
+        const ofPaintPass = () => {
+            const p = $('of-pass').value, p2 = $('of-pass2').value;
+            setMsg($('of-pass-hint'), !p ? '٨ أحرف على الأقل.' : p.length < 8 ? 'قصيرة جداً (٨ أحرف على الأقل).' : '✓', p && p.length < 8 ? 'bad' : (p ? 'ok' : ''));
+            setMsg($('of-pass2-hint'), p2 ? (p2 === p ? '✓ متطابقة' : '✗ غير متطابقة') : '', p2 ? (p2 === p ? 'ok' : 'bad') : '');
+            ofUpdate();
+        };
+        $('of-pass').addEventListener('input', ofPaintPass);
+        $('of-pass2').addEventListener('input', ofPaintPass);
+        $('officer-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            if ($('of-submit').disabled) return;
+            const msg = $('of-msg');
+            const username = $('of-user').value.trim().toLowerCase();
+            const hosp = $('of-hosp').value;
+            if (of.check && !of.check.match && !confirm('اسمك غير موجود في قاعدة بيانات الشؤون الإدارية لهذا المستشفى، وقد لا تتم الموافقة على الطلب. هل تريد إرساله؟')) return;
+            $('of-submit').disabled = true;
+            setMsg(msg, 'جاري تأمين كلمة المرور وإرسال الطلب…');
+            try {
+                const key = await Hub.auth.deriveAccountKey(username, $('of-pass').value);
+                const res = await Hub.api('POST', '/api/accounts/signup-officer', {
+                    hosp, job: $('of-job').value, name: $('of-name').value.trim(), phone: $('of-phone').value.trim(), username, key, sex: ofSex(),
+                }, { useToken: false, retries: 0 });
+                $('officer-form').hidden = true;
+                $('su-done').hidden = false;
+                $('su-done-text').textContent = `أهلاً ${res.name}! أُرسل طلبك إلى مالك المنظومة ومدراء ${hospitalName(hosp)}${res.verified ? '' : ' (اسمك غير موجود في قاعدة البيانات بعد، وسيراجعه المدير)'}. يمكنك تسجيل الدخول باسم المستخدم «${username}» بعد الموافقة.`;
+                $('si-user').value = username;
+            } catch (err) {
+                const code = err && err.data && err.data.error;
+                setMsg(msg, ({
+                    username_taken: 'اسم المستخدم أصبح مستخدماً، اختر اسماً آخر.',
+                    already_registered: 'هذا الموظف لديه حساب أو طلب مسبقاً.',
+                    bad_name: 'اكتب الاسم الأول والثاني على الأقل (أحرف فقط).',
+                    bad_phone: 'رقم الهاتف غير صحيح.',
+                    bad_job: 'اختر العنوان الوظيفي.',
+                    bad_sex: 'اختر الجنس.',
+                    bad_hospital: 'اختر المستشفى.',
+                })[code] || errorText(err), 'bad');
+                ofUpdate();
             }
         });
 
@@ -923,9 +1118,11 @@
             }
             const hospitals = Hub.getHospitals();
             $('mg-list').innerHTML = items.map(a => {
-                const canManage = isOwner || (['user', 'anaesthesia', 'rotator'].includes(a.role) && a.id !== myId);
-                // Role on approval: admins give regular / anaesthesia resident; rotators stay rotators.
-                const roleChoices = isOwner ? ['user', 'anaesthesia', 'admin', 'owner', 'rotator'] : (a.role === 'rotator' ? [] : ['user', 'anaesthesia']);
+                const officer = OFFICER_ROLES.includes(a.role);
+                const canManage = isOwner || (['user', 'anaesthesia', 'rotator', ...OFFICER_ROLES].includes(a.role) && a.id !== myId);
+                // Role on approval: admins give regular / anaesthesia resident, or division user / division
+                // admin for administrative officers; rotators stay rotators.
+                const roleChoices = officer ? OFFICER_ROLES : isOwner ? ALL_ROLES : (a.role === 'rotator' ? [] : ['user', 'anaesthesia']);
                 const proposed = a.status === 'pending' && a.role === 'user' && a.suggested_role ? a.suggested_role : a.role;
                 const rolePick = roleChoices.length > 1 ? `<select data-role="approve-role" aria-label="الصلاحية عند الموافقة">${roleChoices.map(r => `<option value="${r}" ${proposed === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>` : '';
                 const statusText = { pending: 'بانتظار الموافقة', active: 'مفعّل', disabled: 'موقوف', rejected: 'مرفوض' }[a.status] || a.status;
@@ -940,11 +1137,11 @@
                 const limit = a.max_devices || 0;
                 const limitMode = limit === 0 ? '0' : limit === 1 ? '1' : 'n';
                 const editor = canManage && a.status !== 'rejected' ? `<details class="edit-wrap"><summary class="hacc-link">⚙️ الصلاحيات والأجهزة</summary><div class="editor">
-                    ${!isOwner && ['user', 'anaesthesia'].includes(a.role) && a.status !== 'pending' ? `<div><h4>الصلاحية</h4>
-                        <select data-role="role" style="margin-top:6px">${['user', 'anaesthesia'].map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
+                    ${!isOwner && ['user', 'anaesthesia', ...OFFICER_ROLES].includes(a.role) && a.status !== 'pending' ? `<div><h4>الصلاحية</h4>
+                        <select data-role="role" style="margin-top:6px">${(officer ? OFFICER_ROLES : ['user', 'anaesthesia']).map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
                         <button class="hacc-btn primary sm" data-act="set_role" style="margin-top:8px">حفظ الصلاحية</button></div>` : ''}
                     ${isOwner ? `<div><h4>الصلاحية</h4>
-                        <select data-role="role" style="margin-top:6px">${['user', 'anaesthesia', 'admin', 'owner', 'rotator'].map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
+                        <select data-role="role" style="margin-top:6px">${ALL_ROLES.map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
                         <div class="hosp-pick" data-role="hosps" style="margin-top:8px" ${['admin', 'anaesthesia'].includes(a.role) ? '' : 'hidden'}>
                             <label><input type="checkbox" value="*" ${scope.includes('*') ? 'checked' : ''}><span>كل المستشفيات</span></label>
                             ${hospitals.map(h => `<label><input type="checkbox" value="${esc(h.id)}" ${scope.includes(h.id) || (!scope.length && h.id === a.hosp) ? 'checked' : ''}><span>${esc(h.name_ar || h.hospitalName || h.id)}</span></label>`).join('')}
@@ -952,10 +1149,10 @@
                         <button class="hacc-btn primary sm" data-act="set_role" style="margin-top:8px">حفظ الصلاحية</button></div>` : ''}
                     ${isOwner ? `<div data-role="profile"><h4>الملف الشخصي</h4>
                         <div class="pf-grid">
-                            <select data-f="board" aria-label="نوع البورد"><option value="">نوع البورد…</option>${Object.entries(BOARD_NAMES).map(([k, v]) => `<option value="${k}" ${a.board === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+                            ${NO_PROFILE.includes(a.role) ? '' : `<select data-f="board" aria-label="نوع البورد"><option value="">نوع البورد…</option>${Object.entries(BOARD_NAMES).map(([k, v]) => `<option value="${k}" ${a.board === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
                             <input data-f="specialty" list="mg-specs" value="${esc(a.specialty || '')}" placeholder="الاختصاص" aria-label="الاختصاص" />
                             <select data-f="stage" aria-label="المرحلة الحالية"><option value="">المرحلة…</option>${[1, 2, 3, 4, 5, 6, 7, 8].map(n => `<option value="${n}" ${a.stage_now === n ? 'selected' : ''}>المرحلة ${STAGE_NAMES[n]}</option>`).join('')}</select>
-                            <select data-f="boardYears" aria-label="سنوات البورد"><option value="">سنوات البورد…</option>${[3, 4, 5, 6, 7, 8].map(n => `<option value="${n}" ${a.board_years === n ? 'selected' : ''}>${n} سنوات</option>`).join('')}</select>
+                            <select data-f="boardYears" aria-label="سنوات البورد"><option value="">سنوات البورد…</option>${[3, 4, 5, 6, 7, 8].map(n => `<option value="${n}" ${a.board_years === n ? 'selected' : ''}>${n} سنوات</option>`).join('')}</select>`}
                             <select data-f="sex" aria-label="الجنس"><option value="m" ${a.sex === 'm' ? 'selected' : ''}>ذكر</option><option value="f" ${a.sex === 'f' ? 'selected' : ''}>أنثى</option></select>
                             <select data-f="hosp" aria-label="المستشفى">${hospitals.map(h => `<option value="${esc(h.id)}" ${a.hosp === h.id ? 'selected' : ''}>${esc(h.name_ar || h.hospitalName || h.id)}</option>`).join('')}</select>
                         </div>
@@ -980,7 +1177,9 @@
                     <div style="min-width:0;flex:1"><div class="acc-name">${esc(a.name)}
                         <span class="badge ${esc(a.status)}">${esc(statusText)}</span>${a.role !== 'user' ? `<span class="badge role">${esc(ROLE_NAMES[a.role] || a.role)}</span>` : ''}${a.reset === 'requested' ? '<span class="badge pending">طلب كلمة مرور</span>' : ''}${a.max_devices ? `<span class="badge role">🔒 ${esc(limitText(a.max_devices))}</span>` : ''}</div>
                     <div class="acc-sub"><span dir="ltr">@${esc(a.username)}</span> · ${esc(SEX[a.sex] || '')} · ${esc(hospitalName(a.hosp))}${a.phone ? ` · <a href="tel:${esc(localPhone(a.phone))}" dir="ltr">${esc(localPhone(a.phone))}</a>` : ''}</div>
-                    ${a.role === 'rotator' ? '<div class="acc-sub">🔄 روتيتر: تصفح الموقع والتعليق فقط، بلا تبديل خفارات.</div>' : `<div class="acc-sub">${profileLine(a)}</div>`}
+                    ${a.role === 'rotator' ? '<div class="acc-sub">🔄 روتيتر: تصفح الموقع والتواصل مع المقيمين فقط، بلا تبديل خفارات.</div>'
+                        : officer ? `<div class="acc-sub">🏢 الشؤون الإدارية · ${esc(a.aa_job_name || '')}${a.resident_id ? ' · ✓ موجود في قاعدة البيانات' : ''}</div>${a.status === 'pending' && !a.resident_id ? '<div class="acc-sub" style="color:#b45309">⚠️ غير موجود في قاعدة بيانات الشؤون الإدارية: عند الموافقة يُضاف تحت العنوان الوظيفي الذي اختاره.</div>' : ''}`
+                        : `<div class="acc-sub">${profileLine(a)}</div>`}
                     ${a.status === 'pending' && a.suggested_role === 'anaesthesia' ? '<div class="acc-sub suggest">💉 مقترح: <b>مقيم تخدير</b> (اختصاصه التخدير في جدول المستشفى)</div>' : ''}
                     <div class="acc-sub">${a.status === 'pending' ? 'طلب ' : 'أُنشئ '}${esc(timeAgo(a.created_at))}${a.decided_by ? ' · بواسطة ' + esc(String(a.decided_by).replace(/^\w+:/, '')) : ''}${a.last_seen ? ' · آخر ظهور ' + esc(timeAgo(a.last_seen)) : ''}</div></div></div>
                     ${actions.length ? `<div class="acc-actions">${actions.join('')}</div>` : ''}${editor}</article>`;
@@ -1018,7 +1217,7 @@
                 }
             }
             if (action === 'set_profile') {
-                const f = name => card.querySelector(`[data-role="profile"] [data-f="${name}"]`).value;
+                const f = name => { const el = card.querySelector(`[data-role="profile"] [data-f="${name}"]`); return el ? el.value : ''; };
                 body.profile = { board: f('board') || null, specialty: f('specialty').trim() || null, stage: f('stage') || null, boardYears: f('boardYears') || null, sex: f('sex'), hosp: f('hosp') };
                 if (body.profile.stage && body.profile.boardYears && Number(body.profile.stage) > Number(body.profile.boardYears)) { toast('المرحلة أكبر من عدد سنوات البورد.', 'error'); return; }
             }

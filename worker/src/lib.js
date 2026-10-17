@@ -110,3 +110,15 @@ export async function overLimit(env, key, limit) {
 export function plainText(s, max) {
   return String(s || '').replace(/[<>`]/g, '').replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, max);
 }
+
+/**
+ * Makes stored text safe to drop into HTML and inline handlers, whatever a page does with it:
+ * removes < > ` and swaps quotes/backslashes for look-alikes (" -> ”, ' -> ’, \ -> /).
+ * Works on JSON text directly, so it costs one pass and no re-parsing.
+ */
+export function neutralize(jsonText) {
+  return jsonText
+    .replace(/[<>`]/g, '')
+    .replace(/'/g, '\u2019')
+    .replace(/\\(["\\])/g, (_, c) => (c === '"' ? '\u201D' : '/'));
+}

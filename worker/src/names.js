@@ -4,7 +4,9 @@
  * diacritics, "د." titles, "عبد الله" vs "عبدالله") all normalise to the same key.
  */
 
-const TITLES = new Set(['د', 'دكتور', 'الدكتور', 'دكتوره', 'الدكتوره', 'dr', 'doctor', 'م', 'ص']);
+// Titles in front of a name (doctors, and the job-title prefixes of Administrative Affairs officers).
+const TITLES = new Set(['د', 'دكتور', 'الدكتور', 'دكتوره', 'الدكتوره', 'dr', 'doctor', 'م', 'ص',
+  'ا', 'استاذ', 'الاستاذ', 'مهندس', 'المهندس', 'mr', 'mrs', 'ms', 'miss']);
 const JOINERS = new Set(['عبد', 'ابو', 'أبو']);
 
 export function nameTokens(name) {

@@ -13,7 +13,7 @@
 
     const POLL_MS = 60 * 1000;
     const SUMMARY_TTL_MS = 45 * 1000;
-    const ROLE_NAMES = { owner: 'المالك', admin: 'مدير مستشفى', anaesthesia: 'مقيم تخدير', user: 'مقيم', rotator: 'روتيتر' };
+    const ROLE_NAMES = { owner: 'المالك', admin: 'مدير مستشفى', anaesthesia: 'مقيم تخدير', user: 'مقيم', rotator: 'روتيتر', aa_user: 'موظف الشؤون الإدارية', aa_admin: 'مدير الشؤون الإدارية' };
 
     // ------------------------------------------------------------------
     // Small helpers
@@ -311,6 +311,7 @@
             case 'reply':
                 return { icon: '↩️', text: `${d.last || 'أحدهم'} ردّ على تعليقك في بطاقة ${d.name || ''}${d.text ? ': «' + d.text + '»' : ''}`, open: () => openThread({ h: d.h, d: isoToLocal(d.d), n: d.name }, 'comments') };
             case 'signup_request':
+                if (d.officer) return { icon: '🏢', text: `طلب حساب جديد في الشؤون الإدارية: ${d.name} (@${d.username}) – ${d.job || ''} – ${hospitalName(d.hosp)}${d.verified ? '' : ' ⚠️ غير موجود في قاعدة البيانات'}`, href: './account.html#manage' };
                 return { icon: '🆕', text: `طلب حساب ${d.rotator ? 'روتيتر ' : ''}جديد: ${d.name} (@${d.username}) – ${hospitalName(d.hosp)}`, href: './account.html#manage' };
             case 'reset_request':
                 return { icon: '🔑', text: `طلب إعادة تعيين كلمة المرور: ${d.name} (@${d.username})`, href: './account.html#manage-resets' };

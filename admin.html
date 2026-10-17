@@ -884,7 +884,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">الأيقونة (Emoji)</label>
-                        <input type="text" id="new-spec-icon" class="input-field text-center text-lg" value="🏥" maxlength="4" />
+                        <input type="text" id="new-spec-icon" class="input-field text-center text-lg" value="🏥" maxlength="12" />
                     </div>
                 </div>
 
@@ -1028,7 +1028,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">الأيقونة (Emoji)</label>
-                        <input type="text" id="edit-hosp-spec-icon" class="input-field text-center text-lg" maxlength="4" />
+                        <input type="text" id="edit-hosp-spec-icon" class="input-field text-center text-lg" maxlength="12" />
                     </div>
                 </div>
 
@@ -1166,7 +1166,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1">الأيقونة (Emoji)</label>
-                        <input type="text" id="global-spec-icon" class="input-field text-center text-xl" placeholder="🏥" maxlength="4" />
+                        <input type="text" id="global-spec-icon" class="input-field text-center text-xl" placeholder="🏥" maxlength="12" />
                     </div>
                 </div>
 
@@ -1444,6 +1444,7 @@
     <!-- Scripts -->
     <script src="./hub-sync.js"></script>
     <script src="./hub-core.js"></script>
+    <script src="./hub-aa.js"></script>
     <script src="./hub-avatar.js"></script>
     <script src="./hub-accounts.js"></script>
     <script src="./nav-component.js"></script>
@@ -3111,29 +3112,47 @@
             if (!hospSelect) return;
             const allHospitals = Hub.getHospitals ? Hub.getHospitals() : [];
             const otherHospitals = allHospitals.filter(h => h.id !== currentHospital.id);
+            // This hospital's Administrative Affairs division: its job titles can be mirrored into the
+            // doctors' roster (read-only here; they are edited in the division).
+            const division = Hub.auth.canAccessDivision(currentHospital.id)
+                ? `<option value="${Hub.aa.mirrorId(currentHospital.id)}">🏢 الشؤون الإدارية لهذا المستشفى</option>` : '';
 
-            if (otherHospitals.length === 0) {
+            if (otherHospitals.length === 0 && !division) {
                 hospSelect.innerHTML = '<option value="">-- لا توجد مستشفيات أخرى متاحة --</option>';
                 onCloneSourceHospitalChanged();
                 return;
             }
 
-            hospSelect.innerHTML = otherHospitals.map(h => `
+            hospSelect.innerHTML = division + otherHospitals.map(h => `
                 <option value="${h.id}">${h.name_ar || h.hospitalName || h.id}</option>
             `).join('');
 
             onCloneSourceHospitalChanged();
         }
 
-        function onCloneSourceHospitalChanged() {
+        function onCloneSourceHospitalChanged(divisionLoaded) {
             const hospSelect = document.getElementById('clone-source-hospital');
             const specSelect = document.getElementById('clone-source-spec');
             if (!hospSelect || !specSelect) return;
 
             const sourceHospitalId = hospSelect.value;
+            const isDivision = Hub.aa.isMirrorId(sourceHospitalId);
+            if (isDivision && divisionLoaded !== true) {
+                // The division's job titles come fresh from the server (they are not part of the doctors' data).
+                specSelect.innerHTML = '<option value="">جاري تحميل العناوين الوظيفية…</option>';
+                Hub.aa.loadMirror(currentHospital.id)
+                    .catch(() => showToast('تعذر تحميل العناوين الوظيفية للشؤون الإدارية', 'error'))
+                    .finally(() => { if (hospSelect.value === sourceHospitalId) onCloneSourceHospitalChanged(true); });
+                return;
+            }
             const sourceHosp = Hub.getHospital ? Hub.getHospital(sourceHospitalId) : null;
             if (!sourceHosp) {
                 specSelect.innerHTML = '<option value="">-- اختر المستشفى أولاً --</option>';
+                onCloneSourceSpecChanged();
+                return;
+            }
+            if (isDivision && !(sourceHosp.specialties || []).length) {
+                specSelect.innerHTML = '<option value="">-- لم تُضف عناوين وظيفية في الشؤون الإدارية بعد --</option>';
                 onCloneSourceSpecChanged();
                 return;
             }
@@ -3144,13 +3163,13 @@
 
             const availableSpecs = (sourceHosp.specialties || []).filter(s => s.enabled !== false && !alreadyClonedSpecIds.has(s.id));
             if (availableSpecs.length === 0) {
-                specSelect.innerHTML = '<option value="">-- جميع تخصصات هذا المستشفى مضافة مسبقاً --</option>';
+                specSelect.innerHTML = isDivision ? '<option value="">-- كل العناوين الوظيفية معروضة مسبقاً --</option>' : '<option value="">-- جميع تخصصات هذا المستشفى مضافة مسبقاً --</option>';
                 onCloneSourceSpecChanged();
                 return;
             }
 
             specSelect.innerHTML = availableSpecs.map(s => {
-                const sName = (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(s.id, sourceHospitalId) : (s.name_ar || s.id);
+                const sName = isDivision ? (s.name_ar || s.id) : (window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(s.id, sourceHospitalId) : (s.name_ar || s.id);
                 return `<option value="${s.id}" data-color="${s.color || '#0f766e'}">${s.icon || '🏥'} ${sName} (${s.id})</option>`;
             }).join('');
 

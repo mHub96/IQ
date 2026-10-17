@@ -37,6 +37,40 @@
     const ER_SYNC_KEY = 'hospital_hub_er_synced';
     const THEME_KEY = 'hospital_hub_theme';
 
+    // ============================================================
+    // ADMINISTRATIVE AFFAIRS DIVISION MODE
+    // ============================================================
+    // Every hospital has an Administrative Affairs division (الشؤون الإدارية) with its own job titles,
+    // officers, daily roster and monthly schedule, in the same shape as the doctors' data. A page
+    // runs on one division instead of the doctors' data when the signed-in account is one of the
+    // division's officers (always their own hospital), or when the address carries ?aa=<hospital>
+    // and the user is the owner or an admin of that hospital. The division's data is loaded from
+    // /api/aa/* and cached apart from the doctors' data.
+    const AA_ROLES = ['aa_user', 'aa_admin'];
+    const AA_MIRROR_PREFIX = 'aa__';
+    const AA = (() => {
+        try {
+            const role = localStorage.getItem(SESSION_ROLE_KEY);
+            if (AA_ROLES.includes(role)) {
+                const acc = JSON.parse(localStorage.getItem(ACCOUNT_KEY) || 'null');
+                return acc && acc.hosp ? String(acc.hosp) : null;
+            }
+            const wanted = new URLSearchParams(location.search || '').get('aa');
+            if (!wanted || !/^[\w-]{1,48}$/.test(wanted)) return null;
+            if (role === 'owner') return wanted;
+            if (role === 'admin') {
+                const scope = JSON.parse(localStorage.getItem(SESSION_ADMIN_HOSPITALS_KEY) || '[]');
+                return scope.includes('*') || scope.includes(wanted) ? wanted : null;
+            }
+        } catch (e) {}
+        return null;
+    })();
+    const AA_Q = AA ? 'h=' + encodeURIComponent(AA) : '';
+    const DB_PATH = AA ? '/api/aa/db?' + AA_Q : '/api/db';
+    const SYNC_PATH = AA ? '/api/aa/sync?' + AA_Q : '/api/sync';
+    const VISIT_PATH = AA ? '/api/aa/visit?' + AA_Q : '/api/visit';
+    if (AA && typeof document !== 'undefined') document.documentElement.classList.add('aa-mode');
+
     // Clear stale caches from older database iterations
     try {
         localStorage.removeItem('hospital_hub_database_v2');
@@ -60,7 +94,15 @@
     // kept in localStorage so later page views only fetch what changed since `syncSince`.
     let serverRows = null;
     let syncSince = 0;
-    const ROWS_CACHE_KEY = 'hospital_hub_rows_v1';
+    const ROWS_CACHE_KEY = AA ? 'hospital_hub_aa_rows_v1:' + AA : 'hospital_hub_rows_v1';
+    const AA_ROWS_PREFIX = 'hospital_hub_aa_rows_v1:';
+    const AA_MIRROR_CACHE_KEY = 'hospital_hub_aa_mirror_v1';
+    // Virtual hospitals aa__<hospital> mirrored into the doctors' roster (see refreshDivisionMirrors).
+    const divisionMirrors = (() => {
+        try { return JSON.parse(localStorage.getItem(AA_MIRROR_CACHE_KEY) || '{}') || {}; } catch (e) { return {}; }
+    })();
+    const aaMirrorId = hosp => AA_MIRROR_PREFIX + hosp;
+
 
     // Canonical 29 Unified Specialties
     const ALL_CLINICAL_SPECIALTY_IDS = [
@@ -242,6 +284,7 @@
     function normalizeSpecialtyId(id) {
         if (!id) return id;
         const trimmed = String(id).trim();
+        if (AA) return trimmed;   // division job titles have no medical aliases
         const upper = trimmed.toUpperCase();
         if (SPECIALTY_ALIASES[trimmed]) return SPECIALTY_ALIASES[trimmed];
         if (SPECIALTY_ALIASES[upper]) return SPECIALTY_ALIASES[upper];
@@ -306,7 +349,8 @@
 
         // 1. Sanitize and Deduplicate globalSpecialties without destroying user modifications
         if (!Array.isArray(targetDb.globalSpecialties) || targetDb.globalSpecialties.length === 0) {
-            targetDb.globalSpecialties = JSON.parse(JSON.stringify(CANONICAL_SPECIALTIES));
+            // A division starts without job titles; its catalog grows from the ones its admins add.
+            targetDb.globalSpecialties = AA ? [] : JSON.parse(JSON.stringify(CANONICAL_SPECIALTIES));
         } else {
             const cleanMap = new Map();
             const nameToIdMap = new Map();
@@ -335,7 +379,7 @@
                         name_ar: nameAr,
                         name_en: s.name_en || (canon ? canon.name_en : (s.name_ar || effectiveId)),
                         icon: s.icon || (canon ? canon.icon : '🏥'),
-                        prefix: (s.prefix !== undefined) ? s.prefix : (canon && canon.prefix !== undefined ? canon.prefix : 'د. '),
+                        prefix: (s.prefix !== undefined) ? s.prefix : (canon && canon.prefix !== undefined ? canon.prefix : (AA ? '' : 'د. ')),
                         color: s.color || (canon ? canon.color : '#0f766e'),
                         parentSpec: s.parentSpec || (canon ? canon.parentSpec : null),
                         acceptPool: Array.isArray(s.acceptPool) ? s.acceptPool : (canon && Array.isArray(canon.acceptPool) ? [...canon.acceptPool] : []),
@@ -432,6 +476,9 @@
                     }
                 });
 
+                // Doctors-only fields (specialists' schedule, Rotation Heroes link) do not apply to a division.
+                if (AA) return;
+
                 // Sanitize hospital specialist schedule
                 if (!Array.isArray(hosp.specialistSchedule)) {
                     hosp.specialistSchedule = [];
@@ -486,7 +533,7 @@
             syncSince = Number(cachedRows.since) || 0;
             syncBaseFull = !!cachedRows.full;
             db = sanitizeAndMigrateDatabase(HubSync.compose(cachedRows.rows));
-        } else {
+        } else if (!AA) {
             const initialCachedStr = localStorage.getItem(CACHE_KEY);
             if (initialCachedStr) {
                 db = sanitizeAndMigrateDatabase(restoreRidsFromCache(JSON.parse(initialCachedStr)));
@@ -590,7 +637,7 @@
         let page;
         let firstTime = 0;
         do {
-            page = await api('GET', `${endpoint}?after=${after}`);
+            page = await api('GET', `${endpoint}${endpoint.includes('?') ? '&' : '?'}after=${after}`);
             if (!firstTime) firstTime = page.time;
             rows = rows.concat(page.rows || []);
             after = page.last;
@@ -693,6 +740,13 @@
         try {
             localStorage.removeItem(ROWS_CACHE_KEY);
             localStorage.removeItem(CACHE_KEY);
+            localStorage.removeItem(AA_MIRROR_CACHE_KEY);
+            const divisionCaches = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.indexOf(AA_ROWS_PREFIX) >= 0) divisionCaches.push(k.slice(k.indexOf(AA_ROWS_PREFIX)));
+            }
+            divisionCaches.forEach(k => localStorage.removeItem(k));
             ['1', '2', '3'].forEach(n => localStorage.removeItem('hosp_hub_safety_snap_' + n));
         } catch (e) {}
         syncSince = 0;
@@ -782,7 +836,7 @@
     /** Fetch only what changed since the last sync; null when a full reload is needed. */
     async function fetchChangedRows() {
         if (!serverRows || !syncSince || syncBaseFull !== !!readApiToken()) return null;
-        const res = await api('GET', '/api/db?since=' + syncSince);
+        const res = await api('GET', DB_PATH + (AA ? '&' : '?') + 'since=' + syncSince);
         if (!res || res.reset || res.full !== syncBaseFull) return null;
         const next = new Map(serverRows);
         for (const [c, id] of res.deleted || []) next.delete(HubSync.key(c, id));
@@ -837,19 +891,20 @@
                 }
                 if (!result) {
                     try {
-                        result = await fetchAllRows('/api/db');
+                        result = await fetchAllRows(DB_PATH);
                     } catch (err) {
                         // A rejected token has just been cleared; read again as a guest.
-                        if (err instanceof ApiError && err.status === 401) result = await fetchAllRows('/api/db');
+                        if (err instanceof ApiError && err.status === 401 && !AA) result = await fetchAllRows(DB_PATH);
                         else throw err;
                     }
                 }
                 applyServerRows(result.rows, result.full, result.time);
-                if (auth.isOwner()) await loadSecrets();
+                if (auth.isOwner() && !AA) await loadSecrets();
                 else detachSecrets();
                 writeCache();
                 isLoaded = true;
                 dispatchDataChanged();
+                if (!AA) refreshDivisionMirrors();
             } catch (err) {
                 console.warn('Cloudflare API unavailable, showing the last saved local copy:', err);
                 if (!db) {
@@ -874,7 +929,7 @@
         }, delay);
     }
 
-    const syncChannel = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('hosp_hub_sync_channel') : null;
+    const syncChannel = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel(AA ? 'hosp_hub_aa_sync_' + AA : 'hosp_hub_sync_channel') : null;
     if (syncChannel) {
         syncChannel.onmessage = (event) => {
             if (event.data && event.data.type === 'hub:data-updated') scheduleRefresh();
@@ -905,6 +960,7 @@
     // LOCAL SAFETY SNAPSHOT (the server also keeps every previous version)
     // ============================================================
     function saveLocalSafetySnapshot(dbObj, note = '') {
+        if (AA) return;
         try {
             localStorage.removeItem('hosp_hub_safety_snap_2');
             localStorage.removeItem('hosp_hub_safety_snap_3');
@@ -1033,7 +1089,7 @@
         for (let round = 0; ops.length > 0 && round < 4; round++) {
             const conflicts = [];
             for (const chunk of HubSync.chunkOps(ops)) {
-                const res = await api('POST', '/api/sync', { msg: message, ops: chunk.map(wireOp) });
+                const res = await api('POST', SYNC_PATH, { msg: message, ops: chunk.map(wireOp) });
                 for (const [i, v] of res.applied || []) {
                     const op = chunk[i];
                     appliedCount++;
@@ -1114,7 +1170,7 @@
         entry.VisitCount = (entry.VisitCount || 0) + 1;
         const id = hid + ':' + rid;
         const k = HubSync.key('sched', id);
-        api('POST', '/api/visit', { id }, { retries: 1 }).then(res => {
+        api('POST', VISIT_PATH, { id }, { retries: 1 }).then(res => {
             if (!res || !res.ok) return;
             entry.VisitCount = res.count;
             if (res.cooldown) {
@@ -1163,6 +1219,7 @@
     };
 
     function canSyncEr() {
+        if (AA) return false;
         const role = auth.getRole();
         return (role === 'owner' || role === 'admin') && !!readApiToken();
     }
@@ -1410,11 +1467,42 @@
     }
 
     function getHospital(id) {
+        if (typeof id === 'string' && id.startsWith(AA_MIRROR_PREFIX)) return divisionMirrors[id] || null;
         if (!db || !db.hospitals) return null;
         return db.hospitals[id] || null;
     }
 
+    // ------------------------------------------------------------
+    // Mirrors of division job titles in the doctors' roster
+    // ------------------------------------------------------------
+    // A hospital admin can show chosen job titles of the hospital's division in the doctors' roster
+    // as read-only "clone" specialties of the virtual hospital aa__<hospital>. The server serves
+    // only those job titles' duties; getHospital() returns them like any other source hospital.
+
+    async function fetchDivisionMirror(hosp) {
+        const res = await api('GET', '/api/aa/mirror?h=' + encodeURIComponent(hosp), undefined, { retries: 1 });
+        const h = res && res.hospital;
+        if (!h) return null;
+        (h.schedule || []).forEach(e => { if (e && HubSync) HubSync.setRid(e, HubSync.schedIdentity(e)); });
+        divisionMirrors[h.id] = h;
+        try { localStorage.setItem(AA_MIRROR_CACHE_KEY, JSON.stringify(divisionMirrors)); } catch (e) {}
+        return h;
+    }
+
+    let mirrorsLoading = null;
+    function refreshDivisionMirrors() {
+        if (AA || !db || !db.hospitals || mirrorsLoading) return mirrorsLoading;
+        const wanted = Object.values(db.hospitals).filter(h => h && (h.specialties || [])
+            .some(s => s && s.isClone && s.clonedFromHospitalId === aaMirrorId(h.id))).map(h => h.id);
+        if (!wanted.length) return null;
+        mirrorsLoading = Promise.all(wanted.map(h => fetchDivisionMirror(h).catch(() => null)))
+            .then(() => dispatchDataChanged())
+            .finally(() => { mirrorsLoading = null; });
+        return mirrorsLoading;
+    }
+
     function getActiveHospitalId() {
+        if (AA) return AA;
         // Priority: 1. URL parameter (?hospital=...) 2. LocalStorage 3. Default ('iraqi')
         const urlParams = (typeof URLSearchParams !== 'undefined' && window.location) ? new URLSearchParams(window.location.search || '') : { get: () => null };
         const fromUrl = urlParams.get('hospital') || urlParams.get('hosp');
@@ -1639,6 +1727,7 @@
     // ============================================================
     async function exchangeDuty(hospitalId, specCode, newResidentName, targetDate = null, oldResidentName = null) {
         if (auth.isRotator()) throw new Error('حساب الروتيتر للعرض والتعليق فقط');
+        if (!AA && auth.isOfficer()) throw new Error('موظفو الشؤون الإدارية يبدّلون خفاراتهم في جدول الشؤون الإدارية فقط');
         const hospital = getHospital(hospitalId);
         if (!hospital) throw new Error('المستشفى غير موجود');
 
@@ -1840,11 +1929,11 @@
             const firstHosp = db.hospitals ? Object.values(db.hospitals)[0] : null;
             const source = (firstHosp && Array.isArray(firstHosp.specialties) && firstHosp.specialties.length > 0)
                 ? firstHosp.specialties
-                : CANONICAL_SPECIALTIES;
+                : (AA ? [] : CANONICAL_SPECIALTIES);
             db.globalSpecialties = JSON.parse(JSON.stringify(source));
             specs = db.globalSpecialties;
         } else {
-            specs = JSON.parse(JSON.stringify(CANONICAL_SPECIALTIES));
+            specs = AA ? [] : JSON.parse(JSON.stringify(CANONICAL_SPECIALTIES));
         }
 
         // Deduplicate strictly by canonical ID AND normalized Arabic name!
@@ -1941,6 +2030,11 @@
             if (sp && sp.name_ar && !CANONICAL_CODE_TO_ARABIC[sp.name_ar]) {
                 return (sp.name_ar === 'الاطفال' || normCode === 'Pe') ? 'طب الأطفال' : sp.name_ar;
             }
+        }
+
+        if (AA) {
+            const any = Object.values(db?.hospitals || {}).flatMap(h => h.specialties || []).find(s => s.id === specCode);
+            return (any && any.name_ar) || specCode;
         }
 
         // 3. Check CANONICAL_SPECIALTIES
@@ -2270,7 +2364,7 @@
             counter++;
         }
 
-        const prefix = (specData.prefix !== undefined) ? specData.prefix : 'د. ';
+        const prefix = (specData.prefix !== undefined) ? specData.prefix : (AA ? '' : 'د. ');
 
         let existingGlobal = db.globalSpecialties.find(s => s.id === specId || s.name_ar === nameAr);
         if (!existingGlobal) {
@@ -2351,6 +2445,10 @@
         if (targetHospitalId === sourceHospitalId) {
             throw new Error('لا يمكن استنساخ تخصص من نفس المستشفى.');
         }
+        const fromDivision = sourceHospitalId.startsWith(AA_MIRROR_PREFIX);
+        if (fromDivision && sourceHospitalId !== aaMirrorId(targetHospitalId)) {
+            throw new Error('يمكن عرض العناوين الوظيفية للشؤون الإدارية في المستشفى نفسه فقط.');
+        }
         const targetHosp = getHospital(targetHospitalId);
         if (!targetHosp) throw new Error('المستشفى المستهدف غير موجود.');
         const sourceHosp = getHospital(sourceHospitalId);
@@ -2395,6 +2493,8 @@
 
         targetHosp.specialties.push(cloneObj);
         await saveDatabase(`Add clone specialty ${newId} (mirrored from ${sourceHosp.name_ar || sourceHospitalId} - ${sourceSpec.name_ar}) to ${targetHosp.name_ar || targetHospitalId}`);
+        // The server now serves this job title's duties too.
+        if (fromDivision) fetchDivisionMirror(targetHospitalId).then(dispatchDataChanged).catch(() => {});
         return cloneObj;
     }
 
@@ -2755,7 +2855,7 @@
     }
 
     function getSpecialtyPrefix(specId, hospitalId = null) {
-        if (!specId || !db) return 'د. ';
+        if (!specId || !db) return AA ? '' : 'د. ';
         const normSpecId = normalizeSpecialtyId(specId);
         // 1. Check hospital specialties
         const targetHospId = hospitalId || getActiveHospitalId();
@@ -2775,7 +2875,7 @@
             const hs = (db.hospitals[hid].specialties || []).find(s => s.id === normSpecId);
             if (hs && hs.prefix !== undefined) return hs.prefix;
         }
-        return 'د. ';
+        return AA ? '' : 'د. ';
     }
 
     function formatMemberName(rawName, prefix = 'د. ') {
@@ -3539,7 +3639,7 @@
                     return false;
                 }
             } catch (e) {}
-            return ['user', 'anaesthesia', 'admin', 'owner', 'rotator'].includes(role);
+            return ['user', 'anaesthesia', 'admin', 'owner', 'rotator', ...AA_ROLES].includes(role);
         },
 
         getRole() {
@@ -3572,11 +3672,26 @@
         },
 
         isLoggedIn() {
-            return this.checkSession() && ['user', 'anaesthesia', 'admin', 'owner', 'rotator'].includes(this.getRole());
+            return this.checkSession() && ['user', 'anaesthesia', 'admin', 'owner', 'rotator', ...AA_ROLES].includes(this.getRole());
         },
 
         isUser() {
-            return ['user', 'anaesthesia', 'admin', 'owner', 'rotator'].includes(this.getRole());
+            return ['user', 'anaesthesia', 'admin', 'owner', 'rotator', ...AA_ROLES].includes(this.getRole());
+        },
+
+        /** Officers of an Administrative Affairs division (division user or division admin). */
+        isOfficer() {
+            return AA_ROLES.includes(this.getRole());
+        },
+
+        /** May open hospital `hospId`'s Administrative Affairs division (owner, its admins, its officers). */
+        canAccessDivision(hospId) {
+            const role = this.getRole();
+            if (!hospId) return false;
+            if (role === 'owner') return true;
+            if (role === 'admin') { const ids = this.getAdminHospitalIds(); return ids.includes('*') || ids.includes(hospId); }
+            if (AA_ROLES.includes(role)) { const acc = this.getAccount(); return !!acc && acc.hosp === hospId; }
+            return false;
         },
 
         /** Rotators (doctors on rotation) can view the site and comment, but not exchange duties. */
@@ -3612,6 +3727,8 @@
         isAdmin(targetHospitalId = null) {
             const role = this.getRole();
             if (role === 'owner') return true;
+            // A division admin administers their own hospital's division (division mode only).
+            if (role === 'aa_admin') return !!AA && (!targetHospitalId || targetHospitalId === AA);
             // anaesthesia resident is NOT an admin! Admin cannot edit ICU, anaesthesia cannot edit general hospital admin
             if (role !== 'admin') return false;
 
@@ -3750,6 +3867,17 @@
             erPending: erDirty.size
         }),
         getDatabase: () => db,
+        /** Administrative Affairs division mode (see the top of this file). */
+        aa: {
+            hosp: AA,
+            active: !!AA,
+            ROLES: AA_ROLES,
+            mirrorId: aaMirrorId,
+            isMirrorId: id => typeof id === 'string' && id.startsWith(AA_MIRROR_PREFIX),
+            /** The division's virtual hospital for the doctors' mirrors (all job titles for those with access). */
+            loadMirror: hosp => fetchDivisionMirror(hosp),
+            refreshMirrors: () => refreshDivisionMirrors(),
+        },
         getHospitals,
         getHospital,
         getActiveHospitalId,

@@ -12,14 +12,23 @@ import { DAY, json, readJson, signToken, sha256b64, b64, overLimit, bucketOf, pl
 import { nameKey, namesMatch, phoneKey, isoDate } from './names.js';
 import { sendPush, isPushEndpoint, topicFor } from './push.js';
 import { BOARDS, dutyDayNow, getStageMonth, setStageMonth, currentStage, profileComplete, suggestProfile } from './profile.js';
+import { AA_ROLES, findOfficer, officerLink, divisionJob, addOfficer } from './aa.js';
 
 const USERNAME_RE = /^[a-z0-9][a-z0-9._]{2,23}$/;
 const KEY_RE = /^[A-Za-z0-9+/]{43}=$/; // 32 bytes, base64
 const HOSP_RE = /^[\w-]{1,48}$/;
 const DEVICE_RE = /^[A-Za-z0-9_-]{16,64}$/;
-const ACCOUNT_ROLES = ['user', 'anaesthesia', 'admin', 'owner', 'rotator'];
-// Roles a hospital admin may give when approving or managing a resident of their hospital.
+const ACCOUNT_ROLES = ['user', 'anaesthesia', 'admin', 'owner', 'rotator', ...AA_ROLES];
+// Roles a hospital admin may give when approving or managing a resident of their hospital, and an
+// officer of the hospital's Administrative Affairs division (division user or division admin).
 const ADMIN_GIVES = ['user', 'anaesthesia'];
+const ADMIN_GIVES_AA = AA_ROLES;
+// Accounts a hospital admin manages (never other admins or the owner).
+const ADMIN_MANAGES = ['user', 'anaesthesia', 'rotator', ...AA_ROLES];
+// Roles without hospital scope (rights come from the role alone, or from the account's own hospital).
+const UNSCOPED = ['user', 'owner', 'rotator', ...AA_ROLES];
+// Accounts without a resident profile (board, specialty, stage): rotators and division officers.
+const NO_PROFILE = ['rotator', ...AA_ROLES];
 // Roster specialty codes of anaesthesia residents (suggested role "anaesthesia" on their sign-up request).
 const ANAESTHESIA_CODES = ['A', 'ICU', 'OP', 'GA'];
 const ROTATOR_NAME_RE = /^[\p{L}][\p{L}\p{M} .'-]{3,59}$/u;
@@ -27,7 +36,7 @@ const RESET_VALID_MS = 3 * DAY;
 const ACTIVE_WRITE_MS = 60 * 60 * 1000; // last_seen is refreshed at most hourly (D1 write budget)
 const PUBLIC_FIELDS = `id, username, name, phone, sex, hosp, resident_id, role, hospitals, status, max_devices,
   anon_tag, anon_lang, reset, reset_at, created_at, decided_at, decided_by, last_seen,
-  board, specialty, stage, stage_ref, board_years, profile_src, avatar`;
+  board, specialty, stage, stage_ref, board_years, profile_src, avatar, aa_job, aa_job_name`;
 
 /** Routes under /api/accounts, /api/notifications, /api/social and /api/push. Returns null when not matched. */
 export async function routeAccounts(path, method, request, env, auth, url, ctx) {
@@ -37,6 +46,7 @@ export async function routeAccounts(path, method, request, env, auth, url, ctx) 
     case 'GET /api/accounts/username': return usernameFree(env, url, ip);
     case 'POST /api/accounts/signup': return signup(request, env, ip, ctx);
     case 'POST /api/accounts/signup-rotator': return signupRotator(request, env, ip, ctx);
+    case 'POST /api/accounts/signup-officer': return signupOfficer(request, env, ip, ctx);
     case 'POST /api/accounts/login': return accountLogin(request, env, ip);
     case 'POST /api/accounts/forgot': return forgot(request, env, ip, ctx);
     case 'POST /api/accounts/reset': return resetPassword(request, env, ip);
@@ -81,7 +91,7 @@ export async function routeAccounts(path, method, request, env, auth, url, ctx) 
 
 export function scopeOf(row) {
   if (row.role === 'owner') return ['*'];
-  if (row.role === 'user' || row.role === 'rotator') return [];
+  if (UNSCOPED.includes(row.role)) return [];
   try { return JSON.parse(row.hospitals || '[]'); } catch { return []; }
 }
 
@@ -115,7 +125,9 @@ function profile(row, stageMonth = 10) {
     // Pending requests: suggest the anaesthesia role for anaesthesia residents.
     if (row.role === 'user' && (ANAESTHESIA_CODES.includes(row.roster_spec) || /تخدير|anaes|anest/i.test(row.specialty || ''))) out.suggested_role = 'anaesthesia';
   }
-  if ('board' in row) {
+  if (NO_PROFILE.includes(row.role)) {
+    for (const k of ['board', 'specialty', 'stage', 'stage_ref', 'board_years', 'profile_src']) delete out[k];
+  } else if ('board' in row) {
     out.stage_now = currentStage(row.stage, row.stage_ref, row.board_years, stageMonth);
     out.profile_complete = profileComplete(row);
     out.stage_month = stageMonth;
@@ -329,6 +341,59 @@ async function signupRotator(request, env, ip, ctx) {
   return json({ ok: true, status: 'pending', name });
 }
 
+/**
+ * Officers of a hospital's Administrative Affairs division: hospital, job title (from the
+ * division's list), name, phone, sex, username and password. The name and phone are checked
+ * against the division's officers like residents are against the roster; someone who is not in
+ * the database yet may still send the request (the approver then adds them under the chosen job
+ * title). Approved by the owner and the hospital's admins as a division user or division admin.
+ */
+async function signupOfficer(request, env, ip, ctx) {
+  if (await overLimit(env, 'signup:' + ip, 10)) return json({ error: 'rate_limited' }, 429);
+  const body = await readJson(request);
+  if (!body) return json({ error: 'bad_request' }, 400);
+  const username = String(body.username || '').trim().toLowerCase();
+  const key = String(body.key || '');
+  const hosp = String(body.hosp || '');
+  const typed = plainText(body.name, 60).replace(/\s+/g, ' ');
+  const sex = body.sex === 'f' ? 'f' : body.sex === 'm' ? 'm' : null;
+  const lang = body.lang === 'en' ? 'en' : 'ar';
+  if (!sex) return json({ error: 'bad_sex' }, 400);
+  if (!USERNAME_RE.test(username)) return json({ error: 'bad_username' }, 400);
+  if (!KEY_RE.test(key)) return json({ error: 'bad_key' }, 400);
+  if (!HOSP_RE.test(hosp) || !(await env.DB.prepare("SELECT 1 AS ok FROM records WHERE coll = 'hospital' AND id = ?").bind(hosp).first())) return json({ error: 'bad_hospital' }, 400);
+  const job = await divisionJob(env, hosp, String(body.job || ''));
+  if (!job) return json({ error: 'bad_job' }, 400);
+  if (!phoneKey(body.phone)) return json({ error: 'bad_phone' }, 400);
+
+  const { pk, match } = await findOfficer(env, hosp, typed, String(body.phone || ''));
+  if (!match && (!ROTATOR_NAME_RE.test(typed) || typed.split(' ').filter(Boolean).length < 2)) return json({ error: 'bad_name' }, 400);
+  const name = match ? match.name : typed;
+  const now = Date.now();
+  const id = crypto.randomUUID();
+  const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
+  const pw = await sha256b64(salt + key);
+  const jobName = job.name_ar || job.id;
+  const note = JSON.stringify({ id, name, username, hosp, officer: true, job: jobName, verified: !!match });
+  try {
+    const results = await withUniqueNick(sex, lang, (tag, tagKey) => env.DB.batch([
+      // name_key is private to the account: officers never receive the doctors' duty-card notifications.
+      env.DB.prepare(
+        `INSERT INTO accounts (id, username, pw, salt, name, name_key, phone, sex, hosp, resident_id, role, anon_tag, anon_key, anon_lang, created_at, aa_job, aa_job_name)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'aa_user', ?, ?, ?, ?, ?, ?)`
+      ).bind(id, username, pw, salt, name, 'aa:' + id, pk, sex, hosp, match ? officerLink(hosp, match.id) : null, tag, tagKey, lang, now, job.id, jobName),
+      notifyApprovers(env, hosp, 'signup:' + id, 'signup_request', note, now),
+    ]));
+    dispatchPush(env, ctx, results[1]);
+  } catch (err) {
+    const msg = String(err && err.message || err);
+    if (/accounts\.username/.test(msg)) return json({ error: 'username_taken' }, 409);
+    if (/resident_id|idx_accounts_resident/.test(msg)) return json({ error: 'already_registered' }, 409);
+    throw err;
+  }
+  return json({ ok: true, status: 'pending', name, verified: !!match });
+}
+
 // ---------------------------------------------------------------------------
 // Notifications (stored rows + Web Push)
 // ---------------------------------------------------------------------------
@@ -347,11 +412,11 @@ function notifyApprovers(env, hosp, gkey, type, data, now) {
   ).bind(gkey, type, data, now, hosp);
 }
 
-/** Notification for every active account registered at `hosp` (e.g. the ER preferences portal opened). */
+/** Notification for every active resident account registered at `hosp` (e.g. the ER preferences portal opened). */
 export function notifyHospitalResidents(env, hosp, gkey, type, data, now) {
   return env.DB.prepare(
     `INSERT INTO notifications (account_id, gkey, type, data, ts, seen)
-     SELECT id, ?1, ?2, ?3, ?4, 0 FROM accounts WHERE status = 'active' AND hosp = ?5
+     SELECT id, ?1, ?2, ?3, ?4, 0 FROM accounts WHERE status = 'active' AND hosp = ?5 AND role IN ('user', 'anaesthesia', 'admin')
      ON CONFLICT (account_id, gkey) DO UPDATE SET data = excluded.data, ts = excluded.ts, seen = 0
      ${RETURNING}`
   ).bind(gkey, type, data, now, hosp);
@@ -373,7 +438,7 @@ function closesText(ms) {
   return `${d.getUTCDate()}/${d.getUTCMonth() + 1} الساعة ${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
 }
 
-const ROLE_AR = { owner: 'المالك', admin: 'مدير مستشفى', anaesthesia: 'مقيم تخدير', user: 'مقيم' };
+const ROLE_AR = { owner: 'المالك', admin: 'مدير مستشفى', anaesthesia: 'مقيم تخدير', user: 'مقيم', rotator: 'روتيتر', aa_user: 'موظف الشؤون الإدارية', aa_admin: 'مدير الشؤون الإدارية' };
 
 /** Lock-screen text for one notification row (the in-app list builds its own, richer text). */
 function pushMessage(n) {
@@ -706,8 +771,9 @@ async function decide(request, env, auth, ctx) {
   const row = await env.DB.prepare('SELECT * FROM accounts WHERE id = ?').bind(String(body.id || '')).first();
   if (!row) return json({ error: 'not_found' }, 404);
   const isOwner = auth.r === 'owner';
-  // Admins manage residents (regular / anaesthesia) and rotators of their own hospitals, never themselves.
-  if (!isOwner && (!hospInScope(auth, row.hosp) || !['user', 'anaesthesia', 'rotator'].includes(row.role) || row.id === auth.a)) return json({ error: 'forbidden' }, 403);
+  // Admins manage residents (regular / anaesthesia), rotators and division officers of their own
+  // hospitals, never themselves.
+  if (!isOwner && (!hospInScope(auth, row.hosp) || !ADMIN_MANAGES.includes(row.role) || row.id === auth.a)) return json({ error: 'forbidden' }, 403);
 
   const now = Date.now();
   const by = auth.a ? `${auth.r}:${auth.name || auth.a}` : auth.r;
@@ -724,13 +790,15 @@ async function decide(request, env, auth, ctx) {
       role = ACCOUNT_ROLES.includes(body.role) ? body.role : row.role;
       hospitals = Array.isArray(body.hospitals) ? body.hospitals.map(String).filter(h => h === '*' || HOSP_RE.test(h)).slice(0, 50) : hospitals;
     } else {
-      // Admins: regular or anaesthesia resident only, for their own hospital; rotators stay rotators.
-      if (body.hospitals !== undefined || !ADMIN_GIVES.includes(body.role) || !ADMIN_GIVES.includes(row.role)) return json({ error: 'forbidden' }, 403);
+      // Admins: regular or anaesthesia resident for residents, division user or division admin for
+      // officers, always for their own hospital; rotators stay rotators.
+      const gives = AA_ROLES.includes(row.role) ? ADMIN_GIVES_AA : ADMIN_GIVES;
+      if (body.hospitals !== undefined || !gives.includes(body.role) || !gives.includes(row.role)) return json({ error: 'forbidden' }, 403);
       role = body.role;
       hospitals = [row.hosp];
     }
-    if (!['user', 'owner', 'rotator'].includes(role) && !hospitals.length) hospitals = [row.hosp];
-    stmts.push(env.DB.prepare('UPDATE accounts SET role = ?, hospitals = ? WHERE id = ?').bind(role, JSON.stringify(['user', 'owner', 'rotator'].includes(role) ? [] : hospitals), row.id));
+    if (!UNSCOPED.includes(role) && !hospitals.length) hospitals = [row.hosp];
+    stmts.push(env.DB.prepare('UPDATE accounts SET role = ?, hospitals = ? WHERE id = ?').bind(role, JSON.stringify(UNSCOPED.includes(role) ? [] : hospitals), row.id));
   }
   if (body.maxDevices !== undefined) {
     const n = Math.max(0, Math.min(20, Math.floor(Number(body.maxDevices) || 0)));
@@ -740,6 +808,11 @@ async function decide(request, env, auth, ctx) {
   switch (action) {
     case 'approve':
       if (row.status !== 'pending') return json({ error: 'not_pending' }, 409);
+      // An officer who was not in the division's database yet is added under the job title they chose.
+      if (AA_ROLES.includes(role) && !row.resident_id && row.aa_job) {
+        const added = await addOfficer(env, { hosp: row.hosp, name: row.name, phone: row.phone, job: row.aa_job, by });
+        stmts.push(env.DB.prepare('UPDATE accounts SET resident_id = ?, name = ? WHERE id = ?').bind(added.link, added.name, row.id));
+      }
       stmts.push(setStatus('active', false));
       notes.push(stmts.push(notifyOne(env, row.id, 'approved', 'account_approved', JSON.stringify({ by: auth.name || null, role }), now)) - 1);
       break;
@@ -772,7 +845,8 @@ async function decide(request, env, auth, ctx) {
       break;
     case 'set_profile': {
       if (!isOwner) return json({ error: 'forbidden' }, 403);
-      const p = cleanProfile(body.profile || {});
+      // Rotators and officers have no board, specialty or stage: only sex and hospital.
+      const p = NO_PROFILE.includes(row.role) ? { board: null, specialty: null, stage: null, boardYears: null } : cleanProfile(body.profile || {});
       if (p.error) return json({ error: p.error }, 400);
       const sex = body.profile && (body.profile.sex === 'm' || body.profile.sex === 'f') ? body.profile.sex : row.sex;
       const hosp = body.profile && HOSP_RE.test(String(body.profile.hosp || '')) ? String(body.profile.hosp) : row.hosp;
@@ -878,6 +952,7 @@ async function saveAvatar(request, env, auth) {
 
 async function profileSuggest(env, auth) {
   if (!auth.a) return json({ error: 'account_required' }, 403);
+  if (NO_PROFILE.includes(auth.r)) return json({ ok: true, suggestion: { board: null, specialty: null, stage: null, sex: null, source: [] } });
   const row = await env.DB.prepare('SELECT name, hosp, resident_id, phone FROM accounts WHERE id = ?').bind(auth.a).first();
   const s = await suggestProfile(env, { name: row.name, hosp: row.hosp, residentId: row.resident_id, phone: row.phone });
   return json({ ok: true, suggestion: s });
@@ -885,6 +960,7 @@ async function profileSuggest(env, auth) {
 
 async function saveProfile(request, env, auth) {
   if (!auth.a) return json({ error: 'account_required' }, 403);
+  if (NO_PROFILE.includes(auth.r)) return json({ error: 'no_profile' }, 400);
   if (await overLimit(env, 'profile:' + auth.a, 30)) return json({ error: 'rate_limited' }, 429);
   const p = cleanProfile(await readJson(request) || {});
   if (p.error) return json({ error: p.error }, 400);

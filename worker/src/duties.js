@@ -26,6 +26,7 @@ export const FLAGS = ['swap', 'leave', 'sick', 'exam', 'course', 'cover', 'impor
 const SHIFTS = ['morning', 'afternoon', 'preNight', 'lateNight'];
 const WEEKDAYS = ['السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
 const MAX_PORTAL_DAYS = 45;
+const NOT_RESIDENT = ['rotator', 'aa_user', 'aa_admin'];
 
 // ER month record layout (see emergency.js): which fields of each day row hold a doctor's name.
 const ER_SLOTS = {
@@ -39,6 +40,8 @@ const ER_SLOTS = {
 export async function routeDuties(path, method, request, env, auth, url, ctx) {
   if (!/^\/api\/(accounts\/(my-duties|duty-mark)|er-portal)(\/|$)/.test(path)) return null;
   if (!auth) return json({ error: 'unauthorized' }, 401);
+  // My Schedule and the preferences portal are for the hospital's residents (not rotators or division officers).
+  if (NOT_RESIDENT.includes(auth.r) && /^\/api\/(accounts\/|er-portal\/mine$)/.test(path)) return json({ error: 'residents_only' }, 403);
   switch (`${method} ${path}`) {
     case 'GET /api/accounts/my-duties': return myDuties(env, auth, url);
     case 'POST /api/accounts/duty-mark': return saveMark(request, env, auth);

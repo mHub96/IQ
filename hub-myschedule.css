@@ -156,6 +156,12 @@ html.dark .ms-cal-head, body.dark .ms-cal-head { background: #23314f; }
   margin: 4px 2px 8px; font-size: 0.82rem; font-weight: 800; color: var(--ms-navy);
 }
 .ms-section-title small { color: var(--ms-ink3); font-weight: 600; }
+.ms-hosp-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: -2px 2px 10px; font-size: 0.78rem; color: var(--ms-ink2, #48484a); }
+.ms-hosp-line i { color: #0a84ff; }
+.ms-hosp-now { flex-basis: 100%; font-size: 0.72rem; color: var(--ms-ink3); font-weight: 600; }
+.ms-hosp-tag { display: inline-flex; align-items: center; gap: 4px; margin-inline-start: 8px; padding: 1px 8px; border-radius: 999px; background: rgba(10, 132, 255, 0.1); color: #0a6fd6; font-size: 0.7rem; font-weight: 700; }
+.ms-pdf .plist td.nm .hs { font-size: 9px; color: #5a6b85; font-weight: 600; margin-top: 1px; }
+.ms-pdf .ph .sub.now { font-size: 10px; opacity: 0.8; }
 .ms-empty {
   text-align: center; padding: 22px 12px; border-radius: 16px;
   border: 1px dashed var(--ms-line); color: var(--ms-ink2); font-size: 0.8rem; line-height: 1.7;

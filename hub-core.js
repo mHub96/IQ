@@ -3977,6 +3977,7 @@
         getCurrentIcuResident,
         addResident,
         updateResident,
+        nameKey: nameKeyOf,
         deleteResident,
         getSpecialists,
         getSpecialist,

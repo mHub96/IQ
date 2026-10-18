@@ -739,6 +739,7 @@
         await proceedEmergencyAppInit();
     }
 
+    let appReady = false;
     async function proceedEmergencyAppInit() {
         if (isEmergencyAppInitialized) return;
         isEmergencyAppInitialized = true;
@@ -893,6 +894,7 @@
         initKeyboardShortcuts();
         initCustomFontFromStorage();
         announcePeriod();
+        appReady = true;   // the server copy is pulled and the page's state loaded (see emergency-link.js)
     }
 
     /** Tells add-ons (emergency-portal.js) which hospital and month are on screen. */
@@ -11112,6 +11114,7 @@
     // For add-ons on this page (emergency-portal.js): live state and the save / redraw helpers.
     window.EmergencyCore = {
         state: () => state,
+        ready: () => appReady,
         saveState, pushDBHistory, refreshDBView, renderActiveTab, showNotification,
         updateDBUndoRedoUI: () => { try { updateDBUndoRedoUI(); } catch (e) {} },
     };

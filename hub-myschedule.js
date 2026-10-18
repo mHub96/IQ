@@ -80,7 +80,7 @@
     /** A duty's name and time (its start and end, or the whole 24-hour duty day). */
     function view(d) {
         if (d.src === 'hospital') {
-            const name = (Hub.getSpecialtyName && Hub.getSpecialtyName(d.spec, data.hosp)) || d.spec || 'خفارة المستشفى';
+            const name = (Hub.getSpecialtyName && Hub.getSpecialtyName(d.spec, d.hosp || data.hosp)) || d.spec || 'خفارة المستشفى';
             return { title: name, time: d.time ? fmtTime(d.time) : FULL_DAY, er: false };
         }
         const l = (ER_LABELS[d.type] || {})[d.slot] || [d.type, ''];
@@ -95,6 +95,15 @@
     const PLATFORM = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1) ? 'ios'
         : /Android/i.test(navigator.userAgent) ? 'android' : 'other';
     const markOf = d => (data && data.marks && data.marks[d.key]) || null;
+    /** The hospitals this month's duties were in (a resident who moved has duties in more than one). */
+    const monthHospitals = () => (data && data.hospitals && data.hospitals.length ? data.hospitals : [data.hosp]);
+    /** A duty names its hospital when the month spans hospitals or it is not the resident's current one. */
+    const showsHospital = d => !!d.hosp && (monthHospitals().length > 1 || d.hosp !== data.hosp);
+    function hospitalLine() {
+        const hs = monthHospitals();
+        const moved = hs.length > 1 || hs[0] !== data.hosp;
+        return `<div class="ms-hosp-line"><i class="fas fa-hospital"></i> ${hs.length > 1 ? 'مستشفيات هذا الشهر' : 'مستشفى هذا الشهر'}: <b>${hs.map(h => esc(hospitalName(h))).join('، ')}</b>${moved ? `<span class="ms-hosp-now">مستشفاك الحالي: ${esc(hospitalName(data.hosp))}</span>` : ''}</div>`;
+    }
 
     // ------------------------------------------------------------------
     // Rendering
@@ -184,8 +193,9 @@
                 <span><i class="ms-pip"></i> المستشفى</span><span><i class="ms-pip er"></i> الطوارئ</span>
                 <span><i class="tday"></i> اليوم</span><span><b class="ms-mini p">+$</b> مشتراة</span><span><b class="ms-mini m">-$</b> مباعة</span>
             </div>
-            <div class="ms-section-title">خفاراتي في ${esc(monthTitle(ym))} <small>${esc(hospitalName(data.hosp))}</small></div>
-            <div class="ms-list" data-role="list">${duties.length ? duties.map(dutyHtml).join('') : `<div class="ms-empty">لا توجد خفارات باسمك في ${esc(monthTitle(ym))}.<br><small>نبحث في جدول خفارات ${esc(hospitalName(data.hosp))} وجدول الطوارئ باسم «${esc(data.name)}»${data.erName && data.erName !== data.name ? ` و«${esc(data.erName)}»` : ''}.</small></div>`}</div>
+            <div class="ms-section-title">خفاراتي في ${esc(monthTitle(ym))}</div>
+            ${duties.length ? hospitalLine() : ''}
+            <div class="ms-list" data-role="list">${duties.length ? duties.map(dutyHtml).join('') : `<div class="ms-empty">لا توجد خفارات باسمك في ${esc(monthTitle(ym))}.<br><small>نبحث في جداول خفارات المستشفيات وجداول الطوارئ باسم «${esc(data.name)}»${data.erName && data.erName !== data.name ? ` و«${esc(data.erName)}»` : ''}.</small></div>`}</div>
             ${duties.length ? '<button type="button" class="ms-btn gold ms-export" data-act="pdf"><i class="fas fa-file-pdf"></i> تصدير الجدول PDF</button>' : ''}
             ${duties.length && data.cal ? `<div class="ms-cal-actions">
                 <a class="ms-btn ms-cal-add" data-act="cal-add" href="${esc(calLink('add'))}" ${PLATFORM === 'ios' ? 'target="_blank" rel="noopener"' : ''}><i class="${PLATFORM === 'ios' ? 'fab fa-apple' : PLATFORM === 'android' ? 'fab fa-android' : 'fas fa-calendar-plus'}"></i> ${PLATFORM === 'other' ? `تنزيل خفارات ${esc(MONTHS[parseYm(ym).m])} كملف تقويم` : `إضافة خفارات ${esc(MONTHS[parseYm(ym).m])} إلى تقويم ${PLATFORM === 'ios' ? 'iPhone' : 'Android'}`}</a>
@@ -253,7 +263,7 @@
             <div class="ms-date"><b>${Number(d.date.slice(8))}</b><span>${DAY_NAMES[dowOf(d.date)]}</span></div>
             <div class="ms-main">
                 <div class="ms-t">${esc(v.title)}</div>
-                <div class="ms-s"><span class="ms-time"><i class="far fa-clock"></i> ${esc(v.time)}</span></div>
+                <div class="ms-s"><span class="ms-time"><i class="far fa-clock"></i> ${esc(v.time)}</span>${showsHospital(d) ? `<span class="ms-hosp-tag"><i class="fas fa-hospital"></i> ${esc(hospitalName(d.hosp))}</span>` : ''}</div>
                 ${mk.kind || f ? `<div class="ms-tags">
                     ${mk.kind === 'bought' ? '<span class="ms-tag p"><span class="cur">+$</span> خفارة مشتراة</span>' : ''}
                     ${mk.kind === 'sold' ? '<span class="ms-tag m"><span class="cur">-$</span> خفارة مباعة</span>' : ''}
@@ -388,7 +398,7 @@
                 <td class="num">${i + 1}</td>
                 <td class="dt"><b>${d.date.slice(8)}/${d.date.slice(5, 7)}</b></td>
                 <td class="dy">${DAY_NAMES[dow]}</td>
-                <td class="nm"><b>${esc(v.title)}</b>${isNext ? ' <span class="nx">القادمة</span>' : ''}</td>
+                <td class="nm"><b>${esc(v.title)}</b>${isNext ? ' <span class="nx">القادمة</span>' : ''}${showsHospital(d) ? `<div class="hs">${esc(hospitalName(d.hosp))}</div>` : ''}</td>
                 <td class="tm">${esc(v.time)}</td>
                 <td class="st">${status || '<span class="dash">—</span>'}</td>
             </tr>`;
@@ -398,7 +408,8 @@
                 <div class="who">
                     <div class="kicker">جدول الخفارات الشهري · Duty Schedule</div>
                     <h1>${esc(acc.name || data.name || '')}</h1>
-                    <div class="sub">${esc(hospitalName(data.hosp))}${acc.specialty ? ' · ' + esc(acc.specialty) : ''}</div>
+                    <div class="sub">${monthHospitals().map(h => esc(hospitalName(h))).join(' · ')}${acc.specialty ? ' · ' + esc(acc.specialty) : ''}</div>
+                    ${monthHospitals().length > 1 || monthHospitals()[0] !== data.hosp ? `<div class="sub now">المستشفى الحالي: ${esc(hospitalName(data.hosp))}</div>` : ''}
                 </div>
                 <div class="mon"><span>الشهر</span><b>${esc(MONTHS[m])}</b><em>${parseYm(ym).y}</em></div>
             </header>

@@ -118,7 +118,7 @@ async function myDuties(env, auth, url) {
   if (!auth.a) return json({ error: 'account_required' }, 403);
   const ym = String(url.searchParams.get('ym') || '');
   if (!YM_RE.test(ym)) return json({ error: 'bad_month' }, 400);
-  const acc = await env.DB.prepare('SELECT id, name, name_key, hosp, phone FROM accounts WHERE id = ?').bind(auth.a).first();
+  const acc = await env.DB.prepare('SELECT id, name, name_key, hosp, phone, resident_id FROM accounts WHERE id = ?').bind(auth.a).first();
   if (!acc) return json({ error: 'account_required' }, 403);
   const out = await collectDuties(env, acc, ym);
   // Ticket for this month's calendar file (/api/cal), which the phone's calendar opens without the session.
@@ -135,40 +135,85 @@ async function collectDuties(env, acc, ym) {
   const keys = new Set([acc.name_key || nameKey(acc.name)]);
   if (er && er.name) keys.add(nameKey(er.name));
 
-  const erId = `hosp_hub_emergency_sched_${acc.hosp}_${year}_${month}`;
-  const [rosterRes, erRes, marksRes] = await env.DB.batch([
+  // Every hospital's roster and ER schedule of the month: a resident who moved keeps the duties of the
+  // hospital they were in, each labelled with its hospital.
+  const [rosterRes, erRes, marksRes, hospRes, recRes, erListRes] = await env.DB.batch([
     env.DB.prepare(
-      `SELECT id, json_extract(data, '$.date') AS date, json_extract(data, '$.name') AS name,
+      `SELECT id, hosp, json_extract(data, '$.date') AS date, json_extract(data, '$.name') AS name,
               json_extract(data, '$.specCode') AS spec, json_extract(data, '$.dutyTime') AS time,
               json_extract(data, '$.dutySlot') AS slot
          FROM records
-        WHERE coll = 'sched' AND hosp = ?1 AND (json_extract(data, '$.date') LIKE ?2 OR json_extract(data, '$.date') LIKE ?3)`
-    ).bind(acc.hosp, `%/${String(month).padStart(2, '0')}/${year}`, `%/${month}/${year}`),
+        WHERE coll = 'sched' AND (json_extract(data, '$.date') LIKE ?1 OR json_extract(data, '$.date') LIKE ?2)`
+    ).bind(`%/${String(month).padStart(2, '0')}/${year}`, `%/${month}/${year}`),
     env.DB.prepare(
-      `SELECT COALESCE((SELECT data FROM records WHERE coll = 'er' AND id = ?1),
-                       (SELECT json_extract(data, ?2) FROM records WHERE coll = 'er' AND id = ?3)) AS data`
-    ).bind(erId, `$.monthlySchedules."${acc.hosp}_${year}_${month}"`, ER_STATE_ID),
+      `SELECT r.id, r.data FROM records r
+        WHERE r.coll = 'er' AND r.id IN (SELECT 'hosp_hub_emergency_sched_' || h.id || '_' || ?1 FROM records h WHERE h.coll = 'hospital')
+       UNION ALL
+       SELECT 'state', json_extract(data, ?2) FROM records WHERE coll = 'er' AND id = ?3`
+    ).bind(`${year}_${month}`, `$.monthlySchedules."${acc.hosp}_${year}_${month}"`, ER_STATE_ID),
     env.DB.prepare('SELECT dkey, kind, flag, flag_text, note, updated_at FROM duty_marks WHERE account_id = ?1 AND dkey LIKE ?2')
       .bind(acc.id, `${ym}-%`),
+    env.DB.prepare("SELECT id FROM records WHERE coll = 'hospital'"),
+    env.DB.prepare("SELECT json_extract(data, '$.hospitals') AS hs FROM records WHERE coll = 'resident' AND id = ?").bind(acc.resident_id || ''),
+    // Who is in each hospital's ER list (the residents that ER assigns duties to).
+    env.DB.prepare(
+      `SELECT j.key AS h, json_extract(r.value, '$.name') AS n
+         FROM records, json_each(records.data, '$.hospitalResidents') j, json_each(j.value) r
+        WHERE records.coll = 'er' AND records.id = ?`
+    ).bind(ER_STATE_ID),
   ]);
+  // The resident's own hospitals: the account's, and those of their record in the hospital database.
+  const home = new Set([acc.hosp]);
+  try { for (const h of JSON.parse((recRes.results[0] || {}).hs || '[]')) home.add(String(h)); } catch {}
+  const keyOf = new Map();
+  const matches = n => { if (!n) return false; let k = keyOf.get(n); if (k === undefined) { k = nameKey(n); keyOf.set(n, k); } return keys.has(k); };
+  // In another hospital, the same name belongs to that hospital's own resident (someone else) unless
+  // nobody there carries it (then it is this resident, from before they moved).
+  let othersByHosp = null;
+  const someoneElse = async hosp => {
+    if (home.has(hosp)) return false;
+    if (!othersByHosp) {
+      othersByHosp = new Map();
+      const { results } = await env.DB.prepare("SELECT id, json_extract(data, '$.name') AS n, json_extract(data, '$.hospitals') AS hs FROM records WHERE coll = 'resident' AND id <> ?")
+        .bind(acc.resident_id || '').all();
+      for (const r of results) {
+        if (!keys.has(nameKey(r.n))) continue;
+        let hs = [];
+        try { hs = JSON.parse(r.hs || '[]'); } catch {}
+        for (const h of hs) othersByHosp.set(String(h), true);
+      }
+    }
+    return othersByHosp.has(hosp);
+  };
 
   const duties = [];
   for (const r of rosterRes.results || []) {
-    if (!keys.has(nameKey(r.name))) continue;
+    if (!matches(r.name)) continue;
     const date = isoDate(r.date);
-    if (!date) continue;
+    if (!date || await someoneElse(r.hosp)) continue;
     const slot = Number(r.slot) || 0;
-    duties.push({ key: `${date}|h|${r.spec || ''}:${slot}`, date, src: 'hospital', spec: r.spec || '', time: r.time || '', slot });
+    duties.push({ key: `${date}|h|${r.spec || ''}:${slot}`, date, src: 'hospital', hosp: r.hosp, spec: r.spec || '', time: r.time || '', slot });
   }
-  let erMonth = null;
-  try { erMonth = JSON.parse((erRes.results[0] || {}).data || 'null'); } catch {}
-  if (erMonth && typeof erMonth === 'object') {
+  const hospitals = new Set((hospRes.results || []).map(h => h.id));
+  const erMonths = new Map();
+  for (const row of erRes.results || []) {
+    let month = null;
+    try { month = JSON.parse(row.data || 'null'); } catch {}
+    if (!month || typeof month !== 'object') continue;
+    const hosp = row.id === 'state' ? acc.hosp : row.id.replace(/^hosp_hub_emergency_sched_/, '').replace(/_\d{4}_\d{1,2}$/, '');
+    if (!hospitals.has(hosp) || (row.id === 'state' && erMonths.has(hosp))) continue;
+    erMonths.set(hosp, month);
+  }
+  // An ER schedule counts only in the hospitals whose ER list has this resident.
+  const inErList = new Set((erListRes.results || []).filter(r => matches(r.n)).map(r => r.h));
+  for (const [hosp, erMonth] of erMonths) {
+    if (!inErList.has(hosp) || await someoneElse(hosp)) continue;
     for (const [type, fields] of Object.entries(ER_SLOTS)) {
       for (const day of Array.isArray(erMonth[type]) ? erMonth[type] : []) {
         const date = isoDate(day && day.date);
         if (!date || !date.startsWith(ym)) continue;
         for (const f of fields) {
-          if (day[f] && keys.has(nameKey(day[f]))) duties.push({ key: `${date}|${type}|${f}`, date, src: 'er', type, slot: f });
+          if (day[f] && matches(day[f])) duties.push({ key: `${date}|${type}|${f}`, date, src: 'er', hosp, type, slot: f });
         }
       }
     }
@@ -176,7 +221,7 @@ async function collectDuties(env, acc, ym) {
   duties.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
   const marks = {};
   for (const k of marksRes.results || []) marks[k.dkey] = { kind: k.kind, flag: k.flag, flagText: k.flag_text, note: k.note, at: k.updated_at };
-  return { ok: true, ym, hosp: acc.hosp, name: acc.name, erName: er ? er.name : null, duties, marks };
+  return { ok: true, ym, hosp: acc.hosp, hospitals: [...new Set(duties.map(d => d.hosp))], name: acc.name, erName: er ? er.name : null, duties, marks };
 }
 
 // ---------------------------------------------------------------------------
@@ -267,7 +312,7 @@ async function dutyCalendar(env, url) {
   const text = (msg, status) => new Response(msg, { status, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
   const t = await verifyToken(env, url.searchParams.get('t') || '');
   if (!t || !t.cal || !YM_RE.test(t.ym || '') || !(t.e > Date.now())) return text('انتهت صلاحية رابط التقويم. افتح «جدولي» من جديد ثم اضغط الزر.', 403);
-  const acc = await env.DB.prepare("SELECT id, name, name_key, hosp, phone FROM accounts WHERE id = ? AND status = 'active'").bind(t.cal).first();
+  const acc = await env.DB.prepare("SELECT id, name, name_key, hosp, phone, resident_id FROM accounts WHERE id = ? AND status = 'active'").bind(t.cal).first();
   if (!acc) return text('الحساب غير متاح', 403);
   const data = await collectDuties(env, acc, t.ym);
   const names = {};

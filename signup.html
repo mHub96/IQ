@@ -351,6 +351,11 @@
             opacity: 0.6;
         }
         body.dark .footer-credit { border-color: #2a3346; }
+        .approval-note { display: flex; gap: 10px; align-items: flex-start; margin-top: 10px; padding: 10px 12px; border-radius: 14px; background: rgba(10, 132, 255, 0.08); border: 1px solid rgba(10, 132, 255, 0.3); color: #0a5fbf; font-size: 0.78rem; }
+        .approval-note span { display: grid; gap: 2px; }
+        .approval-note small { opacity: 0.85; line-height: 1.6; }
+        body.dark .approval-note { color: #6cb4ff; }
+        .my-exchanges-btn { width: 100%; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px; border-radius: 14px; border: 1px solid rgba(10, 132, 255, 0.35); background: transparent; color: #0a84ff; font: inherit; font-weight: 800; font-size: 0.85rem; cursor: pointer; }
     
         button:active, .btn:active, .tab-btn:active {
             transform: scale(0.97);
@@ -469,6 +474,16 @@
 
             <div id="status-msg" class="text-xs mt-3 text-center min-h-6"></div>
 
+            <!-- Exchange approval (per hospital): the exchange is a request to the duty holder, then the admin -->
+            <div id="approval-note" class="approval-note" style="display:none;">
+                <i class="fas fa-user-check"></i>
+                <span><b>نظام موافقة التبديل مفعّل في هذا المستشفى</b>
+                <small>يُرسل طلبك إلى صاحب الخفارة ليوافق، ثم إلى إدارة المستشفى، ويُثبَّت التبديل فور موافقة الإدارة.</small></span>
+            </div>
+            <button type="button" id="my-exchanges-btn" class="my-exchanges-btn" onclick="HubAccounts.openExchanges()" style="display:none;">
+                <i class="fas fa-list-check"></i> طلبات التبديل
+            </button>
+
             <div class="footer-credit">
                 All rights reserved for Dr. Mohammed Riyadh · Hospital Main Hub
             </div>
@@ -489,6 +504,27 @@
         let currentResidents = [];
         let matchingDuties = [];
         let selectedOldResidentName = null;
+        // Hospitals where exchanges need approval (residents send a request; admins still change directly).
+        let approvalOn = new Set();
+        const inDivision = new URLSearchParams(location.search).has('aa');
+        const needsApproval = hosp => !inDivision && approvalOn.has(hosp) && !['owner', 'admin'].includes(Hub.auth.getRole());
+        function applyApprovalMode() {
+            const hosp = document.getElementById('hosp-select').value;
+            const on = needsApproval(hosp);
+            document.getElementById('approval-note').style.display = on ? 'flex' : 'none';
+            document.getElementById('my-exchanges-btn').style.display = on || (!inDivision && approvalOn.size && ['owner', 'admin'].includes(Hub.auth.getRole())) ? 'flex' : 'none';
+            if (!on) return;
+            const btnText = document.getElementById('update-btn-text');
+            const btn = document.getElementById('update-btn');
+            if (!selectedOldResidentName) {
+                if (btnText) btnText.textContent = 'لا توجد خفارة لتبديلها (تسجيل الخفارات للإدارة)';
+                btn.dataset.blocked = '1';
+                btn.disabled = true;
+            } else {
+                if (btnText) btnText.textContent = `إرسال طلب التبديل مع ${selectedOldResidentName}`;
+                delete btn.dataset.blocked;
+            }
+        }
 
         function showToast(message, type = 'info', duration = 3000) {
             const container = document.getElementById('toast-container');
@@ -574,6 +610,8 @@
                 document.getElementById('selected-date-badge').textContent = isoToMedicalDate(todayIso);
 
                 populateSpecialties();
+                try { approvalOn = new Set((await Hub.api('GET', '/api/exchange/settings', undefined, { retries: 1 })).on || []); } catch (e) {}
+                applyApprovalMode();
 
             } catch (err) {
                 console.error(err);
@@ -759,6 +797,7 @@
                 if (btnTextEl) btnTextEl.textContent = `تأكيد التبديل مع ${selectedOldResidentName}`;
             }
 
+            applyApprovalMode();
             nameInput.focus();
         }
 
@@ -766,6 +805,7 @@
             selectedOldResidentName = document.getElementById('target-resident-select').value;
             document.getElementById('name-input-label').textContent = `اسم المقيم البديل (ليحل محل ${selectedOldResidentName}):`;
             document.getElementById('update-btn-text').textContent = `تأكيد التبديل مع ${selectedOldResidentName}`;
+            applyApprovalMode();
         }
 
         // Name Autocomplete Handlers
@@ -885,7 +925,7 @@
         function selectName(name) {
             document.getElementById('name-input').value = name;
             document.getElementById('ghost-text').innerHTML = '';
-            document.getElementById('update-btn').disabled = false;
+            document.getElementById('update-btn').disabled = !!document.getElementById('update-btn').dataset.blocked;
             document.getElementById('name-menu').style.display = 'none';
             document.getElementById('name-input').focus();
         }
@@ -913,6 +953,8 @@
 
             const formattedName = (name.startsWith('د.') || name.startsWith('د ')) ? name : `د. ${name}`;
 
+            if (needsApproval(hospId)) return sendExchangeRequest(hospId, specId, medDate, formattedName);
+
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> <span id="update-btn-text">جاري حفظ التبديل في السيرفر...</span>';
 
@@ -939,6 +981,33 @@
                 btn.innerHTML = '<i class="fas fa-check-circle ml-1"></i> <span id="update-btn-text">تأكيد وتثبيت تبديل الخفارة</span>';
                 inspectDutyAndRender();
             }
+        }
+
+        /** Approval on: the exchange becomes a request (duty holder, then the hospital's admins). */
+        async function sendExchangeRequest(hospId, specId, medDate, newName) {
+            const btn = document.getElementById('update-btn');
+            const msg = document.getElementById('status-msg');
+            if (!Hub.auth.getAccount()) { showToast('طلبات التبديل تحتاج حساباً شخصياً. سجّل الدخول بحسابك.', 'error'); return; }
+            if (!selectedOldResidentName) { showToast('لا توجد خفارة لتبديلها في هذا اليوم', 'error'); return; }
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> <span id="update-btn-text">جاري إرسال الطلب...</span>';
+            let result = '';
+            try {
+                const res = await Hub.api('POST', '/api/exchange/request', { h: hospId, date: medDate, spec: specId, oldName: selectedOldResidentName, newName }, { retries: 0 });
+                const to = res.status === 'owner_pending' ? `${selectedOldResidentName} ليوافق أولاً، ثم إلى الإدارة` : 'إدارة المستشفى للموافقة';
+                result = `<span style="color:#0a84ff;font-weight:700;">📨 أُرسل طلب التبديل إلى ${to}. سيصلك إشعار بالنتيجة.</span>`;
+                showToast('تم إرسال طلب التبديل ✓', 'success');
+                document.getElementById('name-input').value = '';
+            } catch (err) {
+                const code = err && err.data && err.data.error;
+                const text = ({ already_requested: 'يوجد طلب تبديل مفتوح لهذه الخفارة.', duty_not_found: 'تغيّرت هذه الخفارة في الجدول؛ حدّث الصفحة.', same_person: 'البديل هو صاحب الخفارة نفسه.', account_required: 'طلبات التبديل تحتاج حساباً شخصياً.', approval_off: 'أُوقف نظام الموافقة؛ حدّث الصفحة لتبدّل مباشرة.', rate_limited: 'طلبات كثيرة، انتظر قليلاً.' })[code] || err.message || 'تعذر إرسال الطلب';
+                result = `<span style="color:#ef4444;font-weight:700;">❌ ${text}</span>`;
+                showToast(text, 'error');
+            }
+            btn.innerHTML = '<i class="fas fa-check-circle ml-1"></i> <span id="update-btn-text"></span>';
+            btn.disabled = false;
+            inspectDutyAndRender();
+            msg.innerHTML = result;
         }
 
         window.addEventListener('DOMContentLoaded', initDutyExchange);

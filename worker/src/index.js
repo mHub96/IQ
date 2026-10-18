@@ -15,6 +15,7 @@
 import { DAY, json, signToken, verifyToken, encrypt, decrypt, bucketOf, neutralize } from './lib.js';
 import { routeAccounts, resolveAccountAuth, mirrorResident } from './accounts.js';
 import { routeDuties } from './duties.js';
+import { routeExchange, approvalHospitals } from './exchange.js';
 import { routeAA, isOfficer, AA_ROLES } from './aa.js';
 import { nameKey } from './names.js';
 import { dutyDayNow } from './profile.js';
@@ -76,6 +77,8 @@ async function route(request, env, ctx) {
   if (path === '/api/db' && method === 'GET') return readRecords(env, auth, url, false);
   const aaRoute = await routeAA(path, method, request, env, auth, url);
   if (aaRoute) return aaRoute;
+  const exchangeRoute = await routeExchange(path, method, request, env, auth, url, ctx);
+  if (exchangeRoute) return exchangeRoute;
   const dutiesRoute = await routeDuties(path, method, request, env, auth, url, ctx);
   if (dutiesRoute) return dutiesRoute;
   const accountRoute = await routeAccounts(path, method, request, env, auth, url, ctx);
@@ -338,10 +341,14 @@ async function sync(request, env, auth) {
   const by = auth.a ? `${auth.r}:${auth.name}` : auth.r;
   const msg = String(body.msg || '').slice(0, 300);
 
+  // Hospitals where residents' exchanges need approval: their roster writes go through /api/exchange.
+  const approval = ['user', 'anaesthesia'].includes(auth.r) && ops.some(op => op && op.c === 'sched')
+    ? new Set(await approvalHospitals(env)) : null;
   const puts = [], dels = [], ords = [], rejected = [], checks = [];
   ops.forEach((op, i) => {
     if (!op || typeof op.c !== 'string' || typeof op.id !== 'string' || !op.id) { rejected.push(i); return; }
     if (!allowed(auth, op)) { rejected.push(i); return; }
+    if (approval && op.c === 'sched' && approval.has(String(op.id).split(':')[0])) { rejected.push(i); return; }
     const bv = Number(op.bv) || 0;
     if (op.ordOnly) {
       ords.push({ c: op.c, id: op.id, o: Number(op.o) || 0 });

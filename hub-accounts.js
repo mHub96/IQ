@@ -326,6 +326,14 @@
                 return { icon: '⭐', text: `تم تغيير صلاحياتك إلى: ${ROLE_NAMES[d.role] || d.role}` };
             case 'warning':
                 return { icon: '⚠️', text: `تحذير من ${d.role === 'owner' ? 'المالك' : 'إدارة المستشفى'} بسبب تعليقك على بطاقة ${d.name || ''}${when}: «${d.text || ''}»${d.note ? ' – ' + d.note : ''}`, open: () => openThread({ h: d.h, d: isoToLocal(d.d), n: d.name }, 'comments') };
+            case 'exchange_request':
+                return { icon: '🔁', text: `${d.by || 'أحد الزملاء'} يطلب تبديل خفارتك يوم ${d.date || ''} (${hospitalName(d.h)}) إلى ${d.newName || ''}. اضغط للموافقة أو الرفض.`, open: () => openExchanges() };
+            case 'exchange_admin':
+                return { icon: '🔁', text: `طلب تبديل بانتظار موافقتك: ${d.date || ''} · ${d.oldName || ''} ← ${d.newName || ''}${d.ownerApproved ? ' (وافق صاحب الخفارة)' : ''}`, open: () => openExchanges() };
+            case 'exchange_result': {
+                const head = { approved: d.holder ? 'تم تبديل خفارتك' : 'تمت الموافقة وتبديل الخفارة', owner_approved: 'وافق صاحب الخفارة، والطلب بانتظار الإدارة', owner_rejected: 'رفض صاحب الخفارة طلب التبديل', admin_rejected: 'رفضت الإدارة طلب التبديل' }[d.step] || 'طلب التبديل';
+                return { icon: d.step === 'approved' ? '✅' : d.step === 'owner_approved' ? '👍' : '❌', text: `${head}: ${d.date || ''} · ${d.oldName || ''} ← ${d.newName || ''}${d.note ? ' · «' + d.note + '»' : ''}`, open: () => openExchanges() };
+            }
             case 'comments_barred':
                 return { icon: '🚫', text: 'تم إيقاف التعليق لحسابك من قبل الإدارة.' };
             case 'comments_allowed':
@@ -343,11 +351,15 @@
     function openNotifications() {
         const sheet = openSheet(`<header class="hacc-sheet-head">
                 <h2>الإشعارات</h2>
-                <button type="button" class="hacc-link" data-act="all-read">تعليم الكل كمقروء</button>
+                <span class="hacc-notif-head-acts">
+                    <button type="button" class="hacc-link" data-act="all-read">تعليم الكل كمقروء</button>
+                    <button type="button" class="hacc-link danger" data-act="clear-all">مسح الكل</button>
+                </span>
             </header>
             <div class="hacc-sheet-body" data-role="list"><div class="hacc-empty">جاري التحميل…</div></div>`, { label: 'الإشعارات' });
         openSheetEl.dataset.kind = 'notifications';
         sheet.querySelector('[data-act="all-read"]').addEventListener('click', markAllRead);
+        sheet.querySelector('[data-act="clear-all"]').addEventListener('click', () => clearNotifications(null));
         renderNotificationList(sheet);
         pollNotifications();
     }
@@ -356,6 +368,12 @@
         const list = sheet.querySelector('[data-role="list"]');
         const parts = [];
         const p = notif.pending;
+        if (p && p.exchanges) {
+            parts.push(`<button type="button" class="hacc-pending" data-act="exchanges">
+                <span class="hacc-pending-icon">🔁</span>
+                <span>${p.exchanges} طلب تبديل خفارة بانتظار موافقتك</span>
+                <span class="hacc-chevron" aria-hidden="true">‹</span></button>`);
+        }
         if (p && (p.accounts || p.resets)) {
             parts.push(`<a class="hacc-pending" href="./account.html#manage">
                 <span class="hacc-pending-icon">🛡️</span>
@@ -373,12 +391,16 @@
         if (!notif.items.length && account()) parts.push('<div class="hacc-empty">لا توجد إشعارات بعد</div>');
         notif.items.forEach((n, i) => {
             const d = describe(n);
-            parts.push(`<button type="button" class="hacc-notif ${n.seen ? '' : 'unread'}" data-i="${i}">
+            parts.push(`<div class="hacc-notif-row"><button type="button" class="hacc-notif ${n.seen ? '' : 'unread'}" data-i="${i}">
                 <span class="hacc-notif-icon" aria-hidden="true">${d.icon}</span>
                 <span class="hacc-notif-main"><span class="hacc-notif-text">${esc(d.text)}</span>
-                <time class="hacc-notif-time">${esc(timeAgo(n.ts))}</time></span></button>`);
+                <time class="hacc-notif-time">${esc(timeAgo(n.ts))}</time></span></button>
+                <button type="button" class="hacc-notif-del" data-del="${i}" aria-label="مسح هذا الإشعار" title="مسح">✕</button></div>`);
         });
         list.innerHTML = parts.join('');
+        list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => clearNotifications([notif.items[Number(b.dataset.del)]])));
+        const xBtn = list.querySelector('[data-act="exchanges"]');
+        if (xBtn) xBtn.addEventListener('click', () => { closeSheet(); setTimeout(openExchanges, 260); });
         const pushBtn = list.querySelector('[data-act="push-on"]');
         if (pushBtn) pushBtn.addEventListener('click', async () => {
             pushBtn.disabled = true;
@@ -400,6 +422,93 @@
         notif.unread = notif.items.filter(n => !n.seen).length;
         paintBells();
         try { await Hub.api('POST', '/api/notifications/seen', { nids }, { retries: 0 }); } catch (e) {}
+    }
+
+    /** Removes the given notifications (null: all of them) from this account. */
+    async function clearNotifications(items) {
+        if (!items && notif.items.length && !confirm('مسح كل الإشعارات؟')) return;
+        const gone = new Set((items || notif.items).map(n => n.nid));
+        notif.items = notif.items.filter(n => !gone.has(n.nid));
+        notif.unread = notif.items.filter(n => !n.seen).length;
+        paintBells();
+        if (openSheetEl && openSheetEl.dataset.kind === 'notifications') renderNotificationList(openSheetEl.querySelector('.hacc-sheet'));
+        try { await Hub.api('POST', '/api/notifications/clear', items ? { nids: [...gone] } : {}, { retries: 1 }); } catch (e) { toast(errorText(e), 'error'); }
+    }
+
+    // ------------------------------------------------------------------
+    // Duty exchange requests (hospitals with exchange approval on)
+    // ------------------------------------------------------------------
+    const XSTATUS = {
+        owner_pending: ['⏳', 'بانتظار موافقة صاحب الخفارة'], admin_pending: ['🛡️', 'بانتظار موافقة الإدارة'],
+        approved: ['✅', 'تمت الموافقة وتبديل الخفارة'], rejected: ['❌', 'مرفوض'], cancelled: ['↩️', 'ملغى'],
+    };
+    async function openExchanges() {
+        const sheet = openSheet(`<header class="hacc-sheet-head">
+                <div><h2>طلبات تبديل الخفارات</h2><div class="hacc-muted">الموافقة على الطلبات ومتابعة طلباتك</div></div>
+                <button type="button" class="hacc-icon-btn" data-act="close" aria-label="إغلاق">✕</button>
+            </header>
+            <div class="hacc-sheet-body" data-role="list"><div class="hacc-empty">جاري التحميل…</div></div>`, { label: 'طلبات تبديل الخفارات' });
+        openSheetEl.dataset.kind = 'exchanges';
+        sheet.querySelector('[data-act="close"]').addEventListener('click', closeSheet);
+        const list = sheet.querySelector('[data-role="list"]');
+        let items = [];
+        const card = (r, acts) => {
+            const [icon, label] = XSTATUS[r.status] || ['🔁', r.status];
+            const spec = (Hub.getSpecialtyName && Hub.getSpecialtyName(r.spec, r.hosp)) || r.spec;
+            return `<article class="hx-card st-${esc(r.status)}" data-id="${r.id}">
+                <div class="hx-top"><b>${esc(r.date)}</b> · ${esc(spec)} · <span class="hacc-muted">${esc(hospitalName(r.hosp))}</span></div>
+                <div class="hx-swap"><span>${esc(r.oldName)}</span><i class="fas fa-arrow-left"></i><span>${esc(r.newName)}</span></div>
+                <div class="hx-meta">${r.mine ? 'طلبك' : `طلب ${esc(r.requester || '')}`} · ${esc(timeAgo(r.created))}</div>
+                <div class="hx-status">${icon} ${esc(label)}${r.ownerNote ? ` · صاحب الخفارة: «${esc(r.ownerNote)}»` : ''}${r.note ? ` · الإدارة: «${esc(r.note)}»` : ''}</div>
+                ${acts ? `<div class="hx-acts">${acts}</div>` : ''}
+            </article>`;
+        };
+        const paint = () => {
+            const mineToDecide = items.filter(r => r.canOwnerDecide);
+            const adminToDecide = items.filter(r => r.canAdminDecide);
+            const mine = items.filter(r => r.mine);
+            const recent = items.filter(r => !r.mine && !r.canOwnerDecide && !r.canAdminDecide);
+            const decide = '<button type="button" class="hacc-btn sm primary" data-act="approve">موافقة</button><button type="button" class="hacc-btn sm danger" data-act="reject">رفض</button>';
+            const section = (title, arr, acts) => arr.length ? `<h3 class="hx-h">${title} <span class="hacc-chip">${arr.length}</span></h3>${arr.map(r => card(r, acts(r))).join('')}` : '';
+            const html = section('بانتظار موافقتك على خفارتك', mineToDecide, () => decide)
+                + section('بانتظار موافقة الإدارة', adminToDecide, () => decide)
+                + section('طلباتي', mine, r => r.canCancel ? '<button type="button" class="hacc-btn sm" data-act="cancel">إلغاء الطلب</button>' : '')
+                + section('طلبات أخرى حديثة', recent, () => '');
+            list.innerHTML = html || '<div class="hacc-empty">لا توجد طلبات تبديل.</div>';
+            list.querySelectorAll('.hx-card [data-act]').forEach(b => b.addEventListener('click', () => act(Number(b.closest('.hx-card').dataset.id), b.dataset.act, b)));
+        };
+        const act = async (id, what, btn) => {
+            const r = items.find(x => x.id === id);
+            let note = '';
+            if (what === 'reject') {
+                const t = prompt('سبب الرفض (يصل إلى صاحب الطلب):', '');
+                if (t === null) return;
+                note = t.trim();
+            } else if (what === 'approve') {
+                if (!confirm(r.canAdminDecide ? `الموافقة وتثبيت التبديل الآن؟\n${r.date}: ${r.oldName} ← ${r.newName}` : `الموافقة على تبديل خفارتك يوم ${r.date} إلى ${r.newName}؟\nيُرسل بعدها إلى الإدارة.`)) return;
+            } else if (what === 'cancel' && !confirm('إلغاء طلب التبديل؟')) return;
+            btn.disabled = true;
+            try {
+                if (what === 'cancel') await Hub.api('POST', '/api/exchange/cancel', { id }, { retries: 0 });
+                else await Hub.api('POST', '/api/exchange/decide', { id, approve: what === 'approve', note }, { retries: 0 });
+                toast({ approve: r.canAdminDecide ? 'تم تثبيت التبديل ✓' : 'تمت موافقتك، والطلب عند الإدارة ✓', reject: 'تم رفض الطلب', cancel: 'تم إلغاء الطلب' }[what], 'success');
+                if (what === 'approve' && r.canAdminDecide && Hub.loadDatabase) Hub.loadDatabase(true).catch(() => {});
+                await load();
+                pollNotifications();
+            } catch (err) {
+                btn.disabled = false;
+                const code = err && err.data && err.data.error;
+                toast(({ duty_changed: 'تغيّرت هذه الخفارة في الجدول؛ رُفض الطلب تلقائياً.', already_decided: 'سبق اتخاذ قرار في هذا الطلب.' })[code] || errorText(err), 'error');
+                if (code) load();
+            }
+        };
+        const load = async () => {
+            try {
+                items = (await Hub.api('GET', '/api/exchange', undefined, { retries: 1 })).requests || [];
+                if (openSheetEl && openSheetEl.dataset.kind === 'exchanges') paint();
+            } catch (err) { list.innerHTML = `<div class="hacc-empty">${esc(errorText(err))}</div>`; }
+        };
+        await load();
     }
 
     async function markAllRead() {
@@ -960,6 +1069,7 @@
         const m = location.hash.match(/^#panel=(\w+)$/);
         if (!m || !account()) return;
         history.replaceState(null, '', location.pathname + location.search);
+        if (m[1] === 'exchanges') { setTimeout(openExchanges, 400); return; }
         setTimeout(() => openPanel(m[1] === 'schedule' ? 'portal' : m[1]), 400);
     }
 
@@ -1114,6 +1224,7 @@
         pollNotifications,
         decorate,
         openThread,
+        openExchanges,
         toast,
         esc,
         timeAgo,

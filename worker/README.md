@@ -146,6 +146,7 @@ npx wrangler d1 execute hosp-hub --remote --file migrations/0005_visit_cooldown.
 npx wrangler d1 execute hosp-hub --remote --file migrations/0007_my_schedule_er_portal.sql  # once (additive)
 npx wrangler d1 execute hosp-hub --remote --file migrations/0008_admin_affairs.sql  # once (additive)
 npx wrangler d1 execute hosp-hub --remote --file migrations/0009_comment_moderation.sql  # once (additive)
+npx wrangler d1 execute hosp-hub --remote --file migrations/0010_exchange_requests.sql  # once (additive)
 ```
 
 Apply a new migration **before** deploying Worker code that uses it, and check it succeeded. If `--file`

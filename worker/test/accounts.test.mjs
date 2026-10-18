@@ -601,6 +601,99 @@ test('account users keep the same duty permissions', async () => {
   assert.deepEqual(r.data.rejected, [0], 'plain user cannot edit residents');
 });
 
+test('duty exchange approval: holder, then admin; rejections with feedback; direct changes refused while on', async () => {
+  const all = async () => {
+    let after = 0, out = [], page;
+    do { page = (await call('GET', `/api/db?after=${after}`, { token: state.owner })).data; out = out.concat(page.rows); after = page.last; } while (page.more);
+    return out;
+  };
+  const rows = await all();
+  const ofB = rows.filter(r => r[0] === 'sched' && r[2] === hospital.id && r[5].name === resB.name);
+  const accNames = new Set([resA.name, resB.name, resC.name].map(nameKey));
+  const noAccount = rows.find(r => r[0] === 'sched' && r[2] === hospital.id && r[5].name && !accNames.has(nameKey(r[5].name)) && !/RESERVE/.test(r[5].name));
+  assert.ok(ofB.length >= 2 && noAccount, 'duties to exchange');
+  const req = (tok, entry, newName) => call('POST', '/api/exchange/request', { token: tok, body: { h: hospital.id, date: entry[5].date, spec: entry[5].specCode, oldName: entry[5].name, newName } });
+
+  // Off by default: free exchange, and requests are refused.
+  assert.equal((await call('GET', '/api/exchange/settings', { token: state.tokB })).data.on.includes(hospital.id), false);
+  assert.equal((await req(state.tokC, ofB[0], resC.name)).data.error, 'approval_off');
+  // Only the hospital's admins (or the owner) switch it.
+  assert.equal((await call('POST', '/api/exchange/settings', { token: state.tokB, body: { hosp: hospital.id, on: true } })).status, 403);
+  assert.equal((await call('POST', '/api/exchange/settings', { token: state.tokA, body: { hosp: otherHospital.id, on: true } })).status, 403);
+  assert.ok((await call('POST', '/api/exchange/settings', { token: state.tokA, body: { hosp: hospital.id, on: true } })).data.on.includes(hospital.id));
+
+  // Residents cannot change the roster directly any more.
+  const e0 = ofB[0];
+  const direct = await call('POST', '/api/sync', { token: state.tokC, body: { msg: 'x', ops: [{ c: 'sched', id: e0[1], h: e0[2], o: e0[3], bv: e0[4], d: { ...e0[5], name: resC.name } }] } });
+  assert.deepEqual(direct.data.rejected, [0]);
+  // Shared-password sessions have no account to follow a request.
+  assert.equal((await req(state.user, e0, resC.name)).data.error, 'account_required');
+
+  // 1. C asks for B's duty: B decides first.
+  const r1 = await req(state.tokC, e0, resC.name);
+  assert.equal(r1.data.status, 'owner_pending');
+  assert.equal((await req(state.tokC, e0, resC.name)).data.error, 'already_requested');
+  assert.ok((await call('GET', '/api/notifications', { token: state.tokB })).data.items.some(n => n.type === 'exchange_request' && n.data.id === r1.data.id));
+  assert.equal((await call('POST', '/api/exchange/decide', { token: state.tokA, body: { id: r1.data.id, approve: true } })).status, 403, 'the admin waits for the holder');
+  const forB = (await call('GET', '/api/exchange', { token: state.tokB })).data.requests.find(r => r.id === r1.data.id);
+  assert.equal(forB.canOwnerDecide, true);
+  assert.equal((await call('POST', '/api/exchange/decide', { token: state.tokB, body: { id: r1.data.id, approve: true } })).data.status, 'admin_pending');
+  assert.ok((await call('GET', '/api/notifications', { token: state.tokC })).data.items.some(n => n.type === 'exchange_result' && n.data.step === 'owner_approved'));
+  const adminList = await call('GET', '/api/notifications', { token: state.tokA });
+  assert.ok(adminList.data.items.some(n => n.type === 'exchange_admin'));
+  assert.ok(adminList.data.pending.exchanges >= 1);
+  // 2. The admin approves: the roster changes at once.
+  assert.equal((await call('POST', '/api/exchange/decide', { token: state.tokA, body: { id: r1.data.id, approve: true, note: 'تمت' } })).data.status, 'approved');
+  const changed = (await all()).find(r => r[0] === 'sched' && r[1] === e0[1]);
+  assert.equal(changed[5].name, resC.name);
+  assert.equal(changed[4], e0[4] + 1);
+  const resC1 = (await call('GET', '/api/notifications', { token: state.tokC })).data.items.find(n => n.type === 'exchange_result' && n.data.id === r1.data.id);
+  assert.equal(resC1.data.step, 'approved');
+  assert.ok((await call('GET', '/api/notifications', { token: state.tokB })).data.items.some(n => n.type === 'exchange_result' && n.data.holder));
+
+  // The holder rejects: the requester hears why.
+  const r2 = await req(state.tokC, ofB[1], resC.name);
+  await call('POST', '/api/exchange/decide', { token: state.tokB, body: { id: r2.data.id, approve: false, note: 'لدي ظرف' } });
+  const no = (await call('GET', '/api/exchange', { token: state.tokC })).data.requests.find(r => r.id === r2.data.id);
+  assert.equal(no.status, 'rejected');
+  assert.equal(no.ownerNote, 'لدي ظرف');
+  assert.equal((await all()).find(r => r[1] === ofB[1][1])[5].name, resB.name, 'roster unchanged');
+
+  // A duty holder without an account: straight to the admin, who rejects it.
+  const r3 = await req(state.tokC, noAccount, resC.name);
+  assert.equal(r3.data.status, 'admin_pending');
+  assert.equal((await call('POST', '/api/exchange/decide', { token: state.tokB, body: { id: r3.data.id, approve: true } })).status, 403);
+  await call('POST', '/api/exchange/decide', { token: state.tokA, body: { id: r3.data.id, approve: false, note: 'لا' } });
+  assert.ok((await call('GET', '/api/notifications', { token: state.tokC })).data.items.some(n => n.type === 'exchange_result' && n.data.step === 'admin_rejected' && n.data.note === 'لا'));
+  // The requester withdraws a request.
+  const r4 = await req(state.tokC, noAccount, resC.name);
+  assert.equal((await call('POST', '/api/exchange/cancel', { token: state.tokB, body: { id: r4.data.id } })).status, 403);
+  assert.equal((await call('POST', '/api/exchange/cancel', { token: state.tokC, body: { id: r4.data.id } })).data.ok, true);
+
+  // Off again: residents change the roster directly.
+  await call('POST', '/api/exchange/settings', { token: state.owner, body: { hosp: hospital.id, on: false } });
+  const e1 = (await all()).find(r => r[1] === ofB[1][1]);
+  const free = await call('POST', '/api/sync', { token: state.tokC, body: { msg: 'x', ops: [{ c: 'sched', id: e1[1], h: e1[2], o: e1[3], bv: e1[4], d: { ...e1[5], note: 'free' } }] } });
+  assert.equal(free.data.applied.length, 1);
+});
+
+test('notifications: clear one, or all', async () => {
+  const before = (await call('GET', '/api/notifications', { token: state.tokC })).data.items;
+  assert.ok(before.length >= 2);
+  await call('POST', '/api/notifications/clear', { token: state.tokC, body: { nids: [before[0].nid] } });
+  const mid = (await call('GET', '/api/notifications', { token: state.tokC })).data.items;
+  assert.equal(mid.length, before.length - 1);
+  assert.ok(!mid.some(n => n.nid === before[0].nid));
+  // Someone else's notification ids do nothing.
+  const forB = (await call('GET', '/api/notifications', { token: state.tokB })).data.items;
+  await call('POST', '/api/notifications/clear', { token: state.tokC, body: { nids: forB.map(n => n.nid) } });
+  assert.equal((await call('GET', '/api/notifications', { token: state.tokB })).data.items.length, forB.length);
+  await call('POST', '/api/notifications/clear', { token: state.tokC, body: {} });
+  const after = await call('GET', '/api/notifications', { token: state.tokC });
+  assert.equal(after.data.items.length, 0);
+  assert.equal(after.data.unread, 0);
+});
+
 test('cleanup: owner deletes the test accounts', async () => {
   // The hospital's admin (A) deletes a resident of their hospital, the owner the rest.
   assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idC, action: 'delete' } })).data.ok, true);

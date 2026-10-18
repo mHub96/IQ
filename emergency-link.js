@@ -348,7 +348,7 @@
         .erl-badge.linked { background: rgba(16, 185, 129, 0.12); color: #059669; }
         .erl-badge.unlinked { background: rgba(239, 68, 68, 0.12); color: #dc2626; cursor: pointer; }
         .resident-name-cell input[readonly] { cursor: default; }
-        .erl-modal { position: fixed; inset: 0; z-index: 90; background: rgba(15, 23, 42, 0.55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+        .erl-modal { position: fixed; inset: 0; z-index: 2147483000; background: rgba(15, 23, 42, 0.55); display: flex; align-items: center; justify-content: center; padding: 16px; }
         .erl-card { width: 100%; max-width: 620px; max-height: 88vh; display: flex; flex-direction: column; background: #fff; color: #0f172a; border-radius: 22px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
         html.dark .erl-card { background: #0f172a; color: #e2e8f0; }
         .erl-card header { display: flex; gap: 10px; align-items: flex-start; padding: 16px; border-bottom: 1px solid rgba(148,163,184,.25); }

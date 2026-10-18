@@ -72,6 +72,7 @@ export async function routeAccounts(path, method, request, env, auth, url, ctx) 
     case 'POST /api/accounts/decide': return decide(request, env, auth, ctx);
     case 'GET /api/notifications': return listNotifications(env, auth, url);
     case 'POST /api/notifications/seen': return markSeen(request, env, auth);
+    case 'POST /api/notifications/clear': return clearNotifications(request, env, auth);
     case 'GET /api/social/thread': return thread(env, auth, url);
     case 'GET /api/social/recent': return recentComments(env, auth, url);
     case 'POST /api/social/like': return like(request, env, auth, ctx);
@@ -404,7 +405,7 @@ async function signupOfficer(request, env, ip, ctx) {
 const RETURNING = 'RETURNING account_id, type, data, gkey';
 
 /** Notification for every active owner account and every admin account of `hosp`. */
-function notifyApprovers(env, hosp, gkey, type, data, now) {
+export function notifyApprovers(env, hosp, gkey, type, data, now) {
   return env.DB.prepare(
     `INSERT INTO notifications (account_id, gkey, type, data, ts, seen)
      SELECT id, ?1, ?2, ?3, ?4, 0 FROM accounts
@@ -425,7 +426,7 @@ export function notifyHospitalResidents(env, hosp, gkey, type, data, now) {
   ).bind(gkey, type, data, now, hosp);
 }
 
-function notifyOne(env, accountId, gkey, type, data, now) {
+export function notifyOne(env, accountId, gkey, type, data, now) {
   return env.DB.prepare(
     `INSERT INTO notifications (account_id, gkey, type, data, ts, seen) VALUES (?1, ?2, ?3, ?4, ?5, 0)
      ON CONFLICT (account_id, gkey) DO UPDATE SET data = excluded.data, ts = excluded.ts, seen = 0
@@ -458,6 +459,13 @@ function pushMessage(n) {
     case 'account_approved': return { title: '✅ تم تفعيل حسابك', body: 'أهلاً بك في بوابة المستشفيات!', url: './index.html?portal=true' };
     case 'reset_approved': return { title: '🔓 تمت الموافقة', body: 'يمكنك الآن اختيار كلمة مرور جديدة.', url: './account.html#forgot' };
     case 'role_changed': return { title: '⭐ تغيّرت صلاحياتك', body: `صلاحيتك الآن: ${ROLE_AR[d.role] || d.role || ''}`, url: './account.html' };
+    case 'exchange_request': return { title: '🔁 طلب تبديل خفارتك', body: `${d.by || 'أحد الزملاء'}: خفارة ${d.date || ''} إلى ${d.newName || ''}. وافق أو ارفض.`, url: './index.html?portal=true#panel=exchanges' };
+    case 'exchange_admin': return { title: '🔁 طلب تبديل بانتظار موافقتك', body: `${d.date || ''}: ${d.oldName || ''} ← ${d.newName || ''}`, url: './index.html?portal=true#panel=exchanges' };
+    case 'exchange_result': return {
+      title: { approved: '✅ تم تبديل الخفارة', owner_approved: '👍 وافق صاحب الخفارة', owner_rejected: '❌ رُفض طلب التبديل', admin_rejected: '❌ رفضت الإدارة طلب التبديل' }[d.step] || '🔁 طلب التبديل',
+      body: `خفارة ${d.date || ''}: ${d.oldName || ''} ← ${d.newName || ''}${d.note ? ' · ' + d.note : ''}`,
+      url: './index.html?portal=true#panel=exchanges',
+    };
     case 'warning': return { title: '⚠️ تحذير من الإدارة', body: `بسبب تعليقك: «${d.text || ''}»${d.note ? ' – ' + d.note : ''}`, url: card };
     case 'comments_barred': return { title: '🚫 تم إيقاف التعليق لحسابك', body: 'لا يمكنك التعليق على بطاقات الخفارات حالياً.', url: './index.html?portal=true' };
     case 'comments_allowed': return { title: '💬 يمكنك التعليق مجدداً', body: 'أُعيد السماح بالتعليق لحسابك.', url: './index.html?portal=true' };
@@ -1059,7 +1067,8 @@ async function listNotifications(env, auth, url) {
     const scope = seesAll(auth) ? '' : ' AND hosp IN (SELECT value FROM json_each(?1))';
     stmts.push(env.DB.prepare(
       `SELECT (SELECT COUNT(*) FROM accounts WHERE status = 'pending'${scope}) AS accounts,
-              (SELECT COUNT(*) FROM accounts WHERE reset = 'requested'${scope}) AS resets`
+              (SELECT COUNT(*) FROM accounts WHERE reset = 'requested'${scope}) AS resets,
+              (SELECT COUNT(*) FROM exchange_requests WHERE status = 'admin_pending'${scope}) AS exchanges`
     ).bind(...(seesAll(auth) ? [] : [JSON.stringify(auth.h || [])])));
   }
   if (auth.a) {
@@ -1073,6 +1082,19 @@ async function listNotifications(env, auth, url) {
   const unread = auth.a ? res[i++].results[0].n : 0;
   const pending = canApprove(auth) ? res[i++].results[0] : null;
   return json({ ok: true, items, unread, pending, time: now });
+}
+
+/** Body: { nids: [..] } removes those notifications of this account, {} removes them all. */
+async function clearNotifications(request, env, auth) {
+  if (!auth.a) return json({ ok: true });
+  const body = await readJson(request) || {};
+  if (Array.isArray(body.nids)) {
+    await env.DB.prepare('DELETE FROM notifications WHERE account_id = ?1 AND nid IN (SELECT value FROM json_each(?2))')
+      .bind(auth.a, JSON.stringify(body.nids.map(Number).slice(0, 200))).run();
+  } else {
+    await env.DB.prepare('DELETE FROM notifications WHERE account_id = ?').bind(auth.a).run();
+  }
+  return json({ ok: true });
 }
 
 async function markSeen(request, env, auth) {

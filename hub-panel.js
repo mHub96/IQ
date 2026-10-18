@@ -322,76 +322,118 @@
     // Administrative sector (owner): every owner tool in one place
     // ------------------------------------------------------------------
     /** A hospital admin's panel: their hospital's accounts and comments. */
+    // Tiles shared by the owner's and the hospital admins' tabs: the per-hospital settings view and the
+    // duty exchange requests.
+    const HOSPITAL_TOOLS = [
+        ['fa-sliders', 'إعدادات المستشفيات', 'التعليقات، والتعليق المجهول، وموافقة تبديل الخفارات لكل مستشفى', { view: 'hospital-settings' }],
+        ['fa-right-left', 'طلبات تبديل الخفارات', 'الطلبات بانتظار موافقتك في المستشفيات التي فعّلت نظام الموافقة', { open: 'exchanges' }],
+    ];
+    function tileHtml([icon, label, sub, act]) {
+        const inner = `<i class="fas ${icon}"></i><span><b>${label}</b><small>${sub}</small></span>`;
+        if (act.href) return `<a class="hp-admin-tile" href="${act.href}">${inner}</a>`;
+        if (act.view) return `<button type="button" class="hp-admin-tile" data-view="${act.view}">${inner}</button>`;
+        if (act.open) return `<button type="button" class="hp-admin-tile" data-open="${act.open}">${inner}</button>`;
+        return `<button type="button" class="hp-admin-tile" data-fn="${act.fn}">${inner}</button>`;
+    }
+    function bindTiles(body) {
+        body.querySelectorAll('[data-fn]').forEach(b => b.addEventListener('click', () => A.adminAction(b.dataset.fn)));
+        body.querySelectorAll('[data-view="hospital-settings"]').forEach(b => b.addEventListener('click', () => renderHospitalSettings(body)));
+        body.querySelectorAll('[data-open="exchanges"]').forEach(b => b.addEventListener('click', () => { A.closeSheet(); setTimeout(() => A.openExchanges(), 260); }));
+    }
+
+    /** A hospital admin's panel: their hospital's accounts, comments and settings. */
     function renderHospitalAdmin(body) {
         const lead = `<a class="hp-admin-lead" href="./account.html#manage-all"><i class="fas fa-users-gear"></i><span><b>حسابات مستشفاي</b><small>مراجعة حسابات المقيمين: السماح بالتعليق أو منعه، وحذف الحساب</small></span><i class="fas fa-chevron-left"></i></a>`;
         const items = [
-            ['fa-user-check', 'طلبات الحسابات', 'الموافقة على طلبات الحسابات الجديدة أو رفضها', './account.html#manage'],
-            ['fa-key', 'طلبات كلمات المرور', 'السماح للأطباء بتغيير كلمات مرورهم', './account.html#manage-resets'],
-            ['fa-comments', 'مراجعة التعليقات', 'تعليقات مستشفاك، مع الاسم الحقيقي للمجهولين', './account.html#manage-comments'],
+            ['fa-user-check', 'طلبات الحسابات', 'الموافقة على طلبات الحسابات الجديدة أو رفضها', { href: './account.html#manage' }],
+            ['fa-key', 'طلبات كلمات المرور', 'السماح للأطباء بتغيير كلمات مرورهم', { href: './account.html#manage-resets' }],
+            ['fa-comments', 'مراجعة التعليقات', 'تعليقات مستشفاك، مع الاسم الحقيقي للمجهولين', { href: './account.html#manage-comments' }],
         ];
-        body.innerHTML = lead + `<section class="hp-section"><h3>الحسابات والتعليقات</h3><div class="hp-admin-grid">${items.map(([icon, label, sub, href]) =>
-            `<a class="hp-admin-tile" href="${href}"><i class="fas ${icon}"></i><span><b>${label}</b><small>${sub}</small></span></a>`).join('')}</div></section>
-            <section class="hp-section" data-role="comment-switches"></section>`;
-        renderCommentSwitches(body.querySelector('[data-role="comment-switches"]'));
+        body.innerHTML = lead + `<section class="hp-section"><h3>الحسابات والتعليقات</h3><div class="hp-admin-grid">${items.map(tileHtml).join('')}</div></section>
+            <section class="hp-section"><h3>المستشفى</h3><div class="hp-admin-grid">${HOSPITAL_TOOLS.map(tileHtml).join('')}</div></section>`;
+        bindTiles(body);
     }
 
-    /** Commenting on or off per hospital (owner: every hospital; an admin: their own). */
-    async function renderCommentSwitches(box) {
-        box.innerHTML = '<h3>التعليقات في المستشفيات</h3><div class="hacc-empty">جاري التحميل…</div>';
-        let off = [], anonOff = [], scope = [];
+    /**
+     * Per-hospital settings (owner: every hospital; an admin: their own), opened from the tab so the tab
+     * stays short however many hospitals there are: commenting, anonymous commenting, exchange approval.
+     */
+    async function renderHospitalSettings(body) {
+        body.scrollTop = 0;
+        body.innerHTML = `<div class="hp-sub-head"><button type="button" class="hacc-btn sm" data-act="back"><i class="fas fa-chevron-right"></i> رجوع</button><h3>إعدادات المستشفيات</h3></div>
+            <div class="hacc-empty">جاري التحميل…</div>`;
+        body.querySelector('[data-act="back"]').addEventListener('click', () => show('admin'));
+        let off = [], anonOff = [], approval = [], scope = [];
         try {
-            const res = await Hub.api('GET', '/api/social/hospitals', undefined, { retries: 1 });
-            off = res.off || [];
-            anonOff = res.anonOff || [];
-            scope = res.scope || [];
+            const [c, x] = await Promise.all([
+                Hub.api('GET', '/api/social/hospitals', undefined, { retries: 1 }),
+                Hub.api('GET', '/api/exchange/settings', undefined, { retries: 1 }),
+            ]);
+            off = c.off || []; anonOff = c.anonOff || []; scope = c.scope || []; approval = x.on || [];
         } catch (err) {
-            box.innerHTML = `<h3>التعليقات في المستشفيات</h3><div class="hacc-empty">${esc(errorText(err))}</div>`;
+            body.querySelector('.hacc-empty').textContent = errorText(err);
             return;
         }
+        if (tab !== 'admin' || !body.isConnected) return;
         const hospitals = Hub.getHospitals().filter(h => scope.includes('*') || scope.includes(h.id));
-        const paint = () => {
-            box.innerHTML = `<h3>التعليقات في المستشفيات</h3>
-                <p class="hacc-muted hp-switch-note">عند الإيقاف لا يستطيع أحد التعليق على بطاقات خفارات المستشفى${Hub.auth.isOwner() ? ' (عدا المالك)' : ''}، وتبقى التعليقات السابقة ظاهرة. ومع إيقاف «المجهول» تكون كل التعليقات الجديدة بالاسم الحقيقي.</p>
-                <ul class="hp-switches">${hospitals.map(h => {
-                    const on = !off.includes(h.id);
-                    const anon = !anonOff.includes(h.id);
-                    return `<li data-h="${esc(h.id)}"><span class="hp-switch-name">${esc(h.name_ar || h.hospitalName || h.id)}</span>
-                        <span class="hp-switch-row"><span class="hp-switch-label">💬 التعليقات</span>
-                        <span class="hacc-chip ${on ? 'on' : 'off'}">${on ? 'مفعّلة' : 'متوقفة'}</span>
-                        <button type="button" class="hacc-btn sm ${on ? 'danger' : 'primary'}" data-act="toggle">${on ? 'إيقاف' : 'تفعيل'}</button></span>
-                        <span class="hp-switch-row"><span class="hp-switch-label">🕶️ التعليق المجهول</span>
-                        <span class="hacc-chip ${anon ? 'on' : 'off'}">${anon ? 'مسموح' : 'متوقف'}</span>
-                        <button type="button" class="hacc-btn sm ${anon ? 'danger' : 'primary'}" data-act="toggle-anon">${anon ? 'إيقاف' : 'تفعيل'}</button></span></li>`;
-                }).join('') || '<li class="hacc-muted">لا توجد مستشفيات.</li>'}</ul>`;
-            box.querySelectorAll('[data-act="toggle"]').forEach(btn => btn.addEventListener('click', async () => {
-                const h = btn.closest('li').dataset.h;
-                const on = off.includes(h);
-                const name = (hospitals.find(x => x.id === h) || {}).name_ar || h;
-                if (!on && !confirm(`إيقاف التعليقات في ${name}؟`)) return;
-                btn.disabled = true;
-                try {
-                    const res = await Hub.api('POST', '/api/social/hospitals', { hosp: h, on }, { retries: 0 });
-                    off = res.off || [];
-                    anonOff = res.anonOff || anonOff;
-                    toast(on ? 'تم تفعيل التعليقات ✓' : 'تم إيقاف التعليقات', 'success');
-                    paint();
-                } catch (err) { btn.disabled = false; toast(errorText(err), 'error'); }
-            }));
-            box.querySelectorAll('[data-act="toggle-anon"]').forEach(btn => btn.addEventListener('click', async () => {
-                const h = btn.closest('li').dataset.h;
-                const anon = anonOff.includes(h);
-                const name = (hospitals.find(x => x.id === h) || {}).name_ar || h;
-                if (!anon && !confirm(`إيقاف التعليق المجهول في ${name}؟ ستكون التعليقات الجديدة بالاسم الحقيقي فقط.`)) return;
-                btn.disabled = true;
-                try {
-                    const res = await Hub.api('POST', '/api/social/hospitals', { hosp: h, anon }, { retries: 0 });
-                    off = res.off || off;
-                    anonOff = res.anonOff || [];
-                    toast(anon ? 'تم السماح بالتعليق المجهول ✓' : 'تم إيقاف التعليق المجهول', 'success');
-                    paint();
-                } catch (err) { btn.disabled = false; toast(errorText(err), 'error'); }
-            }));
+        let query = '';
+        const row = (h) => {
+            const on = !off.includes(h.id), anon = !anonOff.includes(h.id), ap = approval.includes(h.id);
+            const sw = (key, label, state, onText, offText) => `<span class="hp-switch-row"><span class="hp-switch-label">${label}</span>
+                <span class="hacc-chip ${state ? 'on' : 'off'}">${state ? onText : offText}</span>
+                <button type="button" class="hacc-btn sm ${state ? 'danger' : 'primary'}" data-act="${key}">${state ? 'إيقاف' : 'تفعيل'}</button></span>`;
+            return `<li data-h="${esc(h.id)}"><span class="hp-switch-name">${esc(h.name_ar || h.hospitalName || h.id)}</span>
+                ${sw('toggle', '💬 التعليقات', on, 'مفعّلة', 'متوقفة')}
+                ${sw('toggle-anon', '🕶️ التعليق المجهول', anon, 'مسموح', 'متوقف')}
+                ${sw('toggle-approval', '🔁 موافقة تبديل الخفارات', ap, 'مفعّلة', 'متوقفة')}</li>`;
         };
+        const paint = () => {
+            const list = hospitals.filter(h => !query || String(h.name_ar || h.hospitalName || h.id).includes(query));
+            const box = body.querySelector('[data-role="hs-list"]');
+            box.innerHTML = list.map(row).join('') || '<li class="hacc-muted">لا توجد مستشفيات مطابقة.</li>';
+            box.querySelectorAll('[data-act]').forEach(btn => btn.addEventListener('click', () => toggle(btn)));
+        };
+        const toggle = async (btn) => {
+            const h = btn.closest('li').dataset.h;
+            const name = (hospitals.find(x => x.id === h) || {}).name_ar || h;
+            const kind = btn.dataset.act;
+            let path = '/api/social/hospitals', payload, confirmText = null, done;
+            if (kind === 'toggle') {
+                const on = off.includes(h);
+                payload = { hosp: h, on };
+                if (!on) confirmText = `إيقاف التعليقات في ${name}؟`;
+                done = on ? 'تم تفعيل التعليقات ✓' : 'تم إيقاف التعليقات';
+            } else if (kind === 'toggle-anon') {
+                const anon = anonOff.includes(h);
+                payload = { hosp: h, anon };
+                if (!anon) confirmText = `إيقاف التعليق المجهول في ${name}؟ ستكون التعليقات الجديدة بالاسم الحقيقي فقط.`;
+                done = anon ? 'تم السماح بالتعليق المجهول ✓' : 'تم إيقاف التعليق المجهول';
+            } else {
+                const on = !approval.includes(h);
+                path = '/api/exchange/settings';
+                payload = { hosp: h, on };
+                confirmText = on
+                    ? `تفعيل نظام موافقة التبديل في ${name}؟\n\nكل تبديل يطلبه مقيم يُرسل إلى صاحب الخفارة ليوافق، ثم إليك للموافقة، ولا يُثبَّت إلا بعد موافقة الإدارة.`
+                    : `إيقاف نظام موافقة التبديل في ${name}؟ يعود التبديل حراً للجميع مباشرة.`;
+                done = on ? 'تم تفعيل موافقة التبديل ✓' : 'أُوقف نظام الموافقة، والتبديل حر';
+            }
+            if (confirmText && !confirm(confirmText)) return;
+            btn.disabled = true;
+            try {
+                const res = await Hub.api('POST', path, payload, { retries: 0 });
+                if (path === '/api/exchange/settings') approval = res.on || [];
+                else { off = res.off || off; anonOff = res.anonOff || anonOff; }
+                toast(done, 'success');
+                paint();
+            } catch (err) { btn.disabled = false; toast(errorText(err), 'error'); }
+        };
+        body.innerHTML = `<div class="hp-sub-head"><button type="button" class="hacc-btn sm" data-act="back"><i class="fas fa-chevron-right"></i> رجوع</button><h3>إعدادات المستشفيات</h3></div>
+            <p class="hacc-muted hp-switch-note">إيقاف التعليقات يمنع التعليق على بطاقات خفارات المستشفى${Hub.auth.isOwner() ? ' (عدا المالك)' : ''} وتبقى التعليقات السابقة. مع إيقاف «المجهول» تكون التعليقات الجديدة بالاسم الحقيقي. ومع «موافقة التبديل» يمر كل تبديل يطلبه مقيم بموافقة صاحب الخفارة ثم الإدارة.</p>
+            ${hospitals.length > 4 ? '<input type="search" class="hp-hs-search" data-role="hs-search" placeholder="ابحث عن مستشفى…" aria-label="ابحث عن مستشفى">' : ''}
+            <ul class="hp-switches" data-role="hs-list"></ul>`;
+        body.querySelector('[data-act="back"]').addEventListener('click', () => show('admin'));
+        const search = body.querySelector('[data-role="hs-search"]');
+        if (search) search.addEventListener('input', debounce(() => { query = search.value.trim(); paint(); }, 150));
         paint();
     }
 
@@ -405,6 +447,7 @@
                 ['fa-comments', 'مراجعة التعليقات', 'كل التعليقات في كل المستشفيات', { href: './account.html#manage-comments' }],
                 ['fa-layer-group', 'ترقية المراحل السنوية', 'شهر ارتفاع مراحل المقيمين', { href: './account.html#manage-system' }],
             ]],
+            ['المستشفيات', HOSPITAL_TOOLS],
             ['المنظومة', [
                 ['fa-truck-medical', 'نظام خفارات الطوارئ (ER)', 'جداول وتوزيع خفارات الطوارئ', { href: './emergency.html' }],
                 ['fa-plus-circle', 'إضافة مستشفى جديد', 'مستشفى جديد بكامل هيكليته', { fn: 'openAddHospitalModal' }],
@@ -415,12 +458,8 @@
                 ['fa-lock', 'كلمات المرور المشتركة', 'كلمات مرور المالك والمدراء والمستخدمين', { fn: 'openAllPasswordsModalNav' }],
             ]],
         ];
-        body.innerHTML = lead + groups.map(([title, items]) => `<section class="hp-section"><h3>${title}</h3><div class="hp-admin-grid">${items.map(([icon, label, sub, act]) => act.href
-            ? `<a class="hp-admin-tile" href="${act.href}"><i class="fas ${icon}"></i><span><b>${label}</b><small>${sub}</small></span></a>`
-            : `<button type="button" class="hp-admin-tile" data-fn="${act.fn}"><i class="fas ${icon}"></i><span><b>${label}</b><small>${sub}</small></span></button>`).join('')}</div></section>`).join('');
-        body.insertAdjacentHTML('beforeend', '<section class="hp-section" data-role="comment-switches"></section>');
-        renderCommentSwitches(body.querySelector('[data-role="comment-switches"]'));
-        body.querySelectorAll('[data-fn]').forEach(b => b.addEventListener('click', () => A.adminAction(b.dataset.fn)));
+        body.innerHTML = lead + groups.map(([title, items]) => `<section class="hp-section"><h3>${title}</h3><div class="hp-admin-grid">${items.map(tileHtml).join('')}</div></section>`).join('');
+        bindTiles(body);
     }
 
     // ------------------------------------------------------------------

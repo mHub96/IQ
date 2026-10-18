@@ -529,8 +529,7 @@
     // Logout
     window.logoutNav = function() {
         if (!window.Hub) return;
-        window.Hub.auth.logout();
-        window.location.href = './index.html?portal=true';
+        window.Hub.auth.signOut();
     };
 
     // Admin link guard
@@ -817,10 +816,8 @@
     };
 
     window.handleDockLockAction = function() {
-        if (window.Hub && window.Hub.auth) {
-            window.Hub.auth.logout();
-        }
-        window.location.href = './index.html?portal=true';
+        if (window.Hub && window.Hub.auth) window.Hub.auth.signOut();
+        else window.location.href = './index.html?portal=true';
     };
 
     window.openUpgradeModal = function() {

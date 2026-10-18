@@ -175,26 +175,29 @@ test('approvals; only the owner changes roles; tokens follow the database', asyn
 });
 
 test('device limit: single device, a set number, unlimited; removing a device signs it out', async () => {
-  const one = await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'set_devices', maxDevices: 1 } });
+  // Devices are the owner's to manage; a hospital admin may not.
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'set_devices', maxDevices: 1 } })).status, 403);
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'reset_devices' } })).status, 403);
+  const one = await call('POST', '/api/accounts/decide', { token: state.owner, body: { id: state.idB, action: 'set_devices', maxDevices: 1 } });
   assert.equal(one.data.account.max_devices, 1);
   const blocked = await accountLogin(uB, 'pass-B-1', DEV.b2);
   assert.equal(blocked.success, false);
   assert.equal(blocked.status, 'device_limit');
   assert.equal((await accountLogin(uB, 'pass-B-1', DEV.b1)).success, true, 'the registered device still works');
 
-  await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'set_devices', maxDevices: 2 } });
+  await call('POST', '/api/accounts/decide', { token: state.owner, body: { id: state.idB, action: 'set_devices', maxDevices: 2 } });
   const second = await accountLogin(uB, 'pass-B-1', DEV.b2);
   assert.equal(second.success, true);
   assert.equal((await accountLogin(uB, 'pass-B-1', DEV.b3)).status, 'device_limit');
 
-  // The admin unlinks device 2: its token stops working at once.
-  const rm = await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'remove_device', deviceId: DEV.b2 } });
+  // The owner unlinks device 2: its token stops working at once.
+  const rm = await call('POST', '/api/accounts/decide', { token: state.owner, body: { id: state.idB, action: 'remove_device', deviceId: DEV.b2 } });
   assert.equal(rm.data.account.devices.length, 1);
   assert.equal((await call('GET', '/api/accounts/me', { token: second.token })).status, 401);
   assert.equal((await accountLogin(uB, 'pass-B-1', DEV.b3)).success, true);
 
-  await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'set_devices', maxDevices: 0 } });
-  const reset = await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'reset_devices' } });
+  await call('POST', '/api/accounts/decide', { token: state.owner, body: { id: state.idB, action: 'set_devices', maxDevices: 0 } });
+  const reset = await call('POST', '/api/accounts/decide', { token: state.owner, body: { id: state.idB, action: 'reset_devices' } });
   assert.equal(reset.data.account.devices.length, 0);
   assert.equal(reset.data.account.max_devices, 0);
   const fresh = await accountLogin(uB, 'pass-B-1', DEV.b1);
@@ -459,13 +462,85 @@ test('change own password; disable signs the account out', async () => {
   assert.equal((await call('GET', '/api/accounts/me', { token: change.data.token })).status, 200);
   assert.equal((await call('POST', '/api/accounts/password', { token: change.data.token, body: { oldKey: await deriveKey(uB, 'nope'), newKey: await deriveKey(uB, 'x') } })).status, 403);
 
-  await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'disable' } });
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'disable' } })).status, 403, 'the owner\'s, not an admin\'s');
+  await call('POST', '/api/accounts/decide', { token: state.owner, body: { id: state.idB, action: 'disable' } });
   assert.equal((await call('GET', '/api/accounts/me', { token: change.data.token })).status, 401);
   assert.equal((await accountLogin(uB, 'pass-B-3', DEV.b1)).success, false);
-  await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'enable' } });
+  await call('POST', '/api/accounts/decide', { token: state.owner, body: { id: state.idB, action: 'enable' } });
   const again = await accountLogin(uB, 'pass-B-3', DEV.b1);
   assert.equal(again.success, true);
   state.tokB = again.token;
+});
+
+test('comment moderation: real names for the hospital\'s admins, warnings, barring an account, hospital switch', async () => {
+  const card = { h: hospital.id, d: today(), n: resB.name };
+  const thread = async tok => (await call('GET', '/api/social/thread?' + new URLSearchParams(card), { token: tok })).data;
+  const anon = await call('POST', '/api/social/comment', { token: state.tokC, body: { ...card, body: 'تعليق مسيء', anon: true } });
+  const cid = anon.data.comment.cid;
+  // The hospital's admin (A) sees who is behind the nickname and may warn; the resident B neither.
+  const forA = (await thread(state.tokA)).comments.find(c => c.cid === cid);
+  assert.equal(forA.realName, resC.name);
+  assert.equal(forA.canWarn, true);
+  assert.equal(forA.warned, false);
+  const forB = (await thread(state.tokB)).comments.find(c => c.cid === cid);
+  assert.equal(forB.realName, undefined);
+  assert.equal(forB.canWarn, false);
+  assert.equal(forB.warned, undefined);
+  assert.equal((await call('POST', '/api/social/comment/warn', { token: state.tokB, body: { cid } })).status, 403);
+  // An admin of another hospital may not; nobody warns themselves.
+  const foreign = await call('POST', '/api/social/comment', { token: state.tokC, body: { h: otherHospital.id, d: today(), n: resB.name, body: 'هناك', anon: true } });
+  assert.equal((await call('GET', '/api/social/thread?' + new URLSearchParams({ ...card, h: otherHospital.id }), { token: state.tokA })).data.comments[0].realName, undefined);
+  assert.equal((await call('POST', '/api/social/comment/warn', { token: state.tokA, body: { cid: foreign.data.comment.cid } })).status, 403);
+  const own = await call('POST', '/api/social/comment', { token: state.tokA, body: { ...card, body: 'من المدير' } });
+  assert.equal((await call('POST', '/api/social/comment/warn', { token: state.tokA, body: { cid: own.data.comment.cid } })).status, 403);
+
+  const warn = await call('POST', '/api/social/comment/warn', { token: state.tokA, body: { cid, note: 'التزم بآداب التعليق' } });
+  assert.equal(warn.data.ok, true);
+  await call('POST', '/api/social/comment/warn', { token: state.owner, body: { cid } });
+  const note = (await call('GET', '/api/notifications', { token: state.tokC })).data.items.find(n => n.type === 'warning');
+  assert.equal(note.data.text, 'تعليق مسيء');
+  assert.equal(note.data.h, hospital.id);
+  assert.equal((await thread(state.tokA)).comments.find(c => c.cid === cid).warned, true);
+  const listed = (await call('GET', '/api/accounts?filter=all', { token: state.tokA })).data.accounts.find(a => a.id === state.idC);
+  assert.equal(listed.warnings, 1, 'one warned comment counts once');
+
+  // Barring C from commenting (the hospital's admin may): C cannot comment or edit, still sees threads.
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokB, body: { id: state.idC, action: 'mute' } })).status, 403);
+  const mute = await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idC, action: 'mute' } });
+  assert.equal(mute.data.account.no_comment, 1);
+  const blocked = await call('POST', '/api/social/comment', { token: state.tokC, body: { ...card, body: 'مرة أخرى' } });
+  assert.equal(blocked.status, 403);
+  assert.equal(blocked.data.error, 'comment_blocked');
+  assert.equal((await call('POST', '/api/social/comment/edit', { token: state.tokC, body: { cid, body: 'تعديل' } })).data.error, 'comment_blocked');
+  const tC = await thread(state.tokC);
+  assert.equal(tC.canComment, false);
+  assert.equal(tC.blocked, 'comment_blocked');
+  assert.ok((await call('GET', '/api/notifications', { token: state.tokC })).data.items.some(n => n.type === 'comments_barred'));
+  assert.equal((await call('POST', '/api/social/like', { token: state.tokC, body: { ...card, on: true } })).data.ok, true, 'likes stay');
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idC, action: 'unmute' } })).data.account.no_comment, 0);
+  assert.equal((await call('POST', '/api/social/comment', { token: state.tokC, body: { ...card, body: 'عدت' } })).data.ok, true);
+
+  // Commenting switched off for the hospital: by its admin (not another hospital's), the owner still comments.
+  assert.equal((await call('POST', '/api/social/hospitals', { token: state.tokA, body: { hosp: otherHospital.id, on: false } })).status, 403);
+  assert.equal((await call('POST', '/api/social/hospitals', { token: state.tokB, body: { hosp: hospital.id, on: false } })).status, 403);
+  const off = await call('POST', '/api/social/hospitals', { token: state.tokA, body: { hosp: hospital.id, on: false } });
+  assert.ok(off.data.off.includes(hospital.id));
+  const sw = await call('GET', '/api/social/hospitals', { token: state.tokA });
+  assert.deepEqual(sw.data.scope, [hospital.id]);
+  assert.equal((await call('POST', '/api/social/comment', { token: state.tokB, body: { ...card, body: 'x' } })).data.error, 'comments_off');
+  assert.equal((await call('POST', '/api/social/comment', { token: state.tokA, body: { ...card, body: 'x' } })).data.error, 'comments_off');
+  assert.equal((await thread(state.tokB)).blocked, 'comments_off');
+  assert.equal((await call('POST', '/api/social/comment', { token: state.owner, body: { ...card, body: 'x' } })).status, 403, 'owner via shared password has no account');
+  assert.equal((await call('POST', '/api/social/comment', { token: state.tokC, body: { ...card, n: resA.name, h: otherHospital.id, body: 'في مستشفى آخر' } })).data.ok, true, 'other hospitals unaffected');
+  assert.equal((await call('POST', '/api/social/hospitals', { token: state.owner, body: { hosp: hospital.id, on: true } })).data.off.includes(hospital.id), false);
+  assert.equal((await call('POST', '/api/social/comment', { token: state.tokB, body: { ...card, body: 'رجعت' } })).data.ok, true);
+});
+
+test('hospital admins: no status, role or device changes, but delete their hospital\'s accounts', async () => {
+  for (const action of ['disable', 'enable', 'set_profile', 'remove_device']) {
+    assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idC, action } })).status, 403, action);
+  }
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idC, action: 'set_role', role: 'anaesthesia' } })).status, 403);
 });
 
 test('account users keep the same duty permissions', async () => {
@@ -474,7 +549,10 @@ test('account users keep the same duty permissions', async () => {
 });
 
 test('cleanup: owner deletes the test accounts', async () => {
-  for (const id of [state.idA, state.idB, state.idC]) {
+  // The hospital's admin (A) deletes a resident of their hospital, the owner the rest.
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idC, action: 'delete' } })).data.ok, true);
+  assert.equal((await call('GET', '/api/accounts/me', { token: state.tokC })).status, 401);
+  for (const id of [state.idA, state.idB]) {
     assert.equal((await call('POST', '/api/accounts/decide', { token: state.owner, body: { id, action: 'delete' } })).data.ok, true);
   }
 });

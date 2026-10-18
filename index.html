@@ -2063,11 +2063,8 @@
         function handleDockLockAction() {
             if (Hub.auth.isLoggedIn()) {
                 if (confirm('هل تريد قفل التطبيق وتسجيل الخروج؟')) {
-                    sessionStorage.removeItem('hub_cached_owner_pwd');
-                    sessionStorage.removeItem('hub_cached_admin_pwd');
-                    Hub.auth.logout();
                     document.getElementById('lock-screen').classList.remove('hidden');
-                    location.replace('./index.html?portal=true');
+                    Hub.auth.signOut();
                 }
             } else {
                 document.getElementById('lock-screen').classList.remove('hidden');

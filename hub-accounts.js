@@ -81,6 +81,8 @@
             forbidden: 'لا تملك صلاحية لهذا الإجراء.',
             unauthorized: 'انتهت الجلسة. سجّل الدخول مجدداً.',
             duty_closed: 'انتهى يوم هذه الخفارة؛ لا يمكن التفاعل معها الآن.',
+            comments_off: 'التعليقات متوقفة في هذا المستشفى حالياً.',
+            comment_blocked: 'تم إيقاف التعليق لحسابك من قبل الإدارة.',
         })[code] || 'تعذر الاتصال بالخادم. حاول مجدداً.';
     }
 
@@ -321,6 +323,12 @@
                 return { icon: '🔓', text: 'تمت الموافقة على طلب تغيير كلمة المرور.' };
             case 'role_changed':
                 return { icon: '⭐', text: `تم تغيير صلاحياتك إلى: ${ROLE_NAMES[d.role] || d.role}` };
+            case 'warning':
+                return { icon: '⚠️', text: `تحذير من ${d.role === 'owner' ? 'المالك' : 'إدارة المستشفى'} بسبب تعليقك على بطاقة ${d.name || ''}${when}: «${d.text || ''}»${d.note ? ' – ' + d.note : ''}`, open: () => openThread({ h: d.h, d: isoToLocal(d.d), n: d.name }, 'comments') };
+            case 'comments_barred':
+                return { icon: '🚫', text: 'تم إيقاف التعليق لحسابك من قبل الإدارة.' };
+            case 'comments_allowed':
+                return { icon: '💬', text: 'أُعيد السماح بالتعليق لحسابك.' };
             case 'er_portal': {
                 const mon = ['', 'كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'][Number(String(d.ym || '').slice(5))] || '';
                 const until = d.closes ? new Date(d.closes).toLocaleString('ar-IQ-u-nu-latn', { day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Baghdad' }) : '';
@@ -673,9 +681,11 @@
                           <div class="hacc-bubble"><div class="hacc-author">${esc(c.author)}${c.mine ? ' <span class="hacc-chip">أنت</span>' : ''}</div>
                           <div class="hacc-text">${esc(c.body)}</div></div>
                           <div class="hacc-meta"><time>${esc(timeAgo(c.ts))}</time>${c.edited ? '<span>معدّل</span>' : ''}
-                          ${c.realName ? `<span class="hacc-reveal" title="ظاهر للمالك فقط">👁 ${esc(c.realName)}</span>` : ''}
+                          ${c.realName ? `<span class="hacc-reveal" title="الاسم الحقيقي: ظاهر للإدارة فقط">👁 ${esc(c.realName)}</span>` : ''}
+                          ${c.warned ? '<span class="hacc-warned" title="تم تحذير الكاتب">⚠️ حُذّر</span>' : ''}
                           ${canReply ? '<button type="button" class="hacc-link" data-act="reply">ردّ</button>' : ''}
                           ${c.canEdit ? '<button type="button" class="hacc-link" data-act="edit">تعديل</button>' : ''}
+                          ${c.canWarn ? `<button type="button" class="hacc-link warn" data-act="warn">تحذير</button>` : ''}
                           ${c.canDelete ? '<button type="button" class="hacc-link danger" data-act="delete">حذف</button>' : ''}</div>
                         </div>`;
                 body.innerHTML = data.comments.length
@@ -687,6 +697,7 @@
                 body.querySelectorAll('[data-act="reply"]').forEach(btn => btn.addEventListener('click', () => startReply(Number(btn.closest('li').dataset.cid))));
                 body.querySelectorAll('[data-act="delete"]').forEach(btn => btn.addEventListener('click', () => removeComment(Number(btn.closest('li').dataset.cid))));
                 body.querySelectorAll('[data-act="edit"]').forEach(btn => btn.addEventListener('click', () => editComment(btn.closest('li'))));
+                body.querySelectorAll('[data-act="warn"]').forEach(btn => btn.addEventListener('click', () => warnAuthor(Number(btn.closest('li').dataset.cid))));
                 if (!keepScroll) body.scrollTop = body.scrollHeight;
                 keepScroll = false;
             }
@@ -716,6 +727,8 @@
                 if (composer && data.open === false) {
                     // Another day's card: read-only (likes and comments belong to that duty day).
                     composer.outerHTML = '<div class="hacc-composer hacc-cta">🔒 انتهى يوم هذه الخفارة؛ التعليقات للقراءة فقط.</div>';
+                } else if (composer && data.canComment === false) {
+                    composer.outerHTML = `<div class="hacc-composer hacc-cta">${data.blocked === 'comments_off' ? '🔕 التعليقات متوقفة في هذا المستشفى حالياً.' : '🚫 تم إيقاف التعليق لحسابك من قبل الإدارة.'}</div>`;
                 }
                 render();
                 updateCounts();
@@ -755,6 +768,22 @@
                     render();
                 } catch (err) { toast(errorText(err), 'error'); }
             });
+        };
+
+        // Moderators: a warning reaches the author (also behind a nickname) as a notification.
+        const warnAuthor = async cid => {
+            const c = data.comments.find(x => x.cid === cid);
+            if (!c) return;
+            const who = c.anon ? `${c.author}${c.realName ? ' (' + c.realName + ')' : ''}` : c.author;
+            const note = prompt(`تحذير ${who} بسبب هذا التعليق؟\nيمكنك كتابة ملاحظة تصله مع التحذير (اختياري):`, '');
+            if (note === null) return;
+            try {
+                await Hub.api('POST', '/api/social/comment/warn', { cid, note: note.trim() }, { retries: 0 });
+                c.warned = true;
+                keepScroll = true;
+                render();
+                toast('تم إرسال التحذير ⚠️', 'success');
+            } catch (err) { toast(errorText(err), 'error'); }
         };
 
         const removeComment = async cid => {

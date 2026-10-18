@@ -63,17 +63,16 @@
                 ${!NO_PROFILE.includes(acc.role) ? '<button type="button" role="tab" data-tab="schedule">جدولي</button>' : ''}
                 ${!OFFICER_ROLES.includes(acc.role) ? '<button type="button" role="tab" data-tab="comments">تعليقاتي</button>' : ''}` : ''}
                 <button type="button" role="tab" data-tab="settings">الإعدادات</button>
-                ${Hub.auth.isOwner() ? '<button type="button" role="tab" data-tab="admin">القطاع الإداري</button>' : ''}
+                ${Hub.auth.isOwner() ? '<button type="button" role="tab" data-tab="admin">القطاع الإداري</button>' : approver ? '<button type="button" role="tab" data-tab="admin">لوحة الإدارة</button>' : ''}
             </div>
             <div class="hacc-sheet-body hp-body" data-role="body"><div class="hacc-empty">جاري التحميل…</div></div>
             <footer class="hp-foot">
-                ${approver && !Hub.auth.isOwner() ? '<a class="hacc-btn sm" href="./account.html#manage"><i class="fas fa-user-shield"></i> إدارة الحسابات</a>' : ''}
                 ${approver && !Hub.auth.isOwner() ? `<a class="hacc-btn sm" href="./scheduler.html?hospital=${encodeURIComponent((Hub.auth.getAdminHospitalIds() || [])[0] || '')}"><i class="fas fa-calendar-alt"></i> المجدول</a>` : ''}
                 ${!acc ? '<a class="hacc-btn sm primary" href="./account.html#signup">إنشاء حساب شخصي</a>' : ''}
                 <button type="button" class="hacc-btn sm danger" data-act="logout"><i class="fas fa-sign-out-alt"></i> خروج</button>
             </footer>`, { label: 'لوحة الحساب', tall: true });
         if (!acc && tab !== 'admin') tab = 'settings';
-        if (tab === 'admin' && !Hub.auth.isOwner()) tab = acc ? 'profile' : 'settings';
+        if (tab === 'admin' && !approver) tab = acc ? 'profile' : 'settings';
         if (tab === 'schedule' && acc && NO_PROFILE.includes(acc.role)) tab = 'profile';
         if (tab === 'comments' && acc && OFFICER_ROLES.includes(acc.role)) tab = 'profile';
         sheet.querySelector('[data-act="close"]').addEventListener('click', A.closeSheet);
@@ -126,8 +125,7 @@
         if (!confirm('تسجيل الخروج من هذا الجهاز؟')) return;
         // Turning push off is best effort: never let it hold up signing out.
         await Promise.race([A.push.disable().catch(() => {}), new Promise(r => setTimeout(r, 2500))]);
-        Hub.auth.logout();
-        location.href = './index.html?portal=true';
+        Hub.auth.signOut();
     }
 
     // ------------------------------------------------------------------
@@ -323,7 +321,60 @@
     // ------------------------------------------------------------------
     // Administrative sector (owner): every owner tool in one place
     // ------------------------------------------------------------------
+    /** A hospital admin's panel: their hospital's accounts and comments. */
+    function renderHospitalAdmin(body) {
+        const lead = `<a class="hp-admin-lead" href="./account.html#manage-all"><i class="fas fa-users-gear"></i><span><b>حسابات مستشفاي</b><small>مراجعة حسابات المقيمين: السماح بالتعليق أو منعه، وحذف الحساب</small></span><i class="fas fa-chevron-left"></i></a>`;
+        const items = [
+            ['fa-user-check', 'طلبات الحسابات', 'الموافقة على طلبات الحسابات الجديدة أو رفضها', './account.html#manage'],
+            ['fa-key', 'طلبات كلمات المرور', 'السماح للأطباء بتغيير كلمات مرورهم', './account.html#manage-resets'],
+            ['fa-comments', 'مراجعة التعليقات', 'تعليقات مستشفاك، مع الاسم الحقيقي للمجهولين', './account.html#manage-comments'],
+        ];
+        body.innerHTML = lead + `<section class="hp-section"><h3>الحسابات والتعليقات</h3><div class="hp-admin-grid">${items.map(([icon, label, sub, href]) =>
+            `<a class="hp-admin-tile" href="${href}"><i class="fas ${icon}"></i><span><b>${label}</b><small>${sub}</small></span></a>`).join('')}</div></section>
+            <section class="hp-section" data-role="comment-switches"></section>`;
+        renderCommentSwitches(body.querySelector('[data-role="comment-switches"]'));
+    }
+
+    /** Commenting on or off per hospital (owner: every hospital; an admin: their own). */
+    async function renderCommentSwitches(box) {
+        box.innerHTML = '<h3>التعليقات في المستشفيات</h3><div class="hacc-empty">جاري التحميل…</div>';
+        let off = [], scope = [];
+        try {
+            const res = await Hub.api('GET', '/api/social/hospitals', undefined, { retries: 1 });
+            off = res.off || [];
+            scope = res.scope || [];
+        } catch (err) {
+            box.innerHTML = `<h3>التعليقات في المستشفيات</h3><div class="hacc-empty">${esc(errorText(err))}</div>`;
+            return;
+        }
+        const hospitals = Hub.getHospitals().filter(h => scope.includes('*') || scope.includes(h.id));
+        const paint = () => {
+            box.innerHTML = `<h3>التعليقات في المستشفيات</h3>
+                <p class="hacc-muted hp-switch-note">عند الإيقاف لا يستطيع أحد التعليق على بطاقات خفارات المستشفى${Hub.auth.isOwner() ? ' (عدا المالك)' : ''}، وتبقى التعليقات السابقة ظاهرة.</p>
+                <ul class="hp-switches">${hospitals.map(h => {
+                    const on = !off.includes(h.id);
+                    return `<li data-h="${esc(h.id)}"><span class="hp-switch-name">${esc(h.name_ar || h.hospitalName || h.id)}</span>
+                        <span class="hacc-chip ${on ? 'on' : 'off'}">${on ? 'مفعّلة' : 'متوقفة'}</span>
+                        <button type="button" class="hacc-btn sm ${on ? 'danger' : 'primary'}" data-act="toggle">${on ? 'إيقاف' : 'تفعيل'}</button></li>`;
+                }).join('') || '<li class="hacc-muted">لا توجد مستشفيات.</li>'}</ul>`;
+            box.querySelectorAll('[data-act="toggle"]').forEach(btn => btn.addEventListener('click', async () => {
+                const h = btn.closest('li').dataset.h;
+                const on = off.includes(h);
+                const name = (hospitals.find(x => x.id === h) || {}).name_ar || h;
+                if (!on && !confirm(`إيقاف التعليقات في ${name}؟`)) return;
+                btn.disabled = true;
+                try {
+                    off = (await Hub.api('POST', '/api/social/hospitals', { hosp: h, on }, { retries: 0 })).off || [];
+                    toast(on ? 'تم تفعيل التعليقات ✓' : 'تم إيقاف التعليقات', 'success');
+                    paint();
+                } catch (err) { btn.disabled = false; toast(errorText(err), 'error'); }
+            }));
+        };
+        paint();
+    }
+
     function renderAdmin(body) {
+        if (!Hub.auth.isOwner()) return renderHospitalAdmin(body);
         const lead = `<a class="hp-admin-lead" href="./account.html#manage-all"><i class="fas fa-users-gear"></i><span><b>إدارة الحسابات</b><small>كل الحسابات: الأدوار والمستشفيات والأجهزة والإيقاف</small></span><i class="fas fa-chevron-left"></i></a>`;
         const groups = [
             ['الحسابات', [
@@ -345,6 +396,8 @@
         body.innerHTML = lead + groups.map(([title, items]) => `<section class="hp-section"><h3>${title}</h3><div class="hp-admin-grid">${items.map(([icon, label, sub, act]) => act.href
             ? `<a class="hp-admin-tile" href="${act.href}"><i class="fas ${icon}"></i><span><b>${label}</b><small>${sub}</small></span></a>`
             : `<button type="button" class="hp-admin-tile" data-fn="${act.fn}"><i class="fas ${icon}"></i><span><b>${label}</b><small>${sub}</small></span></button>`).join('')}</div></section>`).join('');
+        body.insertAdjacentHTML('beforeend', '<section class="hp-section" data-role="comment-switches"></section>');
+        renderCommentSwitches(body.querySelector('[data-role="comment-switches"]'));
         body.querySelectorAll('[data-fn]').forEach(b => b.addEventListener('click', () => A.adminAction(b.dataset.fn)));
     }
 
@@ -618,7 +671,7 @@
                 if (!confirm(self ? 'إلغاء ربط هذا الجهاز؟ سيتم تسجيل خروجك منه.' : 'إلغاء ربط هذا الجهاز؟ سيتم تسجيل خروجه.')) return;
                 try {
                     await Hub.api('POST', '/api/accounts/devices/remove', { deviceId: id }, { retries: 0 });
-                    if (self) { Hub.auth.logout(); location.href = './index.html?portal=true'; return; }
+                    if (self) { Hub.auth.signOut(); return; }
                     acc.devices = acc.devices.filter(d => d.id !== id);
                     paintDevices(acc);
                 } catch (err) { toast(errorText(err), 'error'); }

@@ -36,7 +36,7 @@ const RESET_VALID_MS = 3 * DAY;
 const ACTIVE_WRITE_MS = 60 * 60 * 1000; // last_seen is refreshed at most hourly (D1 write budget)
 const PUBLIC_FIELDS = `id, username, name, phone, sex, hosp, resident_id, role, hospitals, status, max_devices,
   anon_tag, anon_lang, reset, reset_at, created_at, decided_at, decided_by, last_seen,
-  board, specialty, stage, stage_ref, board_years, profile_src, avatar, aa_job, aa_job_name`;
+  board, specialty, stage, stage_ref, board_years, profile_src, avatar, aa_job, aa_job_name, no_comment, warnings`;
 
 /** Routes under /api/accounts, /api/notifications, /api/social and /api/push. Returns null when not matched. */
 export async function routeAccounts(path, method, request, env, auth, url, ctx) {
@@ -78,6 +78,9 @@ export async function routeAccounts(path, method, request, env, auth, url, ctx) 
     case 'POST /api/social/comment': return addComment(request, env, auth, ctx);
     case 'POST /api/social/comment/delete': return deleteComment(request, env, auth);
     case 'POST /api/social/comment/edit': return editComment(request, env, auth);
+    case 'POST /api/social/comment/warn': return warnComment(request, env, auth, ctx);
+    case 'GET /api/social/hospitals': return commentSwitches(env, auth);
+    case 'POST /api/social/hospitals': return setCommentSwitch(request, env, auth);
     case 'POST /api/push/subscribe': return pushSubscribe(request, env, auth);
     case 'POST /api/push/unsubscribe': return pushUnsubscribe(request, env, auth);
     case 'POST /api/push/test': return pushTest(env, auth, ctx);
@@ -455,6 +458,9 @@ function pushMessage(n) {
     case 'account_approved': return { title: '✅ تم تفعيل حسابك', body: 'أهلاً بك في بوابة المستشفيات!', url: './index.html?portal=true' };
     case 'reset_approved': return { title: '🔓 تمت الموافقة', body: 'يمكنك الآن اختيار كلمة مرور جديدة.', url: './account.html#forgot' };
     case 'role_changed': return { title: '⭐ تغيّرت صلاحياتك', body: `صلاحيتك الآن: ${ROLE_AR[d.role] || d.role || ''}`, url: './account.html' };
+    case 'warning': return { title: '⚠️ تحذير من الإدارة', body: `بسبب تعليقك: «${d.text || ''}»${d.note ? ' – ' + d.note : ''}`, url: card };
+    case 'comments_barred': return { title: '🚫 تم إيقاف التعليق لحسابك', body: 'لا يمكنك التعليق على بطاقات الخفارات حالياً.', url: './index.html?portal=true' };
+    case 'comments_allowed': return { title: '💬 يمكنك التعليق مجدداً', body: 'أُعيد السماح بالتعليق لحسابك.', url: './index.html?portal=true' };
     case 'er_portal': return { title: d.extended ? '🗓️ تمديد بوابة رغبات الطوارئ' : '🗓️ بوابة رغبات خفارات الطوارئ مفتوحة', body: `اختر رغباتك لجدول ${MONTH_AR[Number(String(d.ym || '').slice(5))] || ''} ${String(d.ym || '').slice(0, 4)} قبل ${closesText(d.closes)}`, url: './index.html?portal=true#panel=schedule' };
     default: return { title: '🔔 إشعار جديد', body: '', url: './index.html?portal=true' };
   }
@@ -734,6 +740,8 @@ async function setAnon(request, env, auth) {
 // ---------------------------------------------------------------------------
 
 const canApprove = auth => auth.r === 'owner' || auth.r === 'admin';
+// What a hospital admin may do to an account of their hospital (see decide).
+const ADMIN_ACTIONS = ['approve', 'reject', 'approve_reset', 'deny_reset', 'mute', 'unmute', 'delete'];
 const seesAll = auth => auth.r === 'owner' || (auth.h || []).includes('*');
 const hospInScope = (auth, hosp) => seesAll(auth) || (auth.h || []).includes(hosp);
 
@@ -772,8 +780,14 @@ async function decide(request, env, auth, ctx) {
   if (!row) return json({ error: 'not_found' }, 404);
   const isOwner = auth.r === 'owner';
   // Admins manage residents (regular / anaesthesia), rotators and division officers of their own
-  // hospitals, never themselves.
+  // hospitals, never themselves: they answer sign-up and password requests, allow or bar commenting
+  // and delete accounts. Everything else (status, role, devices, profile) is the owner's, except an
+  // officer's division role.
   if (!isOwner && (!hospInScope(auth, row.hosp) || !ADMIN_MANAGES.includes(row.role) || row.id === auth.a)) return json({ error: 'forbidden' }, 403);
+  // (Division officers keep the admin's switch between division user and division admin.)
+  const adminMay = ADMIN_ACTIONS.includes(String(body.action || '')) || (body.action === 'set_role' && AA_ROLES.includes(row.role));
+  if (!isOwner && !adminMay) return json({ error: 'forbidden' }, 403);
+  if (!isOwner && body.maxDevices !== undefined) return json({ error: 'forbidden' }, 403);
 
   const now = Date.now();
   const by = auth.a ? `${auth.r}:${auth.name || auth.a}` : auth.r;
@@ -843,6 +857,11 @@ async function decide(request, env, auth, ctx) {
     case 'set_devices':
       if (body.maxDevices === undefined) return json({ error: 'bad_request' }, 400);
       break;
+    case 'mute':
+    case 'unmute':
+      stmts.push(env.DB.prepare('UPDATE accounts SET no_comment = ? WHERE id = ?').bind(action === 'mute' ? 1 : 0, row.id));
+      notes.push(stmts.push(notifyOne(env, row.id, 'comments', action === 'mute' ? 'comments_barred' : 'comments_allowed', JSON.stringify({ by: auth.name || null }), now)) - 1);
+      break;
     case 'set_profile': {
       if (!isOwner) return json({ error: 'forbidden' }, 403);
       // Rotators and officers have no board, specialty or stage: only sex and hospital.
@@ -868,7 +887,7 @@ async function decide(request, env, auth, ctx) {
       );
       break;
     case 'delete':
-      if (!isOwner) return json({ error: 'forbidden' }, 403);
+      if (row.id === auth.a) return json({ error: 'forbidden' }, 403);
       stmts.push(
         env.DB.prepare('DELETE FROM likes WHERE account_id = ?').bind(row.id),
         env.DB.prepare('DELETE FROM notifications WHERE account_id = ?').bind(row.id),
@@ -1098,6 +1117,23 @@ async function socialSummary(env, auth, url) {
 }
 
 const canModerate = (auth, hosp) => auth.r === 'owner' || (auth.r === 'admin' && hospInScope(auth, hosp));
+/** A moderator may warn the author of a comment: never themselves; admins only their hospital's residents. */
+const canWarn = (auth, c) => !!c.account_id && c.account_id !== auth.a && canModerate(auth, c.hosp)
+  && (auth.r === 'owner' || ADMIN_MANAGES.includes(c.role));
+
+// Commenting switched off per hospital (kv 'comments_off': JSON array of hospital ids).
+async function commentsOff(env) {
+  const row = await env.DB.prepare("SELECT v FROM kv WHERE k = 'comments_off'").first();
+  try { const v = JSON.parse((row && row.v) || '[]'); return Array.isArray(v) ? v : []; } catch { return []; }
+}
+
+/** Why this account cannot comment on this hospital's cards (null: it can). The owner always can. */
+async function commentBlock(env, auth, hosp) {
+  if (auth.r === 'owner') return null;
+  if ((await commentsOff(env)).includes(hosp)) return 'comments_off';
+  const row = await env.DB.prepare('SELECT no_comment FROM accounts WHERE id = ?').bind(auth.a).first();
+  return row && row.no_comment ? 'comment_blocked' : null;
+}
 
 /** Authors may edit / delete only while the card's duty day is running. */
 const dutyOpen = cardDate => !!cardDate && cardDate === dutyDayNow();
@@ -1112,8 +1148,10 @@ function commentView(c, auth) {
     anon: !!c.anon,
     sex: c.anon ? null : (c.sex || null),
     avatar: c.anon ? null : parseAvatar(c.avatar),
-    // Only the owner can see who is behind a nickname (to deal with abuse).
-    realName: auth.r === 'owner' && c.anon ? c.name : undefined,
+    // Only moderators (the owner, the hospital's admins) see who is behind a nickname (to deal with abuse).
+    realName: c.anon && canModerate(auth, c.hosp) ? c.name : undefined,
+    warned: canModerate(auth, c.hosp) ? !!c.warned_at : undefined,
+    canWarn: canWarn(auth, c),
     body: c.body,
     ts: c.ts,
     mine,
@@ -1133,16 +1171,19 @@ async function thread(env, auth, url) {
         WHERE l.target = ?1 ORDER BY l.ts DESC LIMIT 300`
     ).bind(card.target, auth.a || ''),
     env.DB.prepare(
-      `SELECT c.cid, c.parent_cid, c.hosp, c.account_id, c.anon, c.body, c.ts, c.edited_at, c.card_date, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex, a.avatar AS avatar
+      `SELECT c.cid, c.parent_cid, c.hosp, c.account_id, c.anon, c.body, c.ts, c.edited_at, c.card_date, c.warned_at, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex, a.avatar AS avatar, a.role AS role
          FROM comments c LEFT JOIN accounts a ON a.id = c.account_id
         WHERE c.target = ?1 AND c.deleted = 0 ORDER BY c.cid LIMIT 300`
     ).bind(card.target),
   ]);
+  const block = auth.a ? await commentBlock(env, auth, card.hosp) : null;
   return json({
     ok: true,
     likes: likesRes.results.map(l => ({ name: l.name, sex: l.sex, avatar: parseAvatar(l.avatar), ts: l.ts, mine: !!l.mine })),
     comments: commentsRes.results.map(c => commentView(c, auth)),
     canReact: !!auth.a,
+    canComment: !!auth.a && !block,
+    blocked: block,
     open: dutyOpen(card.date),
     dutyDay: dutyDayNow(),
     myAnonTag: auth.anon || null,
@@ -1156,7 +1197,7 @@ async function recentComments(env, auth, url) {
   const before = Number(url.searchParams.get('before')) || 1e15;
   const hospitals = seesAll(auth) ? (hosp ? [hosp] : null) : (auth.h || []).filter(h => !hosp || h === hosp);
   const { results } = await env.DB.prepare(
-    `SELECT c.cid, c.parent_cid, c.target, c.hosp, c.account_id, c.anon, c.body, c.ts, c.edited_at, c.card_date, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex, a.avatar AS avatar
+    `SELECT c.cid, c.parent_cid, c.target, c.hosp, c.account_id, c.anon, c.body, c.ts, c.edited_at, c.card_date, c.warned_at, a.name AS name, a.anon_tag AS anon_tag, a.sex AS sex, a.avatar AS avatar, a.role AS role
        FROM comments c LEFT JOIN accounts a ON a.id = c.account_id
       WHERE c.deleted = 0 AND c.cid < ?1 ${hospitals ? 'AND c.hosp IN (SELECT value FROM json_each(?2))' : ''}
       ORDER BY c.cid DESC LIMIT 50`
@@ -1211,6 +1252,8 @@ async function addComment(request, env, auth, ctx) {
   const text = plainText(body && body.body, 600);
   if (!card || !text) return json({ error: 'bad_request' }, 400);
   if (!dutyOpen(card.date)) return json({ error: 'duty_closed' }, 409);
+  const block = await commentBlock(env, auth, card.hosp);
+  if (block) return json({ error: block }, 403);
   if (await overLimit(env, 'comment:' + auth.a, 20)) return json({ error: 'rate_limited' }, 429);
   const now = Date.now();
   const anon = !!body.anon;
@@ -1266,11 +1309,66 @@ async function editComment(request, env, auth) {
   const body = await readJson(request) || {};
   const text = plainText(body.body, 600);
   if (!text) return json({ error: 'bad_request' }, 400);
-  const row = await env.DB.prepare('SELECT cid, account_id, card_date FROM comments WHERE cid = ? AND deleted = 0').bind(Number(body.cid) || 0).first();
+  const row = await env.DB.prepare('SELECT cid, hosp, account_id, card_date FROM comments WHERE cid = ? AND deleted = 0').bind(Number(body.cid) || 0).first();
   if (!row) return json({ error: 'not_found' }, 404);
   if (row.account_id !== auth.a) return json({ error: 'forbidden' }, 403);
   if (!dutyOpen(row.card_date)) return json({ error: 'duty_closed' }, 409);
+  const block = await commentBlock(env, auth, row.hosp);
+  if (block) return json({ error: block }, 403);
   const now = Date.now();
   await env.DB.prepare('UPDATE comments SET body = ?, edited_at = ? WHERE cid = ?').bind(text, now, row.cid).run();
   return json({ ok: true, body: text, edited_at: now });
+}
+
+/**
+ * A moderator warns the author of a comment (anonymous or not): the author gets a notification
+ * (and a push) about that comment, with the moderator's note. Body: { cid, note? }
+ */
+async function warnComment(request, env, auth, ctx) {
+  const body = await readJson(request) || {};
+  const row = await env.DB.prepare(
+    `SELECT c.cid, c.hosp, c.account_id, c.body, c.target, c.card_date, c.warned_at, a.role AS role
+       FROM comments c JOIN accounts a ON a.id = c.account_id WHERE c.cid = ? AND c.deleted = 0`
+  ).bind(Number(body.cid) || 0).first();
+  if (!row) return json({ error: 'not_found' }, 404);
+  if (!canWarn(auth, row)) return json({ error: 'forbidden' }, 403);
+  if (await overLimit(env, 'warn:' + (auth.a || auth.r), 60)) return json({ error: 'rate_limited' }, 429);
+  const note = plainText(body.note, 300) || '';
+  const now = Date.now();
+  const by = auth.a ? `${auth.r}:${auth.name || auth.a}` : auth.r;
+  // The card's resident (for the notification's text and its link to the thread).
+  const key = row.target.split(':').slice(3).join(':');
+  const owner = await env.DB.prepare('SELECT name FROM accounts WHERE name_key = ? LIMIT 1').bind(key).first();
+  const results = await env.DB.batch([
+    env.DB.prepare('UPDATE comments SET warned_at = ?, warned_by = ? WHERE cid = ?').bind(now, by, row.cid),
+    ...(row.warned_at ? [] : [env.DB.prepare('UPDATE accounts SET warnings = warnings + 1 WHERE id = ?').bind(row.account_id)]),
+    notifyOne(env, row.account_id, 'warn:' + row.cid, 'warning', JSON.stringify({
+      h: row.hosp, d: row.card_date, name: (owner && owner.name) || key, text: String(row.body).slice(0, 160), note, role: auth.r,
+    }), now),
+    env.DB.prepare('INSERT INTO audit (ts, role, msg, n) VALUES (?, ?, ?, 1)').bind(now, by, `Comment ${row.cid} warned (${row.hosp})`),
+  ]);
+  dispatchPush(env, ctx, results[results.length - 2]);
+  return json({ ok: true, warned: true });
+}
+
+/** Hospitals where commenting is off, and which of them this moderator may switch. */
+async function commentSwitches(env, auth) {
+  if (!canApprove(auth)) return json({ error: 'forbidden' }, 403);
+  return json({ ok: true, off: await commentsOff(env), scope: seesAll(auth) ? ['*'] : (auth.h || []) });
+}
+
+/** Body: { hosp, on }. The owner switches any hospital, an admin their own. */
+async function setCommentSwitch(request, env, auth) {
+  const body = await readJson(request) || {};
+  const hosp = String(body.hosp || '');
+  if (!HOSP_RE.test(hosp) || typeof body.on !== 'boolean') return json({ error: 'bad_request' }, 400);
+  if (!canModerate(auth, hosp)) return json({ error: 'forbidden' }, 403);
+  const off = new Set(await commentsOff(env));
+  if (body.on) off.delete(hosp); else off.add(hosp);
+  const by = auth.a ? `${auth.r}:${auth.name || auth.a}` : auth.r;
+  await env.DB.batch([
+    env.DB.prepare("INSERT INTO kv (k, v) VALUES ('comments_off', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v").bind(JSON.stringify([...off])),
+    env.DB.prepare('INSERT INTO audit (ts, role, msg, n) VALUES (?, ?, ?, 1)').bind(Date.now(), by, `Comments ${body.on ? 'on' : 'off'} (${hosp})`),
+  ]);
+  return json({ ok: true, off: [...off] });
 }

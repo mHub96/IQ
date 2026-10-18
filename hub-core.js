@@ -3568,7 +3568,8 @@
          * Returns true when the role or hospitals changed.
          */
         refreshAccount(account, role, adminHospitals) {
-            if (!account) return false;
+            // A reply that arrives after signing out must not bring the session back.
+            if (!account || !localStorage.getItem(SESSION_ROLE_KEY) || !readApiToken()) return false;
             const before = localStorage.getItem(SESSION_ROLE_KEY) + '|' + localStorage.getItem(SESSION_ADMIN_HOSPITALS_KEY);
             storeAccount(account);
             localStorage.setItem(SESSION_ROLE_KEY, role);
@@ -3792,6 +3793,29 @@
             if (hadSession) {
                 window.dispatchEvent(new CustomEvent('hub:auth-changed', { detail: { role: 'guest', adminHospitals: [] } }));
             }
+        },
+
+        /**
+         * Sign-out pressed by the user: ends the session and restarts the app at the sign-in screen.
+         * Inside the app shell every page stays loaded in its own frame, so the whole shell is
+         * reloaded: no page that was open while signed in (or its account panel) can come back.
+         */
+        signOut() {
+            try {
+                sessionStorage.removeItem('hub_cached_owner_pwd');
+                sessionStorage.removeItem('hub_cached_admin_pwd');
+                sessionStorage.removeItem('hub_aa_ctx');
+            } catch (e) {}
+            this.logout();
+            try { localStorage.removeItem('app_last_route'); } catch (e) {}
+            const dir = location.href.replace(/[?#].*$/, '').replace(/[^/]*$/, '');
+            let top = null;
+            try { if (window.top !== window && window.top.HubShell) top = window.top; } catch (e) {}
+            if (top) {
+                // Only the address after # would change: point it at the hub, then really reload the shell.
+                try { top.history.replaceState(null, '', dir + 'app.html#index.html?portal=true'); } catch (e) {}
+                top.location.reload();
+            } else location.replace(dir + 'index.html?portal=true');
         },
 
         /** Raise the current session to owner / admin / anaesthesia. Returns a Promise. */

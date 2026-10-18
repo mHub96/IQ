@@ -184,6 +184,7 @@
         .mod-item { border: 1px solid var(--hacc-border); border-radius: 16px; padding: 12px 14px; margin-bottom: 10px; background: var(--hacc-bg); }
         .mod-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
         .mod-author { font-weight: 800; font-size: 0.85rem; }
+        .mod-acts { display: flex; gap: 6px; flex: none; }
         .mod-meta { font-size: 0.72rem; color: var(--hacc-muted); margin-top: 2px; }
         .mod-body { margin-top: 8px; font-size: 0.88rem; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
         .filter-row { display: flex; gap: 8px; margin-bottom: 12px; }
@@ -1132,14 +1133,20 @@
                 if (canManage) {
                     if (a.status === 'pending') actions.push(rolePick ? `<label class="approve-as">الموافقة بصلاحية ${rolePick}</label>` : '', '<button class="hacc-btn good" data-act="approve">✓ موافقة</button>', '<button class="hacc-btn danger" data-act="reject">✗ رفض</button>');
                     if (a.reset === 'requested') actions.push('<button class="hacc-btn good" data-act="approve_reset">🔓 السماح بتغيير كلمة المرور</button>', '<button class="hacc-btn" data-act="deny_reset">تجاهل الطلب</button>');
-                    if (a.status === 'active' && mg.filter !== 'resets') actions.push('<button class="hacc-btn danger" data-act="disable">إيقاف الحساب</button>');
-                    if (a.status === 'disabled') actions.push('<button class="hacc-btn" data-act="enable">إعادة التفعيل</button>');
+                    // Commenting: the owner and the hospital's admins allow or bar it per account.
+                    if (a.status === 'active' && mg.filter !== 'resets' && a.role !== 'owner' && a.id !== myId) actions.push(a.no_comment
+                        ? '<button class="hacc-btn" data-act="unmute">💬 السماح بالتعليق</button>'
+                        : '<button class="hacc-btn" data-act="mute">🚫 منع من التعليق</button>');
+                    // Account status, role and devices are the owner's; an admin can only delete the account.
+                    if (isOwner && a.status === 'active' && mg.filter !== 'resets') actions.push('<button class="hacc-btn danger" data-act="disable">إيقاف الحساب</button>');
+                    if (isOwner && a.status === 'disabled') actions.push('<button class="hacc-btn" data-act="enable">إعادة التفعيل</button>');
+                    if (!isOwner && a.status !== 'pending') actions.push('<button class="hacc-btn danger" data-act="delete">حذف الحساب</button>');
                 }
                 const scope = a.hospitals || [];
                 const limit = a.max_devices || 0;
                 const limitMode = limit === 0 ? '0' : limit === 1 ? '1' : 'n';
-                const editor = canManage && a.status !== 'rejected' ? `<details class="edit-wrap"><summary class="hacc-link">⚙️ الصلاحيات والأجهزة</summary><div class="editor">
-                    ${!isOwner && ['user', 'anaesthesia', ...OFFICER_ROLES].includes(a.role) && a.status !== 'pending' ? `<div><h4>الصلاحية</h4>
+                const editor = canManage && (isOwner || (officer && a.status !== 'pending')) && a.status !== 'rejected' ? `<details class="edit-wrap"><summary class="hacc-link">⚙️ ${isOwner ? 'الصلاحيات والأجهزة' : 'صلاحية الشؤون الإدارية'}</summary><div class="editor">
+                    ${!isOwner && officer && a.status !== 'pending' ? `<div><h4>الصلاحية</h4>
                         <select data-role="role" style="margin-top:6px">${(officer ? OFFICER_ROLES : ['user', 'anaesthesia']).map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
                         <button class="hacc-btn primary sm" data-act="set_role" style="margin-top:8px">حفظ الصلاحية</button></div>` : ''}
                     ${isOwner ? `<div><h4>الصلاحية</h4>
@@ -1159,7 +1166,7 @@
                             <select data-f="hosp" aria-label="المستشفى">${hospitals.map(h => `<option value="${esc(h.id)}" ${a.hosp === h.id ? 'selected' : ''}>${esc(h.name_ar || h.hospitalName || h.id)}</option>`).join('')}</select>
                         </div>
                         <button class="hacc-btn primary sm" data-act="set_profile" style="margin-top:8px">حفظ الملف</button></div>` : ''}
-                    <div><h4>الأجهزة المسموح بها</h4>
+                    ${isOwner ? `<div><h4>الأجهزة المسموح بها</h4>
                         <div class="limit-row" style="margin-top:6px">
                             <select data-role="limit-mode">
                                 <option value="0" ${limitMode === '0' ? 'selected' : ''}>غير محدود</option>
@@ -1171,13 +1178,13 @@
                         </div></div>
                     <div><h4>الأجهزة المرتبطة (${(a.devices || []).length})</h4>
                         <ul class="devices">${devicesHtml(a.devices, { removable: true })}</ul>
-                        ${(a.devices || []).length ? '<button class="hacc-btn sm danger" data-act="reset_devices">إلغاء ربط كل الأجهزة</button>' : ''}</div>
+                        ${(a.devices || []).length ? '<button class="hacc-btn sm danger" data-act="reset_devices">إلغاء ربط كل الأجهزة</button>' : ''}</div>` : ''}
                     ${isOwner && a.status !== 'pending' && a.id !== myId ? '<div><button class="hacc-btn sm danger" data-act="delete">حذف الحساب نهائياً</button></div>' : ''}
                     </div></details>` : '';
                 return `<article class="acc" data-id="${esc(a.id)}">
                     <div class="acc-head">${HubAccounts.avatarHtml(a, 42)}
                     <div style="min-width:0;flex:1"><div class="acc-name">${esc(a.name)}
-                        <span class="badge ${esc(a.status)}">${esc(statusText)}</span>${a.role !== 'user' ? `<span class="badge role">${esc(ROLE_NAMES[a.role] || a.role)}</span>` : ''}${a.reset === 'requested' ? '<span class="badge pending">طلب كلمة مرور</span>' : ''}${a.max_devices ? `<span class="badge role">🔒 ${esc(limitText(a.max_devices))}</span>` : ''}</div>
+                        <span class="badge ${esc(a.status)}">${esc(statusText)}</span>${a.role !== 'user' ? `<span class="badge role">${esc(ROLE_NAMES[a.role] || a.role)}</span>` : ''}${a.reset === 'requested' ? '<span class="badge pending">طلب كلمة مرور</span>' : ''}${a.max_devices ? `<span class="badge role">🔒 ${esc(limitText(a.max_devices))}</span>` : ''}${a.no_comment ? '<span class="badge disabled">🚫 ممنوع من التعليق</span>' : ''}${a.warnings ? `<span class="badge pending">⚠️ ${a.warnings === 1 ? 'تحذير واحد' : a.warnings === 2 ? 'تحذيران' : a.warnings + ' تحذيرات'}</span>` : ''}</div>
                     <div class="acc-sub"><span dir="ltr">@${esc(a.username)}</span> · ${esc(SEX[a.sex] || '')} · ${esc(hospitalName(a.hosp))}${a.phone ? ` · <a href="tel:${esc(localPhone(a.phone))}" dir="ltr">${esc(localPhone(a.phone))}</a>` : ''}</div>
                     ${a.role === 'rotator' ? '<div class="acc-sub">🔄 روتيتر: تصفح الموقع والتواصل مع المقيمين فقط، بلا تبديل خفارات.</div>'
                         : officer ? `<div class="acc-sub">🏢 الشؤون الإدارية · ${esc(a.aa_job_name || '')}${a.resident_id ? ' · ✓ موجود في قاعدة البيانات' : ''}</div>${a.status === 'pending' && !a.resident_id ? '<div class="acc-sub" style="color:#b45309">⚠️ غير موجود في قاعدة بيانات الشؤون الإدارية: عند الموافقة يُضاف تحت العنوان الوظيفي الذي اختاره.</div>' : ''}`
@@ -1234,6 +1241,7 @@
                 reject: `رفض طلب ${a.name}؟`,
                 disable: `إيقاف حساب ${a.name}؟ سيتم تسجيل خروجه من كل الأجهزة.`,
                 delete: `حذف حساب ${a.name} نهائياً مع إعجاباته وتعليقاته؟`,
+                mute: `منع ${a.name} من التعليق؟ سيبقى قادراً على تصفح الموقع والإعجاب.`,
                 remove_device: 'إلغاء ربط هذا الجهاز؟ سيتم تسجيل خروجه فوراً.',
                 reset_devices: `إلغاء ربط كل أجهزة ${a.name}؟ سيتم تسجيل خروجه منها.`,
                 set_role: body.role !== a.role ? `تغيير صلاحية ${a.name} إلى «${ROLE_NAMES[body.role]}»؟` : null,
@@ -1243,7 +1251,7 @@
             btn.disabled = true;
             try {
                 const res = await Hub.api('POST', '/api/accounts/decide', body, { retries: 0 });
-                toast({ approve: 'تمت الموافقة ✓', reject: 'تم رفض الطلب', disable: 'تم إيقاف الحساب', enable: 'تم تفعيل الحساب', approve_reset: 'تم السماح بتغيير كلمة المرور ✓', deny_reset: 'تم تجاهل الطلب', set_role: 'تم حفظ الصلاحية ✓', set_profile: 'تم حفظ الملف ✓', set_devices: 'تم حفظ حد الأجهزة ✓', remove_device: 'تم إلغاء ربط الجهاز', reset_devices: 'تم إلغاء ربط كل الأجهزة', delete: 'تم حذف الحساب' }[action] || 'تم', 'success');
+                toast({ approve: 'تمت الموافقة ✓', reject: 'تم رفض الطلب', disable: 'تم إيقاف الحساب', enable: 'تم تفعيل الحساب', approve_reset: 'تم السماح بتغيير كلمة المرور ✓', deny_reset: 'تم تجاهل الطلب', set_role: 'تم حفظ الصلاحية ✓', set_profile: 'تم حفظ الملف ✓', set_devices: 'تم حفظ حد الأجهزة ✓', remove_device: 'تم إلغاء ربط الجهاز', reset_devices: 'تم إلغاء ربط كل الأجهزة', delete: 'تم حذف الحساب', mute: 'تم منعه من التعليق', unmute: 'تم السماح بالتعليق ✓' }[action] || 'تم', 'success');
                 if (res.account) Object.assign(a, res.account);
                 const stillListed = action !== 'delete' && ({ pending: a.status === 'pending', resets: a.reset === 'requested', active: a.status === 'active', all: true })[mg.filter];
                 const openEditor = !!card.querySelector('details.edit-wrap[open]');
@@ -1280,10 +1288,23 @@
             $('mg-more').hidden = !mg.more;
             if (!items.length) { $('mg-list').innerHTML = '<div class="hacc-empty">لا توجد تعليقات</div>'; return; }
             $('mg-list').innerHTML = items.map(c => `<article class="mod-item" data-cid="${c.cid}">
-                <div class="mod-head"><span class="mod-author">${c.anon ? '🕶️ ' : ''}<bdi>${esc(c.author)}</bdi>${c.realName ? ` <span class="hacc-reveal" title="ظاهر للمالك فقط">(${esc(c.realName)})</span>` : ''}</span>
-                <button class="hacc-btn sm danger" data-act="del-comment">حذف</button></div>
+                <div class="mod-head"><span class="mod-author">${c.anon ? '🕶️ ' : ''}<bdi>${esc(c.author)}</bdi>${c.realName ? ` <span class="hacc-reveal" title="الاسم الحقيقي: ظاهر للإدارة فقط">(${esc(c.realName)})</span>` : ''}${c.warned ? ' <span class="badge pending">⚠️ حُذّر</span>' : ''}</span>
+                <span class="mod-acts">${c.canWarn ? `<button class="hacc-btn sm" data-act="warn-comment">⚠️ ${c.warned ? 'تحذير مجدداً' : 'تحذير'}</button>` : ''}<button class="hacc-btn sm danger" data-act="del-comment">حذف</button></span></div>
                 <div class="mod-meta">${esc(hospitalName(c.hosp))} · بطاقة ${esc(c.cardKey)} · ${esc(c.date)} · ${esc(timeAgo(c.ts))}</div>
                 <div class="mod-body">${esc(c.body)}</div></article>`).join('');
+            $('mg-list').querySelectorAll('[data-act="warn-comment"]').forEach(btn => btn.addEventListener('click', async () => {
+                const cid = Number(btn.closest('.mod-item').dataset.cid);
+                const c = mg.comments.find(x => x.cid === cid);
+                const note = prompt(`تحذير ${c.realName || c.author} بسبب هذا التعليق؟\nيمكنك كتابة ملاحظة تصله مع التحذير (اختياري):`, '');
+                if (note === null) return;
+                btn.disabled = true;
+                try {
+                    await Hub.api('POST', '/api/social/comment/warn', { cid, note: note.trim() }, { retries: 0 });
+                    c.warned = true;
+                    renderComments();
+                    toast('تم إرسال التحذير ⚠️', 'success');
+                } catch (err) { btn.disabled = false; toast(errorText(err), 'error'); }
+            }));
             $('mg-list').querySelectorAll('[data-act="del-comment"]').forEach(btn => btn.addEventListener('click', async () => {
                 const cid = Number(btn.closest('.mod-item').dataset.cid);
                 if (!confirm('حذف هذا التعليق؟')) return;

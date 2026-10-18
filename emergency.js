@@ -715,10 +715,8 @@
             localStorage.removeItem('hosp_hub_er_owner_session');
             sessionStorage.removeItem('hosp_hub_er_owner_session');
             document.documentElement.classList.remove('er-owner-authenticated');
-            if (window.Hub && window.Hub.auth) {
-                window.Hub.auth.logout();
-            }
-            window.location.replace('./index.html');
+            if (window.Hub && window.Hub.auth) window.Hub.auth.signOut();
+            else window.location.replace('./index.html');
         }
     };
 

@@ -338,6 +338,14 @@ body.dark .hacc-avatar { color: #1C1C1E; }
 .hacc-text { font-size: 0.88rem; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
 .hacc-meta { display: flex; gap: 10px; align-items: center; padding: 3px 10px 0; font-size: 0.7rem; color: var(--hacc-muted); font-weight: 600; }
 .hacc-reveal { color: #b45309; }
+.hacc-warned { color: #b45309; font-weight: 700; }
+.hacc-link.warn { color: #b45309; }
+.hp-switch-note { font-size: 0.74rem; line-height: 1.6; margin: -2px 0 8px; }
+.hp-switches { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.hp-switches li { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border: 1px solid var(--hacc-border); border-radius: 12px; background: var(--hacc-bg); }
+.hp-switch-name { flex: 1; min-width: 0; font-weight: 700; font-size: 0.82rem; }
+.hacc-chip.on { background: rgba(52, 199, 89, 0.14); color: #1f8f3f; }
+.hacc-chip.off { background: rgba(255, 59, 48, 0.12); color: #d70015; }
 .hacc-composer { border-top: 1px solid var(--hacc-border); padding: 8px 12px 10px; background: var(--hacc-bg); }
 .hacc-composer[hidden] { display: none; }
 .hacc-identity { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }

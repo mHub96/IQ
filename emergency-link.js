@@ -348,27 +348,50 @@
         .erl-badge.linked { background: rgba(16, 185, 129, 0.12); color: #059669; }
         .erl-badge.unlinked { background: rgba(239, 68, 68, 0.12); color: #dc2626; cursor: pointer; }
         .resident-name-cell input[readonly] { cursor: default; }
-        .erl-modal { position: fixed; inset: 0; z-index: 2147483000; background: rgba(15, 23, 42, 0.55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+        .erl-modal { position: fixed; inset: 0; z-index: 2147483000; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; padding: 16px; }
         .erl-card { width: 100%; max-width: 620px; max-height: 88vh; display: flex; flex-direction: column; background: #fff; color: #0f172a; border-radius: 22px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
-        html.dark .erl-card { background: #0f172a; color: #e2e8f0; }
+        .erl-card * { box-sizing: border-box; }
+        @media (max-width: 640px) {
+            .erl-modal { padding: 10px; align-items: flex-end; }
+            .erl-card { max-height: 92vh; border-radius: 20px; }
+            .erl-card header, .erl-body { padding-left: 12px; padding-right: 12px; }
+        }
         .erl-card header { display: flex; gap: 10px; align-items: flex-start; padding: 16px; border-bottom: 1px solid rgba(148,163,184,.25); }
         .erl-card header div { flex: 1; }
         .erl-card h3 { font-size: 14px; font-weight: 900; margin: 0 0 4px; }
         .erl-card header p { font-size: 11px; opacity: .75; margin: 0; line-height: 1.6; }
         .erl-card header button { border: 0; background: rgba(148,163,184,.2); width: 30px; height: 30px; border-radius: 999px; cursor: pointer; color: inherit; }
-        .erl-body { overflow-y: auto; padding: 12px 16px 16px; display: grid; gap: 8px; }
+        .erl-body { overflow-y: auto; overflow-x: hidden; padding: 12px 16px 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
         .erl-body h4 { font-size: 12px; font-weight: 900; margin: 8px 0 0; }
-        .erl-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(148,163,184,.3); }
+        .erl-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(148,163,184,.3); }
         .erl-row.focus { border-color: #d97706; box-shadow: 0 0 0 3px rgba(217,119,6,.18); }
         .erl-row.away { background: rgba(148,163,184,.08); }
-        .erl-who { flex: 1 1 100%; display: grid; gap: 2px; font-size: 12px; }
+        .erl-who { flex: 1 1 100%; min-width: 0; display: grid; gap: 2px; font-size: 12px; overflow-wrap: anywhere; }
         .erl-who small { opacity: .7; font-weight: 600; }
-        .erl-pick { display: flex; gap: 6px; flex: 1 1 260px; }
-        .erl-pick select { flex: 1; min-width: 0; padding: 6px 8px; border-radius: 10px; border: 1px solid rgba(148,163,184,.5); background: transparent; color: inherit; font: inherit; font-size: 11px; }
-        .erl-btn { padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(148,163,184,.5); background: transparent; color: inherit; font: 800 11px inherit; font-family: inherit; cursor: pointer; }
+        .erl-pick { display: flex; gap: 6px; flex: 1 1 100%; min-width: 0; }
+        /* Width set by the row, not by the longest name in the list (Safari sizes selects by their text). */
+        .erl-pick select { flex: 1 1 0; width: 0; min-width: 0; max-width: 100%; padding: 8px; border-radius: 10px; border: 1px solid rgba(148,163,184,.5); background: #fff; color: #0f172a; font: inherit; font-size: 12px; text-overflow: ellipsis; }
+        .erl-btn { max-width: 100%; padding: 7px 10px; border-radius: 10px; border: 1px solid rgba(148,163,184,.5); background: transparent; color: inherit; font: 800 11px inherit; font-family: inherit; cursor: pointer; white-space: normal; text-align: center; overflow-wrap: anywhere; }
         .erl-btn.good { background: #059669; border-color: #059669; color: #fff; }
         .erl-btn.ghost { color: #0369a1; }
-        .erl-empty { padding: 18px; text-align: center; font-weight: 800; color: #059669; font-size: 12px; }`;
+        .erl-empty { padding: 18px; text-align: center; font-weight: 800; color: #059669; font-size: 12px; }
+        /* Dark mode: a readable palette of its own (light text on dark surfaces, brighter accents). */
+        html.dark .erl-modal { background: rgba(2, 6, 23, 0.72); }
+        html.dark .erl-card { background: #111827; color: #f1f5f9; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
+        html.dark .erl-card header { border-bottom-color: #334155; }
+        html.dark .erl-card header p { color: #cbd5e1; opacity: 1; }
+        html.dark .erl-card header button { background: #334155; color: #f1f5f9; }
+        html.dark .erl-row { background: #1f2937; border-color: #374151; }
+        html.dark .erl-row.away { background: #1e293b; }
+        html.dark .erl-row.focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.25); }
+        html.dark .erl-who small { color: #cbd5e1; opacity: 1; }
+        html.dark .erl-pick select { background: #0f172a; color: #f1f5f9; border-color: #475569; color-scheme: dark; }
+        html.dark .erl-btn { border-color: #475569; color: #f1f5f9; }
+        html.dark .erl-btn.good { background: #059669; border-color: #10b981; color: #fff; }
+        html.dark .erl-btn.ghost { color: #7dd3fc; border-color: #0369a1; }
+        html.dark .erl-empty { color: #34d399; }
+        html.dark .erl-banner.ok { background: rgba(16, 185, 129, 0.14); color: #6ee7b7; }
+        html.dark .erl-banner.warn { background: rgba(245, 158, 11, 0.14); color: #fcd34d; }`;
 
     function start() {
         if (!document.getElementById('erl-style')) {

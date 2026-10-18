@@ -254,6 +254,16 @@
             div:has(> div > #meta-rs-start) { flex-wrap: wrap; }
             #meta-rs-start, #meta-rs-end { min-width: 0; max-width: 100%; }
         }
+        /* Dark mode: drop-downs and fields get a dark face (the browser's light default left light text on a
+           light box: the month / year pickers, the "previous month" picker, the link panel's lists). */
+        html.dark select, html.dark input[type="text"], html.dark input[type="number"], html.dark input[type="date"],
+        html.dark input[type="month"], html.dark input[type="tel"], html.dark input[type="search"], html.dark textarea {
+            background-color: #1e293b; color: #f1f5f9; border-color: #475569; color-scheme: dark;
+        }
+        html.dark select option, html.dark select optgroup { background-color: #1e293b; color: #f1f5f9; }
+        html.dark select:disabled, html.dark input:disabled { background-color: #0f172a; color: #94a3b8; }
+        html.dark ::placeholder { color: #94a3b8; opacity: 1; }
+        html.dark .db-cell-input { background-color: transparent; }
     </style>
     <link rel="stylesheet" href="./hub-ios.css" />
 </head>

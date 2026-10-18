@@ -333,6 +333,8 @@
             color: #AEAEB2;
             font-weight: 600;
         }
+        .own-hosp-chip { display: inline-block; vertical-align: middle; margin-inline-start: 6px; padding: 1px 8px; border-radius: 999px; font-size: 0.68rem; font-weight: 800; background: rgba(13, 148, 136, 0.12); color: #0f766e; }
+        html.dark .own-hosp-chip, body.dark .own-hosp-chip { background: rgba(45, 212, 191, 0.15); color: #5eead4; }
     </style>
     <link rel="stylesheet" href="./tailwind.css" />
     <link rel="stylesheet" href="./hub-ios.css" />
@@ -622,7 +624,12 @@
             if (!grid) return;
 
             const allHospitals = window.Hub.getHospitals();
-            const icuStatsList = allHospitals.map(h => window.Hub.getICUStats(h.id)).filter(Boolean);
+            // An anaesthesia resident's own hospitals come first (also when the owner lets them edit every ICU).
+            const ownIds = window.Hub.auth.getRole() === 'anaesthesia' ? (window.Hub.auth.getAdminHospitalIds() || []).filter(h => h !== '*') : [];
+            const icuStatsList = allHospitals.map(h => window.Hub.getICUStats(h.id)).filter(Boolean)
+                .map((s, i) => ({ s, i, own: ownIds.includes(s.hospitalId) }))
+                .sort((a, b) => (b.own - a.own) || (a.i - b.i))
+                .map(x => Object.assign(x.s, { isOwnHospital: x.own }));
 
             // 1. Calculate KPI totals across all hospitals
             let totalBeds = 0;
@@ -735,7 +742,7 @@
                                     </div>
                                     <div>
                                         <h2 class="text-base sm:text-lg font-black text-slate-800 dark:text-white leading-tight">
-                                            ${stat.hospitalName}
+                                            ${stat.hospitalName}${stat.isOwnHospital ? ' <span class="own-hosp-chip">مستشفاك</span>' : ''}
                                         </h2>
                                         <p class="text-xs font-bold text-slate-500 dark:text-slate-400 mt-0.5">
                                             <i class="fas fa-map-marker-alt text-teal-600 ml-1"></i> ${stat.location || 'العراق'}

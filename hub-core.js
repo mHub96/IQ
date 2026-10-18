@@ -872,6 +872,19 @@
         for (const h of Object.values(db.hospitals || {})) delete h.passwords;
     }
 
+    // Site-wide switches from the API (cached for instant first paint).
+    const icuAllOn = () => { try { return localStorage.getItem('hub_icu_all') === '1'; } catch (e) { return false; } };
+    let authConfigAt = 0;
+    function refreshAuthConfig() {
+        if (Date.now() - authConfigAt < 60000) return;
+        authConfigAt = Date.now();
+        api('GET', '/api/auth-config', undefined, { useToken: false, retries: 0 }).then(cfg => {
+            const was = icuAllOn();
+            try { localStorage.setItem('hub_icu_all', cfg && cfg.icuAll ? '1' : '0'); } catch (e) {}
+            if (was !== icuAllOn()) dispatchDataChanged();
+        }).catch(() => {});
+    }
+
     async function loadDatabase(forceRefresh = false) {
         if (!forceRefresh && isLoaded && db && syncBase) {
             return db;
@@ -899,6 +912,7 @@
                     }
                 }
                 applyServerRows(result.rows, result.full, result.time);
+                refreshAuthConfig();
                 if (auth.isOwner() && !AA) await loadSecrets();
                 else detachSecrets();
                 writeCache();
@@ -1206,6 +1220,14 @@
     const nativeRemoveItem = Storage.prototype.removeItem;
     const erDirty = new Set();
     let erPulled = false;
+    // When each ER entry was last changed on this device (so a newer copy on the server is not
+    // overwritten by an older, never-uploaded copy from this device).
+    const ER_EDIT_KEY = 'hosp_hub_er_edit_times';
+    const readEditTimes = () => { try { return JSON.parse(localStorage.getItem(ER_EDIT_KEY) || '{}') || {}; } catch (e) { return {}; } };
+    const writeEditTimes = t => { try { nativeSetItem.call(localStorage, ER_EDIT_KEY, JSON.stringify(t)); } catch (e) {} };
+    function erStatus(extra) {
+        try { window.dispatchEvent(new CustomEvent('hub:er-sync', { detail: { pending: erDirty.size, pushing: !!erPushing, ...(extra || {}) } })); } catch (e) {}
+    }
     let erTimer = null;
     let erPushing = null;
 
@@ -1246,6 +1268,10 @@
 
     function markErDirty(k) {
         erDirty.add(k);
+        const t = readEditTimes();
+        t[k] = Date.now();
+        writeEditTimes(t);
+        erStatus();
         if (!erPulled) return;
         clearTimeout(erTimer);
         erTimer = setTimeout(() => { pushEr().catch(() => {}); }, 1500);
@@ -1265,6 +1291,7 @@
             return { error: String(e && e.message || e) };
         }
         const state = readErState();
+        const editTimes = readEditTimes();
         const remote = new Map(rows.map(r => [r[1], r]));
         const conflictCopies = [];
         let pulled = 0;
@@ -1280,8 +1307,18 @@
                 }
                 state[k] = { v: r[4], h: HubSync.hash(remoteText) };
                 erDirty.delete(k);
+            } else if (st && st.v !== r[4] && r[6] && r[6] > (editTimes[k] || 0)) {
+                // Changed on both sides, and the server's copy is the newer one (e.g. a backup restored on
+                // another device after this device's last, never-uploaded edit): the newer copy wins and
+                // this device's version is kept on the server as a conflict copy.
+                try { conflictCopies.push({ k, h: erHospitalOf(k), d: JSON.parse(localText), from: 'device' }); } catch (e) {}
+                try { nativeSetItem.call(localStorage, k, remoteText); pulled++; } catch (e) {}
+                state[k] = { v: r[4], h: HubSync.hash(remoteText) };
+                delete editTimes[k];
+                erDirty.delete(k);
             } else if (st) {
-                // Edited on this device since the last sync: keep these edits and upload them.
+                // Edited on this device since the last sync (and later than the server's copy): keep these
+                // edits and upload them.
                 if (st.v !== r[4]) conflictCopies.push({ k, h: r[2], d: r[5], from: 'server' });
                 state[k] = { v: r[4], h: st.h };
                 erDirty.add(k);
@@ -1317,6 +1354,7 @@
             }
         }
         writeErState(state);
+        writeEditTimes(editTimes);
         erPulled = true;
 
         if (conflictCopies.length) {
@@ -1335,6 +1373,7 @@
             const state = readErState();
             const keys = [...erDirty];
             erDirty.clear();
+            erStatus();
             const ops = [];
             const texts = {};
             for (const k of keys) {
@@ -1347,8 +1386,10 @@
                 if (st && HubSync.hash(text) === st.h) continue;
                 if (text.length > ER_MAX_BYTES) {
                     console.error('ER sync: entry too large to upload:', k, text.length);
+                    erTooLarge.add(k);
                     continue;
                 }
+                erTooLarge.delete(k);
                 let d;
                 try { d = JSON.parse(text); } catch (e) { continue; }
                 texts[k] = text;
@@ -1386,8 +1427,54 @@
                 ops.push(...retry);
             }
             writeErState(state);
-        })().finally(() => { erPushing = null; });
+            // Uploaded entries are in step with the server: their local edit times are no longer needed.
+            const times = readEditTimes();
+            Object.keys(times).forEach(k => { if (state[k] && HubSync.hash(localStorage.getItem(k) || '') === state[k].h) delete times[k]; });
+            writeEditTimes(times);
+        })().finally(() => { erPushing = null; erStatus(); });
         return erPushing;
+    }
+
+    const erTooLarge = new Set();
+    /**
+     * The save button of the ER page: uploads every ER entry that differs from the server now (no
+     * waiting for the background sync) and checks that the server has them.
+     * Resolves to { ok, pending, tooLarge, offline }.
+     */
+    async function saveErNow() {
+        if (!canSyncEr()) return { ok: false, error: 'not_allowed' };
+        if (!erPulled) {
+            const r = await pullEr();
+            if (r && r.error) return { ok: false, offline: true };
+        }
+        const state = readErState();
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (isErKey(k) && (!state[k] || HubSync.hash(localStorage.getItem(k) || '') !== state[k].h)) erDirty.add(k);
+        }
+        clearTimeout(erTimer);
+        erStatus({ saving: true });
+        await pushEr();
+        while (erPushing) await erPushing;
+        const after = readErState();
+        const pending = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (isErKey(k) && (!after[k] || HubSync.hash(localStorage.getItem(k) || '') !== after[k].h)) pending.push(k);
+        }
+        const result = { ok: pending.length === 0, pending: pending.length, tooLarge: [...erTooLarge] };
+        erStatus({ saved: result.ok });
+        return result;
+    }
+    /** Entries of this device not yet on the server. */
+    function erPendingCount() {
+        const state = readErState();
+        let n = 0;
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (isErKey(k) && (!state[k] || HubSync.hash(localStorage.getItem(k) || '') !== state[k].h)) n++;
+        }
+        return n;
     }
 
     async function restoreFullDatabase(payload) {
@@ -3809,6 +3896,8 @@
             if (role === 'owner') return true;
             // Admin and regular users CANNOT edit ICU! Only the anaesthesia resident of the respective hospital can edit
             if (role !== 'anaesthesia') return false;
+            // The owner's switch: every anaesthesia resident edits every hospital's ICU (the API applies it too).
+            if (icuAllOn()) return true;
 
             const adminHospList = this.getAdminHospitalIds();
             if (adminHospList.includes('*')) return true;
@@ -3926,7 +4015,9 @@
         saveDatabase,
         er: {
             pull: pullEr,
-            push: pushEr
+            push: pushEr,
+            save: saveErNow,
+            pending: erPendingCount,
         },
         /** Troubleshooting: what would the next save upload, and which fields changed. */
         debugPendingChanges: (limit = 10) => {
@@ -4049,6 +4140,15 @@
         getAllHospitalsICUStats,
         updateICUStats,
         canEditICU: (hospId) => auth.canEditICU(hospId),
+        icuAllOn,
+        /** The owner switches ICU editing for every anaesthesia resident in every hospital. */
+        async setIcuAll(on) {
+            const res = await api('POST', '/api/icu-access', { on: !!on });
+            try { localStorage.setItem('hub_icu_all', res.icuAll ? '1' : '0'); } catch (e) {}
+            authConfigAt = Date.now();
+            dispatchDataChanged();
+            return res.icuAll;
+        },
         auth,
         getMedicalDate,
         getCurrentMedicalMinutes,

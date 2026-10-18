@@ -459,6 +459,24 @@
             ]],
         ];
         body.innerHTML = lead + groups.map(([title, items]) => `<section class="hp-section"><h3>${title}</h3><div class="hp-admin-grid">${items.map(tileHtml).join('')}</div></section>`).join('');
+        // One site-wide switch: anaesthesia residents and the ICUs they may edit.
+        body.querySelector('.hp-section:last-child').insertAdjacentHTML('beforeend', `<div class="hp-switch-card" data-role="icu-all">
+            <span class="hp-switch-main"><b><i class="fas fa-bed-pulse"></i> تعديل العناية المركزة في كل المستشفيات</b>
+            <small>عند التفعيل يستطيع أي مقيم تخدير تعديل أسرّة العناية في أي مستشفى، مع بقاء مستشفاه (أو مستشفياته) في المقدمة. عند الإيقاف يعدّل مستشفاه فقط.</small></span>
+            <button type="button" class="hp-toggle" role="switch" aria-checked="${Hub.icuAllOn() ? 'true' : 'false'}" aria-label="تعديل العناية المركزة في كل المستشفيات"><span></span></button>
+        </div>`);
+        const sw = body.querySelector('[data-role="icu-all"] .hp-toggle');
+        sw.addEventListener('click', async () => {
+            const on = sw.getAttribute('aria-checked') !== 'true';
+            if (!confirm(on ? 'السماح لكل مقيمي التخدير بتعديل العناية المركزة في كل المستشفيات؟' : 'إعادة تعديل العناية المركزة لكل مقيم تخدير على مستشفاه فقط؟')) return;
+            sw.disabled = true;
+            try {
+                const now = await Hub.setIcuAll(on);
+                sw.setAttribute('aria-checked', now ? 'true' : 'false');
+                toast(now ? 'كل مقيمي التخدير يعدّلون العناية في كل المستشفيات ✓' : 'كل مقيم تخدير يعدّل عناية مستشفاه فقط ✓', 'success');
+            } catch (err) { toast(errorText(err), 'error'); }
+            sw.disabled = false;
+        });
         bindTiles(body);
     }
 

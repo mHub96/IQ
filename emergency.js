@@ -6788,7 +6788,9 @@
                 updateDBUndoRedoUI();
 
                 if (input) input.value = '';
-                showNotification(`تمت استعادة كافة جداول وبيانات وإعدادات الطوارئ بنجاح (${count} طبيب)`, 'success');
+                showNotification(`تمت استعادة كافة جداول وبيانات وإعدادات الطوارئ بنجاح (${count} طبيب)، جاري حفظها على الخادم…`, 'success');
+                // A restore is saved to the server at once (and confirmed), not left to the background sync.
+                if (window.EmergencySave) setTimeout(() => window.EmergencySave.save({ reason: 'restore' }), 300);
             } catch (err) {
                 console.error('Error restoring backup file:', err);
                 alert('فشل قراءة الملف أو استعادته: ملف JSON غير صالح أو به أخطاء برمجية.');

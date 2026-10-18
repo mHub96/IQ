@@ -67,7 +67,7 @@ async function route(request, env, ctx) {
   }
   if (path === '/api/login' && method === 'POST') return login(request, env);
   // Public: whether the sign-in panel offers the shared passwords.
-  if (path === '/api/auth-config' && method === 'GET') return json({ sharedPasswords: !(await sharedPasswordsOff(env)) });
+  if (path === '/api/auth-config' && method === 'GET') return json({ sharedPasswords: !(await sharedPasswordsOff(env)), icuAll: await icuAllOn(env) });
 
   const auth = await authenticate(request, env);
 
@@ -98,6 +98,7 @@ async function route(request, env, ctx) {
   if (path === '/api/history' && method === 'GET') return getHistory(env, auth, url);
   if (path === '/api/revoke-sessions' && method === 'POST') return revokeSessions(env, auth);
   if (path === '/api/shared-passwords' && method === 'POST') return setSharedPasswords(request, env, auth);
+  if (path === '/api/icu-access' && method === 'POST') return setIcuAll(request, env, auth);
 
   return json({ error: 'not_found' }, 404);
 }
@@ -222,6 +223,24 @@ async function setSharedPasswords(request, env, auth) {
   return json({ ok: true, sharedPasswords: active });
 }
 
+/** The owner's switch: every anaesthesia resident may edit the ICU of every hospital (kv 'icu_all'). */
+async function icuAllOn(env) {
+  const row = await env.DB.prepare("SELECT v FROM kv WHERE k = 'icu_all'").first();
+  return !!row && row.v === '1';
+}
+
+async function setIcuAll(request, env, auth) {
+  if (!isOwner(auth)) return json({ error: 'forbidden' }, 403);
+  let body;
+  try { body = await request.json(); } catch { return json({ error: 'bad_request' }, 400); }
+  if (typeof body.on !== 'boolean') return json({ error: 'bad_request' }, 400);
+  await env.DB.batch([
+    env.DB.prepare("INSERT INTO kv (k, v) VALUES ('icu_all', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v").bind(body.on ? '1' : '0'),
+    env.DB.prepare('INSERT INTO audit (ts, role, msg, n) VALUES (?, ?, ?, 1)').bind(Date.now(), auth.r, body.on ? 'ICU editing: every hospital' : 'ICU editing: own hospitals'),
+  ]);
+  return json({ ok: true, icuAll: body.on });
+}
+
 async function revokeSessions(env, auth) {
   if (!isOwner(auth)) return json({ error: 'forbidden' }, 403);
   await env.DB.prepare("INSERT INTO kv (k, v) VALUES ('session_gen', '2') ON CONFLICT(k) DO UPDATE SET v = CAST(v AS INTEGER) + 1").run();
@@ -275,7 +294,7 @@ async function readRecords(env, auth, url, er) {
     `SELECT json_group_array(json_array(coll, id, hosp, ord, v, json(
               CASE WHEN ?2 = 0 AND coll = 'resident' THEN json_remove(data, '$.phone')
                    WHEN ?2 = 0 AND coll = 'hospital' THEN json_remove(data, '$.names')
-                   ELSE data END))) AS rows,
+                   ELSE data END)${er ? ', updated_at' : ''})) AS rows,
             MAX(rid) AS last, COUNT(*) AS n
        FROM (SELECT rowid AS rid, * FROM records WHERE rowid > ?1 AND ${collFilter} ORDER BY rowid LIMIT ${PAGE_ROWS})`
   ).bind(after, full).first();
@@ -344,10 +363,12 @@ async function sync(request, env, auth) {
   // Hospitals where residents' exchanges need approval: their roster writes go through /api/exchange.
   const approval = ['user', 'anaesthesia'].includes(auth.r) && ops.some(op => op && op.c === 'sched')
     ? new Set(await approvalHospitals(env)) : null;
+  // Anaesthesia residents edit every hospital's ICU while the owner's switch is on.
+  const icuAll = auth.r === 'anaesthesia' && ops.some(op => op && op.c === 'icu') && await icuAllOn(env);
   const puts = [], dels = [], ords = [], rejected = [], checks = [];
   ops.forEach((op, i) => {
     if (!op || typeof op.c !== 'string' || typeof op.id !== 'string' || !op.id) { rejected.push(i); return; }
-    if (!allowed(auth, op)) { rejected.push(i); return; }
+    if (!allowed(auth, op) && !(icuAll && op.c === 'icu')) { rejected.push(i); return; }
     if (approval && op.c === 'sched' && approval.has(String(op.id).split(':')[0])) { rejected.push(i); return; }
     const bv = Number(op.bv) || 0;
     if (op.ordOnly) {

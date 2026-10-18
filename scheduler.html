@@ -1380,16 +1380,16 @@
 
                 <!-- View Mode Selector -->
                 <div class="view-selector">
-                    <button class="view-button active" data-view="all" onclick="switchView('all')">
+                    <button class="view-button" data-view="all" onclick="switchView('all')">
                         <i class="fas fa-table-cells"></i> الكل
                     </button>
-                    <button class="view-button" data-view="single" onclick="switchView('single')">
+                    <button class="view-button active" data-view="single" onclick="switchView('single')">
                         <i class="fas fa-layer-group"></i> تخصصي
                     </button>
                 </div>
 
                 <!-- Specialty Quick Selector (Appears only in Single View) -->
-                <div id="specialty-quick-selector-wrapper" class="specialty-quick-selector-wrapper" style="display: none;">
+                <div id="specialty-quick-selector-wrapper" class="specialty-quick-selector-wrapper" style="display: inline-flex;">
                     <div class="specialty-quick-selector">
                         <span id="specialty-quick-icon" class="specialty-quick-icon">🏥</span>
                         <select id="specialty-quick-select" class="specialty-quick-select" onchange="switchToSpecialtyIndex(this.value)" title="اختر الجدول / التخصص للعرض">
@@ -1421,7 +1421,7 @@
             </div>
         </div>
 
-        <div class="board-container all-view" id="board-container">
+        <div class="board-container single-view" id="board-container">
             <button class="navigation-arrows left" onclick="navigateTrack(-1)">‹</button>
             <button class="navigation-arrows right" onclick="navigateTrack(1)">›</button>
             <div class="swipe-hint" id="swipe-hint">↔ اسحب للتنقل</div>
@@ -1502,7 +1502,7 @@
         var nameData = {};
         var specialtyList = [];
         var specialtyColorMap = {};
-        var currentView = 'all';
+        var currentView = 'single'; // one specialty at a time by default; the switch shows them all
         var currentTrackIndex = 0;
         var isTransitioning = false;
         var touchStartX = 0;
@@ -1956,7 +1956,7 @@
         function switchView(view) {
             if (isTransitioning) return;
             currentView = view;
-            document.querySelectorAll('.view-button').forEach(function(button) {
+            document.querySelectorAll('.view-button[data-view]').forEach(function(button) {
                 button.classList.toggle('active', button.dataset.view === view);
             });
             
@@ -2033,6 +2033,10 @@
                 nextTrack.classList.remove('slide-out-left', 'slide-out-right');
                 nextTrack.classList.add('slide-in-left');
                 currentTrackIndex = newIndex;
+                // The dropdown above names the schedule now on screen.
+                var quickSelect = document.getElementById('specialty-quick-select');
+                if (quickSelect) quickSelect.value = String(newIndex);
+                updateQuickSelectColor(newIndex);
                 updateIndicators();
                 setTimeout(function() {
                     nextTrack.classList.remove('slide-in-left');
@@ -3038,6 +3042,8 @@
                 generateBoard();
                 
                 if (currentView === 'single') {
+                    if (currentTrackIndex >= specialtyList.length) currentTrackIndex = 0;
+                    populateSpecialtyQuickSelect();
                     var container = document.getElementById('board-container');
                     var tracks = container.querySelectorAll('.specialty-track');
                     tracks.forEach(function(track, index) {

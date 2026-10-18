@@ -13,7 +13,7 @@
  */
 
 import { DAY, json, signToken, verifyToken, encrypt, decrypt, bucketOf, neutralize } from './lib.js';
-import { routeAccounts, resolveAccountAuth } from './accounts.js';
+import { routeAccounts, resolveAccountAuth, mirrorResident } from './accounts.js';
 import { routeDuties } from './duties.js';
 import { routeAA, isOfficer, AA_ROLES } from './aa.js';
 import { nameKey } from './names.js';
@@ -407,6 +407,15 @@ async function sync(request, env, auth) {
     ).bind(JSON.stringify(checks)));
   }
 
+  // Resident records as they were, to carry a change of identity to the account and the roster.
+  const residentPuts = puts.filter(p => p.c === 'resident');
+  const residentsBefore = new Map();
+  if (residentPuts.length) {
+    const { results: rows } = await env.DB.prepare("SELECT id, data FROM records WHERE coll = 'resident' AND id IN (SELECT value FROM json_each(?))")
+      .bind(JSON.stringify(residentPuts.map(p => p.id))).all();
+    for (const r of rows) { try { residentsBefore.set(r.id, JSON.parse(r.data)); } catch {} }
+  }
+
   const results = await env.DB.batch(stmts);
   const applied = [], conflicts = [];
   if (checks.length) {
@@ -419,6 +428,15 @@ async function sync(request, env, auth) {
       } else {
         conflicts.push([row.i, row.v, row.data]);
       }
+    }
+  }
+  for (const p of residentPuts) {
+    const before = residentsBefore.get(p.id);
+    if (!before || !applied.some(([i]) => i === p.i)) continue;
+    let after;
+    try { after = JSON.parse(p.dt); } catch { continue; }
+    if (before.name !== after.name || before.phone !== after.phone || JSON.stringify(before.hospitals) !== JSON.stringify(after.hospitals)) {
+      await mirrorResident(env, p.id, before, after, by).catch(err => console.warn('mirrorResident failed', err && err.message));
     }
   }
   // `data` in conflicts is raw JSON text; the client parses it.

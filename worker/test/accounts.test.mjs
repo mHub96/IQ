@@ -536,6 +536,59 @@ test('comment moderation: real names for the hospital\'s admins, warnings, barri
   assert.equal((await call('POST', '/api/social/comment', { token: state.tokB, body: { ...card, body: 'رجعت' } })).data.ok, true);
 });
 
+test('anonymous commenting switched off per hospital: comments carry the real name', async () => {
+  const card = { h: hospital.id, d: today(), n: resB.name };
+  assert.equal((await call('POST', '/api/social/hospitals', { token: state.tokB, body: { hosp: hospital.id, anon: false } })).status, 403);
+  const off = await call('POST', '/api/social/hospitals', { token: state.tokA, body: { hosp: hospital.id, anon: false } });
+  assert.ok(off.data.anonOff.includes(hospital.id));
+  assert.equal(off.data.off.includes(hospital.id), false, 'commenting itself stays on');
+  assert.equal((await call('GET', '/api/social/thread?' + new URLSearchParams(card), { token: state.tokB })).data.anonAllowed, false);
+  const anon = await call('POST', '/api/social/comment', { token: state.tokB, body: { ...card, body: 'مجهول', anon: true } });
+  assert.equal(anon.status, 403);
+  assert.equal(anon.data.error, 'anon_off');
+  assert.equal((await call('POST', '/api/social/comment', { token: state.tokB, body: { ...card, body: 'باسمي' } })).data.ok, true);
+  assert.equal((await call('POST', '/api/social/comment', { token: state.tokC, body: { ...card, h: otherHospital.id, body: 'مجهول هناك', anon: true } })).data.ok, true, 'other hospitals unaffected');
+  const on = await call('POST', '/api/social/hospitals', { token: state.owner, body: { hosp: hospital.id, anon: true } });
+  assert.equal(on.data.anonOff.includes(hospital.id), false);
+  assert.equal((await call('GET', '/api/social/thread?' + new URLSearchParams(card), { token: state.tokB })).data.anonAllowed, true);
+});
+
+test('a resident renamed in the hospital database: account, roster of every month, likes and comments follow', async () => {
+  const rows = async () => {
+    let after = 0, out = [], page;
+    do { page = (await call('GET', `/api/db?after=${after}`, { token: state.owner })).data; out = out.concat(page.rows); after = page.last; } while (page.more);
+    return out;
+  };
+  const oldKey = nameKey(resB.name);
+  const newName = resB.name.replace(/\s+\S+$/, '') + ' جديد';
+  const all = await rows();
+  const rec = all.find(r => r[0] === 'resident' && r[1] === resB.id);
+  const duties = all.filter(r => r[0] === 'sched' && r[2] === hospital.id && nameKey(r[5].name) === oldKey);
+  assert.ok(duties.length > 0, 'the resident has duties in the roster');
+  // Comments on this hospital's cards (a card with the same name elsewhere is someone else's).
+  const mine = async () => (await call('GET', '/api/accounts/received', { token: state.tokB })).data.comments.filter(c => c.hosp === hospital.id).map(c => c.cid).sort();
+  const before = await mine();
+  assert.ok(before.length > 0);
+  const rename = async (name, base) => call('POST', '/api/sync', { token: state.owner, body: { msg: 'rename', ops: [{ c: 'resident', id: base[1], h: base[2], o: base[3], bv: base[4], d: { ...base[5], name } }] } });
+  const r = await rename(newName, rec);
+  assert.equal(r.data.applied.length, 1);
+
+  const me = await call('GET', '/api/accounts/me', { token: state.tokB });
+  assert.equal(me.data.account.name, newName, 'the profile shows the database name');
+  const after = await rows();
+  assert.equal(after.filter(x => x[0] === 'sched' && x[2] === hospital.id && nameKey(x[5].name) === oldKey).length, 0, 'no duty left under the old name');
+  assert.equal(after.filter(x => x[0] === 'sched' && x[2] === hospital.id && x[5].name === newName).length, duties.length, 'every month\'s duties renamed');
+  assert.deepEqual(await mine(), before, 'comments stay with the resident');
+  const card = { h: hospital.id, d: today(), n: newName };
+  assert.ok((await call('GET', '/api/social/thread?' + new URLSearchParams(card), { token: state.tokB })).data.comments.length > 0, 'today\'s card keeps its comments');
+
+  // Back to the original name (and the same totals).
+  const rec2 = after.find(x => x[0] === 'resident' && x[1] === resB.id);
+  assert.equal((await rename(resB.name, rec2)).data.applied.length, 1);
+  assert.equal((await call('GET', '/api/accounts/me', { token: state.tokB })).data.account.name, resB.name);
+  assert.deepEqual(await mine(), before);
+});
+
 test('hospital admins: no status, role or device changes, but delete their hospital\'s accounts', async () => {
   for (const action of ['disable', 'enable', 'set_profile', 'remove_device']) {
     assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idC, action } })).status, 403, action);

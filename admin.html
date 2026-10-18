@@ -2525,13 +2525,7 @@
                     hospitals: assignedHospitals
                 });
 
-                // Also update schedule logs if name was changed
-                if (oldName !== formattedName) {
-                    (currentHospital.schedule || []).forEach(s => {
-                        if (s.name === oldName) s.name = formattedName;
-                    });
-                }
-
+                // (A new name is carried to the roster of every month by Hub.updateResident and the API.)
                 currentHospital = Hub.getActiveHospital();
                 const currentHid = Hub.getActiveHospitalId();
                 const isStillInHospital = assignedHospitals.includes(currentHid);

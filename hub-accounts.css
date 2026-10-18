@@ -342,8 +342,10 @@ body.dark .hacc-avatar { color: #1C1C1E; }
 .hacc-link.warn { color: #b45309; }
 .hp-switch-note { font-size: 0.74rem; line-height: 1.6; margin: -2px 0 8px; }
 .hp-switches { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.hp-switches li { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border: 1px solid var(--hacc-border); border-radius: 12px; background: var(--hacc-bg); }
-.hp-switch-name { flex: 1; min-width: 0; font-weight: 700; font-size: 0.82rem; }
+.hp-switches li { display: grid; gap: 7px; padding: 10px 12px; border: 1px solid var(--hacc-border); border-radius: 12px; background: var(--hacc-bg); }
+.hp-switch-name { min-width: 0; font-weight: 800; font-size: 0.84rem; }
+.hp-switch-row { display: flex; align-items: center; gap: 8px; }
+.hp-switch-label { flex: 1; min-width: 0; font-size: 0.78rem; font-weight: 700; color: var(--hacc-muted); }
 .hacc-chip.on { background: rgba(52, 199, 89, 0.14); color: #1f8f3f; }
 .hacc-chip.off { background: rgba(255, 59, 48, 0.12); color: #d70015; }
 .hacc-composer { border-top: 1px solid var(--hacc-border); padding: 8px 12px 10px; background: var(--hacc-bg); }

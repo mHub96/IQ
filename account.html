@@ -841,8 +841,12 @@
                 if (res.match && res.taken) {
                     verifyBox('bad', '<i class="fas fa-user-lock"></i><span>هذا الطبيب لديه حساب (أو طلب) مسبقاً. استخدم «تسجيل الدخول» أو «نسيت كلمة المرور».</span>');
                 } else if (res.match) {
-                    su.verified = { hosp, name, phone, rosterName: res.name };
-                    verifyBox('ok', `<i class="fas fa-circle-check"></i><span>تم التحقق: <b>${esc(res.name)}</b> – ${esc(hospitalName(hosp))}</span>`);
+                    // The account carries the name recorded in the hospital's database, not the typed one.
+                    const replaced = $('su-name').value.trim() !== res.name;
+                    $('su-name').value = res.name;
+                    su.nameWarned = false;
+                    su.verified = { hosp, name: res.name, phone, rosterName: res.name };
+                    verifyBox('ok', `<i class="fas fa-circle-check"></i><span>تم التحقق: <b>${esc(res.name)}</b> – ${esc(hospitalName(hosp))}${replaced ? '<br><small>تم اعتماد اسمك كما هو مسجّل في قاعدة بيانات المستشفى.</small>' : ''}</span>`);
                     $('su-step2').disabled = false;
                     // Pre-select the sex recorded for this doctor in the ER scheduler (still editable).
                     if (res.sex && !sexValue()) {
@@ -860,6 +864,15 @@
             updateSubmit();
         }, 550);
 
+        // Editing the name once it was matched: the database name comes back as long as the phone is the
+        // same (the phone identifies the resident); a different person needs their own registered number.
+        $('su-name').addEventListener('input', () => {
+            if (su.verified && su.verified.rosterName && $('su-name').value.trim() !== su.verified.rosterName && !su.nameWarned) {
+                su.nameWarned = true;
+                toast('الاسم مرتبط برقم هاتفك في قاعدة بيانات المستشفى ولا يمكن تغييره هنا. لتصحيحه راجع مدير المستشفى.', 'error');
+            }
+        });
+        $('su-phone').addEventListener('input', () => { su.nameWarned = false; });
         ['su-hosp', 'su-name', 'su-phone'].forEach(id => $(id).addEventListener('input', () => { paintSteps(); runCheck(); }));
         document.querySelectorAll('input[name="su-sex"]').forEach(r => r.addEventListener('change', () => { paintSteps(); updateSubmit(); }));
 

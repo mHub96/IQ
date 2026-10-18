@@ -338,10 +338,11 @@
     /** Commenting on or off per hospital (owner: every hospital; an admin: their own). */
     async function renderCommentSwitches(box) {
         box.innerHTML = '<h3>التعليقات في المستشفيات</h3><div class="hacc-empty">جاري التحميل…</div>';
-        let off = [], scope = [];
+        let off = [], anonOff = [], scope = [];
         try {
             const res = await Hub.api('GET', '/api/social/hospitals', undefined, { retries: 1 });
             off = res.off || [];
+            anonOff = res.anonOff || [];
             scope = res.scope || [];
         } catch (err) {
             box.innerHTML = `<h3>التعليقات في المستشفيات</h3><div class="hacc-empty">${esc(errorText(err))}</div>`;
@@ -350,12 +351,17 @@
         const hospitals = Hub.getHospitals().filter(h => scope.includes('*') || scope.includes(h.id));
         const paint = () => {
             box.innerHTML = `<h3>التعليقات في المستشفيات</h3>
-                <p class="hacc-muted hp-switch-note">عند الإيقاف لا يستطيع أحد التعليق على بطاقات خفارات المستشفى${Hub.auth.isOwner() ? ' (عدا المالك)' : ''}، وتبقى التعليقات السابقة ظاهرة.</p>
+                <p class="hacc-muted hp-switch-note">عند الإيقاف لا يستطيع أحد التعليق على بطاقات خفارات المستشفى${Hub.auth.isOwner() ? ' (عدا المالك)' : ''}، وتبقى التعليقات السابقة ظاهرة. ومع إيقاف «المجهول» تكون كل التعليقات الجديدة بالاسم الحقيقي.</p>
                 <ul class="hp-switches">${hospitals.map(h => {
                     const on = !off.includes(h.id);
+                    const anon = !anonOff.includes(h.id);
                     return `<li data-h="${esc(h.id)}"><span class="hp-switch-name">${esc(h.name_ar || h.hospitalName || h.id)}</span>
+                        <span class="hp-switch-row"><span class="hp-switch-label">💬 التعليقات</span>
                         <span class="hacc-chip ${on ? 'on' : 'off'}">${on ? 'مفعّلة' : 'متوقفة'}</span>
-                        <button type="button" class="hacc-btn sm ${on ? 'danger' : 'primary'}" data-act="toggle">${on ? 'إيقاف' : 'تفعيل'}</button></li>`;
+                        <button type="button" class="hacc-btn sm ${on ? 'danger' : 'primary'}" data-act="toggle">${on ? 'إيقاف' : 'تفعيل'}</button></span>
+                        <span class="hp-switch-row"><span class="hp-switch-label">🕶️ التعليق المجهول</span>
+                        <span class="hacc-chip ${anon ? 'on' : 'off'}">${anon ? 'مسموح' : 'متوقف'}</span>
+                        <button type="button" class="hacc-btn sm ${anon ? 'danger' : 'primary'}" data-act="toggle-anon">${anon ? 'إيقاف' : 'تفعيل'}</button></span></li>`;
                 }).join('') || '<li class="hacc-muted">لا توجد مستشفيات.</li>'}</ul>`;
             box.querySelectorAll('[data-act="toggle"]').forEach(btn => btn.addEventListener('click', async () => {
                 const h = btn.closest('li').dataset.h;
@@ -364,8 +370,24 @@
                 if (!on && !confirm(`إيقاف التعليقات في ${name}؟`)) return;
                 btn.disabled = true;
                 try {
-                    off = (await Hub.api('POST', '/api/social/hospitals', { hosp: h, on }, { retries: 0 })).off || [];
+                    const res = await Hub.api('POST', '/api/social/hospitals', { hosp: h, on }, { retries: 0 });
+                    off = res.off || [];
+                    anonOff = res.anonOff || anonOff;
                     toast(on ? 'تم تفعيل التعليقات ✓' : 'تم إيقاف التعليقات', 'success');
+                    paint();
+                } catch (err) { btn.disabled = false; toast(errorText(err), 'error'); }
+            }));
+            box.querySelectorAll('[data-act="toggle-anon"]').forEach(btn => btn.addEventListener('click', async () => {
+                const h = btn.closest('li').dataset.h;
+                const anon = anonOff.includes(h);
+                const name = (hospitals.find(x => x.id === h) || {}).name_ar || h;
+                if (!anon && !confirm(`إيقاف التعليق المجهول في ${name}؟ ستكون التعليقات الجديدة بالاسم الحقيقي فقط.`)) return;
+                btn.disabled = true;
+                try {
+                    const res = await Hub.api('POST', '/api/social/hospitals', { hosp: h, anon }, { retries: 0 });
+                    off = res.off || off;
+                    anonOff = res.anonOff || [];
+                    toast(anon ? 'تم السماح بالتعليق المجهول ✓' : 'تم إيقاف التعليق المجهول', 'success');
                     paint();
                 } catch (err) { btn.disabled = false; toast(errorText(err), 'error'); }
             }));

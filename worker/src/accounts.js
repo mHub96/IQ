@@ -596,6 +596,14 @@ async function me(env, auth) {
             (SELECT COUNT(*) FROM push_subs p WHERE p.account_id = accounts.id) AS push_devices
        FROM accounts WHERE id = ?`
   ).bind(auth.a).first();
+  // The name always follows the hospital database (also for renames made before accounts followed them).
+  if (row && row.resident_id && !AA_ROLES.includes(row.role)) {
+    const rec = await env.DB.prepare("SELECT json_extract(data, '$.name') AS n FROM records WHERE coll = 'resident' AND id = ?").bind(row.resident_id).first();
+    if (rec && rec.n && rec.n !== row.name) {
+      await env.DB.prepare('UPDATE accounts SET name = ?, name_key = ? WHERE id = ?').bind(rec.n, nameKey(rec.n), row.id).run();
+      row.name = rec.n;
+    }
+  }
   return json({ ok: true, account: profile(row, await getStageMonth(env)), role: auth.r, adminHospitals: auth.h, device: auth.dv, dutyDay: dutyDayNow() });
 }
 
@@ -1121,11 +1129,14 @@ const canModerate = (auth, hosp) => auth.r === 'owner' || (auth.r === 'admin' &&
 const canWarn = (auth, c) => !!c.account_id && c.account_id !== auth.a && canModerate(auth, c.hosp)
   && (auth.r === 'owner' || ADMIN_MANAGES.includes(c.role));
 
-// Commenting switched off per hospital (kv 'comments_off': JSON array of hospital ids).
-async function commentsOff(env) {
-  const row = await env.DB.prepare("SELECT v FROM kv WHERE k = 'comments_off'").first();
+// Commenting, and anonymous commenting, switched off per hospital (kv 'comments_off' / 'anon_off':
+// JSON arrays of hospital ids).
+async function hospitalList(env, k) {
+  const row = await env.DB.prepare('SELECT v FROM kv WHERE k = ?').bind(k).first();
   try { const v = JSON.parse((row && row.v) || '[]'); return Array.isArray(v) ? v : []; } catch { return []; }
 }
+const commentsOff = env => hospitalList(env, 'comments_off');
+const anonOff = env => hospitalList(env, 'anon_off');
 
 /** Why this account cannot comment on this hospital's cards (null: it can). The owner always can. */
 async function commentBlock(env, auth, hosp) {
@@ -1177,6 +1188,7 @@ async function thread(env, auth, url) {
     ).bind(card.target),
   ]);
   const block = auth.a ? await commentBlock(env, auth, card.hosp) : null;
+  const anonAllowed = auth.r === 'owner' || !(await anonOff(env)).includes(card.hosp);
   return json({
     ok: true,
     likes: likesRes.results.map(l => ({ name: l.name, sex: l.sex, avatar: parseAvatar(l.avatar), ts: l.ts, mine: !!l.mine })),
@@ -1184,6 +1196,7 @@ async function thread(env, auth, url) {
     canReact: !!auth.a,
     canComment: !!auth.a && !block,
     blocked: block,
+    anonAllowed,
     open: dutyOpen(card.date),
     dutyDay: dutyDayNow(),
     myAnonTag: auth.anon || null,
@@ -1254,9 +1267,10 @@ async function addComment(request, env, auth, ctx) {
   if (!dutyOpen(card.date)) return json({ error: 'duty_closed' }, 409);
   const block = await commentBlock(env, auth, card.hosp);
   if (block) return json({ error: block }, 403);
+  const anon = !!body.anon;
+  if (anon && auth.r !== 'owner' && (await anonOff(env)).includes(card.hosp)) return json({ error: 'anon_off' }, 403);
   if (await overLimit(env, 'comment:' + auth.a, 20)) return json({ error: 'rate_limited' }, 429);
   const now = Date.now();
-  const anon = !!body.anon;
   // A reply answers a comment on the same card; replies to replies join the same conversation (one level).
   let parent = null;
   if (body.parentCid) {
@@ -1354,21 +1368,100 @@ async function warnComment(request, env, auth, ctx) {
 /** Hospitals where commenting is off, and which of them this moderator may switch. */
 async function commentSwitches(env, auth) {
   if (!canApprove(auth)) return json({ error: 'forbidden' }, 403);
-  return json({ ok: true, off: await commentsOff(env), scope: seesAll(auth) ? ['*'] : (auth.h || []) });
+  return json({ ok: true, off: await commentsOff(env), anonOff: await anonOff(env), scope: seesAll(auth) ? ['*'] : (auth.h || []) });
 }
 
-/** Body: { hosp, on }. The owner switches any hospital, an admin their own. */
+/**
+ * Body: { hosp, on } switches commenting, { hosp, anon } anonymous commenting.
+ * The owner switches any hospital, an admin their own.
+ */
 async function setCommentSwitch(request, env, auth) {
   const body = await readJson(request) || {};
   const hosp = String(body.hosp || '');
-  if (!HOSP_RE.test(hosp) || typeof body.on !== 'boolean') return json({ error: 'bad_request' }, 400);
+  const anonSwitch = typeof body.anon === 'boolean';
+  if (!HOSP_RE.test(hosp) || (!anonSwitch && typeof body.on !== 'boolean')) return json({ error: 'bad_request' }, 400);
   if (!canModerate(auth, hosp)) return json({ error: 'forbidden' }, 403);
-  const off = new Set(await commentsOff(env));
-  if (body.on) off.delete(hosp); else off.add(hosp);
+  const key = anonSwitch ? 'anon_off' : 'comments_off';
+  const on = anonSwitch ? body.anon : body.on;
+  const off = new Set(await hospitalList(env, key));
+  if (on) off.delete(hosp); else off.add(hosp);
   const by = auth.a ? `${auth.r}:${auth.name || auth.a}` : auth.r;
   await env.DB.batch([
-    env.DB.prepare("INSERT INTO kv (k, v) VALUES ('comments_off', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v").bind(JSON.stringify([...off])),
-    env.DB.prepare('INSERT INTO audit (ts, role, msg, n) VALUES (?, ?, ?, 1)').bind(Date.now(), by, `Comments ${body.on ? 'on' : 'off'} (${hosp})`),
+    env.DB.prepare('INSERT INTO kv (k, v) VALUES (?, ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v').bind(key, JSON.stringify([...off])),
+    env.DB.prepare('INSERT INTO audit (ts, role, msg, n) VALUES (?, ?, ?, 1)').bind(Date.now(), by, `${anonSwitch ? 'Anonymous comments' : 'Comments'} ${on ? 'on' : 'off'} (${hosp})`),
   ]);
-  return json({ ok: true, off: [...off] });
+  return json({ ok: true, off: await commentsOff(env), anonOff: await anonOff(env) });
+}
+
+// ---------------------------------------------------------------------------
+// The hospital database is the source of a resident's identity
+// ---------------------------------------------------------------------------
+
+/**
+ * A resident record was changed (by the hospital's admins or the owner): the linked account follows
+ * it (name, phone, hospital), and on a rename the duty cards keep their history. The roster's duty
+ * entries of every month are renamed (the client normally did that in the same save; this catches
+ * any it missed), and likes and comments move to the new name so the resident's totals stay the same.
+ * Old and new are the record's data before and after.
+ */
+export async function mirrorResident(env, id, before, after, by) {
+  const now = Date.now();
+  const oldName = String(before.name || ''), newName = String(after.name || '');
+  const oldKey = nameKey(oldName), newKey = nameKey(newName);
+  const hospitals = [...new Set([...(before.hospitals || []), ...(after.hospitals || [])].map(String))].filter(h => HOSP_RE.test(h));
+  const pk = phoneKey(after.phone);
+  const stmts = [];
+  const hosps = Array.isArray(after.hospitals) && after.hospitals.length ? after.hospitals.map(String) : null;
+  stmts.push(env.DB.prepare(
+    `UPDATE accounts SET name = ?1, name_key = ?2, phone = COALESCE(?3, phone),
+            hosp = CASE WHEN ?4 IS NULL OR hosp IN (SELECT value FROM json_each(?4)) THEN hosp ELSE json_extract(?4, '$[0]') END
+      WHERE resident_id = ?5 AND role NOT IN ('aa_user', 'aa_admin')`
+  ).bind(newName, newKey, pk || null, hosps ? JSON.stringify(hosps) : null, id));
+
+  if (oldName && newName && oldName !== newName && oldKey && newKey && hospitals.length) {
+    // Two residents sharing the old name in these hospitals: their duties cannot be told apart.
+    const { results: others } = await env.DB.prepare(
+      "SELECT json_extract(data, '$.name') AS n, json_extract(data, '$.hospitals') AS hs FROM records WHERE coll = 'resident' AND id <> ?"
+    ).bind(id).all();
+    const ambiguous = others.some(o => {
+      let hs = [];
+      try { hs = JSON.parse(o.hs || '[]'); } catch {}
+      return nameKey(o.n) === oldKey && hs.some(h => hospitals.includes(h));
+    });
+    if (!ambiguous) {
+      const hj = JSON.stringify(hospitals);
+      const { results: names } = await env.DB.prepare(
+        "SELECT DISTINCT json_extract(data, '$.name') AS n FROM records WHERE coll = 'sched' AND hosp IN (SELECT value FROM json_each(?1))"
+      ).bind(hj).all();
+      const variants = names.map(r => r.n).filter(n => n && n !== newName && nameKey(n) === oldKey);
+      if (variants.length) {
+        const where = `coll = 'sched' AND hosp IN (SELECT value FROM json_each(?1)) AND json_extract(data, '$.name') IN (SELECT value FROM json_each(?2))`;
+        const msg = `Resident renamed: ${oldName} -> ${newName}`;
+        stmts.push(
+          env.DB.prepare(`INSERT INTO history (coll, id, hosp, v, data, deleted, ts, by, msg) SELECT coll, id, hosp, v, data, 0, ?3, ?4, ?5 FROM records WHERE ${where}`)
+            .bind(hj, JSON.stringify(variants), now, by, msg),
+          env.DB.prepare(`UPDATE records SET data = json_set(data, '$.name', ?3), v = v + 1, updated_at = ?4, updated_by = ?5, wid = NULL WHERE ${where}`)
+            .bind(hj, JSON.stringify(variants), newName, now, by),
+        );
+      }
+      if (oldKey !== newKey) {
+        // Duty cards are "duty:<hospital>:<date>:<name key>".
+        stmts.push(
+          env.DB.prepare(
+            `UPDATE comments SET card_key = ?2, target = 'duty:' || hosp || ':' || card_date || ':' || ?2
+              WHERE card_key = ?1 AND hosp IN (SELECT value FROM json_each(?3))`
+          ).bind(oldKey, newKey, hj),
+          env.DB.prepare(
+            `UPDATE OR IGNORE likes SET card_key = ?2, target = substr(target, 1, length(target) - length(?1)) || ?2
+              WHERE card_key = ?1 AND EXISTS (SELECT 1 FROM json_each(?3) h WHERE likes.target LIKE 'duty:' || h.value || ':%')`
+          ).bind(oldKey, newKey, hj),
+          // A like on both the old and the new card by the same person: the old one goes.
+          env.DB.prepare(
+            `DELETE FROM likes WHERE card_key = ?1 AND EXISTS (SELECT 1 FROM json_each(?2) h WHERE likes.target LIKE 'duty:' || h.value || ':%')`
+          ).bind(oldKey, hj),
+        );
+      }
+    }
+  }
+  await env.DB.batch(stmts);
 }

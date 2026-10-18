@@ -3055,6 +3055,49 @@
         return newRes;
     }
 
+    // Same name key as the API (worker/src/names.js): spelling variants, titles and "عبد الله" spacing
+    // all give one key, so a duty written "د. علي حسن" and "علي حسن" belong to the same resident.
+    const NAME_TITLES = new Set(['د', 'دكتور', 'الدكتور', 'دكتوره', 'الدكتوره', 'dr', 'doctor', 'م', 'ص',
+        'ا', 'استاذ', 'الاستاذ', 'مهندس', 'المهندس', 'mr', 'mrs', 'ms', 'miss']);
+    const NAME_JOINERS = new Set(['عبد', 'ابو', 'أبو']);
+    function nameKeyOf(name) {
+        const cleaned = String(name || '').normalize('NFKC').toLowerCase()
+            .replace(/[ً-ٰٟـ]/g, '')
+            .replace(/[أإآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي')
+            .replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+        const raw = cleaned ? cleaned.split(' ') : [];
+        while (raw.length > 1 && NAME_TITLES.has(raw[0])) raw.shift();
+        const out = [];
+        for (let i = 0; i < raw.length; i++) {
+            if (NAME_JOINERS.has(raw[i]) && i + 1 < raw.length) { out.push(raw[i] + raw[i + 1]); i++; }
+            else out.push(raw[i]);
+        }
+        return out.join(' ');
+    }
+
+    /**
+     * A resident's new name replaces the old one in the roster of every month of their hospitals, so
+     * their duties, statistics, likes and comments stay theirs. (The API does the same for anything a
+     * client missed, and renames the linked account.) Skipped when another resident of those
+     * hospitals has the same name: their duties could not be told apart.
+     */
+    function renameInSchedules(before, after) {
+        const oldKey = nameKeyOf(before.name);
+        if (!oldKey || before.name === after.name) return 0;
+        const hospitals = new Set([...(before.hospitals || []), ...(after.hospitals || [])]);
+        const twin = (db.residents || []).some(r => r !== before && r.id !== before.id && nameKeyOf(r.name) === oldKey
+            && (r.hospitals || []).some(h => hospitals.has(h)));
+        if (twin) return 0;
+        let n = 0;
+        hospitals.forEach(hId => {
+            const h = db.hospitals && db.hospitals[hId];
+            (h && Array.isArray(h.schedule) ? h.schedule : []).forEach(e => {
+                if (e && e.name && e.name !== after.name && nameKeyOf(e.name) === oldKey) { e.name = after.name; n++; }
+            });
+        });
+        return n;
+    }
+
     async function updateResident(idOrName, updates) {
         if (!auth.isAdmin()) {
             throw new Error('غير مصرح لك بتعديل بيانات المقيم. يتطلب صلاحيات المدير.');
@@ -3109,10 +3152,11 @@
             updated.hospitals = Array.isArray(updates.hospitals) ? updates.hospitals : [updates.hospitals];
         }
 
+        renameInSchedules(current, updated);
         db.residents[idx] = updated;
         syncHospitalsWithSharedResidents();
 
-        await saveDatabase(`Update Resident: ${updated.name}`);
+        await saveDatabase(current.name !== updated.name ? `Update Resident: ${current.name} -> ${updated.name}` : `Update Resident: ${updated.name}`);
         return updated;
     }
 

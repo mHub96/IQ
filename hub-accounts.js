@@ -83,6 +83,7 @@
             duty_closed: 'انتهى يوم هذه الخفارة؛ لا يمكن التفاعل معها الآن.',
             comments_off: 'التعليقات متوقفة في هذا المستشفى حالياً.',
             comment_blocked: 'تم إيقاف التعليق لحسابك من قبل الإدارة.',
+            anon_off: 'التعليق المجهول متوقف في هذا المستشفى؛ يمكنك التعليق باسمك.',
         })[code] || 'تعذر الاتصال بالخادم. حاول مجدداً.';
     }
 
@@ -729,6 +730,12 @@
                     composer.outerHTML = '<div class="hacc-composer hacc-cta">🔒 انتهى يوم هذه الخفارة؛ التعليقات للقراءة فقط.</div>';
                 } else if (composer && data.canComment === false) {
                     composer.outerHTML = `<div class="hacc-composer hacc-cta">${data.blocked === 'comments_off' ? '🔕 التعليقات متوقفة في هذا المستشفى حالياً.' : '🚫 تم إيقاف التعليق لحسابك من قبل الإدارة.'}</div>`;
+                } else if (composer && data.anonAllowed === false) {
+                    // Anonymous commenting is off in this hospital: comments carry the real name.
+                    const anonLabel = composer.querySelector('input[name="hacc-as"][value="anon"]').closest('label');
+                    composer.querySelector('input[name="hacc-as"][value="real"]').checked = true;
+                    anonLabel.hidden = true;
+                    composer.querySelector('[data-act="nick"]').hidden = true;
                 }
                 render();
                 updateCounts();

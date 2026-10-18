@@ -465,6 +465,30 @@
             <small>عند التفعيل يستطيع أي مقيم تخدير تعديل أسرّة العناية في أي مستشفى، مع بقاء مستشفاه (أو مستشفياته) في المقدمة. عند الإيقاف يعدّل مستشفاه فقط.</small></span>
             <button type="button" class="hp-toggle" role="switch" aria-checked="${Hub.icuAllOn() ? 'true' : 'false'}" aria-label="تعديل العناية المركزة في كل المستشفيات"><span></span></button>
         </div>`);
+        // The shared passwords (enforced by the API: refused at sign-in and their sessions end while off).
+        body.querySelector('[data-role="icu-all"]').insertAdjacentHTML('beforebegin', `<div class="hp-switch-card" data-role="shared-pw">
+            <span class="hp-switch-main"><b><i class="fas fa-key"></i> الدخول بكلمات المرور المشتركة</b>
+            <small>عند الإيقاف يرفض الخادم الدخول بها، ويخرج فوراً كل من دخل بها، ويختفي خيارها من شاشة الدخول. الحسابات الشخصية وكلمة مرور المالك لا تتأثر.</small></span>
+            <button type="button" class="hp-toggle" role="switch" aria-checked="${(() => { try { return localStorage.getItem('hub_shared_pw_on') !== '0'; } catch (e) { return true; } })() ? 'true' : 'false'}" aria-label="الدخول بكلمات المرور المشتركة"><span></span></button>
+        </div>`);
+        const pwSw = body.querySelector('[data-role="shared-pw"] .hp-toggle');
+        Hub.api('GET', '/api/auth-config', undefined, { useToken: false, retries: 1 }).then(cfg => {
+            pwSw.setAttribute('aria-checked', cfg.sharedPasswords ? 'true' : 'false');
+            try { localStorage.setItem('hub_shared_pw_on', cfg.sharedPasswords ? '1' : '0'); } catch (e) {}
+        }).catch(() => {});
+        pwSw.addEventListener('click', async () => {
+            const on = pwSw.getAttribute('aria-checked') !== 'true';
+            if (!confirm(on ? 'تفعيل الدخول بكلمات المرور المشتركة؟ ستُقبل كلمات المرور المشتركة الحالية ويظهر خيارها في شاشة الدخول.'
+                : 'إيقاف الدخول بكلمات المرور المشتركة؟\n\nسيخرج فوراً كل من دخل بها (عدا المالك)، ولن يقبلها الخادم حتى تعيد تفعيلها. الحسابات الشخصية لا تتأثر.')) return;
+            pwSw.disabled = true;
+            try {
+                const res = await Hub.api('POST', '/api/shared-passwords', { active: on }, { retries: 0 });
+                pwSw.setAttribute('aria-checked', res.sharedPasswords ? 'true' : 'false');
+                try { localStorage.setItem('hub_shared_pw_on', res.sharedPasswords ? '1' : '0'); } catch (e) {}
+                toast(res.sharedPasswords ? 'تم تفعيل الدخول بكلمات المرور المشتركة ✓' : 'أُوقف الدخول بكلمات المرور المشتركة ✓', 'success');
+            } catch (err) { toast(errorText(err), 'error'); }
+            pwSw.disabled = false;
+        });
         const sw = body.querySelector('[data-role="icu-all"] .hp-toggle');
         sw.addEventListener('click', async () => {
             const on = sw.getAttribute('aria-checked') !== 'true';

@@ -241,6 +241,29 @@ async function setIcuAll(request, env, auth) {
   return json({ ok: true, icuAll: body.on });
 }
 
+/** Every specialist the write adds, changes or removes must work in one of the admin's hospitals, before and after. */
+async function specialistsEditAllowed(env, auth, op) {
+  if (op.del) return false;
+  const next = op.d && Array.isArray(op.d.value) ? op.d.value : null;
+  if (!next) return false;
+  const row = await env.DB.prepare("SELECT data FROM records WHERE coll = 'meta' AND id = 'specialists'").first();
+  let old = [];
+  try { old = (row && JSON.parse(row.data).value) || []; } catch { old = []; }
+  const text = s => neutralize(JSON.stringify(s));
+  const mine = s => !!s && Array.isArray(s.hospitals) && s.hospitals.some(h => inScope(auth, h));
+  const byId = list => new Map((Array.isArray(list) ? list : []).filter(s => s && s.id).map(s => [String(s.id), s]));
+  const before = byId(old), after = byId(next);
+  // Entries without an id (none expected) must stay exactly as they are.
+  const noId = list => (Array.isArray(list) ? list : []).filter(s => !s || !s.id).map(text).sort().join('\n');
+  if (noId(old) !== noId(next)) return false;
+  for (const id of new Set([...before.keys(), ...after.keys()])) {
+    const a = before.get(id), b = after.get(id);
+    if (a && b && text(a) === text(b)) continue;
+    if ((a && !mine(a)) || (b && !mine(b))) return false;
+  }
+  return true;
+}
+
 async function revokeSessions(env, auth) {
   if (!isOwner(auth)) return json({ error: 'forbidden' }, 403);
   await env.DB.prepare("INSERT INTO kv (k, v) VALUES ('session_gen', '2') ON CONFLICT(k) DO UPDATE SET v = CAST(v AS INTEGER) + 1").run();
@@ -365,10 +388,14 @@ async function sync(request, env, auth) {
     ? new Set(await approvalHospitals(env)) : null;
   // Anaesthesia residents edit every hospital's ICU while the owner's switch is on.
   const icuAll = auth.r === 'anaesthesia' && ops.some(op => op && op.c === 'icu') && await icuAllOn(env);
+  // A hospital's admin changes only the specialists of their own hospitals (the directory is one record).
+  const specOp = auth.r === 'admin' && !(auth.h || []).includes('*') && ops.find(op => op && op.c === 'meta' && op.id === 'specialists' && !op.ordOnly);
+  const specOk = specOp ? await specialistsEditAllowed(env, auth, specOp) : true;
   const puts = [], dels = [], ords = [], rejected = [], checks = [];
   ops.forEach((op, i) => {
     if (!op || typeof op.c !== 'string' || typeof op.id !== 'string' || !op.id) { rejected.push(i); return; }
     if (!allowed(auth, op) && !(icuAll && op.c === 'icu')) { rejected.push(i); return; }
+    if (!specOk && op === specOp) { rejected.push(i); return; }
     if (approval && op.c === 'sched' && approval.has(String(op.id).split(':')[0])) { rejected.push(i); return; }
     const bv = Number(op.bv) || 0;
     if (op.ordOnly) {

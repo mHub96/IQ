@@ -3319,6 +3319,10 @@
         if (specialistData.id) {
             specialist = db.specialists.find(s => s.id === specialistData.id);
         }
+        // A hospital's admin keeps to the specialists of their own hospitals.
+        if ((specialist && !canManageSpecialist(specialist)) || !canManageSpecialist({ hospitals })) {
+            throw new Error('يمكنك إدارة أطباء الاختصاص في مستشفاك فقط.');
+        }
 
         const rawSpecPhone = String(specialistData.phone || '').trim();
         const cleanSpecPhone = (rawSpecPhone && rawSpecPhone !== 'رقم غير متوفر')
@@ -3411,6 +3415,7 @@
         if (!db || !Array.isArray(db.specialists)) throw new Error('قاعدة البيانات غير محملة');
         const specialist = db.specialists.find(s => s.id === specialistId);
         if (!specialist) throw new Error('الطبيب الاختصاصي غير موجود');
+        if (!canManageSpecialist(specialist)) throw new Error('يمكنك إدارة أطباء الاختصاص في مستشفاك فقط.');
 
         const spec = specialist.spec || 'GS';
         specialist.schedule = {
@@ -3430,10 +3435,52 @@
         if (!db || !Array.isArray(db.specialists)) throw new Error('قاعدة البيانات غير محملة');
         const idx = db.specialists.findIndex(s => s.id === id);
         if (idx === -1) throw new Error('الطبيب الاختصاصي غير موجود');
+        if (!canManageSpecialist(db.specialists[idx])) throw new Error('يمكنك حذف أطباء الاختصاص في مستشفاك فقط.');
 
         const deleted = db.specialists.splice(idx, 1)[0];
         await saveDatabase(`Delete Specialist: ${deleted.name}`);
         return deleted;
+    }
+
+    /** Owner: every specialist. A hospital's admin: the specialists working in their hospitals (the API checks it too). */
+    function canManageSpecialist(specOrId) {
+        const s = typeof specOrId === 'string' ? getSpecialist(specOrId) : specOrId;
+        if (!s) return false;
+        const role = auth.getRole();
+        if (role === 'owner') return true;
+        if (role !== 'admin') return false;
+        const ids = auth.getAdminHospitalIds() || [];
+        return ids.includes('*') || (Array.isArray(s.hospitals) && s.hospitals.some(h => ids.includes(h)));
+    }
+
+    /** Residents who may accompany a specialist: same original specialty or rotating in it, in the specialist's hospitals. */
+    function getSpecialistResidentCandidates(id) {
+        const s = getSpecialist(id);
+        if (!s) return [];
+        const spec = normalizeSpecialtyId(s.spec);
+        const hosps = Array.isArray(s.hospitals) ? s.hospitals : [];
+        const anyHosp = !hosps.length || hosps.includes('all');
+        return getResidents().filter(r => r && r.active !== false
+            && (normalizeSpecialtyId(r.spec) === spec || normalizeSpecialtyId(r.dept || r.department) === spec)
+            && (anyHosp || (Array.isArray(r.hospitals) && r.hospitals.some(h => hosps.includes(h)))));
+    }
+
+    /** The residents assigned to a specialist (stored by id, so renames show everywhere; removed residents drop out). */
+    function getSpecialistResidents(id) {
+        const s = getSpecialist(id);
+        if (!s || !Array.isArray(s.residents)) return [];
+        const byId = new Map(getResidents().map(r => [r.id, r]));
+        return s.residents.map(rid => byId.get(rid)).filter(Boolean);
+    }
+
+    async function setSpecialistResidents(id, residentIds) {
+        const s = getSpecialist(id);
+        if (!s) throw new Error('الطبيب الاختصاصي غير موجود');
+        if (!canManageSpecialist(s)) throw new Error('غير مصرح لك بتعديل مقيمي هذا الطبيب. يتاح ذلك لمدير مستشفاه والمالك فقط.');
+        const allowed = new Set(getSpecialistResidentCandidates(id).map(r => r.id));
+        s.residents = [...new Set(residentIds || [])].filter(rid => allowed.has(rid));
+        await saveDatabase(`Assigned Residents: ${s.name}`);
+        return s.residents;
     }
 
     // ============================================================
@@ -4086,7 +4133,11 @@
             delete: (id) => deleteSpecialist(id),
             saveSchedule: (specialistId, scheduleData) => saveSpecialistSchedule(specialistId, scheduleData),
             getSchedule: (hospitalId) => getSpecialistSchedule(hospitalId),
-            getDuties: (specialistName, hospitalId) => getSpecialistDuties(specialistName, hospitalId)
+            getDuties: (specialistName, hospitalId) => getSpecialistDuties(specialistName, hospitalId),
+            canManage: (specOrId) => canManageSpecialist(specOrId),
+            residentCandidates: (id) => getSpecialistResidentCandidates(id),
+            getResidents: (id) => getSpecialistResidents(id),
+            setResidents: (id, residentIds) => setSpecialistResidents(id, residentIds)
         },
         specialties: {
             getAll: () => getGlobalSpecialties().map(s => ({

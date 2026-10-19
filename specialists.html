@@ -585,6 +585,17 @@
         body.dark .schedule-btn:hover {
             background: rgba(10, 132, 255, 0.18);
         }
+        .res-btn { border-color: rgba(88, 86, 214, 0.28); background: rgba(88, 86, 214, 0.08); color: #5856D6; }
+        body.dark .res-btn { border-color: rgba(94, 92, 230, 0.35); background: rgba(94, 92, 230, 0.14); color: #A5A3FF; }
+        .res-count { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; background: #5856D6; color: #fff; }
+        body.dark .res-count { background: #A5A3FF; color: #111; }
+        .res-list { border-radius: 16px; border: 1px solid rgba(148, 163, 184, 0.3); overflow: hidden; }
+        .res-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; min-height: 54px; }
+        .res-row + .res-row { border-top: 1px solid rgba(148, 163, 184, 0.22); }
+        .res-av { flex: none; width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; background: rgba(88, 86, 214, 0.12); color: #5856D6; }
+        .res-title-ic { color: #5856D6; }
+        body.dark .res-title-ic { color: #A5A3FF; }
+        body.dark .res-av { background: rgba(94, 92, 230, 0.2); color: #A5A3FF; }
 
         .schedule-badge-clinic {
             display: inline-flex;
@@ -941,8 +952,7 @@
         <div class="modal-card max-w-xl">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg sm:text-xl font-black flex items-center gap-2">
-                    <i class="fas fa-calendar-alt text-teal-600 dark:text-teal-400"></i>
-                    <span id="schedule-modal-title">جدول دوام وخفارات الطبيب</span>
+                    <span id="schedule-modal-title" class="flex items-center gap-2">جدول دوام وخفارات الطبيب</span>
                 </h3>
                 <button type="button" onclick="closeSpecialistScheduleModal()" class="text-slate-400 hover:text-slate-600 text-xl">
                     <i class="fas fa-times"></i>
@@ -1507,6 +1517,7 @@
                                     <i class="fas fa-calendar-check"></i>
                                     <span>خفارات الطبيب</span>
                                 </button>
+                                ${residentsBtn(doc)}
                                 ${doc.phone ? `
                                     <a href="tel:${doc.phone}" class="phone-btn" title="اتصال هاتفي مباشر">
                                         <i class="fas fa-phone-alt"></i>
@@ -1517,7 +1528,7 @@
                                 ` : ''}
                             </div>
 
-                            ${canEdit ? `
+                            ${canEdit && Hub.specialists.canManage(doc) ? `
                             <div class="flex items-center gap-1">
                                 <button type="button" onclick="openEditSpecialistModal('${doc.id}')" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs" title="تعديل البيانات">
                                     <i class="fas fa-pen"></i>
@@ -1579,6 +1590,7 @@
                                 <button type="button" onclick="openSpecialistDutiesModal('${doc.id}')" class="schedule-btn mt-1 text-[10px] py-0.5 px-2 self-start">
                                     <i class="fas fa-calendar-check"></i> خفارات الطبيب
                                 </button>
+                                ${residentsBtn(doc, true)}
                             </div>
                         </td>
                         <td>
@@ -1604,14 +1616,14 @@
                         </td>
                         ${canEdit ? `
                         <td>
-                            <div class="flex items-center gap-1">
+                            ${Hub.specialists.canManage(doc) ? `<div class="flex items-center gap-1">
                                 <button type="button" onclick="openEditSpecialistModal('${doc.id}')" class="p-1.5 rounded-lg text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 text-xs" title="تعديل">
                                     <i class="fas fa-pen"></i>
                                 </button>
                                 <button type="button" onclick="confirmDeleteSpecialist('${doc.id}', '${doc.name}')" class="p-1.5 rounded-lg text-slate-500 hover:text-rose-500 text-xs" title="حذف">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
-                            </div>
+                            </div>` : ''}
                         </td>` : ''}
                     </tr>
                 `;
@@ -1798,6 +1810,165 @@
             document.getElementById('specialist-schedule-modal').classList.add('active');
         }
 
+        // ================================================================
+        // ASSIGNED RESIDENTS (مقيميه): everyone views; the owner and the specialist's hospital admins edit
+        // ================================================================
+        const escHtml = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        let residentsSheet = null; // { id, editing, picked:Set, query }
+
+        function residentsBtn(doc, small) {
+            const n = Array.isArray(doc.residents) ? Hub.specialists.getResidents(doc.id).length : 0;
+            return `<button type="button" onclick="openSpecialistResidentsModal('${doc.id}')" class="schedule-btn res-btn${small ? ' mt-1 text-[10px] py-0.5 px-2 self-start' : ''}" title="المقيمون المرافقون للطبيب">
+                <i class="fas fa-user-group"></i><span>مقيميه</span>${n ? `<span class="res-count">${n}</span>` : ''}
+            </button>`;
+        }
+
+        function residentSpecLine(r, specCode) {
+            const name = c => (Hub.getSpecialtyName ? Hub.getSpecialtyName(c) : c) || c || '';
+            const own = r.spec, rot = r.dept || r.department;
+            const norm = c => String(c || '').trim().toUpperCase();
+            if (rot && norm(rot) !== norm(own)) return `${escHtml(name(own))} · مداورة في ${escHtml(name(rot))}`;
+            return escHtml(name(own));
+        }
+
+        function residentPhoneLinks(r) {
+            const phone = String(r.phone || '').trim();
+            if (!phone || phone === 'رقم غير متوفر') return '';
+            let digits = phone.replace(/[^0-9]/g, '');
+            if (digits.startsWith('0')) digits = '964' + digits.slice(1);
+            return `<span class="flex items-center gap-1.5 flex-shrink-0">
+                <a href="tel:${escHtml(phone)}" class="phone-btn" title="اتصال"><i class="fas fa-phone-alt"></i></a>
+                <a href="https://wa.me/${digits}" target="_blank" rel="noopener" class="whatsapp-btn" title="واتساب"><i class="fab fa-whatsapp"></i></a>
+            </span>`;
+        }
+
+        function openSpecialistResidentsModal(docId) {
+            const doc = Hub.specialists.getById(docId);
+            if (!doc) { showToast('لم يتم العثور على بيانات الطبيب', 'error'); return; }
+            residentsSheet = { id: docId, editing: false, picked: new Set(Hub.specialists.getResidents(docId).map(r => r.id)), query: '' };
+            renderResidentsSheet();
+            document.getElementById('specialist-schedule-modal').classList.add('active');
+        }
+
+        function renderResidentsSheet() {
+            const st = residentsSheet;
+            const doc = st && Hub.specialists.getById(st.id);
+            if (!doc) return;
+            const canManage = Hub.specialists.canManage(doc);
+            const specName = (Hub.getSpecialtyName ? Hub.getSpecialtyName(doc.spec) : '') || doc.specName || doc.spec;
+            const hospitals = Hub.getHospitals().reduce((m, h) => (m[h.id] = h.name_ar || h.hospitalName, m), {});
+            const multiHosp = (doc.hospitals || []).length > 1;
+            const hospOf = r => multiHosp ? (r.hospitals || []).filter(h => (doc.hospitals || []).includes(h)).map(h => hospitals[h] || h).join('، ') : '';
+
+            document.getElementById('schedule-modal-title').innerHTML = `<i class="fas ${st.editing ? 'fa-user-pen' : 'fa-user-group'} res-title-ic"></i><span>${st.editing ? 'تعديل مقيمي الطبيب' : 'مقيمو الطبيب'}</span>`;
+            const head = `
+                <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                    <h4 class="text-base font-black text-slate-800 dark:text-white">${escHtml(doc.name)}</h4>
+                    <div class="text-xs text-slate-500 mt-0.5">${escHtml(doc.title || 'أخصائي')} · ${escHtml(specName)}</div>
+                </div>`;
+
+            let body;
+            if (!st.editing) {
+                const list = Hub.specialists.getResidents(doc.id);
+                body = list.length ? `
+                    <div class="res-list">
+                        ${list.map(r => `
+                            <div class="res-row">
+                                <span class="res-av"><i class="fas fa-user-doctor"></i></span>
+                                <span class="flex-1 min-w-0">
+                                    <span class="block text-sm font-black text-slate-800 dark:text-white truncate">${escHtml(r.name)}</span>
+                                    <span class="block text-[11px] text-slate-500 dark:text-slate-400">${residentSpecLine(r, doc.spec)}${hospOf(r) ? ` · ${escHtml(hospOf(r))}` : ''}</span>
+                                </span>
+                                ${residentPhoneLinks(r)}
+                            </div>`).join('')}
+                    </div>` : `
+                    <div class="p-6 text-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+                        <div class="text-2xl text-slate-300 dark:text-slate-600 mb-2"><i class="fas fa-user-group"></i></div>
+                        <div class="text-xs font-black text-slate-600 dark:text-slate-300">لم يُحدَّد مقيمون مرافقون لهذا الطبيب بعد</div>
+                        ${canManage ? '<div class="text-[11px] text-slate-400 mt-1">اضغط «تعديل المقيمين» لإضافتهم</div>' : ''}
+                    </div>`;
+                body += `
+                    <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                        ${canManage ? `<button type="button" onclick="editSpecialistResidents()" class="btn-gradient text-xs py-2 px-3.5"><i class="fas fa-user-pen"></i> تعديل المقيمين</button>` : '<div></div>'}
+                        <button type="button" onclick="closeSpecialistScheduleModal()" class="btn-ghost text-xs py-2 px-4">إغلاق</button>
+                    </div>`;
+            } else {
+                const q = st.query.trim().toLowerCase();
+                const all = Hub.specialists.residentCandidates(doc.id)
+                    .sort((a, b) => (st.picked.has(b.id) - st.picked.has(a.id)) || String(a.name).localeCompare(String(b.name), 'ar'));
+                const shown = q ? all.filter(r => String(r.name || '').toLowerCase().includes(q)) : all;
+                body = `
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                        يظهر هنا مقيمو تخصص <b>${escHtml(specName)}</b> الأصلي، ومن هم في مداورة فيه، من مستشفيات الطبيب.
+                    </p>
+                    <div class="relative">
+                        <input type="search" id="res-search" value="${escHtml(st.query)}" oninput="residentsSheet.query = this.value; renderResidentsPicker()" placeholder="بحث باسم المقيم…"
+                               class="w-full px-3 py-2.5 pr-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-semibold text-slate-800 dark:text-white outline-none focus:border-teal-600" />
+                        <i class="fas fa-search absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    </div>
+                    <div class="text-[11px] font-bold text-slate-500" id="res-picked-count">المختارون: ${st.picked.size} من ${all.length}</div>
+                    <div class="res-list" id="res-picker">${pickerRows(shown, hospOf, doc.spec)}</div>
+                    <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                        <button type="button" id="res-save-btn" onclick="saveSpecialistResidentsSheet()" class="btn-gradient text-xs py-2 px-4"><i class="fas fa-check"></i> حفظ</button>
+                        <button type="button" onclick="residentsSheet.editing = false; renderResidentsSheet()" class="btn-ghost text-xs py-2 px-4">إلغاء</button>
+                    </div>`;
+            }
+            document.getElementById('schedule-modal-content').innerHTML = `<div class="space-y-3">${head}${body}</div>`;
+        }
+
+        function pickerRows(list, hospOf, specCode) {
+            if (!list.length) return '<div class="p-4 text-center text-xs text-slate-400 font-bold">لا يوجد مقيمون مطابقون</div>';
+            return list.map(r => `
+                <label class="res-row cursor-pointer">
+                    <input type="checkbox" class="w-5 h-5 accent-teal-600 flex-shrink-0" ${residentsSheet.picked.has(r.id) ? 'checked' : ''} onchange="toggleSpecialistResident('${escHtml(r.id)}', this.checked)" />
+                    <span class="flex-1 min-w-0">
+                        <span class="block text-sm font-black text-slate-800 dark:text-white truncate">${escHtml(r.name)}</span>
+                        <span class="block text-[11px] text-slate-500 dark:text-slate-400">${residentSpecLine(r, specCode)}${hospOf(r) ? ` · ${escHtml(hospOf(r))}` : ''}</span>
+                    </span>
+                </label>`).join('');
+        }
+
+        function renderResidentsPicker() {
+            const st = residentsSheet;
+            const doc = st && Hub.specialists.getById(st.id);
+            if (!doc) return;
+            const hospitals = Hub.getHospitals().reduce((m, h) => (m[h.id] = h.name_ar || h.hospitalName, m), {});
+            const multiHosp = (doc.hospitals || []).length > 1;
+            const hospOf = r => multiHosp ? (r.hospitals || []).filter(h => (doc.hospitals || []).includes(h)).map(h => hospitals[h] || h).join('، ') : '';
+            const q = st.query.trim().toLowerCase();
+            const all = Hub.specialists.residentCandidates(doc.id)
+                .sort((a, b) => (st.picked.has(b.id) - st.picked.has(a.id)) || String(a.name).localeCompare(String(b.name), 'ar'));
+            document.getElementById('res-picker').innerHTML = pickerRows(q ? all.filter(r => String(r.name || '').toLowerCase().includes(q)) : all, hospOf, doc.spec);
+        }
+
+        function toggleSpecialistResident(id, on) {
+            if (on) residentsSheet.picked.add(id); else residentsSheet.picked.delete(id);
+            const el = document.getElementById('res-picked-count');
+            if (el) el.textContent = `المختارون: ${residentsSheet.picked.size} من ${Hub.specialists.residentCandidates(residentsSheet.id).length}`;
+        }
+
+        function editSpecialistResidents() {
+            residentsSheet.editing = true;
+            residentsSheet.query = '';
+            residentsSheet.picked = new Set(Hub.specialists.getResidents(residentsSheet.id).map(r => r.id));
+            renderResidentsSheet();
+        }
+
+        async function saveSpecialistResidentsSheet() {
+            const btn = document.getElementById('res-save-btn');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ الحفظ'; }
+            try {
+                await Hub.specialists.setResidents(residentsSheet.id, [...residentsSheet.picked]);
+                showToast('تم حفظ مقيمي الطبيب ✓', 'success');
+                residentsSheet.editing = false;
+                renderResidentsSheet();
+                refreshSpecialistsData(true);
+            } catch (err) {
+                showToast(err && err.message ? err.message : 'تعذّر الحفظ', 'error');
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check"></i> حفظ'; }
+            }
+        }
+
         const openSpecialistScheduleModal = openSpecialistDutiesModal;
 
         function closeSpecialistScheduleModal() {
@@ -1902,7 +2073,8 @@
             const container = document.getElementById('form-hospitals-checkboxes');
             if (!container) return;
 
-            const hospitals = Hub.getHospitals();
+            const own = Hub.auth.isOwner() ? ['*'] : (Hub.auth.getAdminHospitalIds() || []);
+            const hospitals = Hub.getHospitals().filter(h => own.includes('*') || own.includes(h.id) || selectedHospIds.includes(h.id));
             container.innerHTML = hospitals.map(h => {
                 const isChecked = selectedHospIds.includes(h.id);
                 return `

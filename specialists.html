@@ -726,8 +726,12 @@
                 </div>
 
                 <!-- Admin / Owner Actions (Hidden for regular users) -->
-                <div id="admin-actions-wrap" class="flex items-center gap-2 hidden">
-                    <button type="button" onclick="openAddSpecialistModal()" class="btn-gradient">
+                <div id="admin-actions-wrap" class="flex flex-wrap items-center gap-2 hidden">
+                    <button type="button" id="spec-edit-switch-btn" onclick="openSpecEditSwitchModal()" class="btn-ghost hidden" title="السماح للمقيمين بإضافة وتعديل أطباء اختصاصهم">
+                        <i class="fas fa-user-shield"></i>
+                        <span>صلاحية المقيمين</span>
+                    </button>
+                    <button type="button" id="add-specialist-btn" onclick="openAddSpecialistModal()" class="btn-gradient">
                         <i class="fas fa-user-plus"></i>
                         <span>إضافة طبيب اختصاص</span>
                     </button>
@@ -842,6 +846,26 @@
     </main>
 
     <!-- ADD / EDIT SPECIALIST MODAL (Admin & Owner Only) -->
+    <!-- Admins / owner: per-hospital switch letting residents add and edit the specialists of their specialty -->
+    <div id="spec-edit-switch-modal" class="modal-overlay" onclick="if (event.target === this) closeSpecEditSwitchModal()">
+        <div class="modal-card">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-lg font-black flex items-center gap-2">
+                    <i class="fas fa-user-shield text-teal-600 dark:text-teal-400"></i>
+                    <span>صلاحية المقيمين على أطباء الاختصاص</span>
+                </h3>
+                <button type="button" onclick="closeSpecEditSwitchModal()" class="text-slate-400 hover:text-slate-600 text-xl" aria-label="إغلاق">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-6 mb-3">
+                عند التفعيل يستطيع المقيم (بحسابه الشخصي) إضافة وتعديل بطاقات أطباء الاختصاص في مستشفاه، لاختصاصه الأصلي أو الاختصاص الذي يدور فيه، بكل معلوماتها، ويبقى الحذف للمدير والمالك. عند الإيقاف تعود الإضافة والتعديل للمدير والمالك فقط.
+            </p>
+            <input type="search" id="spec-edit-switch-search" class="input-field mb-2 hidden" placeholder="ابحث عن مستشفى…" oninput="paintSpecEditSwitches()">
+            <ul id="spec-edit-switch-list" class="space-y-2 max-h-[60vh] overflow-y-auto"></ul>
+        </div>
+    </div>
+
     <div id="specialist-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="flex justify-between items-center mb-4">
@@ -1078,18 +1102,68 @@
 
             checkAdminPermissions();
             refreshSpecialistsData();
+            // Whether this resident may edit here (their hospital's switch), then repaint the buttons.
+            Hub.specialists.loadEditSettings().then(() => {
+                checkAdminPermissions();
+                refreshSpecialistsData(true);
+            });
         }
 
         function checkAdminPermissions() {
-            const isAdmin = Hub.auth.isAdmin();
-            const isOwner = Hub.auth.isOwner();
+            const isAdmin = Hub.auth.isAdmin() || Hub.auth.isOwner();
             const adminActionsWrap = document.getElementById('admin-actions-wrap');
-            if (adminActionsWrap) {
-                if (isAdmin || isOwner) {
-                    adminActionsWrap.classList.remove('hidden');
-                } else {
-                    adminActionsWrap.classList.add('hidden');
-                }
+            if (adminActionsWrap) adminActionsWrap.classList.toggle('hidden', !Hub.specialists.canAdd());
+            document.getElementById('spec-edit-switch-btn')?.classList.toggle('hidden', !isAdmin);
+        }
+
+        // ---- The residents' switch (an admin: their hospitals, the owner: every hospital) ----
+        function specEditHospitals() {
+            const ids = Hub.auth.isOwner() ? ['*'] : (Hub.auth.getAdminHospitalIds() || []);
+            return Hub.getHospitals().filter(h => ids.includes('*') || ids.includes(h.id));
+        }
+        async function openSpecEditSwitchModal() {
+            const list = document.getElementById('spec-edit-switch-list');
+            list.innerHTML = '<li class="text-xs text-slate-400 p-3 text-center">جاري التحميل…</li>';
+            const search = document.getElementById('spec-edit-switch-search');
+            search.value = '';
+            search.classList.toggle('hidden', specEditHospitals().length <= 4);
+            document.getElementById('spec-edit-switch-modal').classList.add('active');
+            await Hub.specialists.loadEditSettings();
+            paintSpecEditSwitches();
+        }
+        function closeSpecEditSwitchModal() {
+            document.getElementById('spec-edit-switch-modal').classList.remove('active');
+        }
+        function paintSpecEditSwitches() {
+            const list = document.getElementById('spec-edit-switch-list');
+            const q = (document.getElementById('spec-edit-switch-search').value || '').trim();
+            const on = Hub.specialists.editSettings().on || [];
+            const hospitals = specEditHospitals().filter(h => !q || String(h.name_ar || h.hospitalName || h.id).includes(q));
+            list.innerHTML = hospitals.map(h => {
+                const isOn = on.includes(h.id);
+                return `<li class="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60" data-h="${h.id}">
+                    <span class="min-w-0">
+                        <span class="block text-sm font-black truncate">${h.name_ar || h.hospitalName || h.id}</span>
+                        <span class="text-[11px] font-bold ${isOn ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}">${isOn ? 'مفعّل: المقيمون يضيفون ويعدّلون أطباء اختصاصهم' : 'متوقف: المدير والمالك فقط'}</span>
+                    </span>
+                    <button type="button" class="${isOn ? 'btn-ghost text-rose-600' : 'btn-gradient'} text-xs py-2 px-3.5 shrink-0" data-act="spec-edit-toggle" onclick="toggleSpecEditSwitch('${h.id}', ${!isOn}, this)">${isOn ? 'إيقاف' : 'تفعيل'}</button>
+                </li>`;
+            }).join('') || '<li class="text-xs text-slate-400 p-3 text-center">لا توجد مستشفيات مطابقة.</li>';
+        }
+        async function toggleSpecEditSwitch(hospitalId, on, btn) {
+            const h = Hub.getHospital(hospitalId);
+            const name = (h && (h.name_ar || h.hospitalName)) || hospitalId;
+            if (!confirm(on
+                ? `السماح لمقيمي ${name} بإضافة وتعديل بطاقات أطباء اختصاصهم (أو اختصاص دورتهم)؟`
+                : `إيقاف صلاحية المقيمين في ${name}؟ تعود الإضافة والتعديل للمدير والمالك فقط.`)) return;
+            btn.disabled = true;
+            try {
+                await Hub.specialists.setEditSwitch(hospitalId, on);
+                showToast(on ? 'تم تفعيل صلاحية المقيمين ✓' : 'تم إيقاف صلاحية المقيمين', 'success');
+                paintSpecEditSwitches();
+            } catch (err) {
+                btn.disabled = false;
+                showToast(err.message || 'تعذر الحفظ', 'error');
             }
         }
 
@@ -1411,7 +1485,7 @@
 
             const isAdmin = Hub.auth.isAdmin();
             const isOwner = Hub.auth.isOwner();
-            const canEdit = isAdmin || isOwner;
+            const canEdit = isAdmin || isOwner || !!Hub.specialists.residentScope();
 
             // Slice page doctors
             let pageDocs = filteredSpecialists;
@@ -1533,9 +1607,9 @@
                                 <button type="button" onclick="openEditSpecialistModal('${doc.id}')" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs" title="تعديل البيانات">
                                     <i class="fas fa-pen"></i>
                                 </button>
-                                <button type="button" onclick="confirmDeleteSpecialist('${doc.id}', '${doc.name}')" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs" title="حذف الطبيب">
+                                ${Hub.specialists.canDelete(doc) ? `<button type="button" onclick="confirmDeleteSpecialist('${doc.id}', '${doc.name}')" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs" title="حذف الطبيب">
                                     <i class="fas fa-trash-alt"></i>
-                                </button>
+                                </button>` : ''}
                             </div>` : ''}
                         </div>
                     </div>
@@ -1620,9 +1694,9 @@
                                 <button type="button" onclick="openEditSpecialistModal('${doc.id}')" class="p-1.5 rounded-lg text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 text-xs" title="تعديل">
                                     <i class="fas fa-pen"></i>
                                 </button>
-                                <button type="button" onclick="confirmDeleteSpecialist('${doc.id}', '${doc.name}')" class="p-1.5 rounded-lg text-slate-500 hover:text-rose-500 text-xs" title="حذف">
+                                ${Hub.specialists.canDelete(doc) ? `<button type="button" onclick="confirmDeleteSpecialist('${doc.id}', '${doc.name}')" class="p-1.5 rounded-lg text-slate-500 hover:text-rose-500 text-xs" title="حذف">
                                     <i class="fas fa-trash-alt"></i>
-                                </button>
+                                </button>` : ''}
                             </div>` : ''}
                         </td>` : ''}
                     </tr>
@@ -2002,7 +2076,7 @@
         // MODALS & CRUD
         // ================================================================
         function openAddSpecialistModal() {
-            if (!Hub.auth.isAdmin() && !Hub.auth.isOwner()) {
+            if (!Hub.specialists.canAdd()) {
                 showToast('عذراً، إضافة أطباء الاختصاص متاحة للمدير والمالك فقط', 'error');
                 return;
             }
@@ -2016,10 +2090,12 @@
             document.getElementById('form-spec-id').value = '';
             document.getElementById('form-spec-active').checked = true;
 
+            limitFormSpecialties();
             const initialSpec = document.getElementById('form-spec-code').value || 'GS';
             onSpecialistSpecChanged(initialSpec);
 
-            renderHospitalCheckboxes([]);
+            const scope = Hub.auth.isAdmin() ? null : Hub.specialists.residentScope();
+            renderHospitalCheckboxes(scope ? [scope.hosp] : []);
             renderFormDayCheckboxes('form-clinic-days-wrap', 'form-clinic-day', []);
             renderFormDayCheckboxes('form-theatre-days-wrap', 'form-theatre-day', []);
 
@@ -2027,14 +2103,13 @@
         }
 
         function openEditSpecialistModal(id) {
-            if (!Hub.auth.isAdmin() && !Hub.auth.isOwner()) {
-                showToast('عذراً، تعديل البيانات متاح للمدير والمالك فقط', 'error');
-                return;
-            }
-
             const doc = Hub.specialists.getById(id);
             if (!doc) {
                 showToast('لم يتم العثور على بيانات الطبيب', 'error');
+                return;
+            }
+            if (!Hub.specialists.canManage(doc)) {
+                showToast('عذراً، تعديل البيانات متاح للمدير والمالك فقط', 'error');
                 return;
             }
 
@@ -2047,6 +2122,7 @@
             document.getElementById('form-spec-id').value = doc.id;
             document.getElementById('form-spec-name').value = doc.name || '';
             document.getElementById('form-spec-title').value = doc.title || 'استشاري / بورد';
+            limitFormSpecialties();
             document.getElementById('form-spec-code').value = doc.spec || '';
             const specPhoneVal = (doc.phone && doc.phone !== 'رقم غير متوفر') ? (formatIraqiPhoneNumber(doc.phone) || doc.phone) : '';
             document.getElementById('form-spec-phone').value = specPhoneVal;
@@ -2069,11 +2145,28 @@
             document.getElementById('specialist-form').reset();
         }
 
+        /** A resident (switch on) picks only their own specialty or the one they rotate in. */
+        function limitFormSpecialties() {
+            const select = document.getElementById('form-spec-code');
+            if (!select) return;
+            const scope = Hub.auth.isAdmin() ? null : Hub.specialists.residentScope();
+            const code = v => String((Hub.normalizeSpecialtyId ? Hub.normalizeSpecialtyId(v) : v) || '').toUpperCase();
+            let first = null;
+            Array.from(select.options).forEach(o => {
+                const ok = !scope || (!!o.value && scope.codes.includes(code(o.value)));
+                o.hidden = !ok;
+                o.disabled = !ok && !!o.value;
+                if (ok && o.value && !first) first = o.value;
+            });
+            if (scope && first && (!select.value || select.selectedOptions[0]?.disabled)) select.value = first;
+        }
+
         function renderHospitalCheckboxes(selectedHospIds) {
             const container = document.getElementById('form-hospitals-checkboxes');
             if (!container) return;
 
-            const own = Hub.auth.isOwner() ? ['*'] : (Hub.auth.getAdminHospitalIds() || []);
+            const scope = Hub.auth.isAdmin() ? null : Hub.specialists.residentScope();
+            const own = Hub.auth.isOwner() ? ['*'] : scope ? [scope.hosp] : (Hub.auth.getAdminHospitalIds() || []);
             const hospitals = Hub.getHospitals().filter(h => own.includes('*') || own.includes(h.id) || selectedHospIds.includes(h.id));
             container.innerHTML = hospitals.map(h => {
                 const isChecked = selectedHospIds.includes(h.id);

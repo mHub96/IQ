@@ -3295,7 +3295,7 @@
     }
 
     async function saveSpecialist(specialistData) {
-        if (!auth.isAdmin()) {
+        if (!canAddSpecialist()) {
             throw new Error('غير مصرح لك بإدارة أطباء الاختصاص. يتطلب صلاحيات المدير أو المالك.');
         }
         if (!db) throw new Error('قاعدة البيانات غير محملة');
@@ -3319,9 +3319,11 @@
         if (specialistData.id) {
             specialist = db.specialists.find(s => s.id === specialistData.id);
         }
-        // A hospital's admin keeps to the specialists of their own hospitals.
-        if ((specialist && !canManageSpecialist(specialist)) || !canManageSpecialist({ hospitals })) {
-            throw new Error('يمكنك إدارة أطباء الاختصاص في مستشفاك فقط.');
+        // A hospital's admin keeps to the specialists of their own hospitals; a resident to their specialty there.
+        if ((specialist && !canManageSpecialist(specialist)) || !canManageSpecialist({ hospitals, spec })) {
+            throw new Error(residentSpecialistScope()
+                ? 'يمكنك إضافة وتعديل أطباء اختصاصك (أو اختصاص دورتك) في مستشفاك فقط.'
+                : 'يمكنك إدارة أطباء الاختصاص في مستشفاك فقط.');
         }
 
         const rawSpecPhone = String(specialistData.phone || '').trim();
@@ -3409,7 +3411,7 @@
     }
 
     async function saveSpecialistSchedule(specialistId, scheduleData) {
-        if (!auth.isAdmin()) {
+        if (!canAddSpecialist()) {
             throw new Error('غير مصرح لك بتعديل جدول الطبيب الاختصاصي. يتطلب صلاحيات المدير أو المالك.');
         }
         if (!db || !Array.isArray(db.specialists)) throw new Error('قاعدة البيانات غير محملة');
@@ -3435,7 +3437,7 @@
         if (!db || !Array.isArray(db.specialists)) throw new Error('قاعدة البيانات غير محملة');
         const idx = db.specialists.findIndex(s => s.id === id);
         if (idx === -1) throw new Error('الطبيب الاختصاصي غير موجود');
-        if (!canManageSpecialist(db.specialists[idx])) throw new Error('يمكنك حذف أطباء الاختصاص في مستشفاك فقط.');
+        if (!canDeleteSpecialist(db.specialists[idx])) throw new Error('يمكنك حذف أطباء الاختصاص في مستشفاك فقط.');
 
         const deleted = db.specialists.splice(idx, 1)[0];
         await saveDatabase(`Delete Specialist: ${deleted.name}`);
@@ -3443,7 +3445,7 @@
     }
 
     /** Owner: every specialist. A hospital's admin: the specialists working in their hospitals (the API checks it too). */
-    function canManageSpecialist(specOrId) {
+    function canDeleteSpecialist(specOrId) {
         const s = typeof specOrId === 'string' ? getSpecialist(specOrId) : specOrId;
         if (!s) return false;
         const role = auth.getRole();
@@ -3452,6 +3454,41 @@
         const ids = auth.getAdminHospitalIds() || [];
         return ids.includes('*') || (Array.isArray(s.hospitals) && s.hospitals.some(h => ids.includes(h)));
     }
+
+    // The per-hospital switch letting residents add and edit the cards of their own specialty or rotation
+    // (GET /api/specialists/settings: the hospitals switched on, and this resident's hospital and codes).
+    let specialistEdit = { on: [], me: null };
+    async function loadSpecialistEditSettings() {
+        if (!readApiToken()) { specialistEdit = { on: [], me: null }; return specialistEdit; }
+        try {
+            const res = await api('GET', '/api/specialists/settings', undefined, { retries: 1 });
+            specialistEdit = { on: Array.isArray(res.on) ? res.on : [], me: res.me || null };
+        } catch (e) { /* offline: keep what we had */ }
+        return specialistEdit;
+    }
+    async function setSpecialistEditSwitch(hospitalId, on) {
+        const res = await api('POST', '/api/specialists/settings', { hosp: hospitalId, on: !!on }, { retries: 0 });
+        specialistEdit.on = Array.isArray(res.on) ? res.on : specialistEdit.on;
+        return specialistEdit.on;
+    }
+    const specialtyCode = v => String(normalizeSpecialtyId(v) || '').toUpperCase();
+    /** This resident's hospital and specialty codes while that hospital's switch is on, otherwise null. */
+    function residentSpecialistScope() {
+        const role = auth.getRole();
+        const me = specialistEdit.me;
+        if ((role !== 'user' && role !== 'anaesthesia') || !me || !specialistEdit.on.includes(me.hosp)) return null;
+        return { hosp: me.hosp, codes: (me.codes || []).map(specialtyCode) };
+    }
+
+    /** Admins and the owner as for deleting; a resident (switch on) the cards of their specialty in their hospital. */
+    function canManageSpecialist(specOrId) {
+        const s = typeof specOrId === 'string' ? getSpecialist(specOrId) : specOrId;
+        if (!s) return false;
+        if (auth.isAdmin()) return canDeleteSpecialist(s);
+        const scope = residentSpecialistScope();
+        return !!scope && Array.isArray(s.hospitals) && s.hospitals.includes(scope.hosp) && scope.codes.includes(specialtyCode(s.spec));
+    }
+    const canAddSpecialist = () => auth.isAdmin() || !!residentSpecialistScope();
 
     /** Residents who may accompany a specialist: same original specialty or rotating in it, in the specialist's hospitals. */
     function getSpecialistResidentCandidates(id) {
@@ -4135,6 +4172,12 @@
             getSchedule: (hospitalId) => getSpecialistSchedule(hospitalId),
             getDuties: (specialistName, hospitalId) => getSpecialistDuties(specialistName, hospitalId),
             canManage: (specOrId) => canManageSpecialist(specOrId),
+            canDelete: (specOrId) => canDeleteSpecialist(specOrId),
+            canAdd: () => canAddSpecialist(),
+            residentScope: () => residentSpecialistScope(),
+            loadEditSettings: () => loadSpecialistEditSettings(),
+            editSettings: () => specialistEdit,
+            setEditSwitch: (hospitalId, on) => setSpecialistEditSwitch(hospitalId, on),
             residentCandidates: (id) => getSpecialistResidentCandidates(id),
             getResidents: (id) => getSpecialistResidents(id),
             setResidents: (id, residentIds) => setSpecialistResidents(id, residentIds)

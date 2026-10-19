@@ -20,6 +20,7 @@ import { routeAA, isOfficer, AA_ROLES } from './aa.js';
 import { nameKey } from './names.js';
 import { dutyDayNow } from './profile.js';
 import { routeErFonts } from './erfonts.js';
+import { routeSpecialists, residentSpecialistsEditAllowed, isResidentEditor } from './specialists.js';
 
 const VISIT_COOLDOWN_MS = 60 * 1000;
 
@@ -76,6 +77,8 @@ async function route(request, env, ctx) {
   const auth = await authenticate(request, env);
   const erFontsRoute = await routeErFonts(path, method, request, env, auth);
   if (erFontsRoute) return erFontsRoute;
+  const specialistsRoute = await routeSpecialists(path, method, request, env, auth);
+  if (specialistsRoute) return specialistsRoute;
 
   if (path === '/api/session' && method === 'GET') {
     return auth ? json({ ok: true, role: auth.r, adminHospitals: auth.h, exp: auth.e, account: auth.a || null }) : json({ error: 'unauthorized' }, 401);
@@ -397,10 +400,13 @@ async function sync(request, env, auth) {
   // A hospital's admin changes only the specialists of their own hospitals (the directory is one record).
   const specOp = auth.r === 'admin' && !(auth.h || []).includes('*') && ops.find(op => op && op.c === 'meta' && op.id === 'specialists' && !op.ordOnly);
   const specOk = specOp ? await specialistsEditAllowed(env, auth, specOp) : true;
+  // Residents edit the cards of their own specialty while their hospital's switch is on (specialists.js).
+  const resSpecOp = isResidentEditor(auth) && ops.find(op => op && op.c === 'meta' && op.id === 'specialists' && !op.ordOnly && !op.del);
+  const resSpecOk = resSpecOp ? await residentSpecialistsEditAllowed(env, auth, resSpecOp) : false;
   const puts = [], dels = [], ords = [], rejected = [], checks = [];
   ops.forEach((op, i) => {
     if (!op || typeof op.c !== 'string' || typeof op.id !== 'string' || !op.id) { rejected.push(i); return; }
-    if (!allowed(auth, op) && !(icuAll && op.c === 'icu')) { rejected.push(i); return; }
+    if (!allowed(auth, op) && !(icuAll && op.c === 'icu') && !(resSpecOk && op === resSpecOp)) { rejected.push(i); return; }
     if (!specOk && op === specOp) { rejected.push(i); return; }
     if (approval && op.c === 'sched' && approval.has(String(op.id).split(':')[0])) { rejected.push(i); return; }
     const bv = Number(op.bv) || 0;

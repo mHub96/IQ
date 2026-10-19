@@ -325,7 +325,7 @@
     // Tiles shared by the owner's and the hospital admins' tabs: the per-hospital settings view and the
     // duty exchange requests.
     const HOSPITAL_TOOLS = [
-        ['fa-sliders', 'إعدادات المستشفيات', 'التعليقات، والتعليق المجهول، وموافقة تبديل الخفارات لكل مستشفى', { view: 'hospital-settings' }],
+        ['fa-sliders', 'إعدادات المستشفيات', 'التعليقات، والتعليق المجهول، وموافقة تبديل الخفارات، وصلاحية المقيمين على أطباء الاختصاص', { view: 'hospital-settings' }],
         ['fa-right-left', 'طلبات تبديل الخفارات', 'الطلبات بانتظار موافقتك في المستشفيات التي فعّلت نظام الموافقة', { open: 'exchanges' }],
     ];
     function tileHtml([icon, label, sub, act]) {
@@ -363,13 +363,14 @@
         body.innerHTML = `<div class="hp-sub-head"><button type="button" class="hacc-btn sm" data-act="back"><i class="fas fa-chevron-right"></i> رجوع</button><h3>إعدادات المستشفيات</h3></div>
             <div class="hacc-empty">جاري التحميل…</div>`;
         body.querySelector('[data-act="back"]').addEventListener('click', () => show('admin'));
-        let off = [], anonOff = [], approval = [], scope = [];
+        let off = [], anonOff = [], approval = [], specEdit = [], scope = [];
         try {
-            const [c, x] = await Promise.all([
+            const [c, x, sp] = await Promise.all([
                 Hub.api('GET', '/api/social/hospitals', undefined, { retries: 1 }),
                 Hub.api('GET', '/api/exchange/settings', undefined, { retries: 1 }),
+                Hub.api('GET', '/api/specialists/settings', undefined, { retries: 1 }),
             ]);
-            off = c.off || []; anonOff = c.anonOff || []; scope = c.scope || []; approval = x.on || [];
+            off = c.off || []; anonOff = c.anonOff || []; scope = c.scope || []; approval = x.on || []; specEdit = sp.on || [];
         } catch (err) {
             body.querySelector('.hacc-empty').textContent = errorText(err);
             return;
@@ -378,14 +379,15 @@
         const hospitals = Hub.getHospitals().filter(h => scope.includes('*') || scope.includes(h.id));
         let query = '';
         const row = (h) => {
-            const on = !off.includes(h.id), anon = !anonOff.includes(h.id), ap = approval.includes(h.id);
+            const on = !off.includes(h.id), anon = !anonOff.includes(h.id), ap = approval.includes(h.id), se = specEdit.includes(h.id);
             const sw = (key, label, state, onText, offText) => `<span class="hp-switch-row"><span class="hp-switch-label">${label}</span>
                 <span class="hacc-chip ${state ? 'on' : 'off'}">${state ? onText : offText}</span>
                 <button type="button" class="hacc-btn sm ${state ? 'danger' : 'primary'}" data-act="${key}">${state ? 'إيقاف' : 'تفعيل'}</button></span>`;
             return `<li data-h="${esc(h.id)}"><span class="hp-switch-name">${esc(h.name_ar || h.hospitalName || h.id)}</span>
                 ${sw('toggle', '💬 التعليقات', on, 'مفعّلة', 'متوقفة')}
                 ${sw('toggle-anon', '🕶️ التعليق المجهول', anon, 'مسموح', 'متوقف')}
-                ${sw('toggle-approval', '🔁 موافقة تبديل الخفارات', ap, 'مفعّلة', 'متوقفة')}</li>`;
+                ${sw('toggle-approval', '🔁 موافقة تبديل الخفارات', ap, 'مفعّلة', 'متوقفة')}
+                ${sw('toggle-spec', '🩺 المقيمون يعدّلون أطباء اختصاصهم', se, 'مسموح', 'الإدارة فقط')}</li>`;
         };
         const paint = () => {
             const list = hospitals.filter(h => !query || String(h.name_ar || h.hospitalName || h.id).includes(query));
@@ -408,6 +410,14 @@
                 payload = { hosp: h, anon };
                 if (!anon) confirmText = `إيقاف التعليق المجهول في ${name}؟ ستكون التعليقات الجديدة بالاسم الحقيقي فقط.`;
                 done = anon ? 'تم السماح بالتعليق المجهول ✓' : 'تم إيقاف التعليق المجهول';
+            } else if (kind === 'toggle-spec') {
+                const on = !specEdit.includes(h);
+                path = '/api/specialists/settings';
+                payload = { hosp: h, on };
+                confirmText = on
+                    ? `السماح لمقيمي ${name} بإضافة وتعديل بطاقات أطباء اختصاصهم (أو اختصاص دورتهم)؟\n\nيبقى حذف البطاقات للمدير والمالك.`
+                    : `إيقاف صلاحية المقيمين في ${name}؟ تعود إضافة وتعديل أطباء الاختصاص للمدير والمالك فقط.`;
+                done = on ? 'تم السماح للمقيمين بتعديل أطباء اختصاصهم ✓' : 'عادت إدارة أطباء الاختصاص للإدارة فقط';
             } else {
                 const on = !approval.includes(h);
                 path = '/api/exchange/settings';
@@ -422,13 +432,14 @@
             try {
                 const res = await Hub.api('POST', path, payload, { retries: 0 });
                 if (path === '/api/exchange/settings') approval = res.on || [];
+                else if (path === '/api/specialists/settings') specEdit = res.on || [];
                 else { off = res.off || off; anonOff = res.anonOff || anonOff; }
                 toast(done, 'success');
                 paint();
             } catch (err) { btn.disabled = false; toast(errorText(err), 'error'); }
         };
         body.innerHTML = `<div class="hp-sub-head"><button type="button" class="hacc-btn sm" data-act="back"><i class="fas fa-chevron-right"></i> رجوع</button><h3>إعدادات المستشفيات</h3></div>
-            <p class="hacc-muted hp-switch-note">إيقاف التعليقات يمنع التعليق على بطاقات خفارات المستشفى${Hub.auth.isOwner() ? ' (عدا المالك)' : ''} وتبقى التعليقات السابقة. مع إيقاف «المجهول» تكون التعليقات الجديدة بالاسم الحقيقي. ومع «موافقة التبديل» يمر كل تبديل يطلبه مقيم بموافقة صاحب الخفارة ثم الإدارة.</p>
+            <p class="hacc-muted hp-switch-note">إيقاف التعليقات يمنع التعليق على بطاقات خفارات المستشفى${Hub.auth.isOwner() ? ' (عدا المالك)' : ''} وتبقى التعليقات السابقة. مع إيقاف «المجهول» تكون التعليقات الجديدة بالاسم الحقيقي. ومع «موافقة التبديل» يمر كل تبديل يطلبه مقيم بموافقة صاحب الخفارة ثم الإدارة. ومع «المقيمون يعدّلون أطباء اختصاصهم» يضيف المقيم ويعدّل بطاقات أطباء اختصاصه (أو اختصاص دورته) في مستشفاه، ويبقى الحذف للإدارة.</p>
             ${hospitals.length > 4 ? '<input type="search" class="hp-hs-search" data-role="hs-search" placeholder="ابحث عن مستشفى…" aria-label="ابحث عن مستشفى">' : ''}
             <ul class="hp-switches" data-role="hs-list"></ul>`;
         body.querySelector('[data-act="back"]').addEventListener('click', () => show('admin'));

@@ -1,0 +1,29 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // LIVE API, used by https://mhub96.github.io/IQ/ (branch main).
+  // Deploy only when the user asks for a change to go live:  npx wrangler deploy --config wrangler.live.jsonc
+  "name": "hosp-hub-api",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "hosp-hub",
+      "database_id": "e795a9a9-5d07-4c42-8688-e3384809ee84"
+    }
+  ],
+  // Daily clean-up of old history rows and login-failure counters (the test Worker has no cron).
+  "triggers": { "crons": ["17 1 * * *"] },
+  "vars": {
+    "ALLOWED_ORIGINS": "https://mhub96.github.io",
+    // Web Push: the same key pair as the test Worker, so existing subscriptions keep working.
+    "VAPID_PUBLIC": "BGOl7V-kzJ02TyafKBzlqgbBW-Ef81Znw_LU9ZVzoum_W5bswoynF0gQEocOZBcgQR-SBU2ToEaCIvMRY7GR_7s",
+    "VAPID_SUBJECT": "https://mhub96.github.io/IQ/"
+  },
+  "observability": { "enabled": true }
+  // Secrets (set with `wrangler secret put --config wrangler.live.jsonc`, never committed):
+  //   SESSION_KEY   HMAC key for login tokens (the live site's own; changing it signs everyone out)
+  //   PW_KEY        base64 AES-256 key that encrypts role passwords in D1
+  //   VAPID_PRIVATE base64url private key for signing Web Push requests
+}

@@ -1,4 +1,4 @@
-# Deploys the beta on every push to main:
+# Deploys the TEST site on every push to the beta branch (the live site is GitHub Pages from main):
 #   - website  -> Cloudflare static-assets Worker "hosp-hub-beta" (site.wrangler.jsonc)
 #   - API      -> Cloudflare Worker "hosp-hub-api-beta" (only when worker/ changed)
 # Needs two repository secrets: CLOUDFLARE_API_TOKEN (template "Edit Cloudflare Workers") and
@@ -7,7 +7,7 @@ name: Deploy beta
 
 on:
   push:
-    branches: [main]
+    branches: [beta]
   workflow_dispatch:
 
 concurrency:

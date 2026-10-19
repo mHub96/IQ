@@ -10,9 +10,13 @@
     // ============================================================
     // CLOUDFLARE API CONFIGURATION
     // ============================================================
-    // Data lives in Cloudflare D1 behind the hosp-hub-api Worker (see worker/).
+    // Data lives in Cloudflare D1 behind the hosp-hub-api Worker (see worker/). The live site
+    // (mhub96.github.io/IQ) uses hosp-hub-api; the test site (hosp-hub-beta) uses hosp-hub-api-beta,
+    // so new server code can be tried there first (both share the same database).
     // `localStorage.hub_api_base` overrides the endpoint for local testing.
-    const DEFAULT_API_BASE = 'https://hosp-hub-api-beta.mrjuniversity.workers.dev';
+    const DEFAULT_API_BASE = /^hosp-hub-beta\./.test(location.hostname)
+        ? 'https://hosp-hub-api-beta.mrjuniversity.workers.dev'
+        : 'https://hosp-hub-api.mrjuniversity.workers.dev';
     const CONFIG = {
         apiBase: (() => {
             try { return (localStorage.getItem('hub_api_base') || DEFAULT_API_BASE).replace(/\/+$/, ''); }

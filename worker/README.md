@@ -1,9 +1,8 @@
 # Hospital Hub API (Cloudflare Worker + D1)
 
-> **Beta repository.** This copy deploys as Worker `hosp-hub-api-beta` and site `https://hosp-hub-beta.mrjuniversity.workers.dev`,
-> both on the **same D1 database as the live site** (data is shared; duty edits made in the beta are real).
-> The beta adds personal accounts, notifications and likes / comments in new tables only
-> (`migrations/0002_accounts.sql`), which the live Worker never touches.
+> **Two Workers, one database.** `wrangler.live.jsonc` deploys the live API `hosp-hub-api` (used by https://mhub96.github.io/IQ/, branch `main`); `wrangler.jsonc` deploys the test API `hosp-hub-api-beta` (used by the test site `https://hosp-hub-beta.mrjuniversity.workers.dev`, branch `beta`),
+> both on the **same D1 database** (data is shared; duty edits made on the test site are real).
+> Database migrations are therefore shared too: apply them additively, before deploying either Worker.
 
 The website (GitHub Pages) stores all shared data here instead of in `hub-data.json`.
 

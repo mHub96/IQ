@@ -59,8 +59,12 @@
 10. **الإشعارات والتفاعل (Notifications, Likes & Comments):**
    - جرس إشعارات في كل الصفحات، وإعجابات وتعليقات على بطاقات الخفراء (باسم الطبيب أو بلقب مجهول عشوائي).
 
-## 🧪 النسخة التجريبية (Beta)
+## 🌐 الموقع الحي والنسخة التجريبية
 
-هذا المستودع هو النسخة التجريبية: الموقع على Cloudflare (`https://hosp-hub-beta.mrjuniversity.workers.dev`) والخادم `hosp-hub-api-beta`، وكلاهما يستخدم **نفس قاعدة البيانات** الحية. التفاصيل في [`worker/README.md`](worker/README.md).
+- **الموقع الحي:** `https://mhub96.github.io/IQ/` من الفرع `main` (GitHub Pages)، والخادم `hosp-hub-api` (`worker/wrangler.live.jsonc`).
+- **النسخة التجريبية:** `https://hosp-hub-beta.mrjuniversity.workers.dev` من الفرع `beta`، والخادم `hosp-hub-api-beta` (`worker/wrangler.jsonc`).
+- التطوير يجري على `beta`، ولا يصل إلى الموقع الحي إلا بدمجه في `main` ونشر الخادم الحي.
+- **تنبيه:** النسختان تستخدمان **نفس قاعدة البيانات**؛ ما يُحفظ من النسخة التجريبية يظهر في الموقع الحي.
+- النسخة الاحتياطية من الموقع القديم: المستودع `mHub96/IQ-backup`.
 
 بعد تعديل أي صفحة: `cd tools && npm install && npm run css` لإعادة بناء `tailwind.css`.

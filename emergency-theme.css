@@ -352,5 +352,6 @@ html.dark .erp-preview { background: #0e1013; }
     /* Only the sheet: the page's (empty when printing) content area must not push it down a page. */
     .ers-side, .ers-top, .ers-tabs, .ers-scrim, .ers-main { display: none !important; }
     #main-emergency-app { padding: 0 !important; }
-    html, html body { background: #fff !important; }
+    /* White paper below the sheet too (hub-ios.css colours body.light / body.dark more specifically). */
+    html, html body, html body.light, html body.dark { background: #fff !important; background-image: none !important; }
 }

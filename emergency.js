@@ -759,6 +759,8 @@
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
+                delete parsed.undoStack;   // older saves carried the whole undo history
+                delete parsed.redoStack;
                 state = Object.assign(state, parsed);
             } catch (e) {
                 console.warn('Failed to parse saved emergency state, falling back to defaults', e);
@@ -1898,7 +1900,19 @@
         saveCurrentMonthAllocationsToStore();
         saveCurrentHospitalResidents();
         saveCurrentHospitalSignatories();
-        localStorage.setItem(STATE_KEY, JSON.stringify(state));
+        // The undo / redo history stays in memory (it is reset whenever a month loads anyway). Saved with
+        // the state it held up to 50 copies of the schedules and residents, outgrew the browser's storage,
+        // and the failed save stopped the table from redrawing.
+        const { undoStack, redoStack, ...saved } = state;
+        try {
+            localStorage.setItem(STATE_KEY, JSON.stringify(saved));
+        } catch (e) {
+            console.warn('Failed to save the ER state to localStorage', e);
+            if (!saveState.warned) {
+                saveState.warned = true;
+                showNotification('ذاكرة هذا المتصفح ممتلئة، فلم يُحفظ آخر تعديل على هذا الجهاز.', 'error');
+            }
+        }
         updateDutyDashboard();
     }
 
@@ -3157,6 +3171,7 @@
             default:
                 renderERView(container);
         }
+        applyScheduleLiveFilter(state.scheduleSearchQuery || '');
     }
 
     // =========================================================================
@@ -3630,54 +3645,11 @@
     // FILTER ROW HELPER
     // =========================================================================
 
-    function filterDayRow(day, type, shiftKeys) {
-        if (!day) return false;
-        const cleanQ = normalizeArabic(state.scheduleSearchQuery || '').toLowerCase();
-
-        // 1. Day of week filter
-        const isWeekend = day.dayName === 'الجمعة' || day.dayName === 'السبت';
-        if (state.scheduleDayFilter === 'weekend' && !isWeekend) return false;
-        if (state.scheduleDayFilter === 'weekday' && isWeekend) return false;
-
-        // 2. Doctor selector filter
-        if (state.scheduleDoctorFilter) {
-            const cleanDoc = normalizeArabic(state.scheduleDoctorFilter).toLowerCase();
-            const hasDoctor = (shiftKeys || []).some(k => day[k] && normalizeArabic(day[k]).toLowerCase() === cleanDoc);
-            if (!hasDoctor) return false;
-        }
-
-        // 3. Shift filter
-        if (state.scheduleShiftFilter && state.scheduleShiftFilter !== 'all') {
-            if ((shiftKeys || []).includes(state.scheduleShiftFilter)) {
-                // If checking specific shift, verify it has a doctor or is valid
-            }
-        }
-
-        // 4. Empty filter
-        if (state.scheduleEmptyOnly) {
-            const hasEmpty = (shiftKeys || []).some(k => !day[k] || !day[k].trim());
-            if (!hasEmpty) return false;
-        }
-
-        // 5. Conflict filter
-        if (state.scheduleConflictOnly) {
-            const hasConflict = (shiftKeys || []).some(k => {
-                const doc = day[k];
-                if (!doc) return false;
-                const evalRes = evaluateCellConflict(doc, day.date, type, k);
-                return evalRes && evalRes.hasConflict;
-            });
-            if (!hasConflict) return false;
-        }
-
-        // 6. Search query matching
-        if (cleanQ) {
-            const matchesDayOrDate = normalizeArabic(day.dayName || '').toLowerCase().includes(cleanQ) || (day.date || '').includes(cleanQ);
-            const matchesDoctor = (shiftKeys || []).some(k => day[k] && normalizeArabic(day[k]).toLowerCase().includes(cleanQ));
-            if (!matchesDayOrDate && !matchesDoctor) return false;
-        }
-
-        return true;
+    // Every day is drawn; applyScheduleLiveFilter() runs after each redraw and hides the days the search
+    // and filters leave out. Leaving them out of the drawing meant that, after any redraw during a search
+    // (clearing a cell, say), erasing the search could not bring them back.
+    function filterDayRow(day) {
+        return !!day;
     }
 
     // 1. ER VIEW (خفارات الطوارئ: 4 وجبات يومياً)

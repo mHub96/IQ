@@ -9019,7 +9019,7 @@
             }
         } else {
             // Empty schedule, run fresh generation immediately
-            runAutoDistribution(type, 'fresh');
+            return runAutoDistribution(type, 'fresh');
         }
     }
 
@@ -9058,23 +9058,286 @@
             return;
         }
 
+        if (autoDistributionRunning) return;
+        autoDistributionRunning = true;
         pushScheduleHistory(`توليد جدول ${type} آلياً`);
 
-        if (type === 'er') {
-            runAutoDistributionER(mode, daysCount, activeDocs);
-        } else if (type === 'con') {
-            runAutoDistributionCon(mode, daysCount, activeDocs);
-        } else if (type === 'dc') {
-            runAutoDistributionDC(mode, daysCount, activeDocs);
-        } else if (type === 'rs_er') {
-            runAutoDistributionRSER(mode, daysCount, activeDocs);
-        } else if (type === 'rs_wards') {
-            runAutoDistributionRSWards(mode, daysCount, activeDocs);
+        function runOnce() {
+            if (type === 'er') {
+                runAutoDistributionER(mode, daysCount, activeDocs);
+            } else if (type === 'con') {
+                runAutoDistributionCon(mode, daysCount, activeDocs);
+            } else if (type === 'dc') {
+                runAutoDistributionDC(mode, daysCount, activeDocs);
+            } else if (type === 'rs_er') {
+                runAutoDistributionRSER(mode, daysCount, activeDocs);
+            } else if (type === 'rs_wards') {
+                runAutoDistributionRSWards(mode, daysCount, activeDocs);
+            }
         }
 
-        saveState();
-        renderActiveTab();
-        showNotification('تم اكتمال التوليد والتوزيع الآلي بنجاح!', 'success');
+        // The phases above draw at random and never undo a choice, so one pass can corner itself and leave
+        // cells empty that a different arrangement fills. Run them a few times, repair each result
+        // (fillEmptyAutoCells), and keep the best: fewest empty cells, then the fewest duties outside a
+        // resident's preferred shifts, then the fewest back-to-back days, then the most preferences met.
+        const sheet = autoSheetOf(type, daysCount);
+        const original = snapshotAutoSheet(sheet);
+        const started = Date.now();
+        let best = null;
+        let rounds = 0;
+        const attempt = () => {
+            rounds++;
+            restoreAutoSheet(sheet, original);
+            runOnce();
+            fillEmptyAutoCells(sheet, mode, original, activeDocs, daysCount);
+            const score = scoreAutoSheet(sheet, activeDocs, daysCount);
+            if (!best || compareAutoScores(score, best.score) < 0) best = { score, snap: snapshotAutoSheet(sheet) };
+        };
+        const done = () => {
+            const s = best.score;
+            const perfect = s.empty === 0 && s.overrides === 0 && s.consecutive === 0;
+            return rounds >= AUTO_MAX_ROUNDS || (rounds >= 2 && (perfect || Date.now() - started > AUTO_TIME_BUDGET_MS));
+        };
+        const finish = () => {
+            if (best) restoreAutoSheet(sheet, best.snap);
+            else restoreAutoSheet(sheet, original);
+            autoDistributionRunning = false;
+            saveState();
+            renderActiveTab();
+            if (best) reportAutoDistribution(sheet, best.score, activeDocs);
+            else showNotification('تعذّر إكمال التوليد الآلي.', 'error');
+        };
+        // Rounds run in turns with short pauses, so the page stays responsive on phones.
+        const pause = () => new Promise(resolve => setTimeout(resolve, 0));
+        return (async () => {
+            try {
+                do {
+                    attempt();
+                    await pause();
+                } while (!done());
+            } catch (err) {
+                console.error('Auto distribution failed:', err);
+            }
+            finish();
+        })();
+    }
+
+    // =========================================================================
+    // SMARTER FILLING: several rounds + repair of empty cells (same rules as the phases)
+    // =========================================================================
+
+    let autoDistributionRunning = false;
+    const AUTO_MAX_ROUNDS = 6;
+    const AUTO_TIME_BUDGET_MS = 1000;
+
+    /** The cells one button fills: the sheet's slots on its days (the strike sheets only in the strike period). */
+    function autoSheetOf(type, daysCount) {
+        const ER_SLOTS = ['morning', 'afternoon', 'preNight', 'lateNight'];
+        if (type === 'er') return { type, key: 'er', conflictType: 'er', target: 'er_target', slots: ER_SLOTS, from: 1, to: daysCount };
+        if (type === 'con' || type === 'dc') return { type, key: type, conflictType: type, target: type + '_target', slots: ['doctor'], from: 1, to: daysCount };
+        const from = parseInt(String(state.rsStartDate || '').split('-')[2], 10) || 1;
+        const to = parseInt(String(state.rsEndDate || '').split('-')[2], 10) || daysCount;
+        const slots = type === 'rs_er' ? ['er_morning', 'er_afternoon', 'er_preNight', 'er_lateNight'] : ['ward_private', 'ward_floor4', 'ward_floor5'];
+        return { type, key: 'rs', conflictType: 'rs', target: 'rs_target', slots, from, to };
+    }
+
+    function snapshotAutoSheet(sheet) {
+        return { days: JSON.parse(JSON.stringify(state.schedules[sheet.key] || [])), overrides: JSON.parse(JSON.stringify(state.prefOverrides || {})) };
+    }
+    function restoreAutoSheet(sheet, snap) {
+        state.schedules[sheet.key] = JSON.parse(JSON.stringify(snap.days));
+        state.prefOverrides = JSON.parse(JSON.stringify(snap.overrides));
+    }
+
+    /** ER only: the shifts a resident asked for (females' list without the night shifts), or null. */
+    function preferredErShifts(r) {
+        if (!Array.isArray(r.prefShifts) || r.prefShifts.length === 0) return null;
+        const base = isFemaleResident(r) ? ['morning', 'afternoon'] : ['morning', 'afternoon', 'preNight', 'lateNight'];
+        const list = r.prefShifts.filter(s => base.includes(s));
+        return list.length ? list : null;
+    }
+
+    /**
+     * Fills the cells the phases left empty, with the same hard rules (quota, no nights for female
+     * residents, excluded dates and periods, no clash with any other duty that day) and, step by step,
+     * the same moderations the phases already use: back-to-back days only when nothing else works, and
+     * (ER) a shift outside a resident's preferred ones last, marked like the phases mark it.
+     * A cell nobody can take directly is filled by moving a resident from another cell this run filled
+     * into it, and giving that cell to a resident who still has duties to do.
+     */
+    function fillEmptyAutoCells(sheet, mode, original, activeDocs, daysCount) {
+        const days = state.schedules[sheet.key] || [];
+        const byDay = new Map(days.map(d => [d.dayNumber, d]));
+        const candidates = activeDocs.filter(r => (Number(r[sheet.target]) || 0) > 0);
+        const counts = countScheduledDutiesPerResident(sheet.key);
+        const countOf = r => counts[normalizeArabic(r.name)] || 0;
+        const remaining = r => (Number(r[sheet.target]) || 0) - countOf(r);
+        const byName = new Map(candidates.map(r => [normalizeArabic(r.name), r]));
+
+        // Cells filled before the button was pressed ("fill the empty cells only") stay where they are.
+        const locked = new Set();
+        if (mode !== 'fresh') {
+            (original.days || []).forEach(d => sheet.slots.forEach(s => { if (d[s] && String(d[s]).trim()) locked.add(d.dayNumber + '|' + s); }));
+        }
+        const cells = [];
+        for (let d = sheet.from; d <= sheet.to; d++) {
+            if (byDay.has(d)) sheet.slots.forEach(s => cells.push({ d, s }));
+        }
+
+        function canTake(r, d, s, tier, skipQuota) {
+            if (!skipQuota && remaining(r) <= 0) return false;
+            if ((sheet.key === 'er' || sheet.key === 'rs') && isFemaleResident(r) && isNightShift(s)) return false;
+            if (sheet.key === 'er' && !tier.anyShift) {
+                const pref = preferredErShifts(r);
+                if (pref && !pref.includes(s)) return false;
+            }
+            const dateStr = formatDateStr(state.year, state.month, d);
+            if (isDateExcludedForResident(r, d, dateStr)) return false;
+            if (!tier.consecutive && r.noConsecutiveDays !== false && hasDoctorDutyOnAdjacentDay(r.name, d, daysCount)) return false;
+            const c = evaluateCellConflict(r.name, dateStr, sheet.conflictType, s);
+            return !(c && c.hasConflict);
+        }
+        function put(d, s, r) {
+            const day = byDay.get(d);
+            const prev = day[s] ? byName.get(normalizeArabic(day[s])) : null;
+            if (prev) counts[normalizeArabic(prev.name)]--;
+            day[s] = r ? r.name : '';
+            if (r) counts[normalizeArabic(r.name)] = countOf(r) + 1;
+            if (sheet.key === 'er') {
+                const id = `er_${d}_${s}`;
+                if (state.prefOverrides) delete state.prefOverrides[id];
+                const pref = r && preferredErShifts(r);
+                if (r && Array.isArray(r.prefShifts) && r.prefShifts.length > 0 && !(pref || []).includes(s)) {
+                    if (!state.prefOverrides) state.prefOverrides = {};
+                    state.prefOverrides[id] = true;
+                }
+            }
+        }
+        // Who gets a cell: the most duties still to do, then a preferred day or shift, then chance.
+        function rank(list, d, s) {
+            const dayName = (byDay.get(d) || {}).dayName;
+            const likes = r => (Array.isArray(r.prefDays) && r.prefDays.includes(dayName) ? 1 : 0)
+                + (sheet.key === 'er' && (preferredErShifts(r) || []).includes(s) ? 1 : 0)
+                + (r.prefDaysMode === 'prefer' && Array.isArray(r.specificDays) && r.specificDays.map(Number).includes(d) ? 2 : 0);
+            return list.map(r => ({ r, k: [-remaining(r), -likes(r), Math.random()] }))
+                .sort((a, b) => a.k[0] - b.k[0] || a.k[1] - b.k[1] || a.k[2] - b.k[2]).map(x => x.r);
+        }
+        // A move must not cost the moved resident a preferred day in the strict rounds.
+        function keepsPreferredDay(r, fromDay, toDay, tier) {
+            if (tier.anyDay || !Array.isArray(r.prefDays) || r.prefDays.length === 0) return true;
+            const from = (byDay.get(fromDay) || {}).dayName, to = (byDay.get(toDay) || {}).dayName;
+            return !r.prefDays.includes(from) || r.prefDays.includes(to);
+        }
+
+        const tiers = sheet.key === 'er'
+            ? [{}, { consecutive: true }, { anyShift: true, anyDay: true }, { anyShift: true, anyDay: true, consecutive: true }]
+            : [{}, { anyDay: true }, { anyDay: true, consecutive: true }];
+
+        fill: for (const tier of tiers) {
+            let progress = true;
+            while (progress) {
+                progress = false;
+                const needy = candidates.filter(r => remaining(r) > 0);
+                if (!needy.length) break fill;
+                for (const { d, s } of cells) {
+                    const day = byDay.get(d);
+                    if (day[s] && String(day[s]).trim()) continue;
+                    // 1. Someone with duties left takes it.
+                    const direct = rank(needy.filter(r => remaining(r) > 0 && canTake(r, d, s, tier, false)), d, s)[0];
+                    if (direct) { put(d, s, direct); progress = true; continue; }
+                    // 2. Someone already placed by this run moves here, and their cell goes to someone with duties left.
+                    let moved = false;
+                    for (const c of shuffleArray(cells)) {
+                        if (moved) break;
+                        if (c.d === d && c.s === s) continue;
+                        if (locked.has(c.d + '|' + c.s)) continue;
+                        const occupantName = byDay.get(c.d)[c.s];
+                        const x = occupantName && byName.get(normalizeArabic(occupantName));
+                        if (!x || !keepsPreferredDay(x, c.d, d, tier)) continue;
+                        put(c.d, c.s, null);
+                        if (canTake(x, d, s, tier, true)) {
+                            put(d, s, x);
+                            const taker = rank(needy.filter(r => r !== x && remaining(r) > 0 && canTake(r, c.d, c.s, tier, false)), c.d, c.s)[0];
+                            if (taker) { put(c.d, c.s, taker); moved = true; progress = true; break; }
+                            put(d, s, null);
+                        }
+                        put(c.d, c.s, x);
+                    }
+                }
+            }
+        }
+
+        // ER: give back preferred shifts. A resident placed outside their preferred shifts swaps cells with
+        // someone on one of those shifts, when the other resident loses nothing by it (a shift they asked
+        // for or have no wish about, no preferred day lost, no new back-to-back days) and every rule holds.
+        if (sheet.key !== 'er') return;
+        const outside = (r, s) => { const p = preferredErShifts(r); return !!p && !p.includes(s); };
+        for (let pass = 0; pass < 3; pass++) {
+            let improved = false;
+            for (const a of cells) {
+                const nameA = byDay.get(a.d)[a.s];
+                const r = nameA && byName.get(normalizeArabic(nameA));
+                if (!r || locked.has(a.d + '|' + a.s) || !outside(r, a.s)) continue;
+                for (const b of shuffleArray(cells)) {
+                    if ((b.d === a.d && b.s === a.s) || locked.has(b.d + '|' + b.s) || outside(r, b.s)) continue;
+                    const nameB = byDay.get(b.d)[b.s];
+                    const y = nameB && byName.get(normalizeArabic(nameB));
+                    if (!y || y === r || outside(y, a.s)) continue;
+                    if (!keepsPreferredDay(r, a.d, b.d, {}) || !keepsPreferredDay(y, b.d, a.d, {})) continue;
+                    put(a.d, a.s, null);
+                    put(b.d, b.s, null);
+                    let swapped = false;
+                    if (canTake(r, b.d, b.s, {}, true)) {
+                        put(b.d, b.s, r);
+                        if (canTake(y, a.d, a.s, {}, true)) { put(a.d, a.s, y); swapped = true; }
+                        else put(b.d, b.s, null);
+                    }
+                    if (swapped) { improved = true; break; }
+                    put(a.d, a.s, r);
+                    put(b.d, b.s, y);
+                }
+            }
+            if (!improved) break;
+        }
+    }
+
+    /** Lower is better, compared in this order. */
+    function scoreAutoSheet(sheet, activeDocs, daysCount) {
+        const days = state.schedules[sheet.key] || [];
+        const byName = new Map(activeDocs.map(r => [normalizeArabic(r.name), r]));
+        let empty = 0, consecutive = 0, liked = 0;
+        days.forEach(day => {
+            if (day.dayNumber < sheet.from || day.dayNumber > sheet.to) return;
+            sheet.slots.forEach(s => {
+                const v = day[s] && String(day[s]).trim();
+                if (!v) { empty++; return; }
+                const r = byName.get(normalizeArabic(v));
+                if (!r) return;
+                if (r.noConsecutiveDays !== false && hasDoctorDutyOnAdjacentDay(r.name, day.dayNumber, daysCount)) consecutive++;
+                if (Array.isArray(r.prefDays) && r.prefDays.includes(day.dayName)) liked++;
+                if (sheet.key === 'er' && (preferredErShifts(r) || []).includes(s)) liked++;
+                if (r.prefDaysMode === 'prefer' && Array.isArray(r.specificDays) && r.specificDays.map(Number).includes(day.dayNumber)) liked++;
+            });
+        });
+        const overrides = sheet.key === 'er' ? Object.keys(state.prefOverrides || {}).filter(k => k.startsWith('er_')).length : 0;
+        return { empty, overrides, consecutive, liked, rounds: 0 };
+    }
+    function compareAutoScores(a, b) {
+        return (a.empty - b.empty) || (a.overrides - b.overrides) || (a.consecutive - b.consecutive) || (b.liked - a.liked);
+    }
+
+    /** The result, and why cells stayed empty when some did. */
+    function reportAutoDistribution(sheet, score, activeDocs) {
+        if (score.empty === 0) {
+            showNotification('تم اكتمال التوليد والتوزيع الآلي بنجاح!', 'success');
+            return;
+        }
+        const counts = countScheduledDutiesPerResident(sheet.key);
+        const left = activeDocs.reduce((sum, r) => sum + Math.max(0, (Number(r[sheet.target]) || 0) - (counts[normalizeArabic(r.name)] || 0)), 0);
+        const why = left === 0
+            ? 'لأن مجموع نصاب الأطباء لهذا الجدول لا يكفي لكل الخانات. زِد النصاب ثم اضغط «ملء الفراغات فقط».'
+            : 'لأن الأطباء الذين بقي لهم نصاب لا يمكنهم أخذها (أيام مستثناة، أو خفارة أخرى في اليوم نفسه، أو خفارات ليلية لا تُوزَّع على الطبيبات).';
+        showNotification(`تم التوليد، وبقيت ${score.empty} خانة فارغة ${why}`, 'error');
     }
 
     /**

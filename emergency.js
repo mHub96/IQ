@@ -10342,6 +10342,9 @@
             }
         }
 
+        // The print module (emergency-print.js) builds the sheet with every print option and waits for its fonts.
+        if (window.ERPrint) return window.ERPrint.print(activeSheet);
+
         const opts = state.printOptions || PRINT_THEME_PRESETS.official;
         const thStyle = `background-color: ${opts.headerBg} !important; color: ${opts.headerText} !important; border: 1px solid ${opts.borderColor} !important; font-weight: 900; padding: 2.5px 3.5px !important; text-align: center;`;
 
@@ -10605,6 +10608,7 @@
 
     function openPrintOptionsModal(targetSheet) {
         activePrintSheet = targetSheet || state.activeTab || 'er';
+        if (window.ERPrint) return window.ERPrint.open(activePrintSheet);
         const modal = document.getElementById('print-options-modal');
         if (!modal) return;
 

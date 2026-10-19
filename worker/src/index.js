@@ -19,6 +19,7 @@ import { routeExchange, approvalHospitals } from './exchange.js';
 import { routeAA, isOfficer, AA_ROLES } from './aa.js';
 import { nameKey } from './names.js';
 import { dutyDayNow } from './profile.js';
+import { routeErFonts } from './erfonts.js';
 
 const VISIT_COOLDOWN_MS = 60 * 1000;
 
@@ -69,7 +70,12 @@ async function route(request, env, ctx) {
   // Public: whether the sign-in panel offers the shared passwords.
   if (path === '/api/auth-config' && method === 'GET') return json({ sharedPasswords: !(await sharedPasswordsOff(env)), icuAll: await icuAllOn(env) });
 
+  // ER print fonts: the files are public (no token needed), the rest checks who asks.
+  if (path.startsWith('/api/er-fonts/file/')) return routeErFonts(path, method, request, env, null);
+
   const auth = await authenticate(request, env);
+  const erFontsRoute = await routeErFonts(path, method, request, env, auth);
+  if (erFontsRoute) return erFontsRoute;
 
   if (path === '/api/session' && method === 'GET') {
     return auth ? json({ ok: true, role: auth.r, adminHospitals: auth.h, exp: auth.e, account: auth.a || null }) : json({ error: 'unauthorized' }, 401);

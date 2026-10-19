@@ -95,7 +95,7 @@
     var overlayOn = false, queued = false;
     function overlayOpen() {
         return !!document.querySelector('.modal-overlay.active, .hub-modal-overlay.active, .hacc-sheet-backdrop.open, #role-switcher-modal[style*="flex"], #hub-passwords-modal[style*="flex"], .fixed.inset-0[id$="-modal"]:not(.hidden)')
-            || html.classList.contains('hacc-no-scroll');
+            || html.classList.contains('hacc-no-scroll') || html.classList.contains('ers-drawer-open');
     }
     function reportOverlay(force) {
         var on = overlayOpen();

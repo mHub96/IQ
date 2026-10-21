@@ -305,12 +305,49 @@
         return trimmed;
     }
 
+    /** The branch stored on a specialty record ('surgical' | 'medical' | 'none'), or '' when not set. */
+    function taggedBranch(specIdOrName, hospitalId) {
+        const normId = normalizeSpecialtyId(specIdOrName);
+        const same = s => s && (s.id === normId || s.id === specIdOrName || s.name_ar === specIdOrName || s.name_en === specIdOrName);
+        const hid = hospitalId || getActiveHospitalId();
+        const local = hid && db?.hospitals?.[hid]?.specialties ? db.hospitals[hid].specialties.find(same) : null;
+        const global = Array.isArray(db?.globalSpecialties) ? db.globalSpecialties.find(same) : null;
+        const b = (local && local.branch) || (global && global.branch) || '';
+        return ['surgical', 'medical', 'none'].includes(b) ? b : '';
+    }
+
+    // Medical branches when a specialty has no branch set (anaesthesia, radiology and the like: neither).
+    const MEDICAL_CANON_IDS = ['M', 'PE', 'N', 'NM', 'P', 'DER', 'EM', 'FM', 'GP', 'H', 'RM', 'ON'];
+    const MEDICAL_KEYWORDS = ['باطن', 'medicine', 'اطفال', 'أطفال', 'paed', 'pediat', 'قلب', 'cardiol', 'كلى', 'nephro', 'نفسي', 'psych', 'جلد', 'derm',
+        'اورام', 'أورام', 'onco', 'طوارئ', 'emergency', 'اسرة', 'أسرة', 'family', 'تنفس', 'respir', 'ممارس', 'practitioner', 'جملة العصبية', 'neuromed', 'neurology'];
+
+    /**
+     * The branch of a specialty for the ER's divisions: 'surgical', 'medical' or '' (neither / unknown).
+     * The branch set on the specialty first, then the built-in rules.
+     */
+    function getSpecialtyBranch(specIdOrName, hospitalId) {
+        if (!specIdOrName) return '';
+        const tagged = taggedBranch(specIdOrName, hospitalId);
+        if (tagged) return tagged === 'none' ? '' : tagged;
+        if (isSurgicalSpecialty(specIdOrName)) return 'surgical';
+        const normId = String(normalizeSpecialtyId(specIdOrName) || '').toUpperCase();
+        if (MEDICAL_CANON_IDS.includes(normId)) return 'medical';
+        const globalSpecs = Array.isArray(db?.globalSpecialties) ? db.globalSpecialties : CANONICAL_SPECIALTIES;
+        const found = globalSpecs.find(s => s.id === normId || s.name_ar === specIdOrName || s.name_en === specIdOrName);
+        const text = ((found ? `${found.name_ar} ${found.name_en}` : '') + ' ' + specIdOrName).toLowerCase();
+        return MEDICAL_KEYWORDS.some(k => text.includes(k)) ? 'medical' : '';
+    }
+    const cleanBranch = b => (['surgical', 'medical', 'none'].includes(b) ? b : '');
+
     /**
      * Determines whether a specialty is in a surgical branch
      * (General Surgery, Neurosurgery, Orthopaedics, Urosurgery, ENT, Maxillofacial, Ophthalmology, Gyn/Obs, etc.)
      */
     function isSurgicalSpecialty(specIdOrName) {
         if (!specIdOrName) return false;
+        // A branch set on the specialty (owner / hospital admin) wins.
+        const tagged = taggedBranch(specIdOrName);
+        if (tagged) return tagged === 'surgical';
         const normId = normalizeSpecialtyId(specIdOrName);
         const surgicalCanonIds = [
             'GS', // الجراحة العامة
@@ -2288,6 +2325,7 @@
         const prefix = (updatedData.prefix !== undefined) ? updatedData.prefix : (db.globalSpecialties[idx].prefix !== undefined ? db.globalSpecialties[idx].prefix : 'د. ');
 
         // Update target item in globalSpecialties
+        const branch = updatedData.branch !== undefined ? cleanBranch(updatedData.branch) : cleanBranch(db.globalSpecialties[idx].branch);
         db.globalSpecialties[idx] = {
             id: newId,
             name_ar: nameAr,
@@ -2296,7 +2334,8 @@
             prefix: prefix,
             parentSpec: parentSpec,
             acceptPool: acceptPool,
-            enabled: db.globalSpecialties[idx].enabled !== false
+            enabled: db.globalSpecialties[idx].enabled !== false,
+            ...(branch ? { branch } : {})
         };
 
         // Propagate updated metadata to all hospitals' matching specialty (preserving local color and enabled status)
@@ -2310,6 +2349,7 @@
                     hospSpec.icon = icon;
                     hospSpec.prefix = prefix;
                     hospSpec.parentSpec = parentSpec;
+                    if (updatedData.branch !== undefined) { if (branch) hospSpec.branch = branch; else delete hospSpec.branch; }
                 }
             });
         }
@@ -2369,7 +2409,8 @@
             prefix,
             parentSpec,
             acceptPool,
-            enabled: true
+            enabled: true,
+            ...(cleanBranch(specData.branch) ? { branch: cleanBranch(specData.branch) } : {})
         };
 
         db.globalSpecialties.push(newSpec);
@@ -2471,7 +2512,8 @@
                 prefix: prefix,
                 parentSpec: specData.parentSpec ? String(specData.parentSpec).trim().toUpperCase() : null,
                 acceptPool: Array.isArray(specData.acceptPool) ? specData.acceptPool : [],
-                enabled: true
+                enabled: true,
+                ...(cleanBranch(specData.branch) ? { branch: cleanBranch(specData.branch) } : {})
             };
             db.globalSpecialties.push(existingGlobal);
         } else if (specData.prefix !== undefined) {
@@ -2498,6 +2540,7 @@
                 enabled: true
             });
         }
+        if (cleanBranch(specData.branch)) (existingInHosp || hosp.specialties[hosp.specialties.length - 1]).branch = cleanBranch(specData.branch);
 
         await saveDatabase(`Add specialty ${canonId} (${nameAr}) to ${hosp.name_ar || hosp.hospitalName}`);
         return existingInHosp || hosp.specialties[hosp.specialties.length - 1];
@@ -2609,6 +2652,7 @@
         if (updates.color) s.color = updates.color;
         if (updates.enabled !== undefined) s.enabled = Boolean(updates.enabled);
         if (updates.acceptPool !== undefined) s.acceptPool = Array.isArray(updates.acceptPool) ? updates.acceptPool : [];
+        if (updates.branch !== undefined) { const b = cleanBranch(updates.branch); if (b) s.branch = b; else delete s.branch; }
 
         if (updates.prefix !== undefined) {
             s.prefix = updates.prefix;
@@ -4186,6 +4230,7 @@
         getSpecialistSchedule,
         getSpecialistDuties,
         isSurgicalSpecialty,
+        getSpecialtyBranch,
         getSpecialtyName,
         specialists: {
             getAll: (hospitalId, specCode) => getSpecialists(hospitalId, specCode),

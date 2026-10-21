@@ -40,3 +40,30 @@ test('preferences are cleaned to what the ER page understands', () => {
   assert.deepEqual(cleanPrefs({ prefShifts: ['morning', 'afternoon', 'preNight', 'lateNight'] }, '2026-11').prefShifts, [], 'all four shifts = no preference');
   assert.equal(cleanPrefs(null, '2026-02').noConsecutiveDays, true, 'default: avoid consecutive days');
 });
+
+test('a structured ER month: positions with their place and hours', async () => {
+  const { monthPositions, erDutyPlan } = await import('../src/duties.js');
+  const classic = monthPositions({ er: [] });
+  assert.deepEqual(classic.er.map(p => p.key), ['morning', 'afternoon', 'preNight', 'lateNight']);
+  assert.deepEqual(classic.con.map(p => p.key), ['doctor']);
+  const month = { layout: {
+    er: [
+      { key: 'morning', shift: 'morning', sector: 'طوارئ النساء', division: '', n: 1, of: 1 },
+      { key: 'morning.1', shift: 'morning', sector: 'طوارئ الرجال', division: '', n: 1, of: 1 },
+      { key: 'afternoon', shift: 'afternoon', sector: 'طوارئ النساء', division: 'الطوارئ الخضراء', n: 1, of: 1 },
+      { key: 'afternoon.1', shift: 'afternoon', sector: 'طوارئ النساء', division: 'الطوارئ الصفراء', n: 2, of: 2 },
+    ],
+    con: [{ key: 'doctor', start: '16:00', end: '19:00' }, { key: 'doctor.1', start: '19:00', end: '00:00' }],
+    dc: [{ key: 'doctor' }],
+  } };
+  const pos = monthPositions(month);
+  assert.equal(pos.er.find(p => p.key === 'afternoon.1').place, 'طوارئ النساء · الطوارئ الصفراء · 2');
+  assert.ok(pos.rs.some(p => p.key === 'er_morning.1') && pos.rs.some(p => p.key === 'ward_floor4'), 'the strike follows the ER');
+  const g = erDutyPlan({ type: 'er', slot: 'afternoon.1', place: 'طوارئ النساء · الطوارئ الصفراء' });
+  assert.equal(g.title, 'طوارئ · بعد الصباحية · طوارئ النساء · الطوارئ الصفراء');
+  assert.deepEqual([g.h, g.len], [14, 6]);
+  const c = erDutyPlan({ type: 'con', slot: 'doctor.1', start: '19:00', end: '00:00' });
+  assert.deepEqual([c.h, c.min, c.len], [19, 0, 5]);
+  assert.match(c.title, /7م - 12ص$/);
+  assert.deepEqual([erDutyPlan({ type: 'rs', slot: 'er_lateNight.1' }).h, erDutyPlan({ type: 'con', slot: 'doctor' }).len], [2, 24]);
+});

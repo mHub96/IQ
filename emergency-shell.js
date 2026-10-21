@@ -14,10 +14,8 @@
     const S = () => core().state();
     const COMPACT = '(max-width: 1023px)';
     const TITLES = { er: 'جدول الطوارئ', con: 'الاستشارية الخافرة', dc: 'شهادات الوفاة', rs_er: 'إسناد الطوارئ (RS)', rs_wards: 'إسناد الردهات (RS)' };
-    const SLOTS = {
-        er: ['morning', 'afternoon', 'preNight', 'lateNight'], con: ['doctor'], dc: ['doctor'],
-        rs_er: ['er_morning', 'er_afternoon', 'er_preNight', 'er_lateNight'], rs_wards: ['ward_private', 'ward_floor4', 'ward_floor5'],
-    };
+    // The month's positions (emergency-layout.js).
+    const slotsOf = tab => window.ERLayout.keys(tab);
     const ORDER_KEY = 'ers_order_open';
     const read = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
     const write = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
@@ -35,7 +33,8 @@
             days = days.filter(d => d.dayNumber >= a && d.dayNumber <= b);
         }
         let filled = 0, total = 0;
-        days.forEach(d => SLOTS[tab].forEach(k => { total++; if (d[k] && String(d[k]).trim()) filled++; }));
+        const slots = slotsOf(tab);
+        days.forEach(d => slots.forEach(k => { total++; if (d[k] && String(d[k]).trim()) filled++; }));
         return { filled, total };
     }
 
@@ -88,7 +87,8 @@
         if (!table || table.dataset.ersLabelled === '1') return;
         const heads = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.replace(/\s+/g, ' ').trim());
         table.querySelectorAll('tbody tr').forEach(tr => {
-            Array.from(tr.children).forEach((td, i) => { if (heads[i] && td.hasAttribute('data-slot')) td.setAttribute('data-label', heads[i]); });
+            // Cells of a structured month carry their own label (their header spans several rows).
+            Array.from(tr.children).forEach((td, i) => { if (heads[i] && td.hasAttribute('data-slot') && !td.hasAttribute('data-label')) td.setAttribute('data-label', heads[i]); });
         });
         table.dataset.ersLabelled = '1';
         table.classList.add('ers-sched');

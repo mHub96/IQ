@@ -1520,6 +1520,12 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">الاسم بالإنجليزية (اختياري)</label>
                     <input type="text" id="global-spec-name-en" class="hub-input font-mono text-left" placeholder="e.g. Orthopaedic Surgery" dir="ltr" />
+                    <select id="global-spec-branch" class="hub-input text-xs mt-2" title="يُستعمل في شُعب الطوارئ: الخضراء للفروع الجراحية والصفراء للباطنية">
+                        <option value="">الفرع: تلقائي (حسب اسم التخصص)</option>
+                        <option value="surgical">فرع جراحي</option>
+                        <option value="medical">فرع باطني</option>
+                        <option value="none">لا جراحي ولا باطني</option>
+                    </select>
                 </div>
 
                 <div>
@@ -3237,6 +3243,7 @@
                 idInput.value = current.id;
                 nameArInput.value = current.name_ar || '';
                 nameEnInput.value = current.name_en || '';
+                document.getElementById('global-spec-branch').value = current.branch || '';
                 iconInput.value = current.icon || '🏥';
                 if (parentSelect) parentSelect.value = current.parentSpec || '';
             } else {
@@ -3245,6 +3252,7 @@
                 idInput.value = '';
                 nameArInput.value = '';
                 nameEnInput.value = '';
+                document.getElementById('global-spec-branch').value = '';
                 iconInput.value = '🏥';
                 if (parentSelect) parentSelect.value = '';
             }
@@ -3285,6 +3293,7 @@
             const nameEn = document.getElementById('global-spec-name-en').value.trim();
             const icon = document.getElementById('global-spec-icon').value.trim() || '🏥';
             const parentSpec = document.getElementById('global-spec-parent').value || null;
+            const branch = document.getElementById('global-spec-branch').value;
 
             if (!nameAr) {
                 showToast('اسم التخصص بالعربية مطلوب', 'error');
@@ -3311,7 +3320,8 @@
                         name_en: nameEn,
                         icon: icon,
                         parentSpec: parentSpec,
-                        acceptPool: pool
+                        acceptPool: pool,
+                        branch
                     });
                     showToast(`تم تحديث التخصص "${nameAr}" في المستودع العام بنجاح`, 'success');
                 } else {
@@ -3321,7 +3331,8 @@
                         name_en: nameEn,
                         icon: icon,
                         parentSpec: parentSpec,
-                        acceptPool: pool
+                        acceptPool: pool,
+                        branch
                     });
                     showToast(`تمت إضافة التخصص "${nameAr}" إلى المستودع العام بنجاح 🎉`, 'success');
                 }

@@ -892,6 +892,12 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">الاسم بالإنجليزية (اختياري)</label>
                         <input type="text" id="new-spec-name-en" class="input-field font-mono text-left" placeholder="e.g. Pediatric Surgery" dir="ltr" />
+                    <select id="new-spec-branch" class="input-field text-xs mt-2" title="يُستعمل في شُعب الطوارئ: الخضراء للفروع الجراحية والصفراء للباطنية">
+                        <option value="">الفرع: تلقائي (حسب اسم التخصص)</option>
+                        <option value="surgical">فرع جراحي</option>
+                        <option value="medical">فرع باطني</option>
+                        <option value="none">لا جراحي ولا باطني</option>
+                    </select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">رمز التخصص (اختياري)</label>
@@ -1035,6 +1041,12 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">الاسم بالإنجليزية (اختياري)</label>
                     <input type="text" id="edit-hosp-spec-name-en" class="input-field font-mono text-left" placeholder="مثال: Internal Medicine" dir="ltr" />
+                    <select id="edit-hosp-spec-branch" class="input-field text-xs mt-2" title="يُستعمل في شُعب الطوارئ: الخضراء للفروع الجراحية والصفراء للباطنية">
+                        <option value="">الفرع: تلقائي (حسب اسم التخصص)</option>
+                        <option value="surgical">فرع جراحي</option>
+                        <option value="medical">فرع باطني</option>
+                        <option value="none">لا جراحي ولا باطني</option>
+                    </select>
                 </div>
 
                 <div class="p-2.5 rounded-xl bg-teal-50/60 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-800">
@@ -1173,6 +1185,12 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">الاسم بالإنجليزية (اختياري)</label>
                     <input type="text" id="global-spec-name-en" class="input-field font-mono text-left" placeholder="مثال: Orthopaedic Surgery" dir="ltr" />
+                    <select id="global-spec-branch" class="input-field text-xs mt-2" title="يُستعمل في شُعب الطوارئ: الخضراء للفروع الجراحية والصفراء للباطنية">
+                        <option value="">الفرع: تلقائي (حسب اسم التخصص)</option>
+                        <option value="surgical">فرع جراحي</option>
+                        <option value="medical">فرع باطني</option>
+                        <option value="none">لا جراحي ولا باطني</option>
+                    </select>
                 </div>
 
                 <div class="p-2.5 rounded-xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800">
@@ -3218,6 +3236,7 @@
             // Reset create new fields
             if (document.getElementById('new-spec-name-ar')) document.getElementById('new-spec-name-ar').value = '';
             if (document.getElementById('new-spec-name-en')) document.getElementById('new-spec-name-en').value = '';
+            if (document.getElementById('new-spec-branch')) document.getElementById('new-spec-branch').value = '';
             if (document.getElementById('new-spec-id')) document.getElementById('new-spec-id').value = '';
             if (document.getElementById('new-spec-icon')) document.getElementById('new-spec-icon').value = '🏥';
             if (document.getElementById('new-spec-color')) document.getElementById('new-spec-color').value = '#007AFF';
@@ -3256,7 +3275,8 @@
                     icon: icon,
                     color: color,
                     prefix: prefix,
-                    parentSpec: parentSpec
+                    parentSpec: parentSpec,
+                    branch: document.getElementById('new-spec-branch')?.value || ''
                 });
                 currentHospital = Hub.getActiveHospital();
                 renderSpecialtiesList();
@@ -3286,6 +3306,8 @@
             if (idEl) idEl.value = spec.id;
             if (nameArEl) nameArEl.value = spec.name_ar || '';
             if (nameEnEl) nameEnEl.value = spec.name_en || '';
+            const branchEl = document.getElementById('edit-hosp-spec-branch');
+            if (branchEl) branchEl.value = spec.branch || (((Hub.getGlobalSpecialties ? Hub.getGlobalSpecialties() : []).find(g => g.id === spec.id) || {}).branch) || '';
             if (iconEl) iconEl.value = spec.icon || '🏥';
             if (colorEl) colorEl.value = spec.color || '#0f766e';
             if (titleEl) titleEl.innerHTML = `<i class="fas fa-pen-to-square text-teal-600 dark:text-teal-400"></i> تعديل تخصص: ${spec.name_ar}`;
@@ -3357,7 +3379,8 @@
                     color: color,
                     prefix: prefix,
                     acceptPool: acceptPool,
-                    updateResidentsPrefix: updateResidents
+                    updateResidentsPrefix: updateResidents,
+                    branch: document.getElementById('edit-hosp-spec-branch')?.value || ''
                 });
                 currentHospital = Hub.getActiveHospital();
                 renderSpecialtiesList();
@@ -3512,6 +3535,7 @@
             document.getElementById('global-spec-id').value = target ? target.id : '';
             document.getElementById('global-spec-name-ar').value = target ? target.name_ar : '';
             document.getElementById('global-spec-name-en').value = target ? (target.name_en || '') : '';
+            document.getElementById('global-spec-branch').value = target ? (target.branch || '') : '';
             document.getElementById('global-spec-icon').value = target ? (target.icon || '🏥') : '🏥';
             setSpecPrefixControls('global-spec', target && target.prefix !== undefined ? target.prefix : 'د. ');
             const updateCheck = document.getElementById('global-spec-update-existing-residents');
@@ -3582,7 +3606,8 @@
                         icon,
                         prefix,
                         parentSpec,
-                        updateResidentsPrefix: updateResidents
+                        updateResidentsPrefix: updateResidents,
+                        branch: document.getElementById('global-spec-branch').value
                     });
                     showToast(`تم تحديث التخصص "${nameAr}" في المستودع العام وتحديث كافة المراجع بنجاح`, 'success');
                 } else {
@@ -3592,7 +3617,8 @@
                         name_en: nameEn,
                         icon,
                         prefix,
-                        parentSpec
+                        parentSpec,
+                        branch: document.getElementById('global-spec-branch').value
                     });
                     showToast(`تمت إضافة التخصص "${nameAr}" إلى المستودع العام بنجاح`, 'success');
                 }

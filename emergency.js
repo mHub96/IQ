@@ -185,6 +185,14 @@
     }
 
     // Helper: Determine if a shift key represents prenight (8PM-2AM) or night (2AM-8AM)
+    // Duty positions of the month on screen (emergency-layout.js): the classic four shifts and one
+    // con / dc doctor, or the hospital's own structure (sectors, divisions, several residents).
+    const L = () => window.ERLayout;
+    const posKeys = type => L().keys(type);
+    /** Number of filled positions of a day. */
+    const filledIn = (day, keys) => keys.reduce((n, k) => n + (day && day[k] && String(day[k]).trim() ? 1 : 0), 0);
+    const escapeHtml = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
     function isNightShift(shiftKey) {
         if (!shiftKey) return false;
         const s = String(shiftKey).toLowerCase();
@@ -931,6 +939,8 @@
 
     function ensureScheduleIntegrity() {
         const daysCount = getDaysInMonth(state.year, state.month);
+        if (window.ERLayout) L().ensureMonthLayout();
+        const emptyOf = keys => Object.fromEntries(keys.map(k => [k, '']));
         
         ['er', 'con', 'dc', 'rs'].forEach(type => {
             if (!Array.isArray(state.schedules[type])) {
@@ -957,11 +967,11 @@
                     entry.dayName = dayName;
                 } else {
                     if (type === 'er') {
-                        entry = { dayNumber: d, date: dateStr, dayName, morning: '', afternoon: '', preNight: '', lateNight: '', notes: '' };
+                        entry = { dayNumber: d, date: dateStr, dayName, ...emptyOf(posKeys('er')), notes: '' };
                     } else if (type === 'con' || type === 'dc') {
-                        entry = { dayNumber: d, date: dateStr, dayName, doctor: '' };
+                        entry = { dayNumber: d, date: dateStr, dayName, ...emptyOf(posKeys(type)) };
                     } else if (type === 'rs') {
-                        entry = { dayNumber: d, date: dateStr, dayName, er_morning: '', er_afternoon: '', er_preNight: '', er_lateNight: '', ward_private: '', ward_floor4: '', ward_floor5: '' };
+                        entry = { dayNumber: d, date: dateStr, dayName, ...emptyOf(L().allKeys('rs')) };
                     }
                 }
                 newSchedule.push(entry);
@@ -1656,28 +1666,22 @@
 
         if (sheetType === 'er') {
             (state.schedules.er || []).forEach(day => {
-                day.morning = '';
-                day.afternoon = '';
-                day.preNight = '';
-                day.lateNight = '';
+                posKeys('er').forEach(k => { day[k] = ''; });
             });
         } else if (sheetType === 'con') {
             (state.schedules.con || []).forEach(day => {
-                day.doctor = '';
+                posKeys('con').forEach(k => { day[k] = ''; });
             });
         } else if (sheetType === 'dc') {
             (state.schedules.dc || []).forEach(day => {
-                day.doctor = '';
+                posKeys('dc').forEach(k => { day[k] = ''; });
             });
         } else if (sheetType === 'rs_er') {
             const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
             const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || getDaysInMonth(state.year, state.month);
             (state.schedules.rs || []).forEach(day => {
                 if (day.dayNumber >= startDay && day.dayNumber <= endDay) {
-                    day.er_morning = '';
-                    day.er_afternoon = '';
-                    day.er_preNight = '';
-                    day.er_lateNight = '';
+                    posKeys('rs_er').forEach(k => { day[k] = ''; });
                 }
             });
         } else if (sheetType === 'rs_wards') {
@@ -2266,12 +2270,7 @@
         // 1. ER Schedule
         const erDay = (state.schedules.er || []).find(s => s.dayNumber === dayNumber);
         if (erDay) {
-            const slots = [
-                { key: 'morning', label: 'طوارئ: الصباحية (8ص-2م)' },
-                { key: 'afternoon', label: 'طوارئ: بعد الصباحية (2م-8م)' },
-                { key: 'preNight', label: 'طوارئ: البرينايت (8م-2ص)' },
-                { key: 'lateNight', label: 'طوارئ: الليلية (2ص-8ص)' }
-            ];
+            const slots = posKeys('er').map(key => ({ key, label: 'طوارئ: ' + L().label('er', key) }));
             slots.forEach(s => {
                 if (erDay[s.key] && normalizeArabic(erDay[s.key]) === cleanTarget) {
                     duties.push({ type: 'er', slotKey: s.key, label: s.label });
@@ -2281,25 +2280,22 @@
 
         // 2. Consultation Clinic (Con)
         const conDay = (state.schedules.con || []).find(s => s.dayNumber === dayNumber);
-        if (conDay && conDay.doctor && normalizeArabic(conDay.doctor) === cleanTarget) {
-            duties.push({ type: 'con', slotKey: 'doctor', label: 'الاستشارية الخافرة' });
-        }
+        if (conDay) posKeys('con').forEach(key => {
+            if (conDay[key] && normalizeArabic(conDay[key]) === cleanTarget) duties.push({ type: 'con', slotKey: key, label: ['الاستشارية الخافرة', L().label('con', key)].filter(Boolean).join(' ') });
+        });
 
         // 3. Death Certificates (DC)
         const dcDay = (state.schedules.dc || []).find(s => s.dayNumber === dayNumber);
-        if (dcDay && dcDay.doctor && normalizeArabic(dcDay.doctor) === cleanTarget) {
-            duties.push({ type: 'dc', slotKey: 'doctor', label: 'شهادات الوفاة' });
-        }
+        if (dcDay) posKeys('dc').forEach(key => {
+            if (dcDay[key] && normalizeArabic(dcDay[key]) === cleanTarget) duties.push({ type: 'dc', slotKey: key, label: ['شهادات الوفاة', L().label('dc', key)].filter(Boolean).join(' ') });
+        });
 
         // 4. Rotators Strike (RS)
         if (state.rsEnabled) {
             const rsDay = (state.schedules.rs || []).find(s => s.dayNumber === dayNumber);
             if (rsDay) {
                 const rsSlots = [
-                    { key: 'er_morning', label: 'إضراب طوارئ: صباحية' },
-                    { key: 'er_afternoon', label: 'إضراب طوارئ: بعد الصباحية' },
-                    { key: 'er_preNight', label: 'إضراب طوارئ: برينايت' },
-                    { key: 'er_lateNight', label: 'إضراب طوارئ: ليلية' },
+                    ...posKeys('rs_er').map(key => ({ key, label: 'إضراب طوارئ: ' + L().label('rs_er', key) })),
                     { key: 'ward_private', label: 'إضراب ردهات: الجناح الخاص' },
                     { key: 'ward_floor4', label: 'إضراب ردهات: طابق 4' },
                     { key: 'ward_floor5', label: 'إضراب ردهات: طابق 5' }
@@ -2561,37 +2557,28 @@
         if (dbNavBadge) dbNavBadge.textContent = `${activeDocs.length} طبيب`;
 
         // 1. ER Duties (4 shifts/day)
-        const erRequired = daysCount * 4;
+        const erRequired = daysCount * L().perDay('er');
         const erAllocated = activeDocs.reduce((sum, r) => sum + (Number(r.er_target) || 0), 0);
         let erScheduled = 0;
-        (state.schedules.er || []).forEach(day => {
-            if (day.morning && day.morning.trim()) erScheduled++;
-            if (day.afternoon && day.afternoon.trim()) erScheduled++;
-            if (day.preNight && day.preNight.trim()) erScheduled++;
-            if (day.lateNight && day.lateNight.trim()) erScheduled++;
-        });
+        (state.schedules.er || []).forEach(day => { erScheduled += filledIn(day, posKeys('er')); });
         const erRemaining = Math.max(0, erRequired - erScheduled);
         const erPercent = erRequired > 0 ? Math.min(100, Math.round((erScheduled / erRequired) * 100)) : 0;
         const erAllocDiff = erAllocated - erRequired;
 
         // 2. Con Duties (1 shift/day)
-        const conRequired = daysCount * 1;
+        const conRequired = daysCount * L().perDay('con');
         const conAllocated = activeDocs.reduce((sum, r) => sum + (Number(r.con_target) || 0), 0);
         let conScheduled = 0;
-        (state.schedules.con || []).forEach(day => {
-            if (day.doctor && day.doctor.trim()) conScheduled++;
-        });
+        (state.schedules.con || []).forEach(day => { conScheduled += filledIn(day, posKeys('con')); });
         const conRemaining = Math.max(0, conRequired - conScheduled);
         const conPercent = conRequired > 0 ? Math.min(100, Math.round((conScheduled / conRequired) * 100)) : 0;
         const conAllocDiff = conAllocated - conRequired;
 
         // 3. DC Duties (1 shift/day)
-        const dcRequired = daysCount * 1;
+        const dcRequired = daysCount * L().perDay('dc');
         const dcAllocated = activeDocs.reduce((sum, r) => sum + (Number(r.dc_target) || 0), 0);
         let dcScheduled = 0;
-        (state.schedules.dc || []).forEach(day => {
-            if (day.doctor && day.doctor.trim()) dcScheduled++;
-        });
+        (state.schedules.dc || []).forEach(day => { dcScheduled += filledIn(day, posKeys('dc')); });
         const dcRemaining = Math.max(0, dcRequired - dcScheduled);
         const dcPercent = dcRequired > 0 ? Math.min(100, Math.round((dcScheduled / dcRequired) * 100)) : 0;
         const dcAllocDiff = dcAllocated - dcRequired;
@@ -2613,16 +2600,13 @@
             const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
             const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || daysCount;
             rsDaysCount = Math.max(0, endDay - startDay + 1);
-            rsErRequired = rsDaysCount * 4;
+            rsErRequired = rsDaysCount * L().perDay('rs_er');
             rsWardsRequired = rsDaysCount * 3;
             rsTotalRequired = rsErRequired + rsWardsRequired;
 
             (state.schedules.rs || []).forEach(day => {
                 if (day.dayNumber >= startDay && day.dayNumber <= endDay) {
-                    if (day.er_morning && day.er_morning.trim()) rsErScheduled++;
-                    if (day.er_afternoon && day.er_afternoon.trim()) rsErScheduled++;
-                    if (day.er_preNight && day.er_preNight.trim()) rsErScheduled++;
-                    if (day.er_lateNight && day.er_lateNight.trim()) rsErScheduled++;
+                    rsErScheduled += filledIn(day, posKeys('rs_er'));
                     if (day.ward_private && day.ward_private.trim()) rsWardsScheduled++;
                     if (day.ward_floor4 && day.ward_floor4.trim()) rsWardsScheduled++;
                     if (day.ward_floor5 && day.ward_floor5.trim()) rsWardsScheduled++;
@@ -3038,7 +3022,7 @@
                         <div class="bg-amber-50/60 dark:bg-amber-950/40 p-1.5 rounded-lg text-center">
                             <div class="text-[10px] text-amber-700 dark:text-amber-300 font-bold">طوارئ الإضراب</div>
                             <div class="font-mono text-xs font-black text-amber-900 dark:text-amber-200 mt-0.5">
-                                ${rsErScheduled} / ${rsDaysCount * 4}
+                                ${rsErScheduled} / ${rsDaysCount * L().perDay('rs_er')}
                             </div>
                         </div>
                         <div class="bg-amber-50/60 dark:bg-amber-950/40 p-1.5 rounded-lg text-center">
@@ -3569,7 +3553,7 @@
                 if (!docName.trim()) hasEmpty = true;
                 if (isConflicted) hasConflict = true;
 
-                const isShiftEligible = (state.scheduleShiftFilter === 'all' || state.scheduleShiftFilter === slotKey);
+                const isShiftEligible = (state.scheduleShiftFilter === 'all' || state.scheduleShiftFilter === slotKey || slotKey.startsWith(state.scheduleShiftFilter + '.'));
                 const cleanDoc = normalizeArabic(docName).toLowerCase();
 
                 const isMatch = targetHighlight && isShiftEligible && cleanDoc && (
@@ -3649,18 +3633,53 @@
         return !!day;
     }
 
+    /**
+     * Header rows of an ER-type table ('er' | 'rs_er'): one column per position, under its shift and,
+     * with a structure, its sector and division. Clicking a shift filters the table by it.
+     */
+    function erTableHead(type) {
+        const pos = L().positions(type);
+        const prefix = type === 'rs_er' ? 'er_' : '';
+        const deep = pos.some(p => p.sector) ? (pos.some(p => p.division || p.of > 1) ? 3 : 2) : 1;
+        const th = 'py-2 px-2 font-bold border-l border-b border-slate-800 text-center';
+        let r1 = `<th rowspan="${deep}" class="py-3 px-3 w-12 text-center font-bold border-l border-slate-800">#</th>
+            <th rowspan="${deep}" class="py-3 px-3 w-32 font-bold border-l border-slate-800">اليوم والتاريخ</th>`;
+        let r2 = '', r3 = '';
+        L().SHIFTS.forEach(shift => {
+            const list = pos.filter(p => p.shift === shift);
+            const info = L().SHIFT_INFO[shift];
+            const key = prefix + shift;
+            const plain = list.length === 1 && !list[0].sector;
+            r1 += `<th ${plain ? `rowspan="${deep}"` : `colspan="${list.length}"`} onclick="quickFilterByShift('${key}')" class="py-3 px-3 font-bold cursor-pointer hover:bg-slate-800 transition select-none border-l border-slate-800 ${state.scheduleShiftFilter !== 'all' && state.scheduleShiftFilter !== key ? 'opacity-40' : ''}" title="انقر لتصفية الجدول بهذه الوجبة">
+                    <div class="flex items-center ${plain ? '' : 'justify-center'} gap-1.5 text-white"><i class="fas ${info.icon} ${info.color}"></i><span>${info.name} (${info.time})</span></div></th>`;
+            if (plain || deep < 2) return;
+            // Sectors of the shift, then their divisions.
+            const sectors = [];
+            list.forEach(p => { const last = sectors[sectors.length - 1]; if (last && last.id === p.sectorId) last.items.push(p); else sectors.push({ id: p.sectorId, name: p.sector, items: [p] }); });
+            sectors.forEach(sec => {
+                const single = sec.items.length === 1 && !sec.items[0].division;
+                r2 += `<th ${single && deep === 3 ? 'rowspan="2"' : `colspan="${sec.items.length}"`} class="${th} bg-slate-800/70">${escapeHtml(sec.name)}</th>`;
+                if (!single && deep === 3) sec.items.forEach(p => { r3 += `<th class="${th} text-[11px] text-slate-200">${escapeHtml([p.division, p.of > 1 ? p.n : ''].filter(Boolean).join(' '))}</th>`; });
+            });
+        });
+        return `<tr class="bg-slate-900 text-white dark:bg-black dark:text-white border-b-2 border-slate-800 text-xs font-black select-none">${r1}</tr>`
+            + (r2 ? `<tr class="bg-slate-900 text-white dark:bg-black text-xs select-none">${r2}</tr>` : '')
+            + (r3 ? `<tr class="bg-slate-900 text-white dark:bg-black text-xs select-none">${r3}</tr>` : '');
+    }
+
+    /** Filter-bar choices of an ER-type table: its four shifts. */
+    function erShiftOptions(type) {
+        const prefix = type === 'rs_er' ? 'er_' : '';
+        return L().SHIFTS.map(shift => ({ key: prefix + shift, label: `${L().SHIFT_INFO[shift].name} (${L().SHIFT_INFO[shift].time})` }));
+    }
+
     // 1. ER VIEW (خفارات الطوارئ: 4 وجبات يومياً)
     // =========================================================================
 
     function renderERView(container) {
-        const shifts = [
-            { key: 'morning', label: 'الصباحية (8ص - 2م)', icon: 'fa-sun', color: 'text-amber-500' },
-            { key: 'afternoon', label: 'بعد الصباحية (2م - 8م)', icon: 'fa-cloud-sun', color: 'text-orange-500' },
-            { key: 'preNight', label: 'البرينايت (8م - 2ص)', icon: 'fa-moon', color: 'text-indigo-500' },
-            { key: 'lateNight', label: 'الليلية (2ص - 8ص)', icon: 'fa-star-and-crescent', color: 'text-purple-500' }
-        ];
-
-        const shiftKeys = shifts.map(s => s.key);
+        const shifts = erShiftOptions('er');
+        const shiftKeys = posKeys('er');
+        const perDay = shiftKeys.length;
         const filteredDays = (state.schedules.er || []).filter(d => filterDayRow(d, 'er', shiftKeys));
 
         let html = `
@@ -3670,7 +3689,7 @@
                         <i class="fas fa-truck-medical text-rose-600"></i>
                         <span>جدول خفارات قسم الطوارئ (ER)</span>
                     </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">4 وجبات خفارة يومياً · المقيمين الأقدمين</p>
+                    <p class="text-xs text-slate-500 mt-0.5">4 وجبات خفارة يومياً${perDay > 4 ? ` · ${perDay} خفارة في اليوم` : ''} · المقيمين الأقدمين</p>
                 </div>
                 <div class="flex items-center gap-2">
                     ${renderScheduleUndoRedoButtons()}
@@ -3698,27 +3717,14 @@
 
             <div class="overflow-x-auto rounded-2xl border border-slate-300 dark:border-slate-700 shadow-sm">
                 <table class="w-full text-right border-collapse text-xs">
-                    <thead>
-                        <tr class="bg-slate-900 text-white dark:bg-black dark:text-white border-b-2 border-slate-800 text-xs font-black select-none">
-                            <th class="py-3 px-3 w-12 text-center font-bold border-l border-slate-800">#</th>
-                            <th class="py-3 px-3 w-32 font-bold border-l border-slate-800">اليوم والتاريخ</th>
-                            ${shifts.map(s => `
-                                <th onclick="quickFilterByShift('${s.key}')" class="py-3 px-3 font-bold cursor-pointer hover:bg-slate-800 transition select-none border-l border-slate-800 ${state.scheduleShiftFilter !== 'all' && state.scheduleShiftFilter !== s.key ? 'opacity-40' : ''}" title="انقر لتصفية الجدول بهذه الوجبة">
-                                    <div class="flex items-center gap-1.5 text-white">
-                                        <i class="fas ${s.icon} ${s.color}"></i>
-                                        <span>${s.label}</span>
-                                    </div>
-                                </th>
-                            `).join('')}
-                        </tr>
-                    </thead>
+                    <thead>${erTableHead('er')}</thead>
                     <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
         `;
 
         if (filteredDays.length === 0) {
             html += `
                 <tr>
-                    <td colspan="6" class="py-8 text-center text-slate-400 text-xs">
+                    <td colspan="${perDay + 2}" class="py-8 text-center text-slate-400 text-xs">
                         لا توجد أيام تطابق شروط البحث والفلترة
                     </td>
                 </tr>
@@ -3736,7 +3742,7 @@
                             </div>
                             <div class="text-[11px] font-mono font-bold ${isWeekend ? 'text-[#3b7353] dark:text-[#72c798]' : 'text-slate-500 dark:text-slate-400'}">${formatArabicDateNumbers(day.date)}</div>
                         </td>
-                        ${shifts.map(s => renderShiftCellHTML('er', day.dayNumber, day.date, s.key, day[s.key])).join('')}
+                        ${shiftKeys.map(k => renderShiftCellHTML('er', day.dayNumber, day.date, k, day[k])).join('')}
                     </tr>
                 `;
             });
@@ -3756,8 +3762,8 @@
     // =========================================================================
 
     function renderConView(container) {
-        const shifts = [{ key: 'doctor', label: 'طبيب الاستشارية الخافرة' }];
-        const filteredDays = (state.schedules.con || []).filter(d => filterDayRow(d, 'con', ['doctor']));
+        const conKeys = posKeys('con');
+        const filteredDays = (state.schedules.con || []).filter(d => filterDayRow(d, 'con', conKeys));
 
         let html = `
             <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
@@ -3766,7 +3772,7 @@
                         <i class="fas fa-stethoscope text-sky-600"></i>
                         <span>جدول خفارات الاستشارية الخافرة (Con)</span>
                     </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">طبيب مقيم أقدم واحد يومياً</p>
+                    <p class="text-xs text-slate-500 mt-0.5">${conKeys.length > 1 ? `${conKeys.length} خفارات يومياً: ${conKeys.map(k => L().label('con', k)).join(' · ')}` : 'طبيب مقيم أقدم واحد يومياً'}</p>
                 </div>
                 <div class="flex items-center gap-2">
                     ${renderScheduleUndoRedoButtons()}
@@ -3792,13 +3798,13 @@
             <!-- Filter Bar -->
             ${renderScheduleFilterBar('con', null)}
 
-            <div class="overflow-x-auto rounded-2xl border border-slate-300 dark:border-slate-700 shadow-sm max-w-3xl">
+            <div class="overflow-x-auto rounded-2xl border border-slate-300 dark:border-slate-700 shadow-sm ${conKeys.length > 1 ? '' : 'max-w-3xl'}">
                 <table class="w-full text-right border-collapse text-xs">
                     <thead>
                         <tr class="bg-slate-900 text-white dark:bg-black dark:text-white border-b-2 border-slate-800 text-xs font-black select-none">
                             <th class="py-3 px-3 w-14 text-center font-bold border-l border-slate-800">#</th>
                             <th class="py-3 px-3 w-36 font-bold border-l border-slate-800">اليوم والتاريخ</th>
-                            <th class="py-3 px-3 font-bold">طبيب الاستشارية الخافرة</th>
+                            ${conKeys.map(k => `<th class="py-3 px-3 font-bold border-l border-slate-800">طبيب الاستشارية الخافرة${conKeys.length > 1 ? `<span class="block text-[11px] text-slate-300">${L().label('con', k)}</span>` : ''}</th>`).join('')}
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
@@ -3816,7 +3822,7 @@
                         </div>
                         <div class="text-[11px] font-mono font-bold ${isWeekend ? 'text-[#3b7353] dark:text-[#72c798]' : 'text-slate-500 dark:text-slate-400'}">${formatArabicDateNumbers(day.date)}</div>
                     </td>
-                    ${renderShiftCellHTML('con', day.dayNumber, day.date, 'doctor', day.doctor)}
+                    ${conKeys.map(k => renderShiftCellHTML('con', day.dayNumber, day.date, k, day[k])).join('')}
                 </tr>
             `;
         });
@@ -3835,7 +3841,8 @@
     // =========================================================================
 
     function renderDCView(container) {
-        const filteredDays = (state.schedules.dc || []).filter(d => filterDayRow(d, 'dc', ['doctor']));
+        const dcKeys = posKeys('dc');
+        const filteredDays = (state.schedules.dc || []).filter(d => filterDayRow(d, 'dc', dcKeys));
 
         let html = `
             <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
@@ -3845,7 +3852,7 @@
                         <span>جدول خفارات شهادات الوفاة (DC)</span>
                     </h2>
                     <p class="text-xs text-slate-500 mt-0.5">
-                        طبيب مقيم أقدم واحد يومياً · <span class="text-emerald-600 dark:text-emerald-400 font-bold">خفارة المستشفى متوافقة وخضراء · الخفارات الأخرى بالـ ER والاستشارية تعتبر تعارضاً</span>
+                        ${dcKeys.length > 1 ? `${dcKeys.length} خفارات يومياً: ${dcKeys.map(k => L().label('dc', k)).join(' · ')}` : 'طبيب مقيم أقدم واحد يومياً'} · <span class="text-emerald-600 dark:text-emerald-400 font-bold">خفارة المستشفى متوافقة وخضراء · الخفارات الأخرى بالـ ER والاستشارية تعتبر تعارضاً</span>
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
@@ -3878,7 +3885,7 @@
                         <tr class="bg-slate-900 text-white dark:bg-black dark:text-white border-b-2 border-slate-800 text-xs font-black select-none">
                             <th class="py-3 px-3 w-14 text-center font-bold border-l border-slate-800">#</th>
                             <th class="py-3 px-3 w-36 font-bold border-l border-slate-800">اليوم والتاريخ</th>
-                            <th class="py-3 px-3 font-bold border-l border-slate-800">طبيب شهادات الوفاة</th>
+                            ${dcKeys.map(k => `<th class="py-3 px-3 font-bold border-l border-slate-800">طبيب شهادات الوفاة${dcKeys.length > 1 ? `<span class="block text-[11px] text-slate-300">${L().label('dc', k)}</span>` : ''}</th>`).join('')}
                             <th class="py-3 px-3 w-64 font-bold text-slate-300">حالة الخفارة في المستشفى</th>
                         </tr>
                     </thead>
@@ -3887,7 +3894,7 @@
 
         filteredDays.forEach(day => {
             const isWeekend = day.dayName === 'الجمعة' || day.dayName === 'السبت';
-            const hospDuties = day.doctor ? getHospitalDutiesForDoctor(day.doctor, day.date) : [];
+            const hospDuties = dcKeys.flatMap(k => day[k] ? getHospitalDutiesForDoctor(day[k], day.date) : []);
             const hasHospDuty = hospDuties.length > 0;
 
             html += `
@@ -3900,7 +3907,7 @@
                         </div>
                         <div class="text-[11px] font-mono font-bold ${isWeekend ? 'text-[#3b7353] dark:text-[#72c798]' : 'text-slate-500 dark:text-slate-400'}">${formatArabicDateNumbers(day.date)}</div>
                     </td>
-                    ${renderShiftCellHTML('dc', day.dayNumber, day.date, 'doctor', day.doctor)}
+                    ${dcKeys.map(k => renderShiftCellHTML('dc', day.dayNumber, day.date, k, day[k])).join('')}
                     <td class="py-2.5 px-3 text-slate-500 border-l border-slate-200 dark:border-slate-800">
                         ${hasHospDuty ? `
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
@@ -3929,14 +3936,8 @@
     // =========================================================================
 
     function renderRSERView(container) {
-        const shifts = [
-            { key: 'er_morning', label: 'الصباحية (8ص - 2م)', icon: 'fa-sun', color: 'text-amber-500' },
-            { key: 'er_afternoon', label: 'بعد الصباحية (2م - 8م)', icon: 'fa-cloud-sun', color: 'text-orange-500' },
-            { key: 'er_preNight', label: 'البرينايت (8م - 2ص)', icon: 'fa-moon', color: 'text-indigo-500' },
-            { key: 'er_lateNight', label: 'الليلية (2ص - 8ص)', icon: 'fa-star-and-crescent', color: 'text-purple-500' }
-        ];
-
-        const shiftKeys = shifts.map(s => s.key);
+        const shifts = erShiftOptions('rs_er');
+        const shiftKeys = posKeys('rs_er');
         const filteredDays = (state.schedules.rs || []).filter(d => filterDayRow(d, 'rs', shiftKeys));
 
         let html = `
@@ -3976,20 +3977,7 @@
 
             <div class="overflow-x-auto rounded-2xl border border-slate-300 dark:border-slate-700 shadow-sm">
                 <table class="w-full text-right border-collapse text-xs">
-                    <thead>
-                        <tr class="bg-slate-900 text-white dark:bg-black dark:text-white border-b-2 border-slate-800 text-xs font-black select-none">
-                            <th class="py-3 px-3 w-12 text-center font-bold border-l border-slate-800">#</th>
-                            <th class="py-3 px-3 w-32 font-bold border-l border-slate-800">اليوم والتاريخ</th>
-                            ${shifts.map(s => `
-                                <th onclick="quickFilterByShift('${s.key}')" class="py-3 px-3 font-bold cursor-pointer hover:bg-slate-800 transition select-none border-l border-slate-800 ${state.scheduleShiftFilter !== 'all' && state.scheduleShiftFilter !== s.key ? 'opacity-40' : ''}" title="انقر لتصفية الجدول بهذه الوجبة">
-                                    <div class="flex items-center gap-1.5 text-white">
-                                        <i class="fas ${s.icon} ${s.color}"></i>
-                                        <span>${s.label}</span>
-                                    </div>
-                                </th>
-                            `).join('')}
-                        </tr>
-                    </thead>
+                    <thead>${erTableHead('rs_er')}</thead>
                     <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
         `;
 
@@ -3999,7 +3987,7 @@
         filteredDays.forEach(day => {
             const isWeekend = day.dayName === 'الجمعة' || day.dayName === 'السبت';
             const inRsPeriod = day.dayNumber >= startDay && day.dayNumber <= endDay;
-            const hasNames = shifts.some(s => day[s.key] && day[s.key].trim());
+            const hasNames = filledIn(day, shiftKeys) > 0;
             const weekendClass = isWeekend ? 'bg-[#5ea37d]/15 dark:bg-[#5ea37d]/20 border-r-4 border-r-[#5ea37d]' : '';
             const rowClass = inRsPeriod 
                 ? (weekendClass || (hasNames ? 'bg-amber-50/50 dark:bg-amber-950/20 font-medium' : 'bg-slate-50/30 dark:bg-slate-800/20')) 
@@ -4018,7 +4006,7 @@
                         </div>
                         <div class="text-[11px] font-mono font-bold ${isWeekend ? 'text-[#3b7353] dark:text-[#72c798]' : 'text-slate-500 dark:text-slate-400'}">${formatArabicDateNumbers(day.date)}</div>
                     </td>
-                    ${shifts.map(s => renderShiftCellHTML('rs', day.dayNumber, day.date, s.key, day[s.key])).join('')}
+                    ${shiftKeys.map(k => renderShiftCellHTML('rs', day.dayNumber, day.date, k, day[k])).join('')}
                 </tr>
             `;
         });
@@ -4144,9 +4132,11 @@
     // =========================================================================
 
     function renderShiftCellHTML(tableType, dayNumber, dateStr, slotKey, assignedDoctor) {
+        // With a structure every cell carries its full name (phones show cards, not a table header).
+        const cellLabel = L().isClassic(L().monthLayout()) || !/^(er|rs|con|dc)$/.test(tableType) ? '' : ` data-label="${escapeHtml(getSlotHumanLabel(tableType, slotKey).replace(/^(طوارئ|إضراب طوارئ): /, ''))}"`;
         if (!assignedDoctor || !assignedDoctor.trim()) {
             return `
-                <td class="py-2 px-3 bg-rose-50/50 dark:bg-rose-950/20 border-l border-slate-200 dark:border-slate-800" data-slot="${slotKey}" data-doc="" data-conflict="false" data-outside-pref="false">
+                <td class="py-2 px-3 bg-rose-50/50 dark:bg-rose-950/20 border-l border-slate-200 dark:border-slate-800" data-slot="${slotKey}"${cellLabel} data-doc="" data-conflict="false" data-outside-pref="false">
                     <button type="button" onclick="openDoctorPicker('${tableType}', ${dayNumber}, '${slotKey}', '${slotKey}')" 
                         class="w-full text-right py-1.5 px-2.5 rounded-xl border border-dashed border-rose-300 dark:border-rose-700/80 bg-rose-50/80 dark:bg-rose-900/20 hover:border-rose-500 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-600 dark:text-rose-400 font-bold text-[11px] transition flex items-center justify-between group shadow-xs">
                         <span class="flex items-center gap-1.5">
@@ -4217,7 +4207,7 @@
             : '';
 
         return `
-            <td class="py-2 px-3 border-l border-slate-200 dark:border-slate-800" data-slot="${slotKey}" data-doc="${escapeForInline(assignedDoctor)}" data-conflict="${conflictInfo.hasConflict ? 'true' : 'false'}" data-outside-pref="${hasPrefOverride ? 'true' : 'false'}">
+            <td class="py-2 px-3 border-l border-slate-200 dark:border-slate-800" data-slot="${slotKey}"${cellLabel} data-doc="${escapeForInline(assignedDoctor)}" data-conflict="${conflictInfo.hasConflict ? 'true' : 'false'}" data-outside-pref="${hasPrefOverride ? 'true' : 'false'}">
                 <div class="sched-cell-card flex items-center justify-between group py-1 px-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 hover:border-slate-400 transition${slabClass}">
                     <div class="flex items-center truncate cursor-pointer flex-1" onclick="openDoctorPicker('${tableType}', ${dayNumber}, '${slotKey}', '${slotKey}')">
                         <span class="doc-name-span font-bold text-slate-800 dark:text-slate-100 truncate ${nameHighlightClass}">${assignedDoctor}</span>
@@ -4252,16 +4242,16 @@
         const daysCount = getDaysInMonth(state.year, state.month);
         const activeDocs = (state.residents || []).filter(r => r.active && !isResidentExpired(r, state.year, state.month));
 
-        // 1. ER (4 shifts per day)
-        const erRequired = daysCount * 4;
+        // 1. ER (every position of every shift)
+        const erRequired = daysCount * L().perDay('er');
         const erAllocated = activeDocs.reduce((sum, r) => sum + (Number(r.er_target) || 0), 0);
 
-        // 2. Consultation (1 shift per day)
-        const conRequired = daysCount * 1;
+        // 2. Consultation
+        const conRequired = daysCount * L().perDay('con');
         const conAllocated = activeDocs.reduce((sum, r) => sum + (Number(r.con_target) || 0), 0);
 
         // 3. Death Certificates (1 shift per day)
-        const dcRequired = daysCount * 1;
+        const dcRequired = daysCount * L().perDay('dc');
         const dcAllocated = activeDocs.reduce((sum, r) => sum + (Number(r.dc_target) || 0), 0);
 
         // 4. Rotators Strike (RS)
@@ -6116,7 +6106,7 @@
 
         // ER
         (state.schedules.er || []).forEach(day => {
-            ['morning', 'afternoon', 'preNight', 'lateNight'].forEach(k => {
+            posKeys('er').forEach(k => {
                 if (day[k]) {
                     const e = getEntry(day[k]);
                     e.erFilled++;
@@ -6127,20 +6117,24 @@
 
         // Con
         (state.schedules.con || []).forEach(day => {
-            if (day.doctor) {
-                const e = getEntry(day.doctor);
-                e.conFilled++;
-                e.normalScheduled++;
-            }
+            posKeys('con').forEach(k => {
+                if (day[k]) {
+                    const e = getEntry(day[k]);
+                    e.conFilled++;
+                    e.normalScheduled++;
+                }
+            });
         });
 
         // DC
         (state.schedules.dc || []).forEach(day => {
-            if (day.doctor) {
-                const e = getEntry(day.doctor);
-                e.dcFilled++;
-                e.normalScheduled++;
-            }
+            posKeys('dc').forEach(k => {
+                if (day[k]) {
+                    const e = getEntry(day[k]);
+                    e.dcFilled++;
+                    e.normalScheduled++;
+                }
+            });
         });
 
         // RS (Only counted if Rotators Strike is enabled and active in the selected window)
@@ -6150,7 +6144,7 @@
             (state.schedules.rs || []).forEach(day => {
                 const dayNum = parseInt(day.day, 10) || parseInt(day.dayNumber, 10) || 0;
                 if (!dayNum || (dayNum >= startDay && dayNum <= endDay)) {
-                    ['er_morning', 'er_afternoon', 'er_preNight', 'er_lateNight'].forEach(k => {
+                    posKeys('rs_er').forEach(k => {
                         if (day[k]) {
                             const e = getEntry(day[k]);
                             e.rsErFilled++;
@@ -6512,7 +6506,8 @@
             monthlySchedules: allMonthlySchedules,
             schedules: state.schedules || {},
             prefOverrides: state.prefOverrides || {},
-            hospitalSignatories: state.hospitalSignatories || {}
+            hospitalSignatories: state.hospitalSignatories || {},
+            erStructures: state.erStructures || {}
         };
 
         const jsonStr = JSON.stringify(backupData, null, 2);
@@ -6655,6 +6650,9 @@
                 }
                 if (parsed.hospitalSignatories && typeof parsed.hospitalSignatories === 'object') {
                     state.hospitalSignatories = Object.assign(state.hospitalSignatories || {}, parsed.hospitalSignatories);
+                }
+                if (parsed.erStructures && typeof parsed.erStructures === 'object') {
+                    state.erStructures = Object.assign(state.erStructures || {}, parsed.erStructures);
                 }
 
                 // 3. Restore specialty colors
@@ -7715,6 +7713,8 @@
     }
 
     function getSlotHumanLabel(type, key) {
+        if (type === 'er' || (type === 'rs' && String(key).startsWith('er_'))) return (type === 'er' ? 'طوارئ: ' : 'إضراب طوارئ: ') + L().label(type, key);
+        if (type === 'con' || type === 'dc') return [type === 'dc' ? 'شهادات الوفاة' : 'الاستشارية الخافرة', L().label(type, key)].filter(Boolean).join(' ');
         const map = {
             morning: 'طوارئ: الصباحية (8ص - 2م)',
             afternoon: 'طوارئ: بعد الصباحية (2م - 8م)',
@@ -8989,12 +8989,10 @@
         
         // Check if there are any existing filled entries
         let hasEntries = false;
-        if (type === 'er') {
-            hasEntries = schedule.some(d => d.morning || d.afternoon || d.preNight || d.lateNight);
-        } else if (type === 'con' || type === 'dc') {
-            hasEntries = schedule.some(d => d.doctor && d.doctor.trim());
+        if (type === 'er' || type === 'con' || type === 'dc') {
+            hasEntries = schedule.some(d => filledIn(d, posKeys(type)) > 0);
         } else if (type === 'rs_er') {
-            hasEntries = schedule.some(d => d.er_morning || d.er_afternoon || d.er_preNight || d.er_lateNight);
+            hasEntries = (state.schedules.rs || []).some(d => filledIn(d, posKeys('rs_er')) > 0);
         } else if (type === 'rs_wards') {
             hasEntries = schedule.some(d => d.ward_private || d.ward_floor4 || d.ward_floor5);
         }
@@ -9087,6 +9085,7 @@
             restoreAutoSheet(sheet, original);
             runOnce();
             fillEmptyAutoCells(sheet, mode, original, activeDocs, daysCount);
+            arrangeBranches(sheet, mode, original, activeDocs);
             const score = scoreAutoSheet(sheet, activeDocs, daysCount);
             if (!best || compareAutoScores(score, best.score) < 0) best = { score, snap: snapshotAutoSheet(sheet) };
         };
@@ -9129,13 +9128,65 @@
 
     /** The cells one button fills: the sheet's slots on its days (the strike sheets only in the strike period). */
     function autoSheetOf(type, daysCount) {
-        const ER_SLOTS = ['morning', 'afternoon', 'preNight', 'lateNight'];
-        if (type === 'er') return { type, key: 'er', conflictType: 'er', target: 'er_target', slots: ER_SLOTS, from: 1, to: daysCount };
-        if (type === 'con' || type === 'dc') return { type, key: type, conflictType: type, target: type + '_target', slots: ['doctor'], from: 1, to: daysCount };
+        if (type === 'er') return { type, key: 'er', conflictType: 'er', target: 'er_target', slots: posKeys('er'), from: 1, to: daysCount };
+        if (type === 'con' || type === 'dc') return { type, key: type, conflictType: type, target: type + '_target', slots: posKeys(type), from: 1, to: daysCount };
         const from = parseInt(String(state.rsStartDate || '').split('-')[2], 10) || 1;
         const to = parseInt(String(state.rsEndDate || '').split('-')[2], 10) || daysCount;
-        const slots = type === 'rs_er' ? ['er_morning', 'er_afternoon', 'er_preNight', 'er_lateNight'] : ['ward_private', 'ward_floor4', 'ward_floor5'];
-        return { type, key: 'rs', conflictType: 'rs', target: 'rs_target', slots, from, to };
+        return { type, key: 'rs', conflictType: 'rs', target: 'rs_target', slots: posKeys(type), from, to };
+    }
+
+    /**
+     * How well a resident suits a position: a division meant for the surgical (Green) or medical
+     * (Yellow) branches prefers residents of that branch. 2 = their branch, 1 = no preference
+     * either way, 0 = the other branch.
+     */
+    function branchFit(r, type, key) {
+        const p = L().position(type, key);
+        if (!p || !p.branch) return 1;
+        const b = L().residentBranch(r);
+        return !b ? 1 : b === p.branch ? 2 : 0;
+    }
+
+    /**
+     * ER sheets with divisions: the residents a run put in one shift of one day swap positions so
+     * that as many as possible sit in a division of their own branch. Swapping within a shift never
+     * breaks a rule (same day, same hours); cells filled before "fill the empty cells only" stay.
+     */
+    function arrangeBranches(sheet, mode, original, activeDocs) {
+        if (sheet.type !== 'er' && sheet.type !== 'rs_er') return;
+        if (!L().positions(sheet.type).some(p => p.branch)) return;
+        const byName = new Map(activeDocs.map(r => [normalizeArabic(r.name), r]));
+        const before = new Map((original.days || []).map(d => [d.dayNumber, d]));
+        const permutations = list => list.length <= 1 ? [list] : list.flatMap((x, i) => permutations(list.slice(0, i).concat(list.slice(i + 1))).map(rest => [x].concat(rest)));
+        (state.schedules[sheet.key] || []).forEach(day => {
+            if (day.dayNumber < sheet.from || day.dayNumber > sheet.to) return;
+            L().SHIFTS.forEach(shift => {
+                const keys = L().positionsOfShift(sheet.type, shift).map(p => p.key).filter(k => {
+                    const old = before.get(day.dayNumber);
+                    return mode === 'fresh' || !(old && old[k] && String(old[k]).trim());
+                });
+                if (keys.length < 2 || keys.length > 6) return;
+                const names = keys.map(k => day[k] || '');
+                const fit = order => order.reduce((sum, name, i) => { const r = name && byName.get(normalizeArabic(name)); return sum + (r ? branchFit(r, sheet.type, keys[i]) : 1); }, 0);
+                let best = names, bestFit = fit(names);
+                for (const order of permutations(names)) { const f = fit(order); if (f > bestFit) { best = order; bestFit = f; } }
+                if (best === names) return;
+                keys.forEach((k, i) => { day[k] = best[i]; });
+                if (sheet.type === 'er' && state.prefOverrides) keys.forEach(k => {
+                    // Overrides mark shifts, which do not change here: move the marks with the names.
+                    const id = `er_${day.dayNumber}_${k}`;
+                    delete state.prefOverrides[id];
+                });
+                if (sheet.type === 'er') keys.forEach(k => {
+                    const r = day[k] && byName.get(normalizeArabic(day[k]));
+                    const pref = r && preferredErShifts(r);
+                    if (r && Array.isArray(r.prefShifts) && r.prefShifts.length > 0 && !(pref || []).includes(shift)) {
+                        if (!state.prefOverrides) state.prefOverrides = {};
+                        state.prefOverrides[`er_${day.dayNumber}_${k}`] = true;
+                    }
+                });
+            });
+        });
     }
 
     function snapshotAutoSheet(sheet) {
@@ -9186,7 +9237,7 @@
             if ((sheet.key === 'er' || sheet.key === 'rs') && isFemaleResident(r) && isNightShift(s)) return false;
             if (sheet.key === 'er' && !tier.anyShift) {
                 const pref = preferredErShifts(r);
-                if (pref && !pref.includes(s)) return false;
+                if (pref && !pref.includes(L().shiftOf(s))) return false;
             }
             const dateStr = formatDateStr(state.year, state.month, d);
             if (isDateExcludedForResident(r, d, dateStr)) return false;
@@ -9204,7 +9255,7 @@
                 const id = `er_${d}_${s}`;
                 if (state.prefOverrides) delete state.prefOverrides[id];
                 const pref = r && preferredErShifts(r);
-                if (r && Array.isArray(r.prefShifts) && r.prefShifts.length > 0 && !(pref || []).includes(s)) {
+                if (r && Array.isArray(r.prefShifts) && r.prefShifts.length > 0 && !(pref || []).includes(L().shiftOf(s))) {
                     if (!state.prefOverrides) state.prefOverrides = {};
                     state.prefOverrides[id] = true;
                 }
@@ -9214,7 +9265,8 @@
         function rank(list, d, s) {
             const dayName = (byDay.get(d) || {}).dayName;
             const likes = r => (Array.isArray(r.prefDays) && r.prefDays.includes(dayName) ? 1 : 0)
-                + (sheet.key === 'er' && (preferredErShifts(r) || []).includes(s) ? 1 : 0)
+                + (sheet.key === 'er' && (preferredErShifts(r) || []).includes(L().shiftOf(s)) ? 1 : 0)
+                + (sheet.type === 'er' || sheet.type === 'rs_er' ? (branchFit(r, sheet.type, s) - 1) : 0)
                 + (r.prefDaysMode === 'prefer' && Array.isArray(r.specificDays) && r.specificDays.map(Number).includes(d) ? 2 : 0);
             return list.map(r => ({ r, k: [-remaining(r), -likes(r), Math.random()] }))
                 .sort((a, b) => a.k[0] - b.k[0] || a.k[1] - b.k[1] || a.k[2] - b.k[2]).map(x => x.r);
@@ -9268,7 +9320,7 @@
         // someone on one of those shifts, when the other resident loses nothing by it (a shift they asked
         // for or have no wish about, no preferred day lost, no new back-to-back days) and every rule holds.
         if (sheet.key !== 'er') return;
-        const outside = (r, s) => { const p = preferredErShifts(r); return !!p && !p.includes(s); };
+        const outside = (r, s) => { const p = preferredErShifts(r); return !!p && !p.includes(L().shiftOf(s)); };
         for (let pass = 0; pass < 3; pass++) {
             let improved = false;
             for (const a of cells) {
@@ -9302,7 +9354,7 @@
     function scoreAutoSheet(sheet, activeDocs, daysCount) {
         const days = state.schedules[sheet.key] || [];
         const byName = new Map(activeDocs.map(r => [normalizeArabic(r.name), r]));
-        let empty = 0, consecutive = 0, liked = 0;
+        let empty = 0, consecutive = 0, liked = 0, misfit = 0;
         days.forEach(day => {
             if (day.dayNumber < sheet.from || day.dayNumber > sheet.to) return;
             sheet.slots.forEach(s => {
@@ -9312,15 +9364,16 @@
                 if (!r) return;
                 if (r.noConsecutiveDays !== false && hasDoctorDutyOnAdjacentDay(r.name, day.dayNumber, daysCount)) consecutive++;
                 if (Array.isArray(r.prefDays) && r.prefDays.includes(day.dayName)) liked++;
-                if (sheet.key === 'er' && (preferredErShifts(r) || []).includes(s)) liked++;
+                if (sheet.key === 'er' && (preferredErShifts(r) || []).includes(L().shiftOf(s))) liked++;
+                if ((sheet.type === 'er' || sheet.type === 'rs_er') && branchFit(r, sheet.type, s) === 0) misfit++;
                 if (r.prefDaysMode === 'prefer' && Array.isArray(r.specificDays) && r.specificDays.map(Number).includes(day.dayNumber)) liked++;
             });
         });
         const overrides = sheet.key === 'er' ? Object.keys(state.prefOverrides || {}).filter(k => k.startsWith('er_')).length : 0;
-        return { empty, overrides, consecutive, liked, rounds: 0 };
+        return { empty, overrides, consecutive, misfit, liked, rounds: 0 };
     }
     function compareAutoScores(a, b) {
-        return (a.empty - b.empty) || (a.overrides - b.overrides) || (a.consecutive - b.consecutive) || (b.liked - a.liked);
+        return (a.empty - b.empty) || (a.overrides - b.overrides) || (a.consecutive - b.consecutive) || (a.misfit - b.misfit) || (b.liked - a.liked);
     }
 
     /** The result, and why cells stayed empty when some did. */
@@ -9356,21 +9409,13 @@
             if (d < 1 || d > daysCount) return false;
             // 1. ER Schedule
             const erDay = (state.schedules.er || []).find(s => s.dayNumber === d);
-            if (erDay) {
-                if ((erDay.morning && normalizeArabic(erDay.morning) === clean) ||
-                    (erDay.afternoon && normalizeArabic(erDay.afternoon) === clean) ||
-                    (erDay.preNight && normalizeArabic(erDay.preNight) === clean) ||
-                    (erDay.lateNight && normalizeArabic(erDay.lateNight) === clean)) {
-                    return true;
-                }
-            }
+            const has = (day, keys) => !!day && keys.some(k => day[k] && normalizeArabic(day[k]) === clean);
+            if (has(erDay, posKeys('er'))) return true;
             // 2. Con Schedule
-            const conDay = (state.schedules.con || []).find(s => s.dayNumber === d);
-            if (conDay && conDay.doctor && normalizeArabic(conDay.doctor) === clean) return true;
+            if (has((state.schedules.con || []).find(s => s.dayNumber === d), posKeys('con'))) return true;
 
             // 3. DC Schedule
-            const dcDay = (state.schedules.dc || []).find(s => s.dayNumber === d);
-            if (dcDay && dcDay.doctor && normalizeArabic(dcDay.doctor) === clean) return true;
+            if (has((state.schedules.dc || []).find(s => s.dayNumber === d), posKeys('dc'))) return true;
 
             // 4. RS Schedule
             const rsDay = (state.schedules.rs || []).find(s => s.dayNumber === d);
@@ -9401,9 +9446,21 @@
 
         if (mode === 'fresh') {
             schedule.forEach(d => {
-                shifts.forEach(s => d[s] = '');
+                posKeys('er').forEach(k => d[k] = '');
             });
             state.prefOverrides = {};
+        }
+
+        // The phases choose a shift; the resident then takes a free position of it, a division of their
+        // own branch first (several residents per shift with a structure; the shift itself classically).
+        function freeSlot(dayEntry, shift, r) {
+            let best = null, bestFit = -1;
+            for (const p of L().positionsOfShift('er', shift)) {
+                if (dayEntry[p.key] && String(dayEntry[p.key]).trim()) continue;
+                const f = r ? branchFit(r, 'er', p.key) : 1;
+                if (f > bestFit) { best = p.key; bestFit = f; }
+            }
+            return best;
         }
 
         // Track assignments strictly by normalized doctor name
@@ -9427,9 +9484,10 @@
 
         // Initialize with existing entries if fill_empty
         schedule.forEach(day => {
-            shifts.forEach(s => {
-                if (day[s] && day[s].trim()) {
-                    const clean = normalizeArabic(day[s].trim());
+            posKeys('er').forEach(k => {
+                const s = L().shiftOf(k);
+                if (day[k] && day[k].trim()) {
+                    const clean = normalizeArabic(day[k].trim());
                     assignedCount[clean] = (assignedCount[clean] || 0) + 1;
                     if (!assignedShifts[clean]) assignedShifts[clean] = new Set();
                     assignedShifts[clean].add(s);
@@ -9499,7 +9557,8 @@
         }
 
         function assignSlot(dayEntry, shiftKey, r, dayNumber) {
-            dayEntry[shiftKey] = r.name;
+            const posKey = freeSlot(dayEntry, shiftKey, r) || shiftKey;
+            dayEntry[posKey] = r.name;
             const clean = normalizeArabic(r.name);
             assignedCount[clean] = (assignedCount[clean] || 0) + 1;
             if (!assignedShifts[clean]) assignedShifts[clean] = new Set();
@@ -9515,7 +9574,7 @@
             if (assignedDays[dayNumber]) assignedDays[dayNumber].add(clean);
 
             // Preference Override Check (track if doctor preferred a shift but was given a different one)
-            const cellSlotId = `er_${dayNumber}_${shiftKey}`;
+            const cellSlotId = `er_${dayNumber}_${posKey}`;
             if (r.prefShifts && r.prefShifts.length > 0) {
                 if (!r.prefShifts.includes(shiftKey)) {
                     if (!state.prefOverrides) state.prefOverrides = {};
@@ -9564,7 +9623,7 @@
                     if (!dayEntry) continue;
 
                     for (const s of candidateShifts) {
-                        if (!dayEntry[s] && isDoctorAvailable(r, d, s, false)) {
+                        if (freeSlot(dayEntry, s, r) && isDoctorAvailable(r, d, s, false)) {
                             assignSlot(dayEntry, s, r, d);
                             assignedOne = true;
                             p1Progress = true;
@@ -9610,7 +9669,7 @@
                     if (Array.isArray(r.prefDays) && r.prefDays.length > 0 && !r.prefDays.includes(dayEntry.dayName)) continue;
 
                     for (const s of candidateShifts) {
-                        if (!dayEntry[s] && isDoctorAvailable(r, d, s, false)) {
+                        if (freeSlot(dayEntry, s, r) && isDoctorAvailable(r, d, s, false)) {
                             assignSlot(dayEntry, s, r, d);
                             assignedOne = true;
                             p2Progress = true;
@@ -9627,7 +9686,7 @@
                         if (!dayEntry) continue;
 
                         for (const s of candidateShifts) {
-                            if (!dayEntry[s] && isDoctorAvailable(r, d, s, false)) {
+                            if (freeSlot(dayEntry, s, r) && isDoctorAvailable(r, d, s, false)) {
                                 assignSlot(dayEntry, s, r, d);
                                 assignedOne = true;
                                 p2Progress = true;
@@ -9645,7 +9704,7 @@
                         if (!dayEntry) continue;
 
                         for (const s of candidateShifts) {
-                            if (!dayEntry[s] && isDoctorAvailable(r, d, s, true)) {
+                            if (freeSlot(dayEntry, s, r) && isDoctorAvailable(r, d, s, true)) {
                                 assignSlot(dayEntry, s, r, d);
                                 assignedOne = true;
                                 p2Progress = true;
@@ -9688,7 +9747,7 @@
                 for (const s of allowedPrefShifts) {
                     for (const d of daysOrder) {
                         const dayEntry = schedule.find(entry => entry.dayNumber === d);
-                        if (dayEntry && !dayEntry[s] && r.prefDays.includes(dayEntry.dayName) && isDoctorAvailable(r, d, s, false)) {
+                        if (dayEntry && freeSlot(dayEntry, s, r) && r.prefDays.includes(dayEntry.dayName) && isDoctorAvailable(r, d, s, false)) {
                             assignSlot(dayEntry, s, r, d);
                             assignedOne = true;
                             p3Progress = true;
@@ -9729,7 +9788,7 @@
                 for (const s of allowedPrefShifts) {
                     for (const d of daysOrder) {
                         const dayEntry = schedule.find(entry => entry.dayNumber === d);
-                        if (dayEntry && !dayEntry[s] && isDoctorAvailable(r, d, s, false)) {
+                        if (dayEntry && freeSlot(dayEntry, s, r) && isDoctorAvailable(r, d, s, false)) {
                             assignSlot(dayEntry, s, r, d);
                             assignedOne = true;
                             p4aProgress = true;
@@ -9774,7 +9833,7 @@
                     const dayEntry = schedule.find(entry => entry.dayNumber === d);
                     if (dayEntry && r.prefDays.includes(dayEntry.dayName)) {
                         for (const s of shiftCandidates) {
-                            if (!dayEntry[s] && isDoctorAvailable(r, d, s, false)) {
+                            if (freeSlot(dayEntry, s, r) && isDoctorAvailable(r, d, s, false)) {
                                 assignSlot(dayEntry, s, r, d);
                                 assignedOne = true;
                                 p4bProgress = true;
@@ -9832,7 +9891,7 @@
                 for (const s of candidateShifts) {
                     for (const d of daysOrder) {
                         const dayEntry = schedule.find(entry => entry.dayNumber === d);
-                        if (dayEntry && !dayEntry[s] && isDoctorAvailable(r, d, s, false)) {
+                        if (dayEntry && freeSlot(dayEntry, s, r) && isDoctorAvailable(r, d, s, false)) {
                             assignSlot(dayEntry, s, r, d);
                             assignedOne = true;
                             p5Progress = true;
@@ -9875,7 +9934,7 @@
                 for (const s of candidateShifts) {
                     for (const d of daysOrder) {
                         const dayEntry = schedule.find(entry => entry.dayNumber === d);
-                        if (dayEntry && !dayEntry[s] && isDoctorAvailable(r, d, s, true)) {
+                        if (dayEntry && freeSlot(dayEntry, s, r) && isDoctorAvailable(r, d, s, true)) {
                             assignSlot(dayEntry, s, r, d);
                             assignedOne = true;
                             p6Progress = true;
@@ -9892,10 +9951,17 @@
     /**
      * CON AUTOMATIC DISTRIBUTION
      */
+    /** Consultation clinic: every daily duty (one, or several with their own hours) in turn. */
     function runAutoDistributionCon(mode, daysCount, activeDocs) {
+        const slots = posKeys('con');
+        if (mode === 'fresh') (state.schedules.con || []).forEach(d => slots.forEach(k => { d[k] = ''; }));
+        slots.forEach(slot => runAutoDistributionConSlot(mode, daysCount, activeDocs, slot));
+    }
+
+    function runAutoDistributionConSlot(mode, daysCount, activeDocs, slot) {
         const schedule = state.schedules.con;
         if (mode === 'fresh') {
-            schedule.forEach(d => d.doctor = '');
+            schedule.forEach(d => d[slot] = '');
         }
 
         const conCandidates = activeDocs.filter(r => (Number(r.con_target) || 0) > 0);
@@ -9911,7 +9977,7 @@
             const dateStr = formatDateStr(state.year, state.month, dayNumber);
             if (isDateExcludedForResident(r, dayNumber, dateStr)) return false;
 
-            const evalRes = evaluateCellConflict(r.name, dateStr, 'con', 'doctor');
+            const evalRes = evaluateCellConflict(r.name, dateStr, 'con', slot);
             if (evalRes.hasConflict) return false;
 
             if (!allowConsecutive && r.noConsecutiveDays !== false) {
@@ -9923,8 +9989,8 @@
 
         const assignedDayNameCounts = {};
         schedule.forEach(day => {
-            if (day.doctor && day.doctor.trim()) {
-                const clean = normalizeArabic(day.doctor.trim());
+            if (day[slot] && day[slot].trim()) {
+                const clean = normalizeArabic(day[slot].trim());
                 assignedDayNameCounts[clean] = assignedDayNameCounts[clean] || {};
                 assignedDayNameCounts[clean][day.dayName] = (assignedDayNameCounts[clean][day.dayName] || 0) + 1;
             }
@@ -9947,7 +10013,7 @@
         }
 
         function assignCon(dayEntry, r) {
-            dayEntry.doctor = r.name;
+            dayEntry[slot] = r.name;
             const clean = normalizeArabic(r.name);
             assigned[clean] = (assigned[clean] || 0) + 1;
             assignedDayNameCounts[clean] = assignedDayNameCounts[clean] || {};
@@ -9964,7 +10030,7 @@
             for (const d of shuffleArray(r.specificDays.map(Number).filter(d => d >= 1 && d <= daysCount))) {
                 if ((assigned[clean] || 0) >= (Number(r.con_target) || 0)) break;
                 const dayEntry = schedule.find(s => s.dayNumber === d);
-                if (dayEntry && !dayEntry.doctor && isConAvailable(r, d, false)) {
+                if (dayEntry && !dayEntry[slot] && isConAvailable(r, d, false)) {
                     assignCon(dayEntry, r);
                 }
             }
@@ -9973,7 +10039,7 @@
         // Pass 1: Preferences (Doctors who prefer this day)
         for (const d of shuffledDaysCon) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (dayEntry && !dayEntry.doctor) {
+            if (dayEntry && !dayEntry[slot]) {
                 // Tier 1: Day variety satisfied (doctor hasn't had more of this day than of their other preferred days)
                 let prefMatches = conCandidates.filter(r => {
                     if (!isConAvailable(r, d, false)) return false;
@@ -10011,7 +10077,7 @@
         // Pass 2: General Fill for remaining slots
         for (const d of shuffledDaysCon) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (dayEntry && !dayEntry.doctor) {
+            if (dayEntry && !dayEntry[slot]) {
                 let available = conCandidates.filter(r => isConAvailable(r, d, false));
                 if (available.length === 0) {
                     available = conCandidates.filter(r => isConAvailable(r, d, true));
@@ -10034,10 +10100,17 @@
     /**
      * DC AUTOMATIC DISTRIBUTION (Prioritizes Hospital On-Call specialty doctors!)
      */
+    /** Death certificates: every daily duty (one, or several with their own hours) in turn. */
     function runAutoDistributionDC(mode, daysCount, activeDocs) {
+        const slots = posKeys('dc');
+        if (mode === 'fresh') (state.schedules.dc || []).forEach(d => slots.forEach(k => { d[k] = ''; }));
+        slots.forEach(slot => runAutoDistributionDCSlot(mode, daysCount, activeDocs, slot));
+    }
+
+    function runAutoDistributionDCSlot(mode, daysCount, activeDocs, slot) {
         const schedule = state.schedules.dc;
         if (mode === 'fresh') {
-            schedule.forEach(d => d.doctor = '');
+            schedule.forEach(d => d[slot] = '');
         }
 
         const dcCandidates = activeDocs.filter(r => (Number(r.dc_target) || 0) > 0);
@@ -10053,7 +10126,7 @@
             const dateStr = formatDateStr(state.year, state.month, dayNumber);
             if (isDateExcludedForResident(r, dayNumber, dateStr)) return false;
 
-            const evalRes = evaluateCellConflict(r.name, dateStr, 'dc', 'doctor');
+            const evalRes = evaluateCellConflict(r.name, dateStr, 'dc', slot);
             if (evalRes.hasConflict) return false;
 
             if (!allowConsecutive && r.noConsecutiveDays !== false) {
@@ -10065,8 +10138,8 @@
 
         const assignedDayNameCounts = {};
         schedule.forEach(day => {
-            if (day.doctor && day.doctor.trim()) {
-                const clean = normalizeArabic(day.doctor.trim());
+            if (day[slot] && day[slot].trim()) {
+                const clean = normalizeArabic(day[slot].trim());
                 assignedDayNameCounts[clean] = assignedDayNameCounts[clean] || {};
                 assignedDayNameCounts[clean][day.dayName] = (assignedDayNameCounts[clean][day.dayName] || 0) + 1;
             }
@@ -10089,7 +10162,7 @@
         }
 
         function assignDC(dayEntry, r) {
-            dayEntry.doctor = r.name;
+            dayEntry[slot] = r.name;
             const clean = normalizeArabic(r.name);
             assigned[clean] = (assigned[clean] || 0) + 1;
             assignedDayNameCounts[clean] = assignedDayNameCounts[clean] || {};
@@ -10106,7 +10179,7 @@
             for (const d of shuffleArray(r.specificDays.map(Number).filter(d => d >= 1 && d <= daysCount))) {
                 if ((assigned[clean] || 0) >= (Number(r.dc_target) || 0)) break;
                 const dayEntry = schedule.find(s => s.dayNumber === d);
-                if (dayEntry && !dayEntry.doctor && isDCAvailable(r, d, false)) {
+                if (dayEntry && !dayEntry[slot] && isDCAvailable(r, d, false)) {
                     assignDC(dayEntry, r);
                 }
             }
@@ -10115,7 +10188,7 @@
         // Pass 1: Preferences (Doctors who prefer this day)
         for (const d of shuffledDaysDC) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (dayEntry && !dayEntry.doctor) {
+            if (dayEntry && !dayEntry[slot]) {
                 // Tier 1: Day variety satisfied
                 let prefMatches = dcCandidates.filter(r => {
                     if (!isDCAvailable(r, d, false)) return false;
@@ -10151,7 +10224,7 @@
         // Pass 2: Doctors on-call in hospital on this date
         for (const d of shuffledDaysDC) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (dayEntry && !dayEntry.doctor) {
+            if (dayEntry && !dayEntry[slot]) {
                 const dateStr = formatDateStr(state.year, state.month, d);
                 const hospOnCall = getAllHospitalOnCallDoctors(dateStr);
                 const hospCleanSet = new Set(hospOnCall.map(h => h.cleanName));
@@ -10184,7 +10257,7 @@
         // Pass 3: General Fallback for remaining slots
         for (const d of shuffledDaysDC) {
             const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (dayEntry && !dayEntry.doctor) {
+            if (dayEntry && !dayEntry[slot]) {
                 let available = dcCandidates.filter(r => isDCAvailable(r, d, false));
                 if (available.length === 0) {
                     available = dcCandidates.filter(r => isDCAvailable(r, d, true));
@@ -10209,13 +10282,8 @@
      */
     function runAutoDistributionRSER(mode, daysCount, activeDocs) {
         const schedule = state.schedules.rs;
-        const shifts = ['er_morning', 'er_afternoon', 'er_preNight', 'er_lateNight'];
-        const shiftMap = {
-            'er_morning': 'morning',
-            'er_afternoon': 'afternoon',
-            'er_preNight': 'preNight',
-            'er_lateNight': 'lateNight'
-        };
+        const shifts = posKeys('rs_er');
+        const shiftMap = Object.fromEntries(shifts.map(k => [k, L().shiftOf(k)]));
         const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
         const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || daysCount;
 
@@ -10497,27 +10565,23 @@
         let totalSlots = 0;
 
         if (sheetKey === 'er') {
-            const slots = ['morning', 'afternoon', 'preNight', 'lateNight'];
+            const slots = posKeys('er');
             (state.schedules.er || []).forEach(day => {
                 slots.forEach(s => {
                     totalSlots++;
                     if (!day[s] || !day[s].trim()) emptyCount++;
                 });
             });
-        } else if (sheetKey === 'con') {
-            (state.schedules.con || []).forEach(day => {
-                totalSlots++;
-                if (!day.doctor || !day.doctor.trim()) emptyCount++;
-            });
-        } else if (sheetKey === 'dc') {
-            (state.schedules.dc || []).forEach(day => {
-                totalSlots++;
-                if (!day.doctor || !day.doctor.trim()) emptyCount++;
+        } else if (sheetKey === 'con' || sheetKey === 'dc') {
+            const slots = posKeys(sheetKey);
+            (state.schedules[sheetKey] || []).forEach(day => {
+                totalSlots += slots.length;
+                emptyCount += slots.length - filledIn(day, slots);
             });
         } else if (sheetKey === 'rs_er') {
             const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
             const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || getDaysInMonth(state.year, state.month);
-            const slots = ['er_morning', 'er_afternoon', 'er_preNight', 'er_lateNight'];
+            const slots = posKeys('rs_er');
             (state.schedules.rs || []).forEach(day => {
                 if (day.dayNumber >= startDay && day.dayNumber <= endDay) {
                     slots.forEach(s => {
@@ -11157,24 +11221,24 @@
 
         // 1. ER Sheet
         const erData = [
-            ['اليوم', 'التاريخ', 'الصباحية', 'بعد الصباحية', 'البرينايت', 'الليلية'],
-            ...(state.schedules.er || []).map(d => [d.dayName, d.date, d.morning, d.afternoon, d.preNight, d.lateNight])
+            ['اليوم', 'التاريخ', ...posKeys('er').map(k => L().label('er', k))],
+            ...(state.schedules.er || []).map(d => [d.dayName, d.date, ...posKeys('er').map(k => d[k] || '')])
         ];
         const wsEr = XLSX.utils.aoa_to_sheet(erData);
         XLSX.utils.book_append_sheet(wb, wsEr, 'ER');
 
         // 2. Con Sheet
         const conData = [
-            ['اليوم', 'التاريخ', 'طبيب الاستشارية'],
-            ...(state.schedules.con || []).map(d => [d.dayName, d.date, d.doctor])
+            ['اليوم', 'التاريخ', ...posKeys('con').map(k => ['طبيب الاستشارية', L().label('con', k)].filter(Boolean).join(' '))],
+            ...(state.schedules.con || []).map(d => [d.dayName, d.date, ...posKeys('con').map(k => d[k] || '')])
         ];
         const wsCon = XLSX.utils.aoa_to_sheet(conData);
         XLSX.utils.book_append_sheet(wb, wsCon, 'Con');
 
         // 3. DC Sheet
         const dcData = [
-            ['اليوم', 'التاريخ', 'طبيب شهادات الوفاة'],
-            ...(state.schedules.dc || []).map(d => [d.dayName, d.date, d.doctor])
+            ['اليوم', 'التاريخ', ...posKeys('dc').map(k => ['طبيب شهادات الوفاة', L().label('dc', k)].filter(Boolean).join(' '))],
+            ...(state.schedules.dc || []).map(d => [d.dayName, d.date, ...posKeys('dc').map(k => d[k] || '')])
         ];
         const wsDc = XLSX.utils.aoa_to_sheet(dcData);
         XLSX.utils.book_append_sheet(wb, wsDc, 'DC');
@@ -11182,8 +11246,8 @@
         // 4. RS Sheet
         if (state.rsEnabled) {
             const rsData = [
-                ['اليوم', 'التاريخ', 'طوارئ: صباحية', 'طوارئ: بعد الصباحية', 'طوارئ: برينايت', 'طوارئ: ليلية', 'الجناح الخاص', 'طابق 4', 'طابق 5'],
-                ...(state.schedules.rs || []).map(d => [d.dayName, d.date, d.er_morning, d.er_afternoon, d.er_preNight, d.er_lateNight, d.ward_private, d.ward_floor4, d.ward_floor5])
+                ['اليوم', 'التاريخ', ...posKeys('rs_er').map(k => 'طوارئ: ' + L().label('rs_er', k)), 'الجناح الخاص', 'طابق 4', 'طابق 5'],
+                ...(state.schedules.rs || []).map(d => [d.dayName, d.date, ...posKeys('rs_er').map(k => d[k] || ''), d.ward_private, d.ward_floor4, d.ward_floor5])
             ];
             const wsRs = XLSX.utils.aoa_to_sheet(rsData);
             XLSX.utils.book_append_sheet(wb, wsRs, 'RS');
@@ -11353,7 +11417,7 @@
     window.EmergencyCore = {
         state: () => state,
         ready: () => appReady,
-        saveState, pushDBHistory, refreshDBView, renderActiveTab, showNotification,
+        saveState, pushDBHistory, refreshDBView, renderActiveTab, showNotification, pushScheduleHistory, ensureScheduleIntegrity,
         updateDBUndoRedoUI: () => { try { updateDBUndoRedoUI(); } catch (e) {} },
     };
     window.closeAutoGenerateModal = closeAutoGenerateModal;

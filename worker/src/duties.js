@@ -30,7 +30,10 @@ const WEEKDAYS = ['السبت', 'الأحد', 'الإثنين', 'الثلاثا�
 const MAX_PORTAL_DAYS = 45;
 const NOT_RESIDENT = ['rotator', 'aa_user', 'aa_admin'];
 
-// ER month record layout (see emergency.js): which fields of each day row hold a doctor's name.
+// ER month record layout (see emergency.js / emergency-layout.js): which fields of each day row hold
+// a doctor's name. A month built with a hospital structure lists its positions in `layout`
+// ('morning', 'morning.1'… with their sector and division; 'doctor', 'doctor.1'… with their hours);
+// a month without one has the classic fields below.
 // Death certificates are not read from the ER scheduler: they are exchanged on the hospital's
 // roster, so the roster (its "الوفيات" column) is the one source for them.
 const ER_SLOTS = {
@@ -38,6 +41,21 @@ const ER_SLOTS = {
   con: ['doctor'],
   rs: ['er_morning', 'er_afternoon', 'er_preNight', 'er_lateNight', 'ward_private', 'ward_floor4', 'ward_floor5'],
 };
+const WARDS = ['ward_private', 'ward_floor4', 'ward_floor5'];
+const HHMM = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+/** The positions of an ER month: { er|con|rs: [{ key, place?, start?, end? }] }. */
+export function monthPositions(month) {
+  const l = month && month.layout;
+  if (!l || !Array.isArray(l.er) || !l.er.length) {
+    return Object.fromEntries(Object.entries(ER_SLOTS).map(([t, keys]) => [t, keys.map(key => ({ key }))]));
+  }
+  const place = p => [p.sector, p.division, p.of > 1 ? String(p.n) : ''].filter(x => x).map(x => String(x).slice(0, 40)).join(' · ');
+  const er = l.er.filter(p => p && typeof p.key === 'string').map(p => ({ key: p.key, place: place(p) }));
+  const con = (Array.isArray(l.con) && l.con.length ? l.con : [{ key: 'doctor' }]).filter(p => p && typeof p.key === 'string')
+    .map(p => (HHMM.test(p.start || '') && HHMM.test(p.end || '') && l.con.length > 1 ? { key: p.key, start: p.start, end: p.end } : { key: p.key }));
+  return { er, con, rs: er.map(p => ({ ...p, key: 'er_' + p.key })).concat(WARDS.map(key => ({ key }))) };
+}
 
 /** Routes under /api/accounts/my-duties, /api/accounts/duty-mark and /api/er-portal. Null when not matched. */
 export async function routeDuties(path, method, request, env, auth, url, ctx) {
@@ -212,12 +230,16 @@ export async function collectDuties(env, acc, ym) {
   const inErList = new Set((erListRes.results || []).filter(r => matches(r.n)).map(r => r.h));
   for (const [hosp, erMonth] of erMonths) {
     if (!inErList.has(hosp) || await someoneElse(hosp)) continue;
-    for (const [type, fields] of Object.entries(ER_SLOTS)) {
+    for (const [type, fields] of Object.entries(monthPositions(erMonth))) {
       for (const day of Array.isArray(erMonth[type]) ? erMonth[type] : []) {
         const date = isoDate(day && day.date);
         if (!date || !date.startsWith(ym)) continue;
         for (const f of fields) {
-          if (day[f] && matches(day[f])) duties.push({ key: `${date}|${type}|${f}`, date, src: 'er', hosp, type, slot: f });
+          if (!day[f.key] || !matches(day[f.key])) continue;
+          const duty = { key: `${date}|${type}|${f.key}`, date, src: 'er', hosp, type, slot: f.key };
+          if (f.place) duty.place = f.place;
+          if (f.start) { duty.start = f.start; duty.end = f.end; }
+          duties.push(duty);
         }
       }
     }
@@ -249,6 +271,35 @@ export const ER_TITLES = {
     er_lateNight: 'إضراب طوارئ · ليلية', ward_private: 'إضراب ردهات · الجناح الخاص', ward_floor4: 'إضراب ردهات · طابق 4', ward_floor5: 'إضراب ردهات · طابق 5',
   },
 };
+
+/** '16:00' -> '4م' */
+function timeAr(t) {
+  const m = HHMM.exec(String(t || ''));
+  if (!m) return '';
+  const h = Number(m[1]), mm = Number(m[2]);
+  return `${h % 12 || 12}${mm ? ':' + String(mm).padStart(2, '0') : ''}${h < 12 ? 'ص' : 'م'}`;
+}
+
+/**
+ * Title, start (hour, minute) and length (hours) of a duty from the ER scheduler: its shift's hours
+ * (a position 'afternoon.2' is the afternoon), its place in a structured ER ("طوارئ النساء · الخضراء"),
+ * or the hours of a timed consultation-clinic duty. Whole duty day (08:00, 24 h) otherwise.
+ */
+export function erDutyPlan(d) {
+  const slot = String(d.slot || '');
+  const shiftKey = slot.split('.')[0];                          // 'er_afternoon.2' -> 'er_afternoon'
+  const titles = ER_TITLES[d.type] || {};
+  let title = titles[shiftKey] || titles[slot] || 'خفارة الطوارئ';
+  if (d.place) title += ` · ${d.place}`;
+  if (d.start && HHMM.test(d.start) && HHMM.test(d.end || '')) {
+    const [h, min] = d.start.split(':').map(Number);
+    const [eh, emin] = d.end.split(':').map(Number);
+    const len = (((eh * 60 + emin) - (h * 60 + min) + 1440) % 1440 || 1440) / 60;
+    return { title: `${title} ${timeAr(d.start)} - ${timeAr(d.end)}`, h, min, len };
+  }
+  const [h, len] = ER_TIMES[shiftKey] || [8, 24];
+  return { title, h, min: 0, len };
+}
 
 /** "08:00PM - 08:00AM" -> [start hour, start minute, length in hours]; a whole duty day (08:00, 24 h) otherwise. */
 export function hospitalTimes(t) {
@@ -295,8 +346,7 @@ export function buildDutyIcs(data, { remove, names, hospName, accountId, now = D
       [h, min, len] = hospitalTimes(d.time);
       title = (names && names[d.spec]) || d.spec || 'خفارة المستشفى';
     } else {
-      [h, len] = ER_TIMES[d.slot] || [8, 24];
-      title = (ER_TITLES[d.type] || {})[d.slot] || 'خفارة الطوارئ';
+      ({ title, h, min, len } = erDutyPlan(d));
     }
     const start = dutyStartUtc(d.date, h, min);
     lines.push('BEGIN:VEVENT', `UID:${accountId}-${d.key.replace(/[^\w-]+/g, '_')}@hosp-hub`, `SEQUENCE:${seq}`, `DTSTAMP:${icsTime(now)}`,

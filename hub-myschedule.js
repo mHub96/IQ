@@ -80,14 +80,19 @@
     }
 
     const FULL_DAY = '24 ساعة · 8:00 ص – 8:00 ص';
+    /** '19:00' -> '7:00 م' */
+    const hm = t => { const [h, m] = String(t).split(':').map(Number); return `${h % 12 || 12}:${String(m || 0).padStart(2, '0')} ${h < 12 ? 'ص' : 'م'}`; };
     /** A duty's name and time (its start and end, or the whole 24-hour duty day). */
     function view(d) {
         if (d.src === 'hospital') {
             const name = (Hub.getSpecialtyName && Hub.getSpecialtyName(d.spec, d.hosp || data.hosp)) || d.spec || 'خفارة المستشفى';
             return { title: name, time: d.time ? fmtTime(d.time) : FULL_DAY, er: false };
         }
-        const l = (ER_LABELS[d.type] || {})[d.slot] || [d.type, ''];
-        return { title: l[0], time: l[1] || FULL_DAY, er: true };
+        // A structured ER names the place ('afternoon.2' = an afternoon duty in a sector / division);
+        // a timed consultation-clinic duty has its own hours.
+        const l = (ER_LABELS[d.type] || {})[String(d.slot).split('.')[0]] || [d.type, ''];
+        const range = d.start && d.end ? `${hm(d.start)} – ${hm(d.end)}` : '';
+        return { title: l[0] + (d.place ? ' · ' + d.place : ''), time: range || l[1] || FULL_DAY, er: true };
     }
     /** The next duty (today's or the first one after it), shown only in the month it falls in. */
     function nextDuty(duties) {

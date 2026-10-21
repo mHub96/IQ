@@ -212,8 +212,17 @@
     // ------------------------------------------------------------------------------------------
     const SHEET_TITLES = { er: 'في الطوارئ', con: 'في الاستشارية', dc: 'لشهادات الوفاة', rs_er: 'في إضراب طوارئ الإسناد (RS)', rs_wards: 'في إضراب ردهات الإسناد (RS)' };
     const SHEET_SHORT = { er: 'الطوارئ', con: 'الاستشارية', dc: 'شهادات الوفاة', rs_er: 'إسناد الطوارئ', rs_wards: 'إسناد الردهات' };
-    const ER_SHIFTS = ['الصباحية 8ص-2م', 'بعدالصباحية 2م-8م', 'البرينايت 8م-2ص', 'الليلية 2ص-8ص'];
-    function sheetSpec(sheet) {
+    const L = () => window.ERLayout;
+    const th = (text, attrs) => `<th${attrs ? ' ' + attrs : ''}>${esc(text)}</th>`;
+
+    /**
+     * The papers of a sheet. Classic months: one paper. A month with a structure: the ER (and the
+     * strike's ER) prints one paper per shift, every one a complete administrative order with the
+     * sectors as column groups over their divisions; the consultation clinic and death certificates
+     * stay one paper with a column per daily duty.
+     * Each page: { subtitle, depth (header rows), head (header cells after day / date), keys, rows }.
+     */
+    function sheetPages(sheet) {
         const st = S();
         const dim = new Date(st.year, st.month, 0).getDate();
         const range = () => {
@@ -221,23 +230,46 @@
             const b = parseInt(String(st.rsEndDate || '').split('-')[2], 10) || dim;
             return d => d.dayNumber >= a && d.dayNumber <= b;
         };
-        switch (sheet) {
-            case 'con': return { widths: [100, 110], cols: ['طبيب الاستشارية الخافرة'], keys: ['doctor'], rows: st.schedules.con || [], pad: [2.5, 4], bold: true };
-            case 'dc': return { widths: [100, 110], cols: ['طبيب شهادات الوفاة المكلف'], keys: ['doctor'], rows: st.schedules.dc || [], pad: [2.5, 4], bold: true };
-            case 'rs_er': return { widths: [70, 80], cols: ER_SHIFTS, keys: ['er_morning', 'er_afternoon', 'er_preNight', 'er_lateNight'], rows: (st.schedules.rs || []).filter(range()), pad: [2.2, 3.5] };
-            case 'rs_wards': return { widths: [70, 80], cols: ['الجناح الخاص', 'الجناح العام / طابق 4', 'الجناح العام / طابق 5'], keys: ['ward_private', 'ward_floor4', 'ward_floor5'], rows: (st.schedules.rs || []).filter(range()), pad: [2.2, 3.5] };
-            default: return { widths: [70, 80], cols: ER_SHIFTS, keys: ['morning', 'afternoon', 'preNight', 'lateNight'], rows: st.schedules.er || [], pad: [2.2, 3.5] };
+        const layout = L().monthLayout();
+        if (sheet === 'con' || sheet === 'dc') {
+            const pos = L().positions(sheet, layout);
+            const title = sheet === 'dc' ? 'طبيب شهادات الوفاة المكلف' : 'طبيب الاستشارية الخافرة';
+            const many = pos.length > 1;
+            return [{ widths: many ? [70, 80] : [100, 110], depth: 1, head: pos.map(p => th(many ? `${title} ${L().rangeAr(p)}` : title)).join(''), keys: pos.map(p => p.key), rows: st.schedules[sheet] || [], pad: [2.5, 4], bold: true }];
         }
+        if (sheet === 'rs_wards') {
+            return [{ widths: [70, 80], depth: 1, head: ['الجناح الخاص', 'الجناح العام / طابق 4', 'الجناح العام / طابق 5'].map(t => th(t)).join(''), keys: ['ward_private', 'ward_floor4', 'ward_floor5'], rows: (st.schedules.rs || []).filter(range()), pad: [2.2, 3.5] }];
+        }
+        const type = sheet === 'rs_er' ? 'rs_er' : 'er';
+        const rows = sheet === 'rs_er' ? (st.schedules.rs || []).filter(range()) : (st.schedules.er || []);
+        const shiftName = sh => `${L().SHIFT_INFO[sh].name} ${L().SHIFT_INFO[sh].time.replace(/\s+/g, '')}`;
+        if (L().isClassic(layout)) {
+            return [{ widths: [70, 80], depth: 1, head: ['الصباحية 8ص-2م', 'بعدالصباحية 2م-8م', 'البرينايت 8م-2ص', 'الليلية 2ص-8ص'].map(t => th(t)).join(''), keys: L().keys(type, layout), rows, pad: [2.2, 3.5] }];
+        }
+        return L().SHIFTS.map(shift => {
+            const pos = L().positionsOfShift(type, shift, layout);
+            const deep = pos.some(p => p.division || p.of > 1) ? 2 : 1;
+            const groups = [];
+            pos.forEach(p => { const g = groups[groups.length - 1]; if (g && g.id === p.sectorId) g.items.push(p); else groups.push({ id: p.sectorId, name: p.sector, items: [p] }); });
+            let r1 = '', r2 = '';
+            groups.forEach(g => {
+                const single = g.items.length === 1 && !g.items[0].division;
+                r1 += th(g.name || shiftName(shift), single ? (deep === 2 ? 'rowspan="2"' : '') : `colspan="${g.items.length}"`);
+                if (!single) g.items.forEach(p => { r2 += th([p.division, p.of > 1 ? p.n : ''].filter(Boolean).join(' ') || g.name); });
+            });
+            return { widths: [62, 72], depth: deep, head: r1, head2: r2, keys: pos.map(p => p.key), rows, pad: [2.2, 3.5], subtitle: `(الخفارة ${shiftName(shift)})` };
+        });
     }
     const dmy = s => { const p = String(s || '').split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : String(s || ''); };
     const AR_DIGITS = '٠١٢٣٤٥٦٧٨٩';
     const digitsOf = (o, s) => o.digits === 'arabic' ? String(s).replace(/[0-9]/g, d => AR_DIGITS[d]) : String(s);
 
-    /** The sheet's HTML (scoped styles included). */
-    function buildSheet(sheet, o) {
+    /** The sheet's HTML (scoped styles included): every paper, or only paper `only` (the preview). */
+    function buildSheet(sheet, o, only) {
         o = o || opts();
         const st = S();
-        const spec = sheetSpec(sheet);
+        const pages = sheetPages(sheet);
+        const list = typeof only === 'number' ? [pages[Math.max(0, Math.min(pages.length - 1, only))]] : pages;
         const title = SHEET_TITLES[sheet] || SHEET_TITLES.er;
         const docFont = o.fontFamily || DEFAULT_FONT;
         const tableFont = o.tableFont || docFont;
@@ -250,15 +282,13 @@
         const outer = o.grid === 'minimal' ? 'none' : line;
         const fs = n => `${(n * o.docScale).toFixed(2)}pt`;
         const weekendSet = o.weekendDays === 'none' ? [] : o.weekendDays === 'fri' ? ['الجمعة'] : ['الجمعة', 'السبت'];
-        const nameBold = o.nameWeight === 'bold' || (o.nameWeight === 'auto' && spec.bold);
-
-        let rows = '';
-        spec.rows.forEach((day, i) => {
+        const nameBold = o.nameWeight === 'bold' || (o.nameWeight === 'auto' && list[0].bold);
+        const rowsOf = spec => spec.rows.map((day, i) => {
             const wk = weekendSet.includes(day.dayName);
             const cls = [wk ? 'wk' : '', !wk && o.zebra && i % 2 === 1 ? 'zb' : ''].filter(Boolean).join(' ');
-            rows += `<tr${cls ? ` class="${cls}"` : ''}><td class="b">${esc(day.dayName)}</td><td class="erp-date">${esc(digitsOf(o, dmy(day.date)))}</td>${spec.keys.map(key => `<td class="nm">${esc(day[key] || '')}</td>`).join('')}</tr>`;
-        });
-        const head = `<tr><th style="width:${spec.widths[0]}px">اليوم</th><th style="width:${spec.widths[1]}px">التاريخ</th>${spec.cols.map(c => `<th>${esc(c)}</th>`).join('')}</tr>`;
+            return `<tr${cls ? ` class="${cls}"` : ''}><td class="b">${esc(day.dayName)}</td><td class="erp-date">${esc(digitsOf(o, dmy(day.date)))}</td>${spec.keys.map(key => `<td class="nm">${esc(day[key] || '')}</td>`).join('')}</tr>`;
+        }).join('');
+        const headOf = spec => `<tr><th rowspan="${spec.depth}" style="width:${spec.widths[0]}px">اليوم</th><th rowspan="${spec.depth}" style="width:${spec.widths[1]}px">التاريخ</th>${spec.head}</tr>${spec.head2 ? `<tr>${spec.head2}</tr>` : ''}`;
 
         const orderDate = digitsOf(o, dmy(st.orderDate || new Date().toISOString().split('T')[0]));
         const blank = '<span style="border-bottom: 1.5px dotted #000; display: inline-block; min-width: 125px; height: 13px; vertical-align: baseline;"></span>';
@@ -275,7 +305,7 @@
             .erp-sheet .erp-table { width: 100% !important; border-collapse: collapse !important; font-size: ${o.tableSize}pt !important; line-height: 1.15 !important; border: ${outer} !important; }
             .erp-sheet .erp-table th { background: ${o.headerBg} !important; color: ${o.headerText} !important; font-weight: ${o.headerWeight} !important; padding: ${pad(2.5, 3.5)} !important; text-align: center !important;
                 border: none !important; border-bottom: ${line} !important; border-left: ${vert} !important; }
-            .erp-sheet .erp-table td { background: ${o.bodyBg} !important; color: ${o.bodyText} !important; padding: ${pad(spec.pad[0], spec.pad[1])} !important; text-align: ${o.align === 'right' ? 'right' : 'center'} !important;
+            .erp-sheet .erp-table td { background: ${o.bodyBg} !important; color: ${o.bodyText} !important; padding: ${pad(list[0].pad[0], list[0].pad[1])} !important; text-align: ${o.align === 'right' ? 'right' : 'center'} !important;
                 border: none !important; border-bottom: ${line} !important; border-left: ${vert} !important; }
             .erp-sheet .erp-table td.b, .erp-sheet .erp-table td.erp-date { text-align: center !important; }
             .erp-sheet .erp-table th:last-child, .erp-sheet .erp-table td:last-child { border-left: ${o.grid === 'all' ? line : 'none'} !important; }
@@ -283,9 +313,11 @@
             .erp-sheet .erp-table td.nm { font-weight: ${nameBold ? 'bold' : 'normal'}; }
             .erp-sheet .erp-table tr.zb td { background: ${o.zebraBg} !important; }
             .erp-sheet .erp-table tr.wk td { background: ${o.weekendBg} !important; color: ${o.weekendText} !important; ${o.weekendBold ? 'font-weight: 700;' : ''} }
-            .erp-sheet .erp-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }`;
+            .erp-sheet .erp-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+            .erp-sheet .erp-table thead tr + tr th { border-top: none !important; }
+            .erp-sheet + .erp-sheet { break-before: page; page-break-before: always; }`;
 
-        return `<style>${css}</style>
+        return `<style>${css}</style>` + list.map(spec => `
             <div class="erp-sheet">
                 <div style="text-align: center; line-height: 1.25; margin-bottom: 5px;">
                     <div style="font-size: ${fs(10.5)}; font-weight: bold;">جمهورية العراق</div>
@@ -302,9 +334,9 @@
                 </div>
                 <div style="text-align: center; margin-bottom: 5px;">
                     <div style="font-size: ${fs(11.5)}; font-weight: 900; margin-bottom: 2px;">امر اداري</div>
-                    <div style="font-size: ${fs(9)}; font-weight: bold;">تقرر ان يكون جدول خفارات المقيمين الاقدمين ${esc(title)} لشهر <u>${esc(digitsOf(o, st.monthYear || ''))}</u> كما مبين ادناه: -</div>
+                    <div style="font-size: ${fs(9)}; font-weight: bold;">تقرر ان يكون جدول خفارات المقيمين الاقدمين ${esc(title)}${spec.subtitle ? ' ' + esc(spec.subtitle) : ''} لشهر <u>${esc(digitsOf(o, st.monthYear || ''))}</u> كما مبين ادناه: -</div>
                 </div>
-                <table class="erp-table"><thead>${head}</thead><tbody>${rows}</tbody></table>
+                <table class="erp-table"><thead>${headOf(spec)}</thead><tbody>${rowsOf(spec)}</tbody></table>
                 <div style="margin-top: 5px; font-size: ${fs(7.5)}; font-weight: bold; line-height: 1.35; text-align: right;">
                     <div>◆ يرجى تبليغ رئيس الاطباء المقيمين في حالة تبديل الخفارة وبخلافه يتحمل الطرفين المسؤولية.</div>
                     <div>◆ في حالة تغيب الطبيب عن الخفارة، يعتبر غياب ويكون التعويض مضاعف.</div>
@@ -331,7 +363,7 @@
                     <div>◆ رئيس الاطباء المقيمين / شعبة الطوارئ / لوحة الاعلانات – وحدة المتابعة</div>
                     <div>◆ الاوراق مع الاوليات</div>
                 </div>
-            </div>`;
+            </div>`).join('');
     }
 
     /** Fills the print area and prints once the sheet's fonts are ready. */
@@ -344,7 +376,13 @@
         if (o.dateFont !== 'same') fams.push('Arial');
         area.innerHTML = buildSheet(sheet, o);
         await fontsReady(fams);
+        // The browser names the PDF after the page title.
+        const title = document.title;
+        const restore = () => { document.title = title; window.removeEventListener('afterprint', restore); };
+        try { document.title = L().fileName(sheet); } catch (e) {}
+        window.addEventListener('afterprint', restore);
         window.print();
+        setTimeout(restore, 1500);
     }
 
     // ------------------------------------------------------------------------------------------
@@ -355,6 +393,7 @@
     let fontTarget = 'fontFamily'; // which font the list sets: fontFamily (document) | tableFont
     let fontQuery = '';
     let previewZoom = 'fit';
+    let panelPage = 0;      // the paper shown in the preview (sheets printed as several papers)
 
     const sheetsAvailable = () => S().rsEnabled ? ['er', 'con', 'dc', 'rs_er', 'rs_wards'] : ['er', 'con', 'dc'];
 
@@ -537,9 +576,10 @@
                     <section class="erp-preview">
                         <div class="erp-preview-bar">
                             <div class="erp-seg sm">${sheetsAvailable().map(s => `<button type="button" class="${panelSheet === s ? 'on' : ''}" data-sheet="${s}">${SHEET_SHORT[s]}</button>`).join('')}</div>
+                            ${(() => { const pages = sheetPages(panelSheet); if (pages.length < 2) return ''; if (panelPage >= pages.length) panelPage = 0; return `<div class="erp-seg sm" title="${pages.length} أوراق في ملف واحد">${pages.map((pg, i) => `<button type="button" class="${panelPage === i ? 'on' : ''}" data-page="${i}">${esc(String(pg.subtitle || '').replace(/[()]/g, '').replace(/^الخفارة /, '').replace(/\s+\S+$/, '') || i + 1)}</button>`).join('')}</div>`; })()}
                             <span class="erp-fit" id="erp-fit"></span>
                         </div>
-                        <div class="erp-paper-wrap" id="erp-paper-wrap"><div class="erp-paper-box" id="erp-paper-box"><div class="erp-paper" id="erp-paper"><div class="erp-paper-in">${buildSheet(panelSheet, o)}</div></div></div></div>
+                        <div class="erp-paper-wrap" id="erp-paper-wrap"><div class="erp-paper-box" id="erp-paper-box"><div class="erp-paper" id="erp-paper"><div class="erp-paper-in">${buildSheet(panelSheet, o, panelPage)}</div></div></div></div>
                     </section>
                 </div>
                 <footer class="erp-foot">
@@ -580,7 +620,7 @@
     function refreshPreview() {
         const inner = document.querySelector('#erp-paper .erp-paper-in');
         if (!inner) return render();
-        inner.innerHTML = buildSheet(panelSheet, opts());
+        inner.innerHTML = buildSheet(panelSheet, opts(), panelPage);
         fitPreview();
     }
 
@@ -676,7 +716,7 @@
         modal.dataset.erpBound = '1';
         modal.addEventListener('click', e => {
             if (e.target === modal) return close();
-            const t = e.target.closest('[data-act],[data-tab],[data-sheet],[data-theme],[data-del-theme],[data-font],[data-del-font],[data-font-target],[data-opt]');
+            const t = e.target.closest('[data-act],[data-tab],[data-sheet],[data-page],[data-theme],[data-del-theme],[data-font],[data-del-font],[data-font-target],[data-opt]');
             if (!t || t.tagName === 'INPUT') return;
             if (t.dataset.delTheme) { e.stopPropagation(); return deleteTheme(t.dataset.delTheme); }
             if (t.dataset.delFont) { e.stopPropagation(); return deleteFont(t.dataset.delFont); }
@@ -687,7 +727,8 @@
             if (act === 'migrate-legacy') { e.stopPropagation(); return migrateLegacy(); }
             if (act === 'reset') { if (confirm('استعادة إعدادات الطباعة الأصلية؟')) { S().printOptions = Object.assign({}, DEFAULTS); queueSave(); render(); } return; }
             if (t.dataset.tab) { panelTab = t.dataset.tab; return render(); }
-            if (t.dataset.sheet) { panelSheet = t.dataset.sheet; return render(); }
+            if (t.dataset.sheet) { panelSheet = t.dataset.sheet; panelPage = 0; return render(); }
+            if (t.dataset.page) { panelPage = Number(t.dataset.page) || 0; return render(); }
             if (t.dataset.theme) return applyTheme(t.dataset.theme);
             if (t.dataset.fontTarget) { fontTarget = t.dataset.fontTarget; return render(); }
             if (t.dataset.font !== undefined) { prepareFont(t.dataset.font || opts().fontFamily); setOpt({ [fontTarget]: t.dataset.font }, true); return render(); }

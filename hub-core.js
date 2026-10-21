@@ -763,6 +763,7 @@
         try {
             localStorage.removeItem(CACHE_KEY);   // the old whole-database cache is no longer used
             localStorage.setItem(ROWS_CACHE_KEY, text);
+            if (lastServerSync) localStorage.setItem(ROWS_CACHE_KEY + ':at', String(lastServerSync));
         } catch (e) {
             // Storage full: drop the optional snapshots and try once more, else skip caching.
             try {
@@ -874,6 +875,25 @@
         db = sanitizeAndMigrateDatabase(db);
     }
 
+    // The pages of the app shell share one device cache. A page that needs data while another page synced
+    // with the server moments ago takes that page's copy instead of asking the server again (every
+    // request reads the database, and the free plan allows a limited number of rows a day).
+    const SHARED_FRESH_MS = 30 * 1000;
+    let lastServerSync = 0;
+    function freshSharedRows() {
+        try {
+            const at = Number(localStorage.getItem(ROWS_CACHE_KEY + ':at')) || 0;
+            if (!at || Date.now() - at > SHARED_FRESH_MS) return null;
+            const cached = JSON.parse(localStorage.getItem(ROWS_CACHE_KEY) || 'null');
+            if (!cached || !Array.isArray(cached.rows) || !cached.rows.length) return null;
+            if (!!cached.full !== !!readApiToken()) return null;           // another sign-in state
+            if ((Number(cached.since) || 0) < syncSince) return null;       // not newer than ours
+            return { rows: cached.rows, full: !!cached.full, time: (Number(cached.since) || 0) + 2 * 60 * 1000, shared: true };
+        } catch (e) {
+            return null;
+        }
+    }
+
     /** Fetch only what changed since the last sync; null when a full reload is needed. */
     async function fetchChangedRows() {
         if (!serverRows || !syncSince || syncBaseFull !== !!readApiToken()) return null;
@@ -926,7 +946,9 @@
         }).catch(() => {});
     }
 
-    async function loadDatabase(forceRefresh = false) {
+    // A forced reload asks the server (callers use it right after a change made on the server); only the
+    // first load of a page and the background refreshes below may take a sibling page's fresh copy.
+    async function loadDatabase(forceRefresh = false, { network = forceRefresh } = {}) {
         if (!forceRefresh && isLoaded && db && syncBase) {
             return db;
         }
@@ -937,11 +959,13 @@
         loadPromise = (async () => {
             try {
                 await ensureApiSession();
-                let result = null;
-                try {
-                    result = await fetchChangedRows();
-                } catch (err) {
-                    result = null;
+                let result = network ? null : freshSharedRows();
+                if (!result) {
+                    try {
+                        result = await fetchChangedRows();
+                    } catch (err) {
+                        result = null;
+                    }
                 }
                 if (!result) {
                     try {
@@ -953,6 +977,7 @@
                     }
                 }
                 applyServerRows(result.rows, result.full, result.time);
+                if (!result.shared) lastServerSync = Date.now();
                 refreshAuthConfig();
                 if (auth.isOwner() && !AA) await loadSecrets();
                 else detachSecrets();
@@ -977,24 +1002,40 @@
 
     // Other tabs on this device saved something: pull the change from the server.
     let refreshTimer = null;
-    function scheduleRefresh(delay = 400) {
+    let refreshNeedsServer = false;
+    function scheduleRefresh(delay = 400, network = false) {
         clearTimeout(refreshTimer);
+        refreshNeedsServer = refreshNeedsServer || network;
         refreshTimer = setTimeout(() => {
-            if (isLoaded) loadDatabase(true).catch(() => {});
+            const viaServer = refreshNeedsServer;
+            refreshNeedsServer = false;
+            if (isLoaded) loadDatabase(true, { network: viaServer }).catch(() => {});
         }, delay);
     }
+    // A page of the app shell that is not on screen does not sync; it catches up when it is shown.
+    const offScreenView = () => { try { return !!window.HubView && !window.HubView.active; } catch (e) { return false; } };
+    let behind = false;          // something changed while this page was off screen
+    let behindNeedsServer = false;
 
     const syncChannel = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel(AA ? 'hosp_hub_aa_sync_' + AA : 'hosp_hub_sync_channel') : null;
     if (syncChannel) {
         syncChannel.onmessage = (event) => {
-            if (event.data && event.data.type === 'hub:data-updated') scheduleRefresh();
+            if (!event.data || event.data.type !== 'hub:data-updated') return;
+            // A save made elsewhere is on the server, not yet in the shared copy.
+            if (offScreenView()) { behind = true; behindNeedsServer = true; }
+            else scheduleRefresh(400, true);
         };
     }
 
-    // App shell: a tab's view that was out of sight for a while catches up as it is shown.
+    // App shell: a tab's view catches up as it is shown (after a while away, or if it missed a change).
     if (typeof window !== 'undefined') {
         window.addEventListener('hub:view-shown', e => {
-            if (e.detail && e.detail.hiddenFor > 30 * 1000) scheduleRefresh(0);
+            if (behind || (e.detail && e.detail.hiddenFor > 30 * 1000)) {
+                const viaServer = behindNeedsServer;
+                behind = false;
+                behindNeedsServer = false;
+                scheduleRefresh(0, viaServer);
+            }
         });
     }
 
@@ -1006,7 +1047,8 @@
                 hiddenAt = Date.now();
                 flushErNow();
             } else if (hiddenAt && Date.now() - hiddenAt > 60 * 1000) {
-                scheduleRefresh(0);
+                if (offScreenView()) behind = true;
+                else scheduleRefresh(0);
             }
         });
     }

@@ -354,13 +354,18 @@ async function readChanges(env, auth, full, collFilter, since) {
                      ELSE data END))) AS rows, COUNT(*) AS n
          FROM (SELECT * FROM records WHERE updated_at >= ?1 AND ${collFilter} LIMIT 2001)`
     ).bind(since, full),
+    // Deletions: only the history rows written since `since`, through the ts index. (A DISTINCT over the
+    // whole query made SQLite walk the entire history table on every poll, and that table grows with
+    // every save: most of the database's daily reads went there.)
     env.DB.prepare(
-      `SELECT json_group_array(json_array(coll, id)) AS rows, COUNT(*) AS n
-         FROM (SELECT DISTINCT coll, id FROM history WHERE deleted = 1 AND ts >= ?1 AND ${collFilter} LIMIT 2001)`
+      `WITH recent AS (SELECT coll, id FROM history WHERE ts >= ?1 AND deleted = 1 AND ${collFilter} ORDER BY ts LIMIT 2001)
+       SELECT (SELECT json_group_array(json_array(coll, id)) FROM (SELECT DISTINCT coll, id FROM recent)) AS rows,
+              (SELECT COUNT(*) FROM (SELECT DISTINCT coll, id FROM recent)) AS n,
+              (SELECT COUNT(*) FROM recent) AS m`
     ).bind(since),
   ]);
   const c = changed.results[0], d = deleted.results[0];
-  if (c.n > 2000 || d.n > 2000) return json({ reset: true });
+  if (c.n > 2000 || d.m > 2000) return json({ reset: true });
   const body = `{"changed":${c.n ? c.rows : '[]'},"deleted":${d.n ? d.rows : '[]'},"full":${!!full},"role":${JSON.stringify(auth ? auth.r : 'guest')},"time":${Date.now()}}`;
   return new Response(body, { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
 }

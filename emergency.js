@@ -3524,11 +3524,15 @@
         const cleanDocFilter = normalizeArabic(state.scheduleDoctorFilter || '').toLowerCase();
         const targetHighlight = cleanQ || cleanDocFilter;
 
-        const tableBody = document.querySelector('#schedule-view-container tbody');
-        if (!tableBody) return;
+        const box = document.getElementById('schedule-view-container');
+        if (!box || !box.querySelector('tbody')) return;
 
-        const rows = tableBody.querySelectorAll('tr[data-day]');
-        let matchedDays = 0;
+        // Stacked per-shift tables: the shift filter shows that shift's table only.
+        box.querySelectorAll('[data-shift-block]').forEach(sec => {
+            sec.style.display = state.scheduleShiftFilter === 'all' || state.scheduleShiftFilter === sec.dataset.shiftBlock ? '' : 'none';
+        });
+        const rows = box.querySelectorAll('tbody tr[data-day]');
+        const shownDays = new Set();
         let matchedDuties = 0;
 
         rows.forEach(tr => {
@@ -3602,8 +3606,9 @@
             }
 
             tr.style.display = '';
-            matchedDays++;
+            shownDays.add(tr.getAttribute('data-day'));
         });
+        const matchedDays = shownDays.size;
 
         // Live counter badge update
         const badge = document.getElementById('sched-filter-count-badge');
@@ -3667,6 +3672,63 @@
             + (r3 ? `<tr class="bg-slate-900 text-white dark:bg-black text-xs select-none">${r3}</tr>` : '');
     }
 
+    // Desktop with a structure: one table per shift, one below the other (like the printed papers).
+    const DESKTOP_MQ = '(min-width: 1024px)';
+    const stackedShifts = () => !L().isClassic(L().monthLayout()) && window.matchMedia(DESKTOP_MQ).matches;
+
+    /**
+     * The ER-type sheet as four tables (morning, post-morning, pre-night, night), each with its sectors
+     * over their divisions. rowOf(day, keys) draws one day with the given positions.
+     */
+    function stackedShiftTables(type, days, rowOf) {
+        const prefix = type === 'rs_er' ? 'er_' : '';
+        const th = 'py-2 px-2 font-bold border-l border-b border-slate-800 text-center';
+        return L().SHIFTS.map(shift => {
+            const pos = L().positionsOfShift(type, shift);
+            const keys = pos.map(p => p.key);
+            const info = L().SHIFT_INFO[shift];
+            const deep = pos.some(p => p.sector) ? (pos.some(p => p.division || p.of > 1) ? 2 : 1) : 1;
+            const groups = [];
+            pos.forEach(p => { const g = groups[groups.length - 1]; if (g && g.id === p.sectorId) g.items.push(p); else groups.push({ id: p.sectorId, name: p.sector, items: [p] }); });
+            let r1 = '', r2 = '';
+            groups.forEach(g => {
+                const single = g.items.length === 1 && !g.items[0].division;
+                r1 += `<th ${single ? (deep === 2 ? 'rowspan="2"' : '') : `colspan="${g.items.length}"`} class="${th}">${escapeHtml(g.name || `${info.name} (${info.time})`)}</th>`;
+                if (!single) g.items.forEach(p => { r2 += `<th class="${th} text-[11px] text-slate-200">${escapeHtml([p.division, p.of > 1 ? p.n : ''].filter(Boolean).join(' ') || g.name)}</th>`; });
+            });
+            const filled = days.reduce((n, d) => n + filledIn(d, keys), 0);
+            return `
+            <section class="ers-shift-block mb-6" data-shift-block="${prefix}${shift}">
+                <div class="flex items-center gap-2 mb-2 px-1">
+                    <i class="fas ${info.icon} ${info.color}"></i>
+                    <h3 class="text-sm font-black text-slate-800 dark:text-slate-100">${info.name} <span class="text-slate-500 font-bold">(${info.time})</span></h3>
+                    <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">${filled} / ${days.length * keys.length}</span>
+                </div>
+                <div class="overflow-x-auto rounded-2xl border border-slate-300 dark:border-slate-700 shadow-sm">
+                    <table class="w-full text-right border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-900 text-white dark:bg-black dark:text-white border-b-2 border-slate-800 text-xs font-black select-none">
+                                <th rowspan="${deep}" class="py-3 px-3 w-12 text-center font-bold border-l border-slate-800">#</th>
+                                <th rowspan="${deep}" class="py-3 px-3 w-32 font-bold border-l border-slate-800">اليوم والتاريخ</th>
+                                ${r1}
+                            </tr>
+                            ${r2 ? `<tr class="bg-slate-900 text-white dark:bg-black text-xs select-none">${r2}</tr>` : ''}
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
+                            ${days.length ? days.map(day => rowOf(day, keys)).join('') : `<tr><td colspan="${keys.length + 2}" class="py-8 text-center text-slate-400 text-xs">لا توجد أيام تطابق شروط البحث والفلترة</td></tr>`}
+                        </tbody>
+                    </table>
+                </div>
+            </section>`;
+        }).join('');
+    }
+    // Crossing the desktop width redraws the ER sheets in the other arrangement.
+    try {
+        window.matchMedia(DESKTOP_MQ).addEventListener('change', () => {
+            if (appReady && ['er', 'rs_er', 'rs'].includes(state.activeTab) && !L().isClassic(L().monthLayout())) renderActiveTab();
+        });
+    } catch (e) {}
+
     /** Filter-bar choices of an ER-type table: its four shifts. */
     function erShiftOptions(type) {
         const prefix = type === 'rs_er' ? 'er_' : '';
@@ -3714,7 +3776,28 @@
 
             <!-- Filter Bar -->
             ${renderScheduleFilterBar('er', shifts)}
-
+        `;
+        const rowOf = (day, keys) => {
+            const isWeekend = day.dayName === 'الجمعة' || day.dayName === 'السبت';
+            return `
+                    <tr data-day="${day.dayNumber}" data-dayname="${day.dayName}" data-date="${day.date}" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition border-b border-slate-200 dark:border-slate-800/80 ${isWeekend ? 'bg-[#5ea37d]/15 dark:bg-[#5ea37d]/20 border-r-4 border-r-[#5ea37d]' : ''}">
+                        <td class="py-2.5 px-3 text-center font-mono font-bold text-slate-600 dark:text-slate-400 border-l border-slate-200 dark:border-slate-800">${day.dayNumber}</td>
+                        <td class="py-2.5 px-3 whitespace-nowrap border-l border-slate-200 dark:border-slate-800">
+                            <div class="flex items-center gap-1.5 font-bold ${isWeekend ? 'text-[#2e5d42] dark:text-[#88d4aa]' : 'text-slate-800 dark:text-slate-100'}">
+                                <span>${day.dayName}</span>
+                                ${isWeekend ? '<span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#5ea37d] text-white">عطلة</span>' : ''}
+                            </div>
+                            <div class="text-[11px] font-mono font-bold ${isWeekend ? 'text-[#3b7353] dark:text-[#72c798]' : 'text-slate-500 dark:text-slate-400'}">${formatArabicDateNumbers(day.date)}</div>
+                        </td>
+                        ${keys.map(k => renderShiftCellHTML('er', day.dayNumber, day.date, k, day[k])).join('')}
+                    </tr>
+                `;
+        };
+        if (stackedShifts()) {
+            container.innerHTML = html + stackedShiftTables('er', filteredDays, rowOf);
+            return;
+        }
+        html += `
             <div class="overflow-x-auto rounded-2xl border border-slate-300 dark:border-slate-700 shadow-sm">
                 <table class="w-full text-right border-collapse text-xs">
                     <thead>${erTableHead('er')}</thead>
@@ -3730,22 +3813,7 @@
                 </tr>
             `;
         } else {
-            filteredDays.forEach(day => {
-                const isWeekend = day.dayName === 'الجمعة' || day.dayName === 'السبت';
-                html += `
-                    <tr data-day="${day.dayNumber}" data-dayname="${day.dayName}" data-date="${day.date}" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition border-b border-slate-200 dark:border-slate-800/80 ${isWeekend ? 'bg-[#5ea37d]/15 dark:bg-[#5ea37d]/20 border-r-4 border-r-[#5ea37d]' : ''}">
-                        <td class="py-2.5 px-3 text-center font-mono font-bold text-slate-600 dark:text-slate-400 border-l border-slate-200 dark:border-slate-800">${day.dayNumber}</td>
-                        <td class="py-2.5 px-3 whitespace-nowrap border-l border-slate-200 dark:border-slate-800">
-                            <div class="flex items-center gap-1.5 font-bold ${isWeekend ? 'text-[#2e5d42] dark:text-[#88d4aa]' : 'text-slate-800 dark:text-slate-100'}">
-                                <span>${day.dayName}</span>
-                                ${isWeekend ? '<span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#5ea37d] text-white">عطلة</span>' : ''}
-                            </div>
-                            <div class="text-[11px] font-mono font-bold ${isWeekend ? 'text-[#3b7353] dark:text-[#72c798]' : 'text-slate-500 dark:text-slate-400'}">${formatArabicDateNumbers(day.date)}</div>
-                        </td>
-                        ${shiftKeys.map(k => renderShiftCellHTML('er', day.dayNumber, day.date, k, day[k])).join('')}
-                    </tr>
-                `;
-            });
+            filteredDays.forEach(day => { html += rowOf(day, shiftKeys); });
         }
 
         html += `
@@ -3974,7 +4042,9 @@
 
             <!-- Filter Bar -->
             ${renderScheduleFilterBar('rs', shifts)}
-
+        `;
+        const stacked = stackedShifts();
+        if (!stacked) html += `
             <div class="overflow-x-auto rounded-2xl border border-slate-300 dark:border-slate-700 shadow-sm">
                 <table class="w-full text-right border-collapse text-xs">
                     <thead>${erTableHead('rs_er')}</thead>
@@ -3984,16 +4054,16 @@
         const startDay = parseInt(state.rsStartDate.split('-')[2], 10) || 1;
         const endDay = parseInt(state.rsEndDate.split('-')[2], 10) || getDaysInMonth(state.year, state.month);
 
-        filteredDays.forEach(day => {
+        const rowOf = (day, keys) => {
             const isWeekend = day.dayName === 'الجمعة' || day.dayName === 'السبت';
             const inRsPeriod = day.dayNumber >= startDay && day.dayNumber <= endDay;
-            const hasNames = filledIn(day, shiftKeys) > 0;
+            const hasNames = filledIn(day, keys) > 0;
             const weekendClass = isWeekend ? 'bg-[#5ea37d]/15 dark:bg-[#5ea37d]/20 border-r-4 border-r-[#5ea37d]' : '';
             const rowClass = inRsPeriod 
                 ? (weekendClass || (hasNames ? 'bg-amber-50/50 dark:bg-amber-950/20 font-medium' : 'bg-slate-50/30 dark:bg-slate-800/20')) 
                 : 'opacity-40 bg-slate-50/10';
 
-            html += `
+            return `
                 <tr data-day="${day.dayNumber}" data-dayname="${day.dayName}" data-date="${day.date}" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition border-b border-slate-200 dark:border-slate-800/80 ${rowClass}">
                     <td class="py-2.5 px-3 text-center font-mono font-bold text-slate-600 dark:text-slate-400 border-l border-slate-200 dark:border-slate-800">
                         ${day.dayNumber}
@@ -4006,10 +4076,15 @@
                         </div>
                         <div class="text-[11px] font-mono font-bold ${isWeekend ? 'text-[#3b7353] dark:text-[#72c798]' : 'text-slate-500 dark:text-slate-400'}">${formatArabicDateNumbers(day.date)}</div>
                     </td>
-                    ${shiftKeys.map(k => renderShiftCellHTML('rs', day.dayNumber, day.date, k, day[k])).join('')}
+                    ${keys.map(k => renderShiftCellHTML('rs', day.dayNumber, day.date, k, day[k])).join('')}
                 </tr>
             `;
-        });
+        };
+        if (stacked) {
+            container.innerHTML = html + stackedShiftTables('rs_er', filteredDays, rowOf);
+            return;
+        }
+        filteredDays.forEach(day => { html += rowOf(day, shiftKeys); });
 
         html += `
                     </tbody>

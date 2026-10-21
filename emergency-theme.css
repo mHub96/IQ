@@ -199,9 +199,10 @@ html.ers-rs-on .ers-rs { display: flex !important; }
 @media (min-width: 1024px) {
     /* The header row stays under the top bar while a long month scrolls. */
     #schedule-view-container .overflow-x-auto { overflow: visible !important; }
-    #schedule-view-container table thead th { position: sticky; top: var(--ers-top-h); z-index: 5; }
-    #schedule-view-container table thead th:first-child { border-top-right-radius: 15px; }
-    #schedule-view-container table thead th:last-child { border-top-left-radius: 15px; }
+    /* The whole header sticks (two-row headers of sectors over divisions stay in order). */
+    #schedule-view-container table thead { position: sticky; top: var(--ers-top-h); z-index: 5; }
+    #schedule-view-container table thead tr:first-child th:first-child { border-top-right-radius: 15px; }
+    #schedule-view-container table thead tr:first-child th:last-child { border-top-left-radius: 15px; }
 }
 
 /* Phones: a day is a card, each shift labelled (labels written by emergency-shell.js). */

@@ -246,6 +246,9 @@ test('rotators have no board, specialty or stage', async () => {
   const t = (await login(U.r, 'r1')).token;
   const me = (await call('GET', '/api/accounts/me', { token: t })).data.account;
   assert.equal(me.role, 'rotator');
+  // A rotator's type never changes (not by the hospital's admin, not by the owner).
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.admin, body: { id: state.r, action: 'set_role', role: 'user' } })).status, 403);
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.owner, body: { id: state.r, action: 'set_role', role: 'admin', hospitals: [H] } })).data.error, 'rotator_fixed');
   for (const k of ['board', 'specialty', 'stage', 'board_years', 'profile_complete', 'stage_now']) assert.ok(!(k in me), k);
   assert.equal((await call('POST', '/api/accounts/profile', { token: t, body: { board: 'arab', specialty: 'x', stage: 1, boardYears: 4 } })).data.error, 'no_profile');
   assert.equal((await call('GET', '/api/accounts/profile-suggest', { token: t })).data.suggestion.board, null);

@@ -390,3 +390,23 @@ html.dark .ms-pdf-cover, body.dark .ms-pdf-cover { background: #10131a; color: #
 }
 .ms-duty.is-next .ms-date { background: var(--ms-gold-soft); color: var(--ms-gold); }
 .ms-time i { opacity: 0.7; margin-left: 3px; }
+
+/* ---------- Duty reminders (switch + lead time) ---------- */
+.ms-remind { padding: 12px 14px; margin-bottom: 12px; border-radius: 16px; background: var(--ms-card); border: 1px solid var(--ms-line); }
+.ms-remind-head { display: flex; align-items: center; gap: 12px; }
+.ms-remind-head i.lead { font-size: 1.2rem; color: var(--ms-ink3); flex: none; }
+.ms-remind.on .ms-remind-head i.lead { color: var(--ms-gold); }
+.ms-remind-head .txt { flex: 1; min-width: 0; font-size: 0.8rem; line-height: 1.55; }
+.ms-remind-head .txt b { display: block; font-size: 0.86rem; color: var(--ms-navy); }
+.ms-remind-head .txt small { color: var(--ms-ink2); }
+.ms-remind-opts { display: grid; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--ms-line); }
+.ms-remind-lead { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; font-weight: 800; }
+.ms-remind-lead select { flex: 1; min-width: 0; }
+.ms-remind-custom { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 0.78rem; font-weight: 700; }
+.ms-remind-custom input { width: 72px; flex: none; text-align: center; }
+.ms-remind-custom .ms-btn { margin-inline-start: auto; }
+.ms-remind-next { font-size: 0.76rem; color: var(--ms-ink2); line-height: 1.6; }
+.ms-remind-next i { color: var(--ms-gold); margin-inline-end: 4px; }
+.ms-remind-next .ok { color: var(--ms-plus); font-weight: 700; }
+.ms-remind-warn { font-size: 0.74rem; line-height: 1.6; padding: 8px 10px; border-radius: 12px; background: var(--ms-flag-soft); color: var(--ms-flag); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ms-btn.sm { min-height: 32px; padding: 0 10px; font-size: 0.74rem; }

@@ -116,6 +116,13 @@
         body.dark .tabs button[aria-selected="true"] { color: #1C1C1E; }
         .tabs .n { display: inline-block; min-width: 18px; padding: 0 5px; margin-right: 4px; border-radius: 9px; background: var(--hacc-like); color: #fff; font-size: 0.68rem; line-height: 18px; text-align: center; }
         .search { margin-bottom: 12px; }
+        .mg-group { margin-bottom: 14px; }
+        .mg-group > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 8px 4px 10px; font-weight: 800; font-size: 0.9rem; }
+        .mg-group > summary::-webkit-details-marker { display: none; }
+        .mg-group > summary::after { content: '\f107'; font-family: 'Font Awesome 6 Free', 'Font Awesome 5 Free'; font-weight: 900; margin-inline-start: auto; color: var(--hacc-muted); transition: transform .2s; }
+        .mg-group:not([open]) > summary::after { transform: rotate(90deg); }
+        .mg-group > summary i { color: var(--hacc-accent); }
+        .mg-group-n { min-width: 22px; padding: 1px 8px; border-radius: 999px; background: var(--hacc-surface); border: 1px solid var(--hacc-border); font-size: 0.74rem; text-align: center; }
         .acc { border: 1px solid var(--hacc-border); border-radius: 18px; padding: 14px; margin-bottom: 10px; background: var(--hacc-bg); }
         .acc-head { display: flex; gap: 12px; align-items: center; }
         .acc-head .hacc-avatar { width: 42px; height: 42px; }
@@ -518,6 +525,16 @@
         const OFFICER_ROLES = ['aa_user', 'aa_admin'];
         const NO_PROFILE = ['rotator', ...OFFICER_ROLES];
         const ALL_ROLES = ['user', 'anaesthesia', 'admin', 'owner', 'rotator', ...OFFICER_ROLES];
+        // Types a hospital admin gives the residents of their hospital (never owner; rotators stay rotators).
+        const ADMIN_ROLE_CHOICES = ['user', 'anaesthesia', 'admin'];
+        // The management list is shown in these groups.
+        const ROLE_GROUPS = [
+            { id: 'admins', title: 'المدراء', icon: 'fa-user-shield', has: r => r === 'owner' || r === 'admin' },
+            { id: 'anaesthesia', title: 'مقيمو التخدير', icon: 'fa-syringe', has: r => r === 'anaesthesia' },
+            { id: 'user', title: 'المقيمون', icon: 'fa-user-doctor', has: r => r === 'user' },
+            { id: 'rotator', title: 'الروتيترز', icon: 'fa-rotate', has: r => r === 'rotator' },
+            { id: 'officers', title: 'الشؤون الإدارية', icon: 'fa-building', has: r => OFFICER_ROLES.includes(r) },
+        ];
         const profileLine = a => !a.board ? '<span class="badge pending">الملف غير مكتمل</span>'
             : [BOARD_NAMES[a.board], a.board !== 'none' && a.stage_now ? `المرحلة ${STAGE_NAMES[a.stage_now] || a.stage_now}${a.board_years ? ' من ' + a.board_years : ''}` : '', a.specialty]
                 .filter(Boolean).map(esc).join(' · ') + (a.profile_complete ? '' : ' <span class="badge pending">غير مكتمل</span>');
@@ -1032,7 +1049,7 @@
         }
 
         // -------------------- Management --------------------
-        const mg = { filter: 'pending', items: [], comments: [], query: '', hosp: '', more: false };
+        const mg = { filter: 'pending', items: [], comments: [], query: '', hosp: '', more: false, folded: new Set() };
 
         async function loadPendingCounts() {
             try {
@@ -1133,17 +1150,21 @@
                 return;
             }
             const hospitals = Hub.getHospitals();
-            $('mg-list').innerHTML = items.map(a => {
+            const myScope = isOwner ? ['*'] : Hub.auth.getAdminHospitalIds();
+            const cardHtml = a => {
                 const officer = OFFICER_ROLES.includes(a.role);
-                const canManage = isOwner || (['user', 'anaesthesia', 'rotator', ...OFFICER_ROLES].includes(a.role) && a.id !== myId);
-                // Role on approval: admins give regular / anaesthesia resident, or division user / division
-                // admin for administrative officers; rotators stay rotators.
-                const roleChoices = officer ? OFFICER_ROLES : isOwner ? ALL_ROLES : (a.role === 'rotator' ? [] : ['user', 'anaesthesia']);
+                // Another admin of this admin's own hospital(s): the admin changes only their type.
+                const peer = !isOwner && a.role === 'admin' && a.id !== myId && (a.hospitals || []).length > 0
+                    && a.hospitals.every(h => h !== '*' && (myScope.includes('*') || myScope.includes(h)));
+                const canManage = isOwner || peer || (['user', 'anaesthesia', 'rotator', ...OFFICER_ROLES].includes(a.role) && a.id !== myId);
+                // Type: admins give regular / anaesthesia resident / admin, or division user / division admin
+                // for administrative officers; nobody changes a rotator's type.
+                const roleChoices = a.role === 'rotator' ? [] : officer ? OFFICER_ROLES : isOwner ? ALL_ROLES.filter(r => r !== 'rotator') : ADMIN_ROLE_CHOICES;
                 const proposed = a.status === 'pending' && a.role === 'user' && a.suggested_role ? a.suggested_role : a.role;
                 const rolePick = roleChoices.length > 1 ? `<select data-role="approve-role" aria-label="الصلاحية عند الموافقة">${roleChoices.map(r => `<option value="${r}" ${proposed === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>` : '';
                 const statusText = { pending: 'بانتظار الموافقة', active: 'مفعّل', disabled: 'موقوف', rejected: 'مرفوض' }[a.status] || a.status;
                 const actions = [];
-                if (canManage) {
+                if (canManage && !peer) {
                     if (a.status === 'pending') actions.push(rolePick ? `<label class="approve-as">الموافقة بصلاحية ${rolePick}</label>` : '', '<button class="hacc-btn good" data-act="approve">✓ موافقة</button>', '<button class="hacc-btn danger" data-act="reject">✗ رفض</button>');
                     if (a.reset === 'requested') actions.push('<button class="hacc-btn good" data-act="approve_reset">🔓 السماح بتغيير كلمة المرور</button>', '<button class="hacc-btn" data-act="deny_reset">تجاهل الطلب</button>');
                     // Commenting: the owner and the hospital's admins allow or bar it per account.
@@ -1158,12 +1179,15 @@
                 const scope = a.hospitals || [];
                 const limit = a.max_devices || 0;
                 const limitMode = limit === 0 ? '0' : limit === 1 ? '1' : 'n';
-                const editor = canManage && (isOwner || (officer && a.status !== 'pending')) && a.status !== 'rejected' ? `<details class="edit-wrap"><summary class="hacc-link">⚙️ ${isOwner ? 'الصلاحيات والأجهزة' : 'صلاحية الشؤون الإدارية'}</summary><div class="editor">
-                    ${!isOwner && officer && a.status !== 'pending' ? `<div><h4>الصلاحية</h4>
-                        <select data-role="role" style="margin-top:6px">${(officer ? OFFICER_ROLES : ['user', 'anaesthesia']).map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
-                        <button class="hacc-btn primary sm" data-act="set_role" style="margin-top:8px">حفظ الصلاحية</button></div>` : ''}
-                    ${isOwner ? `<div><h4>الصلاحية</h4>
-                        <select data-role="role" style="margin-top:6px">${ALL_ROLES.map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
+                // A pending request takes its type from the picker next to "موافقة", so the editor offers none.
+                const adminEditor = !isOwner && a.status !== 'pending' && roleChoices.length > 1;
+                const editor = canManage && (isOwner || adminEditor) && a.status !== 'rejected' ? `<details class="edit-wrap"><summary class="hacc-link">⚙️ ${isOwner ? (a.status === 'pending' ? 'الملف والأجهزة' : 'الصلاحيات والأجهزة') : 'نوع الحساب'}</summary><div class="editor">
+                    ${adminEditor ? `<div><h4>نوع الحساب</h4>
+                        <select data-role="role" style="margin-top:6px">${roleChoices.map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
+                        <button class="hacc-btn primary sm" data-act="set_role" style="margin-top:8px">حفظ</button></div>` : ''}
+                    ${isOwner && a.status !== 'pending' && a.role === 'rotator' ? '<div><h4>الصلاحية</h4><p class="hacc-muted" style="margin:6px 0 0;font-size:.78rem">🔄 روتيتر: لا يمكن تغيير نوع حسابه.</p></div>' : ''}
+                    ${isOwner && a.status !== 'pending' && a.role !== 'rotator' ? `<div><h4>الصلاحية</h4>
+                        <select data-role="role" style="margin-top:6px">${roleChoices.map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
                         <div class="hosp-pick" data-role="hosps" style="margin-top:8px" ${['admin', 'anaesthesia'].includes(a.role) ? '' : 'hidden'}>
                             <label><input type="checkbox" value="*" ${scope.includes('*') ? 'checked' : ''}><span>كل المستشفيات</span></label>
                             ${hospitals.map(h => `<label><input type="checkbox" value="${esc(h.id)}" ${scope.includes(h.id) || (!scope.length && h.id === a.hosp) ? 'checked' : ''}><span>${esc(h.name_ar || h.hospitalName || h.id)}</span></label>`).join('')}
@@ -1205,7 +1229,18 @@
                     ${a.status === 'pending' && a.suggested_role === 'anaesthesia' ? '<div class="acc-sub suggest">💉 مقترح: <b>مقيم تخدير</b> (اختصاصه التخدير في جدول المستشفى)</div>' : ''}
                     <div class="acc-sub">${a.status === 'pending' ? 'طلب ' : 'أُنشئ '}${esc(timeAgo(a.created_at))}${a.decided_by ? ' · بواسطة ' + esc(String(a.decided_by).replace(/^\w+:/, '')) : ''}${a.last_seen ? ' · آخر ظهور ' + esc(timeAgo(a.last_seen)) : ''}</div></div></div>
                     ${actions.length ? `<div class="acc-actions">${actions.join('')}</div>` : ''}${editor}</article>`;
-            }).join('');
+            };
+            // Grouped by type: admins, anaesthesia residents, residents, rotators (and division officers).
+            $('mg-list').innerHTML = ROLE_GROUPS.map(g => {
+                const list = items.filter(a => g.has(a.role));
+                if (!list.length) return '';
+                return `<details class="mg-group" data-group="${g.id}" ${mg.folded.has(g.id) ? '' : 'open'}>
+                    <summary><i class="fas ${g.icon}"></i> ${esc(g.title)} <span class="mg-group-n">${list.length}</span></summary>
+                    ${list.map(cardHtml).join('')}</details>`;
+            }).join('') + items.filter(a => !ROLE_GROUPS.some(g => g.has(a.role))).map(cardHtml).join('');
+            $('mg-list').querySelectorAll('details.mg-group').forEach(d => d.addEventListener('toggle', () => {
+                if (d.open) mg.folded.delete(d.dataset.group); else mg.folded.add(d.dataset.group);
+            }));
 
             $('mg-list').querySelectorAll('[data-act]').forEach(btn => btn.addEventListener('click', () => act(btn)));
             $('mg-list').querySelectorAll('[data-role="limit-mode"]').forEach(sel => sel.addEventListener('change', () => {
@@ -1257,7 +1292,7 @@
                 mute: `منع ${a.name} من التعليق؟ سيبقى قادراً على تصفح الموقع والإعجاب.`,
                 remove_device: 'إلغاء ربط هذا الجهاز؟ سيتم تسجيل خروجه فوراً.',
                 reset_devices: `إلغاء ربط كل أجهزة ${a.name}؟ سيتم تسجيل خروجه منها.`,
-                set_role: body.role !== a.role ? `تغيير صلاحية ${a.name} إلى «${ROLE_NAMES[body.role]}»؟` : null,
+                set_role: body.role !== a.role ? `تغيير صلاحية ${a.name} إلى «${ROLE_NAMES[body.role]}»؟${body.role === 'admin' && !Hub.auth.isOwner() ? '\n\nسيدير حسابات مستشفاه مثلك.' : ''}` : null,
                 approve: body.role && body.role !== 'user' && body.role !== a.role ? `الموافقة على ${a.name} بصلاحية «${ROLE_NAMES[body.role]}»؟` : null,
             }[action];
             if (confirmText && !confirm(confirmText)) return;

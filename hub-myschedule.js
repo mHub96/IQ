@@ -5,7 +5,9 @@
  * - personal marks on each duty: bought (+$) / sold (-$), a flag with a reason, a note;
  * - a PDF of the month;
  * - the ER preferences portal: while an admin keeps it open, the resident fills in their ER
- *   preferences for the coming month (same fields as the ER page's preferences panel).
+ *   preferences for the coming month (same fields as the ER page's preferences panel);
+ * - duty reminders: a switch for a notification a chosen time before each duty (sent by the server,
+ *   so it arrives with the app closed).
  */
 (function (window, document) {
     'use strict';
@@ -64,6 +66,7 @@
     let openEditor = null;
     let selDate = '';
     let nextKey = '';     // the next duty's key (highlighted)
+    let reminder = null;  // last /duty-reminder response
 
     // ------------------------------------------------------------------
     // Data
@@ -112,6 +115,7 @@
         host = body;
         body.innerHTML = '<div class="ms"><div class="hacc-empty">جاري تحميل جدولك…</div></div>';
         loadPortal(); // does not block the schedule
+        loadReminder();
         await showMonth(ym);
     }
 
@@ -174,6 +178,7 @@
 
         root.innerHTML = `
             <div data-role="portal">${portalHtml()}</div>
+            <div data-role="reminder">${reminderHtml()}</div>
             <div class="ms-bar">
                 <button type="button" class="ms-nav" data-act="next" aria-label="الشهر التالي"><i class="fas fa-chevron-right"></i></button>
                 <select class="ms-month" data-role="month" aria-label="الشهر">${opts.map(o => `<option value="${o}" ${o === ym ? 'selected' : ''}>${monthTitle(o)}${o === cur ? ' (الحالي)' : ''}</option>`).join('')}</select>
@@ -221,6 +226,7 @@
             toast('افتح الملف بتطبيق التقويم لتطبيق الإلغاء', 'info');
         });
         bindPortal(root);
+        bindReminder(root);
 
         // First view of the current month: bring today's (or the next) duty into view.
         if (!selDate && ym === today.slice(0, 7)) {
@@ -497,6 +503,131 @@
             btn.disabled = false;
             btn.innerHTML = label;
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Duty reminders
+    // ------------------------------------------------------------------
+    const LEAD_PRESETS = [15, 30, 60, 120, 180, 360, 720, 1440];
+    const LEAD_DEFAULT = 120;
+    let customLead = false; // the custom hours / minutes fields are open
+
+    function durationText(min) {
+        const d = Math.floor(min / 1440), h = Math.floor((min % 1440) / 60), m = min % 60;
+        const unit = (n, one, two, few, many) => (n === 1 ? one : n === 2 ? two : n <= 10 ? `${n} ${few}` : `${n} ${many}`);
+        const parts = [];
+        if (d) parts.push(unit(d, 'يوم', 'يومين', 'أيام', 'يوماً'));
+        if (h) parts.push(unit(h, 'ساعة', 'ساعتين', 'ساعات', 'ساعة'));
+        if (m) parts.push(unit(m, 'دقيقة', 'دقيقتين', 'دقائق', 'دقيقة'));
+        return parts.join(' و') || 'دقيقة';
+    }
+
+    async function loadReminder() {
+        try {
+            reminder = await Hub.api('GET', '/api/accounts/duty-reminder', undefined, { retries: 1 });
+        } catch (e) { reminder = null; }
+        if (reminder && reminder.on) A.push.status().then(st => { reminder.push = st; paintReminder(); }).catch(() => {});
+        paintReminder();
+    }
+
+    function paintReminder() {
+        const slot = host && host.querySelector('[data-role="reminder"]');
+        if (!slot) return;
+        slot.innerHTML = reminderHtml();
+        bindReminder(host);
+    }
+
+    function reminderHtml() {
+        if (!reminder) return '';
+        const on = !!reminder.on;
+        const lead = reminder.lead || LEAD_DEFAULT;
+        const preset = LEAD_PRESETS.includes(lead) && !customLead;
+        const next = reminder.next;
+        const pushOff = on && reminder.push && reminder.push !== 'on';
+        return `<div class="ms-remind ${on ? 'on' : ''}">
+            <div class="ms-remind-head">
+                <i class="fas fa-bell lead"></i>
+                <div class="txt"><b>تذكير بخفارتي القادمة</b>
+                    <small>${on ? `يصلك إشعار قبل كل خفارة بـ ${esc(durationText(lead))}، حتى والتطبيق مغلق.` : 'إشعار قبل كل خفارة بالوقت الذي تختاره.'}</small></div>
+                <button type="button" class="hp-toggle" role="switch" aria-checked="${on}" aria-label="تذكير بخفارتي القادمة" data-act="remind-toggle"><span></span></button>
+            </div>
+            ${on ? `<div class="ms-remind-opts">
+                <label class="ms-remind-lead">قبل الخفارة بـ
+                    <select class="ms-input" data-role="remind-lead">
+                        ${LEAD_PRESETS.map(m => `<option value="${m}" ${preset && m === lead ? 'selected' : ''}>${esc(durationText(m))}</option>`).join('')}
+                        <option value="custom" ${preset ? '' : 'selected'}>وقت آخر…</option>
+                    </select></label>
+                ${preset ? '' : `<div class="ms-remind-custom">
+                    <input class="ms-input" type="number" inputmode="numeric" min="0" max="72" value="${Math.floor(lead / 60)}" data-role="remind-h" aria-label="ساعات"><span>ساعة</span>
+                    <input class="ms-input" type="number" inputmode="numeric" min="0" max="59" step="5" value="${lead % 60}" data-role="remind-m" aria-label="دقائق"><span>دقيقة</span>
+                    <button type="button" class="ms-btn primary" data-act="remind-save">حفظ</button>
+                </div>`}
+                ${next ? `<div class="ms-remind-next"><i class="fas fa-clock"></i> خفارتك القادمة: <b>${esc(next.title)}</b> · ${esc(deadlineText(next.start))}${next.sent ? ' <span class="ok">(أُرسل التذكير)</span>' : ''}</div>`
+                    : '<div class="ms-remind-next"><i class="fas fa-clock"></i> لا توجد خفارة قادمة في جدولك حالياً.</div>'}
+                ${pushOff ? `<div class="ms-remind-warn">${reminder.push === 'needs-install' ? '📲 لتصلك الإشعارات على iPhone أضف الموقع إلى الشاشة الرئيسية أولاً، ثم فعّل الإشعارات.'
+                    : reminder.push === 'denied' ? '🔕 الإشعارات محظورة لهذا الموقع في إعدادات المتصفح؛ سيظهر التذكير داخل التطبيق فقط.'
+                    : reminder.push === 'unsupported' ? 'هذا المتصفح لا يدعم الإشعارات؛ سيظهر التذكير داخل التطبيق فقط.'
+                    : '🔔 الإشعارات غير مفعّلة على هذا الجهاز. <button type="button" class="ms-btn sm" data-act="remind-push">تفعيل الإشعارات</button>'}</div>` : ''}
+            </div>` : ''}
+        </div>`;
+    }
+
+    /** Names of the hospital's duty codes as this app shows them (the server has no copy of them). */
+    function dutyNames() {
+        const names = {};
+        const hosp = (data && data.hosp) || (Hub.auth.getAccount() || {}).hosp;
+        const h = hosp && Hub.getHospital && Hub.getHospital(hosp);
+        ((h && h.specialties) || []).forEach(sp => { if (sp && sp.id) names[sp.id] = (Hub.getSpecialtyName && Hub.getSpecialtyName(sp.id, hosp)) || sp.name_ar || sp.id; });
+        for (const month of cache.values()) (month.duties || []).forEach(d => { if (d.src === 'hospital' && d.spec) names[d.spec] = view(d).title; });
+        return names;
+    }
+
+    async function saveReminder(on, lead, btn) {
+        if (btn) btn.disabled = true;
+        try {
+            const res = await Hub.api('POST', '/api/accounts/duty-reminder', { on, lead, names: on ? dutyNames() : undefined }, { retries: 0 });
+            reminder = { ...res, push: reminder && reminder.push };
+            customLead = false;
+            toast(on ? `سيصلك تذكير قبل كل خفارة بـ ${durationText(res.lead)} ✓` : 'تم إيقاف تذكير الخفارات', 'success');
+        } catch (err) {
+            toast(errorText(err), 'error');
+            paintReminder();
+            return;
+        }
+        paintReminder();
+        if (!on) return;
+        // The reminder comes as a push: make sure this device receives them (may ask for permission).
+        let st = await A.push.status().catch(() => 'unknown');
+        if (st === 'off') { const r = await A.push.enable().catch(() => ({ ok: false })); st = r && r.ok ? 'on' : await A.push.status().catch(() => 'off'); }
+        if (reminder && reminder.on) { reminder.push = st; paintReminder(); }
+    }
+
+    function bindReminder(root) {
+        const box = root.querySelector('.ms-remind');
+        if (!box) return;
+        const toggle = box.querySelector('[data-act="remind-toggle"]');
+        toggle.addEventListener('click', () => saveReminder(!reminder.on, reminder.lead || LEAD_DEFAULT, toggle));
+        const sel = box.querySelector('[data-role="remind-lead"]');
+        if (sel) sel.addEventListener('change', () => {
+            if (sel.value === 'custom') { customLead = true; paintReminder(); return; }
+            saveReminder(true, Number(sel.value), sel);
+        });
+        const save = box.querySelector('[data-act="remind-save"]');
+        if (save) save.addEventListener('click', () => {
+            const h = Math.max(0, Math.floor(Number(box.querySelector('[data-role="remind-h"]').value) || 0));
+            const m = Math.max(0, Math.floor(Number(box.querySelector('[data-role="remind-m"]').value) || 0));
+            const lead = h * 60 + m;
+            if (lead < 5 || lead > 72 * 60) { toast('اختر وقتاً بين 5 دقائق و72 ساعة.', 'error'); return; }
+            saveReminder(true, lead, save);
+        });
+        const pushBtn = box.querySelector('[data-act="remind-push"]');
+        if (pushBtn) pushBtn.addEventListener('click', async () => {
+            pushBtn.disabled = true;
+            const r = await A.push.enable().catch(() => ({ ok: false }));
+            reminder.push = await A.push.status().catch(() => 'off');
+            if (!(r && r.ok)) toast((r && r.error) || 'تعذّر تفعيل الإشعارات', 'error');
+            paintReminder();
+        });
     }
 
     // ------------------------------------------------------------------

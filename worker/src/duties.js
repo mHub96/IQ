@@ -17,6 +17,7 @@
 import { DAY, json, readJson, overLimit, plainText, signToken, verifyToken } from './lib.js';
 import { nameKey, nameTokens, namesMatch, phoneKey, isoDate } from './names.js';
 import { notifyHospitalResidents, dispatchPush } from './accounts.js';
+import { refreshFromMyDuties } from './reminders.js';
 
 const HOSP_RE = /^[\w-]{1,48}$/;
 const YM_RE = /^(20\d\d)-(0[1-9]|1[0-2])$/;
@@ -121,13 +122,15 @@ async function myDuties(env, auth, url) {
   const acc = await env.DB.prepare('SELECT id, name, name_key, hosp, phone, resident_id FROM accounts WHERE id = ?').bind(auth.a).first();
   if (!acc) return json({ error: 'account_required' }, 403);
   const out = await collectDuties(env, acc, ym);
+  // Duty reminders follow the schedule the resident is looking at.
+  try { await refreshFromMyDuties(env, acc, out, ym); } catch (err) { console.error('duty reminder refresh', err && err.message); }
   // Ticket for this month's calendar file (/api/cal), which the phone's calendar opens without the session.
   out.cal = await signToken(env, { cal: acc.id, ym, e: Date.now() + 7 * DAY });
   return json(out);
 }
 
 /** One account's duties (hospital roster + ER scheduler) and marks for a month (YYYY-MM). */
-async function collectDuties(env, acc, ym) {
+export async function collectDuties(env, acc, ym) {
   const m = ym.match(YM_RE);
   const year = Number(m[1]), month = Number(m[2]);
 
@@ -232,11 +235,11 @@ async function collectDuties(env, acc, ym) {
 
 const IRAQ_UTC_OFFSET_H = 3; // Iraq has no daylight saving
 // ER shift [start hour, length in hours]. Hours before 08:00 fall on the next calendar day (the duty day starts at 08:00).
-const ER_TIMES = {
+export const ER_TIMES = {
   morning: [8, 6], afternoon: [14, 6], preNight: [20, 6], lateNight: [2, 6],
   er_morning: [8, 6], er_afternoon: [14, 6], er_preNight: [20, 6], er_lateNight: [2, 6],
 };
-const ER_TITLES = {
+export const ER_TITLES = {
   er: { morning: 'طوارئ · الصباحية', afternoon: 'طوارئ · بعد الصباحية', preNight: 'طوارئ · البرينايت', lateNight: 'طوارئ · الليلية' },
   con: { doctor: 'الاستشارية الخافرة' },
   dc: { doctor: 'شهادات الوفاة' },

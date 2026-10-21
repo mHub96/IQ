@@ -15,6 +15,7 @@
 import { DAY, json, signToken, verifyToken, encrypt, decrypt, bucketOf, neutralize } from './lib.js';
 import { routeAccounts, resolveAccountAuth, mirrorResident } from './accounts.js';
 import { routeDuties } from './duties.js';
+import { routeReminders, runReminders } from './reminders.js';
 import { routeExchange, approvalHospitals } from './exchange.js';
 import { routeAA, isOfficer, AA_ROLES } from './aa.js';
 import { nameKey } from './names.js';
@@ -49,7 +50,9 @@ export default {
     }
   },
 
-  async scheduled(_event, env) {
+  async scheduled(event, env, ctx) {
+    // Every 10 minutes: duty reminders. Once a night: clean-up.
+    if (event.cron !== '17 1 * * *') return runReminders(env, ctx);
     const now = Date.now();
     await env.DB.batch([
       env.DB.prepare('DELETE FROM history WHERE ts < ?').bind(now - HISTORY_KEEP_DAYS * DAY),
@@ -88,6 +91,8 @@ async function route(request, env, ctx) {
   if (aaRoute) return aaRoute;
   const exchangeRoute = await routeExchange(path, method, request, env, auth, url, ctx);
   if (exchangeRoute) return exchangeRoute;
+  const remindersRoute = await routeReminders(path, method, request, env, auth);
+  if (remindersRoute) return remindersRoute;
   const dutiesRoute = await routeDuties(path, method, request, env, auth, url, ctx);
   if (dutiesRoute) return dutiesRoute;
   const accountRoute = await routeAccounts(path, method, request, env, auth, url, ctx);

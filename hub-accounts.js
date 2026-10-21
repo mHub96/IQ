@@ -343,6 +343,10 @@
                 const until = d.closes ? new Date(d.closes).toLocaleString('ar-IQ-u-nu-latn', { day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Baghdad' }) : '';
                 return { icon: '🗓️', text: `${d.extended ? 'تم تمديد' : 'فُتحت'} بوابة رغبات خفارات الطوارئ لشهر ${mon} ${String(d.ym || '').slice(0, 4)}${until ? ' حتى ' + until : ''}. اضغط لتحديد رغباتك.`, open: () => openPanel('portal') };
             }
+            case 'duty_reminder': {
+                const at = d.start ? new Date(d.start).toLocaleString('ar-IQ-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Baghdad' }) : '';
+                return { icon: '⏰', text: `تذكير: خفارتك ${d.title ? '«' + d.title + '» ' : ''}${at ? 'تبدأ ' + at : 'قريباً'}${d.hospName ? ' (' + d.hospName + ')' : ''}.`, open: () => openPanel('schedule') };
+            }
             default:
                 return { icon: '🔔', text: 'إشعار جديد' };
         }
@@ -1070,7 +1074,8 @@
         if (!m || !account()) return;
         history.replaceState(null, '', location.pathname + location.search);
         if (m[1] === 'exchanges') { setTimeout(openExchanges, 400); return; }
-        setTimeout(() => openPanel(m[1] === 'schedule' ? 'portal' : m[1]), 400);
+        // #panel=schedule = the ER preferences portal (its notification); #panel=duties = My Schedule.
+        setTimeout(() => openPanel(m[1] === 'schedule' ? 'portal' : m[1] === 'duties' ? 'schedule' : m[1]), 400);
     }
 
     // ------------------------------------------------------------------

@@ -134,11 +134,15 @@ test('owner sees every request; plain users see none', async () => {
   assert.ok(n.data.pending.accounts >= 3);
 });
 
-test('approvals; only the owner changes roles; tokens follow the database', async () => {
+test('approvals; admins change residents roles (never owner); tokens follow the database', async () => {
   assert.equal((await call('POST', '/api/accounts/decide', { token: state.owner, body: { id: state.idA, action: 'approve' } })).data.account.status, 'active');
   assert.equal((await call('POST', '/api/accounts/decide', { token: state.admin, body: { id: state.idB, action: 'approve' } })).data.account.status, 'active');
   assert.equal((await call('POST', '/api/accounts/decide', { token: state.owner, body: { id: state.idC, action: 'approve' } })).data.account.status, 'active');
-  assert.equal((await call('POST', '/api/accounts/decide', { token: state.admin, body: { id: state.idB, action: 'set_role', role: 'admin' } })).status, 403);
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.admin, body: { id: state.idB, action: 'set_role', role: 'owner' } })).status, 403, 'never owner');
+  const anaes = await call('POST', '/api/accounts/decide', { token: state.admin, body: { id: state.idB, action: 'set_role', role: 'anaesthesia' } });
+  assert.equal(anaes.data.account.role, 'anaesthesia');
+  assert.deepEqual(anaes.data.account.hospitals, [hospital.id], "always the account's own hospital");
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.admin, body: { id: state.idB, action: 'set_role', role: 'user' } })).data.account.role, 'user');
 
   const a = await accountLogin(uA, 'pass-A-1', DEV.a1);
   assert.equal(a.success, true, JSON.stringify(a));
@@ -165,7 +169,16 @@ test('approvals; only the owner changes roles; tokens follow the database', asyn
   const scoped = await call('GET', '/api/accounts?filter=all', { token: state.tokA });
   assert.ok(scoped.data.accounts.every(x => x.hosp === hospital.id));
   assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idA, action: 'disable' } })).status, 403, 'not on itself');
-  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'set_role', role: 'admin' } })).status, 403);
+  // It makes another resident of its hospital an admin, and back; that admin is otherwise not its to manage.
+  const peer = await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'set_role', role: 'admin', hospitals: ['*'] } });
+  assert.equal(peer.status, 403, 'admins choose no hospitals');
+  const made = await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'set_role', role: 'admin' } });
+  assert.equal(made.data.account.role, 'admin');
+  assert.deepEqual(made.data.account.hospitals, [hospital.id]);
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'mute' } })).status, 403, 'only the role of a fellow admin');
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'set_role', role: 'owner' } })).status, 403);
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'set_role', role: 'user' } })).data.account.role, 'user');
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idA, action: 'set_role', role: 'user' } })).status, 403, 'not on itself');
   // ...and the owner can switch a user back to a regular user.
   const demote = await call('POST', '/api/accounts/decide', { token: state.owner, body: { id: state.idC, action: 'set_role', role: 'admin', hospitals: [hospital.id] } });
   assert.equal(demote.data.account.role, 'admin');
@@ -589,11 +602,14 @@ test('a resident renamed in the hospital database: account, roster of every mont
   assert.deepEqual(await mine(), before);
 });
 
-test('hospital admins: no status, role or device changes, but delete their hospital\'s accounts', async () => {
+test('hospital admins: no status or device changes, but roles and deleting their hospital\'s accounts', async () => {
   for (const action of ['disable', 'enable', 'set_profile', 'remove_device']) {
     assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idC, action } })).status, 403, action);
   }
-  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idC, action: 'set_role', role: 'anaesthesia' } })).status, 403);
+  // Its own hospital's residents: regular / anaesthesia / admin, never owner.
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idC, action: 'set_role', role: 'anaesthesia' } })).data.account.role, 'anaesthesia');
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idC, action: 'set_role', role: 'owner' } })).status, 403);
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idC, action: 'set_role', role: 'user' } })).data.account.role, 'user');
 });
 
 test('account users keep the same duty permissions', async () => {

@@ -11,6 +11,7 @@
 import { DAY, json, readJson, signToken, sha256b64, b64, overLimit, bucketOf, plainText } from './lib.js';
 import { nameKey, namesMatch, phoneKey, isoDate } from './names.js';
 import { sendPush, isPushEndpoint, topicFor } from './push.js';
+import { durationText } from './reminders.js';
 import { BOARDS, dutyDayNow, getStageMonth, setStageMonth, currentStage, profileComplete, suggestProfile } from './profile.js';
 import { AA_ROLES, findOfficer, officerLink, divisionJob, addOfficer } from './aa.js';
 
@@ -19,9 +20,9 @@ const KEY_RE = /^[A-Za-z0-9+/]{43}=$/; // 32 bytes, base64
 const HOSP_RE = /^[\w-]{1,48}$/;
 const DEVICE_RE = /^[A-Za-z0-9_-]{16,64}$/;
 const ACCOUNT_ROLES = ['user', 'anaesthesia', 'admin', 'owner', 'rotator', ...AA_ROLES];
-// Roles a hospital admin may give when approving or managing a resident of their hospital, and an
-// officer of the hospital's Administrative Affairs division (division user or division admin).
-const ADMIN_GIVES = ['user', 'anaesthesia'];
+// Roles a hospital admin may give when approving or managing a resident of their hospital (never
+// owner), and an officer of the hospital's Administrative Affairs division (division user or admin).
+const ADMIN_GIVES = ['user', 'anaesthesia', 'admin'];
 const ADMIN_GIVES_AA = AA_ROLES;
 // Accounts a hospital admin manages (never other admins or the owner).
 const ADMIN_MANAGES = ['user', 'anaesthesia', 'rotator', ...AA_ROLES];
@@ -442,6 +443,15 @@ function closesText(ms) {
   return `${d.getUTCDate()}/${d.getUTCMonth() + 1} الساعة ${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
 }
 
+const WEEKDAY_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+/** "الثلاثاء 22/10 · 8:00 م" in Iraq time. */
+function startText(ms) {
+  const d = new Date(Number(ms) + 3 * 3600 * 1000);
+  if (isNaN(d)) return '';
+  const h = d.getUTCHours();
+  return `${WEEKDAY_AR[d.getUTCDay()]} ${d.getUTCDate()}/${d.getUTCMonth() + 1} · ${h % 12 || 12}:${String(d.getUTCMinutes()).padStart(2, '0')} ${h < 12 ? 'ص' : 'م'}`;
+}
+
 const ROLE_AR = { owner: 'المالك', admin: 'مدير مستشفى', anaesthesia: 'مقيم تخدير', user: 'مقيم', rotator: 'روتيتر', aa_user: 'موظف الشؤون الإدارية', aa_admin: 'مدير الشؤون الإدارية' };
 
 /** Lock-screen text for one notification row (the in-app list builds its own, richer text). */
@@ -470,6 +480,7 @@ function pushMessage(n) {
     case 'comments_barred': return { title: '🚫 تم إيقاف التعليق لحسابك', body: 'لا يمكنك التعليق على بطاقات الخفارات حالياً.', url: './index.html?portal=true' };
     case 'comments_allowed': return { title: '💬 يمكنك التعليق مجدداً', body: 'أُعيد السماح بالتعليق لحسابك.', url: './index.html?portal=true' };
     case 'er_portal': return { title: d.extended ? '🗓️ تمديد بوابة رغبات الطوارئ' : '🗓️ بوابة رغبات خفارات الطوارئ مفتوحة', body: `اختر رغباتك لجدول ${MONTH_AR[Number(String(d.ym || '').slice(5))] || ''} ${String(d.ym || '').slice(0, 4)} قبل ${closesText(d.closes)}`, url: './index.html?portal=true#panel=schedule' };
+    case 'duty_reminder': return { title: `⏰ خفارتك بعد ${durationText(d.in || d.lead || 60)}`, body: `${d.title || ''} · ${startText(d.start)}${d.hospName ? ' · ' + d.hospName : ''}`, url: './index.html?portal=true#panel=duties' };
     default: return { title: '🔔 إشعار جديد', body: '', url: './index.html?portal=true' };
   }
 }
@@ -799,10 +810,16 @@ async function decide(request, env, auth, ctx) {
   // hospitals, never themselves: they answer sign-up and password requests, allow or bar commenting
   // and delete accounts. Everything else (status, role, devices, profile) is the owner's, except an
   // officer's division role.
-  if (!isOwner && (!hospInScope(auth, row.hosp) || !ADMIN_MANAGES.includes(row.role) || row.id === auth.a)) return json({ error: 'forbidden' }, 403);
-  // (Division officers keep the admin's switch between division user and division admin.)
-  const adminMay = ADMIN_ACTIONS.includes(String(body.action || '')) || (body.action === 'set_role' && AA_ROLES.includes(row.role));
+  // Another admin of the admin's own hospital(s): only their role can be changed.
+  const peerAdmin = !isOwner && row.role === 'admin' && scopeOf(row).length > 0 && scopeOf(row).every(h => h !== '*' && hospInScope(auth, h));
+  if (!isOwner && (!hospInScope(auth, row.hosp) || !(ADMIN_MANAGES.includes(row.role) || peerAdmin) || row.id === auth.a)) return json({ error: 'forbidden' }, 403);
+  // Admins also switch a resident between regular, anaesthesia and admin, and an officer between
+  // division user and division admin; rotators stay rotators.
+  const adminMay = peerAdmin ? body.action === 'set_role'
+    : ADMIN_ACTIONS.includes(String(body.action || '')) || (body.action === 'set_role' && row.role !== 'rotator');
   if (!isOwner && !adminMay) return json({ error: 'forbidden' }, 403);
+  // Nobody changes a rotator's type (the owner included).
+  if (row.role === 'rotator' && body.role !== undefined && body.role !== 'rotator') return json({ error: 'rotator_fixed' }, 403);
   if (!isOwner && body.maxDevices !== undefined) return json({ error: 'forbidden' }, 403);
 
   const now = Date.now();
@@ -820,7 +837,7 @@ async function decide(request, env, auth, ctx) {
       role = ACCOUNT_ROLES.includes(body.role) ? body.role : row.role;
       hospitals = Array.isArray(body.hospitals) ? body.hospitals.map(String).filter(h => h === '*' || HOSP_RE.test(h)).slice(0, 50) : hospitals;
     } else {
-      // Admins: regular or anaesthesia resident for residents, division user or division admin for
+      // Admins: regular, anaesthesia or admin for residents, division user or division admin for
       // officers, always for their own hospital; rotators stay rotators.
       const gives = AA_ROLES.includes(row.role) ? ADMIN_GIVES_AA : ADMIN_GIVES;
       if (body.hospitals !== undefined || !gives.includes(body.role) || !gives.includes(row.role)) return json({ error: 'forbidden' }, 403);
@@ -909,6 +926,8 @@ async function decide(request, env, auth, ctx) {
         env.DB.prepare('DELETE FROM notifications WHERE account_id = ?').bind(row.id),
         env.DB.prepare('DELETE FROM account_devices WHERE account_id = ?').bind(row.id),
         env.DB.prepare('DELETE FROM push_subs WHERE account_id = ?').bind(row.id),
+        env.DB.prepare('DELETE FROM duty_reminders WHERE account_id = ?').bind(row.id),
+        env.DB.prepare('DELETE FROM duty_reminder_queue WHERE account_id = ?').bind(row.id),
         env.DB.prepare("UPDATE comments SET deleted = 1, deleted_by = 'account deleted' WHERE account_id = ?").bind(row.id),
         env.DB.prepare('DELETE FROM accounts WHERE id = ?').bind(row.id),
       );

@@ -13,8 +13,9 @@
       "database_id": "e795a9a9-5d07-4c42-8688-e3384809ee84"
     }
   ],
-  // Daily clean-up of old history rows and login-failure counters (the test Worker has no cron).
-  "triggers": { "crons": ["17 1 * * *"] },
+  // Daily clean-up of old history rows and login-failure counters, and duty reminders every 10
+  // minutes (the test Worker has no cron; reminders saved on the test site are sent from here too).
+  "triggers": { "crons": ["17 1 * * *", "*/10 * * * *"] },
   "vars": {
     "ALLOWED_ORIGINS": "https://mhub96.github.io",
     // Web Push: the same key pair as the test Worker, so existing subscriptions keep working.

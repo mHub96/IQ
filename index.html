@@ -2613,7 +2613,7 @@
                                 <a href="./specialists.html?hospital=${h.id}" class="ios-btn secondary">
                                     <i class="fas fa-user-tie"></i> <span>أطباء الاختصاص</span>
                                 </a>
-                                ${((isHospAdmin && h.erEnabled) || isOwner) ? `
+                                ${(isOwner || Hub.auth.canUseEr(h.id)) ? `
                                 <a href="./emergency.html?hospital=${h.id}" class="ios-btn secondary hosp-er-btn" style="border-color:rgba(225,29,72,0.3); color:#e11d48; background:rgba(225,29,72,0.06);" title="نظام وجداول خفارات الطوارئ لهذا المستشفى">
                                     <i class="fas fa-truck-medical text-rose-500"></i> <span>خفارات الطوارئ (ER)</span>
                                 </a>
@@ -2641,7 +2641,7 @@
                                             </div>
                                             <div>
                                                 <div class="leading-tight text-xs">نظام خفارات الطوارئ (ER)</div>
-                                                <div class="text-[10px] font-normal ${h.erEnabled ? 'text-emerald-700/80 dark:text-emerald-300/80' : 'text-rose-700/80 dark:text-rose-300/80'}">إتاحة الموقع لمدير هذا المستشفى</div>
+                                                <div class="text-[10px] font-normal ${h.erEnabled ? 'text-emerald-700/80 dark:text-emerald-300/80' : 'text-rose-700/80 dark:text-rose-300/80'}">${h.erEnabled ? (Array.isArray(h.erAdmins) ? (h.erAdmins.length ? `مسموح لـ ${h.erAdmins.length === 1 ? 'مدير واحد' : h.erAdmins.length === 2 ? 'مديرَين' : h.erAdmins.length + ' مدراء'}` : 'لم تختر أي مدير بعد') : 'مسموح لكل مدراء المستشفى') : 'إتاحة الموقع لمدراء تختارهم'}</div>
                                             </div>
                                         </div>
                                         <label class="er-toggle-container">
@@ -2652,6 +2652,9 @@
                                             </div>
                                         </label>
                                     </div>
+                                    ${h.erEnabled ? `<button type="button" onclick="openErAdminsPicker('${h.id}')" class="w-full flex items-center justify-center gap-2 p-2 rounded-xl border border-emerald-200/80 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-300 font-bold text-xs hover:bg-emerald-50/60 dark:hover:bg-emerald-950/30">
+                                        <i class="fas fa-user-shield"></i> اختيار المدراء المسموح لهم بالطوارئ
+                                    </button>` : ''}
 
                                     <div class="flex justify-between items-center pt-1 text-[11px]">
                                         <span class="text-amber-600 dark:text-amber-400 font-bold"><i class="fas fa-crown ml-1"></i> المالك</span>
@@ -3071,14 +3074,62 @@
 
         async function toggleHospitalEREnabled(hospId, isChecked) {
             try {
-                await Hub.updateHospital(hospId, { erEnabled: !!isChecked });
-                showToast(isChecked ? 'تم تفعيل نظام خفارات الطوارئ لهذا المستشفى بنجاح 🚨' : 'تم تعطيل نظام خفارات الطوارئ لهذا المستشفى', 'success');
+                const h = Hub.getHospital(hospId) || {};
+                // Switched on: no admin has access until the owner picks them (a kept list is reused).
+                const updates = { erEnabled: !!isChecked };
+                if (isChecked && !Array.isArray(h.erAdmins)) updates.erAdmins = [];
+                await Hub.updateHospital(hospId, updates);
+                showToast(isChecked ? 'تم تفعيل نظام خفارات الطوارئ لهذا المستشفى 🚨 اختر المدراء المسموح لهم' : 'تم تعطيل نظام خفارات الطوارئ لهذا المستشفى', 'success');
                 renderHubDashboard();
+                if (isChecked) openErAdminsPicker(hospId);
             } catch (err) {
                 console.error('Error toggling hospital ER status:', err);
                 showToast(err.message || 'فشل تعديل حالة نظام الطوارئ', 'error');
                 renderHubDashboard();
             }
+        }
+
+        /** Owner: which of the hospital's admins may use its ER page (hospital.erAdmins). */
+        async function openErAdminsPicker(hospId) {
+            if (!Hub.auth.isOwner() || !window.HubAccounts) return;
+            const h = Hub.getHospital(hospId);
+            if (!h) return;
+            const esc = HubAccounts.esc;
+            const sheet = HubAccounts.openSheet(`<header class="hacc-sheet-head"><h2>مدراء الطوارئ · ${esc(h.name_ar || h.hospitalName || h.id)}</h2></header>
+                <div class="hacc-sheet-body" data-role="body"><div class="hacc-empty">جاري تحميل المدراء…</div></div>`, { label: 'مدراء الطوارئ' });
+            const body = sheet.querySelector('[data-role="body"]');
+            let admins = [];
+            try {
+                const res = await Hub.api('GET', '/api/accounts?filter=active', undefined, { retries: 1 });
+                admins = (res.accounts || []).filter(a => a.role === 'admin' && (a.hospitals || []).some(x => x === '*' || x === hospId));
+            } catch (err) {
+                body.innerHTML = `<div class="hacc-empty">${esc(HubAccounts.errorText(err))}</div>`;
+                return;
+            }
+            // No list yet (switched on before lists existed): everyone is allowed, so everyone starts ticked.
+            const chosen = new Set(Array.isArray(h.erAdmins) ? h.erAdmins : [...admins.map(a => a.id), 'shared']);
+            const row = (id, title, sub) => `<label class="er-adm-row"><input type="checkbox" value="${esc(id)}" ${chosen.has(id) ? 'checked' : ''}>
+                <span><b>${esc(title)}</b><small>${esc(sub)}</small></span></label>`;
+            body.innerHTML = `<p class="hacc-muted" style="font-size:.8rem;line-height:1.7;margin:0 0 10px">فقط المدراء المختارون هنا يفتحون صفحة الطوارئ لهذا المستشفى ويتحكمون ببوابة الرغبات. يمكنك تغيير الاختيار في أي وقت.</p>
+                <div class="er-adm-list">
+                    ${admins.length ? admins.map(a => row(a.id, a.name, '@' + a.username + ((a.hospitals || []).includes('*') ? ' · كل المستشفيات' : ''))).join('') : '<div class="hacc-empty">لا يوجد مدراء بحسابات شخصية لهذا المستشفى.</div>'}
+                    ${row('shared', 'الدخول بكلمة مرور المدير المشتركة', 'أي شخص يدخل بكلمة مرور مدير هذا المستشفى المشتركة')}
+                </div>
+                <button type="button" class="hacc-btn primary" data-act="save" style="width:100%;margin-top:12px">حفظ</button>`;
+            body.querySelector('[data-act="save"]').addEventListener('click', async e => {
+                const btn = e.currentTarget;
+                btn.disabled = true;
+                const list = [...body.querySelectorAll('.er-adm-list input:checked')].map(i => i.value);
+                try {
+                    await Hub.updateHospital(hospId, { erAdmins: list });
+                    showToast(list.length ? 'تم حفظ مدراء الطوارئ ✓' : 'تم الحفظ: لا يوجد مدير مسموح له حالياً', 'success');
+                    HubAccounts.closeSheet();
+                    renderHubDashboard();
+                } catch (err) {
+                    btn.disabled = false;
+                    showToast(err.message || 'تعذر الحفظ', 'error');
+                }
+            });
         }
 
         // ============================================================

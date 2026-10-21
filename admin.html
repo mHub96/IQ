@@ -1376,47 +1376,6 @@
         </div>
     </div>
 
-    <!-- CONTACT PICKER FALLBACK MODAL -->
-    <div id="contact-fallback-modal" class="modal-overlay">
-        <div class="modal-card" style="max-width: 480px;">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="text-lg font-black flex items-center gap-2">
-                    <i class="fas fa-address-book text-teal-600 dark:text-teal-400"></i>
-                    <span>إضافة جهة اتصال من الهاتف 📱</span>
-                </h3>
-                <button type="button" onclick="closeContactFallbackModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="p-3 mb-3 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 text-xs text-teal-900 dark:text-teal-200 leading-relaxed">
-                <p class="font-bold mb-1"><i class="fas fa-info-circle ml-1"></i> استيراد جهات الاتصال:</p>
-                <p>ميزة فتح جهات الاتصال مباشرة تعمل تلقائياً على الهواتف المتوافقة (مثل متصفح Chrome أو Edge على أندرويد). كما يمكنك على الآيفون والكمبيوتر رفع ملف <strong>vCard (.vcf)</strong> تم تصديره أو مشاركته من جهات اتصال هاتفك ليتم استخراج الاسم والرقم تلقائياً.</p>
-            </div>
-
-            <div class="space-y-3">
-                <button type="button" onclick="document.getElementById('contact-vcf-picker').click()" class="w-full btn-gradient text-xs py-3">
-                    <i class="fas fa-file-arrow-up ml-1 text-base"></i>
-                    <span>اختيار ملف جهة اتصال (.vcf) من الهاتف</span>
-                </button>
-
-                <div class="text-center text-xs text-slate-400 font-bold">أو</div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">الصق نص جهة الاتصال أو رقمها:</label>
-                    <textarea id="contact-manual-text" class="input-field text-xs font-mono" rows="2" placeholder="مثال: د. احمد علي 07801234567"></textarea>
-                    <button type="button" onclick="extractFromManualContactText()" class="mt-2 w-full btn-ghost text-xs">
-                        <i class="fas fa-wand-magic-sparkles ml-1"></i> استخراج وتعبئة الحقول
-                    </button>
-                </div>
-            </div>
-
-            <div class="flex justify-end pt-3 mt-3 border-t border-slate-200 dark:border-slate-800">
-                <button type="button" onclick="closeContactFallbackModal()" class="btn-ghost text-xs">إلغاء</button>
-            </div>
-        </div>
-    </div>
-
     <!-- ALL ROTATION HEROES LINKS MODAL (OWNER ONLY) -->
     <div id="all-heroes-modal" class="modal-overlay">
         <div class="modal-card max-w-2xl">
@@ -1509,7 +1468,7 @@
 
                 // Show ER button if isOwner or if erEnabled for this hospital
                 const isOwner = Hub.auth.isOwner();
-                const isErAllowed = isOwner || (currentHospital && currentHospital.erEnabled);
+                const isErAllowed = isOwner || (currentHospital && Hub.auth.canUseEr(currentHospital.id));
                 const ownerEmergencyBtn = document.getElementById('admin-owner-emergency-btn');
                 if (ownerEmergencyBtn) {
                     ownerEmergencyBtn.style.display = isErAllowed ? 'inline-flex' : 'none';
@@ -4338,44 +4297,14 @@
             pickResidentFromContacts();
         }
 
-        async function pickResidentFromContacts() {
-            // Check for native Web Contact Picker API (Chrome / Edge / mobile browsers)
-            if ('contacts' in navigator && 'ContactsManager' in window && typeof navigator.contacts.select === 'function') {
-                try {
-                    let props = ['name', 'tel'];
-                    if (typeof navigator.contacts.getProperties === 'function') {
-                        const supported = await navigator.contacts.getProperties();
-                        props = props.filter(p => supported.includes(p));
-                    }
-                    const contacts = await navigator.contacts.select(props.length ? props : ['name', 'tel'], { multiple: false });
-                    if (contacts && contacts.length > 0) {
-                        const c = contacts[0];
-                        const rawName = (c.name && c.name[0]) ? c.name[0] : '';
-                        const rawTel = (c.tel && c.tel[0]) ? c.tel[0] : '';
-                        applyExtractedContact(rawName, rawTel);
-                        return;
-                    }
-                } catch (err) {
-                    if (err.name === 'AbortError' || err.name === 'SecurityError') {
-                        // User cancelled picker
-                        return;
-                    }
-                    console.warn('Native contact picker error, opening fallback modal:', err);
-                }
-            }
-
-            // Fallback for browsers without Contact Picker API (Desktop, iOS Safari)
-            openContactFallbackModal();
-        }
-
-        function openContactFallbackModal() {
-            const modal = document.getElementById('contact-fallback-modal');
-            if (modal) modal.classList.add('active');
-        }
-
-        function closeContactFallbackModal() {
-            const modal = document.getElementById('contact-fallback-modal');
-            if (modal) modal.classList.remove('active');
+        // Android: the phone's contacts list; iPhone / computers: AutoFill Contact, a vCard file or pasted text (hub-accounts.js).
+        function pickResidentFromContacts() {
+            HubAccounts.pickContact({
+                name: document.getElementById('new-res-name'),
+                phone: document.getElementById('new-res-phone'),
+                file: document.getElementById('contact-vcf-picker'),
+                apply: applyExtractedContact,
+            });
         }
 
         function applyExtractedContact(rawName, rawTel) {
@@ -4417,7 +4346,6 @@
                 specSelect.focus();
             }
 
-            closeContactFallbackModal();
             showToast(`تم استيراد جهة الاتصال (${formattedName || formattedPhone}) بنجاح! أكمل اختيار التخصص والمستشفى.`, 'success');
         }
 
@@ -4459,26 +4387,6 @@
                 }
             }
             return { name, tel };
-        }
-
-        function extractFromManualContactText() {
-            const area = document.getElementById('contact-manual-text');
-            const text = (area?.value || '').trim();
-            if (!text) {
-                showToast('يرجى كتابة أو لصق نص جهة الاتصال', 'error');
-                return;
-            }
-
-            // Extract phone digits if present
-            const phoneMatch = text.match(/(?:\+?964|00964|0)?7[0-9]{9}/) || text.match(/[0-9]{10,14}/);
-            const phone = phoneMatch ? phoneMatch[0] : '';
-            let name = text.replace(phone, '').replace(/[,\-:|]/g, ' ').trim();
-            if (name.length < 2 && !phone) {
-                showToast('تعذر استخراج الاسم أو الرقم من النص المدخل', 'error');
-                return;
-            }
-            applyExtractedContact(name, phone);
-            if (area) area.value = '';
         }
 
         async function saveToGitHub() {

@@ -1619,28 +1619,14 @@
         }
 
         // Contact Picker in Residents Directory
-        async function pickResidentFromContactsInDirectory() {
-            if ('contacts' in navigator && 'ContactsManager' in window && typeof navigator.contacts.select === 'function') {
-                try {
-                    let props = ['name', 'tel'];
-                    if (typeof navigator.contacts.getProperties === 'function') {
-                        const supported = await navigator.contacts.getProperties();
-                        props = props.filter(p => supported.includes(p));
-                    }
-                    const contacts = await navigator.contacts.select(props.length ? props : ['name', 'tel'], { multiple: false });
-                    if (contacts && contacts.length > 0) {
-                        const c = contacts[0];
-                        applyContactToDirectoryForm((c.name && c.name[0]) || '', (c.tel && c.tel[0]) || '');
-                        return;
-                    }
-                } catch (err) {
-                    if (err.name === 'AbortError' || err.name === 'SecurityError') return;
-                    console.warn('Directory contact picker error:', err);
-                }
-            }
-            // Fallback: trigger vcard picker
-            const fileInput = document.getElementById('directory-vcf-picker');
-            if (fileInput) fileInput.click();
+        // Android: the phone's contacts list; iPhone / computers: AutoFill Contact, a vCard file or pasted text (hub-accounts.js).
+        function pickResidentFromContactsInDirectory() {
+            HubAccounts.pickContact({
+                name: document.getElementById('form-res-name'),
+                phone: document.getElementById('form-res-phone'),
+                file: document.getElementById('directory-vcf-picker'),
+                apply: applyContactToDirectoryForm,
+            });
         }
 
         function handleDirectoryVCardFile(event) {

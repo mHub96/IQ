@@ -18,6 +18,7 @@ import { DAY, json, readJson, overLimit, plainText, signToken, verifyToken } fro
 import { nameKey, nameTokens, namesMatch, phoneKey, isoDate } from './names.js';
 import { notifyHospitalResidents, dispatchPush } from './accounts.js';
 import { refreshFromMyDuties } from './reminders.js';
+import { canUseEr } from './eraccess.js';
 
 const HOSP_RE = /^[\w-]{1,48}$/;
 const YM_RE = /^(20\d\d)-(0[1-9]|1[0-2])$/;
@@ -395,7 +396,8 @@ export function cleanPrefs(p, ym, loose = false) {
 // ER portal
 // ---------------------------------------------------------------------------
 
-const canAdmin = (auth, hosp) => auth && (auth.r === 'owner' || (auth.r === 'admin' && (auth.h || []).some(h => h === '*' || h === hosp)));
+// The owner, or an admin the owner picked for this hospital's ER page (eraccess.js).
+const canAdmin = async (env, auth, hosp) => !!auth && canUseEr(env, auth, hosp);
 const isOpen = (p, now = Date.now()) => p && !p.closed_at && p.opens_at <= now && p.closes_at > now;
 
 async function portalMine(env, auth) {
@@ -446,7 +448,7 @@ async function savePortalRequest(request, env, auth) {
 async function portalAdmin(env, auth, url) {
   const hosp = String(url.searchParams.get('hosp') || '');
   if (!HOSP_RE.test(hosp)) return json({ error: 'bad_hospital' }, 400);
-  if (!canAdmin(auth, hosp)) return json({ error: 'forbidden' }, 403);
+  if (!(await canAdmin(env, auth, hosp))) return json({ error: 'forbidden' }, 403);
   const { results: portals } = await env.DB.prepare(
     'SELECT hosp, ym, opens_at, closes_at, opened_by, closed_at FROM er_portals WHERE hosp = ? ORDER BY ym DESC LIMIT 12'
   ).bind(hosp).all();
@@ -483,7 +485,7 @@ async function openPortal(request, env, auth, ctx) {
   const b = await readJson(request) || {};
   const hosp = String(b.hosp || ''), ym = String(b.ym || '');
   if (!HOSP_RE.test(hosp) || !YM_RE.test(ym)) return json({ error: 'bad_request' }, 400);
-  if (!canAdmin(auth, hosp)) return json({ error: 'forbidden' }, 403);
+  if (!(await canAdmin(env, auth, hosp))) return json({ error: 'forbidden' }, 403);
   const now = Date.now();
   const closesAt = Math.floor(Number(b.closesAt));
   if (!(closesAt > now + 10 * 60 * 1000) || closesAt > now + MAX_PORTAL_DAYS * DAY) return json({ error: 'bad_deadline' }, 400);
@@ -515,7 +517,7 @@ async function closePortal(request, env, auth) {
   const b = await readJson(request) || {};
   const hosp = String(b.hosp || ''), ym = String(b.ym || '');
   if (!HOSP_RE.test(hosp) || !YM_RE.test(ym)) return json({ error: 'bad_request' }, 400);
-  if (!canAdmin(auth, hosp)) return json({ error: 'forbidden' }, 403);
+  if (!(await canAdmin(env, auth, hosp))) return json({ error: 'forbidden' }, 403);
   const now = Date.now();
   await env.DB.prepare('UPDATE er_portals SET closed_at = ? WHERE hosp = ? AND ym = ? AND closed_at IS NULL').bind(now, hosp, ym).run();
   return json({ ok: true });
@@ -526,7 +528,7 @@ async function markApplied(request, env, auth) {
   const b = await readJson(request) || {};
   const hosp = String(b.hosp || ''), ym = String(b.ym || '');
   if (!HOSP_RE.test(hosp) || !YM_RE.test(ym)) return json({ error: 'bad_request' }, 400);
-  if (!canAdmin(auth, hosp)) return json({ error: 'forbidden' }, 403);
+  if (!(await canAdmin(env, auth, hosp))) return json({ error: 'forbidden' }, 403);
   const items = (Array.isArray(b.items) ? b.items : []).slice(0, 500).filter(i => i && typeof i.accountId === 'string' && Number(i.at) > 0);
   if (!items.length) return json({ ok: true, n: 0 });
   const now = Date.now();

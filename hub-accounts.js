@@ -198,6 +198,87 @@
 
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
 
+    // ------------------------------------------------------------------
+    // A contact from the phone (name + number) into a form
+    // ------------------------------------------------------------------
+    const IS_IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+
+    /**
+     * The browser's contact picker (Chrome / Edge on Android). It opens only from a top-level page, and
+     * every page of the app runs in a frame of the app shell, so the shell's window opens it (the tap in
+     * the frame counts for the shell's window too).
+     */
+    function contactsApi() {
+        const ok = nav => !!(nav && nav.contacts && typeof nav.contacts.select === 'function');
+        try { if (window.top !== window && ok(window.top.navigator)) return window.top.navigator.contacts; } catch (e) {}
+        return ok(navigator) ? navigator.contacts : null;
+    }
+
+    /** "د. احمد علي 0780 123 4567" -> { name, tel } */
+    function splitContactText(text) {
+        const t = String(text || '');
+        const m = t.match(/\+?\d[\d\s()-]{6,}\d/);
+        const tel = m ? m[0].replace(/[\s()-]/g, '') : '';
+        const name = (m ? t.replace(m[0], ' ') : t).replace(/[\n\r\t,;:|]+/g, ' ').replace(/\s+/g, ' ').trim();
+        return { name, tel };
+    }
+
+    /**
+     * Fills a form from one of the phone's contacts.
+     * opts: { name: <input>, phone: <input>, file: <input type=file> for a vCard, apply(name, tel) }
+     * Android (Chrome / Edge): the phone's contacts list. iPhone (Safari has no contact picker): the
+     * keyboard's "AutoFill Contact" on the name field, a vCard file, or pasted text.
+     */
+    async function pickContact(opts) {
+        const api = contactsApi();
+        if (api) {
+            try {
+                const list = await api.select(['name', 'tel'], { multiple: false });
+                if (list && list.length) opts.apply((list[0].name && list[0].name[0]) || '', (list[0].tel && list[0].tel[0]) || '');
+                return; // nothing chosen: cancelled
+            } catch (err) {
+                if (err && err.name === 'AbortError') return;
+                console.warn('Contact picker:', err);
+            }
+        }
+        contactFallback(opts);
+    }
+
+    function contactFallback(opts) {
+        const sheet = openSheet(`<header class="hacc-sheet-head"><h2>إضافة من جهات الاتصال</h2></header>
+            <div class="hacc-sheet-body hacc-contact">
+                ${IS_IOS ? `<button type="button" class="hacc-btn primary" data-act="autofill"><i class="fas fa-address-book"></i> اختيار من جهات اتصال iPhone</button>
+                    <p class="hacc-muted">تظهر لوحة المفاتيح على حقل الاسم: اضغط <b>«ملء تلقائي لجهة اتصال»</b> (AutoFill Contact) أو أيقونة جهات الاتصال فوق لوحة المفاتيح، ثم اختر الطبيب فيُملأ الاسم والرقم.</p>`
+                    : '<p class="hacc-muted">هذا المتصفح لا يفتح جهات الاتصال مباشرة (تعمل على Chrome أو Edge في أندرويد). يمكنك اختيار ملف جهة اتصال أو لصق الاسم والرقم.</p>'}
+                <button type="button" class="hacc-btn" data-act="file"><i class="fas fa-file-arrow-up"></i> اختيار ملف جهة اتصال (.vcf)</button>
+                ${IS_IOS ? '<p class="hacc-muted">للحصول على الملف: جهات الاتصال ← الطبيب ← مشاركة جهة الاتصال ← حفظ في الملفات.</p>' : ''}
+                <label class="hacc-contact-paste"><span>أو الصق الاسم والرقم</span>
+                    <textarea rows="2" placeholder="د. احمد علي 07801234567"></textarea></label>
+                <button type="button" class="hacc-btn" data-act="paste"><i class="fas fa-wand-magic-sparkles"></i> تعبئة الحقول</button>
+            </div>`, { label: 'إضافة من جهات الاتصال' });
+        const autofill = sheet.querySelector('[data-act="autofill"]');
+        if (autofill) autofill.addEventListener('click', () => {
+            // Safari offers "AutoFill Contact" on fields marked as a person's name / phone number.
+            if (opts.name) opts.name.setAttribute('autocomplete', 'name');
+            if (opts.phone) opts.phone.setAttribute('autocomplete', 'tel');
+            const fields = [opts.name, opts.phone].filter(Boolean);
+            const done = () => { fields.forEach(f => f.removeEventListener('change', done)); setTimeout(() => opts.apply(opts.name ? opts.name.value : '', opts.phone ? opts.phone.value : ''), 50); };
+            fields.forEach(f => f.addEventListener('change', done));
+            closeSheet();
+            if (opts.name) { opts.name.focus(); opts.name.scrollIntoView({ block: 'center' }); }
+        });
+        sheet.querySelector('[data-act="file"]').addEventListener('click', () => {
+            if (opts.file) opts.file.click();
+            closeSheet();
+        });
+        sheet.querySelector('[data-act="paste"]').addEventListener('click', () => {
+            const { name, tel } = splitContactText(sheet.querySelector('textarea').value);
+            if (!name && !tel) { toast('الصق اسم الطبيب ورقم هاتفه أولاً.', 'error'); return; }
+            closeSheet();
+            opts.apply(name, tel);
+        });
+    }
+
     // Every page's pop-ups are bottom sheets on phones (hub-ios.css): swipe one down from its top
     // edge to close it, like iOS. Closing = a tap on the backdrop, which every page already handles.
     (function sheetSwipe() {
@@ -1224,6 +1305,7 @@
         openPanel,
         openSheet,
         closeSheet,
+        pickContact,
         refreshNavSlots,
         openNotifications,
         pollNotifications,

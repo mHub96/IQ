@@ -42,12 +42,15 @@
                     document.documentElement.classList.add('er-owner-authenticated');
                 } else if (role === 'admin') {
                     // Check if hospital is admin-authorized and erEnabled
-                    const adminHosps = JSON.parse(localStorage.getItem('hospital_hub_admin_hospitals') || '[]');
+                    const adminHosps = JSON.parse(localStorage.getItem('hospital_hub_session_admin_hospitals') || '[]');
                     const dbCache = JSON.parse(localStorage.getItem('hospital_hub_db_cache_v2') || '{}');
+                    const account = JSON.parse(localStorage.getItem('hospital_hub_account') || 'null');
                     const urlParams = new URLSearchParams(window.location.search);
                     const urlHosp = urlParams.get('hospital');
                     const targetHosp = (urlHosp && adminHosps.includes(urlHosp)) ? urlHosp : adminHosps[0];
-                    if (targetHosp && dbCache.hospitals && dbCache.hospitals[targetHosp] && dbCache.hospitals[targetHosp].erEnabled) {
+                    const h = targetHosp && dbCache.hospitals && dbCache.hospitals[targetHosp];
+                    // Same rule as Hub.auth.canUseEr (this only avoids a flash of the lock screen).
+                    if (h && h.erEnabled && (!Array.isArray(h.erAdmins) || h.erAdmins.includes(account ? account.id : 'shared'))) {
                         document.documentElement.classList.add('er-owner-authenticated');
                     }
                 }

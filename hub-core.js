@@ -1709,9 +1709,12 @@
             delete updates.rotationHeroesUrl;
         }
 
-        // Only OWNER can toggle erEnabled!
+        // Only OWNER can toggle erEnabled or pick the admins who use the ER page!
         if (updates.erEnabled !== undefined && !auth.isOwner()) {
             delete updates.erEnabled;
+        }
+        if (updates.erAdmins !== undefined && !auth.isOwner()) {
+            delete updates.erAdmins;
         }
 
         db.hospitals[id] = {
@@ -3940,6 +3943,23 @@
 
         isOwner() {
             return this.getRole() === 'owner';
+        },
+
+        /**
+         * The ER page of a hospital: the owner; an admin of the hospital while its ER switch is on and
+         * the owner picked them (hospital.erAdmins: account ids, 'shared' = the shared admin password;
+         * no list = every admin, as before the list existed). The API applies the same rule.
+         */
+        canUseEr(hospId) {
+            if (this.isOwner()) return true;
+            if (!hospId || this.getRole() !== 'admin') return false;
+            const ids = this.getAdminHospitalIds();
+            if (!ids.includes('*') && !ids.includes(hospId)) return false;
+            const h = getHospital(hospId);
+            if (!h || !h.erEnabled) return false;
+            if (!Array.isArray(h.erAdmins)) return true;
+            const acc = this.getAccount();
+            return h.erAdmins.includes(acc ? acc.id : 'shared');
         },
 
         isAnaesthesia(targetHospitalId = null) {

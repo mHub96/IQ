@@ -543,8 +543,7 @@
             const targetHospId = (urlHosp && adminHospIds.includes(urlHosp)) ? urlHosp : (adminHospIds[0] || null);
 
             if (targetHospId && targetHospId !== '*') {
-                const h = window.Hub.getHospital ? window.Hub.getHospital(targetHospId) : null;
-                if (h && h.erEnabled) {
+                if (window.Hub.auth.canUseEr(targetHospId)) {
                     document.documentElement.classList.add('er-owner-authenticated');
                     unlockOwnerAuthGate();
                     return true;
@@ -661,15 +660,13 @@
                 const urlHosp = urlParams.get('hospital');
                 const targetHospId = (urlHosp && adminHosps.includes(urlHosp)) ? urlHosp : (adminHosps[0] || null);
 
+                // Only the admins the owner picked for a hospital whose ER page is switched on.
+                const erOk = hid => !!hid && window.Hub.auth.canUseEr(hid);
                 let permittedHosp = null;
-                if (targetHospId) {
-                    const h = window.Hub.getHospital ? window.Hub.getHospital(targetHospId) : null;
-                    if (h && h.erEnabled) permittedHosp = h;
-                }
+                if (erOk(targetHospId)) permittedHosp = window.Hub.getHospital(targetHospId);
                 if (!permittedHosp && adminHosps.length > 0) {
                     for (const hid of adminHosps) {
-                        const h = window.Hub.getHospital ? window.Hub.getHospital(hid) : null;
-                        if (h && h.erEnabled) { permittedHosp = h; break; }
+                        if (erOk(hid)) { permittedHosp = window.Hub.getHospital(hid); break; }
                     }
                 }
 

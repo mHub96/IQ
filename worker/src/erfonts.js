@@ -12,11 +12,11 @@
  *                                      id is random; fonts are not private)
  */
 import { json } from './lib.js';
+import { canUseEr } from './eraccess.js';
 
 const MAX_BYTES = 1400 * 1024;                  // base64 of it stays under D1's 2 MB per value
 const MAX_FONTS = 60;
 
-const canUse = a => !!a && (a.r === 'owner' || a.r === 'admin');
 
 /** The file's format from its first bytes (the name alone is not trusted). */
 function sniff(b64) {
@@ -43,7 +43,7 @@ export async function routeErFonts(path, method, request, env, auth) {
   }
   if (file) return json({ error: 'not_found' }, 404);
 
-  if (!canUse(auth)) return json({ error: 'forbidden' }, auth ? 403 : 401);
+  if (!auth || !(await canUseEr(env, auth))) return json({ error: 'forbidden' }, auth ? 403 : 401);
 
   if (path === '/api/er-fonts' && method === 'GET') {
     const { results } = await env.DB.prepare(

@@ -22,6 +22,7 @@ import { nameKey } from './names.js';
 import { dutyDayNow } from './profile.js';
 import { routeErFonts } from './erfonts.js';
 import { routeSpecialists, residentSpecialistsEditAllowed, isResidentEditor } from './specialists.js';
+import { canUseEr, erFieldWrites } from './eraccess.js';
 
 const VISIT_COOLDOWN_MS = 60 * 1000;
 
@@ -99,7 +100,7 @@ async function route(request, env, ctx) {
   if (accountRoute) return accountRoute;
 
   if (path === '/api/er' && method === 'GET') {
-    if (!canUseEr(auth)) return json({ error: 'forbidden' }, 403);
+    if (!(await canUseEr(env, auth))) return json({ error: 'forbidden' }, auth ? 403 : 401);
     return readRecords(env, auth, url, true);
   }
 
@@ -286,7 +287,6 @@ async function revokeSessions(env, auth) {
 
 const isOwner = a => a && a.r === 'owner';
 const inScope = (a, hosp) => a.h && (a.h.includes('*') || (hosp && a.h.includes(hosp)));
-const canUseEr = a => a && (isOwner(a) || a.r === 'admin');
 /** The doctor's own hospital: a personal account's hospital, or one the session is scoped to. */
 const ownHospital = (a, hosp) => !!hosp && ((a.a && a.hosp === hosp) || inScope(a, hosp));
 
@@ -408,11 +408,16 @@ async function sync(request, env, auth) {
   // Residents edit the cards of their own specialty while their hospital's switch is on (specialists.js).
   const resSpecOp = isResidentEditor(auth) && ops.find(op => op && op.c === 'meta' && op.id === 'specialists' && !op.ordOnly && !op.del);
   const resSpecOk = resSpecOp ? await residentSpecialistsEditAllowed(env, auth, resSpecOp) : false;
+  // ER data: only the admins the owner picked for a hospital with the ER page switched on; and only
+  // the owner switches a hospital's ER page or picks its admins (eraccess.js).
+  const erOk = auth.r === 'admin' && ops.some(op => op && (op.c === 'er' || op.c === 'er_conflict')) ? await canUseEr(env, auth) : true;
+  const erLocked = auth.r === 'admin' ? await erFieldWrites(env, ops.filter(op => op && op.c === 'hospital' && typeof op.id === 'string' && !op.del && !op.ordOnly)) : new Set();
   const puts = [], dels = [], ords = [], rejected = [], checks = [];
   ops.forEach((op, i) => {
     if (!op || typeof op.c !== 'string' || typeof op.id !== 'string' || !op.id) { rejected.push(i); return; }
     if (!allowed(auth, op) && !(icuAll && op.c === 'icu') && !(resSpecOk && op === resSpecOp)) { rejected.push(i); return; }
     if (!specOk && op === specOp) { rejected.push(i); return; }
+    if ((!erOk && (op.c === 'er' || op.c === 'er_conflict')) || erLocked.has(op)) { rejected.push(i); return; }
     if (approval && op.c === 'sched' && approval.has(String(op.id).split(':')[0])) { rejected.push(i); return; }
     const bv = Number(op.bv) || 0;
     if (op.ordOnly) {

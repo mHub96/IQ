@@ -354,6 +354,17 @@ body.dark .hacc-avatar { color: #1C1C1E; }
 .hacc-reveal { color: #b45309; }
 .hacc-warned { color: #b45309; font-weight: 700; }
 .hacc-link.warn { color: #b45309; }
+.hacc-contact { display: grid; gap: 10px; }
+.hacc-contact .hacc-btn { width: 100%; justify-content: center; gap: 8px; }
+.hacc-contact p { margin: 0; font-size: 0.78rem; line-height: 1.7; }
+.hacc-contact-paste { display: grid; gap: 6px; font-size: 0.8rem; font-weight: 700; margin-top: 4px; }
+.hacc-contact-paste textarea { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--hacc-border); background: var(--hacc-surface); color: inherit; font: inherit; font-size: 16px; resize: vertical; }
+.er-adm-list { display: grid; gap: 6px; }
+.er-adm-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--hacc-border); border-radius: 12px; background: var(--hacc-surface); cursor: pointer; }
+.er-adm-row input { width: 20px; height: 20px; flex: none; accent-color: var(--hacc-accent); }
+.er-adm-row span { display: grid; gap: 2px; min-width: 0; }
+.er-adm-row b { font-size: 0.86rem; }
+.er-adm-row small { font-size: 0.72rem; color: var(--hacc-muted); }
 .hp-switch-card { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; margin-top: 8px; padding: 12px 14px; border: 1px solid var(--hacc-border); border-radius: 16px; background: var(--hacc-surface); }
 .hp-switch-main { flex: 1; min-width: 0; display: grid; gap: 3px; }
 .hp-switch-main b { font-size: 0.84rem; }

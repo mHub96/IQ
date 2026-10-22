@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <script src="./storage-scope.js"></script>
+    <script src="./auth-guard.js"></script>
     <script src="./app-view.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -520,7 +521,7 @@
         const VIEWS = ['signin', 'signup', 'forgot', 'me', 'settings', 'manage'];
         const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
         const setMsg = (el, text, kind = '') => { el.textContent = text || ''; el.className = (el.className.split(' ')[0]) + (kind ? ' ' + kind : ''); };
-        const hospitalName = id => { if (id === '*') return 'كل المستشفيات'; const h = Hub.getHospital(id); return h ? (h.name_ar || h.hospitalName) : id; };
+        const hospitalName = id => { if (id === '*') return 'كل المستشفيات'; const h = Hub.getHospital(id) || Hub.publicHospital(id); return h ? (h.name_ar || h.hospitalName) : id; };
         const localPhone = p => { const d = String(p || '').replace(/\D/g, ''); return d.length === 10 ? '0' + d : p; };
         const initial = name => esc(String(name || '?').replace(/^د\.?\s*/, '').trim().charAt(0));
         const SEX = { m: 'ذكر', f: 'أنثى' };
@@ -625,9 +626,9 @@
         async function initSignup() {
             if (su.init) return;
             su.init = true;
-            await Hub.loadDatabase().catch(() => {});
+            // Not signed in, the site's data is not readable: only the hospitals' names (public list).
+            const hospitals = (await Hub.getPublicHospitals()).filter(h => h && h.id);
             const sel = $('su-hosp');
-            const hospitals = Hub.getHospitals().filter(h => h && h.id);
             sel.innerHTML = '<option value="">اختر المستشفى…</option>' + hospitals
                 .map(h => `<option value="${esc(h.id)}">${esc(h.name_ar || h.hospitalName || h.id)}</option>`).join('');
             const active = Hub.getActiveHospitalId && Hub.getActiveHospitalId();

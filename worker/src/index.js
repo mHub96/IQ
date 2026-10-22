@@ -76,6 +76,15 @@ async function route(request, env, ctx) {
   // Public: whether the sign-in panel offers the shared passwords.
   if (path === '/api/auth-config' && method === 'GET') return json({ sharedPasswords: !(await sharedPasswordsOff(env)), icuAll: await icuAllOn(env) });
 
+  // Public: the hospitals' names (the sign-up form's list; nothing else of the data).
+  if (path === '/api/public/hospitals' && method === 'GET') {
+    const { results } = await env.DB.prepare(
+      `SELECT id, json_extract(data, '$.name_ar') AS name_ar, json_extract(data, '$.hospitalName') AS hospitalName
+         FROM records WHERE coll = 'hospital' ORDER BY ord, id`
+    ).all();
+    return json({ ok: true, hospitals: (results || []).map(h => ({ id: h.id, name_ar: h.name_ar || '', hospitalName: h.hospitalName || '' })) });
+  }
+
   // ER print fonts: the files are public (no token needed), the rest checks who asks.
   if (path.startsWith('/api/er-fonts/file/')) return routeErFonts(path, method, request, env, null);
 
@@ -88,7 +97,12 @@ async function route(request, env, ctx) {
   if (path === '/api/session' && method === 'GET') {
     return auth ? json({ ok: true, role: auth.r, adminHospitals: auth.h, exp: auth.e, account: auth.a || null }) : json({ error: 'unauthorized' }, 401);
   }
-  if (path === '/api/db' && method === 'GET') return readRecords(env, auth, url, false);
+  // Nothing of the site's data is readable without signing in (the owner's rule): only the sign-in /
+  // sign-up endpoints and the hospitals' names for the sign-up form are public.
+  if (path === '/api/db' && method === 'GET') {
+    if (!auth) return json({ error: 'unauthorized' }, 401);
+    return readRecords(env, auth, url, false);
+  }
   const aaRoute = await routeAA(path, method, request, env, auth, url);
   if (aaRoute) return aaRoute;
   const exchangeRoute = await routeExchange(path, method, request, env, auth, url, ctx);

@@ -894,6 +894,22 @@
         }
     }
 
+    // The hospitals' names for the sign-up form (public; the only data a visitor can read).
+    let publicHospitals = null;
+    async function getPublicHospitals() {
+        if (auth.isLoggedIn()) return getHospitals();
+        if (!publicHospitals) {
+            try {
+                const res = await api('GET', '/api/public/hospitals', undefined, { useToken: false, retries: 1 });
+                publicHospitals = Array.isArray(res && res.hospitals) ? res.hospitals : [];
+            } catch (e) {
+                publicHospitals = [];
+            }
+        }
+        return publicHospitals;
+    }
+    const publicHospital = id => (publicHospitals || []).find(h => h.id === id) || null;
+
     /** Fetch only what changed since the last sync; null when a full reload is needed. */
     async function fetchChangedRows() {
         if (!serverRows || !syncSince || syncBaseFull !== !!readApiToken()) return null;
@@ -950,6 +966,11 @@
     // first load of a page and the background refreshes below may take a sibling page's fresh copy.
     async function loadDatabase(forceRefresh = false, { network = forceRefresh } = {}) {
         if (!forceRefresh && isLoaded && db && syncBase) {
+            return db;
+        }
+        // Not signed in: the server gives no data to visitors, so do not ask (pages show sign-in only).
+        if (!AA && !auth.isLoggedIn()) {
+            if (!db) db = sanitizeAndMigrateDatabase(JSON.parse(JSON.stringify(defaultTemplate)));
             return db;
         }
         if (loadPromise) {
@@ -4273,6 +4294,8 @@
         getSpecialistDuties,
         isSurgicalSpecialty,
         getSpecialtyBranch,
+        getPublicHospitals,
+        publicHospital,
         getSpecialtyName,
         specialists: {
             getAll: (hospitalId, specCode) => getSpecialists(hospitalId, specCode),

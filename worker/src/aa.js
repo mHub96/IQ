@@ -50,7 +50,7 @@ export async function routeAA(path, method, request, env, auth, url) {
   switch (`${method} ${path}`) {
     case 'GET /api/aa/jobs': return publicJobs(env, hosp, ip);
     case 'POST /api/aa/check': return checkOfficer(request, env, ip);
-    case 'GET /api/aa/mirror': return mirror(env, auth, hosp);
+    case 'GET /api/aa/mirror': return auth ? mirror(env, auth, hosp) : json({ error: 'unauthorized' }, 401);
   }
   if (!auth) return json({ error: 'unauthorized' }, 401);
   const level = aaAccess(auth, hosp);

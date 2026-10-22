@@ -210,9 +210,10 @@ test('officers: their own division only; admins edit it, users exchange duties; 
 });
 
 test('mirror: the doctors\' roster shows only the job titles the hospital chose, read-only', async () => {
-  const empty = (await call('GET', `/api/aa/mirror?h=${H}`)).data.hospital;
+  assert.equal((await call('GET', `/api/aa/mirror?h=${H}`)).status, 401, 'nothing for visitors who are not signed in');
+  const empty = (await call('GET', `/api/aa/mirror?h=${H}`, { token: state.user })).data.hospital;
   assert.equal(empty.id, MIRROR);
-  assert.ok(!empty.specialties.some(s => s.id === JOB_SEC), 'nothing mirrored yet: guests see no job titles');
+  assert.ok(!empty.specialties.some(s => s.id === JOB_SEC), 'nothing mirrored yet: residents see no job titles');
   assert.equal(empty.schedule.length, 0);
   const forAdmin = (await call('GET', `/api/aa/mirror?h=${H}`, { token: state.admin })).data.hospital;
   assert.ok(forAdmin.specialties.some(s => s.id === JOB_SEC), 'admins see every job title to choose from');
@@ -228,12 +229,10 @@ test('mirror: the doctors\' roster shows only the job titles the hospital chose,
   // A division admin cannot do that (they never write the doctors' data).
   assert.deepEqual((await call('POST', '/api/sync', { token: state.t1, body: { ops: [{ c: 'hospital', id: H, h: H, o: row[3], bv: state.mainHospital.v, d: row[5] }] } })).data.rejected, [0]);
 
-  const guest = (await call('GET', `/api/aa/mirror?h=${H}`)).data.hospital;
-  assert.deepEqual(guest.specialties.map(s => s.id), [JOB_SEC]);
-  assert.ok(guest.schedule.some(e => e.specCode === JOB_SEC && e.name === GUARD.name));
-  assert.ok(!guest.schedule.some(e => e.specCode === JOB_AO), 'job titles that are not mirrored stay private');
-  assert.ok(guest.names.some(n => n.name === GUARD.name && !('phone' in n)), 'guests get no phone numbers');
   const signedIn = (await call('GET', `/api/aa/mirror?h=${H}`, { token: state.user })).data.hospital;
+  assert.deepEqual(signedIn.specialties.map(s => s.id), [JOB_SEC]);
+  assert.ok(signedIn.schedule.some(e => e.specCode === JOB_SEC && e.name === GUARD.name));
+  assert.ok(!signedIn.schedule.some(e => e.specCode === JOB_AO), 'job titles that are not mirrored stay private');
   assert.equal(signedIn.names.find(n => n.name === GUARD.name).phone, GUARD.phone);
 });
 

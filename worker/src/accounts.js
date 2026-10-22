@@ -51,7 +51,7 @@ export async function routeAccounts(path, method, request, env, auth, url, ctx) 
     case 'POST /api/accounts/login': return accountLogin(request, env, ip);
     case 'POST /api/accounts/forgot': return forgot(request, env, ip, ctx);
     case 'POST /api/accounts/reset': return resetPassword(request, env, ip);
-    case 'GET /api/social': return socialSummary(env, auth, url);
+    case 'GET /api/social': return auth ? socialSummary(env, auth, url) : json({ error: 'unauthorized' }, 401);
     case 'GET /api/push/key': return json({ ok: true, key: env.VAPID_PUBLIC || null });
   }
   if (!/^\/api\/(accounts|notifications|social|push)(\/|$)/.test(path)) return null;

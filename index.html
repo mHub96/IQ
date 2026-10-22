@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <script src="./storage-scope.js"></script>
+    <script src="./auth-guard.js"></script>
     <script src="./app-view.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
@@ -39,6 +40,8 @@
                 }
 
                 // Fresh PWA / browser launch: check if there is a saved last page to restore
+                // (signed in only: a visitor stays on the sign-in screen).
+                if (!(window.HubGuard && window.HubGuard.signedIn())) return;
                 const lastPage = localStorage.getItem('pwa_last_page');
                 if (lastPage && typeof lastPage === 'string') {
                     const clean = lastPage.trim();
@@ -1020,7 +1023,7 @@
             position: fixed;
             inset: 0;
             z-index: 99999;
-            background: rgba(209, 217, 230, 0.95);
+            background: rgb(209, 217, 230);   /* opaque: nothing of the page shows through */
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
             display: flex;
@@ -1030,8 +1033,10 @@
             transition: opacity 0.35s ease;
         }
         body.dark #lock-screen {
-            background: rgba(11, 14, 18, 0.95);
+            background: rgb(11, 14, 18);
         }
+        /* Signed out: the page under the sign-in screen is not even drawn. */
+        html.hub-signed-out body > :not(#lock-screen):not(script):not(style):not(#toast-container) { display: none !important; }
         #lock-screen.hidden {
             display: none;
         }
@@ -1935,22 +1940,41 @@
                 updateThemeToggleIcon(theme);
 
                 // Initialize auth & session
-                if (!Hub.auth.checkSession()) {
-                    Hub.auth.logout();
-                    document.getElementById('lock-screen').classList.remove('hidden');
-                } else {
-                    document.getElementById('lock-screen').classList.add('hidden');
-                }
-
-                updateTopRoleBadge();
                 applySharedLoginOption();
+                if (!Hub.auth.checkSession()) {
+                    // Not signed in: the sign-in screen only; no data is loaded or drawn.
+                    Hub.auth.logout();
+                    showSignInOnly();
+                    return;
+                }
+                document.getElementById('lock-screen').classList.add('hidden');
+                await startHub();
+            } catch (err) {
+                console.error("Hub Init Error:", err);
+                showToast("تعذر تحميل البيانات من السيرفر، جاري استخدام الذاكرة المحلية", "error");
+            }
+        }
 
-                // Load database
-                currentDb = await Hub.loadDatabase();
+        function showSignInOnly() {
+            document.documentElement.classList.add('hub-signed-out');
+            document.getElementById('lock-screen').classList.remove('hidden');
+            const grid = document.getElementById('hospitals-list-grid');
+            if (grid) grid.innerHTML = '';
+        }
+
+        /** Signed in: load the data and draw the portal (also right after signing in). */
+        let hubStarted = false;
+        async function startHub() {
+            try {
+                document.documentElement.classList.remove('hub-signed-out');
+                updateTopRoleBadge();
+                currentDb = await Hub.loadDatabase().catch(() => currentDb);
                 applyDefaultHospFilter();
-                updateLiveClock();
-                setInterval(updateLiveClock, 1000);
-
+                if (!hubStarted) {
+                    hubStarted = true;
+                    updateLiveClock();
+                    setInterval(updateLiveClock, 1000);
+                }
                 renderHubDashboard();
                 runAdminActionFromHash();
             } catch (err) {
@@ -2018,9 +2042,7 @@
                 errorEl.textContent = '';
                 document.getElementById('account-pass-input').value = '';
                 document.getElementById('lock-screen').classList.add('hidden');
-                updateTopRoleBadge();
-                applyDefaultHospFilter();
-                renderHubDashboard();
+                await startHub();
                 showToast(`أهلاً ${res.account ? res.account.name : ''} 👋`, 'success');
             } else {
                 errorEl.textContent = res?.error || 'اسم المستخدم أو كلمة المرور غير صحيحة';
@@ -2044,9 +2066,7 @@
                 errorEl.textContent = '';
 
                 document.getElementById('lock-screen').classList.add('hidden');
-                updateTopRoleBadge();
-                applyDefaultHospFilter();
-                renderHubDashboard();
+                await startHub();
 
                 if (Hub.auth.isOwner()) {
                     showToast('مرحباً بك! تم تسجيل الدخول كمالك للمنظومة 👑', 'success');
@@ -3368,11 +3388,14 @@
 
         window.addEventListener('DOMContentLoaded', initHub);
         window.addEventListener('hub:data-changed', (e) => {
+            if (!Hub.auth.isLoggedIn()) return;
             currentDb = e.detail.db;
             renderHubDashboard();
         });
         window.addEventListener('hub:auth-changed', () => {
             updateTopRoleBadge();
+            // Signed out (here or in another page): back to the sign-in screen, nothing else drawn.
+            if (!Hub.auth.isLoggedIn()) { showSignInOnly(); return; }
             renderHubDashboard();
         });
     </script>

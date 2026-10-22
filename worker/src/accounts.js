@@ -14,6 +14,7 @@ import { sendPush, isPushEndpoint, topicFor } from './push.js';
 import { durationText } from './reminders.js';
 import { BOARDS, dutyDayNow, getStageMonth, setStageMonth, currentStage, profileComplete, suggestProfile } from './profile.js';
 import { AA_ROLES, findOfficer, officerLink, divisionJob, addOfficer } from './aa.js';
+import { canUseEr } from './eraccess.js';
 
 const USERNAME_RE = /^[a-z0-9][a-z0-9._]{2,23}$/;
 const KEY_RE = /^[A-Za-z0-9+/]{43}=$/; // 32 bytes, base64
@@ -22,7 +23,10 @@ const DEVICE_RE = /^[A-Za-z0-9_-]{16,64}$/;
 const ACCOUNT_ROLES = ['user', 'anaesthesia', 'admin', 'owner', 'rotator', ...AA_ROLES];
 // Roles a hospital admin may give when approving or managing a resident of their hospital (never
 // owner), and an officer of the hospital's Administrative Affairs division (division user or admin).
-const ADMIN_GIVES = ['user', 'anaesthesia', 'admin'];
+// A resident can also be made a rotator (and back again, see decide).
+const ADMIN_GIVES = ['user', 'anaesthesia', 'admin', 'rotator'];
+// Resident roles: the only accounts that can become rotators.
+const RESIDENT_ROLES = ['user', 'anaesthesia', 'admin'];
 const ADMIN_GIVES_AA = AA_ROLES;
 // Accounts a hospital admin manages (never other admins or the owner).
 const ADMIN_MANAGES = ['user', 'anaesthesia', 'rotator', ...AA_ROLES];
@@ -66,6 +70,8 @@ export async function routeAccounts(path, method, request, env, auth, url, ctx) 
     case 'POST /api/accounts/avatar': return saveAvatar(request, env, auth);
     case 'GET /api/accounts/received': return receivedComments(env, auth, url);
     case 'GET /api/accounts/stage-month': return json({ ok: true, month: await getStageMonth(env) });
+    case 'GET /api/accounts/er-profiles': return erProfiles(env, auth, url);
+    case 'POST /api/accounts/specialty-rename': return renameSpecialty(request, env, auth);
     case 'POST /api/accounts/stage-month': return putStageMonth(request, env, auth);
     case 'POST /api/accounts/anon': return setAnon(request, env, auth);
     case 'POST /api/accounts/devices/remove': return removeOwnDevice(request, env, auth);
@@ -469,6 +475,7 @@ function pushMessage(n) {
     case 'account_approved': return { title: '✅ تم تفعيل حسابك', body: 'أهلاً بك في بوابة المستشفيات!', url: './index.html?portal=true' };
     case 'reset_approved': return { title: '🔓 تمت الموافقة', body: 'يمكنك الآن اختيار كلمة مرور جديدة.', url: './account.html#forgot' };
     case 'role_changed': return { title: '⭐ تغيّرت صلاحياتك', body: `صلاحيتك الآن: ${ROLE_AR[d.role] || d.role || ''}`, url: './account.html' };
+    case 'profile_set': return { title: '🎓 تحديث معلومات البورد', body: `حدّث ${d.by || 'مدير المستشفى'} معلومات البورد في ملفك الشخصي.`, url: './index.html?portal=true#panel=profile' };
     case 'exchange_request': return { title: '🔁 طلب تبديل خفارتك', body: `${d.by || 'أحد الزملاء'}: خفارة ${d.date || ''} إلى ${d.newName || ''}. وافق أو ارفض.`, url: './index.html?portal=true#panel=exchanges' };
     case 'exchange_admin': return { title: '🔁 طلب تبديل بانتظار موافقتك', body: `${d.date || ''}: ${d.oldName || ''} ← ${d.newName || ''}`, url: './index.html?portal=true#panel=exchanges' };
     case 'exchange_result': return {
@@ -619,11 +626,13 @@ async function me(env, auth) {
   if (row && row.resident_id && !AA_ROLES.includes(row.role)) {
     const rec = await env.DB.prepare("SELECT json_extract(data, '$.name') AS n FROM records WHERE coll = 'resident' AND id = ?").bind(row.resident_id).first();
     if (rec && rec.n && rec.n !== row.name) {
-      await env.DB.prepare('UPDATE accounts SET name = ?, name_key = ? WHERE id = ?').bind(rec.n, nameKey(rec.n), row.id).run();
+      await env.DB.prepare("UPDATE accounts SET name = ?, name_key = CASE WHEN role = 'rotator' THEN name_key ELSE ? END WHERE id = ?").bind(rec.n, nameKey(rec.n), row.id).run();
       row.name = rec.n;
     }
   }
-  return json({ ok: true, account: profile(row, await getStageMonth(env)), role: auth.r, adminHospitals: auth.h, device: auth.dv, dutyDay: dutyDayNow() });
+  const account = profile(row, await getStageMonth(env));
+  if (account && !NO_PROFILE.includes(account.role)) account.profile_locked = (await hospitalList(env, 'profile_locked')).includes(row.hosp);
+  return json({ ok: true, account, role: auth.r, adminHospitals: auth.h, device: auth.dv, dutyDay: dutyDayNow() });
 }
 
 async function changePassword(request, env, auth) {
@@ -768,7 +777,7 @@ async function setAnon(request, env, auth) {
 
 const canApprove = auth => auth.r === 'owner' || auth.r === 'admin';
 // What a hospital admin may do to an account of their hospital (see decide).
-const ADMIN_ACTIONS = ['approve', 'reject', 'approve_reset', 'deny_reset', 'mute', 'unmute', 'delete'];
+const ADMIN_ACTIONS = ['approve', 'reject', 'approve_reset', 'deny_reset', 'mute', 'unmute', 'delete', 'set_profile'];
 const seesAll = auth => auth.r === 'owner' || (auth.h || []).includes('*');
 const hospInScope = (auth, hosp) => seesAll(auth) || (auth.h || []).includes(hosp);
 
@@ -813,13 +822,16 @@ async function decide(request, env, auth, ctx) {
   // Another admin of the admin's own hospital(s): only their role can be changed.
   const peerAdmin = !isOwner && row.role === 'admin' && scopeOf(row).length > 0 && scopeOf(row).every(h => h !== '*' && hospInScope(auth, h));
   if (!isOwner && (!hospInScope(auth, row.hosp) || !(ADMIN_MANAGES.includes(row.role) || peerAdmin) || row.id === auth.a)) return json({ error: 'forbidden' }, 403);
-  // Admins also switch a resident between regular, anaesthesia and admin, and an officer between
-  // division user and division admin; rotators stay rotators.
+  // Admins also switch a resident between regular, anaesthesia, admin and rotator, and an officer
+  // between division user and division admin; they edit residents' board information too.
   const adminMay = peerAdmin ? body.action === 'set_role'
-    : ADMIN_ACTIONS.includes(String(body.action || '')) || (body.action === 'set_role' && row.role !== 'rotator');
+    : ADMIN_ACTIONS.includes(String(body.action || '')) || body.action === 'set_role';
   if (!isOwner && !adminMay) return json({ error: 'forbidden' }, 403);
-  // Nobody changes a rotator's type (the owner included).
-  if (row.role === 'rotator' && body.role !== undefined && body.role !== 'rotator') return json({ error: 'rotator_fixed' }, 403);
+  // Only residents become rotators, and a rotator becomes a resident again only when the account was a
+  // resident before (it is still linked to its record in the hospital database). A rotator who signed
+  // up as one has no record: their type stays.
+  if (body.role === 'rotator' && row.role !== 'rotator' && !RESIDENT_ROLES.includes(row.role)) return json({ error: 'forbidden' }, 403);
+  if (row.role === 'rotator' && body.role !== undefined && body.role !== 'rotator' && (!row.resident_id || !RESIDENT_ROLES.includes(body.role))) return json({ error: 'rotator_fixed' }, 403);
   if (!isOwner && body.maxDevices !== undefined) return json({ error: 'forbidden' }, 403);
 
   const now = Date.now();
@@ -846,6 +858,10 @@ async function decide(request, env, auth, ctx) {
     }
     if (!UNSCOPED.includes(role) && !hospitals.length) hospitals = [row.hosp];
     stmts.push(env.DB.prepare('UPDATE accounts SET role = ?, hospitals = ? WHERE id = ?').bind(role, JSON.stringify(UNSCOPED.includes(role) ? [] : hospitals), row.id));
+    // A rotator's name key is private to the account, so its duty cards are never theirs; a resident
+    // again takes the key of their name back (their duty cards, likes and comments).
+    if (role === 'rotator' && row.role !== 'rotator') stmts.push(env.DB.prepare('UPDATE accounts SET name_key = ? WHERE id = ?').bind('rotator:' + row.id, row.id));
+    if (role !== 'rotator' && row.role === 'rotator') stmts.push(env.DB.prepare('UPDATE accounts SET name_key = ? WHERE id = ?').bind(nameKey(row.name), row.id));
   }
   if (body.maxDevices !== undefined) {
     const n = Math.max(0, Math.min(20, Math.floor(Number(body.maxDevices) || 0)));
@@ -896,15 +912,19 @@ async function decide(request, env, auth, ctx) {
       notes.push(stmts.push(notifyOne(env, row.id, 'comments', action === 'mute' ? 'comments_barred' : 'comments_allowed', JSON.stringify({ by: auth.name || null }), now)) - 1);
       break;
     case 'set_profile': {
-      if (!isOwner) return json({ error: 'forbidden' }, 403);
-      // Rotators and officers have no board, specialty or stage: only sex and hospital.
+      // Rotators and officers have no board, specialty or stage: only sex and hospital (the owner's).
+      if (!isOwner && NO_PROFILE.includes(row.role)) return json({ error: 'no_profile' }, 400);
       const p = NO_PROFILE.includes(row.role) ? { board: null, specialty: null, stage: null, boardYears: null } : cleanProfile(body.profile || {});
       if (p.error) return json({ error: p.error }, 400);
-      const sex = body.profile && (body.profile.sex === 'm' || body.profile.sex === 'f') ? body.profile.sex : row.sex;
-      const hosp = body.profile && HOSP_RE.test(String(body.profile.hosp || '')) ? String(body.profile.hosp) : row.hosp;
+      // A hospital admin edits the board information of their residents; sex and hospital stay the owner's.
+      const sex = isOwner && body.profile && (body.profile.sex === 'm' || body.profile.sex === 'f') ? body.profile.sex : row.sex;
+      const hosp = isOwner && body.profile && HOSP_RE.test(String(body.profile.hosp || '')) ? String(body.profile.hosp) : row.hosp;
       stmts.push(env.DB.prepare(
-        `UPDATE accounts SET board = ?, specialty = ?, stage = ?, stage_ref = ?, board_years = ?, profile_src = 'owner', sex = ?, hosp = ? WHERE id = ?`
-      ).bind(p.board, p.specialty, p.stage, p.stage === null ? null : now, p.boardYears, sex, hosp, row.id));
+        `UPDATE accounts SET board = ?, specialty = ?, stage = ?, stage_ref = ?, board_years = ?, profile_src = ?, sex = ?, hosp = ? WHERE id = ?`
+      ).bind(p.board, p.specialty, p.stage, p.stage === null ? null : now, p.boardYears, isOwner ? 'owner' : 'admin', sex, hosp, row.id));
+      if (p.board !== row.board || p.stage !== row.stage || p.boardYears !== row.board_years) {
+        notes.push(stmts.push(notifyOne(env, row.id, 'profile', 'profile_set', JSON.stringify({ by: auth.name || null }), now)) - 1);
+      }
       break;
     }
     case 'remove_device':
@@ -1004,6 +1024,36 @@ async function saveAvatar(request, env, auth) {
   return json({ ok: true, avatar });
 }
 
+/**
+ * The board information of a hospital's resident accounts, for the ER page: the accounts are its
+ * source, so the ER residents' board and stage follow them (matched by the hospital record or phone).
+ */
+async function erProfiles(env, auth, url) {
+  const hosp = String(url.searchParams.get('h') || '');
+  if (!HOSP_RE.test(hosp)) return json({ error: 'bad_request' }, 400);
+  if (!(await canUseEr(env, auth, hosp))) return json({ error: 'forbidden' }, 403);
+  const { results } = await env.DB.prepare(
+    `SELECT id, resident_id, phone, sex, board, stage, stage_ref, board_years FROM accounts
+      WHERE hosp = ? AND status = 'active' AND role IN ('user', 'anaesthesia', 'admin')`
+  ).bind(hosp).all();
+  const month = await getStageMonth(env);
+  return json({ ok: true, profiles: results.map(r => ({
+    id: r.id, resident_id: r.resident_id, phone: r.phone, sex: r.sex, board: r.board,
+    stage_now: currentStage(r.stage, r.stage_ref, r.board_years, month), board_years: r.board_years,
+  })) });
+}
+
+/** A hospital's specialty was renamed: the accounts of that hospital that named it follow. */
+async function renameSpecialty(request, env, auth) {
+  const body = await readJson(request) || {};
+  const hosp = String(body.hosp || '');
+  const from = plainText(body.from, 80), to = plainText(body.to, 80);
+  if (!HOSP_RE.test(hosp) || !from || !to) return json({ error: 'bad_request' }, 400);
+  if (!(auth.r === 'owner' || (auth.r === 'admin' && hospInScope(auth, hosp)))) return json({ error: 'forbidden' }, 403);
+  const res = await env.DB.prepare('UPDATE accounts SET specialty = ? WHERE hosp = ? AND specialty = ?').bind(to, hosp, from).run();
+  return json({ ok: true, updated: res.meta && res.meta.changes || 0 });
+}
+
 async function profileSuggest(env, auth) {
   if (!auth.a) return json({ error: 'account_required' }, 403);
   if (NO_PROFILE.includes(auth.r)) return json({ ok: true, suggestion: { board: null, specialty: null, stage: null, sex: null, source: [] } });
@@ -1015,6 +1065,9 @@ async function profileSuggest(env, auth) {
 async function saveProfile(request, env, auth) {
   if (!auth.a) return json({ error: 'account_required' }, 403);
   if (NO_PROFILE.includes(auth.r)) return json({ error: 'no_profile' }, 400);
+  // The hospital's admins may keep the board information to themselves (switch in the hospital settings).
+  const mine = await env.DB.prepare('SELECT hosp FROM accounts WHERE id = ?').bind(auth.a).first();
+  if (mine && (await hospitalList(env, 'profile_locked')).includes(mine.hosp)) return json({ error: 'profile_locked' }, 403);
   if (await overLimit(env, 'profile:' + auth.a, 30)) return json({ error: 'rate_limited' }, 429);
   const p = cleanProfile(await readJson(request) || {});
   if (p.error) return json({ error: p.error }, 400);
@@ -1409,29 +1462,30 @@ async function warnComment(request, env, auth, ctx) {
 /** Hospitals where commenting is off, and which of them this moderator may switch. */
 async function commentSwitches(env, auth) {
   if (!canApprove(auth)) return json({ error: 'forbidden' }, 403);
-  return json({ ok: true, off: await commentsOff(env), anonOff: await anonOff(env), scope: seesAll(auth) ? ['*'] : (auth.h || []) });
+  return json({ ok: true, off: await commentsOff(env), anonOff: await anonOff(env), profileLocked: await hospitalList(env, 'profile_locked'), scope: seesAll(auth) ? ['*'] : (auth.h || []) });
 }
 
 /**
- * Body: { hosp, on } switches commenting, { hosp, anon } anonymous commenting.
- * The owner switches any hospital, an admin their own.
+ * Body: { hosp, on } switches commenting, { hosp, anon } anonymous commenting, { hosp, profileEdit }
+ * whether residents edit their own board information. The owner switches any hospital, an admin their own.
  */
 async function setCommentSwitch(request, env, auth) {
   const body = await readJson(request) || {};
   const hosp = String(body.hosp || '');
   const anonSwitch = typeof body.anon === 'boolean';
-  if (!HOSP_RE.test(hosp) || (!anonSwitch && typeof body.on !== 'boolean')) return json({ error: 'bad_request' }, 400);
+  const profileSwitch = typeof body.profileEdit === 'boolean';
+  if (!HOSP_RE.test(hosp) || (!anonSwitch && !profileSwitch && typeof body.on !== 'boolean')) return json({ error: 'bad_request' }, 400);
   if (!canModerate(auth, hosp)) return json({ error: 'forbidden' }, 403);
-  const key = anonSwitch ? 'anon_off' : 'comments_off';
-  const on = anonSwitch ? body.anon : body.on;
+  const key = profileSwitch ? 'profile_locked' : anonSwitch ? 'anon_off' : 'comments_off';
+  const on = profileSwitch ? body.profileEdit : anonSwitch ? body.anon : body.on;
   const off = new Set(await hospitalList(env, key));
   if (on) off.delete(hosp); else off.add(hosp);
   const by = auth.a ? `${auth.r}:${auth.name || auth.a}` : auth.r;
   await env.DB.batch([
     env.DB.prepare('INSERT INTO kv (k, v) VALUES (?, ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v').bind(key, JSON.stringify([...off])),
-    env.DB.prepare('INSERT INTO audit (ts, role, msg, n) VALUES (?, ?, ?, 1)').bind(Date.now(), by, `${anonSwitch ? 'Anonymous comments' : 'Comments'} ${on ? 'on' : 'off'} (${hosp})`),
+    env.DB.prepare('INSERT INTO audit (ts, role, msg, n) VALUES (?, ?, ?, 1)').bind(Date.now(), by, `${profileSwitch ? 'Residents edit their board info' : anonSwitch ? 'Anonymous comments' : 'Comments'} ${on ? 'on' : 'off'} (${hosp})`),
   ]);
-  return json({ ok: true, off: await commentsOff(env), anonOff: await anonOff(env) });
+  return json({ ok: true, off: await commentsOff(env), anonOff: await anonOff(env), profileLocked: await hospitalList(env, 'profile_locked') });
 }
 
 // ---------------------------------------------------------------------------
@@ -1454,7 +1508,7 @@ export async function mirrorResident(env, id, before, after, by) {
   const stmts = [];
   const hosps = Array.isArray(after.hospitals) && after.hospitals.length ? after.hospitals.map(String) : null;
   stmts.push(env.DB.prepare(
-    `UPDATE accounts SET name = ?1, name_key = ?2, phone = COALESCE(?3, phone),
+    `UPDATE accounts SET name = ?1, name_key = CASE WHEN role = 'rotator' THEN name_key ELSE ?2 END, phone = COALESCE(?3, phone),
             hosp = CASE WHEN ?4 IS NULL OR hosp IN (SELECT value FROM json_each(?4)) THEN hosp ELSE json_extract(?4, '$[0]') END
       WHERE resident_id = ?5 AND role NOT IN ('aa_user', 'aa_admin')`
   ).bind(newName, newKey, pk || null, hosps ? JSON.stringify(hosps) : null, id));

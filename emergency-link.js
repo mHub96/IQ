@@ -97,6 +97,17 @@
         return n;
     }
 
+    /** The ER specialty name of a hospital record ({ name, sig }), from the hospital's specialties. */
+    function specOf(rec, hosp) {
+        const code = rec.spec || rec.tag;
+        const h = Hub() && Hub().getHospital && Hub().getHospital(hosp);
+        const s = code && h && Array.isArray(h.specialties) ? h.specialties.find(x => x.id === code) : null;
+        if (!s) return null;
+        let name = s.name_en || s.enName || s.name_ar || s.id;
+        try { name = core().canonicalizeSpecialtyName(name); } catch (e) {}
+        return { name, sig: `${code}|${name}` };
+    }
+
     let lastReport = null;
     /**
      * Links what can be linked and copies name and phone from the hospital database.
@@ -134,6 +145,15 @@
                 }
                 const ph = rec.phone && phoneOf(rec.phone) ? rec.phone : '';
                 if (ph && phoneOf(r.phone) !== phoneOf(ph)) { r.phone = ph; report.updated++; changed = true; }
+                // The specialty follows the hospital record too: when the record moves to another specialty,
+                // or the hospital's specialty is renamed. (First seen: only remembered, so a specialty the
+                // admin chose for the ER on purpose is kept until the hospital side changes.)
+                const sp = specOf(rec, hosp);
+                if (sp && r.hubSpec !== sp.sig) {
+                    if (r.hubSpec && r.specialty !== sp.name) { r.specialty = sp.name; report.updated++; }
+                    r.hubSpec = sp.sig;
+                    changed = true;
+                }
             });
         });
         lastReport = report;

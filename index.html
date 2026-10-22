@@ -1859,6 +1859,15 @@
                 </button>
             </div>
 
+            <!-- Latest automatic backup (every 5 hours, private backups repository) -->
+            <div style="background:rgba(236,253,245,0.7); border:1px solid rgba(16,185,129,0.35); border-radius:16px; padding:14px; margin-bottom:12px;">
+                <h4 style="font-size:0.8rem; font-weight:800; color:#2C2C2E; margin:0 0 10px; display:flex; align-items:center; gap:6px;">
+                    <i class="fas fa-clock-rotate-left text-emerald-600"></i>
+                    <span>آخر نسخة احتياطية تلقائية</span>
+                </h4>
+                <div id="auto-backup-full" style="font-size:0.75rem; color:#3A3A3C;">جاري التحقق…</div>
+            </div>
+
             <!-- Restore Full System Card -->
             <div style="background:rgba(241,245,249,0.7); border:1px solid #D1D1D6; border-radius:16px; padding:14px; margin-bottom:16px;">
                 <h4 style="font-size:0.8rem; font-weight:800; color:#2C2C2E; margin:0 0 10px; display:flex; align-items:center; gap:6px;">
@@ -2824,7 +2833,43 @@
             if (modal) {
                 modal.classList.add('active');
                 renderSafetySnapshotsList();
+                renderAutoBackupFull();
             }
+        }
+
+        // The latest automatic backup of the whole system (made every 5 hours).
+        async function renderAutoBackupFull() {
+            const box = document.getElementById('auto-backup-full');
+            if (!box) return;
+            box.textContent = 'جاري التحقق…';
+            let info = null;
+            try { info = await Hub.getBackupInfo(); } catch (e) {}
+            const meta = info && info.full;
+            if (!meta || !meta.at) {
+                box.innerHTML = '<span style="color:#8A8A8E;">لا توجد نسخة تلقائية بعد. تُنشأ نسخة كل 5 ساعات.</span>';
+                return;
+            }
+            const when = new Date(meta.at);
+            const ago = Math.max(0, Math.round((Date.now() - meta.at) / 60000));
+            const agoText = ago < 60 ? `قبل ${ago} دقيقة` : `قبل ${Math.round(ago / 60)} ساعة`;
+            box.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+                <div><div style="font-weight:800;">${when.toLocaleString('ar-IQ', { timeZone: 'Asia/Baghdad' })}</div>
+                <div style="font-size:0.68rem; color:#8A8A8E; margin-top:2px;">${agoText}${meta.size ? ' · ' + (meta.size / 1048576).toFixed(1) + ' MB' : ''} · كافة المستشفيات والجداول والطوارئ</div></div>
+                <button type="button" id="auto-backup-full-btn" class="ios-btn secondary" style="padding:6px 12px; font-size:0.75rem; color:#047857;">استعادة هذه النسخة</button></div>`;
+            document.getElementById('auto-backup-full-btn').addEventListener('click', async (e) => {
+                const btn = e.currentTarget;
+                btn.disabled = true;
+                btn.textContent = 'جاري التحميل…';
+                try {
+                    const parsed = await Hub.getLatestBackup('full');
+                    await promptAndExecuteFullSystemRestore(parsed);
+                } catch (err) {
+                    alert('تعذر تحميل النسخة التلقائية: ' + (err.message || err));
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = 'استعادة هذه النسخة';
+                }
+            });
         }
 
         function closeFullSystemBackupModal() {

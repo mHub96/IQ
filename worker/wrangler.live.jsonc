@@ -13,6 +13,10 @@
       "database_id": "e795a9a9-5d07-4c42-8688-e3384809ee84"
     }
   ],
+  // The latest automatic backup (written every 5 hours by the backups repository's GitHub Action).
+  "kv_namespaces": [
+    { "binding": "BACKUPS", "id": "23885f3a67584f5f9ac8b4f16843928d" }
+  ],
   // Daily clean-up of old history rows and login-failure counters, and duty reminders every 10
   // minutes (the test Worker has no cron; reminders saved on the test site are sent from here too).
   "triggers": { "crons": ["17 1 * * *", "*/10 * * * *"] },

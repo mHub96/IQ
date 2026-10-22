@@ -1350,6 +1350,15 @@
                 </div>
             </div>
 
+            <!-- Latest automatic backup of this hospital (every 5 hours, private backups repository) -->
+            <div class="p-3.5 mb-3.5 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/70 space-y-2">
+                <h4 class="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                    <i class="fas fa-clock-rotate-left text-emerald-600 dark:text-emerald-400"></i>
+                    <span>آخر نسخة احتياطية تلقائية</span>
+                </h4>
+                <div id="auto-backup-hosp" class="text-xs text-slate-600 dark:text-slate-300">جاري التحقق…</div>
+            </div>
+
             <!-- Restore from File -->
             <div class="p-3.5 mb-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 space-y-3">
                 <h4 class="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
@@ -3380,7 +3389,7 @@
                     color: color,
                     prefix: prefix,
                     acceptPool: acceptPool,
-                    updateResidentsPrefix: updateResidents,
+                    updateExistingResidents: updateResidents,
                     branch: document.getElementById('edit-hosp-spec-branch')?.value || ''
                 });
                 currentHospital = Hub.getActiveHospital();
@@ -3860,6 +3869,40 @@
         function openImportModal() {
             document.getElementById('import-json-area').value = '';
             document.getElementById('import-modal').classList.add('active');
+            renderAutoBackupHospital();
+        }
+
+        // The latest automatic backup of this hospital (made every 5 hours), restored like a backup file.
+        async function renderAutoBackupHospital() {
+            const box = document.getElementById('auto-backup-hosp');
+            if (!box || !currentHospital) return;
+            const hospId = currentHospital.id || Hub.getActiveHospitalId();
+            box.textContent = 'جاري التحقق…';
+            let info = null;
+            try { info = await Hub.getBackupInfo(); } catch (e) {}
+            const meta = info && info.hospitals && info.hospitals[hospId];
+            if (!meta || !meta.at) {
+                box.innerHTML = '<span class="text-slate-400">لا توجد نسخة تلقائية بعد. تُنشأ نسخة كل 5 ساعات.</span>';
+                return;
+            }
+            const ago = Math.max(0, Math.round((Date.now() - meta.at) / 60000));
+            box.innerHTML = `<div class="flex items-center justify-between gap-2 flex-wrap">
+                <div><div class="font-black">${new Date(meta.at).toLocaleString('ar-IQ', { timeZone: 'Asia/Baghdad' })}</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">${ago < 60 ? `قبل ${ago} دقيقة` : `قبل ${Math.round(ago / 60)} ساعة`} · التخصصات والمقيمون والجداول</div></div>
+                <button type="button" id="auto-backup-hosp-btn" class="btn-ghost text-xs text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700">
+                    <i class="fas fa-rotate-left ml-1"></i> استعادة هذه النسخة</button></div>`;
+            document.getElementById('auto-backup-hosp-btn').addEventListener('click', async (e) => {
+                const btn = e.currentTarget;
+                btn.disabled = true;
+                try {
+                    const parsed = await Hub.getLatestBackup('hosp:' + hospId);
+                    await promptAndExecuteRestore(parsed);
+                } catch (err) {
+                    showToast('تعذر تحميل النسخة التلقائية: ' + (err.message || err), 'error');
+                } finally {
+                    btn.disabled = false;
+                }
+            });
         }
 
         function closeImportModal() {

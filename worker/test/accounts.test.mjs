@@ -365,8 +365,28 @@ test('profile: filled in from the roster and ER data, editable, stage levels up 
   assert.equal((await call('GET', '/api/accounts/me', { token: state.tokA })).data.account.stage_now, 2);
   assert.equal((await call('POST', '/api/accounts/stage-month', { token: state.owner, body: { month: before } })).data.month, before);
 
-  // The owner edits anyone's profile; admins cannot.
-  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'set_profile', profile: { board: 'iraqi' } } })).status, 403);
+  // The owner edits anyone's profile; the hospital's admins their residents' board information (not
+  // their sex or hospital); a plain resident nobody's.
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokC, body: { id: state.idB, action: 'set_profile', profile: { board: 'iraqi' } } })).status, 403);
+  const byAdmin = await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'set_profile', profile: { board: 'arab', specialty: 'الباطنية', stage: 2, boardYears: 5, sex: 'f', hosp: otherHospital.id } } });
+  assert.equal(byAdmin.status, 200);
+  assert.equal(byAdmin.data.account.board, 'arab');
+  assert.equal(byAdmin.data.account.stage_now, 2);
+  assert.equal(byAdmin.data.account.profile_src, 'admin');
+  assert.equal(byAdmin.data.account.hosp, hospital.id, 'an admin does not move the account');
+  assert.ok((await call('GET', '/api/notifications', { token: state.tokB })).data.items.some(n => n.type === 'profile_set'), 'the resident is told');
+  // The board lock: residents of the hospital stop editing their board information; the admin still does.
+  assert.equal((await call('POST', '/api/social/hospitals', { token: state.tokC, body: { hosp: hospital.id, profileEdit: false } })).status, 403);
+  assert.ok((await call('POST', '/api/social/hospitals', { token: state.tokA, body: { hosp: hospital.id, profileEdit: false } })).data.profileLocked.includes(hospital.id));
+  assert.equal((await call('GET', '/api/accounts/me', { token: state.tokB })).data.account.profile_locked, true);
+  assert.equal((await call('POST', '/api/accounts/profile', { token: state.tokB, body: { board: 'none', specialty: 'x' } })).data.error, 'profile_locked');
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idB, action: 'set_profile', profile: { board: 'iraqi', specialty: 'الباطنية', stage: 3, boardYears: 5 } } })).status, 200);
+  assert.ok(!(await call('POST', '/api/social/hospitals', { token: state.tokA, body: { hosp: hospital.id, profileEdit: true } })).data.profileLocked.includes(hospital.id));
+  assert.equal((await call('GET', '/api/accounts/me', { token: state.tokB })).data.account.profile_locked, false);
+  // A renamed specialty is renamed in the accounts of that hospital.
+  assert.equal((await call('POST', '/api/accounts/specialty-rename', { token: state.tokC, body: { hosp: hospital.id, from: 'الباطنية', to: 'الطب الباطني' } })).status, 403);
+  assert.equal((await call('POST', '/api/accounts/specialty-rename', { token: state.tokA, body: { hosp: hospital.id, from: 'الباطنية', to: 'الطب الباطني' } })).data.updated, 1);
+  assert.equal((await call('GET', '/api/accounts/me', { token: state.tokB })).data.account.specialty, 'الطب الباطني');
   const byOwner = await call('POST', '/api/accounts/decide', { token: state.owner, body: { id: state.idB, action: 'set_profile', profile: { board: 'iraqi', specialty: 'الجراحة العامة', stage: 4, boardYears: 6 } } });
   assert.equal(byOwner.data.account.stage_now, 4);
   assert.equal(byOwner.data.account.profile_src, 'owner');
@@ -603,9 +623,16 @@ test('a resident renamed in the hospital database: account, roster of every mont
 });
 
 test('hospital admins: no status or device changes, but roles and deleting their hospital\'s accounts', async () => {
-  for (const action of ['disable', 'enable', 'set_profile', 'remove_device']) {
+  for (const action of ['disable', 'enable', 'remove_device']) {
     assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idC, action } })).status, 403, action);
   }
+  // A resident can be made a rotator (their duty cards are no longer theirs) and a resident again.
+  const toRot = await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idC, action: 'set_role', role: 'rotator' } });
+  assert.equal(toRot.data.account.role, 'rotator');
+  assert.equal(toRot.data.account.board, undefined, 'a rotator has no board information');
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idC, action: 'set_profile', profile: { board: 'iraqi' } } })).data.error, 'no_profile');
+  assert.equal((await call('GET', '/api/accounts/me', { token: state.tokC })).data.account.role, 'rotator');
+  assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idC, action: 'set_role', role: 'user' } })).data.account.role, 'user');
   // Its own hospital's residents: regular / anaesthesia / admin, never owner.
   assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idC, action: 'set_role', role: 'anaesthesia' } })).data.account.role, 'anaesthesia');
   assert.equal((await call('POST', '/api/accounts/decide', { token: state.tokA, body: { id: state.idC, action: 'set_role', role: 'owner' } })).status, 403);

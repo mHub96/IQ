@@ -78,12 +78,12 @@ test('owner can sign in as a lower role', async () => {
   assert.equal(r.role, 'user');
 });
 
-test('guests get the roster without phone numbers', async () => {
-  const rows = await loadAll(null);
-  const residents = rows.filter(r => r[0] === 'resident');
-  assert.equal(residents.length, SOURCE.residents.length);
-  assert.ok(residents.every(r => r[5].phone === undefined));
-  assert.ok(rows.filter(r => r[0] === 'hospital').every(r => r[5].names === undefined));
+test("guests get nothing of the data, only the hospitals' names", async () => {
+  assert.equal((await call('GET', '/api/db')).status, 401);
+  assert.equal((await call('GET', '/api/social?h=x')).status, 401);
+  const pub = await call('GET', '/api/public/hospitals');
+  assert.ok(pub.data.hospitals.length > 0);
+  assert.ok(pub.data.hospitals.every(h => Object.keys(h).sort().join() === 'hospitalName,id,name_ar'));
 });
 
 test('signed-in users get the full database, identical to the source', async () => {

@@ -485,12 +485,13 @@
                     }
                     const globalDef = targetDb.globalSpecialties.find(g => g.id === finalGlobalId);
                     if (!hospSpecMap.has(normId)) {
+                        // The hospital's own names and icon (edited by its admins) win; the catalog only fills gaps.
                         hospSpecMap.set(normId, {
                             ...s,
                             id: normId,
-                            name_ar: globalDef ? globalDef.name_ar : s.name_ar,
-                            name_en: globalDef ? globalDef.name_en : s.name_en,
-                            icon: globalDef ? globalDef.icon : (s.icon || '🏥'),
+                            name_ar: s.name_ar || (globalDef ? globalDef.name_ar : normId),
+                            name_en: s.name_en || (globalDef ? globalDef.name_en : ''),
+                            icon: s.icon || (globalDef ? globalDef.icon : '🏥'),
                             parentSpec: globalDef ? globalDef.parentSpec : (s.parentSpec || null),
                             acceptPool: Array.isArray(s.acceptPool) ? s.acceptPool.map(normalizeSpecialtyId) : (globalDef && Array.isArray(globalDef.acceptPool) ? globalDef.acceptPool.map(normalizeSpecialtyId) : [])
                         });
@@ -909,6 +910,11 @@
         return publicHospitals;
     }
     const publicHospital = id => (publicHospitals || []).find(h => h.id === id) || null;
+
+    // The latest automatic backups (every 5 hours, kept in the private backups repository):
+    // when they were made, and the files themselves ('full' for the owner, 'hosp:<id>' per hospital).
+    const getBackupInfo = () => api('GET', '/api/backup/info', undefined, { retries: 1 });
+    const getLatestBackup = name => api('GET', '/api/backup/latest?f=' + encodeURIComponent(name), undefined, { retries: 1 });
 
     /** Fetch only what changed since the last sync; null when a full reload is needed. */
     async function fetchChangedRows() {
@@ -2708,6 +2714,7 @@
 
         const s = (hosp.specialties || []).find(x => x.id === specId);
         if (!s) throw new Error('التخصص غير موجود في المستشفى');
+        const oldNameAr = s.name_ar;
 
         if (updates.name_ar) s.name_ar = updates.name_ar.trim();
         if (updates.name_en) s.name_en = updates.name_en.trim();
@@ -2744,6 +2751,11 @@
         }
 
         await saveDatabase(`Update specialty ${specId} in ${hosp.name_ar || hosp.hospitalName}`);
+        // The residents' accounts name their specialty in Arabic: a renamed specialty is renamed there too.
+        // (Names and schedules follow above and on the server; the ER page follows the hospital records.)
+        if (oldNameAr && s.name_ar && oldNameAr !== s.name_ar) {
+            try { await api('POST', '/api/accounts/specialty-rename', { hosp: hospitalId, from: oldNameAr, to: s.name_ar }, { retries: 1 }); } catch (e) { console.warn('Specialty rename in accounts:', e); }
+        }
         return s;
     }
 
@@ -4296,6 +4308,8 @@
         getSpecialtyBranch,
         getPublicHospitals,
         publicHospital,
+        getBackupInfo,
+        getLatestBackup,
         getSpecialtyName,
         specialists: {
             getAll: (hospitalId, specCode) => getSpecialists(hospitalId, specCode),

@@ -84,6 +84,10 @@
             comments_off: 'التعليقات متوقفة في هذا المستشفى حالياً.',
             comment_blocked: 'تم إيقاف التعليق لحسابك من قبل الإدارة.',
             anon_off: 'التعليق المجهول متوقف في هذا المستشفى؛ يمكنك التعليق باسمك.',
+            profile_locked: 'معلومات البورد يحددها مدير المستشفى؛ راجعه لتعديلها.',
+            rotator_fixed: 'هذا الحساب سُجّل روتيتر من البداية؛ لا يمكن تحويله إلى مقيم.',
+            no_profile: 'هذا النوع من الحسابات بلا معلومات بورد.',
+            stage_over_years: 'المرحلة أكبر من عدد سنوات البورد.',
         })[code] || 'تعذر الاتصال بالخادم. حاول مجدداً.';
     }
 
@@ -405,6 +409,8 @@
                 return { icon: '🔓', text: 'تمت الموافقة على طلب تغيير كلمة المرور.' };
             case 'role_changed':
                 return { icon: '⭐', text: `تم تغيير صلاحياتك إلى: ${ROLE_NAMES[d.role] || d.role}` };
+            case 'profile_set':
+                return { icon: '🎓', text: `حدّث ${d.by || 'مدير المستشفى'} معلومات البورد في ملفك الشخصي.`, open: () => openPanel('profile') };
             case 'warning':
                 return { icon: '⚠️', text: `تحذير من ${d.role === 'owner' ? 'المالك' : 'إدارة المستشفى'} بسبب تعليقك على بطاقة ${d.name || ''}${when}: «${d.text || ''}»${d.note ? ' – ' + d.note : ''}`, open: () => openThread({ h: d.h, d: isoToLocal(d.d), n: d.name }, 'comments') };
             case 'exchange_request':
@@ -640,7 +646,7 @@
     /** Once a day, remind accounts with an incomplete profile (board, specialty, stage). */
     function nudgeProfile() {
         const acc = account();
-        if (!acc || acc.profile_complete !== false || document.getElementById('hacc-nudge')) return;
+        if (!acc || acc.profile_complete !== false || acc.profile_locked || document.getElementById('hacc-nudge')) return;
         const today = new Date().toDateString();
         try { if (localStorage.getItem('hacc_nudge_day') === today) return; } catch (e) {}
         const el = document.createElement('div');

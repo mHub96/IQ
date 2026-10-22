@@ -24,6 +24,7 @@ import { routeErFonts } from './erfonts.js';
 import { routeSpecialists, residentSpecialistsEditAllowed, isResidentEditor } from './specialists.js';
 import { canUseEr, erFieldWrites } from './eraccess.js';
 import { routeUsage } from './usage.js';
+import { routeBackup } from './backup.js';
 
 const VISIT_COOLDOWN_MS = 60 * 1000;
 
@@ -91,6 +92,8 @@ async function route(request, env, ctx) {
   const auth = await authenticate(request, env);
   const erFontsRoute = await routeErFonts(path, method, request, env, auth);
   if (erFontsRoute) return erFontsRoute;
+  const backupRoute = await routeBackup(path, method, request, env, auth, url);
+  if (backupRoute) return backupRoute;
   const specialistsRoute = await routeSpecialists(path, method, request, env, auth);
   if (specialistsRoute) return specialistsRoute;
 

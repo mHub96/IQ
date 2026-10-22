@@ -5366,10 +5366,10 @@
                             <span>${state.showInactiveInDB ? 'إخفاء غير النشطين' : `إظهار غير النشطين (${inactiveList.length})`}</span>
                         </button>
 
-                        <!-- Import Resident from Hospital with Detail Review -->
-                        <button type="button" onclick="openImportResidentFromHospitalModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 hover:bg-teal-100 transition flex items-center gap-1.5 shadow-xs" title="استيراد مقيم من أي مستشفى وتعبئة تفاصيل الطوارئ">
-                            <i class="fas fa-hospital-user"></i>
-                            <span>استيراد مقيم من مستشفى</span>
+                        <!-- Select many residents (or whole specialties): deactivate / reactivate / delete (emergency-residents.js) -->
+                        <button type="button" onclick="openResidentsSelection()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center gap-1.5 shadow-xs" title="تحديد عدة أطباء أو اختصاص كامل ثم تعطيلهم أو حذفهم من الطوارئ">
+                            <i class="fas fa-list-check"></i>
+                            <span>تحديد متعدد</span>
                         </button>
 
                         <button type="button" onclick="openHospitalSyncModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-sky-700 bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition flex items-center gap-1.5">
@@ -5377,9 +5377,9 @@
                             <span>مطابقة مع المستشفى</span>
                         </button>
 
-                        <button type="button" onclick="openAddResidentModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-sm transition flex items-center gap-1.5">
+                        <button type="button" onclick="openImportResidentFromHospitalModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-sm transition flex items-center gap-1.5" title="إضافة مقيم أو أكثر من قاعدة مقيمي المستشفى">
                             <i class="fas fa-user-plus"></i>
-                            <span>إضافة طبيب جديد</span>
+                            <span>إضافة من مقيمي المستشفى</span>
                         </button>
 
                         <!-- Backup Residents Database Button -->
@@ -6454,6 +6454,74 @@
         renderActiveTab();
         updateDBUndoRedoUI();
         showNotification('تم حذف الطبيب من قاعدة الطوارئ', 'info');
+    }
+
+    // Many residents at once (selection in the residents panel, emergency-residents.js). Same effect as
+    // the one-resident actions above: deactivating is for the month on screen (targets zeroed, names
+    // taken off this month's tables); deleting removes them from the ER database only, never from the
+    // hospital's.
+    function afterBulkResidents(note) {
+        saveCurrentMonthAllocationsToStore();
+        saveCurrentMonthScheduleToStore();
+        saveCurrentHospitalResidents();
+        saveState();
+        refreshDBView();
+        updateDutyDashboard();
+        renderActiveTab();
+        updateDBUndoRedoUI();
+        showNotification(note, 'info');
+    }
+
+    function bulkDeactivateResidents(ids) {
+        const set = new Set(ids);
+        const list = (state.residents || []).filter(r => set.has(r.id) && r.active !== false);
+        if (!list.length) return 0;
+        pushDBHistory(`إلغاء تنشيط ${list.length} طبيب لشهر ${state.monthYear}`);
+        const names = new Set(list.map(r => r.name));
+        list.forEach(r => { r.active = false; r.er_target = 0; r.con_target = 0; r.dc_target = 0; r.rs_target = 0; });
+        ['er', 'con', 'dc', 'rs'].forEach(type => (state.schedules[type] || []).forEach(day => {
+            Object.keys(day).forEach(k => { if (names.has(day[k])) day[k] = ''; });
+        }));
+        afterBulkResidents(`تم إلغاء تنشيط ${list.length} طبيب لشهر (${state.monthYear}) وتصفير أنصبتهم وإزالتهم من جداول الشهر`);
+        return list.length;
+    }
+
+    function bulkReactivateResidents(ids) {
+        const set = new Set(ids);
+        const list = (state.residents || []).filter(r => set.has(r.id) && r.active === false);
+        if (!list.length) return 0;
+        pushDBHistory(`إعادة تنشيط ${list.length} طبيب لشهر ${state.monthYear}`);
+        list.forEach(r => { r.active = true; });
+        afterBulkResidents(`تمت إعادة تنشيط ${list.length} طبيب لشهر (${state.monthYear}). حدّد أنصبتهم في الجدول.`);
+        return list.length;
+    }
+
+    function bulkDeleteResidents(ids) {
+        const set = new Set(ids);
+        const n = (state.residents || []).filter(r => set.has(r.id)).length;
+        if (!n) return 0;
+        pushDBHistory(`حذف ${n} طبيب من قاعدة الطوارئ`);
+        state.residents = state.residents.filter(r => !set.has(r.id));
+        state.residents.forEach((r, idx) => { r.row = idx + 1; });
+        afterBulkResidents(`تم حذف ${n} طبيب من قاعدة الطوارئ (يبقون في قاعدة المستشفى)`);
+        return n;
+    }
+
+    /** Adds residents built by emergency-residents.js (already checked against the month's quotas). */
+    function addResidentsToER(list, note) {
+        if (!list.length) return 0;
+        pushDBHistory(note);
+        state.residents.push(...list);
+        state.residents = sortResidentsList(state.residents, state.dbSortColumn || 'name', state.dbSortDirection || 'asc');
+        state.residents.forEach((r, idx) => { r.row = idx + 1; });
+        saveCurrentMonthAllocationsToStore();
+        saveCurrentHospitalResidents();
+        saveState();
+        refreshDBView(list.length === 1 ? list[0].id : undefined);
+        updateDBDutyCheckers();
+        updateDutyDashboard();
+        updateDBUndoRedoUI();
+        return list.length;
     }
 
     function backupResidentsDatabase() {
@@ -11494,6 +11562,11 @@
         ready: () => appReady,
         saveState, pushDBHistory, refreshDBView, renderActiveTab, showNotification, pushScheduleHistory, ensureScheduleIntegrity,
         updateDBUndoRedoUI: () => { try { updateDBUndoRedoUI(); } catch (e) {} },
+        // Residents import / bulk actions (emergency-residents.js).
+        bulkDeactivateResidents, bulkReactivateResidents, bulkDeleteResidents, addResidentsToER,
+        getMonthlyDutyAllocationsSummary, isResidentExpired, ensureHubDatabaseLoaded,
+        getHospitalDoctorsList, getHospitalSpecificSpecialties, isDoctorInHospitalSpecialty,
+        canonicalizeSpecialtyName, formatDoctorName, formatIraqiPhoneNumber, getSpecialtyColor, normalizeArabic,
     };
     window.closeAutoGenerateModal = closeAutoGenerateModal;
     window.onScheduleSearchInput = onScheduleSearchInput;

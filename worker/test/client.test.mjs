@@ -67,13 +67,15 @@ async function signedIn(password) {
   return b;
 }
 
-test('a guest loads the roster without phone numbers', async () => {
+test('a guest loads nothing (nothing of the site is visible without signing in)', async () => {
   const b = browser();
   const db = await b.Hub.loadDatabase();
-  assert.equal(Object.keys(db.hospitals).length, Object.keys(SOURCE.hospitals).length);
-  assert.ok(db.residents.length > 0);
-  assert.ok(db.residents.every(r => !r.phone));
-  assert.equal(b.Hub.getSyncStatus().fullData, false);
+  assert.equal(Object.keys(db.hospitals || {}).length, 0);
+  assert.equal((db.residents || []).length, 0);
+  // Only the hospitals' names, for the sign-up form.
+  const list = await b.Hub.getPublicHospitals();
+  assert.equal(list.length, Object.keys(SOURCE.hospitals).length);
+  assert.ok(list.every(h => h.id && !h.names && !h.specialties));
 });
 
 test('login, then the full database including phones', async () => {

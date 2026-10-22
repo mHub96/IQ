@@ -541,8 +541,9 @@
         const OFFICER_ROLES = ['aa_user', 'aa_admin'];
         const NO_PROFILE = ['rotator', ...OFFICER_ROLES];
         const ALL_ROLES = ['user', 'anaesthesia', 'admin', 'owner', 'rotator', ...OFFICER_ROLES];
-        // Types a hospital admin gives the residents of their hospital (never owner; rotators stay rotators).
-        const ADMIN_ROLE_CHOICES = ['user', 'anaesthesia', 'admin'];
+        // Types a hospital admin gives the residents of their hospital (never owner), rotator included.
+        const ADMIN_ROLE_CHOICES = ['user', 'anaesthesia', 'admin', 'rotator'];
+        const RESIDENT_ROLES = ['user', 'anaesthesia', 'admin'];
         // The management list is shown in these groups.
         const ROLE_GROUPS = [
             { id: 'admins', title: 'المدراء', icon: 'fa-user-shield', has: r => r === 'owner' || r === 'admin' },
@@ -1221,9 +1222,12 @@
                 const peer = !isOwner && a.role === 'admin' && a.id !== myId && (a.hospitals || []).length > 0
                     && a.hospitals.every(h => h !== '*' && (myScope.includes('*') || myScope.includes(h)));
                 const canManage = isOwner || peer || (['user', 'anaesthesia', 'rotator', ...OFFICER_ROLES].includes(a.role) && a.id !== myId);
-                // Type: admins give regular / anaesthesia resident / admin, or division user / division admin
-                // for administrative officers; nobody changes a rotator's type.
-                const roleChoices = a.role === 'rotator' ? [] : officer ? OFFICER_ROLES : isOwner ? ALL_ROLES.filter(r => r !== 'rotator') : ADMIN_ROLE_CHOICES;
+                // Type: admins give regular / anaesthesia resident / admin / rotator, or division user / division
+                // admin for administrative officers. A rotator becomes a resident again only when the account was
+                // a resident before (still linked to the hospital database); one who signed up as a rotator stays.
+                const roleChoices = officer ? OFFICER_ROLES
+                    : a.role === 'rotator' ? (a.resident_id ? ['rotator', ...RESIDENT_ROLES] : [])
+                    : isOwner ? ALL_ROLES.filter(r => r !== 'rotator' || RESIDENT_ROLES.includes(a.role)) : ADMIN_ROLE_CHOICES;
                 const proposed = a.status === 'pending' && a.role === 'user' && a.suggested_role ? a.suggested_role : a.role;
                 const rolePick = roleChoices.length > 1 ? `<select data-role="approve-role" aria-label="الصلاحية عند الموافقة">${roleChoices.map(r => `<option value="${r}" ${proposed === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>` : '';
                 const statusText = { pending: 'بانتظار الموافقة', active: 'مفعّل', disabled: 'موقوف', rejected: 'مرفوض' }[a.status] || a.status;
@@ -1245,12 +1249,21 @@
                 const limitMode = limit === 0 ? '0' : limit === 1 ? '1' : 'n';
                 // A pending request takes its type from the picker next to "موافقة", so the editor offers none.
                 const adminEditor = !isOwner && a.status !== 'pending' && roleChoices.length > 1;
-                const editor = canManage && (isOwner || adminEditor) && a.status !== 'rejected' ? `<details class="edit-wrap"><summary class="hacc-link">⚙️ ${isOwner ? (a.status === 'pending' ? 'الملف والأجهزة' : 'الصلاحيات والأجهزة') : 'نوع الحساب'}</summary><div class="editor">
+                // Hospital admins also edit their residents' board information.
+                const adminProfile = !isOwner && !peer && a.status === 'active' && !NO_PROFILE.includes(a.role);
+                const boardFields = `<select data-f="board" aria-label="نوع البورد"><option value="">نوع البورد…</option>${Object.entries(BOARD_NAMES).map(([k, v]) => `<option value="${k}" ${a.board === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+                            <input data-f="specialty" list="mg-specs" value="${esc(a.specialty || '')}" placeholder="الاختصاص" aria-label="الاختصاص" />
+                            <select data-f="stage" aria-label="المرحلة الحالية"><option value="">المرحلة…</option>${[1, 2, 3, 4, 5, 6, 7, 8].map(n => `<option value="${n}" ${a.stage_now === n ? 'selected' : ''}>المرحلة ${STAGE_NAMES[n]}</option>`).join('')}</select>
+                            <select data-f="boardYears" aria-label="سنوات البورد"><option value="">سنوات البورد…</option>${[3, 4, 5, 6, 7, 8].map(n => `<option value="${n}" ${a.board_years === n ? 'selected' : ''}>${n} سنوات</option>`).join('')}</select>`;
+                const editor = canManage && (isOwner || adminEditor || adminProfile) && a.status !== 'rejected' ? `<details class="edit-wrap"><summary class="hacc-link">⚙️ ${isOwner ? (a.status === 'pending' ? 'الملف والأجهزة' : 'الصلاحيات والأجهزة') : adminEditor && adminProfile ? 'نوع الحساب والبورد' : adminProfile ? 'معلومات البورد' : 'نوع الحساب'}</summary><div class="editor">
                     ${adminEditor ? `<div><h4>نوع الحساب</h4>
                         <select data-role="role" style="margin-top:6px">${roleChoices.map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
                         <button class="hacc-btn primary sm" data-act="set_role" style="margin-top:8px">حفظ</button></div>` : ''}
-                    ${isOwner && a.status !== 'pending' && a.role === 'rotator' ? '<div><h4>الصلاحية</h4><p class="hacc-muted" style="margin:6px 0 0;font-size:.78rem">🔄 روتيتر: لا يمكن تغيير نوع حسابه.</p></div>' : ''}
-                    ${isOwner && a.status !== 'pending' && a.role !== 'rotator' ? `<div><h4>الصلاحية</h4>
+                    ${adminProfile ? `<div data-role="profile"><h4>معلومات البورد</h4>
+                        <div class="pf-grid">${boardFields}</div>
+                        <button class="hacc-btn primary sm" data-act="set_profile" style="margin-top:8px">حفظ معلومات البورد</button></div>` : ''}
+                    ${isOwner && a.status !== 'pending' && a.role === 'rotator' && roleChoices.length < 2 ? '<div><h4>الصلاحية</h4><p class="hacc-muted" style="margin:6px 0 0;font-size:.78rem">🔄 سجّل روتيتر من البداية (غير مرتبط بقاعدة المقيمين): لا يمكن تغيير نوع حسابه.</p></div>' : ''}
+                    ${isOwner && a.status !== 'pending' && roleChoices.length > 1 ? `<div><h4>الصلاحية</h4>
                         <select data-role="role" style="margin-top:6px">${roleChoices.map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
                         <div class="hosp-pick" data-role="hosps" style="margin-top:8px" ${['admin', 'anaesthesia'].includes(a.role) ? '' : 'hidden'}>
                             <label><input type="checkbox" value="*" ${scope.includes('*') ? 'checked' : ''}><span>كل المستشفيات</span></label>
@@ -1259,10 +1272,7 @@
                         <button class="hacc-btn primary sm" data-act="set_role" style="margin-top:8px">حفظ الصلاحية</button></div>` : ''}
                     ${isOwner ? `<div data-role="profile"><h4>الملف الشخصي</h4>
                         <div class="pf-grid">
-                            ${NO_PROFILE.includes(a.role) ? '' : `<select data-f="board" aria-label="نوع البورد"><option value="">نوع البورد…</option>${Object.entries(BOARD_NAMES).map(([k, v]) => `<option value="${k}" ${a.board === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
-                            <input data-f="specialty" list="mg-specs" value="${esc(a.specialty || '')}" placeholder="الاختصاص" aria-label="الاختصاص" />
-                            <select data-f="stage" aria-label="المرحلة الحالية"><option value="">المرحلة…</option>${[1, 2, 3, 4, 5, 6, 7, 8].map(n => `<option value="${n}" ${a.stage_now === n ? 'selected' : ''}>المرحلة ${STAGE_NAMES[n]}</option>`).join('')}</select>
-                            <select data-f="boardYears" aria-label="سنوات البورد"><option value="">سنوات البورد…</option>${[3, 4, 5, 6, 7, 8].map(n => `<option value="${n}" ${a.board_years === n ? 'selected' : ''}>${n} سنوات</option>`).join('')}</select>`}
+                            ${NO_PROFILE.includes(a.role) ? '' : boardFields}
                             <select data-f="sex" aria-label="الجنس"><option value="m" ${a.sex === 'm' ? 'selected' : ''}>ذكر</option><option value="f" ${a.sex === 'f' ? 'selected' : ''}>أنثى</option></select>
                             <select data-f="hosp" aria-label="المستشفى">${hospitals.map(h => `<option value="${esc(h.id)}" ${a.hosp === h.id ? 'selected' : ''}>${esc(h.name_ar || h.hospitalName || h.id)}</option>`).join('')}</select>
                         </div>
@@ -1356,7 +1366,8 @@
                 mute: `منع ${a.name} من التعليق؟ سيبقى قادراً على تصفح الموقع والإعجاب.`,
                 remove_device: 'إلغاء ربط هذا الجهاز؟ سيتم تسجيل خروجه فوراً.',
                 reset_devices: `إلغاء ربط كل أجهزة ${a.name}؟ سيتم تسجيل خروجه منها.`,
-                set_role: body.role !== a.role ? `تغيير صلاحية ${a.name} إلى «${ROLE_NAMES[body.role]}»؟${body.role === 'admin' && !Hub.auth.isOwner() ? '\n\nسيدير حسابات مستشفاه مثلك.' : ''}` : null,
+                set_role: body.role !== a.role ? `تغيير صلاحية ${a.name} إلى «${ROLE_NAMES[body.role]}»؟${body.role === 'admin' && !Hub.auth.isOwner() ? '\n\nسيدير حسابات مستشفاه مثلك.' : ''}${body.role === 'rotator' ? '\n\nسيتصفح الموقع ويتواصل مع المقيمين فقط: لا تبديل خفارات، ولا تُنسب إليه بطاقات الخفارات وتعليقاتها، ولا جدولي ولا معلومات بورد. يمكن إعادته مقيماً لاحقاً.' : ''}` : null,
+                set_profile: !Hub.auth.isOwner() ? `حفظ معلومات البورد لـ ${a.name}؟ ستظهر في ملفه وفي خفارات الطوارئ.` : null,
                 approve: body.role && body.role !== 'user' && body.role !== a.role ? `الموافقة على ${a.name} بصلاحية «${ROLE_NAMES[body.role]}»؟` : null,
             }[action];
             if (confirmText && !confirm(confirmText)) return;

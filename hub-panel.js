@@ -164,16 +164,19 @@
         const specs = (Hub.getGlobalSpecialties ? Hub.getGlobalSpecialties() : []).map(s => s.name_ar).filter(Boolean);
         const years = a.board_years || '';
         const month = a.stage_month || 10;
+        // The hospital's admins may keep the board information to themselves.
+        const locked = !!a.profile_locked;
         body.innerHTML = `
             <div class="hp-avatar-card">
                 ${A.avatarHtml(a, 96, 'hp-avatar-big')}
                 <div><b>صورتك الرمزية</b><div class="hacc-muted">رسم كرتوني بدلاً من الصورة الشخصية</div>
                 <button type="button" class="hacc-btn sm primary" data-act="edit-avatar" style="margin-top:8px">🎨 تعديل الصورة الرمزية</button></div>
             </div>
-            ${a.profile_complete ? '' : `<div class="hp-banner">📝 <b>أكمل ملفك الشخصي</b><br>${a.profile_src === 'auto'
+            ${locked ? `<div class="hp-banner">🔒 <b>معلومات البورد يحددها مدير المستشفى</b><br>${a.profile_complete ? 'لتعديل نوع البورد أو الاختصاص أو المرحلة راجع مدير مستشفاك.' : 'ملفك غير مكتمل: راجع مدير مستشفاك ليكمل معلومات البورد.'}</div>`
+            : a.profile_complete ? '' : `<div class="hp-banner">📝 <b>أكمل ملفك الشخصي</b><br>${a.profile_src === 'auto'
                 ? 'عبّأنا بعض المعلومات تلقائياً من بيانات المستشفى والطوارئ. راجعها وأكمل الناقص ثم احفظ.'
                 : 'أضف نوع البورد والاختصاص والمرحلة وعدد سنوات البورد.'}</div>`}
-            <form class="hp-form" data-role="profile-form" novalidate>
+            <form class="hp-form" data-role="profile-form" novalidate ${locked ? 'data-locked' : ''}>
                 <label class="hp-field"><span>نوع البورد</span>
                     <select name="board">
                         <option value="">اختر…</option>
@@ -212,6 +215,10 @@
         };
         form.board.addEventListener('change', syncBoard);
         syncBoard();
+        if (locked) {
+            form.querySelectorAll('select, input').forEach(el => { el.disabled = true; });
+            form.querySelector('.hp-actions').hidden = true;
+        }
         body.querySelector('[data-act="suggest"]').addEventListener('click', async e => {
             e.target.disabled = true;
             try {
@@ -343,7 +350,7 @@
 
     /** A hospital admin's panel: their hospital's accounts, comments and settings. */
     function renderHospitalAdmin(body) {
-        const lead = `<a class="hp-admin-lead" href="./account.html#manage-all"><i class="fas fa-users-gear"></i><span><b>حسابات مستشفاي</b><small>مراجعة حسابات المقيمين: السماح بالتعليق أو منعه، وحذف الحساب</small></span><i class="fas fa-chevron-left"></i></a>`;
+        const lead = `<a class="hp-admin-lead" href="./account.html#manage-all"><i class="fas fa-users-gear"></i><span><b>حسابات مستشفاي</b><small>حسابات المقيمين: نوع الحساب (ومنه روتيتر)، معلومات البورد، السماح بالتعليق أو منعه، وحذف الحساب</small></span><i class="fas fa-chevron-left"></i></a>`;
         const items = [
             ['fa-user-check', 'طلبات الحسابات', 'الموافقة على طلبات الحسابات الجديدة أو رفضها', { href: './account.html#manage' }],
             ['fa-key', 'طلبات كلمات المرور', 'السماح للأطباء بتغيير كلمات مرورهم', { href: './account.html#manage-resets' }],
@@ -363,14 +370,14 @@
         body.innerHTML = `<div class="hp-sub-head"><button type="button" class="hacc-btn sm" data-act="back"><i class="fas fa-chevron-right"></i> رجوع</button><h3>إعدادات المستشفيات</h3></div>
             <div class="hacc-empty">جاري التحميل…</div>`;
         body.querySelector('[data-act="back"]').addEventListener('click', () => show('admin'));
-        let off = [], anonOff = [], approval = [], specEdit = [], scope = [];
+        let off = [], anonOff = [], approval = [], specEdit = [], scope = [], profileLocked = [];
         try {
             const [c, x, sp] = await Promise.all([
                 Hub.api('GET', '/api/social/hospitals', undefined, { retries: 1 }),
                 Hub.api('GET', '/api/exchange/settings', undefined, { retries: 1 }),
                 Hub.api('GET', '/api/specialists/settings', undefined, { retries: 1 }),
             ]);
-            off = c.off || []; anonOff = c.anonOff || []; scope = c.scope || []; approval = x.on || []; specEdit = sp.on || [];
+            off = c.off || []; anonOff = c.anonOff || []; scope = c.scope || []; approval = x.on || []; specEdit = sp.on || []; profileLocked = c.profileLocked || [];
         } catch (err) {
             body.querySelector('.hacc-empty').textContent = errorText(err);
             return;
@@ -379,7 +386,7 @@
         const hospitals = Hub.getHospitals().filter(h => scope.includes('*') || scope.includes(h.id));
         let query = '';
         const row = (h) => {
-            const on = !off.includes(h.id), anon = !anonOff.includes(h.id), ap = approval.includes(h.id), se = specEdit.includes(h.id);
+            const on = !off.includes(h.id), anon = !anonOff.includes(h.id), ap = approval.includes(h.id), se = specEdit.includes(h.id), pe = !profileLocked.includes(h.id);
             const sw = (key, label, state, onText, offText) => `<span class="hp-switch-row"><span class="hp-switch-label">${label}</span>
                 <span class="hacc-chip ${state ? 'on' : 'off'}">${state ? onText : offText}</span>
                 <button type="button" class="hacc-btn sm ${state ? 'danger' : 'primary'}" data-act="${key}">${state ? 'إيقاف' : 'تفعيل'}</button></span>`;
@@ -387,7 +394,8 @@
                 ${sw('toggle', '💬 التعليقات', on, 'مفعّلة', 'متوقفة')}
                 ${sw('toggle-anon', '🕶️ التعليق المجهول', anon, 'مسموح', 'متوقف')}
                 ${sw('toggle-approval', '🔁 موافقة تبديل الخفارات', ap, 'مفعّلة', 'متوقفة')}
-                ${sw('toggle-spec', '🩺 المقيمون يعدّلون أطباء اختصاصهم', se, 'مسموح', 'الإدارة فقط')}</li>`;
+                ${sw('toggle-spec', '🩺 المقيمون يعدّلون أطباء اختصاصهم', se, 'مسموح', 'الإدارة فقط')}
+                ${sw('toggle-profile', '🎓 المقيمون يعدّلون معلومات البورد', pe, 'مسموح', 'الإدارة فقط')}</li>`;
         };
         const paint = () => {
             const list = hospitals.filter(h => !query || String(h.name_ar || h.hospitalName || h.id).includes(query));
@@ -410,6 +418,13 @@
                 payload = { hosp: h, anon };
                 if (!anon) confirmText = `إيقاف التعليق المجهول في ${name}؟ ستكون التعليقات الجديدة بالاسم الحقيقي فقط.`;
                 done = anon ? 'تم السماح بالتعليق المجهول ✓' : 'تم إيقاف التعليق المجهول';
+            } else if (kind === 'toggle-profile') {
+                const allow = profileLocked.includes(h);
+                payload = { hosp: h, profileEdit: allow };
+                confirmText = allow
+                    ? `السماح لمقيمي ${name} بتعديل معلومات البورد في ملفاتهم (نوع البورد، الاختصاص، المرحلة، سنوات البورد)؟`
+                    : `منع مقيمي ${name} من تعديل معلومات البورد؟ يعدّلها بعد ذلك مدير المستشفى من إدارة الحسابات فقط.`;
+                done = allow ? 'أصبح المقيمون يعدّلون معلومات البورد ✓' : 'أصبحت معلومات البورد للإدارة فقط';
             } else if (kind === 'toggle-spec') {
                 const on = !specEdit.includes(h);
                 path = '/api/specialists/settings';
@@ -433,13 +448,13 @@
                 const res = await Hub.api('POST', path, payload, { retries: 0 });
                 if (path === '/api/exchange/settings') approval = res.on || [];
                 else if (path === '/api/specialists/settings') specEdit = res.on || [];
-                else { off = res.off || off; anonOff = res.anonOff || anonOff; }
+                else { off = res.off || off; anonOff = res.anonOff || anonOff; profileLocked = res.profileLocked || profileLocked; }
                 toast(done, 'success');
                 paint();
             } catch (err) { btn.disabled = false; toast(errorText(err), 'error'); }
         };
         body.innerHTML = `<div class="hp-sub-head"><button type="button" class="hacc-btn sm" data-act="back"><i class="fas fa-chevron-right"></i> رجوع</button><h3>إعدادات المستشفيات</h3></div>
-            <p class="hacc-muted hp-switch-note">إيقاف التعليقات يمنع التعليق على بطاقات خفارات المستشفى${Hub.auth.isOwner() ? ' (عدا المالك)' : ''} وتبقى التعليقات السابقة. مع إيقاف «المجهول» تكون التعليقات الجديدة بالاسم الحقيقي. ومع «موافقة التبديل» يمر كل تبديل يطلبه مقيم بموافقة صاحب الخفارة ثم الإدارة. ومع «المقيمون يعدّلون أطباء اختصاصهم» يضيف المقيم ويعدّل بطاقات أطباء اختصاصه (أو اختصاص دورته) في مستشفاه، ويبقى الحذف للإدارة.</p>
+            <p class="hacc-muted hp-switch-note">إيقاف التعليقات يمنع التعليق على بطاقات خفارات المستشفى${Hub.auth.isOwner() ? ' (عدا المالك)' : ''} وتبقى التعليقات السابقة. مع إيقاف «المجهول» تكون التعليقات الجديدة بالاسم الحقيقي. ومع «موافقة التبديل» يمر كل تبديل يطلبه مقيم بموافقة صاحب الخفارة ثم الإدارة. ومع «المقيمون يعدّلون أطباء اختصاصهم» يضيف المقيم ويعدّل بطاقات أطباء اختصاصه (أو اختصاص دورته) في مستشفاه، ويبقى الحذف للإدارة. ومع منع «المقيمون يعدّلون معلومات البورد» يحدد المدير البورد والمرحلة لكل مقيم من إدارة الحسابات.</p>
             ${hospitals.length > 4 ? '<input type="search" class="hp-hs-search" data-role="hs-search" placeholder="ابحث عن مستشفى…" aria-label="ابحث عن مستشفى">' : ''}
             <ul class="hp-switches" data-role="hs-list"></ul>`;
         body.querySelector('[data-act="back"]').addEventListener('click', () => show('admin'));

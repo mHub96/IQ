@@ -11,6 +11,10 @@
       "database_id": "e795a9a9-5d07-4c42-8688-e3384809ee84"
     }
   ],
+  // The latest automatic backup (written every 5 hours by the backups repository's GitHub Action).
+  "kv_namespaces": [
+    { "binding": "BACKUPS", "id": "23885f3a67584f5f9ac8b4f16843928d" }
+  ],
   // No cron here: the live Worker already prunes the shared database every night.
   "vars": {
     // Cloudflare account (not secret): the owner's usage tab reads its analytics (usage.js).

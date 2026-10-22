@@ -461,6 +461,7 @@
             ['المستشفيات', HOSPITAL_TOOLS],
             ['المنظومة', [
                 ['fa-truck-medical', 'نظام خفارات الطوارئ (ER)', 'جداول وتوزيع خفارات الطوارئ', { href: './emergency.html' }],
+                ['fa-chart-simple', 'الإحصائيات', 'استهلاك قاعدة البيانات اليوم والمتبقي من الحد المجاني', { href: './account.html#manage-stats' }],
                 ['fa-plus-circle', 'إضافة مستشفى جديد', 'مستشفى جديد بكامل هيكليته', { fn: 'openAddHospitalModal' }],
                 ['fa-crown', 'مستودع التخصصات العام', 'التخصصات المشتركة لكل المستشفيات', { fn: 'openGlobalSpecialtiesModal' }],
                 ['fa-database', 'النسخ الاحتياطي الشامل', 'تنزيل واستعادة نسخة كاملة', { fn: 'openFullSystemBackupModal' }],

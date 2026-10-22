@@ -186,6 +186,20 @@
         .editor { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--hacc-border); display: grid; gap: 12px; }
         .editor h4 { margin: 0; font-size: 0.8rem; font-weight: 800; color: var(--hacc-muted); }
         .limit-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .usage-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; font-size: .82rem; color: var(--hacc-muted); }
+        .usage-card { margin-bottom: 10px; }
+        .usage-head { display: flex; align-items: center; gap: 10px; }
+        .usage-head h2 { flex: 1; margin: 0; font-size: .95rem; }
+        .usage-ic { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: rgba(52, 199, 89, .14); color: #1f8f3f; }
+        .usage-pct { font-size: 1.25rem; font-weight: 900; color: #1f8f3f; }
+        .usage-bar { height: 10px; border-radius: 999px; background: var(--hacc-surface); margin: 12px 0; overflow: hidden; }
+        .usage-bar span { display: block; height: 100%; border-radius: 999px; background: #34c759; min-width: 2px; }
+        .usage-card.warn .usage-ic, .usage-card.warn .usage-pct { color: #b45309; } .usage-card.warn .usage-ic { background: rgba(245, 158, 11, .15); } .usage-card.warn .usage-bar span { background: #f59e0b; }
+        .usage-card.bad .usage-ic, .usage-card.bad .usage-pct { color: #d70015; } .usage-card.bad .usage-ic { background: rgba(255, 59, 48, .12); } .usage-card.bad .usage-bar span { background: #ff3b30; }
+        .usage-nums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; text-align: center; }
+        .usage-nums b { display: block; font-size: 1rem; font-variant-numeric: tabular-nums; }
+        .usage-nums span { font-size: .72rem; color: var(--hacc-muted); }
+        .usage-note { font-size: .74rem; line-height: 1.7; margin: 10px 0 0; }
         .limit-row select { flex: 1; min-width: 150px; }
         .limit-row input { width: 90px; flex: none; }
         .mod-item { border: 1px solid var(--hacc-border); border-radius: 16px; padding: 12px 14px; margin-bottom: 10px; background: var(--hacc-bg); }
@@ -480,6 +494,7 @@
                 <button type="button" role="tab" data-filter="all" aria-selected="false">الكل</button>
                 <button type="button" role="tab" data-filter="comments" aria-selected="false">التعليقات</button>
                 <button type="button" role="tab" data-filter="system" aria-selected="false" data-owner-only hidden>إعدادات عامة</button>
+                <button type="button" role="tab" data-filter="stats" aria-selected="false" data-owner-only hidden>الإحصائيات</button>
             </div>
             <div class="filter-row">
                 <select id="mg-hosp" aria-label="المستشفى"></select>
@@ -559,7 +574,7 @@
                 VIEWS.forEach(v => { $('view-' + v).hidden = v !== 'me'; });
                 renderMe(view === 'settings' ? 'settings' : 'profile');
             }
-            if (view === 'manage') { selectTab(hash === 'manage-resets' ? 'resets' : hash === 'manage-all' ? 'all' : hash === 'manage-comments' ? 'comments' : hash === 'manage-system' && Hub.auth.isOwner() ? 'system' : mg.filter); }
+            if (view === 'manage') { selectTab(hash === 'manage-resets' ? 'resets' : hash === 'manage-all' ? 'all' : hash === 'manage-comments' ? 'comments' : hash === 'manage-system' && Hub.auth.isOwner() ? 'system' : hash === 'manage-stats' && Hub.auth.isOwner() ? 'stats' : mg.filter); }
             if (view === 'signup') initSignup();
             if (approver) loadPendingCounts();
             window.scrollTo(0, 0);
@@ -1100,11 +1115,12 @@
             document.querySelectorAll('[data-owner-only]').forEach(el => { el.hidden = !Hub.auth.isOwner(); });
             $('mg-list').innerHTML = '<div class="hacc-empty">جاري التحميل…</div>';
             $('mg-more').hidden = true;
-            document.querySelector('#view-manage .filter-row').hidden = mg.filter === 'system';
+            document.querySelector('#view-manage .filter-row').hidden = mg.filter === 'system' || mg.filter === 'stats';
             await Hub.loadDatabase().catch(() => {});
             fillHospitalFilter();
             if (mg.filter === 'comments') return loadComments(false);
             if (mg.filter === 'system') return renderSystem();
+            if (mg.filter === 'stats') return renderStats();
             try {
                 const res = await Hub.api('GET', '/api/accounts?filter=' + mg.filter, undefined, { retries: 1 });
                 mg.items = res.accounts || [];
@@ -1113,6 +1129,53 @@
                 if (!(err instanceof Hub.ApiError)) console.error('Management screen:', err);
                 $('mg-list').innerHTML = `<div class="hacc-empty">${esc(errorText(err))}</div>`;
             }
+        }
+
+        // Owner: today's use of the free plan's daily limits (Cloudflare analytics, see worker/src/usage.js).
+        const fmtN = n => Number(n || 0).toLocaleString('en-US');
+        async function renderStats() {
+            const box = $('mg-list');
+            let u;
+            try {
+                u = await Hub.api('GET', '/api/usage', undefined, { retries: 1 });
+            } catch (err) {
+                box.innerHTML = `<div class="hacc-empty">${esc(errorText(err))}</div>`;
+                return;
+            }
+            if (mg.filter !== 'stats') return;
+            if (!u.configured) {
+                box.innerHTML = `<div class="card"><h2>الإحصائيات غير مفعّلة بعد</h2>
+                    <p class="lead">تحتاج قراءة أرقام الاستهلاك مفتاحاً من Cloudflare بصلاحية <b dir="ltr">Account Analytics: Read</b> يُضاف إلى الخادم باسم <b dir="ltr">CF_ANALYTICS_TOKEN</b>.</p></div>`;
+                return;
+            }
+            const bar = (title, icon, used, limit, unit, note) => {
+                const pct = Math.min(100, used / limit * 100);
+                const left = Math.max(0, limit - used);
+                const tone = pct >= 90 ? 'bad' : pct >= 70 ? 'warn' : 'ok';
+                return `<div class="card usage-card ${tone}">
+                    <div class="usage-head"><span class="usage-ic"><i class="fas ${icon}"></i></span><h2>${title}</h2><b class="usage-pct">${pct < 10 ? pct.toFixed(1) : Math.round(pct)}%</b></div>
+                    <div class="usage-bar"><span style="width:${pct.toFixed(2)}%"></span></div>
+                    <div class="usage-nums">
+                        <div><b>${fmtN(used)}</b><span>المستهلك اليوم</span></div>
+                        <div><b>${fmtN(left)}</b><span>المتبقي (${(100 - pct).toFixed(pct > 99 ? 2 : 1)}%)</span></div>
+                        <div><b>${fmtN(limit)}</b><span>الحد اليومي ${unit}</span></div>
+                    </div>
+                    ${note ? `<p class="hacc-muted usage-note">${note}</p>` : ''}
+                </div>`;
+            };
+            const resetIn = Math.max(0, u.nextReset - Date.now());
+            const h = Math.floor(resetIn / 3600000), m = Math.floor(resetIn % 3600000 / 60000);
+            const resetAt = new Date(u.nextReset).toLocaleTimeString('ar-IQ-u-nu-latn', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Baghdad' });
+            box.innerHTML = `
+                <div class="usage-top">
+                    <span><i class="fas fa-clock-rotate-left"></i> يتجدد الحد بعد <b>${h} س ${m} د</b> (الساعة ${esc(resetAt)} بتوقيت بغداد)</span>
+                    <button type="button" class="hacc-btn sm" id="usage-refresh"><i class="fas fa-rotate"></i> تحديث</button>
+                </div>
+                ${bar('قراءات قاعدة البيانات', 'fa-database', u.rowsRead, u.limits.rowsRead, '(صفوف)', `${fmtN(u.readQueries)} استعلام قراءة اليوم. عند بلوغ الحد يتوقف الموقع عن جلب البيانات حتى التجدد.`)}
+                ${bar('كتابات قاعدة البيانات', 'fa-pen-to-square', u.rowsWritten, u.limits.rowsWritten, '(صفوف)', `${fmtN(u.writeQueries)} عملية حفظ اليوم.`)}
+                ${bar('طلبات الخادم', 'fa-server', u.requests, u.limits.requests, '', (u.workers || []).map(w => `${w.name === 'hosp-hub-api' ? 'الموقع الرئيسي' : w.name === 'hosp-hub-api-beta' ? 'الموقع التجريبي' : esc(w.name)}: ${fmtN(w.requests)}`).join(' · '))}
+                <p class="hacc-muted usage-note">الأرقام من إحصائيات Cloudflare لحساب الموقع (الموقع الرئيسي والتجريبي معاً)، وتتأخر بضع دقائق. آخر تحديث: ${esc(timeAgo(u.at))}.</p>`;
+            $('usage-refresh').addEventListener('click', () => { box.innerHTML = '<div class="hacc-empty">جاري التحميل…</div>'; renderStats(); });
         }
 
         // Owner: system-wide settings.
@@ -1139,7 +1202,7 @@
 
         function renderManage() {
             if (mg.filter === 'comments') return renderComments();
-            if (mg.filter === 'system') return;
+            if (mg.filter === 'system' || mg.filter === 'stats') return;
             const isOwner = Hub.auth.isOwner();
             const myId = (Hub.auth.getAccount() || {}).id;
             const q = mg.query;

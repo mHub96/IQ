@@ -13,6 +13,8 @@
   ],
   // No cron here: the live Worker already prunes the shared database every night.
   "vars": {
+    // Cloudflare account (not secret): the owner's usage tab reads its analytics (usage.js).
+    "CF_ACCOUNT_ID": "f95cab84685384b320ba71a1119fb323",
     "ALLOWED_ORIGINS": "https://hosp-hub-beta.mrjuniversity.workers.dev,https://mhub96.github.io",
     // Web Push: public half of the VAPID key pair (the private half is the VAPID_PRIVATE secret).
     "VAPID_PUBLIC": "BGOl7V-kzJ02TyafKBzlqgbBW-Ef81Znw_LU9ZVzoum_W5bswoynF0gQEocOZBcgQR-SBU2ToEaCIvMRY7GR_7s",
@@ -24,4 +26,5 @@
   //   SESSION_KEY  HMAC key for login tokens
   //   PW_KEY       base64 AES-256 key that encrypts role passwords in D1
   //   VAPID_PRIVATE base64url private key for signing Web Push requests
+  //   CF_ANALYTICS_TOKEN API token with "Account Analytics: Read" (owner usage tab)
 }

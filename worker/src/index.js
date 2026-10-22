@@ -23,6 +23,7 @@ import { dutyDayNow } from './profile.js';
 import { routeErFonts } from './erfonts.js';
 import { routeSpecialists, residentSpecialistsEditAllowed, isResidentEditor } from './specialists.js';
 import { canUseEr, erFieldWrites } from './eraccess.js';
+import { routeUsage } from './usage.js';
 
 const VISIT_COOLDOWN_MS = 60 * 1000;
 
@@ -92,6 +93,8 @@ async function route(request, env, ctx) {
   if (aaRoute) return aaRoute;
   const exchangeRoute = await routeExchange(path, method, request, env, auth, url, ctx);
   if (exchangeRoute) return exchangeRoute;
+  const usageRoute = await routeUsage(path, method, env, auth);
+  if (usageRoute) return usageRoute;
   const remindersRoute = await routeReminders(path, method, request, env, auth);
   if (remindersRoute) return remindersRoute;
   const dutiesRoute = await routeDuties(path, method, request, env, auth, url, ctx);

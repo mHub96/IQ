@@ -17,6 +17,8 @@
   // minutes (the test Worker has no cron; reminders saved on the test site are sent from here too).
   "triggers": { "crons": ["17 1 * * *", "*/10 * * * *"] },
   "vars": {
+    // Cloudflare account (not secret): the owner's usage tab reads its analytics (usage.js).
+    "CF_ACCOUNT_ID": "f95cab84685384b320ba71a1119fb323",
     "ALLOWED_ORIGINS": "https://mhub96.github.io",
     // Web Push: the same key pair as the test Worker, so existing subscriptions keep working.
     "VAPID_PUBLIC": "BGOl7V-kzJ02TyafKBzlqgbBW-Ef81Znw_LU9ZVzoum_W5bswoynF0gQEocOZBcgQR-SBU2ToEaCIvMRY7GR_7s",
@@ -27,4 +29,5 @@
   //   SESSION_KEY   HMAC key for login tokens (the live site's own; changing it signs everyone out)
   //   PW_KEY        base64 AES-256 key that encrypts role passwords in D1
   //   VAPID_PRIVATE base64url private key for signing Web Push requests
+  //   CF_ANALYTICS_TOKEN API token with "Account Analytics: Read" (owner usage tab)
 }

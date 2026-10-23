@@ -1688,6 +1688,7 @@
     <script src="./hub-avatar.js"></script>
     <script src="./hub-accounts.js"></script>
     <script src="./hub-oncall.js"></script>
+    <script src="./hub-xp.js"></script>
     <script src="./nav-component.js"></script>
     <script>
         // ================================================================
@@ -1696,7 +1697,7 @@
         let currentHospital = null;
         let updateInterval = null;
         let countdownInterval = null;
-        let currentLeaderboardFilter = 'today';
+        let currentLeaderboardFilter = 'month';
         let confettiClickCounter = 0;
         const clickCooldown = {};
         const COOLDOWN_TIME = 3000;
@@ -2975,6 +2976,13 @@
         }
 
         function switchLeaderboardFilter(filter) {
+            // The XP leaderboard (hub-xp.js): levels, tiers and trophies from the server.
+            if (window.HubXP && currentHospital && Hub.auth.isLoggedIn()) {
+                const tabs = document.getElementById('leaderboard-tabs');
+                if (tabs) tabs.hidden = true;
+                HubXP.leaderboard(document.getElementById('trending-content'), currentHospital.id, filter === 'all' ? 'all' : filter === 'today' ? 'today' : 'month');
+                return;
+            }
             currentLeaderboardFilter = filter;
             document.querySelectorAll('.filter-tab').forEach(tab => {
                 tab.classList.toggle('active', tab.dataset.filter === filter);

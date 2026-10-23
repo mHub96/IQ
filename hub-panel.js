@@ -108,6 +108,29 @@
         const portalForm = portalNext && which === 'schedule';
         portalNext = false;
         ({ profile: renderProfile, schedule: renderSchedule, comments: renderComments, settings: renderSettings, admin: renderAdmin })[which](body, portalForm);
+        if (which === 'profile') addXpCard(body);
+    }
+
+    // XP, level and trophies at the top of the profile (hub-xp.js, loaded on first use).
+    let xpLoading = null;
+    function loadXp() {
+        if (window.HubXP) return Promise.resolve();
+        xpLoading = xpLoading || new Promise((resolve, reject) => {
+            const el = document.createElement('script');
+            const self = document.querySelector('script[src*="hub-panel.js"]');
+            el.src = (self ? self.src.replace(/hub-panel\.js.*$/, '') : './') + 'hub-xp.js';
+            el.onload = resolve;
+            el.onerror = () => { xpLoading = null; reject(new Error('xp')); };
+            document.head.appendChild(el);
+        });
+        return xpLoading;
+    }
+    function addXpCard(body) {
+        const a = me || Hub.auth.getAccount();
+        if (!a || NO_PROFILE.includes(a.role)) return;
+        const host = document.createElement('div');
+        body.prepend(host);
+        loadXp().then(() => { if (host.isConnected) window.HubXP.profileCard(host); }).catch(() => host.remove());
     }
 
     // ------------------------------------------------------------------

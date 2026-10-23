@@ -78,9 +78,45 @@ test('not in another specialty, nor in another hospital', async () => {
   assert.ok(refused(await put(t.tok, t.otherHosp, 'd', t.rot)), 'another hospital');
 });
 
-test('cleanup', async () => {
+test('approval on: a linked rotator holding the duty decides first; no account, straight to the admins', async () => {
   const all = await rows(t.owner);
-  const dels = ['a', 'b'].map(n => row(all, 'sched', ID(t.h, n))).filter(Boolean).map(r => ({ c: 'sched', id: r[1], bv: r[4], del: 1 }));
+  const accounts = (await call('GET', '/api/accounts?filter=all', { token: t.owner })).data.accounts;
+  const taken = new Set(accounts.map(a => a.resident_id));
+  const phones = new Map();
+  const residents = all.filter(r => r[0] === 'resident').map(r => r[5]);
+  for (const r of residents) phones.set(r.phone, (phones.get(r.phone) || 0) + 1);
+  const mine = residents.filter(r => (r.hospitals || []).includes(t.h) && r.spec === t.rot && r.active !== false && !taken.has(r.id) && phones.get(r.phone) === 1 && /^\+?9647\d{9}$/.test(r.phone || ''));
+  assert.ok(mine.length >= 2, 'two records of the rotators specialty');
+  const [holder, noAccount] = mine;
+  // The holder signs up as a rotator (linked to their record) and is approved.
+  const username = 'rotxh_' + RUN, key = await deriveKey(username, 'pass-R-2');
+  const su = await call('POST', '/api/accounts/signup-rotator', { body: { hosp: t.h, name: holder.name, phone: holder.phone, username, key, sex: 'm' } });
+  assert.equal(su.data.linked, true, JSON.stringify(su.data));
+  t.holderId = (await call('GET', '/api/accounts?filter=pending', { token: t.owner })).data.accounts.find(a => a.username === username).id;
+  await call('POST', '/api/accounts/decide', { token: t.owner, body: { id: t.holderId, action: 'approve', role: 'rotator' } });
+  const hl = (await call('POST', '/api/accounts/login', { body: { username, key, deviceId: 'deviceH-' + RUN + 'xxxxxxxx', deviceLabel: 'Test' } })).data;
+  // Two duties in the rotators' specialty: the holder's and one of a resident without an account.
+  const duty = (n, name) => ({ c: 'sched', id: ID(t.h, n), h: t.h, o: 99001, bv: 0, d: { date: '02/01/2030', specCode: t.rot, name, timestamp: '08:00', VisitCount: 0 } });
+  assert.equal((await call('POST', '/api/sync', { token: t.owner, body: { msg: 'test', ops: [duty('h', holder.name), duty('n', noAccount.name)] } })).data.applied.length, 2);
+  t.approvalWas = ((await call('GET', '/api/exchange/settings', { token: t.owner })).data.on || []).includes(t.h);
+  await call('POST', '/api/exchange/settings', { token: t.owner, body: { hosp: t.h, on: true } });
+  const ask = oldName => call('POST', '/api/exchange/request', { token: t.tok, body: { h: t.h, date: '02/01/2030', spec: t.rot, oldName, newName: 'روتيتر تجربة اختبار' } });
+  const r1 = await ask(holder.name);
+  assert.equal(r1.data.status, 'owner_pending', JSON.stringify(r1.data));
+  const forHolder = (await call('GET', '/api/exchange', { token: hl.token })).data.requests.find(x => x.id === r1.data.id);
+  assert.equal(forHolder && forHolder.canOwnerDecide, true, 'the linked rotator decides');
+  assert.equal((await call('POST', '/api/exchange/decide', { token: hl.token, body: { id: r1.data.id, approve: true } })).data.status, 'admin_pending');
+  const r2 = await ask(noAccount.name);
+  assert.equal(r2.data.status, 'admin_pending', 'no account: straight to the admins');
+  t.requests = [r1.data.id, r2.data.id];
+});
+
+test('cleanup', async () => {
+  for (const id of t.requests || []) await call('POST', '/api/exchange/decide', { token: t.owner, body: { id, approve: false, note: 'test' } });
+  if (t.approvalWas !== undefined) await call('POST', '/api/exchange/settings', { token: t.owner, body: { hosp: t.h, on: !!t.approvalWas } });
+  if (t.holderId) await call('POST', '/api/accounts/decide', { token: t.owner, body: { id: t.holderId, action: 'delete' } });
+  const all = await rows(t.owner);
+  const dels = ['a', 'b', 'h', 'n'].map(n => row(all, 'sched', ID(t.h, n))).filter(Boolean).map(r => ({ c: 'sched', id: r[1], bv: r[4], del: 1 }));
   if (dels.length) await call('POST', '/api/sync', { token: t.owner, body: { msg: 'test cleanup', ops: dels } });
   const m = row(all, 'meta', 'globalSpecialties');
   assert.equal((await call('POST', '/api/sync', { token: t.owner, body: { msg: 'test cleanup', ops: [{ c: 'meta', id: 'globalSpecialties', h: m[2], o: m[3], bv: m[4], d: t.meta[5] }] } })).data.applied.length, 1);

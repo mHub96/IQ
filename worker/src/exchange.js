@@ -89,6 +89,19 @@ async function list(env, auth) {
   return json({ ok: true, requests: results.map(r => view(r, auth)) });
 }
 
+/** The active rotator account of this hospital linked to the database record named `name`, or null. */
+async function rotatorHolder(env, hosp, name) {
+  const key = nameKey(name);
+  if (!key) return null;
+  const { results } = await env.DB.prepare(
+    `SELECT a.id, json_extract(r.data, '$.name') AS name FROM accounts a
+       JOIN records r ON r.coll = 'resident' AND r.id = a.resident_id
+      WHERE a.role = 'rotator' AND a.status = 'active' AND a.hosp = ?`
+  ).bind(hosp).all();
+  const hit = (results || []).filter(r => nameKey(r.name) === key);
+  return hit.length === 1 ? hit[0].id : null;
+}
+
 /** Body: { h, date: 'DD/MM/YYYY', spec, oldName, newName }. */
 async function createRequest(request, env, auth, ctx) {
   if (!auth.a) return json({ error: 'account_required' }, 403);
@@ -115,7 +128,11 @@ async function createRequest(request, env, auth, ctx) {
     `SELECT id FROM accounts WHERE name_key = ? AND status = 'active' AND role IN ('user', 'anaesthesia', 'admin')
       AND (hosp = ?2 OR EXISTS (SELECT 1 FROM json_each(accounts.hospitals) WHERE value = ?2)) LIMIT 1`
   ).bind(nameKey(oldName), hosp).first();
-  const ownerId = holder && holder.id !== auth.a ? holder.id : null;
+  // A rotator's account is not found by name (rotators are kept apart from duty cards): one linked to a
+  // hospital database record holds the duty when that record's name is the duty's. Without an
+  // account, the request goes straight to the admins.
+  const holderId = holder ? holder.id : await rotatorHolder(env, hosp, oldName);
+  const ownerId = holderId && holderId !== auth.a ? holderId : null;
   const status = ownerId ? 'owner_pending' : 'admin_pending';
   const now = Date.now();
   const ins = await env.DB.prepare(

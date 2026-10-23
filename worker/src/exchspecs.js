@@ -19,7 +19,7 @@ export function isRotatorSpec(specs, code) {
 }
 
 /** Does resident `r` belong in specialty `specId` of a hospital with these specialties? (no fallback) */
-function inSpecialty(specs, specId, r) {
+export function inSpecialty(specs, specId, r) {
   if (!r || r.active === false || r.spec === 'RESERVE') return false;
   const s = specs.find(x => x && x.id === specId);
   const pool = s && Array.isArray(s.acceptPool) ? s.acceptPool : [];

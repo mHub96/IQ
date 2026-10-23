@@ -676,7 +676,7 @@
     // Account panel (hub-panel.js, loaded on first use)
     // ------------------------------------------------------------------
     let panelLoading = null;
-    function openPanel(tab) {
+    function openPanel(tab, opts) {
         if (!window.HubPanel) {
             panelLoading = panelLoading || new Promise((resolve, reject) => {
                 const el = document.createElement('script');
@@ -686,9 +686,9 @@
                 el.onerror = () => { panelLoading = null; reject(new Error('panel')); };
                 document.head.appendChild(el);
             });
-            return panelLoading.then(() => window.HubPanel.open(tab)).catch(() => toast('تعذر فتح لوحة الحساب. تحقق من الاتصال.', 'error'));
+            return panelLoading.then(() => window.HubPanel.open(tab, opts)).catch(() => toast('تعذر فتح لوحة الحساب. تحقق من الاتصال.', 'error'));
         }
-        return window.HubPanel.open(tab);
+        return window.HubPanel.open(tab, opts);
     }
 
     /** Once a day, remind accounts with an incomplete profile (board, specialty, stage). */

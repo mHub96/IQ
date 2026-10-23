@@ -225,7 +225,11 @@
     </header>
 
     <main>
-        <!-- Signed-in tabs -->
+        <!-- Signed in: one frame holds every account section (profile, My Schedule, comments, settings,
+             administration); the management lists show under its header and tabs. -->
+        <div id="acc-frame" hidden></div>
+
+        <!-- Signed-in tabs (kept for the shared-password sessions' fallback) -->
         <nav class="apptabs" id="apptabs" aria-label="أقسام الحساب" hidden>
             <a href="#me" data-view="me">حسابي</a>
             <a href="#settings" data-view="settings">الإعدادات</a>
@@ -524,7 +528,27 @@
         const { esc, toast, timeAgo, ROLE_NAMES, errorText } = HubAccounts;
         const USERNAME_RE = /^[a-z0-9][a-z0-9._]{2,23}$/;
         const NICK_RE = /^[\p{L}\p{N}][\p{L}\p{N}._-]{2,23}$/u;
-        const VIEWS = ['signin', 'signup', 'forgot', 'me', 'settings', 'manage'];
+        const VIEWS = ['signin', 'signup', 'forgot', 'me', 'settings', 'manage', 'schedule', 'comments', 'admin'];
+        // The frame's tabs and their addresses on this page.
+        const FRAME_TAB = { me: 'profile', settings: 'settings', schedule: 'schedule', comments: 'comments', admin: 'admin' };
+        const TAB_HASH = { profile: 'me', settings: 'settings', schedule: 'schedule', comments: 'comments', admin: 'admin' };
+        let framePortal = false;
+        /** Shows the frame on `tab` ({ body: false }: only its header and tabs, for the management lists). */
+        function showFrame(tab, opts = {}) {
+            const host = $('acc-frame');
+            host.hidden = false;
+            if (window.HubPanel && HubPanel.hasFrame()) { HubPanel.select(tab, { ...opts, portal: framePortal }); framePortal = false; return; }
+            const portal = framePortal;
+            framePortal = false;
+            HubAccounts.openPanel(portal ? 'portal' : tab, {
+                host,
+                onTab: (t, toPortal) => {
+                    const h = '#' + (TAB_HASH[t] || 'me');
+                    if (toPortal) framePortal = true;
+                    if (location.hash !== h) location.hash = h; else route();
+                },
+            }).then(() => { if (opts.body === false && window.HubPanel) HubPanel.select(tab, { body: false }); });
+        }
         const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
         const setMsg = (el, text, kind = '') => { el.textContent = text || ''; el.className = (el.className.split(' ')[0]) + (kind ? ' ' + kind : ''); };
         const hospitalName = id => { if (id === '*') return 'كل المستشفيات'; const h = Hub.getHospital(id) || Hub.publicHospital(id); return h ? (h.name_ar || h.hospitalName) : id; };
@@ -569,18 +593,19 @@
             const signedIn = Hub.auth.isLoggedIn();
             const approver = ['owner', 'admin'].includes(Hub.auth.getRole());
             if (!VIEWS.includes(view)) view = signedIn ? 'me' : 'signin';
-            if (view === 'manage' && !approver) view = signedIn ? 'me' : 'signin';
-            if ((view === 'me' || view === 'settings') && !signedIn) view = 'signin';
+            if ((view === 'manage' || view === 'admin') && !approver) view = signedIn ? 'me' : 'signin';
+            if (FRAME_TAB[view] && !signedIn) view = 'signin';
             if (view === 'signin' && Hub.auth.getAccount()) view = 'me';
-            VIEWS.forEach(v => { $('view-' + v).hidden = v !== view; });
-            const tabs = $('apptabs');
-            tabs.hidden = !['me', 'settings', 'manage'].includes(view);
-            $('tab-manage').hidden = !approver;
-            tabs.querySelectorAll('a').forEach(a => { if (a.dataset.view === view) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
-            $('page-title').textContent = { signin: 'تسجيل الدخول', signup: 'حساب جديد', forgot: 'استعادة كلمة المرور', me: 'حسابي', settings: 'الإعدادات', manage: 'الإدارة' }[view];
-            if (view === 'me' || view === 'settings') {
-                VIEWS.forEach(v => { $('view-' + v).hidden = v !== 'me'; });
-                renderMe(view === 'settings' ? 'settings' : 'profile');
+            VIEWS.forEach(v => { const el = $('view-' + v); if (el) el.hidden = v !== view; });
+            $('apptabs').hidden = true;
+            $('page-title').textContent = { signin: 'تسجيل الدخول', signup: 'حساب جديد', forgot: 'استعادة كلمة المرور', me: 'حسابي', settings: 'الإعدادات', manage: 'الإدارة', schedule: 'جدولي', comments: 'تعليقاتي', admin: 'الإدارة' }[view];
+            // Signed in: the one frame (its tab), and the management lists under its header.
+            const framed = signedIn && (FRAME_TAB[view] || view === 'manage');
+            $('acc-frame').hidden = !framed;
+            if (framed) {
+                $('view-me').hidden = true;
+                if (view === 'manage') showFrame('admin', { body: false });
+                else showFrame(FRAME_TAB[view]);
             }
             if (view === 'manage') { selectTab(hash === 'manage-resets' ? 'resets' : hash === 'manage-all' ? 'all' : hash === 'manage-comments' ? 'comments' : hash === 'manage-system' && Hub.auth.isOwner() ? 'system' : hash === 'manage-stats' && Hub.auth.isOwner() ? 'stats' : mg.filter); }
             if (view === 'signup') initSignup();
@@ -1080,14 +1105,6 @@
         });
 
         // -------------------- Profile & settings: the account panel --------------------
-        function renderMe(which) {
-            const acc = Hub.auth.getAccount();
-            $('me-card').innerHTML = acc
-                ? `<div class="profile">${HubAccounts.avatarHtml(acc, 56)}
-                    <div><div class="name">${esc(acc.name)}</div><div class="hacc-muted" dir="ltr" style="text-align:right">@${esc(acc.username)}</div></div></div>`
-                : `<h2>${esc(ROLE_NAMES[Hub.auth.getRole()] || 'مستخدم')}</h2><p class="lead" style="margin:0">مسجّل بكلمة المرور المشتركة. <a href="#signup">أنشئ حساباً شخصياً</a>.</p>`;
-            HubAccounts.openPanel(which);
-        }
         document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => HubAccounts.openPanel(b.dataset.open)));
 
         // -------------------- Device list (management) --------------------

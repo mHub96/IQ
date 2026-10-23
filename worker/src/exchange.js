@@ -192,7 +192,8 @@ async function decide(request, env, auth, ctx) {
       const res = await env.DB.batch([
         env.DB.prepare(`INSERT INTO history (coll, id, hosp, v, data, deleted, ts, by, msg) SELECT coll, id, hosp, v, data, 0, ?2, ?3, ?4 FROM records WHERE coll = 'sched' AND id = ?1`)
           .bind(r.sched_id, now, by, msg),
-        env.DB.prepare(`UPDATE records SET data = json_set(data, '$.name', ?2, '$.timestamp', ?3), v = v + 1, updated_at = ?4, updated_by = ?5, wid = NULL
+        // The duty's resident id (resId) belonged to the old name: it goes (the name and specialty decide).
+        env.DB.prepare(`UPDATE records SET data = json_remove(json_set(data, '$.name', ?2, '$.timestamp', ?3), '$.resId'), v = v + 1, updated_at = ?4, updated_by = ?5, wid = NULL
                          WHERE coll = 'sched' AND id = ?1 AND v = ?6`).bind(r.sched_id, r.new_name, ts, now, by, cur.v),
         // Approved only if the roster entry really changed just above (same transaction).
         env.DB.prepare(`UPDATE exchange_requests SET status = 'approved', note = ?1, admin_by = ?2, admin_at = ?3, updated_at = ?3

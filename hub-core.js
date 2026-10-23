@@ -603,6 +603,28 @@
         return looksRotator(s) || (!!s && !!s.parentSpec && looksRotator(find(s.parentSpec)));
     }
 
+    /**
+     * The id of the resident a duty name means in a hospital's specialty, or null when it cannot be told.
+     * Two residents may share a name: then the one whose duties that specialty carries.
+     */
+    function residentIdFor(hospitalId, name, specCode) {
+        if (!db || !Array.isArray(db.residents) || !name) return null;
+        const key = nameKeyOf(name);
+        const same = db.residents.filter(r => r && Array.isArray(r.hospitals) && r.hospitals.includes(hospitalId) && nameKeyOf(r.name) === key);
+        if (same.length === 1) return same[0].id;
+        if (!same.length || !specCode) return null;
+        const hospital = getHospital(hospitalId);
+        const fits = hospital ? residentsOfSpecialty(hospital, specCode).list.map(r => r.id) : [];
+        const inSpec = same.filter(r => fits.includes(r.id));
+        return inSpec.length === 1 ? inSpec[0].id : null;
+    }
+    /** Writes (or clears) the resident id of a roster entry after its name was set. */
+    function stampResident(entry, hospitalId) {
+        if (!entry) return;
+        const id = residentIdFor(hospitalId, entry.name, entry.specCode);
+        if (id) entry.resId = id; else delete entry.resId;
+    }
+
     /** Is this hospital specialty one of the general store's (not a clone, not the hospital's own)? */
     function isStoreSpecialty(hospitalId, specId) {
         if (AA) return false;
@@ -2020,25 +2042,18 @@
             if (idx !== -1) {
                 hospital.schedule[idx].name = newResidentName;
                 hospital.schedule[idx].timestamp = ts;
+                stampResident(hospital.schedule[idx], hospitalId);
             } else {
-                hospital.schedule.push({
-                    date: date,
-                    specCode: specCode,
-                    name: newResidentName,
-                    timestamp: ts,
-                    VisitCount: 0
-                });
+                const added = { date: date, specCode: specCode, name: newResidentName, timestamp: ts, VisitCount: 0 };
+                stampResident(added, hospitalId);
+                hospital.schedule.push(added);
             }
         } else {
             // Replace existing duty for this specialty on this date
             hospital.schedule = hospital.schedule.filter(s => !(s.specCode === specCode && s.date === date));
-            hospital.schedule.push({
-                date: date,
-                specCode: specCode,
-                name: newResidentName,
-                timestamp: ts,
-                VisitCount: 0
-            });
+            const added = { date: date, specCode: specCode, name: newResidentName, timestamp: ts, VisitCount: 0 };
+            stampResident(added, hospitalId);
+            hospital.schedule.push(added);
         }
 
         // Consolidate identical residents on the same day and specialty into a single 24-hour entry
@@ -4637,6 +4652,7 @@
         getEligibleResidentsForSpecialty,
         exchangeSpecialtiesFor,
         isStoreSpecialty,
+        residentIdFor,
         setHospitalSpecialtiesEnabled,
         syncHospitalSpecialtiesWithGlobal,
         getActiveOnCallResidentsCount,

@@ -3165,6 +3165,7 @@
                     }
                     saveEntry(element, true);
                 } else {
+                    saveEntry(element, false);   // emptied: its duty goes
                     moveToNextCell(date, specialtyCode, slotIndex);
                 }
                 return false;
@@ -3298,9 +3299,19 @@
                         input.classList.add('prefilled');
                         saveEntry(input);
                     }
+                } else if (input && input.value.trim() === "") {
+                    saveEntry(input);   // emptied: its duty goes
                 }
                 if (ghost) ghost.innerHTML = "";
             }, 300);
+        }
+
+        // The resident a name means (two residents may share a name): stored, hidden, with the duty.
+        function stampResident(entry) {
+            if (schedulerMode === 'specialists' || !window.Hub || !Hub.residentIdFor) return;
+            var hosp = Hub.getActiveHospital && Hub.getActiveHospital();
+            var id = hosp ? Hub.residentIdFor(hosp.id, entry.name, entry.specCode) : null;
+            if (id) entry.resId = id; else delete entry.resId;
         }
 
         // ================================================================
@@ -3317,7 +3328,21 @@
             var slotIndex = parseInt(input.dataset.slot) || 0;
             var name = input.value.trim();
             
-            if (!name) return;
+            // An emptied cell removes its duty (saving then deletes it from the database).
+            if (!name) {
+                var current = getActiveSchedule().filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+                if (slotIndex < current.length) {
+                    var list = getActiveSchedule();
+                    var at = list.indexOf(current[slotIndex]);
+                    if (at !== -1) list.splice(at, 1);
+                    var rest = list.filter(function(scheduleEntry) { return scheduleEntry.date === date && scheduleEntry.specCode === specialtyCode; });
+                    rest.forEach(function(entry, idx) { entry.dutySlot = idx; });
+                    if (rest.length > 0) redistributeDayTimes(date, specialtyCode, null, isDayAutoRedistributionEnabled(date, specialtyCode));
+                    input.classList.remove('prefilled', 'new-entry', 'invalid-name');
+                    if (refreshAfterSave) refreshView();
+                }
+                return;
+            }
             
             var isValid = isNameValidForSpecialty(name, specialtyCode);
             if (!isValid) {
@@ -3349,10 +3374,12 @@
                     dutyTime: "",
                     dutySlot: slotIndex
                 };
+                stampResident(newEntry);
                 scheduleArray.push(newEntry);
                 redistributeDayTimes(date, specialtyCode, null, isDayAutoRedistributionEnabled(date, specialtyCode));
             } else {
                 entries[slotIndex].name = name;
+                stampResident(entries[slotIndex]);
                 redistributeDayTimes(date, specialtyCode, null, isDayAutoRedistributionEnabled(date, specialtyCode));
             }
             

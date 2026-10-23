@@ -1,6 +1,7 @@
 /**
- * Account panel: opens over the current page (profile, comments received, settings).
- * Loaded on first use by hub-accounts.js (HubAccounts.openPanel).
+ * Account panel: profile, My Schedule, comments received, settings, administration.
+ * Loaded on first use by hub-accounts.js (HubAccounts.openPanel). On the account page it is the page
+ * itself (one frame holding every account section, { host, onTab }); elsewhere it opens as a sheet.
  */
 (function (window, document) {
     'use strict';
@@ -23,8 +24,9 @@
     const isoToLocal = iso => (/^\d{4}-\d{2}-\d{2}$/.test(iso || '') ? iso.split('-').reverse().join('/') : (iso || ''));
 
     let me = null;        // profile from the server
-    let sheet = null;     // the open panel element
+    let sheet = null;     // the open panel element (the sheet, or the account page's frame)
     let tab = 'profile';
+    let frame = null;     // the account page's frame: { el, onTab }
 
     async function loadMe() {
         try {
@@ -44,19 +46,22 @@
     // ------------------------------------------------------------------
     let portalNext = false; // open the ER preferences form once the schedule tab shows
 
-    async function open(which = 'profile') {
+    async function open(which = 'profile', opts = {}) {
+        // On the account page the frame is already the panel: the tab is chosen there (one panel only).
+        if (!opts.host && frame && document.contains(frame.el)) { frame.onTab(which === 'portal' ? 'schedule' : which, which === 'portal'); return; }
         portalNext = which === 'portal';
         if (portalNext) which = 'schedule';
         tab = ['profile', 'schedule', 'comments', 'settings', 'admin'].includes(which) ? which : 'profile';
         const acc = Hub.auth.getAccount();
         const approver = ['owner', 'admin'].includes(Hub.auth.getRole());
-        sheet = A.openSheet(`<header class="hacc-sheet-head hp-head">
+        const inline = !!opts.host;
+        const markup = `<header class="hacc-sheet-head hp-head">
                 <div class="hp-who">
                     <span data-role="head-avatar">${acc ? A.avatarHtml(acc, 46) : '<span class="hacc-avatar"><i class="fas fa-user"></i></span>'}</span>
                     <div><h2>${esc(acc ? acc.name : (ROLE_NAMES[Hub.auth.getRole()] || 'حسابي'))}</h2>
                     <div class="hacc-muted">${acc ? `<span dir="ltr">@${esc(acc.username)}</span> · ${esc(ROLE_NAMES[acc.role] || acc.role)}` : 'مسجّل بكلمة المرور المشتركة'}</div></div>
                 </div>
-                <button type="button" class="hacc-icon-btn" data-act="close" aria-label="إغلاق">✕</button>
+                ${inline ? '' : '<button type="button" class="hacc-icon-btn" data-act="close" aria-label="إغلاق">✕</button>'}
             </header>
             <div class="hacc-tabs" role="tablist">
                 ${acc ? `<button type="button" role="tab" data-tab="profile">الملف الشخصي</button>
@@ -70,22 +75,34 @@
                 ${approver && !Hub.auth.isOwner() ? `<a class="hacc-btn sm" href="./scheduler.html?hospital=${encodeURIComponent((Hub.auth.getAdminHospitalIds() || [])[0] || '')}"><i class="fas fa-calendar-alt"></i> المجدول</a>` : ''}
                 ${!acc ? '<a class="hacc-btn sm primary" href="./account.html#signup">إنشاء حساب شخصي</a>' : ''}
                 <button type="button" class="hacc-btn sm danger" data-act="logout"><i class="fas fa-sign-out-alt"></i> خروج</button>
-            </footer>`, { label: 'لوحة الحساب', tall: true });
+            </footer>`;
+        if (inline) {
+            opts.host.innerHTML = `<section class="hp-frame" aria-label="لوحة الحساب">${markup}</section>`;
+            sheet = opts.host.querySelector('.hp-frame');
+            frame = { el: sheet, onTab: opts.onTab || (t => show(t)) };
+        } else {
+            sheet = A.openSheet(markup, { label: 'لوحة الحساب', tall: true });
+        }
         if (!acc && tab !== 'admin') tab = 'settings';
         if (tab === 'admin' && !approver) tab = acc ? 'profile' : 'settings';
         if (tab === 'schedule' && acc && NO_PROFILE.includes(acc.role)) tab = 'profile';
         if (tab === 'comments' && acc && OFFICER_ROLES.includes(acc.role)) tab = 'profile';
-        sheet.querySelector('[data-act="close"]').addEventListener('click', A.closeSheet);
+        if (!inline) sheet.querySelector('[data-act="close"]').addEventListener('click', A.closeSheet);
         sheet.querySelector('[data-act="logout"]').addEventListener('click', logout);
-        sheet.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => show(b.dataset.tab)));
+        // In the frame a tab is an address of the account page (the back button steps through them).
+        sheet.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => (inline ? frame.onTab(b.dataset.tab) : show(b.dataset.tab))));
         if (acc) await loadMe();
         show(tab);
     }
 
-    function show(which) {
+    function show(which, portal = false) {
         tab = which;
         sheet.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === which)));
         const body = sheet.querySelector('[data-role="body"]');
+        body.hidden = false;
+        const foot = sheet.querySelector('.hp-foot');
+        if (foot) foot.hidden = false;
+        if (portal) portalNext = true;
         body.scrollTop = 0;
         if (window.HubMySchedule) window.HubMySchedule.detach();
         const portalForm = portalNext && which === 'schedule';
@@ -832,5 +849,26 @@
         });
     }
 
-    window.HubPanel = { open };
+    /**
+     * The account page's frame: shows a tab (`which`), or with { body: false } only marks it (the
+     * management sections show under the frame's header and tabs).
+     */
+    function select(which, { body = true, portal = false } = {}) {
+        if (!frame || !document.contains(frame.el)) return false;
+        sheet = frame.el;
+        if (!body) {
+            tab = which;
+            sheet.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === which)));
+            if (window.HubMySchedule) window.HubMySchedule.detach();
+            sheet.querySelector('[data-role="body"]').hidden = true;
+            const foot = sheet.querySelector('.hp-foot');
+            if (foot) foot.hidden = true;
+            return true;
+        }
+        const allowed = [...sheet.querySelectorAll('[data-tab]')].map(b => b.dataset.tab);
+        show(allowed.includes(which) ? which : (allowed[0] || 'settings'), portal);
+        return true;
+    }
+
+    window.HubPanel = { open, select, hasFrame: () => !!frame && document.contains(frame.el) };
 })(window, document);

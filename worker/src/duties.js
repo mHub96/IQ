@@ -17,6 +17,7 @@
 import { DAY, json, readJson, overLimit, plainText, signToken, verifyToken } from './lib.js';
 import { nameKey, nameTokens, namesMatch, phoneKey, isoDate } from './names.js';
 import { notifyHospitalResidents, dispatchPush } from './accounts.js';
+import { inSpecialty } from './exchspecs.js';
 import { refreshFromMyDuties } from './reminders.js';
 import { canUseEr } from './eraccess.js';
 
@@ -163,7 +164,7 @@ export async function collectDuties(env, acc, ym) {
     env.DB.prepare(
       `SELECT id, hosp, json_extract(data, '$.date') AS date, json_extract(data, '$.name') AS name,
               json_extract(data, '$.specCode') AS spec, json_extract(data, '$.dutyTime') AS time,
-              json_extract(data, '$.dutySlot') AS slot
+              json_extract(data, '$.dutySlot') AS slot, json_extract(data, '$.resId') AS rid
          FROM records
         WHERE coll = 'sched' AND (json_extract(data, '$.date') LIKE ?1 OR json_extract(data, '$.date') LIKE ?2)`
     ).bind(`%/${String(month).padStart(2, '0')}/${year}`, `%/${month}/${year}`),
@@ -208,11 +209,43 @@ export async function collectDuties(env, acc, ym) {
     return othersByHosp.has(hosp);
   };
 
+  // Two residents of a hospital with the same name: a duty is this resident's when it carries their
+  // id (written by the scheduler and exchanges since 2026-10-23); an older one, when its specialty is
+  // theirs and not the namesake's.
+  let namesakes = null, hospSpecs = null, own = null;
+  const loadNamesakes = async () => {
+    if (namesakes) return;
+    const [others, specs, mine] = await env.DB.batch([
+      env.DB.prepare("SELECT id, data FROM records WHERE coll = 'resident' AND id <> ?").bind(acc.resident_id || ''),
+      env.DB.prepare("SELECT id, json_extract(data, '$.specialties') AS s FROM records WHERE coll = 'hospital'"),
+      env.DB.prepare("SELECT data FROM records WHERE coll = 'resident' AND id = ?").bind(acc.resident_id || ''),
+    ]);
+    namesakes = [];
+    for (const r of others.results || []) {
+      let d = null;
+      try { d = JSON.parse(r.data); } catch {}
+      if (d && keys.has(nameKey(d.name))) namesakes.push(d);
+    }
+    hospSpecs = new Map((specs.results || []).map(h => { try { return [h.id, JSON.parse(h.s || '[]') || []]; } catch { return [h.id, []]; } }));
+    try { own = JSON.parse((mine.results[0] || {}).data || 'null'); } catch {}
+  };
+  const isMine = async r => {
+    if (r.rid && acc.resident_id) return r.rid === acc.resident_id;
+    await loadNamesakes();
+    const here = namesakes.filter(n => Array.isArray(n.hospitals) && n.hospitals.includes(r.hosp));
+    if (!here.length || !own) return true;
+    const specs = hospSpecs.get(r.hosp) || [];
+    const ownFits = inSpecialty(specs, r.spec, own);
+    const otherFits = here.some(n => inSpecialty(specs, r.spec, n));
+    return ownFits || !otherFits;
+  };
+
   const duties = [];
   for (const r of rosterRes.results || []) {
     if (!matches(r.name)) continue;
     const date = isoDate(r.date);
     if (!date || await someoneElse(r.hosp)) continue;
+    if (!(await isMine(r))) continue;
     const slot = Number(r.slot) || 0;
     duties.push({ key: `${date}|h|${r.spec || ''}:${slot}`, date, src: 'hospital', hosp: r.hosp, spec: r.spec || '', time: r.time || '', slot });
   }

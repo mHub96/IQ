@@ -41,6 +41,7 @@
     let depth = 0;          // depth of the entry on screen
     let ignorePops = 0;     // back steps taken by the shell itself (their popstate is not a user's back)
     const afterPop = [];    // what to do once those steps are done
+    let restoring = false;  // pop-ups being closed by the shell itself (not by their own buttons)
     const routeOf = u => u.pathname.slice(base.pathname.length) + u.search + u.hash;
 
     const read = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -230,7 +231,7 @@
         url = contextual(url, page);
         if (how === 'push') {
             const cur = active ? viewLocation(active) : null;
-            if (!active || active.page !== page || !cur || docKey(cur) !== docKey(url) || cur.hash !== url.hash) pushEntry(routeOf(url));
+            if (!active || active.page !== page || !cur || docKey(cur) !== docKey(url) || cur.hash !== url.hash) navEntry(routeOf(url));
         }
         let v = views.get(page);
         if (!v) {
@@ -358,7 +359,7 @@
             if (!v || v !== active) return;
             arm();
             const loc = viewLocation(v);
-            if (loc) pushEntry(routeOf(loc), currentOv());
+            if (loc) navEntry(routeOf(loc));
         },
         /** A view is ready to be seen (its first screen has rendered). */
         _ready(win) {
@@ -480,6 +481,22 @@
     }
     window.addEventListener('pointerdown', arm, true);
     window.addEventListener('keydown', arm, true);
+    /**
+     * A new screen the user opens. From inside a pop-up (a link in a sheet), the pop-up closes and the new
+     * screen takes its back step, as in native apps (the stale pop-up entries under it are skipped on back).
+     */
+    function navEntry(route) {
+        if (currentOv() > 0 && active) {
+            restoring = true;
+            let guard = 8;
+            while (overlaysOf(active) > 0 && guard-- > 0 && closeTop(active)) {}
+            setTimeout(() => { restoring = false; }, 400);
+            try { history.replaceState({ hub: 1, depth, route, ov: 0 }, '', '#' + route); } catch (e) {}
+            return;
+        }
+        pushEntry(route);
+    }
+
     /** Goes back `n` entries without acting on them (they were already undone on screen). */
     function unwindBy(n) {
         if (n <= 0) return;
@@ -502,7 +519,6 @@
         try { return v.frame.contentWindow.HubView._overlays(); } catch (e) { return 0; }
     }
 
-    let restoring = false;
     window.addEventListener('popstate', e => {
         const s = e.state;
         if (ignorePops > 0) {

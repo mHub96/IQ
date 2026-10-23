@@ -460,3 +460,23 @@ body.dark .hacc-identity input:checked + span { color: #1C1C1E; }
 .hp-admin-lead b { display: block; font-size: 0.95rem; }
 .hp-admin-lead small { display: block; font-size: 0.72rem; opacity: 0.85; margin-top: 2px; line-height: 1.5; }
 .hp-admin-lead > i:last-child { opacity: 0.8; }
+
+/* The account page's frame: the account panel as the page (one frame for every account section). */
+.hp-frame {
+  background: var(--hacc-bg); color: var(--hacc-text);
+  border: 1px solid var(--hacc-border); border-radius: 22px;
+  overflow: hidden; margin: 0 0 14px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+  animation: hp-frame-in 0.28s cubic-bezier(.2, .8, .2, 1);
+}
+.hp-frame .hacc-sheet-head { padding: 14px 18px 12px; }
+.hp-frame .hacc-tabs {
+  position: sticky; top: 0; z-index: 2; background: var(--hacc-bg);
+  overflow-x: auto; scrollbar-width: none;
+}
+.hp-frame .hacc-tabs::-webkit-scrollbar { display: none; }
+.hp-frame .hacc-tabs button { white-space: nowrap; }
+.hp-frame .hacc-sheet-body { overflow: visible; }
+@keyframes hp-frame-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .hp-frame { animation: none; } }
+.hp-foot[hidden] { display: none; }

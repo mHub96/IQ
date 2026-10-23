@@ -1508,7 +1508,11 @@
             </div>
 
             <input type="hidden" id="global-spec-orig-id" />
-            <input type="hidden" id="global-spec-id" />
+            <div class="mb-3">
+                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">رمز التخصص (ID)</label>
+                <input type="text" id="global-spec-id" class="hub-input font-mono text-left" dir="ltr" maxlength="12" placeholder="e.g. GS" autocomplete="off" spellcheck="false" />
+                <p class="text-[10.5px] text-slate-500 dark:text-slate-400 mt-1">أحرف إنجليزية وأرقام. تغيير الرمز يُطبَّق على كل بيانات الموقع: المستشفيات والمقيمين والخفارات والأخصائيين وطلبات التبديل.</p>
+            </div>
 
             <div class="space-y-3">
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -3353,7 +3357,7 @@
 
         async function saveGlobalSpecEdit() {
             const origId = document.getElementById('global-spec-orig-id').value;
-            let id = document.getElementById('global-spec-id').value.trim().toUpperCase();
+            let id = document.getElementById('global-spec-id').value.trim();
             const nameAr = document.getElementById('global-spec-name-ar').value.trim();
             const nameEn = document.getElementById('global-spec-name-en').value.trim();
             const icon = document.getElementById('global-spec-icon').value.trim() || '🏥';
@@ -3375,6 +3379,8 @@
                 pool.push(cb.value);
             });
 
+            // A new code is carried through all the site's data: say so first.
+            if (origId && id !== origId && !confirm(`تغيير رمز التخصص من «${origId}» إلى «${id}»؟\n\nسيُغيَّر الرمز في كل المستشفيات وسجلات المقيمين وجداول الخفارات ودليل الأخصائيين وطلبات التبديل المفتوحة.`)) return;
             closeGlobalSpecEditModal();
 
             try {

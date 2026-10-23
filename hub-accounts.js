@@ -323,7 +323,7 @@
     // ------------------------------------------------------------------
     // Notifications
     // ------------------------------------------------------------------
-    const notif = { items: [], unread: null, pending: null, timer: null, loading: null };
+    const notif = { items: [], unread: null, pending: null, timer: null, loading: null, fresh: new Set() };
 
     function bellCount() {
         const pending = notif.pending ? (notif.pending.accounts || 0) + (notif.pending.resets || 0) : 0;
@@ -338,10 +338,43 @@
             badge.hidden = n === 0;
             b.setAttribute('aria-label', n ? `الإشعارات (${n} جديدة)` : 'الإشعارات');
         });
-        // Number on the installed app icon (supported on Android Chrome / desktop PWAs).
+        // Number on the installed app icon (Android Chrome / desktop PWAs): unread notifications only, so it
+        // goes once everything is read in the app (requests waiting for approval stay on the bell).
+        const unread = notif.unread || 0;
         try {
-            if (navigator.setAppBadge) n ? navigator.setAppBadge(n) : navigator.clearAppBadge();
+            if (navigator.setAppBadge) unread ? navigator.setAppBadge(unread) : navigator.clearAppBadge();
         } catch (e) {}
+        syncTray();
+    }
+
+    /**
+     * The phone's notification list follows the app: what is read here leaves it. The read versions are
+     * also kept for the service worker, so a late push of something already read does not ring.
+     */
+    let trayTimer = null;
+    function syncTray() {
+        clearTimeout(trayTimer);
+        trayTimer = setTimeout(async () => {
+            if (notif.unread === null || !('serviceWorker' in navigator)) return;
+            const unreadTags = new Set(notif.items.filter(n => !n.seen && n.gkey).map(n => n.gkey));
+            try {
+                const seen = {};
+                notif.items.forEach(n => { if (n.seen && n.gkey) seen[n.gkey] = n.ts; });
+                const cache = await caches.open('hub-notif-state');
+                await cache.put('./__notif-seen', new Response(JSON.stringify(seen), { headers: { 'Content-Type': 'application/json' } }));
+            } catch (e) {}
+            try {
+                const reg = await navigator.serviceWorker.getRegistration();
+                if (!reg || !reg.getNotifications) return;
+                (await reg.getNotifications()).forEach(n => { if (n.tag !== 'test' && !unreadTags.has(n.tag)) n.close(); });
+            } catch (e) {}
+        }, 150);
+    }
+    // A push arrived while the app is open: refresh the bell now.
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', e => {
+            if (e.data && e.data.type === 'hub:push' && signedIn()) Promise.resolve(notif.loading).then(() => pollNotifications());
+        });
     }
 
     async function pollNotifications() {
@@ -452,7 +485,15 @@
         sheet.querySelector('[data-act="all-read"]').addEventListener('click', markAllRead);
         sheet.querySelector('[data-act="clear-all"]').addEventListener('click', () => clearNotifications(null));
         renderNotificationList(sheet);
-        pollNotifications();
+        notif.fresh = new Set();
+        const seeAll = () => {
+            const nids = notif.items.filter(n => !n.seen).map(n => n.nid);
+            if (!nids.length) return;
+            nids.forEach(id => notif.fresh.add(id));
+            markRead(nids);
+        };
+        seeAll();
+        Promise.resolve(pollNotifications()).then(() => { if (openSheetEl && openSheetEl.dataset.kind === 'notifications') seeAll(); });
     }
 
     function renderNotificationList(sheet) {
@@ -482,7 +523,7 @@
         if (!notif.items.length && account()) parts.push('<div class="hacc-empty">لا توجد إشعارات بعد</div>');
         notif.items.forEach((n, i) => {
             const d = describe(n);
-            parts.push(`<div class="hacc-notif-row"><button type="button" class="hacc-notif ${n.seen ? '' : 'unread'}" data-i="${i}">
+            parts.push(`<div class="hacc-notif-row"><button type="button" class="hacc-notif ${n.seen && !notif.fresh.has(n.nid) ? '' : 'unread'}" data-i="${i}">
                 <span class="hacc-notif-icon" aria-hidden="true">${d.icon}</span>
                 <span class="hacc-notif-main"><span class="hacc-notif-text">${esc(d.text)}</span>
                 <time class="hacc-notif-time">${esc(timeAgo(n.ts))}</time></span></button>

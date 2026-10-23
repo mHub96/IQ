@@ -1028,6 +1028,18 @@
             <input type="hidden" id="edit-hosp-spec-id" />
 
             <div class="space-y-3">
+                <div id="edit-hosp-spec-store-note" class="hidden p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-[11.5px] text-amber-900 dark:text-amber-200 flex items-start gap-2">
+                    <i class="fas fa-crown text-amber-500 mt-0.5"></i>
+                    <div class="flex-1">
+                        <div class="font-bold">تخصص من المستودع العام</div>
+                        <div class="mt-0.5 leading-relaxed">الاسم والأيقونة واللقب والفرع يعدّلها مالك المنظومة من المستودع العام، ويتغيّر في كل المستشفيات. يمكنك هنا تغيير اللون والظهور ومصادر سحب الأطباء لهذا المستشفى.</div>
+                        <button type="button" id="edit-hosp-spec-open-store" class="hidden mt-1.5 text-[11px] font-bold px-2 py-1 rounded-lg bg-purple-600 text-white"><i class="fas fa-crown"></i> تعديله في المستودع العام</button>
+                    </div>
+                </div>
+                <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer select-none">
+                    <input type="checkbox" id="edit-hosp-spec-enabled" class="w-4 h-4 rounded accent-teal-600" />
+                    <span>ظاهر في جدول الخفارات</span>
+                </label>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <div class="sm:col-span-2">
                         <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">اسم التخصص بالعربية</label>
@@ -1169,7 +1181,11 @@
 
             <input type="hidden" id="global-spec-orig-id" />
 
-            <input type="hidden" id="global-spec-id" />
+            <div class="mb-3">
+                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">رمز التخصص (ID)</label>
+                <input type="text" id="global-spec-id" class="input-field font-mono text-left" dir="ltr" maxlength="12" placeholder="e.g. GS" autocomplete="off" spellcheck="false" />
+                <p class="text-[10.5px] text-slate-500 dark:text-slate-400 mt-1">أحرف إنجليزية وأرقام. تغيير الرمز يُطبَّق على كل بيانات الموقع: المستشفيات والمقيمين والخفارات والأخصائيين وطلبات التبديل.</p>
+            </div>
 
             <div class="space-y-3">
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -1755,6 +1771,24 @@
             if (input) input.focus();
         }
 
+        /** A branch of another specialty of this hospital (draws its residents from the parent). */
+        function isBranchSpec(spec, specs) {
+            return !!(spec && spec.parentSpec && !spec.isClone && specs.some(p => p.id === spec.parentSpec && p.id !== spec.id));
+        }
+        function branchesOf(spec, specs) {
+            return specs.filter(b => b.id !== spec.id && b.parentSpec === spec.id && !b.isClone);
+        }
+        /** Badges for a specialty's branches; `editable` opens each branch's options (drawing sources). */
+        function branchBadges(branches, editable = false) {
+            return branches.map(b => `<span class="text-[10px] px-2 py-0.5 rounded-full font-bold border ${b.enabled === false ? 'opacity-50 line-through' : ''}"
+                style="background:${(b.color || '#7c3aed')}18;border-color:${(b.color || '#7c3aed')}55;color:${b.color || '#7c3aed'}"
+                title="فرع يسحب أطباءه من هذا التخصص${editable ? ' – انقر لتعديل مصادر السحب' : ''}"
+                ${editable ? `role="button" tabindex="0" onclick="event.stopPropagation(); openEditHospitalSpecModal('${b.id}')"` : ''}>${b.icon || '↳'} ${escapeHtmlText(b.name_ar || b.id)}</span>`).join('');
+        }
+        function escapeHtmlText(t) {
+            return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
         function renderResidentsAccordion(options = {}) {
             const container = document.getElementById('residents-accordion-list');
             if (!container || !currentHospital) return;
@@ -1783,9 +1817,14 @@
             let totalSearchMatches = 0;
 
             const itemsHtmlArray = specs.map(spec => {
-                // 1. Get all active residents for this specialty
-                let primaryResidents = names.filter(n => (n.spec === spec.id || n.tag === spec.id) && isResidentActive(n));
-                let rotatingResidents = names.filter(n => (n.dept === spec.id || n.department === spec.id) && n.spec !== spec.id && n.tag !== spec.id && isResidentActive(n));
+                // A branch (e.g. ICU anaesthesia) draws its residents from its parent: it is a badge on the
+                // parent's section, not a section of its own.
+                if (isBranchSpec(spec, specs)) return '';
+                const branches = branchesOf(spec, specs);
+                const group = [spec.id, ...branches.map(b => b.id)];
+                // 1. Get all active residents for this specialty (and any filed directly under its branches)
+                let primaryResidents = names.filter(n => (group.includes(n.spec) || group.includes(n.tag)) && isResidentActive(n));
+                let rotatingResidents = names.filter(n => (group.includes(n.dept) || group.includes(n.department)) && !group.includes(n.spec) && !group.includes(n.tag) && isResidentActive(n));
                 const unfilteredTotalCount = primaryResidents.length + rotatingResidents.length;
 
                 // 2. Sort automatically by doctor name (separate for each individual category)
@@ -1824,6 +1863,7 @@
                                 <span class="text-xl">${spec.icon || '🏥'}</span>
                                 <span class="font-bold">${(window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(spec.id) : (spec.name_ar || spec.id)}</span>
                                 ${!isEnabled ? '<span class="text-xs px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold">مخفي</span>' : ''}
+                                ${branchBadges(branches)}
                                 ${rotatingResidents.length > 0 ? `
                                     <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold" title="${rotatingResidents.length} أطباء متناوبون مكلفون بدوام هذا القسم">
                                         <i class="fas fa-rotate ml-1"></i> ${rotatingResidents.length} متناوب
@@ -2683,12 +2723,14 @@
                 return;
             }
 
-            // Filter if showEmpty is false
-            let displaySpecs = specs;
+            // Branches are badges on their parent's card; filter empty ones if showEmpty is false
+            const groupOf = s => [s.id, ...branchesOf(s, specs).map(b => b.id)];
+            let displaySpecs = specs.filter(s => !isBranchSpec(s, specs));
             if (!showEmpty) {
-                displaySpecs = specs.filter(s => {
+                displaySpecs = displaySpecs.filter(s => {
                     if (s.isClone) return true;
-                    return names.some(n => n.spec === s.id || n.tag === s.id || n.dept === s.id || n.department === s.id);
+                    const g = groupOf(s);
+                    return names.some(n => g.includes(n.spec) || g.includes(n.tag) || g.includes(n.dept) || g.includes(n.department));
                 });
             }
 
@@ -2707,7 +2749,9 @@
                     cloneSourceHospName = srcH ? (srcH.name_ar || srcH.hospitalName || s.clonedFromHospitalId) : s.clonedFromHospitalId;
                 }
                 const poolCount = Array.isArray(s.acceptPool) ? s.acceptPool.length : 0;
-                const resCount = names.filter(n => n.spec === s.id || n.tag === s.id || n.dept === s.id || n.department === s.id).length;
+                const grp = groupOf(s);
+                const resCount = names.filter(n => grp.includes(n.spec) || grp.includes(n.tag) || grp.includes(n.dept) || grp.includes(n.department)).length;
+                const fromStore = Hub.isStoreSpecialty ? Hub.isStoreSpecialty(currentHospital.id, s.id) : false;
                 const specColor = s.color || '#007AFF';
                 const parentName = s.parentSpec ? ((window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(s.parentSpec) : s.parentSpec) : null;
                 const isExpanded = window.expandedSpecIds && window.expandedSpecIds.has(s.id);
@@ -2757,6 +2801,10 @@
                                         فرعي: ${parentName}
                                     </span>
                                 ` : ''}
+                                ${!isClone ? (fromStore
+                                    ? '<span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800" title="الاسم والأيقونة واللقب من المستودع العام (يعدّلها المالك)"><i class="fas fa-crown"></i> من المستودع العام</span>'
+                                    : '<span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">خاص بالمستشفى</span>') : ''}
+                                ${branchBadges(branchesOf(s, specs), true)}
                                 <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700" title="بادئة اسم المنتسب">
                                     ${s.prefix !== undefined ? (s.prefix === '' ? 'بدون لقب' : `لقب: ${s.prefix.trim()}`) : 'لقب: د.'}
                                 </span>
@@ -2854,8 +2902,8 @@
                             <!-- Row 3: Actions (Owner Edit & Delete) -->
                             <div class="flex items-center justify-end gap-2 flex-wrap pt-1">
                                 ${!isClone ? `
-                                    <button type="button" onclick="event.stopPropagation(); openEditHospitalSpecModal('${s.id}')" class="spec-action-btn text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40 border-teal-200 dark:border-teal-800 hover:bg-teal-100" title="تعديل خصائص هذا التخصص واللقب">
-                                        <i class="fas fa-edit"></i> تعديل التخصص
+                                    <button type="button" onclick="event.stopPropagation(); openEditHospitalSpecModal('${s.id}')" class="spec-action-btn text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40 border-teal-200 dark:border-teal-800 hover:bg-teal-100" title="${fromStore ? 'اللون ومصادر سحب الأطباء (الاسم واللقب من المستودع العام)' : 'تعديل خصائص هذا التخصص واللقب'}">
+                                        <i class="fas fa-edit"></i> ${fromStore ? 'اللون ومصادر السحب' : 'تعديل التخصص'}
                                     </button>
                                 ` : ''}
                                 ${isOwner && !isClone ? `
@@ -3346,6 +3394,20 @@
                 poolGrid.innerHTML = poolHtml || '<div class="col-span-full text-center text-slate-400 text-xs py-2">لا توجد تخصصات أخرى في هذا المستشفى</div>';
             }
 
+            // A specialty of the general store: its own fields are the store's (the owner edits them there).
+            const locked = Hub.isStoreSpecialty ? Hub.isStoreSpecialty(currentHospital.id, spec.id) : false;
+            ['edit-hosp-spec-name-ar', 'edit-hosp-spec-name-en', 'edit-hosp-spec-icon', 'edit-hosp-spec-branch', 'edit-hosp-spec-prefix-select', 'edit-hosp-spec-prefix-custom', 'edit-hosp-spec-update-existing']
+                .forEach(id => { const el = document.getElementById(id); if (el) { el.disabled = locked; el.classList.toggle('opacity-60', locked); } });
+            // The branch stays the hospital's choice while the store leaves it automatic.
+            const storeBranch = locked && ((Hub.getGlobalSpecialties ? Hub.getGlobalSpecialties() : []).find(g => g.id === spec.id) || {}).branch;
+            if (locked && !storeBranch) { const br = document.getElementById('edit-hosp-spec-branch'); br.disabled = false; br.classList.remove('opacity-60'); }
+            document.getElementById('edit-hosp-spec-store-note').classList.toggle('hidden', !locked);
+            const storeBtn = document.getElementById('edit-hosp-spec-open-store');
+            storeBtn.classList.toggle('hidden', !(locked && Hub.auth.isOwner()));
+            storeBtn.onclick = () => { closeEditHospitalSpecModal(); openGlobalSpecEditModal(spec.id); };
+            document.getElementById('edit-hosp-spec-enabled').checked = spec.enabled !== false;
+            if (titleEl) titleEl.innerHTML = `<i class="fas fa-pen-to-square text-teal-600 dark:text-teal-400"></i> ${locked ? 'خيارات' : 'تعديل'} تخصص: ${escapeHtmlText(spec.name_ar)}${isBranchSpec(spec, currentHospital.specialties || []) ? ' <span class="text-xs font-bold text-purple-600">(فرع)</span>' : ''}`;
+
             const modal = document.getElementById('edit-hospital-spec-modal');
             if (modal) modal.classList.add('active');
         }
@@ -3389,6 +3451,7 @@
                     color: color,
                     prefix: prefix,
                     acceptPool: acceptPool,
+                    enabled: document.getElementById('edit-hosp-spec-enabled')?.checked !== false,
                     updateExistingResidents: updateResidents,
                     branch: document.getElementById('edit-hosp-spec-branch')?.value || ''
                 });
@@ -3586,7 +3649,7 @@
             }
 
             const origId = document.getElementById('global-spec-orig-id').value;
-            let id = document.getElementById('global-spec-id').value.trim().toUpperCase();
+            let id = document.getElementById('global-spec-id').value.trim();
             const nameAr = document.getElementById('global-spec-name-ar').value.trim();
             const nameEn = document.getElementById('global-spec-name-en').value.trim() || nameAr;
             const icon = document.getElementById('global-spec-icon').value.trim() || '🏥';
@@ -3604,7 +3667,8 @@
                 id = cleanSlug || ('SPEC_' + Date.now().toString(36).toUpperCase());
             }
 
-            // Close modal immediately on save
+            // A new code is carried through all the site's data: say so first. Then close the modal.
+            if (origId && id !== origId && !confirm(`تغيير رمز التخصص من «${origId}» إلى «${id}»؟\n\nسيُغيَّر الرمز في كل المستشفيات وسجلات المقيمين وجداول الخفارات ودليل الأخصائيين وطلبات التبديل المفتوحة.`)) return;
             closeGlobalSpecEditModal();
 
             try {

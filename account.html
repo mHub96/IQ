@@ -339,6 +339,7 @@
             <form class="card" id="rotator-form" novalidate hidden>
                 <h2>حساب روتيتر</h2>
                 <p class="lead">للأطباء في فترة الروتيشن غير المسجلين في جدول الخفارات: تصفح الموقع وكتابة التعليقات فقط. يُرسل طلبك إلى مالك المنظومة ومدراء المستشفى الذي تدور فيه للموافقة.</p>
+                <div class="verify-box" id="ro-note" hidden></div>
                 <div class="field">
                     <label for="ro-hosp">المستشفى الذي تدور فيه حالياً</label>
                     <select id="ro-hosp" required><option value="">جاري تحميل المستشفيات…</option></select>
@@ -347,6 +348,11 @@
                     <label for="ro-name">الاسم الكامل</label>
                     <input id="ro-name" autocomplete="name" maxlength="60" placeholder="مثال: د. سارة محمد علي" required />
                     <div class="hint" id="ro-name-hint">الاسم الثلاثي كما تحب أن يظهر في التعليقات.</div>
+                </div>
+                <div class="field">
+                    <label for="ro-phone">رقم الهاتف (اختياري)</label>
+                    <input id="ro-phone" type="tel" dir="ltr" autocomplete="tel" inputmode="tel" placeholder="07XX XXX XXXX" maxlength="20" />
+                    <div class="hint">إن كان اسمك ورقمك مسجّلين في قاعدة المستشفى كمقيم دوري، يُربط حسابك بسجلّك.</div>
                 </div>
                 <div class="field">
                     <span class="field-label" style="display:block;font-size:0.8rem;font-weight:800;margin-bottom:6px">الجنس</span>
@@ -643,15 +649,32 @@
 
         // -------------------- Sign up as a rotator --------------------
         const ro = { userFree: false };
-        document.querySelectorAll('.su-kind [data-kind]').forEach(b => b.addEventListener('click', () => {
-            const kind = b.dataset.kind;
-            document.querySelectorAll('.su-kind [data-kind]').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+        function setKind(kind) {
+            document.querySelectorAll('.su-kind [data-kind]').forEach(x => x.setAttribute('aria-selected', String(x.dataset.kind === kind)));
             $('signup-form').hidden = kind !== 'resident';
             $('rotator-form').hidden = kind !== 'rotator';
             $('officer-form').hidden = kind !== 'officer';
             $('su-done').hidden = true;
             if (kind === 'officer') loadOfficerJobs();
-        }));
+            if (kind !== 'rotator') $('ro-note').hidden = true;
+        }
+        document.querySelectorAll('.su-kind [data-kind]').forEach(b => b.addEventListener('click', () => setKind(b.dataset.kind)));
+        /** To the rotator sign-up with the hospital, name, phone and sex already typed; `why` explains it. */
+        function toRotator(why, kind = '') {
+            const sex = sexValue();
+            setKind('rotator');
+            $('ro-hosp').value = $('su-hosp').value;
+            $('ro-name').value = $('su-name').value.trim();
+            $('ro-phone').value = $('su-phone').value.trim();
+            if (sex) { const r = document.querySelector(`input[name="ro-sex"][value="${sex}"]`); if (r) r.checked = true; }
+            const note = $('ro-note');
+            note.className = 'verify-box' + (kind ? ' ' + kind : '');
+            note.innerHTML = why;
+            note.hidden = false;
+            $('ro-name').dispatchEvent(new Event('input'));
+            roUpdate();
+            $('rotator-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
         const roSex = () => (document.querySelector('input[name="ro-sex"]:checked') || {}).value || '';
         const roNameOk = () => { const n = $('ro-name').value.trim().replace(/\s+/g, ' '); return n.length >= 5 && n.split(' ').length >= 2; };
         const roPassOk = () => $('ro-pass').value.length >= 8 && $('ro-pass').value === $('ro-pass2').value;
@@ -698,14 +721,14 @@
             setMsg(msg, 'جاري تأمين كلمة المرور وإرسال الطلب…');
             try {
                 const key = await Hub.auth.deriveAccountKey(username, $('ro-pass').value);
-                const res = await Hub.api('POST', '/api/accounts/signup-rotator', { hosp, name: $('ro-name').value.trim(), username, key, sex: roSex() }, { useToken: false, retries: 0 });
+                const res = await Hub.api('POST', '/api/accounts/signup-rotator', { hosp, name: $('ro-name').value.trim(), phone: $('ro-phone').value.trim(), username, key, sex: roSex() }, { useToken: false, retries: 0 });
                 $('rotator-form').hidden = true;
                 $('su-done').hidden = false;
                 $('su-done-text').textContent = `أهلاً ${res.name}! أُرسل طلب حساب الروتيتر إلى مالك المنظومة ومدراء ${hospitalName(hosp)}. يمكنك تسجيل الدخول باسم المستخدم «${username}» بعد الموافقة.`;
                 $('si-user').value = username;
             } catch (err) {
                 const code = err && err.data && err.data.error;
-                setMsg(msg, ({ username_taken: 'اسم المستخدم أصبح مستخدماً، اختر اسماً آخر.', bad_name: 'اكتب الاسم الأول والثاني على الأقل (أحرف فقط).', bad_sex: 'اختر الجنس.', bad_hospital: 'اختر المستشفى.' })[code] || errorText(err), 'bad');
+                setMsg(msg, ({ already_registered: 'هذا المقيم الدوري لديه حساب (أو طلب) مسبقاً. استخدم «تسجيل الدخول» أو «نسيت كلمة المرور».', username_taken: 'اسم المستخدم أصبح مستخدماً، اختر اسماً آخر.', bad_name: 'اكتب الاسم الأول والثاني على الأقل (أحرف فقط).', bad_sex: 'اختر الجنس.', bad_hospital: 'اختر المستشفى.' })[code] || errorText(err), 'bad');
                 roUpdate();
             }
         });
@@ -874,6 +897,12 @@
                 if (seq !== su.checkSeq) return;
                 if (res.match && res.taken) {
                     verifyBox('bad', '<i class="fas fa-user-lock"></i><span>هذا الطبيب لديه حساب (أو طلب) مسبقاً. استخدم «تسجيل الدخول» أو «نسيت كلمة المرور».</span>');
+                } else if (res.match && res.rotator) {
+                    // Filed under the rotators' specialty: a rotator account, not a resident one.
+                    $('su-name').value = res.name;
+                    verifyBox('warn', `<i class="fas fa-rotate"></i><span><b>${esc(res.name)}</b> مسجّل في قاعدة المستشفى كمقيم دوري (روتيتر). تم تحويل طلبك إلى حساب روتيتر.</span>`);
+                    toast('اسمك مسجّل كمقيم دوري (روتيتر): تم تحويل نوع الحساب إلى روتيتر.', 'info');
+                    toRotator(`<i class="fas fa-rotate"></i><span>اسمك ورقمك مسجّلان في قاعدة ${esc(hospitalName(hosp))} كمقيم دوري، لذلك يكون حسابك من نوع <b>روتيتر</b> (تصفح الموقع والتعليق، بلا تبديل خفارات). سيُربط حسابك بسجلّك. أكمل اسم المستخدم وكلمة المرور.</span>`, 'warn');
                 } else if (res.match) {
                     // The account carries the name recorded in the hospital's database, not the typed one.
                     const replaced = $('su-name').value.trim() !== res.name;
@@ -888,7 +917,8 @@
                         if (radio) { radio.checked = true; paintSteps(); updateSubmit(); }
                     }
                 } else {
-                    verifyBox('bad', '<i class="fas fa-circle-xmark"></i><span>لم نجد طبيباً بهذا الاسم ورقم الهاتف في هذا المستشفى. تأكد من الاسم الأول والثاني ومن الرقم المسجّل في الجدول، أو راجع مدير المستشفى.</span>');
+                    verifyBox('bad', '<i class="fas fa-circle-xmark"></i><span>لم نجد طبيباً بهذا الاسم ورقم الهاتف في هذا المستشفى. تأكد من الاسم الأول والثاني ومن الرقم المسجّل في الجدول، أو راجع مدير المستشفى.<br><small>إن كنت في فترة الروتيشن (غير مسجّل في جدول الخفارات): <button type="button" class="hacc-link" data-act="as-rotator">سجّل كروتيتر</button></small></span>');
+                    $('su-verify').querySelector('[data-act="as-rotator"]').addEventListener('click', () => toRotator('<i class="fas fa-rotate"></i><span>حساب روتيتر: تصفح الموقع والتعليق فقط، بلا تبديل خفارات. أكمل البيانات وأرسل الطلب.</span>'));
                 }
             } catch (err) {
                 if (seq !== su.checkSeq) return;
@@ -976,6 +1006,12 @@
                 $('si-user').value = username;
             } catch (err) {
                 const code = err && err.data && err.data.error;
+                if (code === 'is_rotator') {
+                    setMsg(msg, '');
+                    toRotator('<i class="fas fa-rotate"></i><span>اسمك ورقمك مسجّلان في قاعدة المستشفى كمقيم دوري، لذلك يكون حسابك من نوع <b>روتيتر</b>. راجع البيانات وأرسل الطلب.</span>', 'warn');
+                    $('ro-user').value = username; $('ro-user').dispatchEvent(new Event('input'));
+                    return;
+                }
                 setMsg(msg, ({
                     username_taken: 'اسم المستخدم أصبح مستخدماً، اختر اسماً آخر.',
                     already_registered: 'هذا الطبيب لديه حساب أو طلب مسبقاً.',

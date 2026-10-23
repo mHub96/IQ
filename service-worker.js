@@ -2,7 +2,7 @@
 // The app's own files are served straight from the cache (instant, like an installed app) and
 // refreshed in the background; a deploy also bumps CACHE_VERSION, which re-downloads all of them
 // and reloads open pages once. API calls are never cached.
-const CACHE_VERSION = 'v3.33.1';
+const CACHE_VERSION = 'v3.34.0';
 // Next to the live site on the same origin (mhub96.github.io/IQ-new/), the beta's caches carry
 // their own prefix, and only those are ever cleaned up here: the live site's caches are left alone.
 const SCOPE_MATCH = /\/(IQ-[^/]+)\//i.exec(new URL(self.registration.scope).pathname);
@@ -195,24 +195,50 @@ self.addEventListener('fetch', event => {
 // ---------------------------------------------------------------------------
 // Push notifications (sent by the API; payload: { title, body, url, tag })
 // ---------------------------------------------------------------------------
+// The notifications the app has shown as read: { tag: time of the version that was read }. Written by
+// the open app (hub-accounts.js) so a push that arrives late (phones hold pushes while asleep and hand
+// them over when unlocked) does not ring for something already seen.
+const NOTIF_STATE = 'hub-notif-state';
+const NOTIF_SEEN_URL = './__notif-seen';
+async function readSeen() {
+  try {
+    const res = await (await caches.open(NOTIF_STATE)).match(NOTIF_SEEN_URL);
+    return res ? await res.json() : {};
+  } catch (e) { return {}; }
+}
+
 self.addEventListener('push', event => {
   let msg = {};
   try { msg = event.data ? event.data.json() : {}; } catch (e) { msg = { title: 'Hosp Hub', body: event.data ? event.data.text() : '' }; }
   const title = msg.title || 'بوابة المستشفيات';
-  event.waitUntil(Promise.all([
-    self.registration.showNotification(title, {
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    // The open app refreshes its bell at once.
+    windows.forEach(w => w.postMessage({ type: 'hub:push', tag: msg.tag || null }));
+    // Someone using the app sees it there (bell and message): no sound, nothing in the phone's list.
+    if (windows.some(w => w.focused && w.visibilityState === 'visible')) return;
+    const seen = await readSeen();
+    const already = !!(msg.tag && msg.ts && seen[msg.tag] && seen[msg.tag] >= msg.ts);
+    await self.registration.showNotification(title, {
       body: msg.body || '',
       icon: './pwa-icon.svg',
       badge: './pwa-icon.svg',
       tag: msg.tag || undefined,
-      renotify: !!msg.tag,
+      // An update of a notification on the screen rings only when it is news (not for every like).
+      renotify: !!msg.tag && !msg.quiet && !already,
+      silent: already,
       dir: 'rtl',
       lang: 'ar',
       data: { url: msg.url || './index.html?portal=true' }
-    }),
+    });
+    if (already) {
+      // Read in the app already: it goes again at once.
+      (await self.registration.getNotifications({ tag: msg.tag })).forEach(n => n.close());
+      return;
+    }
     // Count on the app icon; the open app corrects it on its next check.
-    self.navigator && self.navigator.setAppBadge ? self.navigator.setAppBadge().catch(() => {}) : null
-  ]));
+    if (self.navigator && self.navigator.setAppBadge) await self.navigator.setAppBadge().catch(() => {});
+  })());
 });
 
 self.addEventListener('notificationclick', event => {

@@ -26,6 +26,7 @@ import { canUseEr, erFieldWrites } from './eraccess.js';
 import { routeUsage } from './usage.js';
 import { routeBackup } from './backup.js';
 import { limitedExchanger, foreignScheduleOps } from './exchspecs.js';
+import { storeSpecWrites, renameSpecialtyCode } from './specguard.js';
 
 const VISIT_COOLDOWN_MS = 60 * 1000;
 
@@ -133,6 +134,7 @@ async function route(request, env, ctx) {
   if (path === '/api/secrets' && method === 'PUT') return putSecrets(request, env, auth);
   if (path === '/api/history' && method === 'GET') return getHistory(env, auth, url);
   if (path === '/api/revoke-sessions' && method === 'POST') return revokeSessions(env, auth);
+  if (path === '/api/specialty-id' && method === 'POST') return renameSpecialtyCode(request, env, auth);
   if (path === '/api/shared-passwords' && method === 'POST') return setSharedPasswords(request, env, auth);
   if (path === '/api/icu-access' && method === 'POST') return setIcuAll(request, env, auth);
 
@@ -438,6 +440,9 @@ async function sync(request, env, auth) {
   // the owner switches a hospital's ER page or picks its admins (eraccess.js).
   const erOk = auth.r === 'admin' && ops.some(op => op && (op.c === 'er' || op.c === 'er_conflict')) ? await canUseEr(env, auth) : true;
   const erLocked = auth.r === 'admin' ? await erFieldWrites(env, ops.filter(op => op && op.c === 'hospital' && typeof op.id === 'string' && !op.del && !op.ordOnly)) : new Set();
+  // The general store of specialties is the owner's: admins neither write it nor change what their
+  // hospitals' copies of its specialties take from it (specguard.js).
+  const storeLocked = auth.r === 'admin' ? await storeSpecWrites(env, ops.filter(op => op && op.c === 'hospital' && typeof op.id === 'string' && !op.del && !op.ordOnly && op.d)) : new Set();
   // Residents change only the duties of the specialties their name can be put in (exchspecs.js).
   const foreign = limitedExchanger(auth) && ops.some(op => op && op.c === 'sched' && !op.ordOnly) ? await foreignScheduleOps(env, auth, ops) : new Set();
   const puts = [], dels = [], ords = [], rejected = [], checks = [];
@@ -446,6 +451,7 @@ async function sync(request, env, auth) {
     if (!allowed(auth, op) && !(icuAll && op.c === 'icu') && !(resSpecOk && op === resSpecOp)) { rejected.push(i); return; }
     if (!specOk && op === specOp) { rejected.push(i); return; }
     if ((!erOk && (op.c === 'er' || op.c === 'er_conflict')) || erLocked.has(op)) { rejected.push(i); return; }
+    if (storeLocked.has(op) || (auth.r === 'admin' && op.c === 'meta' && op.id === 'globalSpecialties' && !op.ordOnly)) { rejected.push(i); return; }
     if (approval && op.c === 'sched' && approval.has(String(op.id).split(':')[0])) { rejected.push(i); return; }
     if (foreign.has(i)) { rejected.push(i); return; }
     const bv = Number(op.bv) || 0;

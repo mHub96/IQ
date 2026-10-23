@@ -338,6 +338,7 @@
         return MEDICAL_KEYWORDS.some(k => text.includes(k)) ? 'medical' : '';
     }
     const cleanBranch = b => (['surgical', 'medical', 'none'].includes(b) ? b : '');
+    const SPEC_ID_RE = /^[A-Za-z][A-Za-z0-9_]{0,11}$/;
 
     /**
      * Determines whether a specialty is in a surgical branch
@@ -461,6 +462,11 @@
                         return;
                     }
                     const normId = normalizeSpecialtyId(s.id);
+                    // A hospital's own specialty (added by its admins) stays out of the general store.
+                    if (s.custom && !validGlobalIds.has(normId)) {
+                        if (!hospSpecMap.has(normId)) hospSpecMap.set(normId, { ...s, id: normId, enabled: s.enabled !== false });
+                        return;
+                    }
                     const normName = normalizeArabicSpecName(s.name_ar);
                     const matchingGlobal = targetDb.globalSpecialties.find(g => 
                         g.id === normId || (normName && normalizeArabicSpecName(g.name_ar) === normName)
@@ -485,16 +491,28 @@
                     }
                     const globalDef = targetDb.globalSpecialties.find(g => g.id === finalGlobalId);
                     if (!hospSpecMap.has(normId)) {
-                        // The hospital's own names and icon (edited by its admins) win; the catalog only fills gaps.
-                        hospSpecMap.set(normId, {
+                        const entry = {
                             ...s,
                             id: normId,
-                            name_ar: s.name_ar || (globalDef ? globalDef.name_ar : normId),
-                            name_en: s.name_en || (globalDef ? globalDef.name_en : ''),
-                            icon: s.icon || (globalDef ? globalDef.icon : '🏥'),
-                            parentSpec: globalDef ? globalDef.parentSpec : (s.parentSpec || null),
                             acceptPool: Array.isArray(s.acceptPool) ? s.acceptPool.map(normalizeSpecialtyId) : (globalDef && Array.isArray(globalDef.acceptPool) ? globalDef.acceptPool.map(normalizeSpecialtyId) : [])
-                        });
+                        };
+                        // A specialty from the general store takes its name, icon, title prefix, branch and parent
+                        // from the store (edited by the owner there); the hospital keeps its colour, visibility,
+                        // order and the specialties it draws residents from.
+                        if (globalDef && globalDef.id === normId) {
+                            delete entry.custom;
+                            const own = cleanBranch(s.branch);
+                            Object.assign(entry, storeIdentity(globalDef));
+                            // A store specialty with its branch left automatic keeps the hospital's choice.
+                            if (!entry.branch && own) entry.branch = own;
+                            if (!entry.branch) delete entry.branch;
+                        } else {
+                            entry.name_ar = s.name_ar || normId;
+                            entry.name_en = s.name_en || '';
+                            entry.icon = s.icon || '🏥';
+                            entry.parentSpec = s.parentSpec || null;
+                        }
+                        hospSpecMap.set(normId, entry);
                     }
                 });
 
@@ -554,7 +572,45 @@
             }
         });
 
+        // 4. Each hospital's residents list is a copy of the shared residents list: rebuilt here, so a copy
+        // saved by a device with older data never shows residents who left (or hides ones who came).
+        if (Array.isArray(targetDb.residents) && targetDb.residents.length && targetDb.hospitals) {
+            Object.entries(targetDb.hospitals).forEach(([hid, hosp]) => {
+                if (hosp) hosp.names = hospitalNamesFrom(targetDb.residents, hid);
+            });
+        }
+
         return targetDb;
+    }
+
+    /** The store's fields a hospital's copy of a general-store specialty follows. */
+    function storeIdentity(g) {
+        const out = { name_ar: g.name_ar || g.id, name_en: g.name_en || '', icon: g.icon || '🏥', parentSpec: g.parentSpec || null, branch: cleanBranch(g.branch) || '' };
+        if (g.prefix !== undefined) out.prefix = g.prefix;
+        return out;
+    }
+
+    /** Is this hospital specialty one of the general store's (not a clone, not the hospital's own)? */
+    function isStoreSpecialty(hospitalId, specId) {
+        if (AA) return false;
+        const h = getHospital(hospitalId);
+        const s = h && (h.specialties || []).find(x => x.id === specId);
+        return !!s && !s.isClone && Array.isArray(db?.globalSpecialties) && db.globalSpecialties.some(g => g.id === specId);
+    }
+
+    /** A hospital's residents list, from the shared residents list. */
+    function hospitalNamesFrom(residents, hid) {
+        return residents.filter(r => r && Array.isArray(r.hospitals) && r.hospitals.includes(hid)).map(r => ({
+            id: r.id,
+            name: r.name,
+            phone: r.phone || 'رقم غير متوفر',
+            spec: r.spec,
+            tag: r.tag,
+            dept: r.dept || r.department || r.spec,
+            department: r.dept || r.department || r.spec,
+            active: r.active,
+            hospitals: r.hospitals
+        }));
     }
 
     // Default Fallback Database Structure
@@ -1203,7 +1259,12 @@
             }
         }
 
-        let ops = HubSync.diff(syncBase, records);
+        // Records this session may not change are not sent (they would only come back refused): other
+        // hospitals' records (each hospital's residents copy is rebuilt on every device), and the general
+        // store of specialties, which only the owner edits.
+        let ops = HubSync.diff(syncBase, records).filter(o =>
+            !(o.c === 'hospital' && !auth.isAdmin(o.id)) &&
+            !(!AA && o.c === 'meta' && o.id === 'globalSpecialties' && !auth.isOwner()));
         saveLocalSafetySnapshot(db, message);
         writeCache();
         dispatchDataChanged();
@@ -2329,20 +2390,25 @@
         const idx = db.globalSpecialties.findIndex(s => s.id === oldId);
         if (idx === -1) throw new Error('التخصص غير موجود في المستودع العام');
 
-        const newId = String(updatedData.id || oldId).trim().toUpperCase();
+        // The code keeps its case (Pe, Der, ...): upper-casing it silently renamed those specialties.
+        const newId = String(updatedData.id || oldId).trim();
         if (!newId) throw new Error('رمز التخصص مطلوب');
-
-        // Check ID uniqueness if changing ID
-        if (newId !== oldId && db.globalSpecialties.some(s => s.id === newId)) {
-            throw new Error(`رمز التخصص "${newId}" مستخدم بالفعل.`);
+        if (newId !== oldId) {
+            if (!SPEC_ID_RE.test(newId)) throw new Error('رمز التخصص: أحرف إنجليزية وأرقام فقط (حتى ١٢ حرفاً)، يبدأ بحرف.');
+            const clash = db.globalSpecialties.some(s => s.id.toLowerCase() === newId.toLowerCase() && s.id !== oldId)
+                || Object.values(db.hospitals || {}).some(h => (h.specialties || []).some(s => s.id === newId));
+            if (clash) throw new Error(`رمز التخصص "${newId}" مستخدم بالفعل.`);
+            // Codes the site reads as another specialty's (aliases such as IM = M) cannot be used.
+            if (normalizeSpecialtyId(newId) !== newId) throw new Error(`الرمز "${newId}" محجوز كاسم بديل لتخصص آخر. اختر رمزاً غيره.`);
         }
+        const oldNameAr = db.globalSpecialties[idx].name_ar;
 
         const nameAr = String(updatedData.name_ar || '').trim();
         if (!nameAr) throw new Error('اسم التخصص بالعربية مطلوب');
 
         const nameEn = String(updatedData.name_en || updatedData.name_ar || '').trim();
         const icon = String(updatedData.icon || '🏥').trim() || '🏥';
-        const parentSpec = updatedData.parentSpec ? String(updatedData.parentSpec).trim().toUpperCase() : null;
+        const parentSpec = updatedData.parentSpec ? String(updatedData.parentSpec).trim() : null;
         const acceptPool = Array.isArray(updatedData.acceptPool) ? updatedData.acceptPool : [];
 
         // Cascade rename if ID changed across all residents, schedules, and specialties
@@ -2362,9 +2428,13 @@
                     (h.specialties || []).forEach(s => {
                         if (s.id === oldId) s.id = newId;
                         if (s.parentSpec === oldId) s.parentSpec = newId;
+                        if (s.clonedFromSpecId === oldId) s.clonedFromSpecId = newId;
                         if (Array.isArray(s.acceptPool)) {
                             s.acceptPool = s.acceptPool.map(p => p === oldId ? newId : p);
                         }
+                    });
+                    (h.specialistSchedule || []).forEach(slot => {
+                        if (slot && slot.specCode === oldId) slot.specCode = newId;
                     });
                     (h.names || []).forEach(n => {
                         if (n.spec === oldId) n.spec = newId;
@@ -2391,6 +2461,15 @@
                     r.specs = r.specs.map(sp => sp === oldId ? newId : sp);
                 }
             });
+
+            // 4. The specialists' directory (cards name their specialty by code)
+            if (Array.isArray(db.specialists)) {
+                db.specialists.forEach(c => {
+                    if (!c) return;
+                    if (c.spec === oldId) c.spec = newId;
+                    if (Array.isArray(c.specs)) c.specs = c.specs.map(sp => sp === oldId ? newId : sp);
+                });
+            }
         }
 
         const prefix = (updatedData.prefix !== undefined) ? updatedData.prefix : (db.globalSpecialties[idx].prefix !== undefined ? db.globalSpecialties[idx].prefix : 'د. ');
@@ -2445,6 +2524,17 @@
         }
 
         await saveDatabase(`Owner update global specialty: ${oldId} -> ${newId} (${nameAr})`);
+        // Server-side records that name the specialty: open exchange requests (by code) and the residents'
+        // accounts (by its Arabic name, per hospital).
+        if (newId !== oldId) {
+            try { await api('POST', '/api/specialty-id', { from: oldId, to: newId }, { retries: 1 }); } catch (e) { console.warn('Specialty code on the server:', e); }
+        }
+        if (oldNameAr && nameAr !== oldNameAr) {
+            for (const hid of Object.keys(db.hospitals || {})) {
+                if (!(db.hospitals[hid].specialties || []).some(s => s.id === newId)) continue;
+                try { await api('POST', '/api/accounts/specialty-rename', { hosp: hid, from: oldNameAr, to: nameAr }, { retries: 1 }); } catch (e) { console.warn('Specialty rename in accounts:', e); }
+            }
+        }
         return db.globalSpecialties[idx];
     }
 
@@ -2561,6 +2651,33 @@
 
         if (!Array.isArray(db.globalSpecialties)) {
             db.globalSpecialties = getGlobalSpecialties();
+        }
+
+        // Outside the division: a specialty of the general store is added from the store; any other is the
+        // hospital's own (its admins edit it; it never enters the store, which only the owner edits).
+        if (!AA) {
+            const fromStore = db.globalSpecialties.find(s => s.id === specId || s.name_ar === nameAr);
+            if (fromStore) return addHospitalSpecialtyFromGlobal(hospitalId, fromStore.id, specData.color || '#0f766e');
+            if (!Array.isArray(hosp.specialties)) hosp.specialties = [];
+            const taken = id => db.globalSpecialties.some(s => s.id === id) || hosp.specialties.some(s => s.id === id) || normalizeSpecialtyId(id) !== id;
+            let ownId = specId, n = 1;
+            while (taken(ownId)) ownId = specId.slice(0, 4) + (n++);
+            const own = {
+                id: ownId,
+                name_ar: nameAr,
+                name_en: specData.name_en ? specData.name_en.trim() : nameAr,
+                icon: specData.icon ? specData.icon.trim() : '🏥',
+                prefix: specData.prefix !== undefined ? specData.prefix : 'د. ',
+                parentSpec: specData.parentSpec ? String(specData.parentSpec).trim() : null,
+                acceptPool: Array.isArray(specData.acceptPool) ? specData.acceptPool : [],
+                color: specData.color || '#0f766e',
+                enabled: true,
+                custom: true,
+                ...(cleanBranch(specData.branch) ? { branch: cleanBranch(specData.branch) } : {})
+            };
+            hosp.specialties.push(own);
+            await saveDatabase(`Add specialty ${ownId} (${nameAr}) to ${hosp.name_ar || hosp.hospitalName}`);
+            return own;
         }
 
         // Avoid collision with different specialty name
@@ -2717,6 +2834,13 @@
         const s = (hosp.specialties || []).find(x => x.id === specId);
         if (!s) throw new Error('التخصص غير موجود في المستشفى');
         const oldNameAr = s.name_ar;
+        // A specialty of the general store: the hospital sets only its colour, visibility and the
+        // specialties it draws residents from; the rest is edited in the store (the owner).
+        if (isStoreSpecialty(hospitalId, specId)) {
+            const storeBranch = cleanBranch((db.globalSpecialties.find(g => g.id === specId) || {}).branch);
+            // (and its branch, while the store leaves it automatic)
+            updates = { color: updates.color, enabled: updates.enabled, acceptPool: updates.acceptPool, ...(storeBranch ? {} : { branch: updates.branch }) };
+        }
 
         if (updates.name_ar) s.name_ar = updates.name_ar.trim();
         if (updates.name_en) s.name_en = updates.name_en.trim();
@@ -3227,18 +3351,7 @@
         if (!db || !db.hospitals || !Array.isArray(db.residents)) return;
         Object.keys(db.hospitals).forEach(hid => {
             const hosp = db.hospitals[hid];
-            const matchingResidents = db.residents.filter(r => Array.isArray(r.hospitals) && r.hospitals.includes(hid));
-            hosp.names = matchingResidents.map(r => ({
-                id: r.id,
-                name: r.name,
-                phone: r.phone || 'رقم غير متوفر',
-                spec: r.spec,
-                tag: r.tag,
-                dept: r.dept || r.department || r.spec,
-                department: r.dept || r.department || r.spec,
-                active: r.active,
-                hospitals: r.hospitals
-            }));
+            hosp.names = hospitalNamesFrom(db.residents, hid);
 
             // Automatically ensure any department actively staffed by residents exists in hospital specialties
             if (Array.isArray(hosp.specialties)) {
@@ -4464,6 +4577,7 @@
         deleteEmptyHospitalSpecialties,
         getEligibleResidentsForSpecialty,
         exchangeSpecialtiesFor,
+        isStoreSpecialty,
         syncHospitalSpecialtiesWithGlobal,
         getActiveOnCallResidentsCount,
         getTotalActiveOnCallCount,

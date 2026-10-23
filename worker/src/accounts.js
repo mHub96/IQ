@@ -248,6 +248,28 @@ async function findResident(env, hosp, name, phone) {
   return { hospOk: true, match, pk };
 }
 
+/** The rotators' specialty (by its name: "Rotator" / "مقيم دوري"), or a branch of it. */
+const ROTATOR_SPEC = s => !!s && (/rotat/i.test(s.name_en || '') || /مقيم\s*دوري|روتيتر/.test(s.name_ar || ''));
+
+/** Is this hospital-database record filed under the rotators' specialty? */
+async function isRotatorRecord(env, hosp, residentId) {
+  if (!residentId) return false;
+  const [res, meta, hospital] = await env.DB.batch([
+    env.DB.prepare("SELECT COALESCE(json_extract(data, '$.spec'), json_extract(data, '$.tag')) AS spec FROM records WHERE coll = 'resident' AND id = ?").bind(residentId),
+    env.DB.prepare("SELECT data FROM records WHERE coll = 'meta' AND id = 'globalSpecialties'"),
+    env.DB.prepare("SELECT json_extract(data, '$.specialties') AS specs FROM records WHERE coll = 'hospital' AND id = ?").bind(hosp),
+  ]);
+  const code = res.results[0] && res.results[0].spec;
+  if (!code) return false;
+  // The store first (a hospital's copy of a store specialty can lag behind), then the hospital's own.
+  let specs = [];
+  try { specs = specs.concat((JSON.parse(meta.results[0] && meta.results[0].data || '{}').value) || []); } catch {}
+  try { specs = specs.concat(JSON.parse(hospital.results[0] && hospital.results[0].specs || '[]') || []); } catch {}
+  const find = id => specs.find(x => x && x.id === id);
+  const s = find(code);
+  return ROTATOR_SPEC(s) || (!!s && !!s.parentSpec && ROTATOR_SPEC(find(s.parentSpec)));
+}
+
 async function checkIdentity(request, env, ip) {
   if (await overLimit(env, 'check:' + ip, 60)) return json({ error: 'rate_limited' }, 429);
   const body = await readJson(request);
@@ -256,7 +278,9 @@ async function checkIdentity(request, env, ip) {
   if (!hospOk || !match) return json({ ok: true, match: false });
   const taken = await env.DB.prepare("SELECT 1 AS t FROM accounts WHERE resident_id = ? AND status IN ('pending', 'active')").bind(match.id || '').first();
   const hint = taken ? {} : await suggestProfile(env, { name: match.name, hosp: String(body.hosp), residentId: match.id, phone: body.phone }).catch(() => ({}));
-  return json({ ok: true, match: true, taken: !!taken, name: match.name, sex: hint.sex || null });
+  // Filed under the rotators' specialty: the page offers the rotator sign-up instead.
+  const rotator = await isRotatorRecord(env, String(body.hosp), match.id).catch(() => false);
+  return json({ ok: true, match: true, taken: !!taken, name: match.name, sex: hint.sex || null, rotator });
 }
 
 async function usernameFree(env, url, ip) {
@@ -282,6 +306,8 @@ async function signup(request, env, ip, ctx) {
 
   const { hospOk, match, pk } = await findResident(env, hosp, String(body.name || ''), String(body.phone || ''));
   if (!hospOk || !match) return json({ error: 'no_match' }, 400);
+  // Rotators sign up as rotators (signup-rotator).
+  if (await isRotatorRecord(env, hosp, match.id)) return json({ error: 'is_rotator', name: match.name }, 409);
 
   const now = Date.now();
   const id = crypto.randomUUID();
@@ -330,26 +356,41 @@ async function signupRotator(request, env, ip, ctx) {
   if (!KEY_RE.test(key)) return json({ error: 'bad_key' }, 400);
   if (!HOSP_RE.test(hosp) || !(await env.DB.prepare("SELECT 1 AS ok FROM records WHERE coll = 'hospital' AND id = ?").bind(hosp).first())) return json({ error: 'bad_hospital' }, 400);
 
+  // A rotator found in the hospital's database (name and phone, filed under the rotators' specialty) is
+  // linked to that record: the account carries its name, and the record cannot get a second account.
+  let linked = null, phone = '';
+  if (body.phone) {
+    const found = await findResident(env, hosp, name, String(body.phone));
+    if (found.match && await isRotatorRecord(env, hosp, found.match.id)) {
+      const taken = await env.DB.prepare("SELECT 1 AS t FROM accounts WHERE resident_id = ? AND status IN ('pending', 'active')").bind(found.match.id).first();
+      if (taken) return json({ error: 'already_registered' }, 409);
+      linked = found.match;
+      phone = found.pk;
+    }
+  }
+  const accName = linked ? linked.name : name;
+
   const now = Date.now();
   const id = crypto.randomUUID();
   const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
   const pw = await sha256b64(salt + key);
-  const note = JSON.stringify({ id, name, username, hosp, rotator: true });
+  const note = JSON.stringify({ id, name: accName, username, hosp, rotator: true });
   try {
     const results = await withUniqueNick(sex, lang, (tag, tagKey) => env.DB.batch([
       // name_key is private to the account so a rotator never receives a resident's duty-card notifications.
       env.DB.prepare(
         `INSERT INTO accounts (id, username, pw, salt, name, name_key, phone, sex, hosp, resident_id, role, anon_tag, anon_key, anon_lang, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, '', ?, ?, NULL, 'rotator', ?, ?, ?, ?)`
-      ).bind(id, username, pw, salt, name, 'rotator:' + id, sex, hosp, tag, tagKey, lang, now),
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'rotator', ?, ?, ?, ?)`
+      ).bind(id, username, pw, salt, accName, 'rotator:' + id, phone, sex, hosp, linked ? linked.id || null : null, tag, tagKey, lang, now),
       notifyApprovers(env, hosp, 'signup:' + id, 'signup_request', note, now),
     ]));
     dispatchPush(env, ctx, results[1]);
   } catch (err) {
     if (/accounts\.username/.test(String(err && err.message || err))) return json({ error: 'username_taken' }, 409);
+    if (/resident_id|idx_accounts_resident/.test(String(err && err.message || err))) return json({ error: 'already_registered' }, 409);
     throw err;
   }
-  return json({ ok: true, status: 'pending', name });
+  return json({ ok: true, status: 'pending', name: accName, linked: !!linked });
 }
 
 /**
@@ -409,7 +450,7 @@ async function signupOfficer(request, env, ip, ctx) {
 // Notifications (stored rows + Web Push)
 // ---------------------------------------------------------------------------
 
-const RETURNING = 'RETURNING account_id, type, data, gkey';
+const RETURNING = 'RETURNING account_id, type, data, gkey, ts';
 
 /** Notification for every active owner account and every admin account of `hosp`. */
 export function notifyApprovers(env, hosp, gkey, type, data, now) {
@@ -504,7 +545,9 @@ export function dispatchPush(env, ctx, ...stmtResults) {
     const gone = [];
     await Promise.all(rows.flatMap(row => subs.filter(s => s.account_id === row.account_id).map(async s => {
       try {
-        const msg = { ...pushMessage(row), tag: row.gkey };
+        // ts: the phone shows a push the app has already marked read silently (and closes it); likes
+        // update their grouped notification without ringing again.
+        const msg = { ...pushMessage(row), tag: row.gkey, ts: row.ts || Date.now(), quiet: row.type === 'like' };
         const status = await sendPush(env, s, msg, { topic: await topicFor(row.gkey), urgency: row.type === 'like' ? 'low' : 'normal' });
         if (status === 404 || status === 410) gone.push(s.endpoint);
       } catch (err) {
@@ -1131,7 +1174,7 @@ async function listNotifications(env, auth, url) {
   const now = Date.now();
   if (auth.a) {
     stmts.push(env.DB.prepare(
-      'SELECT nid, type, data, ts, seen FROM notifications WHERE account_id = ?1 AND ts > ?2 ORDER BY ts DESC LIMIT 40'
+      'SELECT nid, gkey, type, data, ts, seen FROM notifications WHERE account_id = ?1 AND ts > ?2 ORDER BY ts DESC LIMIT 40'
     ).bind(auth.a, since));
     stmts.push(env.DB.prepare('SELECT COUNT(*) AS n FROM notifications WHERE account_id = ? AND seen = 0').bind(auth.a));
   }

@@ -6,6 +6,12 @@
  * instant and each tab keeps its scroll position, open sections and data. The tab views
  * are warmed up in the background after the first screen, so even the first switch is instant.
  * Pages talk to the shell through app-view.js (window.HubView inside a view).
+ *
+ * Back button / gesture (as in native apps): it closes the pop-up on top first (sheet, dialog,
+ * drawer), then returns to the screen the user came from inside the app; from a tab it returns to
+ * the home tab (switching tabs does not pile up history); on the home screen of the installed app a
+ * first press says "press again to exit". The shell owns the history: views never add entries of
+ * their own (app-view.js hands their pushes, hash links and pop-ups to the shell).
  */
 (function () {
     'use strict';
@@ -29,6 +35,13 @@
     /** page file -> { page, frame, hosp, overlay, stale, ready, lastShown } */
     const views = new Map();
     let active = null;
+
+    // History bookkeeping (see "History" below).
+    const STANDALONE = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+    let depth = 0;          // depth of the entry on screen
+    let ignorePops = 0;     // back steps taken by the shell itself (their popstate is not a user's back)
+    const afterPop = [];    // what to do once those steps are done
+    const routeOf = u => u.pathname.slice(base.pathname.length) + u.search + u.hash;
 
     const read = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
     const write = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
@@ -206,12 +219,19 @@
         while (views.size > MAX_VIEWS && spare.length) removeView(spare.shift());
     }
 
-    /** Opens a URL of the app: shows its live view, loading or re-pointing it only when needed. */
-    function go(href) {
+    /**
+     * Opens a URL of the app: shows its live view, loading or re-pointing it only when needed.
+     * how: 'push' = a new screen the user opened (one back step returns), 'none' = the current entry.
+     */
+    function go(href, how = 'none') {
         let url = new URL(href, base);
         const page = pageOf(url.href);
         if (!page) { location.href = url.href; return; }
         url = contextual(url, page);
+        if (how === 'push') {
+            const cur = active ? viewLocation(active) : null;
+            if (!active || active.page !== page || !cur || docKey(cur) !== docKey(url) || cur.hash !== url.hash) pushEntry(routeOf(url));
+        }
         let v = views.get(page);
         if (!v) {
             v = createView(page, url);
@@ -245,8 +265,9 @@
         const pend = active.pendingUrl ? new URL(active.pendingUrl) : null;
         const u = pend || (loc && pageOf(loc.href) ? loc : null);
         if (u) {
-            const route = u.pathname.slice(base.pathname.length) + u.search + u.hash;
-            try { history.replaceState(history.state, '', '#' + route); } catch (e) {}
+            const route = routeOf(u);
+            const st = history.state && history.state.hub ? history.state : { hub: 1, depth, ov: 0 };
+            try { history.replaceState({ ...st, route }, '', '#' + route); } catch (e) {}
             write('app_last_route', route);
         }
     }
@@ -281,10 +302,19 @@
             return;
         }
         const page = TAB_PAGE[tab];
-        const v = leavingDivision ? null : views.get(page);
-        // A warm view for the same hospital is shown as it is, exactly where the user left it.
-        if (v && !v.stale && v.hosp === hospital() && !v.pendingUrl) { show(v); return; }
-        go(tabUrl(tab));
+        arm();
+        // History: home is the bottom screen and any other tab sits right above it, so back from a tab
+        // returns home. A tab takes the place of the tab before it (its entry is reused, not added again).
+        const H = homeDepth();
+        const open = () => {
+            const v = leavingDivision ? null : views.get(page);
+            // A warm view for the same hospital is shown as it is, exactly where the user left it.
+            if (tab !== 'home' && v && !v.stale && v.hosp === hospital() && !v.pendingUrl) show(v);
+            else go(tabUrl(tab));
+        };
+        if (tab === 'home') { unwindTo(H, open); return; }
+        if (depth === H) { pushEntry(tabUrl(tab)); open(); return; }   // from home: one step up
+        unwindTo(H + 1, open);                                           // from a tab (or deeper): that step is reused
     });
 
     // ------------------------------------------------------------------
@@ -318,8 +348,18 @@
     // Messages from the views (window.HubView in app-view.js)
     // ------------------------------------------------------------------
     window.HubShell = {
-        go,
+        go: (href, how) => { if (how !== 'replace') arm(); go(href, how === 'replace' ? 'none' : 'push'); },
+        /** The user touched the page (the first touch lays the base history entries). */
+        _interact() { arm(); },
         isActive: win => !!active && active.frame.contentWindow === win,
+        /** The view on screen is about to move in place (a hash link, pushState): one back step returns here. */
+        _push(win) {
+            const v = viewOf(win);
+            if (!v || v !== active) return;
+            arm();
+            const loc = viewLocation(v);
+            if (loc) pushEntry(routeOf(loc), currentOv());
+        },
         /** A view is ready to be seen (its first screen has rendered). */
         _ready(win) {
             const v = viewOf(win);
@@ -329,12 +369,27 @@
         },
         /** The view's address or title changed in place (hash, pushState, title). */
         _changed(win) { const v = viewOf(win); if (v && v === active) syncChrome(); },
-        /** A pop-up opened or closed inside a view: the tab bar steps aside under it. */
-        _overlay(win, on) {
+        /**
+         * The number of pop-ups open inside a view changed: the tab bar steps aside under them, and each
+         * one opened on screen gets a history entry (back closes it); one closed by its own button gives
+         * its entry back.
+         */
+        _overlay(win, count) {
             const v = viewOf(win);
             if (!v) return;
-            v.overlay = !!on;
-            if (v === active) tabbar.classList.toggle('covered', v.overlay);
+            count = Number(count) || 0;
+            v.overlay = count > 0;
+            if (v !== active) return;
+            tabbar.classList.toggle('covered', v.overlay);
+            if (!armed) return;
+            const have = currentOv();
+            if (count > have) {
+                const loc = viewLocation(v);
+                const route = loc ? routeOf(loc) : (history.state && history.state.route) || HOME_ROUTE;
+                for (let n = have + 1; n <= count; n++) pushEntry(route, n);
+            } else if (count < have && !restoring) {
+                unwindBy(have - count);
+            }
         },
     };
 
@@ -377,7 +432,7 @@
     // Notification taps: the service worker hands the address to the running app.
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.addEventListener('message', e => {
-            if (e.data && e.data.type === 'app:open' && e.data.url) go(e.data.url);
+            if (e.data && e.data.type === 'app:open' && e.data.url) go(e.data.url, 'push');
         });
     }
     window.addEventListener('hashchange', () => {
@@ -389,13 +444,140 @@
     });
 
     // ------------------------------------------------------------------
+    // History (back button / gesture)
+    // ------------------------------------------------------------------
+    // Every entry the shell adds: { hub: 1, depth, route, ov } (ov = pop-ups open at that entry). In the
+    // installed app a "sentinel" entry sits under home, so the first back on home asks before leaving.
+    function homeDepth() { return STANDALONE ? 1 : 0; }
+    function currentOv() { return history.state && history.state.hub ? (history.state.ov || 0) : 0; }
+    function pushEntry(route, ov = 0) {
+        if (!armed) return;
+        depth++;
+        try { history.pushState({ hub: 1, depth, route, ov }, '', '#' + route); } catch (e) {}
+    }
+    const isHomeRoute = route => {
+        const u = new URL(route || HOME_ROUTE, base);
+        return pageOf(u.href) === 'index.html' && !u.hash && /portal=true/.test(u.search) && !u.searchParams.get('aa');
+    };
+    /**
+     * The base entries are laid on the first touch of the app (never while it loads: Chrome skips, on
+     * back, a screen that added history without the user touching it): (a "press again to exit" entry
+     * in the installed app,) home, then the screen the app opened on (a link, a notification).
+     */
+    let armed = false;
+    function arm() {
+        if (armed) return;
+        armed = true;
+        const st = history.state && history.state.hub ? history.state : null;
+        const route = (st && st.route) || HOME_ROUTE;
+        depth = 0;
+        try { history.replaceState({ hub: 1, depth: 0, route: HOME_ROUTE, ov: 0, sentinel: STANDALONE || undefined }, '', '#' + HOME_ROUTE); } catch (e) {}
+        if (STANDALONE) pushEntry(HOME_ROUTE);
+        if (!isHomeRoute(route)) pushEntry(route);
+        // Pop-ups already open on that screen.
+        const n = active ? overlaysOf(active) : 0;
+        for (let i = 1; i <= n; i++) pushEntry(route, i);
+    }
+    window.addEventListener('pointerdown', arm, true);
+    window.addEventListener('keydown', arm, true);
+    /** Goes back `n` entries without acting on them (they were already undone on screen). */
+    function unwindBy(n) {
+        if (n <= 0) return;
+        ignorePops++;
+        history.go(-n);
+    }
+    /** Goes back to `target` depth, then runs `then` (immediately when already there). */
+    function unwindTo(target, then) {
+        if (depth <= target) { then(); return; }
+        ignorePops++;
+        afterPop.push(then);
+        history.go(target - depth);
+    }
+
+    /** Closes the top pop-up of a view; false when it has none or would not close. */
+    function closeTop(v) {
+        try { return !!v.frame.contentWindow.HubView._closeTop(); } catch (e) { return false; }
+    }
+    function overlaysOf(v) {
+        try { return v.frame.contentWindow.HubView._overlays(); } catch (e) { return 0; }
+    }
+
+    let restoring = false;
+    window.addEventListener('popstate', e => {
+        const s = e.state;
+        if (ignorePops > 0) {
+            ignorePops--;
+            if (s && s.hub) depth = s.depth;
+            if (!ignorePops && afterPop.length) afterPop.splice(0).forEach(f => f());
+            return;
+        }
+        if (!s || !s.hub) return;               // an address from before the app: the browser handles it
+        const backwards = s.depth < depth;
+        depth = s.depth;
+        if (s.sentinel) { askBeforeLeaving(); return; }
+        const url = new URL(s.route || HOME_ROUTE, base);
+        const page = pageOf(url.href);
+        restoring = true;
+        try {
+            // 1. Pop-ups above this entry close, the top one first.
+            if (active && active.page === page) {
+                let open = overlaysOf(active), guard = 6;
+                while (open > (s.ov || 0) && guard-- > 0 && closeTop(active)) open = overlaysOf(active);
+            }
+            // 2. The screen of this entry (another view, or the same one at another address).
+            go(url.href);
+        } finally {
+            setTimeout(() => { restoring = false; }, 400);
+        }
+        // An entry for a pop-up that is no longer open (it was replaced, or the screen changed): skip it.
+        if ((s.ov || 0) > 0 && active && overlaysOf(active) < s.ov) {
+            if (backwards) history.back(); else history.forward();
+        }
+    });
+
+    // Installed app, home screen: the first back press asks, the second within 2 s leaves the app.
+    let askedAt = 0;
+    function askBeforeLeaving() {
+        if (Date.now() - askedAt < 2000) { ignorePops++; history.back(); return; }
+        askedAt = Date.now();
+        pushEntry(HOME_ROUTE);
+        go(HOME_ROUTE);
+        toast('اضغط رجوع مرة أخرى للخروج');
+    }
+    function toast(text) {
+        let el = document.getElementById('app-toast');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'app-toast';
+            el.setAttribute('role', 'status');
+            el.style.cssText = 'position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2147483600;'
+                + 'background:rgba(28,28,30,.92);color:#fff;font:700 13px/1.4 system-ui,sans-serif;padding:10px 16px;border-radius:999px;'
+                + 'box-shadow:0 6px 24px rgba(0,0,0,.25);transition:opacity .25s;pointer-events:none;direction:rtl;white-space:nowrap';
+            document.body.appendChild(el);
+        }
+        el.textContent = text;
+        el.style.opacity = '1';
+        clearTimeout(el._t);
+        el._t = setTimeout(() => { el.style.opacity = '0'; }, 1800);
+    }
+
+    // ------------------------------------------------------------------
     // Start: the address after # (shared links, notifications), else where the user last was
     // ------------------------------------------------------------------
-    let start = location.hash.slice(1);
-    if (!start || !pageOf(new URL(start, base).href)) {
-        const standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
-        const last = read('app_last_route');
-        start = (standalone && last && pageOf(new URL(last, base).href)) ? last : HOME_ROUTE;
+    if (history.state && history.state.hub && history.state.armed !== false && history.state.depth > 0) {
+        // A reload: the entries are still there.
+        armed = true;
+        depth = history.state.depth;
+        go(history.state.route || HOME_ROUTE);
+    } else {
+        let start = location.hash.slice(1);
+        if (!start || !pageOf(new URL(start, base).href)) {
+            const last = read('app_last_route');
+            start = (STANDALONE && last && pageOf(new URL(last, base).href)) ? last : HOME_ROUTE;
+        }
+        // One entry for now (the screen opened); the rest is laid on the first touch (arm).
+        depth = 0;
+        try { history.replaceState({ hub: 1, depth: 0, route: start, ov: 0 }, '', '#' + start); } catch (e) {}
+        go(start);
     }
-    go(start);
 })();

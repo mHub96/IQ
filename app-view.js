@@ -5,6 +5,9 @@
  *   shell, at the same address, so it gets the permanent frame.
  * - Inside the shell: links to other pages switch to that page's live view instead of loading it
  *   here, the tab bar is the shell's, and the page knows whether it is on screen (window.HubView).
+ * - History belongs to the shell (back button, app-shell.js): this page adds no entries of its own.
+ *   Its pushes and hash links become entries of the shell, and each pop-up it opens is reported, so
+ *   the back button closes the pop-up on top first (window.HubView._closeTop).
  */
 (function () {
     'use strict';
@@ -42,8 +45,8 @@
     var view = {
         inShell: true,
         active: shell.isActive(window),
-        /** Opens an address of the app (its live view if it has one). */
-        go: function (url) { shell.go(new URL(url, location.href).href); },
+        /** Opens an address of the app (its live view if it has one); how 'replace' = no back step. */
+        go: function (url, how) { shell.go(new URL(url, location.href).href, how); },
         _allow: null,
         _setActive: function (on) {
             on = !!on;
@@ -56,6 +59,16 @@
         },
     };
     window.HubView = view;
+
+    // The first touch lays the app's base history entries (app-shell.js arm).
+    var interacted = false;
+    function interact() {
+        if (interacted) return;
+        interacted = true;
+        try { shell._interact(); } catch (e) {}
+    }
+    window.addEventListener('pointerdown', interact, true);
+    window.addEventListener('keydown', interact, true);
 
     // Links to other pages open their live view (instant) instead of loading the page in this one.
     document.addEventListener('click', function (e) {
@@ -73,7 +86,14 @@
             return;
         }
         if (u.origin !== location.origin) { e.preventDefault(); window.open(u.href, '_blank', 'noopener'); return; }
-        if (!appPage(u) || sameDocument(u)) return;                 // in-page anchors stay in the page
+        if (sameDocument(u)) {
+            // A bare "#" link is a button: no jump, no history step.
+            if (a.getAttribute('href') === '#') { e.preventDefault(); return; }
+            // An in-page address (a section, a panel): a back step of the app's, not of this frame.
+            if (u.hash !== location.hash) { e.preventDefault(); pushInPlace(u.href); }
+            return;
+        }
+        if (!appPage(u)) return;
         e.preventDefault();
         view.go(u.href);
     }, false);
@@ -81,27 +101,86 @@
     // Script navigations (location.href = …) are routed the same way where the browser can intercept them.
     if (window.navigation && typeof window.navigation.addEventListener === 'function') {
         window.navigation.addEventListener('navigate', function (e) {
-            if (!e.cancelable || e.hashChange || e.downloadRequest || e.formData || e.navigationType === 'reload' || e.navigationType === 'traverse') return;
+            if (!e.cancelable || e.downloadRequest || e.formData || e.navigationType === 'reload' || e.navigationType === 'traverse') return;
             var u;
             try { u = new URL(e.destination.url); } catch (err) { return; }
+            // location.hash = … : the same as a hash link (the shell keeps the back step).
+            if (e.hashChange) {
+                if (e.navigationType === 'push' && !inPlace) { e.preventDefault(); pushInPlace(u.href); }
+                return;
+            }
             if (view._allow && view._allow === u.href) { view._allow = null; return; }   // the shell itself is moving this view
             if (!appPage(u) || sameDocument(u)) return;
             e.preventDefault();
-            view.go(u.href);
+            view.go(u.href, e.navigationType === 'replace' ? 'replace' : 'push');
         });
     }
 
-    // Pop-ups: while one is open on screen, the shell's tab bar steps aside.
-    var overlayOn = false, queued = false;
-    function overlayOpen() {
-        return !!document.querySelector('.modal-overlay.active, .hub-modal-overlay.active, .hacc-sheet-backdrop.open, #role-switcher-modal[style*="flex"], #hub-passwords-modal[style*="flex"], .fixed.inset-0[id$="-modal"]:not(.hidden)')
-            || html.classList.contains('hacc-no-scroll') || html.classList.contains('ers-drawer-open');
+    // Pop-ups: the shell's tab bar steps aside under them, and the back button closes them, top first.
+    var OVERLAYS = '.modal-overlay.active, .hub-modal-overlay.active, .hacc-sheet-backdrop.open, #role-switcher-modal[style*="flex"], '
+        + '#hub-passwords-modal[style*="flex"], .fixed.inset-0[id$="-modal"]:not(.hidden), #err-picker, #erl-modal';
+    function openOverlays() {
+        var list = Array.prototype.slice.call(document.querySelectorAll(OVERLAYS)).filter(function (el, i, all) {
+            if (all.indexOf(el) !== i) return false;
+            var cs = getComputedStyle(el);
+            return cs.display !== 'none' && cs.visibility !== 'hidden';
+        });
+        // The top one last: higher z-index, then later in the page.
+        var z = function (el) { var v = parseInt(getComputedStyle(el).zIndex, 10); return isNaN(v) ? 0 : v; };
+        list.sort(function (a, b) { return z(a) - z(b) || (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1); });
+        return list;
     }
+    function overlayCount() {
+        return openOverlays().length + (html.classList.contains('ers-drawer-open') ? 1 : 0);
+    }
+    var CLOSERS = '[data-erl-close], [data-close], [data-act="close"], .modal-close, .hacc-sheet-close, '
+        + 'button[aria-label*="إغلاق"], button[aria-label*="close" i], button[title*="إغلاق"]';
+    /** Closes the pop-up on top. The page can handle it first ('hub:back', cancelable). */
+    function closeTop() {
+        var before = overlayCount();
+        if (!before) return false;
+        var ev = new CustomEvent('hub:back', { cancelable: true });
+        window.dispatchEvent(ev);
+        if (ev.defaultPrevented || overlayCount() < before) return true;
+        var list = openOverlays();
+        var top = list[list.length - 1];
+        if (!top) {
+            // Only the ER drawer is open: its own Escape handler closes it.
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+            return overlayCount() < before;
+        }
+        // 1. Its own close button (×), 2. Escape, 3. a tap outside, 4. hidden by force.
+        var btn = top.querySelector(CLOSERS);
+        if (!btn) {
+            var icons = top.querySelectorAll('button .fa-times, button .fa-xmark, button .fa-close');
+            if (icons.length) btn = icons[0].closest('button');
+        }
+        if (!btn) {
+            var all = top.querySelectorAll('button[onclick]');
+            for (var i = 0; i < all.length && !btn; i++) if (/close/i.test(all[i].getAttribute('onclick'))) btn = all[i];
+        }
+        if (btn) { btn.click(); if (overlayCount() < before) return true; }
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        if (overlayCount() < before) return true;
+        top.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        if (overlayCount() < before) return true;
+        if (top.id === 'err-picker' || top.id === 'erl-modal') top.remove();
+        else {
+            top.classList.remove('active', 'open');
+            if (/fixed/.test(top.className)) top.classList.add('hidden');
+            if (top.style.display) top.style.display = 'none';
+        }
+        return overlayCount() < before;
+    }
+    view._closeTop = closeTop;
+    view._overlays = overlayCount;
+
+    var overlayN = 0, queued = false;
     function reportOverlay(force) {
-        var on = overlayOpen();
-        if (on === overlayOn && !force) return;
-        overlayOn = on;
-        try { shell._overlay(window, on); } catch (e) {}
+        var n = overlayCount();
+        if (n === overlayN && !force) return;
+        overlayN = n;
+        try { shell._overlay(window, n); } catch (e) {}
     }
     function queueOverlayCheck() {
         if (queued) return;
@@ -114,10 +193,21 @@
     function changed() { try { shell._changed(window); } catch (e) {} }
     window.addEventListener('hashchange', changed);
     window.addEventListener('popstate', changed);
-    ['pushState', 'replaceState'].forEach(function (m) {
-        var orig = history[m];
-        history[m] = function () { var r = orig.apply(this, arguments); changed(); return r; };
-    });
+    var origPush = history.pushState, origReplace = history.replaceState, inPlace = false;
+    history.replaceState = function () { var r = origReplace.apply(this, arguments); changed(); return r; };
+    history.pushState = function () {
+        // The shell keeps the back step; this frame only changes its address.
+        try { shell._push(window); } catch (e) {}
+        var r = origReplace.apply(this, arguments);
+        changed();
+        return r;
+    };
+    /** Moves this page to another address of itself (a hash), with the back step kept by the shell. */
+    function pushInPlace(href) {
+        try { shell._push(window); } catch (e) {}
+        inPlace = true;
+        try { location.replace(href); } finally { inPlace = false; }
+    }
 
     function ready() {
         requestAnimationFrame(function () { try { shell._ready(window); } catch (e) {} changed(); });

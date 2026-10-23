@@ -96,12 +96,19 @@
     // ------------------------------------------------------------------
     let openSheetEl = null;
 
-    // Each open sheet adds one history entry, so the phone's back button / gesture closes it.
+    // Each open sheet adds one history entry, so the phone's back button / gesture closes it. Inside the
+    // app shell the shell keeps that entry (it counts the open pop-ups) and asks for the close ('hub:back').
+    const inShell = !!(window.HubView && window.HubView.inShell);
     let sheetHistory = false;
     let ignorePop = false;
     window.addEventListener('popstate', () => {
         if (ignorePop) { ignorePop = false; return; }
-        if (openSheetEl) { sheetHistory = false; closeSheet(true); }
+        if (openSheetEl && !inShell) { sheetHistory = false; closeSheet(true); }
+    });
+    window.addEventListener('hub:back', e => {
+        if (!openSheetEl) return;
+        e.preventDefault();
+        closeSheet();
     });
 
     // Scroll lock that keeps the reader's place: overflow:hidden on <html> + <body> resets the page
@@ -150,7 +157,7 @@
         replacingSheet = replacing;
         closeSheet(true);
         replacingSheet = false;
-        if (!replacing && !sheetHistory) {
+        if (!replacing && !sheetHistory && !inShell) {
             try { history.pushState({ haccSheet: true }, ''); sheetHistory = true; } catch (e) {}
         }
         const wrap = document.createElement('div');

@@ -775,6 +775,7 @@
     <script src="./hub-core.js"></script>
     <script src="./hub-avatar.js"></script>
     <script src="./hub-accounts.js"></script>
+    <script src="./hub-oncall.js"></script>
     <script src="./nav-component.js"></script>
     <script>
         // State
@@ -1345,6 +1346,8 @@
                     </div>
                 `;
             }).join('');
+            // Who is busy on duty right now (on-call status: theatre, consultation, ...).
+            if (window.HubOnCall && Hub.auth.isLoggedIn()) HubOnCall.markDirectory(grid);
         }
 
         function copyPhoneNumber(phone) {

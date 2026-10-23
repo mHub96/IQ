@@ -16,7 +16,9 @@ const HOSP_RE = /^[\w-]{1,48}$/;
 const CACHE_SECONDS = 300;
 
 /** Points per thing done. */
-export const XP = { duty: 40, visit: 5, like: 4, comment: 3, exchange: 25, answered: 15, theatre: 10, topDay: 30 };
+export const XP = { duty: 40, visit: 5, like: 4, comment: 3, exchange: 25, answered: 15, theatre: 10, topDay: 30, monthTop: 150 };
+/** Which point each counted thing is worth. */
+const WEIGHT = { duties: 'duty', visits: 'visit', likes: 'like', comments: 'comment', exchanges: 'exchange', answered: 'answered', theatre: 'theatre', topDays: 'topDay', monthTops: 'monthTop' };
 
 /** Level from XP: each level needs 100 XP more than the one before (100, 200, 300, ...). */
 export function levelOf(xp) {
@@ -41,6 +43,7 @@ export const TROPHIES = [
   ['answered', '⚡', 'سريع الاستجابة', 'answered', [5, 25, 100], 'طلبات تواصل أجبتها'],
   ['theatre', '🩸', 'سيد صالة العمليات', 'theatre', [5, 25, 75], 'أيام في صالة العمليات'],
   ['topDay', '🌟', 'نجم اليوم', 'topDays', [1, 10, 30], 'أيام كنت فيها الأكثر تواصلاً في مستشفاك'],
+  ['monthTop', '👑', 'مقيم الشهر', 'monthTops', [1, 3, 6], 'أشهر كنت فيها الأعلى نقاطاً في مستشفاك'],
 ];
 const TIER_NAMES = ['برونزية', 'فضية', 'ذهبية'];
 
@@ -53,10 +56,9 @@ function trophiesOf(s) {
   });
 }
 function xpOf(s) {
-  return s.duties * XP.duty + s.visits * XP.visit + s.likes * XP.like + s.comments * XP.comment
-    + s.exchanges * XP.exchange + s.answered * XP.answered + s.theatre * XP.theatre + s.topDays * XP.topDay;
+  return Object.entries(WEIGHT).reduce((sum, [field, w]) => sum + (s[field] || 0) * XP[w], 0);
 }
-const blank = () => ({ duties: 0, visits: 0, likes: 0, comments: 0, exchanges: 0, answered: 0, theatre: 0, topDays: 0 });
+const blank = () => ({ duties: 0, visits: 0, likes: 0, comments: 0, exchanges: 0, answered: 0, theatre: 0, topDays: 0, monthTops: 0 });
 
 /**
  * Per resident of a hospital: { key -> { name, spec, all: stats, month: stats, today: stats } }.
@@ -84,12 +86,13 @@ async function hospitalStats(env, hosp) {
   ]);
   const people = {};
   const person = (key, name, spec) => {
-    if (!people[key]) people[key] = { name: name || key, spec: spec || '', all: blank(), month: blank(), today: blank() };
+    if (!people[key]) people[key] = { name: name || key, spec: spec || '', all: blank(), month: blank(), today: blank(), byMonth: {} };
     else if (spec && !people[key].spec) people[key].spec = spec;
     return people[key];
   };
   const add = (p, field, iso, n = 1) => {
     p.all[field] += n;
+    if (iso) { const ym = iso.slice(0, 7); p.byMonth[ym] = (p.byMonth[ym] || 0) + n * XP[WEIGHT[field]]; }
     if (iso && iso.startsWith(month)) p.month[field] += n;
     if (iso === today) p.today[field] += n;
   };
@@ -120,14 +123,36 @@ async function hospitalStats(env, hosp) {
   for (const r of reqs.results || []) { if (people[r.k]) add(people[r.k], 'answered', r.d); }
   for (const r of status.results || []) { const { iso, key } = fromTarget(r.target); if (people[key]) add(people[key], 'theatre', iso); }
 
-  const out = { at: Date.now(), today, people };
+  // Resident of the month: the most points in each finished month (+ a trophy and its XP); the last
+  // finished month's winner is this month's resident of the month.
+  const months = new Set();
+  for (const p of Object.values(people)) for (const ym of Object.keys(p.byMonth)) if (ym < month) months.add(ym);
+  let star = null;
+  const lastMonth = [...months].sort().pop() || null;
+  for (const ym of [...months].sort()) {
+    let best = null;
+    for (const [key, p] of Object.entries(people)) if ((p.byMonth[ym] || 0) > 0 && (!best || p.byMonth[ym] > best[1].byMonth[ym])) best = [key, p];
+    if (!best) continue;
+    best[1].all.monthTops += 1;
+    if (ym === lastMonth && ym === prevMonth(month)) star = { key: best[0], name: best[1].name, ym, xp: best[1].byMonth[ym] };
+  }
+  for (const p of Object.values(people)) delete p.byMonth;
+
+  const out = { at: Date.now(), today, people, star };
   await cache.put(cacheKey, new Response(JSON.stringify(out), { headers: { 'Content-Type': 'application/json', 'Cache-Control': `max-age=${CACHE_SECONDS}` } })).catch(() => {});
   return out;
+}
+
+/** "YYYY-MM" of the month before. */
+function prevMonth(ym) {
+  const [y, m] = ym.split('-').map(Number);
+  return m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, '0')}`;
 }
 
 export async function routeXp(path, method, request, env, auth, url) {
   if (method !== 'GET') return null;
   if (path === '/api/leaderboard') return leaderboard(env, auth, url);
+  if (path === '/api/leaderboard/star') return monthStar(env, auth, url);
   if (path === '/api/xp/me') return myXp(env, auth);
   return null;
 }
@@ -159,7 +184,17 @@ async function leaderboard(env, auth, url) {
   }).filter(r => r.xp > 0).sort((a, b) => b.xp - a.xp || b.total - a.total);
   rows.forEach((r, i) => { r.rank = i + 1; });
   const mine = rows.find(r => r.key === 'me') || null;
-  return json({ ok: true, period, hosp, at: stats.at, rows: rows.slice(0, 50), me: mine && mine.rank > 50 ? mine : null, xpRules: XP });
+  return json({ ok: true, period, hosp, at: stats.at, rows: rows.slice(0, 50), me: mine && mine.rank > 50 ? mine : null, xpRules: XP,
+    star: stats.star ? { name: stats.star.name, ym: stats.star.ym, xp: stats.star.xp } : null });
+}
+
+/** ?h=<hospital>: this month's resident of the month (last month's most points), for the duty cards. */
+async function monthStar(env, auth, url) {
+  if (!auth) return json({ error: 'unauthorized' }, 401);
+  const hosp = String(url.searchParams.get('h') || '');
+  if (!HOSP_RE.test(hosp)) return json({ error: 'bad_request' }, 400);
+  const stats = await hospitalStats(env, hosp);
+  return json({ ok: true, star: stats.star ? { key: stats.star.key, name: stats.star.name, ym: stats.star.ym, xp: stats.star.xp } : null });
 }
 
 /** The signed-in resident's XP, level, tier and trophies (all their hospitals). */

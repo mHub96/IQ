@@ -99,11 +99,14 @@
     // Each open sheet adds one history entry, so the phone's back button / gesture closes it. Inside the
     // app shell the shell keeps that entry (it counts the open pop-ups) and asks for the close ('hub:back').
     const inShell = !!(window.HubView && window.HubView.inShell);
+    // A page shown inside the account panel (?embed=1): its history is the panel's, so sheets add no step
+    // (going back would close the panel) and "back" is the panel's own back bar.
+    const embedded = /[?&]embed=1(&|$)/.test(location.search) && window.parent !== window;
     let sheetHistory = false;
     let ignorePop = false;
     window.addEventListener('popstate', () => {
         if (ignorePop) { ignorePop = false; return; }
-        if (openSheetEl && !inShell) { sheetHistory = false; closeSheet(true); }
+        if (openSheetEl && !inShell && !embedded) { sheetHistory = false; closeSheet(true); }
     });
     window.addEventListener('hub:back', e => {
         if (!openSheetEl) return;
@@ -157,7 +160,7 @@
         replacingSheet = replacing;
         closeSheet(true);
         replacingSheet = false;
-        if (!replacing && !sheetHistory && !inShell) {
+        if (!replacing && !sheetHistory && !inShell && !embedded) {
             try { history.pushState({ haccSheet: true }, ''); sheetHistory = true; } catch (e) {}
         }
         const wrap = document.createElement('div');
@@ -583,15 +586,22 @@
         owner_pending: ['⏳', 'بانتظار موافقة صاحب الخفارة'], admin_pending: ['🛡️', 'بانتظار موافقة الإدارة'],
         approved: ['✅', 'تمت الموافقة وتبديل الخفارة'], rejected: ['❌', 'مرفوض'], cancelled: ['↩️', 'ملغى'],
     };
-    async function openExchanges() {
-        const sheet = openSheet(`<header class="hacc-sheet-head">
-                <div><h2>طلبات تبديل الخفارات</h2><div class="hacc-muted">الموافقة على الطلبات ومتابعة طلباتك</div></div>
-                <button type="button" class="hacc-icon-btn" data-act="close" aria-label="إغلاق">✕</button>
-            </header>
-            <div class="hacc-sheet-body" data-role="list"><div class="hacc-empty">جاري التحميل…</div></div>`, { label: 'طلبات تبديل الخفارات' });
-        openSheetEl.dataset.kind = 'exchanges';
-        sheet.querySelector('[data-act="close"]').addEventListener('click', closeSheet);
-        const list = sheet.querySelector('[data-role="list"]');
+    /** The exchange requests: in their own sheet, or inside `host` (the account panel). */
+    async function openExchanges(host) {
+        let list;
+        if (host) {
+            host.innerHTML = '<div data-role="list"><div class="hacc-empty">جاري التحميل…</div></div>';
+            list = host.querySelector('[data-role="list"]');
+        } else {
+            const sheet = openSheet(`<header class="hacc-sheet-head">
+                    <div><h2>طلبات تبديل الخفارات</h2><div class="hacc-muted">الموافقة على الطلبات ومتابعة طلباتك</div></div>
+                    <button type="button" class="hacc-icon-btn" data-act="close" aria-label="إغلاق">✕</button>
+                </header>
+                <div class="hacc-sheet-body" data-role="list"><div class="hacc-empty">جاري التحميل…</div></div>`, { label: 'طلبات تبديل الخفارات' });
+            openSheetEl.dataset.kind = 'exchanges';
+            sheet.querySelector('[data-act="close"]').addEventListener('click', closeSheet);
+            list = sheet.querySelector('[data-role="list"]');
+        }
         let items = [];
         const card = (r, acts) => {
             const [icon, label] = XSTATUS[r.status] || ['🔁', r.status];
@@ -646,7 +656,7 @@
         const load = async () => {
             try {
                 items = (await Hub.api('GET', '/api/exchange', undefined, { retries: 1 })).requests || [];
-                if (openSheetEl && openSheetEl.dataset.kind === 'exchanges') paint();
+                if (host ? list.isConnected : (openSheetEl && openSheetEl.dataset.kind === 'exchanges')) paint();
             } catch (err) { list.innerHTML = `<div class="hacc-empty">${esc(errorText(err))}</div>`; }
         };
         await load();
@@ -708,8 +718,8 @@
         return onCallLoading;
     }
     /** The resident's contact requests (left by colleagues while they were busy on duty). */
-    function openRequests() {
-        return loadOnCall().then(m => m.openRequests()).catch(() => toast('تعذر فتح طلبات التواصل. تحقق من الاتصال.', 'error'));
+    function openRequests(host) {
+        return loadOnCall().then(m => m.openRequests(host)).catch(() => toast('تعذر فتح طلبات التواصل. تحقق من الاتصال.', 'error'));
     }
     /** The roster summary of cards (likes, comments, on-call status) and an in-place status update. */
     function cardSummary(h, d, names, force) { return fetchSummary(h, d, names, force); }
@@ -1284,6 +1294,7 @@
     }
 
     function goBack(fallback = './index.html?portal=true') {
+        if (embedded) return;
         let internal = false;
         try { internal = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) {}
         if (internal && history.length > 1) history.back();

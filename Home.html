@@ -2844,6 +2844,12 @@
                         mine: !!myKey && Hub.nameKey(resident.name) === myKey && (!acc.hosp || acc.hosp === (resident.parentHospitalId || currentHospital.id)),
                     })).filter(c => c.wrapper && !Hub.aa.isMirrorId(c.h)));
                 }
+                // Last month's most points: a crown on their card (hub-xp.js).
+                if (window.HubXP && HubXP.markStar && Hub.auth.isLoggedIn()) {
+                    HubXP.markStar(currentResidents.map((resident, i) => ({
+                        wrapper: wrappers[i], h: resident.parentHospitalId || currentHospital.id, n: resident.name,
+                    })).filter(c => c.wrapper && !Hub.aa.isMirrorId(c.h)));
+                }
             }
         }
 

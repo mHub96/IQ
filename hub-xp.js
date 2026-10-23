@@ -18,8 +18,10 @@
         legend: { name: 'أسطوري', c1: '#db2777', c2: '#f97316', k1: '#9d174d', k2: '#ea580c' },
     };
     const RULES = [['🩺', 'خفارة أدّيتها', 'duty'], ['📞', 'تواصل زميل معك', 'visit'], ['❤️', 'إعجاب على بطاقتك', 'like'], ['💬', 'تعليق على بطاقتك', 'comment'],
-        ['🤝', 'خفارة تسلّمتها عن زميل', 'exchange'], ['⚡', 'طلب تواصل أجبته', 'answered'], ['🩸', 'يوم في صالة العمليات', 'theatre'], ['🌟', 'يوم كنت فيه الأكثر تواصلاً', 'topDay']];
-    const STAT = { duties: ['🩺', 'خفارات'], visits: ['📞', 'تواصل'], likes: ['❤️', 'إعجابات'], comments: ['💬', 'تعليقات'], exchanges: ['🤝', 'تبديلات'], answered: ['⚡', 'طلبات أُجيبت'], theatre: ['🩸', 'أيام عمليات'], topDays: ['🌟', 'نجم اليوم'] };
+        ['🤝', 'خفارة تسلّمتها عن زميل', 'exchange'], ['⚡', 'طلب تواصل أجبته', 'answered'], ['🩸', 'يوم في صالة العمليات', 'theatre'], ['🌟', 'يوم كنت فيه الأكثر تواصلاً', 'topDay'], ['👑', 'شهر كنت فيه مقيم الشهر', 'monthTop']];
+    const STAT = { duties: ['🩺', 'خفارات'], visits: ['📞', 'تواصل'], likes: ['❤️', 'إعجابات'], comments: ['💬', 'تعليقات'], exchanges: ['🤝', 'تبديلات'], answered: ['⚡', 'طلبات أُجيبت'], theatre: ['🩸', 'أيام عمليات'], topDays: ['🌟', 'نجم اليوم'], monthTops: ['👑', 'مقيم الشهر'] };
+    const MONTHS = ['كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'];
+    const monthName = ym => MONTHS[Number(String(ym).slice(5, 7)) - 1] || '';
     const fmt = n => Number(n || 0).toLocaleString('en-US');
     const levelSpan = l => ({ start: 100 * (l - 1) * l / 2, next: 100 * l * (l + 1) / 2 });
 
@@ -94,6 +96,14 @@
     .xp-tro.t0 { opacity: .55; } .xp-tro.t0 .xp-ti { background: rgba(142,142,147,.2); filter: grayscale(1); }
     .xp-tro b { display: block; font: 800 .62rem/1.25 inherit; font-family: inherit; }
     .xp-tro small { display: block; font-size: .56rem; font-weight: 700; opacity: .7; margin-top: 2px; }
+    .xp-star { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 12px; border-radius: 16px; color: #78350f;
+        background: linear-gradient(135deg, #fef3c7, #fde68a 55%, #fbbf24); box-shadow: 0 6px 20px rgba(217,119,6,.25); }
+    .xp-star-i { font-size: 1.9rem; filter: drop-shadow(0 2px 4px rgba(146,64,14,.35)); }
+    .xp-star b { display: block; font-size: .98rem; font-weight: 900; }
+    .xp-star small { display: block; font-size: .7rem; font-weight: 700; opacity: .8; }
+    .roster-card.xp-month-star .card-front { box-shadow: 0 0 0 2px #fbbf24, 0 0 18px rgba(251,191,36,.55); }
+    .xp-month-badge { position: absolute; top: 8px; inset-inline-start: 8px; z-index: 3; padding: 2px 8px; border-radius: 999px; font-size: .62rem; font-weight: 900;
+        color: #78350f; background: linear-gradient(135deg, #fde68a, #fbbf24); box-shadow: 0 2px 8px rgba(217,119,6,.35); pointer-events: none; }
     @media (max-width: 380px) { .xp-shelf { grid-template-columns: repeat(3, 1fr); } }
     @media (prefers-reduced-motion: reduce) { .xp-row, .xp-card, .xp-tro, .xp-pod .xp-step, .xp-pod .xp-av, .xp-bar i, .xp-pod .xp-crown { animation: none !important; } }
     `;
@@ -161,7 +171,9 @@
                 <div class="xp-score">${fmt(r.xp)}<small>XP</small></div></div>`;
         };
         const rest = rows.slice(3);
-        board.innerHTML = `<div class="xp-podium">${pod}</div>${rest.map((r, i) => row(r, i)).join('')}${data.me ? `<div class="xp-pin">${row(data.me, 0)}</div>` : ''}`;
+        const star = data.star ? `<div class="xp-star"><span class="xp-star-i">👑</span><div><small>مقيم شهر ${esc(monthName(data.star.ym))}</small>
+                <b>${esc(data.star.name)}</b><small>${xpText(data.star.xp)} في الشهر</small></div></div>` : '';
+        board.innerHTML = `${star}<div class="xp-podium">${pod}</div>${rest.map((r, i) => row(r, i)).join('')}${data.me ? `<div class="xp-pin">${row(data.me, 0)}</div>` : ''}`;
         // Tap a row: what the points came from.
         board.querySelectorAll('.xp-row').forEach(el => el.addEventListener('click', () => {
             const r = el.closest('.xp-pin') ? data.me : rest[Number(el.dataset.i)];
@@ -198,5 +210,38 @@
                 <small>${t.tier ? esc(t.tierName) : ''}${t.next ? `${t.tier ? ' · ' : ''}${fmt(t.value)}/${fmt(t.next)}` : ' · مكتملة ✓'}</small></div>`).join('')}</div>`;
     }
 
-    window.HubXP = { leaderboard, profileCard };
+    // ------------------------------------------------------------------
+    // Resident of the month: a crown on their duty card (Home)
+    // ------------------------------------------------------------------
+    const stars = new Map();
+    /** cards: [{ wrapper, h, n }]. */
+    async function markStar(cards) {
+        const byHosp = new Map();
+        cards.forEach(c => { if (!byHosp.has(c.h)) byHosp.set(c.h, []); byHosp.get(c.h).push(c); });
+        for (const [h, list] of byHosp) {
+            let hit = stars.get(h);
+            if (!hit || Date.now() - hit.t > 600000) {
+                try { hit = { t: Date.now(), v: (await Hub.api('GET', `/api/leaderboard/star?h=${encodeURIComponent(h)}`, undefined, { retries: 1 })).star }; stars.set(h, hit); }
+                catch (e) { continue; }
+            }
+            const star = hit.v;
+            list.forEach(c => {
+                const card = c.wrapper && c.wrapper.querySelector('.roster-card');
+                if (!card) return;
+                const on = !!star && Hub.nameKey(c.n) === star.key;
+                card.classList.toggle('xp-month-star', on);
+                let badge = card.querySelector('.xp-month-badge');
+                if (!on) { if (badge) badge.remove(); return; }
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'xp-month-badge';
+                    (card.querySelector('.card-front') || card).appendChild(badge);
+                }
+                badge.textContent = '👑 مقيم الشهر';
+                badge.title = `الأعلى نقاطاً في ${monthName(star.ym)}: ${fmt(star.xp)} XP`;
+            });
+        }
+    }
+
+    window.HubXP = { leaderboard, profileCard, markStar };
 })(window, document);

@@ -480,3 +480,21 @@ body.dark .hacc-identity input:checked + span { color: #1C1C1E; }
 @keyframes hp-frame-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .hp-frame { animation: none; } }
 .hp-foot[hidden] { display: none; }
+
+/* Inside the account panel: a sub-view's back bar, and the site's pages embedded in the panel. */
+.hp-subbar { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 10px; margin: -14px -16px 12px; padding: 10px 14px;
+  background: var(--hacc-bg); border-bottom: 1px solid var(--hacc-border); }
+.hp-subbar b { font-size: .9rem; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hp-back { flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 12px; border: 0;
+  background: var(--hacc-accent-soft); color: var(--hacc-accent); font: 800 .8rem inherit; font-family: inherit; cursor: pointer; transition: transform .12s; }
+.hp-back:active { transform: scale(.96); }
+.hp-body.hp-embedding { padding: 14px 16px 0; overflow: hidden; display: flex; flex-direction: column; }
+.hp-body.hp-embedding .hp-subbar { margin-bottom: 0; }
+.hp-body.hp-embedding .hp-subhost { position: relative; flex: 1; margin: 0 -16px; min-height: min(72vh, 760px); }
+.hp-embed { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: var(--hacc-bg); opacity: 0; transition: opacity .3s ease; }
+.hp-subhost.ready .hp-embed { opacity: 1; }
+.hp-embed-load { position: absolute; inset: 0; padding: 18px 16px; display: grid; gap: 12px; align-content: start; }
+.hp-embed-load span, .hp-embed-load::before, .hp-embed-load::after { content: ''; display: block; height: 64px; border-radius: 16px;
+  background: linear-gradient(90deg, var(--hacc-surface) 25%, var(--hacc-border) 50%, var(--hacc-surface) 75%); background-size: 200% 100%; animation: hpShimmer 1.2s linear infinite; }
+.hp-subhost.ready .hp-embed-load { display: none; }
+@keyframes hpShimmer { to { background-position: -200% 0; } }

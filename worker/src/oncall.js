@@ -14,9 +14,47 @@ import { dutyDayNow } from './profile.js';
 import { dispatchPush } from './accounts.js';
 
 const HOSP_RE = /^[\w-]{1,48}$/;
-const STATUSES = ['or', 'consult', 'custom'];
 const SKINS = ['or', 'consult', 'gold', 'ocean', 'emerald', 'violet', 'night', 'rose'];
 const IRAQ_OFFSET_MS = 3 * 3600 * 1000;
+
+/**
+ * The status options (the owner edits them: kv 'duty_status_options'). Each: { id, icon, label (on the
+ * options), chip (on the card), skin, busy (contacting warns first) }. allowCustom: residents may also
+ * write their own. autoClearHours: a status older than this is no longer shown (0 = never).
+ */
+export const DEFAULT_OPTIONS = {
+  options: [
+    { id: 'or', icon: '🩸', label: 'في صالة العمليات', chip: 'في العمليات', skin: 'or', busy: true },
+    { id: 'consult', icon: '🚑', label: 'خارج القسم لاستشارة', chip: 'استشارة', skin: 'consult', busy: true },
+  ],
+  allowCustom: true,
+  autoClearHours: 6,
+};
+export async function statusOptions(env) {
+  const row = await env.DB.prepare("SELECT v FROM kv WHERE k = 'duty_status_options'").first();
+  try {
+    const v = JSON.parse((row && row.v) || 'null');
+    if (v && Array.isArray(v.options)) return { ...DEFAULT_OPTIONS, ...v };
+  } catch {}
+  return DEFAULT_OPTIONS;
+}
+const OPT_ID = /^[a-z][a-z0-9_]{0,15}$/;
+/** The owner's list, cleaned (unknown skins, empty labels and duplicate ids are dropped). */
+function cleanOptions(body) {
+  const seen = new Set();
+  const options = (Array.isArray(body.options) ? body.options : []).slice(0, 12).map(o => ({
+    id: String(o && o.id || '').toLowerCase(),
+    icon: plainText(o && o.icon, 8) || '⏳',
+    label: plainText(o && o.label, 40),
+    chip: plainText(o && o.chip, 20) || plainText(o && o.label, 20),
+    skin: SKINS.includes(o && o.skin) ? o.skin : 'night',
+    busy: !(o && o.busy === false),
+  })).filter(o => OPT_ID.test(o.id) && o.id !== 'custom' && o.label && !seen.has(o.id) && seen.add(o.id));
+  const hours = Math.floor(Number(body.autoClearHours));
+  return { options, allowCustom: body.allowCustom !== false, autoClearHours: Number.isFinite(hours) ? Math.max(0, Math.min(24, hours)) : DEFAULT_OPTIONS.autoClearHours };
+}
+/** Is this stored status still current (not older than the auto-clear time)? */
+export const fresh = (row, opts, now) => !opts.autoClearHours || (now - row.updated_at) < opts.autoClearHours * 3600 * 1000;
 
 /** The card of a duty (same as the likes and comments: duty:<hospital>:<date>:<name key>). */
 function cardOf(h, d, n) {
@@ -36,6 +74,9 @@ export function dutyDayEnd(date) {
 export async function routeOnCall(path, method, request, env, auth, url, ctx) {
   switch (`${method} ${path}`) {
     case 'POST /api/duty-status': return setStatus(request, env, auth);
+    case 'GET /api/duty-status/options': return auth ? json({ ok: true, ...(await statusOptions(env)) }) : json({ error: 'unauthorized' }, 401);
+    case 'POST /api/duty-status/options': return saveOptions(request, env, auth);
+    case 'GET /api/duty-status/today': return todayStatuses(env, auth, url);
     case 'GET /api/contact-requests': return listRequests(env, auth);
     case 'POST /api/contact-requests': return createRequest(request, env, auth, ctx);
     case 'POST /api/contact-requests/done': return markDone(request, env, auth);
@@ -70,15 +111,49 @@ async function setStatus(request, env, auth) {
     await env.DB.prepare('DELETE FROM duty_status WHERE target = ?').bind(card.target).run();
     return json({ ok: true, status: null });
   }
-  if (!STATUSES.includes(status)) return json({ error: 'bad_status' }, 400);
-  const skin = status === 'custom' ? (SKINS.includes(body.skin) ? body.skin : 'night') : status;
-  const label = status === 'custom' ? (plainText(body.label, 40) || 'مشغول') : null;
+  // One of the owner's options, or (if allowed) the resident's own text and skin.
+  const opts = await statusOptions(env);
+  const opt = opts.options.find(o => o.id === status);
+  if (!opt && !(status === 'custom' && opts.allowCustom)) return json({ error: 'bad_status' }, 400);
+  const skin = opt ? opt.skin : (SKINS.includes(body.skin) ? body.skin : 'night');
+  const label = opt ? opt.chip : (plainText(body.label, 40) || 'مشغول');
+  const icon = opt ? opt.icon : '⏳';
   await env.DB.prepare(
-    `INSERT INTO duty_status (target, hosp, card_date, account_id, status, skin, label, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
+    `INSERT INTO duty_status (target, hosp, card_date, account_id, status, skin, label, icon, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
      ON CONFLICT (target) DO UPDATE SET account_id = excluded.account_id, status = excluded.status, skin = excluded.skin,
-       label = excluded.label, updated_at = excluded.updated_at`
-  ).bind(card.target, card.hosp, card.date, auth.a, status, skin, label, Date.now()).run();
-  return json({ ok: true, status: { s: status, k: skin, l: label } });
+       label = excluded.label, icon = excluded.icon, updated_at = excluded.updated_at`
+  ).bind(card.target, card.hosp, card.date, auth.a, status, skin, label, icon, Date.now()).run();
+  return json({ ok: true, status: view({ status, skin, label, icon }, opts) });
+}
+
+/** A stored status as the cards show it: s (id), k (skin), l (text), i (icon), b (busy). */
+function view(r, opts) {
+  const opt = opts.options.find(o => o.id === r.status);
+  return { s: r.status, k: r.skin, l: r.label || (opt ? opt.chip : ''), i: r.icon || (opt ? opt.icon : '⏳'), b: opt ? opt.busy !== false : true };
+}
+
+/** Body: { options, allowCustom, autoClearHours }. The owner only. */
+async function saveOptions(request, env, auth) {
+  if (!auth || auth.r !== 'owner') return json({ error: 'forbidden' }, 403);
+  const body = await readJson(request) || {};
+  const clean = cleanOptions(body);
+  if (!clean.options.length && !clean.allowCustom) return json({ error: 'no_options' }, 400);
+  await env.DB.prepare("INSERT INTO kv (k, v) VALUES ('duty_status_options', ?1) ON CONFLICT(k) DO UPDATE SET v = excluded.v").bind(JSON.stringify(clean)).run();
+  return json({ ok: true, ...clean });
+}
+
+/** ?h=<hospital>: today's statuses of the hospital's duty cards (the residents page marks who is busy). */
+async function todayStatuses(env, auth, url) {
+  if (!auth) return json({ error: 'unauthorized' }, 401);
+  // ?h=<hospital>[&h=<hospital>...] (the residents page asks for every hospital at once).
+  const hosps = [...new Set(url.searchParams.getAll('h').map(String))].filter(h => HOSP_RE.test(h)).slice(0, 30);
+  if (!hosps.length) return json({ error: 'bad_request' }, 400);
+  const opts = await statusOptions(env);
+  const now = Date.now();
+  const { results } = await env.DB.prepare(
+    'SELECT target, hosp, status, skin, label, icon, updated_at FROM duty_status WHERE card_date = ?1 AND hosp IN (SELECT value FROM json_each(?2))'
+  ).bind(dutyDayNow(), JSON.stringify(hosps)).all();
+  return json({ ok: true, statuses: (results || []).filter(r => fresh(r, opts, now)).map(r => ({ key: r.target.split(':').slice(3).join(':'), hosp: r.hosp, ...view(r, opts) })) });
 }
 
 /** Body: { h, d, n, note }. A colleague leaves a request for the card's holder (notified). */
@@ -155,15 +230,19 @@ async function markDone(request, env, auth) {
 /** For the roster's summary (accounts.js socialSummary): statuses and open request counts of these cards. */
 export async function cardStatuses(env, targets, myKey) {
   if (!targets.length) return new Map();
+  const opts = await statusOptions(env);
+  const now = Date.now();
   const { results } = await env.DB.prepare(
-    `SELECT t.value AS target, s.status, s.skin, s.label,
+    `SELECT t.value AS target, s.status, s.skin, s.label, s.icon, s.updated_at,
             (SELECT COUNT(*) FROM contact_requests c WHERE c.target = t.value AND c.status = 'pending') AS waiting
        FROM json_each(?1) t LEFT JOIN duty_status s ON s.target = t.value`
   ).bind(JSON.stringify(targets)).all();
   const out = new Map();
   for (const r of results || []) {
     const mine = !!myKey && r.target.endsWith(':' + myKey);
-    if (r.status || (mine && r.waiting)) out.set(r.target, { ...(r.status ? { s: r.status, k: r.skin, l: r.label } : {}), ...(mine ? { w: r.waiting } : {}) });
+    // A status older than the owner's auto-clear time is over.
+    const live = r.status && fresh(r, opts, now);
+    if (live || (mine && r.waiting)) out.set(r.target, { ...(live ? view(r, opts) : {}), ...(mine ? { w: r.waiting } : {}) });
   }
   return out;
 }

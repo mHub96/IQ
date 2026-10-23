@@ -636,6 +636,7 @@
 
         // -------------------- Routing --------------------
         let lastAuthTab = 0;
+        const EMBEDDED = /[?&]embed=1(&|$)/.test(location.search);
         function route() {
             const hash = (location.hash || '').replace('#', '');
             let view = hash.split('-')[0];
@@ -661,7 +662,8 @@
             }
             $('page-title').textContent = { signin: 'تسجيل الدخول', signup: 'حساب جديد', forgot: 'استعادة كلمة المرور', me: 'حسابي', settings: 'الإعدادات', manage: 'الإدارة', schedule: 'جدولي', comments: 'تعليقاتي', admin: 'الإدارة' }[view];
             // Signed in: the one frame (its tab), and the management lists under its header.
-            const framed = signedIn && (FRAME_TAB[view] || view === 'manage');
+            // Embedded in the account panel (embed=1): only the section itself, the panel is the frame.
+            const framed = signedIn && (FRAME_TAB[view] || view === 'manage') && !EMBEDDED;
             $('acc-frame').hidden = !framed;
             if (framed) {
                 $('view-me').hidden = true;

@@ -20,18 +20,32 @@
     const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const toast = (m, t) => (A && A.toast ? A.toast(m, t) : null);
 
-    const STATUS = {
-        or: { icon: '🩸', chip: 'في العمليات', title: 'في صالة العمليات', text: 'في صالة العمليات الآن', skin: 'or' },
-        consult: { icon: '🚑', chip: 'استشارة', title: 'خارج القسم لاستشارة', text: 'خارج القسم لاستشارة', skin: 'consult' },
-        custom: { icon: '⏳', chip: '', title: 'حالة مخصصة', text: '', skin: 'night' },
+    // The status options are the owner's (GET /api/duty-status/options); these are the defaults.
+    let OPTS = {
+        options: [
+            { id: 'or', icon: '🩸', label: 'في صالة العمليات', chip: 'في العمليات', skin: 'or', busy: true },
+            { id: 'consult', icon: '🚑', label: 'خارج القسم لاستشارة', chip: 'استشارة', skin: 'consult', busy: true },
+        ],
+        allowCustom: true, autoClearHours: 6,
     };
+    let optsLoading = null;
+    function loadOptions(force) {
+        if (!optsLoading || force) {
+            optsLoading = Hub.api('GET', '/api/duty-status/options', undefined, { retries: 1 })
+                .then(r => { if (r && Array.isArray(r.options)) OPTS = r; return OPTS; })
+                .catch(() => { optsLoading = null; return OPTS; });
+        }
+        return optsLoading;
+    }
+    const optionOf = id => OPTS.options.find(o => o.id === id);
     const SKINS = [
         { id: 'night', name: 'كاربون' }, { id: 'ocean', name: 'محيط' }, { id: 'emerald', name: 'زمرد' },
         { id: 'violet', name: 'مجرة' }, { id: 'gold', name: 'ذهبي' }, { id: 'rose', name: 'وردي' },
         { id: 'or', name: 'عمليات' }, { id: 'consult', name: 'إسعاف' },
     ];
-    const statusText = st => st ? (st.s === 'custom' ? (st.l || 'مشغول') : STATUS[st.s] ? STATUS[st.s].text : '') : '';
-    const statusChip = st => st ? (st.s === 'custom' ? `${STATUS.custom.icon} ${st.l || 'مشغول'}` : `${STATUS[st.s].icon} ${STATUS[st.s].chip}`) : '';
+    const statusText = st => !st || !st.s ? '' : ((optionOf(st.s) || {}).label || st.l || 'مشغول');
+    const statusChip = st => !st || !st.s ? '' : `${st.i || (optionOf(st.s) || {}).icon || '⏳'} ${st.l || (optionOf(st.s) || {}).chip || 'مشغول'}`;
+    const isBusy = st => !!(st && st.s && st.b !== false);
 
     // ------------------------------------------------------------------
     // Styles: the skins (every element of the card stays clearly readable, day and night)
@@ -146,6 +160,7 @@
     .oc-swatch[data-skin="rose"] { background: linear-gradient(160deg, #831843, #db2777); }
     .oc-swatch[data-skin="or"] { background: linear-gradient(160deg, #3f0a0d, #8f1a1a); }
     .oc-swatch[data-skin="consult"] { background: linear-gradient(180deg, #fff 0 60%, #dc2626 60% 72%, #fff 72%); }
+    .oc-note { font-size: .64rem; font-weight: 700; opacity: .65; }
     .oc-save { padding: .5rem; border-radius: .8rem; border: 0; background: linear-gradient(135deg, #007AFF, #0A84FF); color: #fff; font: 800 .76rem inherit; font-family: inherit; cursor: pointer; }
 
     /* The warning before contacting a busy resident (an app pop-up, not the browser's). */
@@ -186,6 +201,28 @@
     .oc-chip.done { background: rgba(16,185,129,.14); color: #047857; }
     .oc-chip.missed { background: rgba(220,38,38,.12); color: #b91c1c; }
     .oc-empty { text-align: center; padding: 18px; opacity: .65; font-size: .84rem; }
+    .oc-ed { padding: 10px; border-radius: 14px; border: 1px solid rgba(142,142,147,.25); margin-bottom: 8px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; position: relative; min-width: 0; }
+    .oc-ed > * { min-width: 0; }
+    .oc-ed-top, .oc-ed-row { display: flex; gap: 6px; }
+    .oc-ed input:not([type=checkbox]), .oc-ed select, .oc-ed-row select { flex: 1; min-width: 0; min-height: 40px; padding: 0 10px; border-radius: 10px; border: 1px solid rgba(142,142,147,.35); background: transparent; color: inherit; font: 700 .82rem inherit; font-family: inherit; }
+    .oc-ed input:not([type=checkbox]), .oc-ed select { width: auto; max-width: none; margin: 0; box-sizing: border-box; }
+    .oc-ed input.oc-ed-icon { flex: 0 0 48px; width: 48px; text-align: center; font-size: 1.2rem; padding: 0; }
+    .oc-ed-x { flex: 0 0 40px; width: 40px; border: 0; border-radius: 10px; background: rgba(220,38,38,.1); color: #dc2626; cursor: pointer; }
+    .oc-ed-chk { display: flex; align-items: center; gap: 8px; font-size: .76rem; font-weight: 700; }
+    .oc-ed-chk input { width: 18px; height: 18px; }
+    .oc-ed-move { display: flex; gap: 4px; justify-content: flex-end; }
+    .oc-ed-move button { width: 32px; height: 28px; border-radius: 8px; border: 1px solid rgba(142,142,147,.3); background: transparent; color: inherit; cursor: pointer; }
+    .oc-ed-move button:disabled { opacity: .3; }
+    .oc-dir-chip { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; padding: 4px 10px; border-radius: 999px; font-size: .7rem; font-weight: 900; color: #fff;
+        background: linear-gradient(135deg, #3f0a0d, #b91c1c); box-shadow: 0 4px 12px rgba(185,28,28,.25); animation: ocChipIn .35s cubic-bezier(.2,1.3,.4,1) both; }
+    .oc-dir-chip.oc-dir-consult { background: linear-gradient(135deg, #1d4ed8, #dc2626); }
+    .oc-dir-chip.oc-dir-ocean { background: linear-gradient(135deg, #082f49, #0369a1); } .oc-dir-chip.oc-dir-emerald { background: linear-gradient(135deg, #022c22, #047857); }
+    .oc-dir-chip.oc-dir-violet { background: linear-gradient(135deg, #1e1b4b, #6d28d9); } .oc-dir-chip.oc-dir-night { background: linear-gradient(135deg, #111, #374151); }
+    .oc-dir-chip.oc-dir-rose { background: linear-gradient(135deg, #831843, #db2777); } .oc-dir-chip.oc-dir-gold { background: linear-gradient(135deg, #b45309, #f59e0b); }
+    .oc-dir-dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: ocDot 1.4s ease-in-out infinite; }
+    @keyframes ocDot { 50% { opacity: .25; transform: scale(.7); } }
+    @keyframes ocChipIn { from { transform: scale(.6); opacity: 0; } }
+    .doctor-card.oc-dir-busy { box-shadow: 0 0 0 2px rgba(220,38,38,.45), 0 10px 26px rgba(220,38,38,.12) !important; }
     .oc-h { font-size: .8rem; font-weight: 900; margin: 12px 0 2px; opacity: .8; }
     `;
     if (!document.getElementById('hub-oncall-css')) {
@@ -202,7 +239,7 @@
     function paintSkin(wrapper, st) {
         [...wrapper.classList].filter(c => c.startsWith('oc-')).forEach(c => wrapper.classList.remove(c));
         if (!st || !st.s) return;
-        const skin = st.k || (STATUS[st.s] || {}).skin || 'night';
+        const skin = st.k || (optionOf(st.s) || {}).skin || 'night';
         wrapper.classList.add('oc-skin-' + skin);
         // The ambulance skin is dark at night: light text there.
         const dark = document.body.classList.contains('dark') || document.documentElement.classList.contains('dark');
@@ -212,6 +249,7 @@
     /** cards: [{ wrapper, h, d, n, surgical, mine }] (Home.html, after each render). */
     async function decorate(cards) {
         if (!A || !A.cardSummary || !cards.length) return;
+        await loadOptions();
         const groups = new Map();
         cards.forEach(c => { const k = c.h + '|' + c.d; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(c); });
         for (const [k, list] of groups) {
@@ -253,7 +291,7 @@
             c.wrapper._ocGuard = true;
             c.wrapper.addEventListener('click', e => {
                 const a = e.target.closest && e.target.closest('.card-actions .action-btn-sm');
-                if (!a || c.mine || !c.st || !c.st.s || c.wrapper._ocAllow) return;
+                if (!a || c.mine || !isBusy(c.st) || c.wrapper._ocAllow) return;
                 e.preventDefault(); e.stopPropagation();
                 busyWarning(c, a);
             }, true);
@@ -281,12 +319,12 @@
                 <button type="button" class="icu-back-close-btn" data-oc="close" title="إغلاق"><i class="fas fa-times"></i></button>
             </div>
             <div class="oc-opts">
-                <button type="button" class="oc-opt ${cur === 'or' ? 'on' : ''}" data-set="or"><span class="oc-ic">🩸</span>في صالة العمليات</button>
-                <button type="button" class="oc-opt ${cur === 'consult' ? 'on' : ''}" data-set="consult"><span class="oc-ic">🚑</span>خارج القسم لاستشارة</button>
+                ${OPTS.options.map(o => `<button type="button" class="oc-opt ${cur === o.id ? 'on' : ''}" data-set="${esc(o.id)}"><span class="oc-ic">${esc(o.icon)}</span>${esc(o.label)}</button>`).join('')}
                 <button type="button" class="oc-opt ${!cur ? 'on' : ''}" data-set=""><span class="oc-ic">✅</span>بلا حالة</button>
-                <button type="button" class="oc-opt ${cur === 'custom' ? 'on' : ''}" data-set="custom"><span class="oc-ic">✏️</span>حالة مخصصة</button>
+                ${OPTS.allowCustom ? `<button type="button" class="oc-opt ${cur === 'custom' ? 'on' : ''}" data-set="custom"><span class="oc-ic">✏️</span>حالة مخصصة</button>` : ''}
             </div>
-            <div class="oc-custom" ${cur === 'custom' ? '' : 'hidden'}>
+            ${OPTS.autoClearHours ? `<div class="oc-note">تُزال الحالة تلقائياً بعد ${hoursText(OPTS.autoClearHours)}.</div>` : ''}
+            <div class="oc-custom" ${cur === 'custom' && OPTS.allowCustom ? '' : 'hidden'}>
                 <input type="text" maxlength="40" placeholder="مثال: في ردهة الطوارئ" value="${esc(st.l || '')}" aria-label="نص الحالة">
                 <div class="oc-swatches">${SKINS.map(s => `<button type="button" class="oc-swatch ${(st.k || 'night') === s.id ? 'on' : ''}" data-skin="${s.id}" title="${esc(s.name)}" aria-label="${esc(s.name)}"></button>`).join('')}</div>
                 <button type="button" class="oc-save" data-oc="save-custom">حفظ الحالة المخصصة</button>
@@ -361,8 +399,8 @@
     async function busyWarning(c, anchor) {
         const st = c.st;
         const choice = await popup({
-            icon: st.s === 'custom' ? '⏳' : STATUS[st.s].icon,
-            iconClass: st.s,
+            icon: st.i || '⏳',
+            iconClass: ['or', 'consult'].includes(st.k) ? st.k : 'custom',
             title: `${c.n} مشغول الآن`,
             text: `<b>${esc(statusText(st))}</b>. قد لا يتمكن من الرد في هذه اللحظة. يمكنك ترك طلب تواصل ليصله إشعار ويتواصل معك حين يتفرغ.`,
             actions: [
@@ -393,12 +431,19 @@
     const waHref = p => { const d = String(p || '').replace(/\D/g, ''); return d ? 'whatsapp://send?phone=' + (d.startsWith('964') ? d : '964' + d.replace(/^0/, '')) : ''; };
     const telHref = p => { const d = String(p || '').replace(/\D/g, ''); return d ? 'tel:+' + (d.startsWith('964') ? d : '964' + d.replace(/^0/, '')) : ''; };
 
-    async function openRequests() {
-        const sheet = A.openSheet(`<header class="hacc-sheet-head"><h2>📞 طلبات التواصل</h2>
-                <button type="button" class="hacc-icon-btn" data-act="close" aria-label="إغلاق">✕</button></header>
-            <div class="hacc-sheet-body" data-role="list"><div class="oc-empty">جاري التحميل…</div></div>`, { label: 'طلبات التواصل', tall: true });
-        sheet.querySelector('[data-act="close"]').addEventListener('click', A.closeSheet);
-        const list = sheet.querySelector('[data-role="list"]');
+    /** The holder's requests: in their own sheet, or inside `host` (the account panel). */
+    async function openRequests(host) {
+        let list;
+        if (host) {
+            host.innerHTML = '<div data-role="list"><div class="oc-empty">جاري التحميل…</div></div>';
+            list = host.querySelector('[data-role="list"]');
+        } else {
+            const sheet = A.openSheet(`<header class="hacc-sheet-head"><h2>📞 طلبات التواصل</h2>
+                    <button type="button" class="hacc-icon-btn" data-act="close" aria-label="إغلاق">✕</button></header>
+                <div class="hacc-sheet-body" data-role="list"><div class="oc-empty">جاري التحميل…</div></div>`, { label: 'طلبات التواصل', tall: true });
+            sheet.querySelector('[data-act="close"]').addEventListener('click', A.closeSheet);
+            list = sheet.querySelector('[data-role="list"]');
+        }
         const paint = data => {
             const row = (r, open) => `<div class="oc-req" data-id="${r.id}">
                 ${A.avatarHtml ? A.avatarHtml({ name: r.by, avatar: r.avatar, sex: r.sex }, 40) : ''}
@@ -429,5 +474,103 @@
         catch (err) { list.innerHTML = `<div class="oc-empty">${esc(A.errorText ? A.errorText(err) : 'تعذر التحميل')}</div>`; }
     }
 
-    window.HubOnCall = { decorate, openRequests, statusText };
+    // ------------------------------------------------------------------
+    // The owner: the status options and the auto-clear time (account panel → administration)
+    // ------------------------------------------------------------------
+    const SKIN_NAMES = { or: 'عمليات (دم)', consult: 'إسعاف', night: 'كاربون', ocean: 'محيط', emerald: 'زمرد', violet: 'مجرة', gold: 'ذهبي', rose: 'وردي' };
+    async function editor(host) {
+        host.innerHTML = '<div class="oc-empty">جاري التحميل…</div>';
+        const data = JSON.parse(JSON.stringify(await loadOptions(true)));
+        const paint = () => {
+            host.innerHTML = `
+                <p class="hacc-muted" style="margin:0 0 10px">الحالات التي يختار منها مقيمو الفروع الجراحية أثناء خفاراتهم. يعدّلها مالك المنظومة فقط.</p>
+                <div class="oc-ed-list">${data.options.map((o, i) => `<div class="oc-ed" data-i="${i}">
+                    <div class="oc-ed-top">
+                        <input class="oc-ed-icon" data-f="icon" value="${esc(o.icon)}" maxlength="4" aria-label="الأيقونة">
+                        <input data-f="label" value="${esc(o.label)}" maxlength="40" placeholder="اسم الحالة" aria-label="اسم الحالة">
+                        <button type="button" class="oc-ed-x" data-act="del" aria-label="حذف">✕</button>
+                    </div>
+                    <div class="oc-ed-row">
+                        <input data-f="chip" value="${esc(o.chip)}" maxlength="20" placeholder="نص قصير على البطاقة" aria-label="النص على البطاقة">
+                        <select data-f="skin" aria-label="مظهر البطاقة">${SKINS.map(k => `<option value="${k.id}" ${o.skin === k.id ? 'selected' : ''}>${esc(SKIN_NAMES[k.id] || k.name)}</option>`).join('')}</select>
+                    </div>
+                    <label class="oc-ed-chk"><input type="checkbox" data-f="busy" ${o.busy !== false ? 'checked' : ''}> تنبيه قبل التواصل معه (مشغول)</label>
+                    <div class="oc-ed-move"><button type="button" data-act="up" ${i ? '' : 'disabled'}>↑</button><button type="button" data-act="down" ${i < data.options.length - 1 ? '' : 'disabled'}>↓</button></div>
+                </div>`).join('')}</div>
+                <button type="button" class="hacc-btn btn-block" data-act="add" ${data.options.length >= 12 ? 'disabled' : ''}><i class="fas fa-plus"></i> إضافة حالة</button>
+                <label class="oc-ed-chk" style="margin-top:12px"><input type="checkbox" data-g="allowCustom" ${data.allowCustom ? 'checked' : ''}> السماح للمقيم بكتابة حالة مخصصة</label>
+                <div class="oc-ed-row" style="margin-top:8px;align-items:center">
+                    <span style="font-size:.8rem;font-weight:800">الإزالة التلقائية للحالة بعد</span>
+                    <select data-g="autoClearHours">${[0, 1, 2, 3, 4, 6, 8, 12, 24].map(h => `<option value="${h}" ${Number(data.autoClearHours) === h ? 'selected' : ''}>${h ? hoursText(h) : 'لا تُزال'}</option>`).join('')}</select>
+                </div>
+                <button type="button" class="hacc-btn primary btn-block" data-act="save" style="margin-top:14px">حفظ حالات الخفارة</button>`;
+            host.querySelectorAll('.oc-ed').forEach(row => {
+                const o = data.options[Number(row.dataset.i)];
+                row.querySelectorAll('[data-f]').forEach(inp => inp.addEventListener(inp.type === 'checkbox' || inp.tagName === 'SELECT' ? 'change' : 'input', () => {
+                    o[inp.dataset.f] = inp.type === 'checkbox' ? inp.checked : inp.value;
+                }));
+                row.querySelector('[data-act="del"]').addEventListener('click', () => { data.options.splice(Number(row.dataset.i), 1); paint(); });
+                row.querySelector('[data-act="up"]').addEventListener('click', () => { const i = Number(row.dataset.i); [data.options[i - 1], data.options[i]] = [data.options[i], data.options[i - 1]]; paint(); });
+                row.querySelector('[data-act="down"]').addEventListener('click', () => { const i = Number(row.dataset.i); [data.options[i + 1], data.options[i]] = [data.options[i], data.options[i + 1]]; paint(); });
+            });
+            host.querySelectorAll('[data-g]').forEach(inp => inp.addEventListener('change', () => { data[inp.dataset.g] = inp.type === 'checkbox' ? inp.checked : Number(inp.value); }));
+            host.querySelector('[data-act="add"]').addEventListener('click', () => {
+                data.options.push({ id: 's' + Date.now().toString(36).slice(-6), icon: '⏳', label: '', chip: '', skin: 'night', busy: true });
+                paint();
+                const last = host.querySelector('.oc-ed:last-child [data-f="label"]');
+                if (last) last.focus();
+            });
+            host.querySelector('[data-act="save"]').addEventListener('click', async e => {
+                const btn = e.currentTarget;
+                btn.disabled = true;
+                try {
+                    const res = await Hub.api('POST', '/api/duty-status/options', data, { retries: 0 });
+                    Object.assign(data, res);
+                    OPTS = { options: res.options, allowCustom: res.allowCustom, autoClearHours: res.autoClearHours };
+                    toast('حُفظت حالات الخفارة ✓', 'success');
+                    paint();
+                } catch (err) { btn.disabled = false; toast(A.errorText ? A.errorText(err) : 'تعذر الحفظ', 'error'); }
+            });
+        };
+        paint();
+    }
+
+    // ------------------------------------------------------------------
+    // The residents page: who is busy on duty right now (a chip on their card)
+    // ------------------------------------------------------------------
+    let dirCache = null;
+    /** "ساعة" / "ساعتين" / "N ساعات" / "N ساعة". */
+    const hoursText = h => h === 1 ? 'ساعة' : h === 2 ? 'ساعتين' : h <= 10 ? `${h} ساعات` : `${h} ساعة`;
+
+    async function markDirectory(grid) {
+        if (!grid || !Hub.getHospitals) return;
+        const ids = Hub.getHospitals().map(h => h.id).filter(Boolean);
+        if (!ids.length) return;
+        if (!dirCache || Date.now() - dirCache.at > 60000) {
+            const q = new URLSearchParams();
+            ids.forEach(h => q.append('h', h));
+            try { dirCache = { at: Date.now(), list: (await Hub.api('GET', '/api/duty-status/today?' + q, undefined, { retries: 1 })).statuses || [] }; }
+            catch (e) { return; }
+        }
+        const busy = dirCache.list.filter(isBusy);
+        const db = Hub.getDatabase ? Hub.getDatabase() : null;
+        grid.querySelectorAll('[data-resident-name]').forEach(card => {
+            // Same name and one of the resident's hospitals (a namesake elsewhere is someone else).
+            const rec = db && (db.residents || []).find(r => r && r.id === card.dataset.residentId);
+            const key = Hub.nameKey(card.dataset.residentName);
+            const st = busy.find(x => x.key === key && (!rec || !Array.isArray(rec.hospitals) || rec.hospitals.includes(x.hosp)));
+            card.querySelectorAll('.oc-dir-chip').forEach(c => c.remove());
+            card.classList.toggle('oc-dir-busy', !!st);
+            if (!st) return;
+            const name = card.querySelector('.doctor-name');
+            if (!name) return;
+            const chip = document.createElement('div');
+            chip.className = 'oc-dir-chip oc-dir-' + (st.k || 'night');
+            chip.innerHTML = `<span class="oc-dir-dot"></span>${esc(statusChip(st))} · الآن`;
+            chip.title = statusText(st);
+            name.parentElement.appendChild(chip);
+        });
+    }
+
+    window.HubOnCall = { decorate, openRequests, statusText, statusChip, loadOptions, editor, markDirectory };
 })(window, document);

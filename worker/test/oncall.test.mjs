@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { dutyDayEnd } from '../src/oncall.js';
+import { dutyDayEnd, fresh } from '../src/oncall.js';
 import { dutyDayNow } from '../src/profile.js';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -54,6 +54,8 @@ async function account(res, hosp, u) {
 
 test('setup: a resident on duty today and a colleague (two accounts)', async () => {
   t.owner = await login(DATA.globalPasswords.owner);
+  t.admin = await login(DATA.globalPasswords.admin);
+  t.savedOptions = (await call('GET', '/api/duty-status/options', { token: t.owner })).data;
   const all = await rows(t.owner);
   const taken = new Set(((await call('GET', '/api/accounts?filter=all', { token: t.owner })).data.accounts || []).map(a => a.resident_id));
   const phones = new Map();
@@ -73,15 +75,61 @@ test('setup: a resident on duty today and a colleague (two accounts)', async () 
 const card = () => ({ h: t.h, d: dmy, n: t.res.name });
 const summary = token => call('GET', `/api/social?h=${t.h}&d=${encodeURIComponent(dmy)}&n=${encodeURIComponent(t.res.name)}`, { token });
 
+test('status options: everyone reads them, only the owner changes them', async () => {
+  const got = await call('GET', '/api/duty-status/options', { token: t.admin });
+  assert.equal(got.status, 200);
+  assert.ok(Array.isArray(got.data.options) && 'autoClearHours' in got.data);
+  assert.equal((await call('GET', '/api/duty-status/options')).status, 401);
+  const next = { options: [
+    { id: 'or', icon: '🩸', label: 'في صالة العمليات', chip: 'في العمليات', skin: 'or', busy: true },
+    { id: 'ward', icon: '🛏️', label: 'في الردهة', chip: 'في الردهة', skin: 'not-a-skin', busy: false },
+    { id: 'ward', icon: 'x', label: 'duplicate', skin: 'or' },
+  ], allowCustom: true, autoClearHours: 6 };
+  assert.equal((await call('POST', '/api/duty-status/options', { token: t.admin, body: next })).status, 403, 'admins cannot');
+  assert.equal((await call('POST', '/api/duty-status/options', { token: t.holder.tok, body: next })).status, 403);
+  const saved = await call('POST', '/api/duty-status/options', { token: t.owner, body: next });
+  assert.equal(saved.status, 200, JSON.stringify(saved.data));
+  assert.deepEqual(saved.data.options.map(o => o.id), ['or', 'ward'], 'duplicates dropped');
+  assert.equal(saved.data.options[1].skin, 'night', 'unknown skin replaced');
+  assert.equal(saved.data.options[1].busy, false);
+  assert.equal((await call('POST', '/api/duty-status/options', { token: t.owner, body: { options: [], allowCustom: false } })).data.error, 'no_options');
+});
+
 test('status: only the duty holder sets it; everyone sees it on the card', async () => {
   assert.equal((await call('POST', '/api/duty-status', { token: t.colleague.tok, body: { ...card(), status: 'or' } })).data.error, 'not_your_card');
   const r = await call('POST', '/api/duty-status', { token: t.holder.tok, body: { ...card(), status: 'or' } });
   assert.equal(r.status, 200, JSON.stringify(r.data));
-  assert.deepEqual(r.data.status, { s: 'or', k: 'or', l: null });
+  assert.deepEqual(r.data.status, { s: 'or', k: 'or', l: 'في العمليات', i: '🩸', b: true });
+  assert.equal((await call('POST', '/api/duty-status', { token: t.holder.tok, body: { ...card(), status: 'consult' } })).data.error, 'bad_status', 'not one of the owner\'s options');
+  const ward = await call('POST', '/api/duty-status', { token: t.holder.tok, body: { ...card(), status: 'ward' } });
+  assert.deepEqual(ward.data.status, { s: 'ward', k: 'night', l: 'في الردهة', i: '🛏️', b: false });
+  // The residents page: today's statuses of whole hospitals.
+  const day = await call('GET', `/api/duty-status/today?h=${t.h}&h=nope`, { token: t.colleague.tok });
+  assert.equal(day.status, 200, JSON.stringify(day.data));
+  const mine = day.data.statuses.find(x => x.hosp === t.h && x.l === 'في الردهة');
+  assert.ok(mine && mine.b === false);
+  assert.equal((await call('GET', `/api/duty-status/today?h=${t.h}`)).status, 401);
+  assert.equal((await call('GET', '/api/duty-status/today', { token: t.colleague.tok })).status, 400);
+  await call('POST', '/api/duty-status', { token: t.holder.tok, body: { ...card(), status: 'or' } });
   const seen = (await summary(t.colleague.tok)).data.cards[t.res.name];
   assert.equal(seen.st.s, 'or');
   const custom = await call('POST', '/api/duty-status', { token: t.holder.tok, body: { ...card(), status: 'custom', label: 'في الطوارئ', skin: 'violet' } });
-  assert.deepEqual(custom.data.status, { s: 'custom', k: 'violet', l: 'في الطوارئ' });
+  assert.deepEqual(custom.data.status, { s: 'custom', k: 'violet', l: 'في الطوارئ', i: '⏳', b: true });
+  await call('POST', '/api/duty-status/options', { token: t.owner, body: { ...t.savedOptions, allowCustom: false } });
+  assert.equal((await call('POST', '/api/duty-status', { token: t.holder.tok, body: { ...card(), status: 'custom', label: 'x' } })).data.error, 'bad_status', 'own text turned off');
+  await call('POST', '/api/duty-status/options', { token: t.owner, body: t.savedOptions });
+  await call('POST', '/api/duty-status', { token: t.holder.tok, body: { ...card(), status: 'or' } });
+});
+
+test('auto-clear: a status older than the owner\'s time is no longer shown (0 = never)', async () => {
+  const h = 3600 * 1000, now = Date.now();
+  assert.equal(fresh({ updated_at: now - 5.9 * h }, { autoClearHours: 6 }, now), true);
+  assert.equal(fresh({ updated_at: now - 6.1 * h }, { autoClearHours: 6 }, now), false);
+  assert.equal(fresh({ updated_at: now - 30 * h }, { autoClearHours: 0 }, now), true);
+  const saved = await call('POST', '/api/duty-status/options', { token: t.owner, body: { ...t.savedOptions, autoClearHours: 99 } });
+  assert.equal(saved.data.autoClearHours, 24, 'at most a day');
+  await call('POST', '/api/duty-status/options', { token: t.owner, body: t.savedOptions });
+  assert.equal((await summary(t.colleague.tok)).data.cards[t.res.name].st.s, 'or', 'a new status shows');
 });
 
 test('contact request: the holder is notified, lists it, and marks it done', async () => {
@@ -111,6 +159,7 @@ test('status cleared', async () => {
 });
 
 test('cleanup', async () => {
+  if (t.savedOptions) await call('POST', '/api/duty-status/options', { token: t.owner, body: t.savedOptions });
   const all = await rows(t.owner);
   const s = all.find(r => r[0] === 'sched' && r[1] === t.sched);
   if (s) await call('POST', '/api/sync', { token: t.owner, body: { msg: 'oncall test cleanup', ops: [{ c: 'sched', id: s[1], bv: s[4], del: 1 }] } });

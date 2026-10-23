@@ -19,11 +19,54 @@
     var dir = location.pathname.replace(/[^/]*$/, '');
     var file = location.pathname.slice(dir.length) || 'index.html';
 
+    // Opened inside the account panel (embed=1): the page shows without the site's bars, its links stay
+    // in the panel (embedded too) and it adds no history steps (the panel's own bar goes back).
+    if (/[?&]embed=1(&|$)/.test(location.search)) { embedMode(); return; }
+
     if (!shell) {
         if (window.parent !== window) return;                         // framed by something else: leave it be
         if (/[?&]noshell(=|&|$)/.test(location.search)) return;       // escape hatch for debugging
         location.replace(dir + 'app.html#' + file + location.search + location.hash);
         return;
+    }
+
+    function embedMode() {
+        var root = document.documentElement;
+        root.classList.add('hub-embed');
+        var css = document.createElement('style');
+        css.textContent = 'html.hub-embed .hub-nav-bar,html.hub-embed .ios-top-bar,html.hub-embed #universal-nav,html.hub-embed body > header.top,'
+            + 'html.hub-embed .hub-mobile-bottom-dock,html.hub-embed .ios-bottom-dock,html.hub-embed #pwa-install-button,html.hub-embed [data-hacc-slot],'
+            + 'html.hub-embed .footer-credit,html.hub-embed a.back{display:none!important}html.hub-embed body{padding-top:0!important;padding-bottom:0!important}';
+        (document.head || root).appendChild(css);
+        var pages = ['index.html', 'Home.html', 'schedule.html', 'icu.html', 'specialists.html', 'residents.html',
+            'signup.html', 'admin.html', 'scheduler.html', 'account.html', 'emergency.html', 's.html'];
+        var dirE = location.pathname.replace(/[^/]*$/, '');
+        var isPage = function (u) { return u.origin === location.origin && u.pathname.indexOf(dirE) === 0 && pages.indexOf(u.pathname.slice(dirE.length) || 'index.html') >= 0; };
+        var keep = function (u) { u.searchParams.set('noshell', '1'); u.searchParams.set('embed', '1'); return u.href; };
+        var same = function (u) { return u.pathname === location.pathname && u.search === location.search; };
+        // Links: other pages open embedded (never the whole app inside the panel); in-page addresses replace.
+        document.addEventListener('click', function (e) {
+            if (e.defaultPrevented || e.button !== 0) return;
+            var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+            if (!a || a.hasAttribute('download') || (a.getAttribute('target') || '') === '_blank') return;
+            var u;
+            try { u = new URL(a.href, location.href); } catch (err) { return; }
+            if (u.protocol !== 'http:' && u.protocol !== 'https:') return;
+            if (same(u)) { if (u.hash !== location.hash) { e.preventDefault(); location.replace(u.href); } return; }
+            if (isPage(u)) { e.preventDefault(); location.replace(keep(u)); }
+        });
+        if (window.navigation && typeof window.navigation.addEventListener === 'function') {
+            window.navigation.addEventListener('navigate', function (e) {
+                if (!e.cancelable || e.navigationType === 'reload' || e.navigationType === 'traverse' || e.downloadRequest || e.formData) return;
+                var u;
+                try { u = new URL(e.destination.url); } catch (err) { return; }
+                if (e.hashChange) { if (e.navigationType === 'push') { e.preventDefault(); location.replace(u.href); } return; }
+                if (isPage(u) && !/[?&]embed=1(&|$)/.test(u.search)) { e.preventDefault(); location.replace(keep(u)); }
+            });
+        }
+        var push = history.pushState;
+        history.pushState = function () { return history.replaceState.apply(history, arguments); };
+        void push;
     }
 
     var html = document.documentElement;

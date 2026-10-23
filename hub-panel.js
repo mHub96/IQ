@@ -46,7 +46,10 @@
     // ------------------------------------------------------------------
     let portalNext = false; // open the ER preferences form once the schedule tab shows
 
-    async function open(which = 'profile', opts = {}) {
+    async function open(which, opts = {}) {
+        // No tab asked for (the avatar): the panel opens where it was closed.
+        const saved = !which && !opts.host ? readState() : null;
+        which = which || (saved && saved.tab) || 'profile';
         // On the account page the frame is already the panel: the tab is chosen there (one panel only).
         if (!opts.host && frame && document.contains(frame.el)) { frame.onTab(which === 'portal' ? 'schedule' : which, which === 'portal'); return; }
         portalNext = which === 'portal';
@@ -81,7 +84,9 @@
             sheet = opts.host.querySelector('.hp-frame');
             frame = { el: sheet, onTab: opts.onTab || (t => show(t)) };
         } else {
-            sheet = A.openSheet(markup, { label: 'لوحة الحساب', tall: true });
+            sheet = A.openSheet(markup, { label: 'لوحة الحساب', tall: true, onClose: saveState });
+            // Everything opens inside the panel: links to the site's pages show embedded here.
+            sheet.addEventListener('click', inPanelLinks);
         }
         if (!acc && tab !== 'admin') tab = 'settings';
         if (tab === 'admin' && !approver) tab = acc ? 'profile' : 'settings';
@@ -93,10 +98,84 @@
         sheet.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => (inline ? frame.onTab(b.dataset.tab) : show(b.dataset.tab))));
         if (acc) await loadMe();
         show(tab);
+        if (!inline && saved && saved.tab === tab) restoreInner(saved);
+    }
+
+    // ------------------------------------------------------------------
+    // Inside the panel: sub-views with a back bar, embedded pages, the saved place
+    // ------------------------------------------------------------------
+    const STATE_KEY = 'hp_panel_state';
+    let inner = null;   // the sub-view on screen: { kind: 'embed' | 'view', key, title, url }
+    function readState() { try { return JSON.parse(localStorage.getItem(STATE_KEY) || 'null'); } catch (e) { return null; } }
+    function saveState() {
+        try {
+            const body = sheet && sheet.querySelector('[data-role="body"]');
+            const frameEl = body && body.querySelector('iframe.hp-embed');
+            let url = inner && inner.url;
+            try { if (frameEl) url = frameEl.contentWindow.location.href; } catch (e) {}
+            localStorage.setItem(STATE_KEY, JSON.stringify({ tab, inner: inner ? { ...inner, url } : null, scroll: body ? body.scrollTop : 0 }));
+        } catch (e) {}
+    }
+    function restoreInner(saved) {
+        const body = sheet.querySelector('[data-role="body"]');
+        if (saved.inner && saved.inner.kind === 'embed' && saved.inner.url) embed(saved.inner.url, saved.inner.title);
+        else if (saved.inner && saved.inner.kind === 'view') openView(saved.inner.key);
+        else if (saved.scroll) setTimeout(() => { body.scrollTop = saved.scroll; }, 350);
+    }
+
+    /** A sub-view of the panel: a back bar (to the tab) and `render(host)`. */
+    function subView(title, render, state) {
+        const body = sheet.querySelector('[data-role="body"]');
+        if (window.HubMySchedule) window.HubMySchedule.detach();
+        inner = state;
+        body.classList.toggle('hp-embedding', state.kind === 'embed');
+        body.innerHTML = `<div class="hp-subbar"><button type="button" class="hp-back" data-act="sub-back"><i class="fas fa-arrow-right"></i> رجوع</button><b>${esc(title)}</b></div><div class="hp-subhost"></div>`;
+        body.scrollTop = 0;
+        body.querySelector('[data-act="sub-back"]').addEventListener('click', () => { inner = null; body.classList.remove('hp-embedding'); show(tab); });
+        render(body.querySelector('.hp-subhost'));
+    }
+    const PAGES = ['index.html', 'Home.html', 'schedule.html', 'icu.html', 'specialists.html', 'residents.html',
+        'signup.html', 'admin.html', 'scheduler.html', 'account.html', 'emergency.html', 's.html'];
+    const pageOf = u => { const dir = location.pathname.replace(/[^/]*$/, ''); return u.origin === location.origin && u.pathname.startsWith(dir) && PAGES.includes(u.pathname.slice(dir.length) || 'index.html'); };
+    /** A page of the site, shown inside the panel (without the site's bars; its links stay inside too). */
+    function embed(href, title) {
+        const u = new URL(href, location.href);
+        u.searchParams.set('noshell', '1');
+        u.searchParams.set('embed', '1');
+        subView(title || 'الصفحة', host => {
+            host.innerHTML = `<div class="hp-embed-load"><span></span></div><iframe class="hp-embed" title="${esc(title || '')}" allow="clipboard-write; web-share"></iframe>`;
+            const f = host.querySelector('iframe');
+            f.addEventListener('load', () => host.classList.add('ready'), { once: true });
+            f.src = u.href;   // a new frame: its first page adds no history step
+        }, { kind: 'embed', title: title || '', url: u.href });
+    }
+    /** Clicks on links inside the panel: the site's pages open embedded here, never by leaving the panel. */
+    function inPanelLinks(e) {
+        const a = e.target.closest && e.target.closest('a[href]');
+        if (!a || e.defaultPrevented || a.hasAttribute('download') || a.target === '_blank') return;
+        let u;
+        try { u = new URL(a.getAttribute('href'), location.href); } catch (err) { return; }
+        if (!pageOf(u)) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const title = (a.querySelector('b') || a).textContent.trim().replace(/\s+/g, ' ').slice(0, 40);
+        embed(u.href, title);
+    }
+    /** Sub-views drawn by the panel itself. */
+    const VIEWS = {
+        exchanges: ['طلبات تبديل الخفارات', host => A.openExchanges(host)],
+        requests: ['طلبات التواصل', host => A.openRequests(host)],
+        'duty-status': ['حالات الخفارة', host => A.loadOnCall().then(m => m.editor(host))],
+    };
+    function openView(key) {
+        const v = VIEWS[key];
+        if (v) subView(v[0], v[1], { kind: 'view', key, title: v[0] });
     }
 
     function show(which, portal = false) {
         tab = which;
+        inner = null;
+        if (sheet) { const b = sheet.querySelector('[data-role="body"]'); if (b) b.classList.remove('hp-embedding'); }
         sheet.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === which)));
         const body = sheet.querySelector('[data-role="body"]');
         body.hidden = false;
@@ -166,7 +245,7 @@
             btn.className = 'hacc-btn btn-block hp-requests';
             btn.innerHTML = '<i class="fas fa-phone-volume"></i> طلبات التواصل أثناء خفاراتي';
             btn.style.marginBottom = '12px';
-            btn.addEventListener('click', () => A.openRequests());
+            btn.addEventListener('click', () => openView('requests'));
             body.prepend(btn);
         }
     }
@@ -393,9 +472,15 @@
         return `<button type="button" class="hp-admin-tile" data-fn="${act.fn}">${inner}</button>`;
     }
     function bindTiles(body) {
-        body.querySelectorAll('[data-fn]').forEach(b => b.addEventListener('click', () => A.adminAction(b.dataset.fn)));
+        // Actions of the home page (add a hospital, the general store, backups, passwords): that page, inside the panel.
+        body.querySelectorAll('[data-fn]').forEach(b => b.addEventListener('click', () => {
+            if (!A.ADMIN_ACTIONS.includes(b.dataset.fn)) return;
+            if (frame && document.contains(frame.el)) { A.adminAction(b.dataset.fn); return; }
+            embed('./index.html?portal=true#admin=' + b.dataset.fn, (b.querySelector('b') || b).textContent.trim());
+        }));
         body.querySelectorAll('[data-view="hospital-settings"]').forEach(b => b.addEventListener('click', () => renderHospitalSettings(body)));
-        body.querySelectorAll('[data-open="exchanges"]').forEach(b => b.addEventListener('click', () => { A.closeSheet(); setTimeout(() => A.openExchanges(), 260); }));
+        body.querySelectorAll('[data-view="duty-status"]').forEach(b => b.addEventListener('click', () => openView('duty-status')));
+        body.querySelectorAll('[data-open="exchanges"]').forEach(b => b.addEventListener('click', () => openView('exchanges')));
     }
 
     /** A hospital admin's panel: their hospital's accounts, comments and settings. */
@@ -527,6 +612,7 @@
             ['المنظومة', [
                 ['fa-truck-medical', 'نظام خفارات الطوارئ (ER)', 'جداول وتوزيع خفارات الطوارئ', { href: './emergency.html' }],
                 ['fa-chart-simple', 'الإحصائيات', 'استهلاك قاعدة البيانات اليوم والمتبقي من الحد المجاني', { href: './account.html#manage-stats' }],
+                ['fa-user-doctor', 'حالات الخفارة', 'خيارات حالة المقيم أثناء الخفارة ومظاهرها ووقت إزالتها التلقائية', { view: 'duty-status' }],
                 ['fa-plus-circle', 'إضافة مستشفى جديد', 'مستشفى جديد بكامل هيكليته', { fn: 'openAddHospitalModal' }],
                 ['fa-crown', 'مستودع التخصصات العام', 'التخصصات المشتركة لكل المستشفيات', { fn: 'openGlobalSpecialtiesModal' }],
                 ['fa-database', 'النسخ الاحتياطي الشامل', 'تنزيل واستعادة نسخة كاملة', { fn: 'openFullSystemBackupModal' }],

@@ -61,7 +61,10 @@
     @keyframes ocPulse { 0%,100% { box-shadow: -5px 5px 14px rgba(0,0,0,.18); } 50% { box-shadow: -5px 5px 22px rgba(255,255,255,.55); } }
 
     /* Skins: background, then every text and control in the card forced to its readable colours. */
-    .roster-card-wrapper[class*="oc-skin-"] .roster-card { border: none !important; position: relative; isolation: isolate; }
+    .roster-card-wrapper[class*="oc-skin-"] .roster-card { border: none !important; position: relative; }
+    /* Flipped (the status options): the skin's layers step aside so the back face shows (isolation
+       or layers over the faces would flatten the 3D flip and show the front mirrored). */
+    .roster-card-wrapper[class*="oc-skin-"] .roster-card.flipped::before, .roster-card-wrapper[class*="oc-skin-"] .roster-card.flipped::after { opacity: 0 !important; transition: opacity .2s; }
     .roster-card-wrapper[class*="oc-skin-"] .roster-card .card-front { position: relative; z-index: 1; }
     .roster-card-wrapper.oc-dark-text .roster-card .resident-name { color: #111827 !important; }
     .roster-card-wrapper.oc-dark-text .roster-card .resident-phone { color: #374151 !important; opacity: 1 !important; }
@@ -146,11 +149,13 @@
     .oc-opt:active { transform: scale(.97); }
     .oc-opt.on { border-color: #0A84FF; background: rgba(10,132,255,.12); }
     .oc-opt .oc-ic { font-size: 1.05rem; }
-    .oc-custom { display: grid; gap: .4rem; }
-    .oc-custom[hidden] { display: none; }
+    .oc-pick[hidden], .oc-custom[hidden] { display: none !important; }
+    .oc-custom { display: grid; gap: .45rem; width: 100%; min-width: 0; }
+    .oc-custom-btns { display: grid; grid-template-columns: 2fr 1fr; gap: .4rem; }
+    .oc-cancel { padding: .5rem; border-radius: .8rem; border: 1px solid rgba(142,142,147,.35); background: transparent; color: inherit; font: 800 .76rem inherit; font-family: inherit; cursor: pointer; }
     .oc-custom input { width: 100%; padding: .45rem .6rem; border-radius: .7rem; border: 1px solid rgba(142,142,147,.35); background: transparent; color: inherit; font: 700 .78rem inherit; font-family: inherit; }
     .oc-swatches { display: flex; gap: .35rem; flex-wrap: wrap; }
-    .oc-swatch { width: 30px; height: 30px; border-radius: 9px; border: 2px solid transparent; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+    .oc-swatch { width: 28px; height: 28px; border-radius: 9px; border: 2px solid transparent; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
     .oc-swatch.on { border-color: #0A84FF; transform: scale(1.08); }
     .oc-swatch[data-skin="night"] { background: repeating-linear-gradient(45deg, #111 0 3px, #222 3px 6px); }
     .oc-swatch[data-skin="ocean"] { background: linear-gradient(160deg, #082f49, #0369a1); }
@@ -320,29 +325,41 @@
                 <h4>🩺 ${c.mine ? 'حالتي في الخفارة' : 'حالة ' + esc(c.n)}</h4>
                 <button type="button" class="icu-back-close-btn" data-oc="close" title="إغلاق"><i class="fas fa-times"></i></button>
             </div>
+            <div class="oc-pick">
             <div class="oc-opts">
                 ${OPTS.options.map(o => `<button type="button" class="oc-opt ${cur === o.id ? 'on' : ''}" data-set="${esc(o.id)}"><span class="oc-ic">${esc(o.icon)}</span>${esc(o.label)}</button>`).join('')}
                 <button type="button" class="oc-opt ${!cur ? 'on' : ''}" data-set=""><span class="oc-ic">✅</span>بلا حالة</button>
                 ${OPTS.allowCustom ? `<button type="button" class="oc-opt ${cur === 'custom' ? 'on' : ''}" data-set="custom"><span class="oc-ic">✏️</span>حالة مخصصة</button>` : ''}
             </div>
             ${OPTS.autoClearHours ? `<div class="oc-note">تُزال الحالة تلقائياً بعد ${hoursText(OPTS.autoClearHours)}.</div>` : ''}
-            <div class="oc-custom" ${cur === 'custom' && OPTS.allowCustom ? '' : 'hidden'}>
-                <input type="text" maxlength="40" placeholder="مثال: في ردهة الطوارئ" value="${esc(st.l || '')}" aria-label="نص الحالة">
+            </div>
+            <div class="oc-custom" hidden>
+                <input type="text" maxlength="40" placeholder="مثال: في ردهة الطوارئ" value="${esc(cur === 'custom' ? st.l || '' : '')}" aria-label="نص الحالة">
                 <div class="oc-swatches">${SKINS.map(s => `<button type="button" class="oc-swatch ${(st.k || 'night') === s.id ? 'on' : ''}" data-skin="${s.id}" title="${esc(s.name)}" aria-label="${esc(s.name)}"></button>`).join('')}</div>
-                <button type="button" class="oc-save" data-oc="save-custom">حفظ الحالة المخصصة</button>
+                <div class="oc-custom-btns">
+                    <button type="button" class="oc-save" data-oc="save-custom"><i class="fas fa-check"></i> تطبيق</button>
+                    <button type="button" class="oc-cancel" data-oc="cancel-custom"><i class="fas fa-arrow-right"></i> رجوع</button>
+                </div>
             </div>`;
         const flip = () => { if (typeof window.toggleIcuCardFlip === 'function') window.toggleIcuCardFlip(null, back); else card.classList.toggle('flipped'); };
         back.querySelector('[data-oc="close"]').addEventListener('click', e => { e.stopPropagation(); flip(); });
         back.querySelectorAll('[data-set]').forEach(b => b.addEventListener('click', e => {
             e.stopPropagation();
             const s = b.dataset.set;
-            if (s === 'custom') { back.querySelector('.oc-custom').hidden = false; back.querySelectorAll('.oc-opt').forEach(x => x.classList.toggle('on', x === b)); return; }
+            if (s === 'custom') { showCustom(true); return; }
             save(c, s ? { status: s } : { status: '' }).then(ok => { if (ok) flip(); });
         }));
         back.querySelectorAll('.oc-swatch').forEach(sw => sw.addEventListener('click', e => {
             e.stopPropagation();
             back.querySelectorAll('.oc-swatch').forEach(x => x.classList.toggle('on', x === sw));
         }));
+        // The custom status takes the place of the choices (inside the card); "رجوع" returns to them.
+        const showCustom = on => {
+            back.querySelector('.oc-pick').hidden = on;
+            back.querySelector('.oc-custom').hidden = !on;
+            if (on) setTimeout(() => back.querySelector('.oc-custom input').focus({ preventScroll: true }), 50);
+        };
+        back.querySelector('[data-oc="cancel-custom"]').addEventListener('click', e => { e.stopPropagation(); showCustom(false); });
         back.querySelector('[data-oc="save-custom"]').addEventListener('click', e => {
             e.stopPropagation();
             const label = back.querySelector('.oc-custom input').value.trim();

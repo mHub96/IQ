@@ -2547,20 +2547,23 @@
             db.globalSpecialties = getGlobalSpecialties();
         }
 
-        const id = String(specData.id || '').trim().toUpperCase();
+        const id = String(specData.id || '').trim();
         const nameAr = String(specData.name_ar || '').trim();
         const nameEn = String(specData.name_en || specData.name_ar || '').trim();
         const icon = String(specData.icon || '🏥').trim() || '🏥';
         const prefix = (specData.prefix !== undefined) ? specData.prefix : 'د. ';
-        const parentSpec = specData.parentSpec ? String(specData.parentSpec).trim().toUpperCase() : null;
+        // Codes keep their case (a parent such as Pe must stay Pe).
+        const parentSpec = specData.parentSpec ? String(specData.parentSpec).trim() : null;
         const acceptPool = Array.isArray(specData.acceptPool) ? specData.acceptPool : [];
 
         if (!id) throw new Error('رمز التخصص مطلوب');
         if (!nameAr) throw new Error('اسم التخصص بالعربية مطلوب');
 
-        if (db.globalSpecialties.some(s => s.id === id)) {
+        if (!SPEC_ID_RE.test(id)) throw new Error('رمز التخصص: أحرف إنجليزية وأرقام فقط (حتى ١٢ حرفاً)، يبدأ بحرف.');
+        if (db.globalSpecialties.some(s => s.id.toLowerCase() === id.toLowerCase())) {
             throw new Error(`رمز التخصص "${id}" مستخدم بالفعل.`);
         }
+        if (normalizeSpecialtyId(id) !== id) throw new Error(`الرمز "${id}" محجوز كاسم بديل لتخصص آخر. اختر رمزاً غيره.`);
 
         const newSpec = {
             id,
@@ -2580,6 +2583,8 @@
         if (db.hospitals) {
             Object.keys(db.hospitals).forEach(hid => {
                 const h = db.hospitals[hid];
+                // A new branch goes to the hospitals that have its parent.
+                if (parentSpec && !(h.specialties || []).some(s => s.id === parentSpec)) return;
                 if (Array.isArray(h.specialties) && !h.specialties.some(s => s.id === id)) {
                     h.specialties.push({
                         ...newSpec,
@@ -2599,15 +2604,28 @@
             throw new Error('حذف تخصص من المستودع العام مخصص للمالك (Owner) حصراً.');
         }
         if (!db) throw new Error('قاعدة البيانات غير محملة');
-        const specId = String(id || '').trim().toUpperCase();
+        // The exact code (upper-casing it missed Pe, Der, NS_iraqi... and reported success anyway).
+        const specId = String(id || '').trim();
+        const g = (db.globalSpecialties || []).find(s => s.id === specId);
+        if (!g) throw new Error(`التخصص "${specId}" غير موجود في المستودع العام.`);
 
-        // Check if in use by residents
-        let inUse = (db.residents || []).some(r => r.spec === specId || r.tag === specId);
-        if (!inUse && db.hospitals) {
-            inUse = Object.values(db.hospitals).some(h => (h.names || []).some(n => n.spec === specId || n.tag === specId));
-        }
-        if (inUse) {
-            throw new Error(`لا يمكن حذف التخصص "${specId}" لوجود أطباء مقيمين مسجلين عليه.`);
+        // Refused while anything still uses it: removing it would hide those residents and duties.
+        const uses = [];
+        const residents = (db.residents || []).filter(r => [r.spec, r.tag, r.dept, r.department].includes(specId) || (Array.isArray(r.specs) && r.specs.includes(specId))).length;
+        if (residents) uses.push(`${residents} مقيم (أساسي أو متناوب)`);
+        const hospitals = Object.values(db.hospitals || {});
+        const duties = hospitals.reduce((n, h) => n + (h.schedule || []).filter(e => e && e.specCode === specId).length, 0);
+        if (duties) uses.push(`${duties} خفارة مسجلة في الجداول`);
+        const specialistSlots = hospitals.reduce((n, h) => n + (h.specialistSchedule || []).filter(e => e && e.specCode === specId).length, 0);
+        if (specialistSlots) uses.push(`${specialistSlots} موعد في جداول الأخصائيين`);
+        const clones = hospitals.reduce((n, h) => n + (h.specialties || []).filter(s => s.isClone && s.clonedFromSpecId === specId).length, 0);
+        if (clones) uses.push(`${clones} تخصص مستنسخ (مرآة) في مستشفيات أخرى`);
+        const cards = (db.specialists || []).filter(c => c && (c.spec === specId || (Array.isArray(c.specs) && c.specs.includes(specId)))).length;
+        if (cards) uses.push(`${cards} بطاقة في دليل الأخصائيين`);
+        const branches = db.globalSpecialties.filter(s => s.parentSpec === specId && s.id !== specId);
+        if (branches.length) uses.push(`${branches.length} فرع (${branches.map(b => b.name_ar).join('، ')}): احذفها أو انقلها أولاً`);
+        if (uses.length) {
+            throw new Error(`لا يمكن حذف التخصص "${g.name_ar}" (${specId}) لأنه ما زال مستخدماً:\n• ${uses.join('\n• ')}\n\nانقل هذه البيانات إلى تخصص آخر أولاً.`);
         }
 
         // Remove from globalSpecialties
@@ -2746,21 +2764,34 @@
         if (!g) throw new Error('التخصص غير موجود في المستودع العام');
 
         if (!Array.isArray(hosp.specialties)) hosp.specialties = [];
-        const existing = hosp.specialties.find(s => s.id === specId);
-        if (existing) {
-            existing.enabled = true;
-            existing.color = color || existing.color || '#0f766e';
-            if (g.prefix !== undefined) existing.prefix = g.prefix;
-        } else {
+        const addOne = (spec, enable) => {
+            const existing = hosp.specialties.find(s => s.id === spec.id);
+            if (existing) {
+                if (enable) existing.enabled = true;
+                existing.color = existing.color || color || '#0f766e';
+                if (spec.prefix !== undefined) existing.prefix = spec.prefix;
+                return false;
+            }
             hosp.specialties.push({
-                ...g,
-                prefix: (g.prefix !== undefined) ? g.prefix : 'د. ',
+                ...spec,
+                prefix: (spec.prefix !== undefined) ? spec.prefix : 'د. ',
                 color: color || '#0f766e',
                 enabled: true
             });
+            return true;
+        };
+        addOne(g, true);
+        const existing = hosp.specialties.find(s => s.id === specId);
+        if (existing) existing.color = color || existing.color;
+        // A parent comes with its branches (the branches carry its duties); a branch with its parent.
+        const added = [];
+        globalSpecs.filter(b => b.parentSpec === specId && b.id !== specId).forEach(b => { if (addOne(b, false)) added.push(b.id); });
+        if (g.parentSpec) {
+            const parent = globalSpecs.find(p => p.id === g.parentSpec);
+            if (parent && addOne(parent, false)) added.push(parent.id);
         }
 
-        await saveDatabase(`Add specialty ${specId} to ${hosp.hospitalName}`);
+        await saveDatabase(`Add specialty ${specId}${added.length ? ' (+ ' + added.join(', ') + ')' : ''} to ${hosp.hospitalName}`);
         return hosp.specialties;
     }
 
@@ -2883,6 +2914,14 @@
             try { await api('POST', '/api/accounts/specialty-rename', { hosp: hospitalId, from: oldNameAr, to: s.name_ar }, { retries: 1 }); } catch (e) { console.warn('Specialty rename in accounts:', e); }
         }
         return s;
+    }
+
+    async function setHospitalSpecialtiesEnabled(hospitalId, specIds, enabled) {
+        if (!auth.isAdmin(hospitalId)) throw new Error('غير مصرح لك بتعديل تخصصات هذا المستشفى.');
+        const hosp = getHospital(hospitalId);
+        if (!hosp) throw new Error('المستشفى غير موجود');
+        (hosp.specialties || []).forEach(s => { if (specIds.includes(s.id)) s.enabled = !!enabled; });
+        await saveDatabase(`Toggle specialties ${specIds.join(', ')}: ${!!enabled}`);
     }
 
     async function deleteEmptyHospitalSpecialties(hospitalId) {
@@ -4578,6 +4617,7 @@
         getEligibleResidentsForSpecialty,
         exchangeSpecialtiesFor,
         isStoreSpecialty,
+        setHospitalSpecialtiesEnabled,
         syncHospitalSpecialtiesWithGlobal,
         getActiveOnCallResidentsCount,
         getTotalActiveOnCallCount,

@@ -1244,6 +1244,8 @@
                     </p>
                 </div>
 
+                <div id="global-spec-branches" class="p-2.5 rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50/40 dark:bg-purple-950/20"></div>
+
                 <div class="flex gap-3 pt-3">
                     <button type="button" onclick="saveGlobalSpecEdit()" class="flex-1 btn-gradient" style="background:linear-gradient(135deg,#7c3aed,#9333ea);">
                         <i class="fas fa-check ml-1"></i> حفظ في المستودع العام
@@ -1447,6 +1449,7 @@
     <!-- Scripts -->
     <script src="./hub-sync.js"></script>
     <script src="./hub-core.js"></script>
+    <script src="./hub-spec-branches.js"></script>
     <script src="./hub-aa.js"></script>
     <script src="./hub-avatar.js"></script>
     <script src="./hub-accounts.js"></script>
@@ -1778,6 +1781,11 @@
         function branchesOf(spec, specs) {
             return specs.filter(b => b.id !== spec.id && b.parentSpec === spec.id && !b.isClone);
         }
+        /** A parent's duties are its branches' duties: it is shown while any of its branches is. */
+        function shownInSchedule(spec, specs) {
+            const branches = branchesOf(spec, specs);
+            return branches.length ? branches.some(b => b.enabled !== false) : spec.enabled !== false;
+        }
         /** Badges for a specialty's branches; `editable` opens each branch's options (drawing sources). */
         function branchBadges(branches, editable = false) {
             return branches.map(b => `<span class="text-[10px] px-2 py-0.5 rounded-full font-bold border ${b.enabled === false ? 'opacity-50 line-through' : ''}"
@@ -1851,7 +1859,7 @@
                 }
                 renderedCount++;
 
-                const isEnabled = spec.enabled !== false;
+                const isEnabled = shownInSchedule(spec, specs);
                 const boxId = `spec-box-${spec.id}`;
                 // Auto-open during search if there are matches, otherwise respect openSpecBoxIds
                 const isOpen = isSearching ? true : window.openSpecBoxIds.has(boxId);
@@ -2741,7 +2749,8 @@
 
             container.innerHTML = displaySpecs.map((s) => {
                 const idx = specs.indexOf(s);
-                const isEnabled = s.enabled !== false;
+                const isEnabled = shownInSchedule(s, specs);
+                const ownBranches = branchesOf(s, specs);
                 const isClone = Boolean(s.isClone);
                 let cloneSourceHospName = null;
                 if (isClone && s.clonedFromHospitalId) {
@@ -2872,7 +2881,7 @@
                                 <div class="p-2.5 rounded-xl bg-white/70 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between">
                                     <span class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
                                         <i class="fas ${isEnabled ? 'fa-eye text-teal-600 dark:text-amber-400' : 'fa-eye-slash text-slate-400'}"></i>
-                                        ${isEnabled ? 'ظاهر في جدول الخفارات' : 'مخفي من الجدول'}
+                                        ${ownBranches.length ? (isEnabled ? 'ظاهر في الجدول (عبر فروعه)' : 'كل فروعه مخفية') : (isEnabled ? 'ظاهر في جدول الخفارات' : 'مخفي من الجدول')}
                                     </span>
                                     <label class="toggle-switch-compact" title="${isEnabled ? 'ظاهر في الجدول' : 'مخفي من الجدول'}">
                                         <input type="checkbox" ${isEnabled ? 'checked' : ''} onchange="toggleSpecEnabled('${s.id}', this.checked)" />
@@ -2898,6 +2907,24 @@
                                     </button>
                                 </div>
                             </div>
+
+                            ${ownBranches.length ? `
+                                <div class="p-2.5 mb-2 rounded-xl bg-white/70 dark:bg-slate-800/70 border border-purple-200/80 dark:border-purple-800/60">
+                                    <div class="text-xs font-bold text-purple-700 dark:text-purple-300 mb-1.5"><i class="fas fa-diagram-project"></i> الفروع (تسحب أطباءها من هذا التخصص)</div>
+                                    ${ownBranches.map(b => `
+                                        <div class="flex items-center justify-between gap-2 py-1.5 border-t border-slate-200/70 dark:border-slate-700/60 first:border-t-0 ${b.enabled === false ? 'opacity-60' : ''}">
+                                            <span class="text-xs font-bold truncate">${b.icon || '↳'} ${escapeHtmlText(b.name_ar || b.id)}${b.enabled === false ? ' <span class="text-[10px] text-slate-400">(مخفي)</span>' : ''}</span>
+                                            <span class="flex items-center gap-1.5 flex-shrink-0">
+                                                <label class="toggle-switch-compact" title="${b.enabled === false ? 'مخفي من الجدول' : 'ظاهر في الجدول'}">
+                                                    <input type="checkbox" ${b.enabled === false ? '' : 'checked'} onchange="toggleSpecEnabled('${b.id}', this.checked)" />
+                                                    <span class="toggle-slider-compact"></span>
+                                                </label>
+                                                <button type="button" onclick="openEditHospitalSpecModal('${b.id}')" class="spec-action-btn text-teal-700 dark:text-teal-300" title="اللون ومصادر السحب لهذا الفرع"><i class="fas fa-sliders"></i> خيارات</button>
+                                                <button type="button" onclick="removeHospitalSpecialty('${b.id}', '${escapeHtmlText(b.name_ar || b.id)}')" class="spec-action-btn text-rose-600 dark:text-rose-400" title="إزالة الفرع من هذا المستشفى (يبقى في المستودع العام)"><i class="fas fa-trash-alt"></i></button>
+                                            </span>
+                                        </div>`).join('')}
+                                </div>
+                            ` : ''}
 
                             <!-- Row 3: Actions (Owner Edit & Delete) -->
                             <div class="flex items-center justify-end gap-2 flex-wrap pt-1">
@@ -3034,11 +3061,16 @@
         }
 
         async function toggleSpecEnabled(specId, checked) {
-            const s = (currentHospital?.specialties || []).find(x => x.id === specId);
+            const specs = currentHospital?.specialties || [];
+            const s = specs.find(x => x.id === specId);
             if (s) {
                 if (!window.expandedSpecIds) window.expandedSpecIds = new Set();
                 window.expandedSpecIds.add(specId);
-                s.enabled = checked;
+                if (s.parentSpec) window.expandedSpecIds.add(s.parentSpec);
+                // A parent shows in the schedule through its branches: its switch is theirs.
+                const branches = branchesOf(s, specs);
+                if (branches.length) branches.forEach(b => { b.enabled = checked; });
+                else s.enabled = checked;
                 renderSpecialtiesList();
                 renderResidentsAccordion({ preserveScroll: true });
                 populateSpecialtyDropdowns();
@@ -3284,8 +3316,11 @@
                 if (emptyAlert) emptyAlert.classList.add('hidden');
                 if (selectWrap) selectWrap.classList.remove('hidden');
                 if (select) {
+                    // Branches under their parent; a parent comes with its branches, a branch with its parent.
+                    const nameOf = id => (globals.find(x => x.id === id) || {}).name_ar || id;
+                    const kids = id => globals.filter(b => b.parentSpec === id && b.id !== id);
                     select.innerHTML = '<option value="">-- اختر تخصصاً من المستودع العام --</option>' + available.map(g => `
-                        <option value="${g.id}">${g.icon || '🏥'} ${g.name_ar} ${g.parentSpec ? '(فرعي من ' + g.parentSpec + ')' : ''}</option>
+                        <option value="${g.id}">${g.parentSpec ? '　↳ ' : ''}${g.icon || '🏥'} ${g.name_ar}${g.parentSpec ? ' (فرع من ' + nameOf(g.parentSpec) + ')' : (kids(g.id).length ? ' + ' + kids(g.id).length + ' فروع' : '')}</option>
                     `).join('');
                 }
                 switchAddSpecTab('import');
@@ -3524,12 +3559,8 @@
             const countBadge = document.getElementById('global-spec-count-badge');
             if (countBadge) countBadge.textContent = `${globals.length} تخصص في المستودع العام`;
 
-            const filtered = globals.filter(s => {
-                if (!q) return true;
-                return (s.id && s.id.toLowerCase().includes(q)) ||
-                       (s.name_ar && s.name_ar.toLowerCase().includes(q)) ||
-                       (s.name_en && s.name_en.toLowerCase().includes(q));
-            });
+            // Branches are listed under their parent, not as specialties of their own.
+            const filtered = HubSpecBranches.topLevel(globals, q);
 
             if (filtered.length === 0) {
                 container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">لا توجد نتائج مطابقة للبحث "${q}"</div>`;
@@ -3573,6 +3604,7 @@
                                 <div class="flex items-center gap-1 flex-wrap mt-1">
                                     ${hospBadgesHtml}
                                 </div>
+                                ${HubSpecBranches.chips(s, globals)}
                             </div>
                         </div>
 
@@ -3595,7 +3627,7 @@
             }).join('');
         }
 
-        function openGlobalSpecEditModal(specId) {
+        function openGlobalSpecEditModal(specId, presetParent = null) {
             if (!Hub.auth.isOwner()) {
                 showToast('تعديل المستودع العام مخصص للمالك حصراً', 'error');
                 return;
@@ -3634,6 +3666,13 @@
                 }
             });
             parentSelect.innerHTML = parentHtml;
+            // A new branch from its parent's dialog.
+            if (!target && presetParent) {
+                parentSelect.value = presetParent;
+                const p = globals.find(g => g.id === presetParent);
+                if (p) titleEl.innerHTML = `<i class="fas fa-diagram-project text-purple-600"></i> إضافة فرع إلى "${p.name_ar}"`;
+            }
+            HubSpecBranches.editor(document.getElementById('global-spec-branches'), target ? target.id : null, parentSelect);
 
             document.getElementById('global-spec-edit-modal').classList.add('active');
         }
@@ -3664,7 +3703,7 @@
 
             if (!id) {
                 const cleanSlug = nameEn ? nameEn.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6).toUpperCase() : '';
-                id = cleanSlug || ('SPEC_' + Date.now().toString(36).toUpperCase());
+                id = cleanSlug || ('SP' + Date.now().toString(36).slice(-5).toUpperCase());
             }
 
             // A new code is carried through all the site's data: say so first. Then close the modal.

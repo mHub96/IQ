@@ -461,6 +461,8 @@
                 const head = { approved: d.holder ? 'تم تبديل خفارتك' : 'تمت الموافقة وتبديل الخفارة', owner_approved: 'وافق صاحب الخفارة، والطلب بانتظار الإدارة', owner_rejected: 'رفض صاحب الخفارة طلب التبديل', admin_rejected: 'رفضت الإدارة طلب التبديل' }[d.step] || 'طلب التبديل';
                 return { icon: d.step === 'approved' ? '✅' : d.step === 'owner_approved' ? '👍' : '❌', text: `${head}: ${d.date || ''} · ${d.oldName || ''} ← ${d.newName || ''}${d.note ? ' · «' + d.note + '»' : ''}`, open: () => openExchanges() };
             }
+            case 'contact_request':
+                return { icon: '📞', text: `${d.last || 'أحد الزملاء'} يطلب التواصل معك أثناء خفارتك${d.count > 1 ? ` (${d.count} طلبات بانتظارك)` : ''}. اضغط لعرض طلبات التواصل.`, open: () => openRequests() };
             case 'comments_barred':
                 return { icon: '🚫', text: 'تم إيقاف التعليق لحسابك من قبل الإدارة.' };
             case 'comments_allowed':
@@ -689,6 +691,34 @@
             return panelLoading.then(() => window.HubPanel.open(tab, opts)).catch(() => toast('تعذر فتح لوحة الحساب. تحقق من الاتصال.', 'error'));
         }
         return window.HubPanel.open(tab, opts);
+    }
+
+    // On-call status and contact requests (hub-oncall.js, loaded on first use).
+    let onCallLoading = null;
+    function loadOnCall() {
+        if (window.HubOnCall) return Promise.resolve(window.HubOnCall);
+        onCallLoading = onCallLoading || new Promise((resolve, reject) => {
+            const el = document.createElement('script');
+            const self = document.querySelector('script[src*="hub-accounts.js"]');
+            el.src = (self ? self.src.replace(/hub-accounts\.js.*$/, '') : './') + 'hub-oncall.js';
+            el.onload = () => resolve(window.HubOnCall);
+            el.onerror = () => { onCallLoading = null; reject(new Error('oncall')); };
+            document.head.appendChild(el);
+        });
+        return onCallLoading;
+    }
+    /** The resident's contact requests (left by colleagues while they were busy on duty). */
+    function openRequests() {
+        return loadOnCall().then(m => m.openRequests()).catch(() => toast('تعذر فتح طلبات التواصل. تحقق من الاتصال.', 'error'));
+    }
+    /** The roster summary of cards (likes, comments, on-call status) and an in-place status update. */
+    function cardSummary(h, d, names, force) { return fetchSummary(h, d, names, force); }
+    function setCardStatus(h, d, n, st) {
+        const entry = summaryCache.get(`${h}|${d}`);
+        if (!entry) return;
+        const c = entry.cards[n] || { likes: 0, comments: 0, mine: false };
+        if (st) c.st = { ...(c.st || {}), ...st }; else if (c.st) { const w = c.st.w; c.st = w ? { w } : undefined; }
+        entry.cards[n] = c;
     }
 
     /** Once a day, remind accounts with an incomplete profile (board, specialty, stage). */
@@ -1209,6 +1239,7 @@
         if (!m || !account()) return;
         history.replaceState(null, '', location.pathname + location.search);
         if (m[1] === 'exchanges') { setTimeout(openExchanges, 400); return; }
+        if (m[1] === 'requests') { setTimeout(openRequests, 400); return; }
         // #panel=schedule = the ER preferences portal (its notification); #panel=duties = My Schedule.
         setTimeout(() => openPanel(m[1] === 'schedule' ? 'portal' : m[1] === 'duties' ? 'schedule' : m[1]), 400);
     }
@@ -1366,6 +1397,11 @@
         decorate,
         openThread,
         openExchanges,
+        openRequests,
+        loadOnCall,
+        cardSummary,
+        setCardStatus,
+        account,
         toast,
         esc,
         timeAgo,

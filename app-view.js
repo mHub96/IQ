@@ -118,7 +118,7 @@
 
     // Pop-ups: the shell's tab bar steps aside under them, and the back button closes them, top first.
     var OVERLAYS = '.modal-overlay.active, .hub-modal-overlay.active, .hacc-sheet-backdrop.open, #role-switcher-modal[style*="flex"], '
-        + '#hub-passwords-modal[style*="flex"], .fixed.inset-0[id$="-modal"]:not(.hidden), #err-picker, #erl-modal';
+        + '#hub-passwords-modal[style*="flex"], .fixed.inset-0[id$="-modal"]:not(.hidden), #err-picker, #erl-modal, .hub-pop.open';
     function openOverlays() {
         var list = Array.prototype.slice.call(document.querySelectorAll(OVERLAYS)).filter(function (el, i, all) {
             if (all.indexOf(el) !== i) return false;

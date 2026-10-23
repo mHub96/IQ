@@ -12,6 +12,7 @@ import { DAY, json, readJson, signToken, sha256b64, b64, overLimit, bucketOf, pl
 import { nameKey, nameTokens, namesMatch, phoneKey, isoDate } from './names.js';
 import { sendPush, isPushEndpoint, topicFor } from './push.js';
 import { isRotatorSpec } from './exchspecs.js';
+import { cardStatuses } from './oncall.js';
 import { durationText } from './reminders.js';
 import { BOARDS, dutyDayNow, getStageMonth, setStageMonth, currentStage, profileComplete, suggestProfile } from './profile.js';
 import { AA_ROLES, findOfficer, officerLink, divisionJob, addOfficer } from './aa.js';
@@ -539,6 +540,7 @@ function pushMessage(n) {
     case 'warning': return { title: '⚠️ تحذير من الإدارة', body: `بسبب تعليقك: «${d.text || ''}»${d.note ? ' – ' + d.note : ''}`, url: card };
     case 'comments_barred': return { title: '🚫 تم إيقاف التعليق لحسابك', body: 'لا يمكنك التعليق على بطاقات الخفارات حالياً.', url: './index.html?portal=true' };
     case 'comments_allowed': return { title: '💬 يمكنك التعليق مجدداً', body: 'أُعيد السماح بالتعليق لحسابك.', url: './index.html?portal=true' };
+    case 'contact_request': return { title: '📞 طلب تواصل', body: `${d.last || 'أحد الزملاء'} يطلب التواصل معك${d.count > 1 ? ` (${d.count} طلبات بانتظارك)` : ''}.`, url: './index.html?portal=true#panel=requests' };
     case 'er_portal': return { title: d.extended ? '🗓️ تمديد بوابة رغبات الطوارئ' : '🗓️ بوابة رغبات خفارات الطوارئ مفتوحة', body: `اختر رغباتك لجدول ${MONTH_AR[Number(String(d.ym || '').slice(5))] || ''} ${String(d.ym || '').slice(0, 4)} قبل ${closesText(d.closes)}`, url: './index.html?portal=true#panel=schedule' };
     case 'duty_reminder': return { title: `⏰ خفارتك بعد ${durationText(d.in || d.lead || 60)}`, body: `${d.title || ''} · ${startText(d.start)}${d.hospName ? ' · ' + d.hospName : ''}`, url: './index.html?portal=true#panel=duties' };
     default: return { title: '🔔 إشعار جديد', body: '', url: './index.html?portal=true' };
@@ -1265,10 +1267,15 @@ async function socialSummary(env, auth, url) {
        FROM json_each(?1) t`
   ).bind(JSON.stringify([...new Set(valid.map(c => c.target))]), (auth && auth.a) || '').all();
   const byTarget = new Map(results.map(r => [r.target, r]));
+  // On-call statuses of these cards (and, on the reader's own card, the open contact requests).
+  const statuses = await cardStatuses(env, [...new Set(valid.map(c => c.target))], auth && auth.a && auth.r !== 'rotator' ? nameKey(auth.name || '') : null)
+    .catch(() => new Map());
   const out = {};
   names.forEach((n, i) => {
     const r = cards[i] && byTarget.get(cards[i].target);
     if (r) out[n] = { likes: r.likes, comments: r.comments, mine: !!r.mine };
+    const st = cards[i] && statuses.get(cards[i].target);
+    if (st) out[n] = { ...(out[n] || { likes: 0, comments: 0, mine: false }), st };
   });
   return json({ ok: true, cards: out, canReact: !!(auth && auth.a) });
 }

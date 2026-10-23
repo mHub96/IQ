@@ -1687,6 +1687,7 @@
     <script src="./hub-aa.js"></script>
     <script src="./hub-avatar.js"></script>
     <script src="./hub-accounts.js"></script>
+    <script src="./hub-oncall.js"></script>
     <script src="./nav-component.js"></script>
     <script>
         // ================================================================
@@ -2829,6 +2830,19 @@
                     d: today,
                     n: resident.name
                 })).filter(c => c.el && !Hub.aa.isMirrorId(c.h)));
+                // On-call status of surgical residents (their own card: the status button; everyone: the skin).
+                if (window.HubOnCall) {
+                    const acc = Hub.auth.getAccount();
+                    const myKey = acc && acc.role !== 'rotator' ? Hub.nameKey(acc.name) : null;
+                    HubOnCall.decorate(currentResidents.map((resident, i) => ({
+                        wrapper: wrappers[i],
+                        h: resident.parentHospitalId || currentHospital.id,
+                        d: today,
+                        n: resident.name,
+                        surgical: (resident.specs || []).some(s => Hub.isSurgicalSpecialty && Hub.isSurgicalSpecialty(s.code)),
+                        mine: !!myKey && Hub.nameKey(resident.name) === myKey && (!acc.hosp || acc.hosp === (resident.parentHospitalId || currentHospital.id)),
+                    })).filter(c => c.wrapper && !Hub.aa.isMirrorId(c.h)));
+                }
             }
         }
 

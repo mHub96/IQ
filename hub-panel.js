@@ -136,6 +136,16 @@
         }
         if (tab !== 'schedule' || !sheet || !body.isConnected) return;
         if (portalForm) window.HubMySchedule.openPortal(body); else window.HubMySchedule.render(body);
+        // Contact requests left by colleagues while the resident was busy on duty.
+        if (!portalForm) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'hacc-btn btn-block hp-requests';
+            btn.innerHTML = '<i class="fas fa-phone-volume"></i> طلبات التواصل أثناء خفاراتي';
+            btn.style.marginBottom = '12px';
+            btn.addEventListener('click', () => A.openRequests());
+            body.prepend(btn);
+        }
     }
 
     async function logout() {

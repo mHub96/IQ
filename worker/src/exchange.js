@@ -14,6 +14,7 @@
 import { json, readJson, overLimit, plainText } from './lib.js';
 import { nameKey } from './names.js';
 import { notifyOne, notifyApprovers, dispatchPush } from './accounts.js';
+import { limitedExchanger, exchangeSpecialties } from './exchspecs.js';
 
 const HOSP_RE = /^[\w-]{1,48}$/;
 const DATE_RE = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
@@ -99,6 +100,7 @@ async function createRequest(request, env, auth, ctx) {
   if (nameKey(oldName) === nameKey(newName)) return json({ error: 'same_person' }, 400);
   if (!ownHospital(auth, hosp)) return json({ error: 'not_your_hospital' }, 403);
   if (!(await approvalHospitals(env)).includes(hosp)) return json({ error: 'approval_off' }, 409);
+  if (limitedExchanger(auth) && !(await exchangeSpecialties(env, auth.a, hosp)).has(spec)) return json({ error: 'not_your_specialty' }, 403);
   if (await overLimit(env, 'xreq:' + auth.a, 20)) return json({ error: 'rate_limited' }, 429);
   // The duty must be on the roster as it is now.
   const entry = await env.DB.prepare(

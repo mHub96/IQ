@@ -25,6 +25,7 @@ import { routeSpecialists, residentSpecialistsEditAllowed, isResidentEditor } fr
 import { canUseEr, erFieldWrites } from './eraccess.js';
 import { routeUsage } from './usage.js';
 import { routeBackup } from './backup.js';
+import { limitedExchanger, foreignScheduleOps } from './exchspecs.js';
 
 const VISIT_COOLDOWN_MS = 60 * 1000;
 
@@ -437,6 +438,8 @@ async function sync(request, env, auth) {
   // the owner switches a hospital's ER page or picks its admins (eraccess.js).
   const erOk = auth.r === 'admin' && ops.some(op => op && (op.c === 'er' || op.c === 'er_conflict')) ? await canUseEr(env, auth) : true;
   const erLocked = auth.r === 'admin' ? await erFieldWrites(env, ops.filter(op => op && op.c === 'hospital' && typeof op.id === 'string' && !op.del && !op.ordOnly)) : new Set();
+  // Residents change only the duties of the specialties their name can be put in (exchspecs.js).
+  const foreign = limitedExchanger(auth) && ops.some(op => op && op.c === 'sched' && !op.ordOnly) ? await foreignScheduleOps(env, auth, ops) : new Set();
   const puts = [], dels = [], ords = [], rejected = [], checks = [];
   ops.forEach((op, i) => {
     if (!op || typeof op.c !== 'string' || typeof op.id !== 'string' || !op.id) { rejected.push(i); return; }
@@ -444,6 +447,7 @@ async function sync(request, env, auth) {
     if (!specOk && op === specOp) { rejected.push(i); return; }
     if ((!erOk && (op.c === 'er' || op.c === 'er_conflict')) || erLocked.has(op)) { rejected.push(i); return; }
     if (approval && op.c === 'sched' && approval.has(String(op.id).split(':')[0])) { rejected.push(i); return; }
+    if (foreign.has(i)) { rejected.push(i); return; }
     const bv = Number(op.bv) || 0;
     if (op.ordOnly) {
       ords.push({ c: op.c, id: op.id, o: Number(op.o) || 0 });

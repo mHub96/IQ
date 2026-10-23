@@ -417,6 +417,7 @@
                 <select id="spec-select" class="form-select" onchange="onSpecialtyChange()">
                     <option value="">-- اختر التخصص أولاً --</option>
                 </select>
+                <div class="approval-note" id="spec-limit-note" style="display:none;"><i class="fas fa-user-check"></i><span></span></div>
             </div>
 
             <!-- STEP 3: Date of Exchange Select -->
@@ -667,7 +668,16 @@
             const select = document.getElementById('spec-select');
             select.innerHTML = '<option value="">-- اختر التخصص الطبي --</option>';
 
-            const specs = (currentHospital?.specialties || []).filter(s => s.enabled !== false);
+            // Residents exchange only in the specialties their name can be put in (admins and the owner: all).
+            const mine = !inDivision && Hub.exchangeSpecialtiesFor ? Hub.exchangeSpecialtiesFor(currentHospital) : null;
+            const specs = (currentHospital?.specialties || []).filter(s => s.enabled !== false && (!mine || mine.includes(s.id)));
+            const note = document.getElementById('spec-limit-note');
+            if (note) {
+                note.style.display = mine ? 'flex' : 'none';
+                note.querySelector('span').textContent = !mine ? '' : specs.length
+                    ? 'تظهر فقط التخصصات التي يمكن إدراج اسمك في خفاراتها.'
+                    : 'لا توجد تخصصات يمكن إدراج اسمك في خفاراتها في هذا المستشفى. راجع مدير المستشفى.';
+            }
             specs.forEach(spec => {
                 const opt = document.createElement('option');
                 opt.value = spec.id;
@@ -1001,7 +1011,7 @@
                 document.getElementById('name-input').value = '';
             } catch (err) {
                 const code = err && err.data && err.data.error;
-                const text = ({ already_requested: 'يوجد طلب تبديل مفتوح لهذه الخفارة.', duty_not_found: 'تغيّرت هذه الخفارة في الجدول؛ حدّث الصفحة.', same_person: 'البديل هو صاحب الخفارة نفسه.', account_required: 'طلبات التبديل تحتاج حساباً شخصياً.', approval_off: 'أُوقف نظام الموافقة؛ حدّث الصفحة لتبدّل مباشرة.', rate_limited: 'طلبات كثيرة، انتظر قليلاً.' })[code] || err.message || 'تعذر إرسال الطلب';
+                const text = ({ already_requested: 'يوجد طلب تبديل مفتوح لهذه الخفارة.', duty_not_found: 'تغيّرت هذه الخفارة في الجدول؛ حدّث الصفحة.', same_person: 'البديل هو صاحب الخفارة نفسه.', account_required: 'طلبات التبديل تحتاج حساباً شخصياً.', approval_off: 'أُوقف نظام الموافقة؛ حدّث الصفحة لتبدّل مباشرة.', not_your_specialty: 'تبدّل الخفارات فقط في التخصصات التي يمكن إدراج اسمك فيها.', rate_limited: 'طلبات كثيرة، انتظر قليلاً.' })[code] || err.message || 'تعذر إرسال الطلب';
                 result = `<span style="color:#ef4444;font-weight:700;">❌ ${text}</span>`;
                 showToast(text, 'error');
             }

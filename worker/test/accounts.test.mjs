@@ -52,7 +52,11 @@ const ER = fs.existsSync(ER_FILE) ? JSON.parse(JSON.parse(fs.readFileSync(ER_FIL
 const erOf = r => ER.find(e => nameKey(e.name) === nameKey(r.name));
 const erUseful = r => { const e = erOf(r); return e && ['arab', 'iraqi'].includes(parseBoard(e.board)) && parseStage(e.stage); };
 const ordered = [...pool.filter(erUseful), ...pool.filter(r => !erUseful(r))];
-const [resA, resB, resC] = ordered;
+// C exchanges B's duties, so C comes from B's specialty when the hospital has one (residents exchange
+// only in the specialties their name can be put in).
+const dutyDept = r => r.dept || r.department || r.spec || r.tag;
+const [resA, resB] = ordered;
+const resC = ordered.slice(2).find(r => r.active !== false && dutyDept(r) === dutyDept(resB)) || ordered[2];
 const localPhone = p => '0' + p.replace(/\D/g, '').slice(-10);
 
 const uA = `alpha_${RUN}`, uB = `beta_${RUN}`, uC = `gamma_${RUN}`;
@@ -653,8 +657,14 @@ test('duty exchange approval: holder, then admin; rejections with feedback; dire
   const rows = await all();
   const ofB = rows.filter(r => r[0] === 'sched' && r[2] === hospital.id && r[5].name === resB.name);
   const accNames = new Set([resA.name, resB.name, resC.name].map(nameKey));
-  const noAccount = rows.find(r => r[0] === 'sched' && r[2] === hospital.id && r[5].name && !accNames.has(nameKey(r[5].name)) && !/RESERVE/.test(r[5].name));
+  const cSpec = dutyDept(resC);
+  const noAccount = rows.find(r => r[0] === 'sched' && r[2] === hospital.id && r[5].specCode === cSpec && r[5].name && !accNames.has(nameKey(r[5].name)) && !/RESERVE/.test(r[5].name));
+  // A specialty C's name never goes in (no pool, parent or sub-specialty).
+  const specs = hospital.specialties || [];
+  const plainOther = specs.find(s => s.id !== cSpec && !s.isClone && !s.parentSpec && !(s.acceptPool || []).length && !specs.some(x => x.parentSpec === s.id));
+  const foreign = plainOther && rows.find(r => r[0] === 'sched' && r[2] === hospital.id && r[5].specCode === plainOther.id && r[5].name && !accNames.has(nameKey(r[5].name)));
   assert.ok(ofB.length >= 2 && noAccount, 'duties to exchange');
+  assert.equal(dutyDept(resC), dutyDept(resB), 'C and B share a specialty');
   const req = (tok, entry, newName) => call('POST', '/api/exchange/request', { token: tok, body: { h: hospital.id, date: entry[5].date, spec: entry[5].specCode, oldName: entry[5].name, newName } });
 
   // Off by default: free exchange, and requests are refused.
@@ -671,6 +681,9 @@ test('duty exchange approval: holder, then admin; rejections with feedback; dire
   assert.deepEqual(direct.data.rejected, [0]);
   // Shared-password sessions have no account to follow a request.
   assert.equal((await req(state.user, e0, resC.name)).data.error, 'account_required');
+
+  // Not in a specialty C's name cannot be put in.
+  if (foreign) assert.equal((await req(state.tokC, foreign, resC.name)).data.error, 'not_your_specialty');
 
   // 1. C asks for B's duty: B decides first.
   const r1 = await req(state.tokC, e0, resC.name);

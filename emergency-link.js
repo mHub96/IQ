@@ -67,6 +67,44 @@
         return c.length === 1 ? c[0] : null;
     }
 
+    /** 0..1: how alike two words are (edit distance). */
+    function wordSim(a, b) {
+        if (a === b) return 1;
+        if (!a || !b) return 0;
+        let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+        for (let i = 1; i <= a.length; i++) {
+            const cur = [i];
+            for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+            prev = cur;
+        }
+        return 1 - prev[b.length] / Math.max(a.length, b.length);
+    }
+
+    /** 0..1: how alike two names are, word by word in order (the first names count most). */
+    function nameSim(a, b) {
+        const ta = keyOf(a).split(' ').filter(Boolean), tb = keyOf(b).split(' ').filter(Boolean);
+        if (!ta.length || !tb.length) return 0;
+        let sum = 0, weights = 0;
+        ta.forEach((t, i) => {
+            const w = 1 / (i + 1);
+            const same = tb[i] !== undefined ? wordSim(t, tb[i]) : 0;
+            const anywhere = Math.max(...tb.map(u => wordSim(t, u))) * 0.8;
+            sum += w * Math.max(same, anywhere);
+            weights += w;
+        });
+        return 0.8 * (sum / weights) + 0.2 * wordSim(ta.join(' '), tb.join(' '));
+    }
+
+    /** The hospital residents most likely to be this ER resident: the same phone number first, then the closest names. */
+    function rank(r, pool) {
+        const ph = phoneOf(r.phone);
+        return pool.map(x => {
+            const phone = !!ph && phoneOf(x.phone) === ph;
+            const sim = nameSim(r.name, x.name);
+            return { x, phone, sim, score: (phone ? 10 : 0) + sim };
+        }).sort((a, b) => b.score - a.score || String(a.x.name).localeCompare(String(b.x.name), 'ar'));
+    }
+
     /** The new name replaces the old one in this hospital's ER schedules of every month. */
     function renameInMonths(st, hosp, oldName, newName) {
         const oldKey = keyOf(oldName);
@@ -248,19 +286,28 @@
         let modal = document.getElementById('erl-modal');
         if (!modal) { modal = document.createElement('div'); modal.id = 'erl-modal'; document.body.appendChild(modal); }
         modal.className = 'erl-modal';
-        const options = pool.map(x => `<option value="${esc(x.id)}">${esc(x.name)}${x.phone ? ' · ' + esc(x.phone) : ''}</option>`).join('');
+        // Each ER resident's own order: the same phone number first, then the most similar names.
+        const pct = s => Math.round(s * 100) + '%';
+        const choices = r => {
+            const ranked = rank(r, pool);
+            const top = ranked.filter(c => c.phone || c.sim >= 0.65).slice(0, 3);
+            const buttons = top.map(c => `<button type="button" class="erl-btn ${c.phone ? 'good' : 'sugg'}" data-erl-link="${esc(c.x.id)}"><i class="fas fa-${c.phone ? 'phone' : 'link'}"></i> ربط بـ ${esc(c.x.name)}
+                <small>${c.phone ? 'نفس رقم الهاتف' : 'تشابه الاسم ' + pct(c.sim)}</small></button>`).join('');
+            const options = ranked.map(c => `<option value="${esc(c.x.id)}">${c.phone ? '📞 ' : ''}${esc(c.x.name)}${c.x.phone ? ' · ' + esc(c.x.phone) : ''}</option>`).join('');
+            return { buttons, options };
+        };
         modal.innerHTML = `<div class="erl-card" role="dialog" aria-modal="true" aria-label="ربط أطباء الطوارئ بقاعدة المستشفى">
             <header><div><h3>ربط أطباء الطوارئ بقاعدة ${esc(hospitalName(hosp))}</h3>
             <p>كل طبيب في الطوارئ يجب أن يكون من مقيمي المستشفى. بعد الربط يُؤخذ اسمه وهاتفه من قاعدة المستشفى، ويُحدَّث اسمه في جداول الطوارئ لكل الأشهر.</p></div>
             <button type="button" data-erl-close aria-label="إغلاق">✕</button></header>
             <div class="erl-body">
-            ${report.unlinked.length ? report.unlinked.map(({ r, hint }) => `<div class="erl-row ${r.id === focusId ? 'focus' : ''}" data-id="${esc(r.id)}">
+            ${report.unlinked.length ? report.unlinked.map(({ r }) => { const c = choices(r); return `<div class="erl-row ${r.id === focusId ? 'focus' : ''}" data-id="${esc(r.id)}">
                 <div class="erl-who"><b>${esc(r.name)}</b><small>${esc(r.phone || 'بلا هاتف')} · ${esc(r.specialty || '')}</small></div>
-                ${hint ? `<button type="button" class="erl-btn good" data-erl-link="${esc(hint.id)}"><i class="fas fa-link"></i> ربط بـ ${esc(hint.name)}</button>` : ''}
-                <div class="erl-pick"><select aria-label="اختر المقيم من قاعدة المستشفى"><option value="">اختر من مقيمي المستشفى…</option>${options}</select>
+                ${c.buttons ? `<div class="erl-sugg">${c.buttons}</div>` : '<small class="erl-none">لا يوجد اسم مشابه أو رقم مطابق في قاعدة المستشفى</small>'}
+                <div class="erl-pick"><select aria-label="اختر المقيم من قاعدة المستشفى"><option value="">كل مقيمي المستشفى (الأقرب أولاً)…</option>${c.options}</select>
                 <button type="button" class="erl-btn" data-erl-link-pick>ربط</button></div>
                 <button type="button" class="erl-btn ghost" data-erl-export><i class="fas fa-user-plus"></i> إضافته إلى قاعدة المستشفى</button>
-            </div>`).join('') : '<div class="erl-empty">✓ كل أطباء الطوارئ مرتبطون بقاعدة المستشفى.</div>'}
+            </div>`; }).join('') : '<div class="erl-empty">✓ كل أطباء الطوارئ مرتبطون بقاعدة المستشفى.</div>'}
             ${report.away.length ? `<h4>لم يعودوا من مقيمي هذا المستشفى</h4>${report.away.map(({ r, rec }) => `<div class="erl-row away"><div class="erl-who"><b>${esc(r.name)}</b>
                 <small>مسجّل الآن في: ${esc((rec.hospitals || []).map(hospitalName).join('، ') || '—')}. عطّله في الطوارئ إن لم يعد يداوم هنا.</small></div></div>`).join('')}` : ''}
             </div></div>`;
@@ -394,6 +441,11 @@
         .erl-btn { max-width: 100%; padding: 7px 10px; border-radius: 10px; border: 1px solid rgba(148,163,184,.5); background: transparent; color: inherit; font: 800 11px inherit; font-family: inherit; cursor: pointer; white-space: normal; text-align: center; overflow-wrap: anywhere; }
         .erl-btn.good { background: #059669; border-color: #059669; color: #fff; }
         .erl-btn.ghost { color: #0369a1; }
+        .erl-sugg { display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 100%; min-width: 0; }
+        .erl-sugg .erl-btn { display: grid; gap: 1px; text-align: start; }
+        .erl-sugg .erl-btn small { font-size: 10px; font-weight: 700; opacity: .85; }
+        .erl-btn.sugg { background: rgba(3,105,161,.08); border-color: rgba(3,105,161,.35); color: #0369a1; }
+        .erl-none { flex: 1 1 100%; font-size: 11px; opacity: .7; }
         .erl-empty { padding: 18px; text-align: center; font-weight: 800; color: #059669; font-size: 12px; }
         /* Dark mode: a readable palette of its own (light text on dark surfaces, brighter accents). */
         html.dark .erl-modal { background: rgba(2, 6, 23, 0.72); }
@@ -409,6 +461,7 @@
         html.dark .erl-btn { border-color: #475569; color: #f1f5f9; }
         html.dark .erl-btn.good { background: #059669; border-color: #10b981; color: #fff; }
         html.dark .erl-btn.ghost { color: #7dd3fc; border-color: #0369a1; }
+        html.dark .erl-btn.sugg { color: #7dd3fc; background: rgba(3,105,161,.18); }
         html.dark .erl-empty { color: #34d399; }
         html.dark .erl-banner.ok { background: rgba(16, 185, 129, 0.14); color: #6ee7b7; }
         html.dark .erl-banner.warn { background: rgba(245, 158, 11, 0.14); color: #fcd34d; }`;
@@ -427,7 +480,7 @@
         };
         tick();
     }
-    window.EmergencyLink = { reconcile, openReview, report: () => lastReport };
+    window.EmergencyLink = { reconcile, openReview, rank, report: () => lastReport };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
     else start();
 })(window, document);

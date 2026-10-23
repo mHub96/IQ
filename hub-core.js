@@ -1931,6 +1931,8 @@
         if (!auth.canExchangeIn(hospitalId)) throw new Error('يمكنك تبديل الخفارات في مستشفاك فقط');
         const hospital = getHospital(hospitalId);
         if (!hospital) throw new Error('المستشفى غير موجود');
+        const mine = exchangeSpecialtiesFor(hospital);
+        if (mine && !mine.includes(specCode)) throw new Error('تبدّل الخفارات فقط في التخصصات التي يمكن إدراج اسمك فيها');
 
         const date = targetDate || getMedicalDate();
         const ts = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
@@ -2834,15 +2836,22 @@
     function getEligibleResidentsForSpecialty(hospitalOrId, specId) {
         const hospital = (typeof hospitalOrId === 'string') ? getHospital(hospitalOrId) : hospitalOrId;
         if (!hospital || !Array.isArray(hospital.names)) return [];
+        const eligible = residentsOfSpecialty(hospital, specId);
+        const residents = eligible.hospital.names || [];
+        // Fallback: If no eligible residents found, return all active non-reserve residents
+        return eligible.list.length > 0 ? eligible.list : residents.filter(r => r.active !== false && r.spec !== 'RESERVE');
+    }
 
+    /** The residents whose names go in this specialty's duties (no fallback), and the hospital they come from (clones). */
+    function residentsOfSpecialty(hospital, specId) {
         const allSpecs = hospital.specialties || getGlobalSpecialties() || [];
         const specObj = allSpecs.find(s => s.id === specId);
 
         // Cloned specialty: delegates to source hospital
         if (specObj && specObj.isClone && specObj.clonedFromHospitalId) {
             const srcHosp = getHospital(specObj.clonedFromHospitalId);
-            if (srcHosp) {
-                return getEligibleResidentsForSpecialty(srcHosp, specObj.clonedFromSpecId);
+            if (srcHosp && Array.isArray(srcHosp.names)) {
+                return residentsOfSpecialty(srcHosp, specObj.clonedFromSpecId);
             }
         }
 
@@ -2853,7 +2862,7 @@
         const residents = hospital.names || [];
 
         if (acceptPool.includes('ALL') || acceptPool.includes('*')) {
-            return residents.filter(r => r.active !== false && r.spec !== 'RESERVE');
+            return { hospital, list: residents.filter(r => r.active !== false && r.spec !== 'RESERVE') };
         }
 
         const eligible = residents.filter(r => {
@@ -2876,9 +2885,22 @@
 
             return false;
         });
+        return { hospital, list: eligible };
+    }
 
-        // Fallback: If no eligible residents found, return all active non-reserve residents
-        return eligible.length > 0 ? eligible : residents.filter(r => r.active !== false && r.spec !== 'RESERVE');
+    /**
+     * The specialties a resident exchanges duties in: those whose duties their name can be put in.
+     * null = no limit (the owner, the hospital's admins, shared-password sessions). The API applies the same rule.
+     */
+    function exchangeSpecialtiesFor(hospitalOrId) {
+        const hospital = (typeof hospitalOrId === 'string') ? getHospital(hospitalOrId) : hospitalOrId;
+        if (!hospital) return [];
+        const role = auth.getRole();
+        if (!['user', 'anaesthesia'].includes(role) || AA) return null;
+        const acc = auth.getAccount();
+        if (!acc) return null;
+        if (!acc.resident_id) return [];
+        return (hospital.specialties || []).filter(s => residentsOfSpecialty(hospital, s.id).list.some(r => r.id === acc.resident_id)).map(s => s.id);
     }
 
     // ============================================================
@@ -4375,6 +4397,7 @@
         deleteHospitalSpecialty,
         deleteEmptyHospitalSpecialties,
         getEligibleResidentsForSpecialty,
+        exchangeSpecialtiesFor,
         syncHospitalSpecialtiesWithGlobal,
         getActiveOnCallResidentsCount,
         getTotalActiveOnCallCount,

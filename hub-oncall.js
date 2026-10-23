@@ -267,7 +267,9 @@
         c.st = st;
         paintSkin(c.wrapper, st);
         let btn = front.querySelector('.card-duty-status');
-        const show = c.surgical && (c.mine || (st && st.s));
+        // The holder sets their own status; the owner can set any surgical resident's.
+        c.edit = c.mine || !!(Hub.auth.isOwner && Hub.auth.isOwner());
+        const show = c.surgical && (c.edit || (st && st.s));
         if (!show) { if (btn) btn.remove(); return; }
         if (!btn) {
             btn = document.createElement('button');
@@ -275,17 +277,17 @@
             btn.className = 'card-icu-status card-duty-status';
             btn.addEventListener('click', e => {
                 e.stopPropagation(); e.preventDefault();
-                if (!c.mine) { toast(statusText(c.st) ? `${c.n}: ${statusText(c.st)}` : 'لا توجد حالة', 'info'); return; }
+                if (!c.edit) { toast(statusText(c.st) ? `${c.n}: ${statusText(c.st)}` : 'لا توجد حالة', 'info'); return; }
                 openOptions(c);
             });
             front.appendChild(btn);
         }
         btn.classList.toggle('oc-busy', !!(st && st.s));
         btn.classList.toggle('oc-idle', !(st && st.s));
-        btn.classList.toggle('oc-mine', !!c.mine);
+        btn.classList.toggle('oc-mine', !!c.edit);
         const wait = c.mine && st && st.w ? `<span class="oc-wait" title="طلبات تواصل بانتظارك">${st.w}</span>` : '';
         btn.innerHTML = st && st.s ? `<span>${esc(statusChip(st))}</span>${wait}` : `<i class="fas fa-circle-dot"></i><span>الحالة</span>${wait}`;
-        btn.title = c.mine ? 'اضغط لتغيير حالتك في الخفارة' : statusText(st);
+        btn.title = c.mine ? 'اضغط لتغيير حالتك في الخفارة' : c.edit ? `اضغط لتغيير حالة ${c.n} في الخفارة` : statusText(st);
         // A busy resident: WhatsApp / Call ask first.
         if (!c.wrapper._ocGuard) {
             c.wrapper._ocGuard = true;
@@ -315,7 +317,7 @@
         const cur = st.s || '';
         back.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
-                <h4>🩺 حالتي في الخفارة</h4>
+                <h4>🩺 ${c.mine ? 'حالتي في الخفارة' : 'حالة ' + esc(c.n)}</h4>
                 <button type="button" class="icu-back-close-btn" data-oc="close" title="إغلاق"><i class="fas fa-times"></i></button>
             </div>
             <div class="oc-opts">
@@ -357,11 +359,11 @@
             if (A.setCardStatus) A.setCardStatus(c.h, c.d, c.n, res.status || null);
             paintCard(c, st);
             if (navigator.vibrate) navigator.vibrate(15);
-            toast(res.status ? `حالتك الآن: ${statusText(res.status)}` : 'أُزيلت الحالة', 'success');
+            toast(res.status ? `${c.mine ? 'حالتك' : 'حالة ' + c.n} الآن: ${statusText(res.status)}` : 'أُزيلت الحالة', 'success');
             return true;
         } catch (err) {
             const code = err && err.data && err.data.error;
-            toast(({ not_on_duty: 'تُحدَّد الحالة أثناء خفارتك فقط.', not_your_card: 'هذه ليست بطاقتك.', rate_limited: 'تغييرات كثيرة، انتظر قليلاً.' })[code] || (A.errorText ? A.errorText(err) : 'تعذر الحفظ'), 'error');
+            toast(({ not_on_duty: c.mine ? 'تُحدَّد الحالة أثناء خفارتك فقط.' : 'تُحدَّد الحالة أثناء خفارة اليوم فقط.', not_your_card: 'هذه ليست بطاقتك.', rate_limited: 'تغييرات كثيرة، انتظر قليلاً.' })[code] || (A.errorText ? A.errorText(err) : 'تعذر الحفظ'), 'error');
             return false;
         }
     }

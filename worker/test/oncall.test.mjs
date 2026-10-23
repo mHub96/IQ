@@ -132,6 +132,16 @@ test('auto-clear: a status older than the owner\'s time is no longer shown (0 = 
   assert.equal((await summary(t.colleague.tok)).data.cards[t.res.name].st.s, 'or', 'a new status shows');
 });
 
+test('the owner sets the status of any surgical resident; an admin cannot', async () => {
+  assert.equal((await call('POST', '/api/duty-status', { token: t.admin, body: { ...card(), status: 'consult' } })).status, 403);
+  const r = await call('POST', '/api/duty-status', { token: t.owner, body: { ...card(), status: 'consult' } });
+  assert.equal(r.status, 200, JSON.stringify(r.data));
+  assert.equal((await summary(t.colleague.tok)).data.cards[t.res.name].st.s, 'consult');
+  // Still only a resident on today's roster.
+  assert.equal((await call('POST', '/api/duty-status', { token: t.owner, body: { ...card(), n: 'د. لا أحد بهذا الاسم', status: 'or' } })).data.error, 'not_on_duty');
+  await call('POST', '/api/duty-status', { token: t.holder.tok, body: { ...card(), status: 'or' } });
+});
+
 test('contact request: the holder is notified, lists it, and marks it done', async () => {
   const req = await call('POST', '/api/contact-requests', { token: t.colleague.tok, body: card() });
   assert.equal(req.status, 200, JSON.stringify(req.data));

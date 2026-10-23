@@ -90,15 +90,16 @@ async function ownKey(env, auth) {
   return row && row.role !== 'rotator' ? row.name_key : null;
 }
 
-/** Body: { h, d, n, status: 'or'|'consult'|'custom'|'', skin, label }. Only the holder, on today's duty. */
+/** Body: { h, d, n, status: 'or'|'consult'|'custom'|'', skin, label }. The holder (or the owner, on any card), on today's duty. */
 async function setStatus(request, env, auth) {
-  if (!auth || !auth.a) return json({ error: 'account_required' }, 403);
+  const owner = !!auth && auth.r === 'owner';
+  if (!auth || (!auth.a && !owner)) return json({ error: 'account_required' }, 403);
   const body = await readJson(request) || {};
   const card = cardOf(body.h, body.d, body.n);
   if (!card) return json({ error: 'bad_request' }, 400);
-  if (card.key !== (await ownKey(env, auth))) return json({ error: 'not_your_card' }, 403);
+  if (!owner && card.key !== (await ownKey(env, auth))) return json({ error: 'not_your_card' }, 403);
   if (card.date !== dutyDayNow()) return json({ error: 'not_on_duty' }, 409);
-  if (await overLimit(env, 'status:' + auth.a, 60)) return json({ error: 'rate_limited' }, 429);
+  if (await overLimit(env, 'status:' + (auth.a || 'owner'), 60)) return json({ error: 'rate_limited' }, 429);
   // The holder must really be on that hospital's roster today.
   const [dd, mm, yyyy] = [card.date.slice(8, 10), card.date.slice(5, 7), card.date.slice(0, 4)];
   const { results } = await env.DB.prepare(
@@ -122,7 +123,7 @@ async function setStatus(request, env, auth) {
     `INSERT INTO duty_status (target, hosp, card_date, account_id, status, skin, label, icon, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
      ON CONFLICT (target) DO UPDATE SET account_id = excluded.account_id, status = excluded.status, skin = excluded.skin,
        label = excluded.label, icon = excluded.icon, updated_at = excluded.updated_at`
-  ).bind(card.target, card.hosp, card.date, auth.a, status, skin, label, icon, Date.now()).run();
+  ).bind(card.target, card.hosp, card.date, auth.a || 'owner', status, skin, label, icon, Date.now()).run();
   return json({ ok: true, status: view({ status, skin, label, icon }, opts) });
 }
 

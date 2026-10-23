@@ -141,6 +141,51 @@
         .approve-as select { flex: 1; min-height: 42px; }
         .acc-sub.suggest { color: #0a7d55; font-weight: 700; }
         body.dark .acc-sub.suggest { color: #5fd3a3; }
+        /* ---- Sign in / sign up / forgot (2026): aurora, glass cards, sliding tabs, animated buttons ---- */
+        .acc-aurora { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity .5s ease; }
+        body.auth-mode .acc-aurora { opacity: 1; }
+        .acc-aurora span { position: absolute; width: 60vmax; height: 60vmax; border-radius: 50%; filter: blur(70px); opacity: .45; animation: accFloat 18s ease-in-out infinite; }
+        .acc-aurora .a1 { background: radial-gradient(circle, #0A84FF, transparent 62%); top: -26vmax; right: -20vmax; }
+        .acc-aurora .a2 { background: radial-gradient(circle, #14b8a6, transparent 62%); bottom: -30vmax; left: -22vmax; animation-delay: -6s; }
+        .acc-aurora .a3 { background: radial-gradient(circle, #a855f7, transparent 62%); top: 35%; left: 30%; width: 40vmax; height: 40vmax; opacity: .28; animation-delay: -12s; }
+        body.dark .acc-aurora span { opacity: .3; }
+        @keyframes accFloat { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(4vmax,3vmax) scale(1.08); } 66% { transform: translate(-3vmax,2vmax) scale(.95); } }
+        body.auth-mode .card { background: rgba(255,255,255,.8); backdrop-filter: blur(22px) saturate(1.4); -webkit-backdrop-filter: blur(22px) saturate(1.4);
+            border-color: rgba(255,255,255,.9); box-shadow: 0 24px 60px rgba(15,23,42,.12), inset 0 1px 0 rgba(255,255,255,.8); }
+        body.dark.auth-mode .card { background: rgba(22,28,40,.72); border-color: rgba(255,255,255,.08); box-shadow: 0 24px 60px rgba(0,0,0,.5); }
+        body.auth-mode main > section:not([hidden]) > * { animation: accEnter .45s cubic-bezier(.2,.9,.25,1.05) both; }
+        body.auth-mode main > section:not([hidden]) > *:nth-child(2) { animation-delay: .05s; }
+        body.auth-mode main > section:not([hidden]) > *:nth-child(3) { animation-delay: .1s; }
+        @keyframes accEnter { from { opacity: 0; transform: translateY(14px); } }
+        body.auth-mode .card h2 { font-size: 1.3rem; font-weight: 900; }
+        /* Sliding tabs (sign in / new account / forgot, and the account kind). */
+        .seg { position: relative; }
+        .seg > a, .seg > button { position: relative; z-index: 1; transition: color .25s; }
+        .seg::before { content: ''; position: absolute; top: 4px; bottom: 4px; right: 4px; width: calc((100% - 16px) / 3); border-radius: 11px; background: var(--hacc-bg);
+            box-shadow: 0 2px 10px rgba(0,0,0,.1); transform: translateX(calc(var(--i, 0) * (-100% - 4px))); transition: transform .4s cubic-bezier(.3,1.25,.5,1); }
+        .seg a[aria-current="page"], .seg.su-kind button[aria-selected="true"] { background: transparent; box-shadow: none; }
+        body.auth-mode input, body.auth-mode select { min-height: 52px; border-radius: 16px; border-width: 1.5px; transition: border-color .2s, box-shadow .2s, background .2s; }
+        body.auth-mode input:hover, body.auth-mode select:hover { border-color: color-mix(in srgb, var(--hacc-accent) 45%, var(--hacc-border)); }
+        body.auth-mode input:focus, body.auth-mode select:focus { box-shadow: 0 0 0 4px var(--hacc-accent-soft); }
+        body.auth-mode .field label { font-size: .78rem; letter-spacing: .1px; }
+        body.auth-mode .hacc-btn.primary { position: relative; min-height: 52px; border-radius: 16px; font-weight: 900; border: 0; color: #fff;
+            background: linear-gradient(135deg, #0A84FF, #3b82f6 55%, #14b8a6); background-size: 180% 100%; box-shadow: 0 12px 26px rgba(10,132,255,.3); transition: background-position .5s, transform .15s, opacity .2s; }
+        body.auth-mode .hacc-btn.primary:hover:not(:disabled) { background-position: 100% 0; }
+        body.auth-mode .hacc-btn.primary:active:not(:disabled) { transform: scale(.98); }
+        body.auth-mode .hacc-btn.primary:disabled { opacity: .55; box-shadow: none; }
+        .hacc-btn.loading { color: transparent !important; pointer-events: none; }
+        .hacc-btn.loading::after { content: ''; position: absolute; top: 50%; left: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%;
+            border: 3px solid rgba(255,255,255,.35); border-top-color: #fff; animation: accSpin .8s linear infinite; }
+        .hacc-btn.done { background: linear-gradient(135deg, #10b981, #059669) !important; }
+        @keyframes accSpin { to { transform: rotate(360deg); } }
+        .card.shake { animation: accShake .45s cubic-bezier(.36,.07,.19,.97) both !important; }
+        @keyframes accShake { 15%,45%,75% { transform: translateX(-9px); } 30%,60%,90% { transform: translateX(9px); } }
+        .steps span { position: relative; overflow: hidden; transition: background .3s; }
+        .steps span.on { background: linear-gradient(90deg, #0A84FF, #14b8a6); }
+        .verify-box { animation: accEnter .3s ease both; }
+        .done .big { display: inline-block; animation: accPop .6s cubic-bezier(.2,1.4,.4,1) both; }
+        @keyframes accPop { from { transform: scale(.3) rotate(-15deg); opacity: 0; } }
+        @media (prefers-reduced-motion: reduce) { .acc-aurora span, body.auth-mode main > section > *, .seg::before, .card.shake { animation: none !important; transition: none !important; } }
         /* Moving an account to another hospital (owner): the choices. */
         .move-dlg .move-acts { display: grid; gap: 8px; margin-top: 14px; }
         /* Account kind on the sign-up page (resident / rotator / administrative officer). */
@@ -220,6 +265,7 @@
     <link rel="stylesheet" href="./hub-ios.css" />
 </head>
 <body class="light">
+    <div class="acc-aurora" aria-hidden="true"><span class="a1"></span><span class="a2"></span><span class="a3"></span></div>
     <header class="top">
         <a class="back" href="./index.html?portal=true" onclick="event.preventDefault(); HubAccounts.goBack(this.href)"><i class="fas fa-arrow-right"></i> رجوع</a>
         <h1 id="page-title">حسابي</h1>
@@ -589,6 +635,7 @@
                 .filter(Boolean).map(esc).join(' · ') + (a.profile_complete ? '' : ' <span class="badge pending">غير مكتمل</span>');
 
         // -------------------- Routing --------------------
+        let lastAuthTab = 0;
         function route() {
             const hash = (location.hash || '').replace('#', '');
             let view = hash.split('-')[0];
@@ -600,6 +647,18 @@
             if (view === 'signin' && Hub.auth.getAccount()) view = 'me';
             VIEWS.forEach(v => { const el = $('view-' + v); if (el) el.hidden = v !== view; });
             $('apptabs').hidden = true;
+            // Signed out (sign in / new account / forgot): the aurora, and the tab slides from where it was.
+            const authView = ['signin', 'signup', 'forgot'].includes(view);
+            document.body.classList.toggle('auth-mode', authView);
+            if (authView) {
+                const idx = ['signin', 'signup', 'forgot'].indexOf(view);
+                const seg = $('view-' + view).querySelector('nav.seg');
+                if (seg) {
+                    seg.style.setProperty('--i', String(lastAuthTab));
+                    requestAnimationFrame(() => requestAnimationFrame(() => seg.style.setProperty('--i', String(idx))));
+                }
+                lastAuthTab = idx;
+            }
             $('page-title').textContent = { signin: 'تسجيل الدخول', signup: 'حساب جديد', forgot: 'استعادة كلمة المرور', me: 'حسابي', settings: 'الإعدادات', manage: 'الإدارة', schedule: 'جدولي', comments: 'تعليقاتي', admin: 'الإدارة' }[view];
             // Signed in: the one frame (its tab), and the management lists under its header.
             const framed = signedIn && (FRAME_TAB[view] || view === 'manage');
@@ -640,15 +699,22 @@
             const btn = e.target.querySelector('button[type=submit]');
             const msg = $('si-msg');
             btn.disabled = true;
-            setMsg(msg, 'جاري التحقق…');
+            btn.classList.add('loading');
+            setMsg(msg, '');
             const res = await Hub.auth.accountLogin($('si-user').value, $('si-pass').value, $('si-remember').checked);
             btn.disabled = false;
+            btn.classList.remove('loading');
             if (res.success) {
+                btn.classList.add('done');
+                if (navigator.vibrate) navigator.vibrate(18);
                 setMsg(msg, 'تم تسجيل الدخول ✓', 'ok');
                 localStorage.setItem('pwa_last_page', './index.html');
                 setTimeout(() => { location.href = './index.html?portal=true'; }, 300);
             } else {
                 setMsg(msg, res.error, 'bad');
+                const card = $('signin-form');
+                card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+                if (navigator.vibrate) navigator.vibrate([30, 40, 30]);
                 $('si-pass').select();
             }
         });
@@ -678,6 +744,8 @@
         const ro = { userFree: false };
         function setKind(kind) {
             document.querySelectorAll('.su-kind [data-kind]').forEach(x => x.setAttribute('aria-selected', String(x.dataset.kind === kind)));
+            const kinds = [...document.querySelectorAll('.su-kind [data-kind]')].map(x => x.dataset.kind);
+            document.querySelector('.su-kind').style.setProperty('--i', String(Math.max(0, kinds.indexOf(kind))));
             $('signup-form').hidden = kind !== 'resident';
             $('rotator-form').hidden = kind !== 'rotator';
             $('officer-form').hidden = kind !== 'officer';

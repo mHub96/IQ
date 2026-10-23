@@ -92,7 +92,7 @@ async function list(env, auth) {
 /** Body: { h, date: 'DD/MM/YYYY', spec, oldName, newName }. */
 async function createRequest(request, env, auth, ctx) {
   if (!auth.a) return json({ error: 'account_required' }, 403);
-  if (!['user', 'anaesthesia', 'admin', 'owner'].includes(auth.r)) return json({ error: 'forbidden' }, 403);
+  if (!['user', 'anaesthesia', 'rotator', 'admin', 'owner'].includes(auth.r)) return json({ error: 'forbidden' }, 403);
   const body = await readJson(request) || {};
   const hosp = String(body.h || ''), date = String(body.date || ''), spec = String(body.spec || '');
   const oldName = plainText(body.oldName, 120), newName = plainText(body.newName, 120);
@@ -100,7 +100,7 @@ async function createRequest(request, env, auth, ctx) {
   if (nameKey(oldName) === nameKey(newName)) return json({ error: 'same_person' }, 400);
   if (!ownHospital(auth, hosp)) return json({ error: 'not_your_hospital' }, 403);
   if (!(await approvalHospitals(env)).includes(hosp)) return json({ error: 'approval_off' }, 409);
-  if (limitedExchanger(auth) && !(await exchangeSpecialties(env, auth.a, hosp)).has(spec)) return json({ error: 'not_your_specialty' }, 403);
+  if (limitedExchanger(auth) && !(await exchangeSpecialties(env, auth, hosp)).has(spec)) return json({ error: 'not_your_specialty' }, 403);
   if (await overLimit(env, 'xreq:' + auth.a, 20)) return json({ error: 'rate_limited' }, 429);
   // The duty must be on the roster as it is now.
   const entry = await env.DB.prepare(

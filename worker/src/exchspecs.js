@@ -1,11 +1,22 @@
 /**
  * A resident exchanges duties only in the specialties whose duties their name can be put in, as the
- * exchange page offers them (hub-core.js exchangeSpecialtiesFor). The owner, the hospitals' admins and
+ * exchange page offers them (hub-core.js exchangeSpecialtiesFor); a rotator only in the rotators'
+ * specialty and its branches, in their own hospital. The owner, the hospitals' admins and
  * shared-password sessions have no such limit.
  */
 
-/** Personal resident accounts are limited; everyone else is not. */
-export const limitedExchanger = auth => !!auth && !!auth.a && ['user', 'anaesthesia'].includes(auth.r);
+/** Personal resident and rotator accounts are limited; everyone else is not. */
+export const limitedExchanger = auth => !!auth && !!auth.a && ['user', 'anaesthesia', 'rotator'].includes(auth.r);
+
+/** The rotators' specialty (by its name: "Rotator" / "مقيم دوري"; its code may change). */
+const ROTATOR_NAME = s => !!s && (/rotat/i.test(s.name_en || '') || /مقيم\s*دوري|روتيتر/.test(s.name_ar || ''));
+
+/** Is `code` the rotators' specialty or one of its branches? `specs`: the store's first, then the hospital's. */
+export function isRotatorSpec(specs, code) {
+  const find = id => specs.find(x => x && x.id === id);
+  const s = find(code);
+  return ROTATOR_NAME(s) || (!!s && !!s.parentSpec && ROTATOR_NAME(find(s.parentSpec)));
+}
 
 /** Does resident `r` belong in specialty `specId` of a hospital with these specialties? (no fallback) */
 function inSpecialty(specs, specId, r) {
@@ -23,8 +34,10 @@ function inSpecialty(specs, specId, r) {
 
 const parse = t => { try { return JSON.parse(t); } catch { return null; } };
 
-/** The specialty ids of hospital `hosp` that this account's resident may exchange duties in. */
-export async function exchangeSpecialties(env, accountId, hosp) {
+/** The specialty ids of hospital `hosp` that this account may exchange duties in. */
+export async function exchangeSpecialties(env, auth, hosp) {
+  if (auth.r === 'rotator') return rotatorSpecialties(env, auth, hosp);
+  const accountId = auth.a;
   const row = await env.DB.prepare(
     `SELECT (SELECT data FROM records WHERE coll = 'resident' AND id = a.resident_id) AS res,
             (SELECT data FROM records WHERE coll = 'hospital' AND id = ?2) AS hosp
@@ -54,6 +67,20 @@ export async function exchangeSpecialties(env, accountId, hosp) {
   return out;
 }
 
+/** A rotator: the rotators' specialty and its branches, in the rotator's own hospital only. */
+async function rotatorSpecialties(env, auth, hosp) {
+  if (auth.hosp !== hosp) return new Set();
+  const [meta, hospital] = await env.DB.batch([
+    env.DB.prepare("SELECT data FROM records WHERE coll = 'meta' AND id = 'globalSpecialties'"),
+    env.DB.prepare("SELECT json_extract(data, '$.specialties') AS specs FROM records WHERE coll = 'hospital' AND id = ?").bind(hosp),
+  ]);
+  let store = [], own = [];
+  try { store = (parse(meta.results[0] && meta.results[0].data) || {}).value || []; } catch {}
+  try { own = parse(hospital.results[0] && hospital.results[0].specs) || []; } catch {}
+  const specs = [...store, ...own];
+  return new Set(own.filter(s => s && s.id && !s.isClone && isRotatorSpec(specs, s.id)).map(s => s.id));
+}
+
 /**
  * Roster writes outside the resident's specialties: the ops (by index) to refuse. A new or changed
  * entry must be in one of them, and so must the entry it replaces or deletes.
@@ -69,7 +96,7 @@ export async function foreignScheduleOps(env, auth, ops) {
   const allowed = new Map();
   for (const { op, i } of mine) {
     const hosp = op.id.split(':')[0];
-    if (!allowed.has(hosp)) allowed.set(hosp, await exchangeSpecialties(env, auth.a, hosp));
+    if (!allowed.has(hosp)) allowed.set(hosp, await exchangeSpecialties(env, auth, hosp));
     const set = allowed.get(hosp);
     const old = before.get(op.id);
     const next = op.del ? undefined : op.d && op.d.specCode;

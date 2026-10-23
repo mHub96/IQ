@@ -573,11 +573,6 @@
                 window.location.href = './index.html';
                 return;
             }
-            // Rotators view and comment only; the duty exchange is for the hospital's residents.
-            if (Hub.auth.isRotator && Hub.auth.isRotator()) {
-                window.location.replace('./Home.html');
-                return;
-            }
 
             initUniversalNav('signup');
 
@@ -674,7 +669,10 @@
             const note = document.getElementById('spec-limit-note');
             if (note) {
                 note.style.display = mine ? 'flex' : 'none';
-                note.querySelector('span').textContent = !mine ? '' : specs.length
+                const rotator = Hub.auth.isRotator && Hub.auth.isRotator();
+                note.querySelector('span').textContent = !mine ? '' : rotator
+                    ? (specs.length ? 'كروتيتر، تبدّل خفارات تخصص الروتيشن وفروعه في مستشفاك فقط.' : 'لا يوجد تخصص روتيشن في هذا المستشفى. راجع مدير المستشفى.')
+                    : specs.length
                     ? 'تظهر فقط التخصصات التي يمكن إدراج اسمك في خفاراتها.'
                     : 'لا توجد تخصصات يمكن إدراج اسمك في خفاراتها في هذا المستشفى. راجع مدير المستشفى.';
             }

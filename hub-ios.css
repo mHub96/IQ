@@ -406,7 +406,6 @@ body.dark .hacc-tabs button[aria-selected="true"] { background: #636366 !importa
 .modal-card select, .hub-modal-card select, .glass-panel select { max-width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
 /* Rotators view and comment only: every link to the duty exchange page is hidden. */
-html.role-rotator a[href*="signup.html"], html.role-rotator #dock-link-signup { display: none !important; }
 
 /* Closed pop-ups are not drawn at all. Some pages only fade closed pop-ups to opacity 0, which
    kept a dozen invisible full-screen blur layers over the page; iPhones run out of graphics

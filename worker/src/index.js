@@ -320,9 +320,9 @@ function allowed(a, op) {
   switch (op.c) {
     case 'sched':
       // The hospital's doctors exchange duties, in their own hospital only (the hospital is the id's
-      // prefix, not the client's word). Rotators only view and comment; division officers have their
-      // own roster (aa.js).
-      return ['user', 'anaesthesia', 'admin'].includes(a.r) && ownHospital(a, String(op.id || '').split(':')[0]);
+      // prefix, not the client's word); rotators the rotators' duties only (exchspecs.js). Division
+      // officers have their own roster (aa.js).
+      return ['user', 'anaesthesia', 'rotator', 'admin'].includes(a.r) && ownHospital(a, String(op.id || '').split(':')[0]);
     case 'icu':
       return a.r === 'anaesthesia' && inScope(a, op.h);
     case 'hospital':
@@ -426,7 +426,7 @@ async function sync(request, env, auth) {
   const msg = String(body.msg || '').slice(0, 300);
 
   // Hospitals where residents' exchanges need approval: their roster writes go through /api/exchange.
-  const approval = ['user', 'anaesthesia'].includes(auth.r) && ops.some(op => op && op.c === 'sched')
+  const approval = ['user', 'anaesthesia', 'rotator'].includes(auth.r) && ops.some(op => op && op.c === 'sched')
     ? new Set(await approvalHospitals(env)) : null;
   // Anaesthesia residents edit every hospital's ICU while the owner's switch is on.
   const icuAll = auth.r === 'anaesthesia' && ops.some(op => op && op.c === 'icu') && await icuAllOn(env);

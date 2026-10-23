@@ -11,6 +11,7 @@
 import { DAY, json, readJson, signToken, sha256b64, b64, overLimit, bucketOf, plainText } from './lib.js';
 import { nameKey, nameTokens, namesMatch, phoneKey, isoDate } from './names.js';
 import { sendPush, isPushEndpoint, topicFor } from './push.js';
+import { isRotatorSpec } from './exchspecs.js';
 import { durationText } from './reminders.js';
 import { BOARDS, dutyDayNow, getStageMonth, setStageMonth, currentStage, profileComplete, suggestProfile } from './profile.js';
 import { AA_ROLES, findOfficer, officerLink, divisionJob, addOfficer } from './aa.js';
@@ -263,9 +264,6 @@ async function findResident(env, hosp, name, phone) {
   return { hospOk: true, match: null, pk, reason: 'none' };
 }
 
-/** The rotators' specialty (by its name: "Rotator" / "مقيم دوري"), or a branch of it. */
-const ROTATOR_SPEC = s => !!s && (/rotat/i.test(s.name_en || '') || /مقيم\s*دوري|روتيتر/.test(s.name_ar || ''));
-
 /** Is this hospital-database record filed under the rotators' specialty? */
 async function isRotatorRecord(env, hosp, residentId) {
   if (!residentId) return false;
@@ -280,9 +278,7 @@ async function isRotatorRecord(env, hosp, residentId) {
   let specs = [];
   try { specs = specs.concat((JSON.parse(meta.results[0] && meta.results[0].data || '{}').value) || []); } catch {}
   try { specs = specs.concat(JSON.parse(hospital.results[0] && hospital.results[0].specs || '[]') || []); } catch {}
-  const find = id => specs.find(x => x && x.id === id);
-  const s = find(code);
-  return ROTATOR_SPEC(s) || (!!s && !!s.parentSpec && ROTATOR_SPEC(find(s.parentSpec)));
+  return isRotatorSpec(specs, code);
 }
 
 async function checkIdentity(request, env, ip) {

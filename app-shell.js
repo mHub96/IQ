@@ -237,7 +237,6 @@
         placePill(tab);
         tabbar.classList.toggle('covered', !!active.overlay);
         tabbar.classList.toggle('off', !signedIn());      // the sign-in screen has no tabs
-        tabbar.classList.toggle('rotator', read('hospital_hub_session_role') === 'rotator'); // no duty exchange tab
         tabbar.classList.toggle('aa', !!aaContext());      // division: roster, schedule and exchange only
         let title = '';
         try { title = active.frame.contentDocument.title; } catch (e) {}
@@ -297,9 +296,8 @@
         warmed = true;
         const conn = navigator.connection || {};
         if (conn.saveData || (navigator.deviceMemory && navigator.deviceMemory < 2)) return;
-        const rotator = read('hospital_hub_session_role') === 'rotator';
         const inDivision = !!aaContext();
-        const queue = Object.keys(TAB_PAGE).filter(t => t !== 'home' && !(rotator && t === 'signup') && !(inDivision && !AA_PAGES.includes(TAB_PAGE[t])))
+        const queue = Object.keys(TAB_PAGE).filter(t => t !== 'home' && !(inDivision && !AA_PAGES.includes(TAB_PAGE[t])))
             .map(t => ({ page: TAB_PAGE[t], tab: t }));
         const idle = cb => (window.requestIdleCallback ? requestIdleCallback(cb, { timeout: 2500 }) : setTimeout(cb, 300));
         const next = () => {

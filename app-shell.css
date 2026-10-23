@@ -72,7 +72,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Arabic
 #app-tabbar.covered { transform: translateY(calc(100% + var(--app-tabbar-gap) + var(--sab) + 8px)); opacity: 0; pointer-events: none; }
 #app-tabbar.off { display: none; }
 /* Rotators view and comment only: no duty exchange tab. */
-#app-tabbar.rotator .app-tab[data-tab="signup"] { display: none; }
 /* Administrative Affairs division: its roster, schedule and duty exchange only. */
 #app-tabbar.aa .app-tab[data-tab="icu"], #app-tabbar.aa .app-tab[data-tab="specialists"], #app-tabbar.aa .app-tab[data-tab="residents"] { display: none; }
 

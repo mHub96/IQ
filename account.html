@@ -338,7 +338,7 @@
             </form>
             <form class="card" id="rotator-form" novalidate hidden>
                 <h2>حساب روتيتر</h2>
-                <p class="lead">للأطباء في فترة الروتيشن غير المسجلين في جدول الخفارات: تصفح الموقع وكتابة التعليقات فقط. يُرسل طلبك إلى مالك المنظومة ومدراء المستشفى الذي تدور فيه للموافقة.</p>
+                <p class="lead">للأطباء في فترة الروتيشن: تصفح الموقع وكتابة التعليقات، وتبديل خفارات الروتيشن في المستشفى الذي تدور فيه. يُرسل طلبك إلى مالك المنظومة ومدراء المستشفى الذي تدور فيه للموافقة.</p>
                 <div class="verify-box" id="ro-note" hidden></div>
                 <div class="field">
                     <label for="ro-hosp">المستشفى الذي تدور فيه حالياً</label>
@@ -903,7 +903,7 @@
                     $('su-name').value = res.name;
                     verifyBox('warn', `<i class="fas fa-rotate"></i><span><b>${esc(res.name)}</b> مسجّل في قاعدة المستشفى كمقيم دوري (روتيتر). تم تحويل طلبك إلى حساب روتيتر.</span>`);
                     toast('اسمك مسجّل كمقيم دوري (روتيتر): تم تحويل نوع الحساب إلى روتيتر.', 'info');
-                    toRotator(`<i class="fas fa-rotate"></i><span>اسمك ورقمك مسجّلان في قاعدة ${esc(hospitalName(hosp))} كمقيم دوري، لذلك يكون حسابك من نوع <b>روتيتر</b> (تصفح الموقع والتعليق، بلا تبديل خفارات). سيُربط حسابك بسجلّك. أكمل اسم المستخدم وكلمة المرور.</span>`, 'warn');
+                    toRotator(`<i class="fas fa-rotate"></i><span>اسمك ورقمك مسجّلان في قاعدة ${esc(hospitalName(hosp))} كمقيم دوري، لذلك يكون حسابك من نوع <b>روتيتر</b> (تصفح الموقع والتعليق، وتبديل خفارات الروتيشن في مستشفاك). سيُربط حسابك بسجلّك. أكمل اسم المستخدم وكلمة المرور.</span>`, 'warn');
                 } else if (res.match) {
                     // The account carries the name recorded in the hospital's database, not the typed one.
                     const replaced = $('su-name').value.trim() !== res.name;
@@ -925,7 +925,7 @@
                         name_other_phone: 'الاسم موجود في قاعدة هذا المستشفى لكن برقم هاتف مختلف. اكتب الرقم المسجّل في الجدول، أو راجع مدير المستشفى لتحديث رقمك.',
                     }[res.reason] || 'لا يوجد في قاعدة هذا المستشفى أحد بهذا الرقم أو بهذا الاسم. تأكد من الرقم المسجّل في الجدول، أو راجع مدير المستشفى.';
                     verifyBox('bad', `<i class="fas fa-circle-xmark"></i><span>${why}<br><small>إن كنت في فترة الروتيشن (غير مسجّل في جدول الخفارات): <button type="button" class="hacc-link" data-act="as-rotator">سجّل كروتيتر</button></small></span>`);
-                    $('su-verify').querySelector('[data-act="as-rotator"]').addEventListener('click', () => toRotator('<i class="fas fa-rotate"></i><span>حساب روتيتر: تصفح الموقع والتعليق فقط، بلا تبديل خفارات. أكمل البيانات وأرسل الطلب.</span>'));
+                    $('su-verify').querySelector('[data-act="as-rotator"]').addEventListener('click', () => toRotator('<i class="fas fa-rotate"></i><span>حساب روتيتر: تصفح الموقع والتعليق، وتبديل خفارات الروتيشن في مستشفاك فقط. أكمل البيانات وأرسل الطلب.</span>'));
                 }
             } catch (err) {
                 if (seq !== su.checkSeq) return;
@@ -1340,7 +1340,7 @@
                     <div style="min-width:0;flex:1"><div class="acc-name">${esc(a.name)}
                         <span class="badge ${esc(a.status)}">${esc(statusText)}</span>${a.role !== 'user' ? `<span class="badge role">${esc(ROLE_NAMES[a.role] || a.role)}</span>` : ''}${a.reset === 'requested' ? '<span class="badge pending">طلب كلمة مرور</span>' : ''}${a.max_devices ? `<span class="badge role">🔒 ${esc(limitText(a.max_devices))}</span>` : ''}${a.no_comment ? '<span class="badge disabled">🚫 ممنوع من التعليق</span>' : ''}${a.warnings ? `<span class="badge pending">⚠️ ${a.warnings === 1 ? 'تحذير واحد' : a.warnings === 2 ? 'تحذيران' : a.warnings + ' تحذيرات'}</span>` : ''}</div>
                     <div class="acc-sub"><span dir="ltr">@${esc(a.username)}</span> · ${esc(SEX[a.sex] || '')} · ${esc(hospitalName(a.hosp))}${a.phone ? ` · <a href="tel:${esc(localPhone(a.phone))}" dir="ltr">${esc(localPhone(a.phone))}</a>` : ''}</div>
-                    ${a.role === 'rotator' ? '<div class="acc-sub">🔄 روتيتر: تصفح الموقع والتواصل مع المقيمين فقط، بلا تبديل خفارات.</div>'
+                    ${a.role === 'rotator' ? '<div class="acc-sub">🔄 روتيتر: تصفح الموقع والتواصل مع المقيمين، وتبديل خفارات الروتيشن في مستشفاه فقط.</div>'
                         : officer ? `<div class="acc-sub">🏢 الشؤون الإدارية · ${esc(a.aa_job_name || '')}${a.resident_id ? ' · ✓ موجود في قاعدة البيانات' : ''}</div>${a.status === 'pending' && !a.resident_id ? '<div class="acc-sub" style="color:#b45309">⚠️ غير موجود في قاعدة بيانات الشؤون الإدارية: عند الموافقة يُضاف تحت العنوان الوظيفي الذي اختاره.</div>' : ''}`
                         : `<div class="acc-sub">${profileLine(a)}</div>`}
                     ${a.status === 'pending' && a.suggested_role === 'anaesthesia' ? '<div class="acc-sub suggest">💉 مقترح: <b>مقيم تخدير</b> (اختصاصه التخدير في جدول المستشفى)</div>' : ''}
@@ -1409,7 +1409,7 @@
                 mute: `منع ${a.name} من التعليق؟ سيبقى قادراً على تصفح الموقع والإعجاب.`,
                 remove_device: 'إلغاء ربط هذا الجهاز؟ سيتم تسجيل خروجه فوراً.',
                 reset_devices: `إلغاء ربط كل أجهزة ${a.name}؟ سيتم تسجيل خروجه منها.`,
-                set_role: body.role !== a.role ? `تغيير صلاحية ${a.name} إلى «${ROLE_NAMES[body.role]}»؟${body.role === 'admin' && !Hub.auth.isOwner() ? '\n\nسيدير حسابات مستشفاه مثلك.' : ''}${body.role === 'rotator' ? '\n\nسيتصفح الموقع ويتواصل مع المقيمين فقط: لا تبديل خفارات، ولا تُنسب إليه بطاقات الخفارات وتعليقاتها، ولا جدولي ولا معلومات بورد. يمكن إعادته مقيماً لاحقاً.' : ''}` : null,
+                set_role: body.role !== a.role ? `تغيير صلاحية ${a.name} إلى «${ROLE_NAMES[body.role]}»؟${body.role === 'admin' && !Hub.auth.isOwner() ? '\n\nسيدير حسابات مستشفاه مثلك.' : ''}${body.role === 'rotator' ? '\n\nسيتصفح الموقع ويتواصل مع المقيمين، ويبدّل خفارات الروتيشن (تخصص المقيم الدوري وفروعه) في مستشفاه فقط، ولا تُنسب إليه بطاقات الخفارات وتعليقاتها، ولا جدولي ولا معلومات بورد. يمكن إعادته مقيماً لاحقاً.' : ''}` : null,
                 set_profile: !Hub.auth.isOwner() ? `حفظ معلومات البورد لـ ${a.name}؟ ستظهر في ملفه وفي خفارات الطوارئ.` : null,
                 approve: body.role && body.role !== 'user' && body.role !== a.role ? `الموافقة على ${a.name} بصلاحية «${ROLE_NAMES[body.role]}»؟` : null,
             }[action];

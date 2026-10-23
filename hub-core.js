@@ -590,6 +590,19 @@
         return out;
     }
 
+    /**
+     * The rotators' specialty ("مقيم دوري" / Rotator, by name: its code may change) or one of its branches.
+     * The store's definition first, then the hospital's own. The API applies the same rule.
+     */
+    function isRotatorSpecialty(specId, hospitalId) {
+        const looksRotator = s => !!s && (/rotat/i.test(s.name_en || '') || /مقيم\s*دوري|روتيتر/.test(s.name_ar || ''));
+        const store = Array.isArray(db?.globalSpecialties) ? db.globalSpecialties : [];
+        const local = (getHospital(hospitalId) || {}).specialties || [];
+        const find = id => store.find(x => x.id === id) || local.find(x => x.id === id);
+        const s = find(specId);
+        return looksRotator(s) || (!!s && !!s.parentSpec && looksRotator(find(s.parentSpec)));
+    }
+
     /** Is this hospital specialty one of the general store's (not a clone, not the hospital's own)? */
     function isStoreSpecialty(hospitalId, specId) {
         if (AA) return false;
@@ -1987,7 +2000,6 @@
     // DUTY & SCHEDULE MANAGEMENT
     // ============================================================
     async function exchangeDuty(hospitalId, specCode, newResidentName, targetDate = null, oldResidentName = null) {
-        if (auth.isRotator()) throw new Error('حساب الروتيتر للعرض والتعليق فقط');
         if (!AA && auth.isOfficer()) throw new Error('موظفو الشؤون الإدارية يبدّلون خفاراتهم في جدول الشؤون الإدارية فقط');
         if (!auth.canExchangeIn(hospitalId)) throw new Error('يمكنك تبديل الخفارات في مستشفاك فقط');
         const hospital = getHospital(hospitalId);
@@ -3059,7 +3071,14 @@
         const hospital = (typeof hospitalOrId === 'string') ? getHospital(hospitalOrId) : hospitalOrId;
         if (!hospital) return [];
         const role = auth.getRole();
-        if (!['user', 'anaesthesia'].includes(role) || AA) return null;
+        if (AA) return null;
+        // Rotators: the rotators' specialty and its branches, in their own hospital.
+        if (role === 'rotator') {
+            const acc = auth.getAccount();
+            if (!acc || acc.hosp !== hospital.id) return [];
+            return (hospital.specialties || []).filter(s => !s.isClone && isRotatorSpecialty(s.id, hospital.id)).map(s => s.id);
+        }
+        if (!['user', 'anaesthesia'].includes(role)) return null;
         const acc = auth.getAccount();
         if (!acc) return null;
         // The resident's own record (each hospital's names list is a copy that can lag behind).
@@ -4282,7 +4301,7 @@
         },
 
         canExchangeDuties() {
-            return this.isLoggedIn() && this.getRole() !== 'rotator';
+            return this.isLoggedIn();
         },
 
         /** Duty exchanges are made in the doctor's own hospital only (the owner: everywhere). The API applies the same rule. */
@@ -4290,7 +4309,8 @@
             if (!hospId || !this.isLoggedIn()) return false;
             const role = this.getRole();
             if (role === 'owner') return true;
-            if (role === 'rotator') return false;
+            // Rotators: their own hospital (the rotators' specialty only: exchangeSpecialtiesFor).
+            if (role === 'rotator') { const acc = this.getAccount(); return !!acc && acc.hosp === hospId; }
             if (AA) return hospId === AA && this.canAccessDivision(hospId);
             if (AA_ROLES.includes(role)) return false;
             const acc = this.getAccount();

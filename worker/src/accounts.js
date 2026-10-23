@@ -1088,12 +1088,12 @@ async function erProfiles(env, auth, url) {
   if (!HOSP_RE.test(hosp)) return json({ error: 'bad_request' }, 400);
   if (!(await canUseEr(env, auth, hosp))) return json({ error: 'forbidden' }, 403);
   const { results } = await env.DB.prepare(
-    `SELECT id, resident_id, phone, sex, board, stage, stage_ref, board_years FROM accounts
+    `SELECT id, resident_id, phone, sex, board, specialty, stage, stage_ref, board_years FROM accounts
       WHERE hosp = ? AND status = 'active' AND role IN ('user', 'anaesthesia', 'admin')`
   ).bind(hosp).all();
   const month = await getStageMonth(env);
   return json({ ok: true, profiles: results.map(r => ({
-    id: r.id, resident_id: r.resident_id, phone: r.phone, sex: r.sex, board: r.board,
+    id: r.id, resident_id: r.resident_id, phone: r.phone, sex: r.sex, board: r.board, specialty: r.specialty,
     stage_now: currentStage(r.stage, r.stage_ref, r.board_years, month), board_years: r.board_years,
   })) });
 }

@@ -65,6 +65,26 @@
         return st && r ? boardOf(accountOf(cachedProfiles(st.hospitalId), r.hubId, r.phone)) : null;
     };
 
+    const BOARD_ACCOUNT = { Arabic: 'arab', Iraqi: 'iraqi', None: 'none' };
+    /** An ER change of board / stage goes to the resident's account (admins and the owner may set it). */
+    async function pushBoard(r) {
+        const st = core().state();
+        const p = accountOf(cachedProfiles(st.hospitalId), r.hubId, r.phone);
+        if (!p) return;
+        const board = BOARD_ACCOUNT[r.board] || null;
+        const n = STAGES.indexOf(r.stage);
+        const stage = board === 'none' || !board ? null : (n > 0 ? n : (p.stage_now || null));
+        const years = board === 'none' ? null : Math.max(p.board_years || 0, stage || 0) || null;
+        if (p.board === board && (board === 'none' || p.stage_now === stage)) return;
+        try {
+            await Hub().api('POST', '/api/accounts/decide', { id: p.id, action: 'set_profile', profile: { board, specialty: p.specialty || '', stage, boardYears: years } }, { retries: 1 });
+            Object.assign(p, { board, stage_now: stage, board_years: years });
+            notify('حُدّثت معلومات البورد في الملف الشخصي للمقيم أيضاً ✓', 'success');
+        } catch (e) {
+            notify('تعذر تحديث الملف الشخصي للمقيم: ' + ((e && e.data && e.data.error) || 'خطأ في الاتصال'), 'error');
+        }
+    }
+
     let syncing = false;
     /** Copies the board and stage of every ER resident who has an account from that account. */
     async function syncBoards({ fresh = false, quiet = false } = {}) {
@@ -107,7 +127,7 @@
                     const want = fromAccount ? '1' : '';
                     if ((cell.dataset.err || '') === want) return;
                     cell.dataset.err = want;
-                    cell.title = fromAccount ? 'من حساب المقيم: يعدّلها المقيم أو مدير المستشفى من إدارة الحسابات' : '';
+                    cell.title = fromAccount ? 'من حساب المقيم: تعديلها هنا يحدّث ملفه الشخصي أيضاً' : '';
                     cell.classList.toggle('err-from-account', fromAccount);
                 });
             });
@@ -405,20 +425,22 @@
         window.importSingleDoctorToER = name => { try { window.closeHospitalSyncModal(); } catch (e) {} openImport(name); };
         window.importAllMissingDoctorsToER = () => { try { window.closeHospitalSyncModal(); } catch (e) {} openImport(); };
         window.openResidentsSelection = openSelection;
-        // Board and stage of residents with an account come from the account.
-        const guard = name => {
+        // Board and stage of a resident with an account: changed here, they change in the account too
+        // (their profile), so the account stays the one source both sides follow.
+        const toAccount = name => {
             const orig = window[name];
             if (typeof orig !== 'function' || orig.__err) return;
             const w = function (id) {
+                const out = orig.apply(this, arguments);
                 const r = (core().state().residents || []).find(x => x.id === id);
-                if (accountBoardOf(r)) { notify('معلومات البورد من حساب المقيم؛ يعدّلها المقيم أو مدير المستشفى من إدارة الحسابات وتتحدث هنا تلقائياً', 'warning'); return; }
-                return orig.apply(this, arguments);
+                if (r) pushBoard(r);
+                return out;
             };
             w.__err = true;
             window[name] = w;
         };
-        guard('cycleResidentBoard');
-        guard('openStageOptionsModal');
+        toAccount('cycleResidentBoard');
+        toAccount('selectResidentStage');
         const after = (name, fn) => {
             const orig = window[name];
             if (typeof orig !== 'function' || orig.__errAfter) return;

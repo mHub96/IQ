@@ -141,6 +141,8 @@
         .approve-as select { flex: 1; min-height: 42px; }
         .acc-sub.suggest { color: #0a7d55; font-weight: 700; }
         body.dark .acc-sub.suggest { color: #5fd3a3; }
+        /* Moving an account to another hospital (owner): the choices. */
+        .move-dlg .move-acts { display: grid; gap: 8px; margin-top: 14px; }
         /* Account kind on the sign-up page (resident / rotator / administrative officer). */
         .seg.su-kind { grid-template-columns: 1fr 1fr 1fr; }
         .seg.su-kind button { border: 0; background: transparent; padding: 10px 4px; border-radius: 11px; color: var(--hacc-muted); font: inherit; font-weight: 800; font-size: 0.82rem; cursor: pointer; }
@@ -1107,6 +1109,52 @@
         // -------------------- Profile & settings: the account panel --------------------
         document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => HubAccounts.openPanel(b.dataset.open)));
 
+        /**
+         * An account moving to another hospital: is the resident in that hospital's database? If not, the
+         * owner chooses: move their record there too (the account follows its record), move only the
+         * account, or cancel. Resolves false when cancelled.
+         */
+        async function confirmHospitalMove(a, to) {
+            try { await Hub.loadDatabase(); } catch (e) {}
+            const db = Hub.getDatabase() || {};
+            const residents = Array.isArray(db.residents) ? db.residents : [];
+            const rec = a.resident_id ? residents.find(r => r.id === a.resident_id) : null;
+            if (rec && (rec.hospitals || []).includes(to)) return true;
+            const key = Hub.nameKey ? Hub.nameKey(a.name) : a.name;
+            const there = residents.find(r => (r.hospitals || []).includes(to) && (Hub.nameKey ? Hub.nameKey(r.name) : r.name) === key);
+            if (there) return true;
+            return new Promise(resolve => {
+                let done = false;
+                const finish = v => { if (done) return; done = true; HubAccounts.closeSheet(); resolve(v); };
+                const sheet = HubAccounts.openSheet(`<div class="hacc-center move-dlg">
+                        <div class="hacc-big-icon">🏥</div>
+                        <h2>${esc(a.name)} غير موجود في قاعدة ${esc(hospitalName(to))}</h2>
+                        <p class="hacc-muted">لم نجد اسمه بين مقيمي ${esc(hospitalName(to))}. ${rec ? `سجلّه الآن في: ${esc((rec.hospitals || []).map(hospitalName).join('، ') || '—')}.` : 'حسابه غير مرتبط بسجل في قاعدة المقيمين.'}</p>
+                        <div class="move-acts">
+                            ${rec ? `<button type="button" class="hacc-btn primary btn-block" data-move="record"><i class="fas fa-right-left"></i> نقل سجله إلى ${esc(hospitalName(to))} أيضاً</button>` : ''}
+                            <button type="button" class="hacc-btn btn-block" data-move="account">تغيير مستشفى الحساب فقط</button>
+                            <button type="button" class="hacc-btn ghost btn-block" data-move="cancel">إلغاء</button>
+                        </div>
+                    </div>`, { label: 'نقل الحساب إلى مستشفى آخر', onClose: () => finish(false) });
+                sheet.querySelectorAll('[data-move]').forEach(b => b.addEventListener('click', async () => {
+                    const what = b.dataset.move;
+                    if (what === 'cancel') return finish(false);
+                    if (what === 'account') return finish(true);
+                    b.disabled = true;
+                    try {
+                        // The record leaves the account's hospital for the new one (its other hospitals stay).
+                        rec.hospitals = [...new Set([...(rec.hospitals || []).filter(h => h !== a.hosp), to])];
+                        await Hub.saveDatabase(`نقل ${rec.name} إلى ${hospitalName(to)}`);
+                        toast(`نُقل سجل ${rec.name} إلى ${hospitalName(to)} ✓`, 'success');
+                        finish(true);
+                    } catch (err) {
+                        b.disabled = false;
+                        toast(errorText(err), 'error');
+                    }
+                }));
+            });
+        }
+
         // -------------------- Device list (management) --------------------
         function deviceIcon(label) {
             return /iPhone|Android|iPad/.test(label || '') ? 'fa-mobile-screen' : 'fa-laptop';
@@ -1431,6 +1479,10 @@
                 approve: body.role && body.role !== 'user' && body.role !== a.role ? `الموافقة على ${a.name} بصلاحية «${ROLE_NAMES[body.role]}»؟` : null,
             }[action];
             if (confirmText && !confirm(confirmText)) return;
+            // The owner moving an account to another hospital: its record in the hospital database first.
+            if (action === 'set_profile' && Hub.auth.isOwner() && body.profile.hosp && body.profile.hosp !== a.hosp) {
+                if (!(await confirmHospitalMove(a, body.profile.hosp))) return;
+            }
             btn.disabled = true;
             try {
                 const res = await Hub.api('POST', '/api/accounts/decide', body, { retries: 0 });

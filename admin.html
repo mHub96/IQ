@@ -4254,7 +4254,9 @@
             try {
                 // 1. Restore Specialties (Categories, hierarchy, acceptPool, colors, icons, enabled)
                 if (Array.isArray(data.specialties) && data.specialties.length > 0) {
-                    const cleanedSpecs = data.specialties.map(s => ({
+                    // Every field is kept (prefix, cloned specialties' source, ...); only the basics are tidied.
+                    const cleanedSpecs = data.specialties.filter(s => s && s.id).map(s => ({
+                        ...JSON.parse(JSON.stringify(s)),
                         id: String(s.id).trim(),
                         name_ar: String(s.name_ar || s.id).trim(),
                         name_en: String(s.name_en || '').trim(),
@@ -4262,9 +4264,7 @@
                         color: s.color || '#0f766e',
                         parentSpec: s.parentSpec || null,
                         acceptPool: Array.isArray(s.acceptPool) ? [...s.acceptPool] : [],
-                        enabled: s.enabled !== false,
-                        isCloned: !!s.isCloned,
-                        sourceHospitalId: s.sourceHospitalId || null
+                        enabled: s.enabled !== false
                     }));
 
                     if (mode === 'replace') {
@@ -4282,35 +4282,9 @@
                     }
                 }
 
-                // 2. Restore Residents (Name, phone, specialty, rotation department, active status, hospitals)
+                // 2. Restore Residents: into the shared residents list, which every hospital's list comes from.
                 if (Array.isArray(data.residents)) {
-                    const cleanedResidents = data.residents.map((r, idx) => ({
-                        id: r.id || ('res-' + Date.now() + '_' + idx),
-                        name: formatDoctorName(r.name) || String(r.name || '').trim(),
-                        phone: formatIraqiPhoneNumber(r.phone) || String(r.phone || '').trim(),
-                        spec: String(r.spec || r.tag || '').trim(),
-                        tag: String(r.tag || r.spec || '').trim(),
-                        dept: String(r.dept || r.department || r.spec || '').trim(),
-                        department: String(r.department || r.dept || r.spec || '').trim(),
-                        active: r.active !== false,
-                        hospitals: Array.isArray(r.hospitals) && r.hospitals.length ? [...r.hospitals] : [currentHospital.id]
-                    })).filter(r => r.name.length > 0);
-
-                    if (mode === 'replace') {
-                        currentHospital.names = cleanedResidents;
-                    } else {
-                        if (!currentHospital.names) currentHospital.names = [];
-                        let added = 0;
-                        cleanedResidents.forEach(newRes => {
-                            const idx = currentHospital.names.findIndex(r => r.name === newRes.name);
-                            if (idx >= 0) {
-                                currentHospital.names[idx] = Object.assign({}, currentHospital.names[idx], newRes);
-                            } else {
-                                currentHospital.names.push(newRes);
-                                added++;
-                            }
-                        });
-                    }
+                    Hub.restoreHospitalResidents(currentHospital.id, data.residents, mode);
                 }
 
                 // 3. Restore Structure (schedules, ICU, etc.) if replace mode
@@ -4333,7 +4307,7 @@
                 renderResidentsAccordion();
                 updateStatsBadges();
                 renderSpecialtiesList();
-                populateSpecDropdowns();
+                populateSpecialtyDropdowns();
 
                 closeImportModal();
                 showToast(`تمت استعادة بيانات المستشفى بنجاح (${mode === 'replace' ? 'استبدال كامل شامل' : 'دمج'})!`, 'success');

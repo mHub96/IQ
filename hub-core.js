@@ -2899,8 +2899,26 @@
         if (!['user', 'anaesthesia'].includes(role) || AA) return null;
         const acc = auth.getAccount();
         if (!acc) return null;
-        if (!acc.resident_id) return [];
-        return (hospital.specialties || []).filter(s => residentsOfSpecialty(hospital, s.id).list.some(r => r.id === acc.resident_id)).map(s => s.id);
+        // The resident's own record (each hospital's names list is a copy that can lag behind).
+        const rec = acc.resident_id && Array.isArray(db?.residents) ? db.residents.find(r => r.id === acc.resident_id) : null;
+        if (!rec || rec.active === false || rec.spec === 'RESERVE') return [];
+        const inHosp = id => Array.isArray(rec.hospitals) && rec.hospitals.includes(id);
+        const fits = (specs, specId) => {
+            const s = specs.find(x => x.id === specId);
+            const pool = Array.isArray(s?.acceptPool) ? s.acceptPool : [];
+            if (pool.includes('ALL') || pool.includes('*')) return true;
+            const dept = rec.dept || rec.department || rec.spec || rec.tag;
+            if (!dept) return false;
+            return dept === specId || (!!s?.parentSpec && dept === s.parentSpec)
+                || specs.some(x => x.parentSpec === specId && x.id === dept) || pool.includes(dept);
+        };
+        return (hospital.specialties || []).filter(s => {
+            if (s.isClone && s.clonedFromHospitalId) {
+                const src = getHospital(s.clonedFromHospitalId);
+                return !!src && inHosp(src.id) && fits(src.specialties || [], s.clonedFromSpecId);
+            }
+            return inHosp(hospital.id) && fits(hospital.specialties || [], s.id);
+        }).map(s => s.id);
     }
 
     // ============================================================
@@ -3288,6 +3306,53 @@
 
         await saveDatabase(`Add Resident: ${formattedName}`);
         return newRes;
+    }
+
+    /**
+     * A hospital backup's residents go back into the shared residents list (each hospital's list is
+     * rebuilt from it). Same id, else same name: updated; otherwise added. 'replace' also takes the
+     * hospital off the residents the backup does not have (they stay in their other hospitals).
+     * Saving is the caller's. Returns { updated, added, removed }.
+     */
+    function restoreHospitalResidents(hospitalId, residents, mode = 'replace') {
+        if (!auth.isAdmin()) throw new Error('غير مصرح لك. يتطلب صلاحيات المدير.');
+        if (!db) throw new Error('قاعدة البيانات غير محملة');
+        if (!Array.isArray(db.residents)) syncSharedResidentsFromHospitals();
+        const out = { updated: 0, added: 0, removed: 0 };
+        const kept = new Set();
+        (residents || []).forEach((r, i) => {
+            const name = String(r && r.name || '').trim();
+            if (!name) return;
+            const key = nameKeyOf(name);
+            let rec = (r.id && db.residents.find(x => x.id === r.id))
+                || db.residents.find(x => !kept.has(x.id) && nameKeyOf(x.name) === key);
+            const spec = normalizeSpecialtyId(r.spec || r.tag || 'GS');
+            const dept = normalizeSpecialtyId(r.dept || r.department || spec);
+            const phone = (r.phone && r.phone !== 'رقم غير متوفر') ? (formatIraqiPhoneNumber(r.phone) || String(r.phone).trim()) : '';
+            const fields = { name, phone, spec, tag: normalizeSpecialtyId(r.tag || spec), dept, department: dept, active: r.active !== false };
+            if (rec) {
+                Object.assign(rec, fields);
+                if (!Array.isArray(rec.hospitals)) rec.hospitals = [];
+                if (!rec.hospitals.includes(hospitalId)) rec.hospitals.push(hospitalId);
+                out.updated++;
+            } else {
+                const id = r.id && !db.residents.some(x => x.id === r.id) ? r.id : 'res-' + Date.now().toString(36) + i + Math.random().toString(36).substr(2, 4);
+                rec = { id, ...fields, hospitals: [hospitalId] };
+                db.residents.push(rec);
+                out.added++;
+            }
+            kept.add(rec.id);
+        });
+        if (mode === 'replace') {
+            db.residents.forEach(x => {
+                if (!kept.has(x.id) && Array.isArray(x.hospitals) && x.hospitals.includes(hospitalId)) {
+                    x.hospitals = x.hospitals.filter(h => h !== hospitalId);
+                    out.removed++;
+                }
+            });
+        }
+        syncHospitalsWithSharedResidents();
+        return out;
     }
 
     // Same name key as the API (worker/src/names.js): spelling variants, titles and "عبد الله" spacing
@@ -4318,6 +4383,7 @@
         addResident,
         updateResident,
         nameKey: nameKeyOf,
+        restoreHospitalResidents,
         deleteResident,
         getSpecialists,
         getSpecialist,

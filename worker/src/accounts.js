@@ -9,7 +9,7 @@
  */
 
 import { DAY, json, readJson, signToken, sha256b64, b64, overLimit, bucketOf, plainText } from './lib.js';
-import { nameKey, namesMatch, phoneKey, isoDate } from './names.js';
+import { nameKey, nameTokens, namesMatch, phoneKey, isoDate } from './names.js';
 import { sendPush, isPushEndpoint, topicFor } from './push.js';
 import { durationText } from './reminders.js';
 import { BOARDS, dutyDayNow, getStageMonth, setStageMonth, currentStage, profileComplete, suggestProfile } from './profile.js';
@@ -240,12 +240,27 @@ async function findResident(env, hosp, name, phone) {
     ).bind(pk, hosp),
   ]);
   if (!hospRow.results.length) return { hospOk: false, match: null };
-  const inHospital = r => {
-    try { return (JSON.parse(r.hospitals || '[]') || []).includes(hosp); } catch { return false; }
-  };
-  const candidates = [...names.results, ...residents.results.filter(inHospital)];
-  const match = candidates.find(c => phoneKey(c.phone) === pk && namesMatch(name, c.name)) || null;
-  return { hospOk: true, match, pk };
+  const hospitalsOf = r => { try { return JSON.parse(r.hospitals || '[]') || []; } catch { return []; } };
+  const inHospital = r => hospitalsOf(r).includes(hosp);
+  // The phone number identifies the resident; the first name confirms it (names are often written
+  // shorter than in the database, e.g. "ابو تراب" for "د. ابو تراب قيس عبدالحسن").
+  const typed = nameTokens(name);
+  const firstOk = c => !!typed[0] && typed[0].length >= 2 && nameTokens(c.name)[0] === typed[0];
+  const samePhone = [...residents.results.filter(inHospital), ...names.results].filter(c => phoneKey(c.phone) === pk);
+  const match = samePhone.find(firstOk) || null;
+  if (match) return { hospOk: true, match, pk };
+  // Not found: say why, so nobody is told "no such resident" when the database has them.
+  if (samePhone.length) return { hospOk: true, match: null, pk, reason: 'phone_other_name' };
+  const elsewhere = residents.results.filter(r => phoneKey(r.phone) === pk && !inHospital(r) && firstOk(r));
+  if (elsewhere.length) return { hospOk: true, match: null, pk, reason: 'other_hospital', hospitals: [...new Set(elsewhere.flatMap(hospitalsOf))] };
+  if (typed.length >= 2) {
+    const { results: same } = await env.DB.prepare(
+      `SELECT json_extract(data, '$.name') AS name FROM records
+        WHERE coll = 'resident' AND EXISTS (SELECT 1 FROM json_each(records.data, '$.hospitals') h WHERE h.value = ?1)`
+    ).bind(hosp).all();
+    if ((same || []).some(r => namesMatch(name, r.name))) return { hospOk: true, match: null, pk, reason: 'name_other_phone' };
+  }
+  return { hospOk: true, match: null, pk, reason: 'none' };
 }
 
 /** The rotators' specialty (by its name: "Rotator" / "مقيم دوري"), or a branch of it. */
@@ -274,8 +289,9 @@ async function checkIdentity(request, env, ip) {
   if (await overLimit(env, 'check:' + ip, 60)) return json({ error: 'rate_limited' }, 429);
   const body = await readJson(request);
   if (!body) return json({ error: 'bad_request' }, 400);
-  const { hospOk, match } = await findResident(env, String(body.hosp || ''), String(body.name || ''), String(body.phone || ''));
-  if (!hospOk || !match) return json({ ok: true, match: false });
+  const found = await findResident(env, String(body.hosp || ''), String(body.name || ''), String(body.phone || ''));
+  const { hospOk, match } = found;
+  if (!hospOk || !match) return json({ ok: true, match: false, reason: found.reason || 'none', hospitals: found.hospitals || [] });
   const taken = await env.DB.prepare("SELECT 1 AS t FROM accounts WHERE resident_id = ? AND status IN ('pending', 'active')").bind(match.id || '').first();
   const hint = taken ? {} : await suggestProfile(env, { name: match.name, hosp: String(body.hosp), residentId: match.id, phone: body.phone }).catch(() => ({}));
   // Filed under the rotators' specialty: the page offers the rotator sign-up instead.

@@ -14,7 +14,7 @@
  */
 
 import { DAY, json, readJson, overLimit, neutralize, plainText } from './lib.js';
-import { nameKey, namesMatch, phoneKey } from './names.js';
+import { nameKey, nameTokens, phoneKey } from './names.js';
 import { dutyDayNow } from './profile.js';
 
 export const AA_ROLES = ['aa_user', 'aa_admin'];
@@ -336,7 +336,9 @@ export async function findOfficer(env, hosp, name, phone) {
   const division = await divisionRecord(env, hosp);
   const { results } = await env.DB.prepare("SELECT data FROM aa_records WHERE hosp = ? AND coll = 'resident'").bind(hosp).all();
   const candidates = [...((division && division.data.names) || []), ...results.map(r => { try { return JSON.parse(r.data); } catch { return null; } })];
-  const match = candidates.find(c => c && c.id && phoneKey(c.phone) === pk && namesMatch(name, c.name)) || null;
+  // The phone number identifies the officer; the first name confirms it (as for residents).
+  const first = nameTokens(name)[0] || '';
+  const match = candidates.find(c => c && c.id && phoneKey(c.phone) === pk && first.length >= 2 && nameTokens(c.name)[0] === first) || null;
   return { pk, match };
 }
 

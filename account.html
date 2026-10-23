@@ -885,8 +885,9 @@
             su.verified = null;
             $('su-step2').disabled = true;
             updateSubmit();
-            if (!hosp || name.split(/\s+/).filter(Boolean).length < 2 || phone.replace(/\D/g, '').length < 10) {
-                verifyBox('', '<i class="fas fa-id-card"></i><span>اختر المستشفى واكتب اسمك الثنائي على الأقل ورقم هاتفك للتحقق.</span>');
+            // The phone number identifies the resident: the first name is enough to confirm it.
+            if (!hosp || name.replace(/^د\.?\s*/, '').trim().length < 2 || phone.replace(/\D/g, '').length < 10) {
+                verifyBox('', '<i class="fas fa-id-card"></i><span>اختر المستشفى واكتب اسمك (الاسم الأول على الأقل) ورقم هاتفك المسجّل في الجدول للتحقق.</span>');
                 paintSteps();
                 return;
             }
@@ -917,7 +918,13 @@
                         if (radio) { radio.checked = true; paintSteps(); updateSubmit(); }
                     }
                 } else {
-                    verifyBox('bad', '<i class="fas fa-circle-xmark"></i><span>لم نجد طبيباً بهذا الاسم ورقم الهاتف في هذا المستشفى. تأكد من الاسم الأول والثاني ومن الرقم المسجّل في الجدول، أو راجع مدير المستشفى.<br><small>إن كنت في فترة الروتيشن (غير مسجّل في جدول الخفارات): <button type="button" class="hacc-link" data-act="as-rotator">سجّل كروتيتر</button></small></span>');
+                    // Why not: the number under another first name, another hospital, or the name with another number.
+                    const why = {
+                        phone_other_name: 'رقم الهاتف هذا مسجّل في قاعدة المستشفى لكن باسم أول مختلف. اكتب اسمك الأول كما هو مسجّل في الجدول.',
+                        other_hospital: `رقمك واسمك مسجّلان في قاعدة ${esc((res.hospitals || []).map(hospitalName).join('، ') || 'مستشفى آخر')}. اختر ذلك المستشفى من القائمة، أو راجع مدير مستشفاك لإضافتك.`,
+                        name_other_phone: 'الاسم موجود في قاعدة هذا المستشفى لكن برقم هاتف مختلف. اكتب الرقم المسجّل في الجدول، أو راجع مدير المستشفى لتحديث رقمك.',
+                    }[res.reason] || 'لا يوجد في قاعدة هذا المستشفى أحد بهذا الرقم أو بهذا الاسم. تأكد من الرقم المسجّل في الجدول، أو راجع مدير المستشفى.';
+                    verifyBox('bad', `<i class="fas fa-circle-xmark"></i><span>${why}<br><small>إن كنت في فترة الروتيشن (غير مسجّل في جدول الخفارات): <button type="button" class="hacc-link" data-act="as-rotator">سجّل كروتيتر</button></small></span>`);
                     $('su-verify').querySelector('[data-act="as-rotator"]').addEventListener('click', () => toRotator('<i class="fas fa-rotate"></i><span>حساب روتيتر: تصفح الموقع والتعليق فقط، بلا تبديل خفارات. أكمل البيانات وأرسل الطلب.</span>'));
                 }
             } catch (err) {

@@ -771,6 +771,9 @@
                 console.warn('Failed to parse saved emergency state, falling back to defaults', e);
             }
         }
+        // The table filters are for the moment only: a reload starts with every day shown (a filter
+        // left ticked, e.g. "empty slots only", would otherwise hide every day of a full month).
+        clearScheduleFilterState();
 
         // Enforce: Always display ER schedule first on initial load
         state.activeTab = 'er';
@@ -2089,7 +2092,8 @@
         ];
         state.monthYear = `${monthNames[state.month - 1]} ${state.year}`;
         
-        // 3. Load schedule for newly selected month
+        // 3. Load schedule for newly selected month (every day shown: no filter carried over)
+        clearScheduleFilterState();
         loadMonthScheduleFromStore(state.hospitalId, state.year, state.month);
         const hasAlloc = loadMonthAllocationsFromStore(state.hospitalId, state.year, state.month);
         
@@ -3112,10 +3116,7 @@
         });
 
         // Reset schedule search/filter on tab change
-        state.scheduleSearchQuery = '';
-        state.scheduleShiftFilter = 'all';
-        state.scheduleDayFilter = 'all';
-        state.scheduleStatusFilter = 'all';
+        clearScheduleFilterState();
 
         renderActiveTab();
         updateDutyDashboard();
@@ -3498,6 +3499,17 @@
         applyScheduleLiveFilter(state.scheduleSearchQuery);
     }
 
+    /** Every table filter back to "show everything" (state only; the next draw shows it). */
+    function clearScheduleFilterState() {
+        state.scheduleSearchQuery = '';
+        state.scheduleDoctorFilter = '';
+        state.scheduleShiftFilter = 'all';
+        state.scheduleDayFilter = 'all';
+        state.scheduleStatusFilter = 'all';
+        state.scheduleEmptyOnly = false;
+        state.scheduleConflictOnly = false;
+    }
+
     function resetScheduleFilters(type) {
         state.scheduleSearchQuery = '';
         state.scheduleDoctorFilter = '';
@@ -3619,6 +3631,21 @@
             shownDays.add(tr.getAttribute('data-day'));
         });
         const matchedDays = shownDays.size;
+
+        // The filters hide every day: say so (with one tap back to all days) instead of an empty table.
+        let note = box.querySelector('#sched-all-filtered');
+        if (rows.length && !matchedDays) {
+            if (!note) {
+                note = document.createElement('div');
+                note.id = 'sched-all-filtered';
+                note.className = 'no-print my-3 p-4 rounded-2xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 flex items-center justify-between gap-3 flex-wrap';
+                note.innerHTML = `<div class="text-xs font-bold text-amber-900 dark:text-amber-200"><i class="fas fa-filter ml-1"></i> الفلاتر المختارة تخفي كل أيام هذا الجدول.</div>
+                    <button type="button" onclick="resetScheduleFilters()" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-black">عرض كل الأيام</button>`;
+                const table = box.querySelector('table');
+                const anchor = (table && (table.closest('[data-shift-block]') || table.closest('.overflow-x-auto'))) || table;
+                if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(note, anchor); else box.appendChild(note);
+            }
+        } else if (note) note.remove();
 
         // Live counter badge update
         const badge = document.getElementById('sched-filter-count-badge');

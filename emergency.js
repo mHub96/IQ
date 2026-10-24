@@ -2077,8 +2077,7 @@
 
     function onMonthYearChange(monthVal, yearVal) {
         // 1. Save current month schedule & allocations
-        saveCurrentMonthScheduleToStore();
-        saveCurrentMonthAllocationsToStore();
+        try { saveCurrentMonthScheduleToStore(); saveCurrentMonthAllocationsToStore(); } catch (e) { console.error('ER month save', e); }
         
         // 2. Update month and year
         state.month = parseInt(monthVal) || state.month;
@@ -3126,8 +3125,9 @@
         const container = document.getElementById('schedule-view-container');
         if (!container) return;
 
-        updateDutyDashboard();
+        try { updateDutyDashboard(); } catch (e) { console.error('ER dashboard', e); }
 
+        try {
         switch (state.activeTab) {
             case 'er':
                 renderERView(container);
@@ -3151,6 +3151,16 @@
                 break;
             default:
                 renderERView(container);
+        }
+        } catch (e) {
+            // Never a blank space where the schedule should be: say what failed (and let them retry).
+            console.error('ER schedule render', e);
+            container.innerHTML = `<div class="p-6 text-center rounded-2xl border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/40">
+                <div class="text-3xl mb-2">⚠️</div>
+                <div class="font-black text-rose-700 dark:text-rose-300 mb-1">تعذر عرض جدول ${escapeHtml(state.monthYear || '')}</div>
+                <div class="text-xs text-slate-600 dark:text-slate-300 mb-3" dir="ltr" style="word-break:break-word">${escapeHtml(String((e && e.message) || e))}</div>
+                <button type="button" onclick="EmergencyCore.renderActiveTab()" class="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-bold">إعادة المحاولة</button></div>`;
+            return;
         }
         applyScheduleLiveFilter(state.scheduleSearchQuery || '');
     }

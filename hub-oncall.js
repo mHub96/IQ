@@ -53,6 +53,12 @@
     const DRIPS = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 60' preserveAspectRatio='none'%3E%3Cpath fill='%23b91c1c' d='M0 0h400v14c-8 0-10 22-17 22s-6-18-14-18-9 34-18 34-8-30-17-30-6 10-14 10-8-16-16-16-10 40-20 40-9-38-18-38-7 12-15 12-9-20-17-20-11 28-20 28-8-26-16-26-6 8-13 8-9-18-18-18-10 30-20 30-9-28-17-28-7 10-14 10-8-14-16-14-10 24-19 24-8-22-16-22-7 6-14 6-8-16-16-16-11 36-20 36-9-34-17-34L0 14z'/%3E%3C/svg%3E\")";
     const CSS = `
     .roster-card .card-duty-status { gap: .3rem; }
+    /* Phones: under the specialty badges (in the card's flow), never over them. */
+    @media (max-width: 640px) {
+        .roster-card .card-front .card-duty-status { position: relative; top: auto; right: auto; display: flex; width: max-content; max-width: 92%;
+            margin: -.1rem auto .55rem; padding: .32rem .8rem; border: 1px solid; border-radius: 999px; box-shadow: 0 2px 10px rgba(0,0,0,.1); }
+        .roster-card .card-front .card-duty-status > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    }
     .roster-card .card-duty-status.oc-idle { background: rgba(142,142,147,.12); border-color: rgba(142,142,147,.35); color: #636366; }
     body.dark .roster-card .card-duty-status.oc-idle { color: #C7C7CC; }
     .roster-card .card-duty-status.oc-busy { background: #fff; color: #991b1b; border-color: rgba(255,255,255,.7); animation: ocPulse 2.2s ease-in-out infinite; }
@@ -285,7 +291,9 @@
                 if (!c.edit) { toast(statusText(c.st) ? `${c.n}: ${statusText(c.st)}` : 'لا توجد حالة', 'info'); return; }
                 openOptions(c);
             });
-            front.appendChild(btn);
+            // Under the specialty badges (phones show it there; on wider cards it sits on the edge).
+            const bubbles = front.querySelector('.specialty-bubbles');
+            if (bubbles) bubbles.after(btn); else front.appendChild(btn);
         }
         btn.classList.toggle('oc-busy', !!(st && st.s));
         btn.classList.toggle('oc-idle', !(st && st.s));

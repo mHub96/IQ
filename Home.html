@@ -2675,7 +2675,7 @@
 
             const currentMin = getCurrentMinutes();
 
-            container.innerHTML = currentResidents.map(resident => {
+            const html = currentResidents.map(resident => {
                 const isTrending = trending && trending.name === resident.name;
                 const isCrimson = resident.remainingMinutes < 60 && resident.remainingMinutes > 0;
                 const isPhoneValid = resident.phone && resident.phone.replace(/[^0-9]/g, '').length >= 10;
@@ -2819,6 +2819,14 @@
                     </div>
                 `;
             }).join('');
+            // The roster is redrawn every 30 s and on every data sync: when nothing changed, the cards stay
+            // as they are (open options included) and only their likes and statuses are refreshed in place.
+            // (The remaining-time text changes every minute; updateCountdowns keeps it current in place.)
+            const sameKey = html.replace(/(<span class="countdown-timer[^>]*>)[^<]*/g, '$1');
+            if (container._rosterHtml !== sameKey || !container.querySelector('.roster-card-wrapper')) {
+                container._rosterHtml = sameKey;
+                container.innerHTML = html;
+            }
 
             // Likes and comments (one request for the whole roster; see hub-accounts.js). They are for the
             // doctors' duty cards only: not in the Administrative Affairs division or on its mirrored cards.

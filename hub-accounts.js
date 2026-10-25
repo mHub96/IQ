@@ -487,6 +487,8 @@
                 return { icon: '⚠️', text: `${d.item || ''} قارب على النفاد في ${d.place || ''}: بقي ${d.left} فقط.`, open: () => openPanel('opioids-mine') };
             case 'opioid_empty':
                 return { icon: '⛔', text: `نفد ${d.item || ''} في ${d.place || ''}. اطلب التعويض من الإدارة.`, open: () => openPanel('opioids-mine') };
+            case 'opioid_handed_off':
+                return { icon: '🤝', text: `سُلّمت ذمة المخدرات «${d.place || ''}» إلى ${d.to || 'مقيم آخر'}${d.by ? ' (بواسطة ' + d.by + ')' : ''}. تبقى سجلاتك محفوظة في حسابك.` };
             case 'opioid_replenished':
                 return { icon: '💊', text: `${d.by || 'المسؤول'} عوّض ذمته: أضاف ${d.qty} من ${d.item || ''} (${d.place || ''}). المتبقي: ${d.left}.`, open: () => openPanel('opioids') };
             case 'opioid_stock':

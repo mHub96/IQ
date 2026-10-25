@@ -132,6 +132,66 @@
     .opi-chk { display: flex !important; align-items: center; gap: 8px; grid-template-columns: none !important; }
     .opi-chk input { width: 18px !important; min-height: 0 !important; height: 18px; }
     .opi-refill { margin-top: 6px; font-size: .66rem; padding: 4px 8px; }
+    /* The recording form (the duty roster's pop-up, and the holder's tab) */
+    .opu { --o1: #6d28d9; --o2: #db2777; display: flex; flex-direction: column; min-height: 100%; }
+    .opu-sheet { padding: 0 !important; overflow: hidden; }
+    .opu-hero { position: relative; display: flex; gap: 12px; align-items: center; padding: 18px 16px 16px; color: #fff; border-radius: 0 0 26px 26px;
+        background: radial-gradient(120% 140% at 100% 0%, rgba(255,255,255,.18), transparent 50%), linear-gradient(135deg, #4c1d95, #7c3aed 55%, #db2777); box-shadow: 0 10px 28px rgba(109,40,217,.35); }
+    .opu-ic { width: 48px; height: 48px; flex: none; border-radius: 16px; display: grid; place-items: center; font-size: 1.5rem; background: rgba(255,255,255,.18); backdrop-filter: blur(6px); }
+    .opu-hero h2 { margin: 0; font-size: 1.02rem; font-weight: 900; }
+    .opu-who { font-size: .72rem; font-weight: 700; opacity: .92; margin-top: 3px; }
+    .opu-x { position: absolute; top: 12px; inset-inline-end: 12px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(255,255,255,.2); color: #fff; font-size: .95rem; cursor: pointer; }
+    .opu-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 12px 14px 4px; }
+    .opu-steps span { position: relative; text-align: center; padding: 7px 4px 7px 4px; border-radius: 12px; font-size: .68rem; font-weight: 900; background: rgba(142,142,147,.12); color: #8e8e93; transition: all .25s; }
+    .opu-steps span::before { content: '○ '; }
+    .opu-steps span.done { background: rgba(124,58,237,.12); color: var(--o1); }
+    .opu-steps span.done::before { content: '✓ '; }
+    body.dark .opu-steps span.done { color: #c4b5fd; }
+    .opu-body { padding: 6px 14px 14px; flex: 1; }
+    .opu-lab { margin: 12px 2px 6px; font-size: .72rem; font-weight: 900; opacity: .8; }
+    .opu-place { margin-top: 8px; padding: 10px 12px; border-radius: 14px; background: rgba(124,58,237,.08); font-size: .8rem; font-weight: 900; }
+    .opu-place span { font-weight: 700; opacity: .75; }
+    .opu-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+    .opu-card { text-align: start; padding: 11px 12px; border-radius: 16px; border: 1.5px solid rgba(142,142,147,.25); background: rgba(142,142,147,.06); color: inherit; font: inherit; cursor: pointer; transition: all .2s; }
+    .opu-card b { display: block; font-size: .8rem; font-weight: 900; }
+    .opu-card small { display: block; font-size: .66rem; font-weight: 800; margin-top: 3px; opacity: .75; }
+    .opu-card.on { border-color: var(--o1); background: rgba(124,58,237,.1); box-shadow: 0 0 0 3px rgba(124,58,237,.18); }
+    .opu-item.low small { color: #d97706; opacity: 1; } .opu-item.out small { color: #dc2626; opacity: 1; }
+    .opu-card:disabled { opacity: .45; cursor: not-allowed; }
+    .opu-step { display: grid; grid-template-columns: 52px 1fr 52px; gap: 6px; max-width: 260px; }
+    .opu-step button { height: 48px; border-radius: 14px; border: 0; background: rgba(124,58,237,.12); color: var(--o1); font-size: 1.3rem; font-weight: 900; cursor: pointer; }
+    body.dark .opu-step button { color: #c4b5fd; }
+    .opu-step input { height: 48px; text-align: center; font-size: 1.2rem; font-weight: 900; }
+    .opu-in, .opu-step input { width: 100%; box-sizing: border-box; min-height: 48px; border-radius: 14px; border: 1.5px solid rgba(142,142,147,.3); background: rgba(142,142,147,.05); color: inherit; padding: 0 12px; font: 800 .88rem inherit; font-family: inherit; transition: border-color .2s, box-shadow .2s; }
+    .opu-in:focus, .opu-step input:focus { outline: none; border-color: var(--o1); box-shadow: 0 0 0 3px rgba(124,58,237,.18); }
+    .opu-namecheck { margin: 5px 4px 0; font-size: .66rem; font-weight: 800; opacity: .7; }
+    .opu-namecheck.ok { color: #16a34a; opacity: 1; } .opu-namecheck.bad { color: #d97706; opacity: 1; }
+    .opu-two { display: grid; grid-template-columns: 1fr 110px; gap: 10px; }
+    .opu-sex { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .opu-sex button, .opu-chips button, .opu-date button { min-height: 48px; border-radius: 14px; border: 1.5px solid rgba(142,142,147,.28); background: rgba(142,142,147,.06); color: inherit; font: 900 .8rem inherit; font-family: inherit; cursor: pointer; transition: all .2s; }
+    .opu-sex button[data-sex="m"].on { border-color: #2563eb; background: rgba(37,99,235,.12); color: #1d4ed8; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+    .opu-sex button[data-sex="f"].on { border-color: #db2777; background: rgba(219,39,119,.12); color: #be185d; box-shadow: 0 0 0 3px rgba(219,39,119,.15); }
+    .opu-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .opu-chips button { min-height: 42px; padding: 0 14px; }
+    .opu-chips button.on { border-color: var(--o1); background: rgba(124,58,237,.12); color: var(--o1); box-shadow: 0 0 0 3px rgba(124,58,237,.15); }
+    body.dark .opu-chips button.on { color: #c4b5fd; }
+    .opu-date { display: grid; grid-template-columns: 1fr 80px; gap: 6px; }
+    .opu-sep { height: 1px; margin: 16px 0 4px; background: linear-gradient(90deg, transparent, rgba(142,142,147,.35), transparent); }
+    .opu-foot { position: sticky; bottom: 0; display: flex; gap: 10px; align-items: center; padding: 12px 14px calc(12px + env(safe-area-inset-bottom)); background: inherit;
+        backdrop-filter: blur(10px); border-top: 1px solid rgba(142,142,147,.2); z-index: 2; }
+    .opu-sum { flex: 1; font-size: .72rem; font-weight: 800; opacity: .85; line-height: 1.5; }
+    .opu-sum .ok { color: #16a34a; } .opu-sum .low { color: #d97706; } .opu-sum .out { color: #dc2626; }
+    .opu-go { min-width: 120px; height: 48px; border-radius: 16px; border: 0; color: #fff; font: 900 .9rem inherit; font-family: inherit; cursor: pointer;
+        background: linear-gradient(135deg, var(--o1), var(--o2)); box-shadow: 0 8px 20px rgba(109,40,217,.35); transition: opacity .2s, transform .15s; }
+    .opu-go:disabled { opacity: .4; box-shadow: none; cursor: not-allowed; }
+    .opu-go:not(:disabled):active { transform: scale(.97); }
+    .opu-go.busy { opacity: .7; }
+    .opi-hist-t { border-radius: 16px; border: 1px solid rgba(142,142,147,.22); padding: 12px; margin-bottom: 10px; background: rgba(142,142,147,.04); }
+    .opi-hist-t h4 { margin: 0; font-size: .88rem; font-weight: 900; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+    .opi-hist-t .opi-sub { margin-top: 3px; }
+    .opi-hist-t.cur { border-color: #a78bfa; background: rgba(124,58,237,.05); }
+    .opi-code { font: 900 1.4rem/1 ui-monospace, 'SFMono-Regular', Consolas, monospace; letter-spacing: .3em; text-align: center; padding: 12px; border-radius: 12px; background: #fee2e2; color: #991b1b; user-select: none; direction: ltr; }
+    .opi-danger-box { border-color: #f87171 !important; background: rgba(239,68,68,.06) !important; }
     .nav-btn.nav-opi { background: linear-gradient(135deg, #7c3aed, #db2777) !important; color: #fff !important; border: 0 !important; box-shadow: 0 4px 14px rgba(124,58,237,.35) !important; }
     .nav-btn.nav-opi .opi-dot { width: 8px; height: 8px; border-radius: 50%; background: #fde047; box-shadow: 0 0 0 2px rgba(255,255,255,.5); }
     `;
@@ -210,6 +270,127 @@
             try { await api('POST', '/api/opioids/move', { id: m.id, action: 'edit', ...st, qty: Number(st.qty), age: st.age === '' ? '' : Number(st.age) }); toast('حُفظ التعديل ✓', 'success'); after(); }
             catch (err) { e.currentTarget.disabled = false; toast(errText(err), 'error'); }
         });
+    }
+
+    // ------------------------------------------------------------------
+    // The admins: hand-off, delete (with a typed code), the full history
+    // ------------------------------------------------------------------
+    /** Holder suggestions on an input (the hospital's residents, not rotators). onPick(r) / onPick(null). */
+    function holderPicker(inp, list, hosp, onPick) {
+        let timer = null, found = [], idx = -1;
+        const show = () => {
+            list.hidden = !found.length;
+            list.innerHTML = found.map((r, i) => `<button type="button" class="${i === idx ? 'on' : ''}" data-r="${i}">${esc(r.name)}${r.account ? '' : ' <small class="opi-noacc">لا يملك حساباً</small>'}</button>`).join('');
+            list.querySelectorAll('[data-r]').forEach(b => b.addEventListener('mousedown', e => { e.preventDefault(); pick(found[Number(b.dataset.r)]); }));
+        };
+        const pick = r => { inp.value = r.name; list.hidden = true; onPick(r); };
+        inp.addEventListener('input', () => {
+            onPick(null);
+            clearTimeout(timer);
+            timer = setTimeout(async () => {
+                try { found = (await api('GET', `/api/opioids/residents?h=${encodeURIComponent(hosp)}&q=${encodeURIComponent(inp.value.trim())}`)).residents || []; idx = -1; show(); } catch (e) { /* offline */ }
+            }, 200);
+        });
+        inp.addEventListener('focus', () => inp.dispatchEvent(new Event('input')));
+        inp.addEventListener('blur', () => setTimeout(() => { list.hidden = true; }, 150));
+        inp.addEventListener('keydown', e => {
+            if (list.hidden) return;
+            if (e.key === 'ArrowDown') { idx = Math.min(found.length - 1, idx + 1); show(); e.preventDefault(); }
+            else if (e.key === 'ArrowUp') { idx = Math.max(0, idx - 1); show(); e.preventDefault(); }
+            else if (e.key === 'Enter' && found[Math.max(0, idx)]) { e.preventDefault(); pick(found[Math.max(0, idx)]); }
+        });
+    }
+    function topBox(host, html, cls = '') {
+        const old = host.querySelector('.opi-editbox');
+        if (old) old.remove();
+        const box = document.createElement('div');
+        box.className = 'opi-editbox opi-form ' + cls;
+        box.innerHTML = html;
+        (host.querySelector('.opi') || host).prepend(box);
+        box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        const x = box.querySelector('[data-act="x"]');
+        if (x) x.addEventListener('click', () => box.remove());
+        return box;
+    }
+    function handoffBox(host, d, done) {
+        const box = topBox(host, `<div class="opi-top" style="margin:0"><b>🤝 تسليم ذمة ${esc(d.place)}</b><button type="button" class="opi-btn" data-act="x">✕</button></div>
+            <div class="opi-sub">المسؤول الآن: <b>${esc(d.holder ? d.holder.name : '—')}</b>. يستلم المقيم الجديد ما تبقى (${d.items.map(i => `${esc(i.name)}: ${fmt(i.left)}`).join('، ')}) ويصله إشعار، ويُبلَّغ المسؤول الحالي بالتسليم.</div>
+            <label>المقيم الذي يستلم الذمة
+                <div class="opi-sugg"><input data-f="holder" autocomplete="off" placeholder="اكتب الاسم واختر من القائمة"><div class="opi-sugg-list" hidden></div></div>
+                <small class="opi-sub" data-role="note">كل مقيمي المستشفى عدا الروتيترية.</small></label>
+            <button type="button" class="opi-new" data-act="go" disabled>تسليم الذمة الآن</button>`);
+        let chosen = null;
+        const note = box.querySelector('[data-role="note"]');
+        holderPicker(box.querySelector('[data-f="holder"]'), box.querySelector('.opi-sugg-list'), d.hosp, r => {
+            chosen = r;
+            box.querySelector('[data-act="go"]').disabled = !r;
+            note.className = 'opi-sub' + (r && !r.account ? ' opi-warn' : '');
+            note.textContent = !r ? 'اختر الاسم من القائمة.' : r.account ? `✓ ${r.name} (لديه حساب فعّال)` : `⚠️ ${r.name} لا يملك حساباً فعّالاً: لن يصله الإشعار ولن يرى الذمة حتى ينشئ حساباً.`;
+        });
+        box.querySelector('[data-act="go"]').addEventListener('click', async e => {
+            if (!chosen) return;
+            if (!chosen.account && !confirm(`${chosen.name} لا يملك حساباً فعّالاً، فلن يصله الإشعار. المتابعة؟`)) return;
+            e.currentTarget.disabled = true;
+            try {
+                const r = await api('POST', '/api/opioids/handoff', { id: d.id, holder: { res: chosen.res, name: chosen.name } });
+                toast(r.notified ? `سُلّمت الذمة إلى ${chosen.name} وأُبلغ ✓` : `سُلّمت الذمة إلى ${chosen.name} ✓ (لا يملك حساباً، فلن يصله إشعار)`, r.notified ? 'success' : 'info');
+                done();
+            } catch (err) { e.currentTarget.disabled = false; toast(err && err.data && err.data.error === 'same_holder' ? 'هذا المقيم هو المسؤول الحالي.' : errText(err), 'error'); }
+        });
+    }
+    function deleteBox(host, d, done) {
+        const code = Array.from(crypto.getRandomValues(new Uint8Array(6)), b => 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[b % 31]).join('');
+        const box = topBox(host, `<div class="opi-top" style="margin:0"><b style="color:#dc2626">🗑️ حذف ذمة ${esc(d.place)} نهائياً</b><button type="button" class="opi-btn" data-act="x">✕</button></div>
+            <div class="opi-warn" style="margin:0">⚠️ سيُحذف هذا الإجراء الذمة <b>وكل سجلاتها</b> نهائياً: الاستلام والتعويض والاستخدام وكل المسؤولين السابقين. لا يمكن التراجع عنه، ولن تظهر هذه السجلات لأحد بعد الآن. اطبع السجل أولاً إن احتجت إليه.</div>
+            <div class="opi-sub">للتأكيد اكتب الرمز التالي كما هو:</div>
+            <div class="opi-code" aria-label="رمز التأكيد">${code}</div>
+            <input data-f="code" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="اكتب الرمز هنا" style="text-align:center;letter-spacing:.2em;font-weight:900;direction:ltr">
+            <button type="button" class="opi-new" data-act="go" disabled style="background:linear-gradient(135deg,#dc2626,#9f1239)">حذف الذمة وكل سجلاتها</button>`, 'opi-danger-box');
+        const inp = box.querySelector('[data-f="code"]'), go = box.querySelector('[data-act="go"]');
+        inp.addEventListener('input', () => { go.disabled = inp.value.trim().toUpperCase() !== code; });
+        inp.focus();
+        go.addEventListener('click', async () => {
+            if (inp.value.trim().toUpperCase() !== code) return;
+            go.disabled = true;
+            try { const r = await api('POST', '/api/opioids/delete', { id: d.id, confirm: true }); toast(`حُذفت الذمة و${fmt(r.deleted ? r.deleted.moves : 0)} سجلاً ✓`, 'success'); done(); }
+            catch (err) { go.disabled = false; toast(errText(err), 'error'); }
+        });
+    }
+    /** Every holder of the duty, with their period and their records (sorted by name or by date). */
+    async function historyView(host, d, done) {
+        host.innerHTML = '<div class="opi"><div class="opi-empty">جاري تحميل السجل الكامل…</div></div>';
+        let data;
+        try { data = await api('GET', `/api/opioids/history?id=${d.id}`); }
+        catch (e) { host.innerHTML = `<div class="opi"><div class="opi-top"><button type="button" class="opi-btn" data-act="back">→ رجوع</button></div><div class="opi-empty">${esc(errText(e))}</div></div>`; host.querySelector('[data-act="back"]').addEventListener('click', done); return; }
+        let sort = 'name';
+        const open = new Set();
+        const paint = () => {
+            const ts = [...data.tenures].sort((a, b) => sort === 'name' ? a.name.localeCompare(b.name, 'ar') || a.from - b.from : b.from - a.from);
+            const period = t => `${new Date(t.from).toLocaleDateString('en-GB')} ← ${t.to ? new Date(t.to).toLocaleDateString('en-GB') : 'حتى الآن'}`;
+            host.innerHTML = `<div class="opi">
+                <div class="opi-top"><button type="button" class="opi-btn" data-act="back">→ رجوع</button><b>🕘 السجل الكامل · ${esc(d.place)}</b></div>
+                <div class="opi-top"><div class="opi-seg"><button type="button" data-sort="name" class="${sort === 'name' ? 'on' : ''}">حسب اسم المسؤول</button><button type="button" data-sort="date" class="${sort === 'date' ? 'on' : ''}">حسب التاريخ</button></div>
+                    <span class="opi-sub">${data.tenures.length} ${data.tenures.length === 1 ? 'فترة' : 'فترات'} · ${data.tenures.reduce((n, t) => n + t.moves.length, 0)} سجل</span></div>
+                ${ts.length ? ts.map(t => {
+                    const uses = t.moves.filter(m => m.kind === 'use' && !m.voided);
+                    return `<div class="opi-hist-t ${t.to ? '' : 'cur'}" data-t="${t.id}">
+                        <h4><span>👤 ${esc(t.name)} ${t.to ? '' : '<span class="opi-chip active">الحالي</span>'}</span><button type="button" class="opi-btn" data-open="${t.id}">${open.has(t.id) ? 'إخفاء' : 'عرض السجلات'}</button></h4>
+                        <div class="opi-sub">📅 ${esc(period(t))} · ${uses.length} استخدام (${uses.reduce((n, m) => n + m.qty, 0)} أمبولة) · ${t.moves.length} سجل</div>
+                        ${open.has(t.id) ? `${logTable([...t.moves].reverse(), { canEdit: () => true })}<button type="button" class="opi-btn" data-print="${t.id}" style="margin-top:8px">🖨️ طباعة سجل هذه الفترة</button>` : ''}
+                    </div>`;
+                }).join('') : '<div class="opi-empty">لا توجد فترات بعد (الذمة لم تُؤكَّد).</div>'}
+            </div>`;
+            host.querySelector('[data-act="back"]').addEventListener('click', done);
+            host.querySelectorAll('[data-sort]').forEach(b => b.addEventListener('click', () => { sort = b.dataset.sort; paint(); }));
+            host.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => { const id = Number(b.dataset.open); if (open.has(id)) open.delete(id); else open.add(id); paint(); }));
+            host.querySelectorAll('[data-print]').forEach(b => b.addEventListener('click', () => {
+                const t = data.tenures.find(x => x.id === Number(b.dataset.print));
+                printLog({ ...d, items: [] }, t.moves.filter(m => !m.voided), '', `${t.name} (${period(t)})`);
+            }));
+            const all = data.tenures.flatMap(t => t.moves);
+            bindRowActions(host, all, () => d, async () => { data = await api('GET', `/api/opioids/history?id=${d.id}`); paint(); });
+        };
+        paint();
     }
 
     // ------------------------------------------------------------------
@@ -342,10 +523,10 @@
                 const d = data.duties.find(x => x.id === Number(el.dataset.duty));
                 const moves = movesOf[d.id] || [];
                 el.querySelector('[data-act="edit"]').addEventListener('click', () => editor(host, d, () => manager(host)));
-                el.querySelector('[data-act="delete"]').addEventListener('click', async () => {
-                    if (!confirm(`حذف ذمة «${d.place}»؟ تبقى سجلاتها محفوظة للإدارة والمالك.`)) return;
-                    try { await api('POST', '/api/opioids/delete', { id: d.id }); toast('حُذفت الذمة', 'success'); manager(host); } catch (e) { toast(errText(e), 'error'); }
-                });
+                el.querySelector('[data-act="delete"]').addEventListener('click', () => deleteBox(host, d, () => manager(host)));
+                el.querySelector('[data-act="history"]').addEventListener('click', () => historyView(host, d, () => manager(host)));
+                const ho = el.querySelector('[data-act="handoff"]');
+                if (ho) ho.addEventListener('click', () => handoffBox(host, d, () => manager(host)));
                 const conf = el.querySelector('[data-act="confirm"]');
                 if (conf) conf.addEventListener('click', async () => {
                     conf.disabled = true;
@@ -384,6 +565,8 @@
                 ${itemsHtml(d.items, d.status === 'active')}
                 ${d.pending ? `<button type="button" class="opi-confirm" data-act="confirm">✅ تأكيد ${d.status === 'draft' ? 'الذمة' : 'التغيير'} وإشعار ${esc(d.next ? d.next.name : 'المقيم')}</button>` : ''}
                 <div class="opi-acts">
+                    ${d.status === 'active' ? '<button type="button" class="opi-btn primary" data-act="handoff">🤝 تسليم لمقيم آخر</button>' : ''}
+                    <button type="button" class="opi-btn" data-act="history">🕘 السجل الكامل</button>
                     <button type="button" class="opi-btn" data-act="edit">✏️ تعديل</button>
                     <button type="button" class="opi-btn" data-act="log">📋 السجل (${moves.length})</button>
                     <button type="button" class="opi-btn" data-act="print">🖨️ طباعة</button>
@@ -428,7 +611,7 @@
                         ${!draft ? '<div class="opi-sub" style="margin-top:6px">عدد المواد الحالية يتغير من «تعويض» و«سحب» في بطاقة الذمة.</div>' : ''}
                     </div>
                     <button type="button" class="opi-new" data-act="save">${isNew ? 'إنشاء الذمة' : 'حفظ التعديلات'}</button>
-                    <div class="opi-sub">${isNew ? 'بعد الإنشاء اضغط «تأكيد وإشعار» ليصل الإشعار إلى المقيم وتظهر الذمة في حسابه.' : 'تغيير المقيم المسؤول يحتاج «تأكيد التغيير» ليستلم المسؤول الجديد ما تبقى.'}</div>
+                    <div class="opi-sub">${isNew ? 'بعد الإنشاء اضغط «تأكيد وإشعار» ليصل الإشعار إلى المقيم وتظهر الذمة في حسابه.' : 'إذا غيّرت المقيم المسؤول تُسلَّم الذمة له فور الحفظ ويصله إشعار، ويستلم ما تبقى.'}</div>
                 </div></div>`;
             const $ = s => host.querySelector(s);
             $('[data-act="back"]').addEventListener('click', done);
@@ -481,11 +664,14 @@
                 if (st.holder.account === false && !confirm(`${st.holder.name} لا يملك حساباً فعّالاً في الموقع، فلن يصله الإشعار ولن يرى الذمة حتى ينشئ حساباً. المتابعة؟`)) return;
                 btn.disabled = true;
                 try {
-                    await api('POST', '/api/opioids/duty', {
+                    const res = await api('POST', '/api/opioids/duty', {
                         id: duty.id || undefined, hosp: duty.hosp, place: st.place, wards: st.wards, holder: { res: st.holder.res, name: st.holder.name },
                         items: st.items.filter(i => String(i.name || '').trim()).map(i => ({ id: i.id, name: i.name, qty: Number(i.qty) || 0, low: Number(i.low) })),
                     });
-                    toast(isNew ? 'أُنشئت الذمة. اضغط «تأكيد وإشعار» لإسنادها.' : 'حُفظت التعديلات ✓', 'success');
+                    const ap = res && res.applied;
+                    toast(isNew ? 'أُنشئت الذمة. اضغط «تأكيد وإشعار» لإسنادها.' : ap && ap.changed
+                        ? (ap.notified ? `حُفظت التعديلات ✓ · سُلّمت الذمة إلى ${st.holder.name} وأُبلغ.` : `حُفظت التعديلات ✓ · سُلّمت الذمة إلى ${st.holder.name} (لا يملك حساباً، فلن يصله إشعار).`)
+                        : 'حُفظت التعديلات ✓', ap && ap.changed && !ap.notified ? 'info' : 'success');
                     done();
                 } catch (err) { btn.disabled = false; toast(errText(err), 'error'); }
             });
@@ -559,66 +745,99 @@
     // ------------------------------------------------------------------
     function useForm(duties, after, host) {
         if (!duties.length) return;
-        const who = esc((Hub.auth.getAccount() || {}).name || '');
-        let form, close;
+        const who = (Hub.auth.getAccount() || {}).name || '';
+        let root, close;
+        const shell = `<div class="opu">
+            <div class="opu-hero"><span class="opu-ic">💉</span><div><h2>تسجيل استخدام مادة مخدرة</h2>
+                <div class="opu-who"><i class="fas fa-user-pen"></i> يُسجَّل باسمك تلقائياً: <b>${esc(who)}</b></div></div>
+                ${host ? '<button type="button" class="opu-x" data-act="back" aria-label="رجوع">→</button>' : '<button type="button" class="opu-x" data-act="close" aria-label="إغلاق">✕</button>'}</div>
+            <div class="opu-steps"><span data-step="1">المادة</span><span data-step="2">المريض</span><span data-step="3">الاستخدام</span></div>
+            <div class="opu-body" data-role="form"></div>
+            <div class="opu-foot"><div class="opu-sum" data-role="sum">اختر المادة للبدء</div><button type="button" class="opu-go" data-act="submit" disabled>تسجيل</button></div>
+        </div>`;
         if (host) {
-            // Inside the account panel: the form takes the tab's place ("رجوع" returns).
-            host.innerHTML = `<div class="opi"><div class="opi-top"><button type="button" class="opi-btn" data-act="back">→ رجوع</button><b>💉 تسجيل استخدام</b></div>
-                <div class="opi-sub" style="margin-bottom:8px">يُسجَّل باسمك تلقائياً: ${who}</div><div class="opi-form" data-role="form"></div></div>`;
-            form = host.querySelector('[data-role="form"]');
+            host.innerHTML = shell;
+            root = host.querySelector('.opu');
             close = () => { if (after) after(); };
-            host.querySelector('[data-act="back"]').addEventListener('click', close);
+            root.querySelector('[data-act="back"]').addEventListener('click', close);
         } else {
-            const sheet = A.openSheet(`<header class="hacc-sheet-head"><div><h2>💉 تسجيل استخدام مادة مخدرة</h2><div class="hacc-muted">يُسجَّل باسمك تلقائياً: ${who}</div></div>
-                    <button type="button" class="hacc-icon-btn" data-act="close" aria-label="إغلاق">✕</button></header>
-                <div class="hacc-sheet-body opi"><div class="opi-form" data-role="form"></div></div>`, { label: 'تسجيل استخدام مادة مخدرة', tall: true });
-            sheet.querySelector('[data-act="close"]').addEventListener('click', A.closeSheet);
-            form = sheet.querySelector('[data-role="form"]');
+            const sheet = A.openSheet(shell, { label: 'تسجيل استخدام مادة مخدرة', tall: true });
+            sheet.classList.add('opu-sheet');
+            root = sheet.querySelector('.opu');
             close = () => { A.closeSheet(); if (after) after(); };
+            root.querySelector('[data-act="close"]').addEventListener('click', A.closeSheet);
         }
-        const st = { duty: duties[0].id, item: null, qty: 1, patient: '', sex: '', age: '', ward: '', date: today() };
-        const paint = () => {
-            const d = duties.find(x => x.id === st.duty);
-            if (!d.items.some(i => i.id === st.item)) st.item = (d.items.find(i => i.left > 0) || d.items[0] || {}).id || null;
-            if (!d.wards.includes(st.ward)) st.ward = d.wards.length === 1 ? d.wards[0] : '';
-            const it = d.items.find(i => i.id === st.item);
-            form.innerHTML = `
-                ${duties.length > 1 ? `<label>الذمة (المكان)<select data-f="duty">${duties.map(x => `<option value="${x.id}" ${x.id === st.duty ? 'selected' : ''}>${esc(x.place)}${x.holder ? ' · ' + esc(x.holder) : ''}</option>`).join('')}</select></label>` : `<div class="opi-sub">📍 ${esc(d.place)}${d.holder ? ' · المسؤول: ' + esc(d.holder) : ''}</div>`}
-                <label>المادة<select data-f="item">${d.items.map(i => `<option value="${i.id}" ${i.id === st.item ? 'selected' : ''} ${i.left <= 0 ? 'disabled' : ''}>${esc(i.name)} · المتبقي ${fmt(i.left)}</option>`).join('')}</select></label>
-                <div class="opi-row"><label style="flex:1">اسم المريض الثلاثي *<input data-f="patient" maxlength="80" value="${esc(st.patient)}" autocomplete="off" placeholder="الاسم واسم الأب والجد" required></label>
-                    <label style="width:90px">العدد *<input data-f="qty" type="number" min="1" max="${Math.min(10, it ? it.left : 1)}" inputmode="numeric" value="${st.qty}" required></label></div>
-                <div class="opi-row">
-                    <label style="flex:1">الجنس *<div class="opi-seg" style="display:grid;grid-template-columns:1fr 1fr"><button type="button" data-sex="m" class="${st.sex === 'm' ? 'on' : ''}">ذكر</button><button type="button" data-sex="f" class="${st.sex === 'f' ? 'on' : ''}">أنثى</button></div></label>
-                    <label style="width:90px">العمر *<input data-f="age" type="number" min="0" max="120" inputmode="numeric" value="${esc(st.age)}" required></label>
-                </div>
-                <label>الردهة *<select data-f="ward" required><option value="">اختر الردهة</option>${d.wards.map(w => `<option ${w === st.ward ? 'selected' : ''}>${esc(w)}</option>`).join('')}</select></label>
-                <label>تاريخ الاستخدام *<input data-f="date" type="date" max="${today()}" value="${esc(st.date)}" required></label>
-                <div class="opi-sub">كل الحقول مطلوبة: السجل الرسمي يحتاجها كاملة.</div>
-                <button type="button" class="opi-new" data-act="submit" ${!it || it.left <= 0 ? 'disabled' : ''}>تسجيل الاستخدام</button>`;
-            form.querySelectorAll('[data-f]').forEach(inp => inp.addEventListener(inp.tagName === 'SELECT' ? 'change' : 'input', () => {
-                const v = inp.value;
-                st[inp.dataset.f] = inp.dataset.f === 'duty' || inp.dataset.f === 'item' ? Number(v) : v;
-                if (inp.tagName === 'SELECT') paint();
-            }));
-            form.querySelectorAll('[data-sex]').forEach(b => b.addEventListener('click', () => { st.sex = b.dataset.sex; form.querySelectorAll('[data-sex]').forEach(x => x.classList.toggle('on', x === b)); }));
-            form.querySelector('[data-act="submit"]').addEventListener('click', async e => {
-                const btn = e.currentTarget;
-                // Every field (the official log needs them all).
-                const miss = !st.item ? 'اختر المادة.' : !threeNames(st.patient) ? ERR.patient_three_names : !(Number(st.qty) >= 1) ? 'اكتب العدد.'
-                    : !st.sex ? ERR.sex_required : st.age === '' || !(Number(st.age) >= 0 && Number(st.age) <= 120) ? ERR.age_required
-                    : !st.ward ? ERR.ward_required : !st.date || st.date > today() ? ERR.bad_date : '';
-                if (miss) { toast(miss, 'error'); return; }
-                btn.disabled = true;
-                try {
-                    const r = await api('POST', '/api/opioids/use', { duty: st.duty, item: st.item, qty: Number(st.qty) || 1, patient: st.patient, sex: st.sex, age: st.age === '' ? null : Number(st.age), ward: st.ward, date: st.date });
-                    const dd = duties.find(x => x.id === st.duty);
-                    const ii = dd.items.find(i => i.id === st.item);
-                    if (ii) ii.left = r.left;
-                    toast(`سُجّل ✓ · المتبقي من ${ii ? ii.name : 'المادة'}: ${r.left}${r.low ? (r.left ? ' ⚠️ قارب على النفاد' : ' ⛔ نفد') : ''}`, r.low ? 'info' : 'success');
-                    close();
-                } catch (err) { btn.disabled = false; toast(errText(err), 'error'); }
-            });
+        const form = root.querySelector('[data-role="form"]');
+        // Nothing is chosen for the recorder: every field is theirs to fill.
+        const st = { duty: duties.length === 1 ? duties[0].id : null, item: null, qty: '', patient: '', sex: '', age: '', ward: '', date: '' };
+        const duty = () => duties.find(x => x.id === st.duty) || null;
+        const item = () => (duty() ? duty().items.find(i => i.id === st.item) : null) || null;
+        const valid = {
+            1: () => !!duty() && !!item() && Number(st.qty) >= 1 && Number(st.qty) <= Math.min(10, item().left),
+            2: () => threeNames(st.patient) && !!st.sex && st.age !== '' && Number(st.age) >= 0 && Number(st.age) <= 120,
+            3: () => !!st.ward && !!st.date && st.date <= today(),
         };
+        const refresh = () => {
+            root.querySelectorAll('[data-step]').forEach(s => s.classList.toggle('done', valid[s.dataset.step]()));
+            const it = item();
+            const ok = valid[1]() && valid[2]() && valid[3]();
+            root.querySelector('[data-act="submit"]').disabled = !ok;
+            const missing = !valid[1]() ? 'اختر المادة والعدد' : !valid[2]() ? 'أكمل بيانات المريض (الاسم الثلاثي، الجنس، العمر)' : !valid[3]() ? 'اختر الردهة وتاريخ الاستخدام' : '';
+            root.querySelector('[data-role="sum"]').innerHTML = ok
+                ? `<b>${esc(it.name)} × ${Number(st.qty)}</b> · سيتبقى <b class="${level(it.left - Number(st.qty), it.low || 0)}">${fmt(it.left - Number(st.qty))}</b>`
+                : esc(missing);
+            const nameOk = form.querySelector('.opu-namecheck');
+            if (nameOk) { nameOk.className = 'opu-namecheck ' + (threeNames(st.patient) ? 'ok' : st.patient ? 'bad' : ''); nameOk.textContent = threeNames(st.patient) ? '✓ اسم ثلاثي' : st.patient ? 'يحتاج اسم الأب والجد' : 'الاسم واسم الأب والجد'; }
+        };
+        const paint = () => {
+            const d = duty();
+            form.innerHTML = `
+                ${duties.length > 1 ? `<div class="opu-lab">الذمة (المكان)</div>
+                    <div class="opu-cards">${duties.map(x => `<button type="button" class="opu-card ${x.id === st.duty ? 'on' : ''}" data-duty="${x.id}"><b>📍 ${esc(x.place)}</b><small>${esc(x.holder || '')}</small></button>`).join('')}</div>` : `<div class="opu-place">📍 ${esc(d.place)}${d.holder ? ` · <span>المسؤول: ${esc(d.holder)}</span>` : ''}</div>`}
+                ${d ? `<div class="opu-lab">المادة</div>
+                    <div class="opu-cards">${d.items.map(i => `<button type="button" class="opu-card opu-item ${level(i.left, i.low || 0)} ${i.id === st.item ? 'on' : ''}" data-item="${i.id}" ${i.left <= 0 ? 'disabled' : ''}>
+                        <b>💊 ${esc(i.name)}</b><small>${i.left <= 0 ? 'نفدت' : `المتبقي ${fmt(i.left)}`}</small></button>`).join('')}</div>
+                    <div class="opu-lab">عدد الأمبولات</div>
+                    <div class="opu-step"><button type="button" data-q="-1" aria-label="أقل">−</button><input data-f="qty" type="number" inputmode="numeric" min="1" max="10" placeholder="—" value="${esc(st.qty)}" aria-label="عدد الأمبولات"><button type="button" data-q="1" aria-label="أكثر">＋</button></div>` : ''}
+                <div class="opu-sep"></div>
+                <div class="opu-lab">اسم المريض الثلاثي</div>
+                <input class="opu-in" data-f="patient" maxlength="80" autocomplete="off" placeholder="مثال: علي حسين كاظم" value="${esc(st.patient)}">
+                <div class="opu-namecheck"></div>
+                <div class="opu-two">
+                    <div><div class="opu-lab">الجنس</div><div class="opu-sex"><button type="button" data-sex="m" class="${st.sex === 'm' ? 'on' : ''}"><i class="fas fa-mars"></i> ذكر</button><button type="button" data-sex="f" class="${st.sex === 'f' ? 'on' : ''}"><i class="fas fa-venus"></i> أنثى</button></div></div>
+                    <div><div class="opu-lab">العمر</div><input class="opu-in" data-f="age" type="number" inputmode="numeric" min="0" max="120" placeholder="بالسنوات" value="${esc(st.age)}"></div>
+                </div>
+                <div class="opu-sep"></div>
+                ${d ? `<div class="opu-lab">الردهة</div><div class="opu-chips">${d.wards.map(w => `<button type="button" data-ward="${esc(w)}" class="${w === st.ward ? 'on' : ''}">🛏️ ${esc(w)}</button>`).join('')}</div>` : ''}
+                <div class="opu-lab">تاريخ الاستخدام</div>
+                <div class="opu-date"><input class="opu-in" data-f="date" type="date" max="${today()}" value="${esc(st.date)}"><button type="button" data-act="today">اليوم</button></div>`;
+            form.querySelectorAll('[data-duty]').forEach(b => b.addEventListener('click', () => { st.duty = Number(b.dataset.duty); st.item = null; st.ward = ''; paint(); }));
+            form.querySelectorAll('[data-item]').forEach(b => b.addEventListener('click', () => { st.item = Number(b.dataset.item); paint(); }));
+            form.querySelectorAll('[data-q]').forEach(b => b.addEventListener('click', () => {
+                const max = item() ? Math.min(10, item().left) : 10;
+                st.qty = String(Math.max(1, Math.min(max, (Number(st.qty) || 0) + Number(b.dataset.q))));
+                form.querySelector('[data-f="qty"]').value = st.qty;
+                refresh();
+            }));
+            form.querySelectorAll('[data-f]').forEach(i => i.addEventListener('input', () => { st[i.dataset.f] = i.value; refresh(); }));
+            form.querySelectorAll('[data-sex]').forEach(b => b.addEventListener('click', () => { st.sex = b.dataset.sex; form.querySelectorAll('[data-sex]').forEach(x => x.classList.toggle('on', x === b)); refresh(); }));
+            form.querySelectorAll('[data-ward]').forEach(b => b.addEventListener('click', () => { st.ward = b.dataset.ward; form.querySelectorAll('[data-ward]').forEach(x => x.classList.toggle('on', x === b)); refresh(); }));
+            form.querySelector('[data-act="today"]').addEventListener('click', () => { st.date = today(); form.querySelector('[data-f="date"]').value = st.date; refresh(); });
+            refresh();
+        };
+        root.querySelector('[data-act="submit"]').addEventListener('click', async e => {
+            const btn = e.currentTarget;
+            if (!(valid[1]() && valid[2]() && valid[3]())) return;
+            btn.disabled = true;
+            btn.classList.add('busy');
+            try {
+                const r = await api('POST', '/api/opioids/use', { duty: st.duty, item: st.item, qty: Number(st.qty), patient: st.patient.trim(), sex: st.sex, age: Number(st.age), ward: st.ward, date: st.date });
+                const it = item();
+                if (it) it.left = r.left;
+                toast(`سُجّل ✓ · المتبقي من ${it ? it.name : 'المادة'}: ${r.left}${r.low ? (r.left ? ' ⚠️ قارب على النفاد' : ' ⛔ نفد') : ''}`, r.low ? 'info' : 'success');
+                close();
+            } catch (err) { btn.disabled = false; btn.classList.remove('busy'); toast(errText(err), 'error'); }
+        });
         paint();
     }
 

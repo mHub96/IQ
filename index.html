@@ -3053,10 +3053,61 @@
             }
         }
 
-        function exportFullSystemBackupFile() {
+        /**
+         * The whole system, read from the server (every hospital, resident, roster, specialist and ICU
+         * record, and every ER month of every hospital), in the format of the automatic full backups
+         * (tools/backups/backup.mjs), so the restore screen takes it. Offline: this device's copy.
+         */
+        async function exportFullSystemBackupFile() {
             if (!Hub.auth.isOwner()) {
                 showToast('النسخ الاحتياطي الشامل للمنظومة مخصص للمالك (Owner) حصراً', 'error');
                 return;
+            }
+            const readAll = async endpoint => {
+                const rows = [];
+                let after = 0, page;
+                do {
+                    page = await Hub.api('GET', `${endpoint}?after=${after}`, undefined, { retries: 2 });
+                    rows.push(...(page.rows || []));
+                    after = page.last;
+                } while (page.more);
+                return rows;
+            };
+            try {
+                showToast('جارٍ تجهيز النسخة الشاملة من الخادم…', 'info');
+                const [hubRows, erRows] = await Promise.all([readAll('/api/db'), readAll('/api/er')]);
+                if (!hubRows.some(r => r[0] === 'hospital')) throw new Error('empty');
+                const ER = { state: 'hosp_hub_emergency_state_v3', colors: 'hosp_hub_emergency_specialty_colors', sched: 'hosp_hub_emergency_sched_', alloc: 'hosp_hub_emergency_alloc_' };
+                const emergencySchedules = {}, emergencyAllocations = {};
+                let emergencyState = null, emergencyColors = null;
+                for (const [, id, , , , data] of erRows) {
+                    if (/@(server|device)@/.test(id)) continue;          // conflict copies stay out
+                    if (id === ER.state) emergencyState = data;
+                    else if (id === ER.colors) emergencyColors = data;
+                    else if (id.startsWith(ER.sched)) emergencySchedules[id.slice(ER.sched.length)] = data;
+                    else if (id.startsWith(ER.alloc)) emergencyAllocations[id.slice(ER.alloc.length)] = data;
+                }
+                const made = new Date();
+                const full = {
+                    format: 'hosp_hub_full_system_backup', version: '3.5', fromServer: true,
+                    exportedAt: made.toISOString(), exportDateFormatted: made.toLocaleString('ar-IQ', { timeZone: 'Asia/Baghdad' }),
+                    hubDatabase: HubSync.compose(hubRows.filter(r => r[0] !== 'er')),
+                    emergencyState, emergencyAllocations, emergencySchedules, emergencyColors,
+                    counts: { records: hubRows.length, erMonths: Object.keys(emergencySchedules).length, erAllocations: Object.keys(emergencyAllocations).length },
+                };
+                const url = URL.createObjectURL(new Blob([JSON.stringify(full)], { type: 'application/json' }));
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `hosp-hub-FULL-SYSTEM-backup-${made.toLocaleDateString('en-CA', { timeZone: 'Asia/Baghdad' })}.json`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 60000);
+                showToast(`تم تنزيل النسخة الشاملة ✓ · ${Object.keys(full.hubDatabase.hospitals || {}).length} مستشفى · ${full.counts.erMonths} شهر طوارئ`, 'success');
+                return;
+            } catch (e) {
+                console.warn('Full backup from the server failed, using this device copy:', e);
+                showToast('تعذر الوصول إلى الخادم: تُنزَّل نسخة هذا الجهاز بدلاً منها.', 'error');
             }
             const dbObj = currentDb;
             if (!dbObj || !dbObj.hospitals) {

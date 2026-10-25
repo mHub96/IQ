@@ -58,6 +58,9 @@
         if (window.navigation && typeof window.navigation.addEventListener === 'function') {
             window.navigation.addEventListener('navigate', function (e) {
                 if (!e.cancelable || e.navigationType === 'reload' || e.navigationType === 'traverse' || e.downloadRequest || e.formData) return;
+                // The page tidying its own address (history.replaceState / pushState) is no navigation:
+                // reloading it then would lose what it was doing (e.g. the owner tool asked for by #admin=).
+                if (e.destination && e.destination.sameDocument && !e.hashChange) return;
                 var u;
                 try { u = new URL(e.destination.url); } catch (err) { return; }
                 if (e.hashChange) { if (e.navigationType === 'push') { e.preventDefault(); location.replace(u.href); } return; }

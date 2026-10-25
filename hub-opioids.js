@@ -186,6 +186,13 @@
     .opu-go:disabled { opacity: .4; box-shadow: none; cursor: not-allowed; }
     .opu-go:not(:disabled):active { transform: scale(.97); }
     .opu-go.busy { opacity: .7; }
+    .opi-histbtn { display: flex; align-items: center; gap: 12px; width: 100%; margin: 0 0 14px; padding: 12px 14px; border-radius: 18px; border: 1.5px solid rgba(124,58,237,.3);
+        background: linear-gradient(135deg, rgba(124,58,237,.08), rgba(219,39,119,.06)); color: inherit; font: inherit; text-align: start; cursor: pointer; }
+    .opi-histbtn > span { width: 42px; height: 42px; flex: none; border-radius: 14px; display: grid; place-items: center; font-size: 1.3rem; background: linear-gradient(135deg, #7c3aed, #db2777); }
+    .opi-histbtn div { flex: 1; min-width: 0; }
+    .opi-histbtn b { display: block; font-size: .9rem; font-weight: 900; }
+    .opi-histbtn small { display: block; font-size: .68rem; font-weight: 700; opacity: .75; margin-top: 2px; line-height: 1.5; }
+    .opi-histbtn i { opacity: .5; }
     .opi-hist-t { border-radius: 16px; border: 1px solid rgba(142,142,147,.22); padding: 12px; margin-bottom: 10px; background: rgba(142,142,147,.04); }
     .opi-hist-t h4 { margin: 0; font-size: .88rem; font-weight: 900; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
     .opi-hist-t .opi-sub { margin-top: 3px; }
@@ -356,39 +363,46 @@
             catch (err) { go.disabled = false; toast(errText(err), 'error'); }
         });
     }
-    /** Every holder of the duty, with their period and their records (sorted by name or by date). */
-    async function historyView(host, d, done) {
+    /** Every holder of every duty of the hospital, with their period and their records (by name or by date). */
+    async function historyView(host, hosp, done) {
         host.innerHTML = '<div class="opi"><div class="opi-empty">جاري تحميل السجل الكامل…</div></div>';
         let data;
-        try { data = await api('GET', `/api/opioids/history?id=${d.id}`); }
+        const load = () => api('GET', `/api/opioids/history?h=${encodeURIComponent(hosp)}`);
+        try { data = await load(); }
         catch (e) { host.innerHTML = `<div class="opi"><div class="opi-top"><button type="button" class="opi-btn" data-act="back">→ رجوع</button></div><div class="opi-empty">${esc(errText(e))}</div></div>`; host.querySelector('[data-act="back"]').addEventListener('click', done); return; }
-        let sort = 'name';
+        let sort = 'name', place = '';
         const open = new Set();
+        const dutyOf = id => { const x = data.duties.find(y => y.id === id); return x ? { ...x, hosp } : { id, hosp, place: '', wards: [] }; };
         const paint = () => {
-            const ts = [...data.tenures].sort((a, b) => sort === 'name' ? a.name.localeCompare(b.name, 'ar') || a.from - b.from : b.from - a.from);
+            const ts = data.tenures.filter(t => !place || String(t.duty) === place)
+                .sort((a, b) => sort === 'name' ? a.name.localeCompare(b.name, 'ar') || a.from - b.from : b.from - a.from);
             const period = t => `${new Date(t.from).toLocaleDateString('en-GB')} ← ${t.to ? new Date(t.to).toLocaleDateString('en-GB') : 'حتى الآن'}`;
             host.innerHTML = `<div class="opi">
-                <div class="opi-top"><button type="button" class="opi-btn" data-act="back">→ رجوع</button><b>🕘 السجل الكامل · ${esc(d.place)}</b></div>
+                <div class="opi-top"><button type="button" class="opi-btn" data-act="back">→ رجوع</button><b>🕘 السجل الكامل · ${esc(hospName(hosp))}</b></div>
                 <div class="opi-top"><div class="opi-seg"><button type="button" data-sort="name" class="${sort === 'name' ? 'on' : ''}">حسب اسم المسؤول</button><button type="button" data-sort="date" class="${sort === 'date' ? 'on' : ''}">حسب التاريخ</button></div>
-                    <span class="opi-sub">${data.tenures.length} ${data.tenures.length === 1 ? 'فترة' : 'فترات'} · ${data.tenures.reduce((n, t) => n + t.moves.length, 0)} سجل</span></div>
+                    ${data.duties.length > 1 ? `<select data-role="place" aria-label="الذمة"><option value="">كل الذمم</option>${data.duties.map(x => `<option value="${x.id}" ${String(x.id) === place ? 'selected' : ''}>${esc(x.place)}</option>`).join('')}</select>` : ''}
+                    <span class="opi-sub">${ts.length} ${ts.length === 1 ? 'فترة' : 'فترات'} · ${ts.reduce((n, t) => n + t.moves.length, 0)} سجل</span></div>
                 ${ts.length ? ts.map(t => {
                     const uses = t.moves.filter(m => m.kind === 'use' && !m.voided);
                     return `<div class="opi-hist-t ${t.to ? '' : 'cur'}" data-t="${t.id}">
                         <h4><span>👤 ${esc(t.name)} ${t.to ? '' : '<span class="opi-chip active">الحالي</span>'}</span><button type="button" class="opi-btn" data-open="${t.id}">${open.has(t.id) ? 'إخفاء' : 'عرض السجلات'}</button></h4>
-                        <div class="opi-sub">📅 ${esc(period(t))} · ${uses.length} استخدام (${uses.reduce((n, m) => n + m.qty, 0)} أمبولة) · ${t.moves.length} سجل</div>
+                        <div class="opi-sub">📍 ${esc(t.place)} · 📅 ${esc(period(t))}</div>
+                        <div class="opi-sub">${uses.length} استخدام (${uses.reduce((n, m) => n + m.qty, 0)} أمبولة) · ${t.moves.length} سجل</div>
                         ${open.has(t.id) ? `${logTable([...t.moves].reverse(), { canEdit: () => true })}<button type="button" class="opi-btn" data-print="${t.id}" style="margin-top:8px">🖨️ طباعة سجل هذه الفترة</button>` : ''}
                     </div>`;
-                }).join('') : '<div class="opi-empty">لا توجد فترات بعد (الذمة لم تُؤكَّد).</div>'}
+                }).join('') : '<div class="opi-empty">لا توجد فترات بعد (لم تُؤكَّد أي ذمة).</div>'}
             </div>`;
             host.querySelector('[data-act="back"]').addEventListener('click', done);
             host.querySelectorAll('[data-sort]').forEach(b => b.addEventListener('click', () => { sort = b.dataset.sort; paint(); }));
+            const ps = host.querySelector('[data-role="place"]');
+            if (ps) ps.addEventListener('change', () => { place = ps.value; paint(); });
             host.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => { const id = Number(b.dataset.open); if (open.has(id)) open.delete(id); else open.add(id); paint(); }));
             host.querySelectorAll('[data-print]').forEach(b => b.addEventListener('click', () => {
                 const t = data.tenures.find(x => x.id === Number(b.dataset.print));
-                printLog({ ...d, items: [] }, t.moves.filter(m => !m.voided), '', `${t.name} (${period(t)})`);
+                printLog({ ...dutyOf(t.duty), items: [] }, t.moves.filter(m => !m.voided), '', `${t.name} (${period(t)})`);
             }));
             const all = data.tenures.flatMap(t => t.moves);
-            bindRowActions(host, all, () => d, async () => { data = await api('GET', `/api/opioids/history?id=${d.id}`); paint(); });
+            bindRowActions(host, all, m => dutyOf(m.duty), async () => { data = await load(); paint(); });
         };
         paint();
     }
@@ -514,17 +528,18 @@
                     ${scope.length > 1 ? `<select data-role="hosp" aria-label="المستشفى">${scope.map(h => `<option value="${esc(h)}" ${h === hosp ? 'selected' : ''}>${esc(hospName(h))}</option>`).join('')}</select>` : `<b style="font-size:.85rem">${esc(hospName(hosp))}</b>`}
                     <button type="button" class="opi-new" data-act="new">＋ ذمة جديدة</button>
                 </div>
+                <button type="button" class="opi-histbtn" data-act="history"><span>🕘</span><div><b>السجل الكامل</b><small>كل المسؤولين السابقين والحاليين لكل ذمم ${esc(hospName(hosp))}، بفترات تغطيتهم وسجلاتهم</small></div><i class="fas fa-chevron-left"></i></button>
                 ${duties.length ? duties.map(d => card(d)).join('') : '<div class="opi-empty">💊<br>لا توجد ذمم مخدرات في هذا المستشفى بعد.<br>أنشئ أول ذمة: المكان، الردهات، المقيم المسؤول، والمواد.</div>'}
             </div>`;
             const sel = host.querySelector('[data-role="hosp"]');
             if (sel) sel.addEventListener('change', () => { hosp = sel.value; paint(); });
             host.querySelector('[data-act="new"]').addEventListener('click', () => editor(host, { hosp }, () => manager(host)));
+            host.querySelector('[data-act="history"]').addEventListener('click', () => historyView(host, hosp, () => manager(host)));
             host.querySelectorAll('.opi-card').forEach(el => {
                 const d = data.duties.find(x => x.id === Number(el.dataset.duty));
                 const moves = movesOf[d.id] || [];
                 el.querySelector('[data-act="edit"]').addEventListener('click', () => editor(host, d, () => manager(host)));
                 el.querySelector('[data-act="delete"]').addEventListener('click', () => deleteBox(host, d, () => manager(host)));
-                el.querySelector('[data-act="history"]').addEventListener('click', () => historyView(host, d, () => manager(host)));
                 const ho = el.querySelector('[data-act="handoff"]');
                 if (ho) ho.addEventListener('click', () => handoffBox(host, d, () => manager(host)));
                 const conf = el.querySelector('[data-act="confirm"]');
@@ -566,7 +581,6 @@
                 ${d.pending ? `<button type="button" class="opi-confirm" data-act="confirm">✅ تأكيد ${d.status === 'draft' ? 'الذمة' : 'التغيير'} وإشعار ${esc(d.next ? d.next.name : 'المقيم')}</button>` : ''}
                 <div class="opi-acts">
                     ${d.status === 'active' ? '<button type="button" class="opi-btn primary" data-act="handoff">🤝 تسليم لمقيم آخر</button>' : ''}
-                    <button type="button" class="opi-btn" data-act="history">🕘 السجل الكامل</button>
                     <button type="button" class="opi-btn" data-act="edit">✏️ تعديل</button>
                     <button type="button" class="opi-btn" data-act="log">📋 السجل (${moves.length})</button>
                     <button type="button" class="opi-btn" data-act="print">🖨️ طباعة</button>

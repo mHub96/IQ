@@ -261,6 +261,12 @@ test('hand-off: the admin hands the duty to the next resident (notified); the fu
   assert.equal(hist.data.tenures.filter(x => !x.to).length, 1, 'one current period');
   assert.ok(hist.data.tenures.reduce((n, x) => n + x.moves.length, 0) >= 8, 'every record, in its period');
   assert.equal((await call('GET', `/api/opioids/history?id=${d.id}`, { token: t.holder.tok })).status, 403, 'admins and the owner only');
+  const all = await call('GET', `/api/opioids/history?h=${t.h}`, { token: t.admin });
+  assert.equal(all.status, 200);
+  const mineT = all.data.tenures.filter(x => x.duty === d.id);
+  assert.equal(mineT.length, 4, 'the hospital-wide history has the four periods of this duty');
+  assert.ok(mineT.every(x => x.place === d.place), 'each with its place');
+  assert.equal((await call('GET', `/api/opioids/history?h=${t.h}`, { token: t.holder.tok })).status, 403);
 });
 
 test('a holder refill still tells the other admins and the owner', async () => {

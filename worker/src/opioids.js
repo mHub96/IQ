@@ -394,8 +394,26 @@ async function handOff(request, env, auth, ctx) {
   return json({ ok: true, ...(await applyHolder(env, fresh, auth, ctx)) });
 }
 
-/** GET ?id=: every tenure of a duty with all of its records (the owner, the hospital's admins). */
+/**
+ * GET ?h=<hospital>: every holder's period of every duty of the hospital, with all of its records;
+ * GET ?id=<duty>: the same for one duty. The owner and the hospital's admins.
+ */
 async function history(env, auth, url) {
+  const h = url.searchParams.get('h');
+  if (h) {
+    if (!HOSP_RE.test(h) || !manages(auth, h)) return json({ error: 'forbidden' }, 403);
+    const { results: duties } = await env.DB.prepare("SELECT id, place, wards FROM opioid_duties WHERE hosp = ? AND status <> 'deleted'").bind(h).all();
+    const ids = (duties || []).map(d => d.id);
+    if (!ids.length) return json({ ok: true, hosp: h, duties: [], tenures: [] });
+    const [tens, moves] = await env.DB.batch([
+      env.DB.prepare('SELECT * FROM opioid_tenures WHERE duty_id IN (SELECT value FROM json_each(?1)) ORDER BY started_at').bind(JSON.stringify(ids)),
+      env.DB.prepare(`${MOVE_SELECT} WHERE m.duty_id IN (SELECT value FROM json_each(?1)) ORDER BY m.created_at`).bind(JSON.stringify(ids)),
+    ]);
+    const all = (moves.results || []).map(moveView);
+    const place = new Map(duties.map(d => [d.id, d.place]));
+    return json({ ok: true, hosp: h, duties: duties.map(d => ({ id: d.id, place: d.place, wards: parse(d.wards, []) })),
+      tenures: (tens.results || []).map(t => ({ id: t.id, duty: t.duty_id, place: place.get(t.duty_id) || '', name: t.holder_name, from: t.started_at, to: t.ended_at, moves: all.filter(m => m.tenure === t.id) })) });
+  }
   const duty = await env.DB.prepare("SELECT * FROM opioid_duties WHERE id = ? AND status <> 'deleted'").bind(Number(url.searchParams.get('id'))).first();
   if (!duty) return json({ error: 'not_found' }, 404);
   if (!manages(auth, duty.hosp)) return json({ error: 'forbidden' }, 403);

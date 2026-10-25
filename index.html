@@ -4,6 +4,11 @@
     <script src="./storage-scope.js"></script>
     <script src="./auth-guard.js"></script>
     <script src="./app-view.js"></script>
+    <script>
+        // An owner tool opened from the account panel (?embed=1#admin=<tool>): only that tool is shown,
+        // never the hub page behind it (decided before anything draws).
+        if (/[?&]embed=1(&|$)/.test(location.search) && /^#admin=\w+$/.test(location.hash)) document.documentElement.classList.add('hub-tool-only');
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1037,6 +1042,15 @@
         }
         /* Signed out: the page under the sign-in screen is not even drawn. */
         html.hub-signed-out body > :not(#lock-screen):not(script):not(style):not(#toast-container) { display: none !important; }
+        /* The tool alone, as the panel's page: no hub behind it, no dimmed overlay, the card full width. */
+        html.hub-tool-only:not(.hub-signed-out) body > :not(.modal-overlay):not(.hub-modal-overlay):not(script):not(style):not(#toast-container) { display: none !important; }
+        html.hub-tool-only body { padding: 0 !important; min-height: 0 !important; }
+        html.hub-tool-only .modal-overlay.active, html.hub-tool-only .hub-modal-overlay.active { position: static !important; inset: auto !important; background: none !important;
+            backdrop-filter: none !important; -webkit-backdrop-filter: none !important; padding: 10px !important; align-items: flex-start !important; justify-content: center !important; }
+        html.hub-tool-only .modal-overlay.active > .modal-card, html.hub-tool-only .hub-modal-overlay.active > .hub-modal-card, html.hub-tool-only .hub-modal-overlay.active > .modal-card {
+            max-width: none !important; width: 100% !important; max-height: none !important; box-shadow: none !important; animation: none !important; border-radius: 20px !important; }
+        html.hub-tool-only .tool-wait-host { display: block !important; position: static !important; background: none !important; backdrop-filter: none !important; }
+        html.hub-tool-only .tool-wait { display: block !important; text-align: center; padding: 40px 10px; color: #8A8A8E; font-weight: 700; }
         #lock-screen.hidden {
             display: none;
         }
@@ -1249,6 +1263,7 @@
 
     <!-- Toast Notifications -->
     <div id="toast-container"></div>
+    <div class="modal-overlay tool-wait-host"><div class="tool-wait" style="display:none">جاري فتح الأداة…</div></div>
 
     <!-- LOCK SCREEN (iOS Passcode / Lock Experience) -->
     <div id="lock-screen">
@@ -2095,7 +2110,20 @@
             const m = location.hash.match(/^#admin=(\w+)$/);
             if (!m || !Hub.auth.isOwner() || !window.HubAccounts || !HubAccounts.ADMIN_ACTIONS.includes(m[1])) return;
             history.replaceState(null, '', location.pathname);
-            if (typeof window[m[1]] === 'function') setTimeout(() => window[m[1]](), 300);
+            if (typeof window[m[1]] === 'function') setTimeout(() => {
+                window[m[1]]();
+                if (!document.documentElement.classList.contains('hub-tool-only')) return;
+                const wait = document.querySelector('.tool-wait-host');
+                if (wait) wait.remove();
+                // Closing the tool (✕ / cancel / done) returns the account panel to its tab.
+                const open = () => document.querySelector('.modal-overlay.active, .hub-modal-overlay.active');
+                let seen = !!open();
+                new MutationObserver(() => {
+                    if (open()) { seen = true; return; }
+                    if (!seen) return;
+                    try { const back = window.parent.document.querySelector('.hp-subbar .hp-back'); if (back) back.click(); } catch (e) {}
+                }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'], childList: true });
+            }, 300);
         }
 
         function togglePortalLockPwd() {

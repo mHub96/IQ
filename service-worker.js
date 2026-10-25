@@ -2,7 +2,7 @@
 // The app's own files are served straight from the cache (instant, like an installed app) and
 // refreshed in the background; a deploy also bumps CACHE_VERSION, which re-downloads all of them
 // and reloads open pages once. API calls are never cached.
-const CACHE_VERSION = 'v3.45.0';
+const CACHE_VERSION = 'v3.45.1';
 // Next to the live site on the same origin (mhub96.github.io/IQ-new/), the beta's caches carry
 // their own prefix, and only those are ever cleaned up here: the live site's caches are left alone.
 const SCOPE_MATCH = /\/(IQ-[^/]+)\//i.exec(new URL(self.registration.scope).pathname);

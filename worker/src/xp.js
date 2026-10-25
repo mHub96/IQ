@@ -5,9 +5,10 @@
  * key, as the duty cards are): duties served, contact taps received (VisitCount), likes and comments
  * on their cards, duties taken over for colleagues (approved exchanges), contact requests answered,
  * days in the operating theatre or out for a consultation (on-call status), and the titles below.
- * Activity weighs most: a duty alone gives only a little (being on the roster is not the work); being
- * contacted, the theatre, consultations and answered requests make the score (15 duties with no
- * contact stay far below 5 duties with 100 contacts); likes and comments count only a
+ * Activity weighs most. A duty's worth depends on how busy it was: with no contact it gives almost
+ * nothing (1 XP), each contact during it raises it (+2, up to 25 contacts), on top of the contact's
+ * own points; so 88 quiet duties with 1 contact stay far below 10 busy duties with 100 contacts.
+ * The theatre, consultations and answered requests count strongly; likes and comments count only a
  * little (the ranking is about what residents do, not how liked they are): they give the popularity
  * title and trophies instead. The resident of the day / month is the most ACTIVE one (contacts,
  * theatre, consultations, answered requests), never the most liked.
@@ -22,11 +23,15 @@ const HOSP_RE = /^[\w-]{1,48}$/;
 const CACHE_SECONDS = 300;
 
 /** Points per thing done. */
-export const XP = { duty: 3, visit: 6, like: 1, comment: 1, exchange: 15, answered: 10, theatre: 15, consult: 12, topDay: 30, monthTop: 200, popular: 20 };
+/** duty: a duty with no contact; dutyBoost: what each contact during it adds to it (up to DUTY_BOOST_MAX). */
+export const XP = { duty: 1, dutyBoost: 2, visit: 6, like: 1, comment: 1, exchange: 15, answered: 10, theatre: 15, consult: 12, topDay: 30, monthTop: 200, popular: 20 };
 /** Which point each counted thing is worth. */
-const WEIGHT = { duties: 'duty', visits: 'visit', likes: 'like', comments: 'comment', exchanges: 'exchange', answered: 'answered', theatre: 'theatre', consults: 'consult', topDays: 'topDay', monthTops: 'monthTop', populars: 'popular' };
-/** What counts as activity (the resident of the day / month): not likes, comments or titles. */
-const ACTIVE = new Set(['duties', 'visits', 'exchanges', 'answered', 'theatre', 'consults']);
+const DUTY_BOOST_MAX = 25;
+const WEIGHT = { dutyPts: 'dutyPt', visits: 'visit', likes: 'like', comments: 'comment', exchanges: 'exchange', answered: 'answered', theatre: 'theatre', consults: 'consult', topDays: 'topDay', monthTops: 'monthTop', populars: 'popular' };
+/** What counts as activity (the resident of the day / month): the work during duties only (contacts,
+ * the theatre, consultations, answered requests, a duty's busy part); not quiet duties, exchanges,
+ * likes, comments or titles. */
+const ACTIVE = new Set(['dutyPts', 'visits', 'answered', 'theatre', 'consults']);
 
 /** Level from XP: each level needs 100 XP more than the one before (100, 200, 300, ...). */
 export function levelOf(xp) {
@@ -44,7 +49,7 @@ export const tierOf = level => TIERS.find(t => level >= t.min) || TIERS[TIERS.le
 /** Trophies: [id, icon, name, what is counted, thresholds (bronze, silver, gold), description, how to earn it]. */
 export const TROPHIES = [
   ['visit', '📞', 'الأكثر طلباً', 'visits', [50, 250, 1000], 'مرات تواصل الزملاء معك', 'كل ضغطة اتصال أو واتساب على بطاقة خفارتك تُحسب تواصلاً معك.'],
-  ['duty', '🩺', 'حارس المستشفى', 'duties', [1, 25, 100], 'خفارات أدّيتها', 'تُحسب كل خفارة في جدول مستشفاك بعد انقضاء يومها (خفارة واحدة لكل يوم).'],
+  ['duty', '🩺', 'حارس المستشفى', 'duties', [1, 25, 100], 'خفارات أدّيتها', 'تُحسب كل خفارة في جدول مستشفاك بعد انقضاء يومها. الخفارة الهادئة بلا تواصل تمنح 1 XP، وكل تواصل خلالها يرفعها +2.'],
   ['theatre', '🩸', 'سيد صالة العمليات', 'theatre', [5, 25, 75], 'أيام في صالة العمليات', 'ضع حالتك «في صالة العمليات» من زر الحالة في بطاقة خفارتك.'],
   ['consult', '🚑', 'سفير الاستشارات', 'consults', [5, 25, 75], 'أيام خرجت فيها لاستشارة', 'ضع حالتك «خارج القسم لاستشارة» من زر الحالة في بطاقة خفارتك.'],
   ['answered', '⚡', 'سريع الاستجابة', 'answered', [5, 25, 100], 'طلبات تواصل أجبتها', 'عندما يترك لك زميل طلب تواصل وأنت مشغول، أجبه ثم اضغط «تم» في طلبات التواصل.'],
@@ -53,7 +58,7 @@ export const TROPHIES = [
   ['monthTop', '👑', 'مقيم الشهر', 'monthTops', [1, 3, 6], 'أشهر كنت فيها الأكثر نشاطاً في مستشفاك', 'كن الأكثر نشاطاً في مستشفاك خلال شهر كامل (لا تُحسب الإعجابات والتعليقات).'],
   ['like', '❤️', 'محبوب الزملاء', 'likes', [10, 50, 200], 'إعجابات على بطاقاتك', 'يعجب الزملاء ببطاقات خفاراتك.'],
   ['comment', '💬', 'حديث القسم', 'comments', [10, 50, 150], 'تعليقات على بطاقاتك', 'يكتب الزملاء تعليقات على بطاقات خفاراتك.'],
-  ['popular', '💖', 'الأكثر شعبية', 'populars', [1, 3, 6], 'أشهر كنت فيها الأكثر إعجاباً وتعليقاً', 'اجمع أكثر الإعجابات والتعليقات في مستشفاك خلال شهر.'],
+  ['popular', '💖', 'محبوب الشهر', 'populars', [1, 3, 6], 'أشهر نلت فيها أكثر الإعجابات والتعليقات', 'انل أكثر الإعجابات والتعليقات على بطاقات خفاراتك في مستشفاك خلال شهر.'],
 ];
 const TIER_NAMES = ['برونزية', 'فضية', 'ذهبية'];
 
@@ -62,13 +67,15 @@ function trophiesOf(s) {
     const value = s[field] || 0;
     const tier = steps.filter(t => value >= t).length;          // 0 = not earned yet
     const next = steps[tier] || null;
-    return { id, icon, name, desc, how, steps, xp: XP[WEIGHT[field]] || 0, value, tier, tierName: tier ? TIER_NAMES[tier - 1] : null, next };
+    return { id, icon, name, desc, how, steps, xp: field === 'duties' ? XP.duty : (XP[WEIGHT[field]] || 0), value, tier, tierName: tier ? TIER_NAMES[tier - 1] : null, next };
   });
 }
+/** A duty's points are counted as such (dutyPts: 1 each), the rest by their weight. */
+const weightOf = w => (w === 'dutyPt' ? 1 : XP[w]);
 function xpOf(s) {
-  return Object.entries(WEIGHT).reduce((sum, [field, w]) => sum + (s[field] || 0) * XP[w], 0);
+  return Object.entries(WEIGHT).reduce((sum, [field, w]) => sum + (s[field] || 0) * weightOf(w), 0);
 }
-const blank = () => ({ duties: 0, visits: 0, likes: 0, comments: 0, exchanges: 0, answered: 0, theatre: 0, consults: 0, topDays: 0, monthTops: 0, populars: 0 });
+const blank = () => ({ duties: 0, dutyPts: 0, visits: 0, likes: 0, comments: 0, exchanges: 0, answered: 0, theatre: 0, consults: 0, topDays: 0, monthTops: 0, populars: 0 });
 
 /**
  * Per resident of a hospital: { key -> { name, spec, all: stats, month: stats, today: stats } }.
@@ -76,7 +83,7 @@ const blank = () => ({ duties: 0, visits: 0, likes: 0, comments: 0, exchanges: 0
  */
 async function hospitalStats(env, hosp) {
   const cache = caches.default;
-  const cacheKey = new Request(`https://xp.internal/v2/${encodeURIComponent(hosp)}`);
+  const cacheKey = new Request(`https://xp.internal/v4/${encodeURIComponent(hosp)}`);
   const hit = await cache.match(cacheKey).catch(() => null);
   if (hit) return hit.json();
 
@@ -104,7 +111,8 @@ async function hospitalStats(env, hosp) {
   const add = (p, field, iso, n = 1) => {
     p.all[field] += n;
     if (iso && ACTIVE.has(field)) {
-      const pts = n * XP[WEIGHT[field]];
+      // A duty counts only for its busy part (its base is the same for everyone on duty).
+      const pts = field === 'dutyPts' ? Math.max(0, n - XP.duty) : n * weightOf(WEIGHT[field]);
       const ym = iso.slice(0, 7);
       p.act[ym] = (p.act[ym] || 0) + pts;
       const day = dayAct[iso] || (dayAct[iso] = {});
@@ -114,7 +122,9 @@ async function hospitalStats(env, hosp) {
     if (iso && iso.startsWith(month)) p.month[field] += n;
     if (iso === today) p.today[field] += n;
   };
-  const served = new Set();   // one duty per resident per day (two specialties the same day are one duty)
+  // One duty per resident per day (two specialties the same day are one duty); its worth grows with
+  // the contacts received that day.
+  const served = new Map();   // key|iso -> { p, iso, contacts }
   for (const r of sched.results || []) {
     if (r.c || !r.n) continue;
     const iso = isoDate(r.d);
@@ -122,8 +132,16 @@ async function hospitalStats(env, hosp) {
     if (!iso || !key) continue;
     const p = person(key, r.n, r.s);
     p.key = key;
-    if (iso <= today && !served.has(key + '|' + iso)) { served.add(key + '|' + iso); add(p, 'duties', iso); }
+    if (iso <= today) {
+      const day = served.get(key + '|' + iso) || { p, iso, contacts: 0 };
+      day.contacts += Math.max(0, r.v || 0);
+      served.set(key + '|' + iso, day);
+    }
     if (r.v > 0) add(p, 'visits', iso, r.v);
+  }
+  for (const { p, iso, contacts } of served.values()) {
+    add(p, 'duties', iso);
+    add(p, 'dutyPts', iso, XP.duty + XP.dutyBoost * Math.min(contacts, DUTY_BOOST_MAX));
   }
   const fromTarget = t => { const parts = String(t).split(':'); return { iso: parts[2], key: parts.slice(3).join(':') }; };
   for (const r of likes.results || []) { const { iso, key } = fromTarget(r.target); if (people[key]) add(people[key], 'likes', iso, r.c); }
@@ -132,11 +150,11 @@ async function hospitalStats(env, hosp) {
   for (const r of reqs.results || []) { if (people[r.k]) add(people[r.k], 'answered', r.d); }
   for (const r of status.results || []) { const { iso, key } = fromTarget(r.target); if (people[key]) add(people[key], r.s === 'consult' ? 'consults' : 'theatre', iso); }
 
-  // The day's most active resident (contacts, theatre, consultations, answered requests; a duty
-  // alone, the same for everyone on duty, does not make a star: there must be something more).
+  // The day's most active resident (contacts, theatre, consultations, answered requests; a quiet duty
+  // or an exchange never makes a star).
   for (const [iso, byKey] of Object.entries(dayAct)) {
     const top = Object.entries(byKey).sort((a, b) => b[1] - a[1])[0];
-    if (top && top[1] > XP.duty && people[top[0]]) add(people[top[0]], 'topDays', iso);
+    if (top && top[1] > 0 && people[top[0]]) add(people[top[0]], 'topDays', iso);
   }
 
   // Resident of the month: the most ACTIVE in each finished month; the most popular: the most likes

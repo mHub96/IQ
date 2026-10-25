@@ -17,10 +17,10 @@
         diamond: { name: 'ماسي', c1: '#6366f1', c2: '#c4b5fd', k1: '#3730a3', k2: '#6366f1' },
         legend: { name: 'أسطوري', c1: '#db2777', c2: '#f97316', k1: '#9d174d', k2: '#ea580c' },
     };
-    const RULES = [['📞', 'تواصل زميل معك', 'visit'], ['🩺', 'خفارة أدّيتها', 'duty'], ['🩸', 'يوم في صالة العمليات', 'theatre'], ['🚑', 'يوم خرجت فيه لاستشارة', 'consult'],
+    const RULES = [['📞', 'تواصل زميل معك', 'visit'], ['🔥', 'كل تواصل أثناء خفارتك يرفع قيمتها (حتى 25)', 'dutyBoost'], ['🩺', 'خفارة هادئة بلا أي تواصل', 'duty'], ['🩸', 'يوم في صالة العمليات', 'theatre'], ['🚑', 'يوم خرجت فيه لاستشارة', 'consult'],
         ['⚡', 'طلب تواصل أجبته', 'answered'], ['🤝', 'خفارة تسلّمتها عن زميل', 'exchange'], ['🌟', 'يوم كنت فيه الأكثر نشاطاً', 'topDay'], ['👑', 'شهر كنت فيه مقيم الشهر', 'monthTop'],
-        ['❤️', 'إعجاب على بطاقتك', 'like'], ['💬', 'تعليق على بطاقتك', 'comment'], ['💖', 'شهر كنت فيه الأكثر شعبية', 'popular']];
-    const STAT = { duties: ['🩺', 'خفارات'], visits: ['📞', 'تواصل'], likes: ['❤️', 'إعجابات'], comments: ['💬', 'تعليقات'], exchanges: ['🤝', 'تبديلات'], answered: ['⚡', 'طلبات أُجيبت'], theatre: ['🩸', 'أيام عمليات'], consults: ['🚑', 'استشارات'], topDays: ['🌟', 'نجم اليوم'], monthTops: ['👑', 'مقيم الشهر'], populars: ['💖', 'الأكثر شعبية'] };
+        ['❤️', 'إعجاب على بطاقتك', 'like'], ['💬', 'تعليق على بطاقتك', 'comment'], ['💖', 'شهر كنت فيه محبوب الشهر', 'popular']];
+    const STAT = { duties: ['🩺', 'خفارات'], visits: ['📞', 'تواصل'], likes: ['❤️', 'إعجابات'], comments: ['💬', 'تعليقات'], exchanges: ['🤝', 'تبديلات'], answered: ['⚡', 'طلبات أُجيبت'], theatre: ['🩸', 'أيام عمليات'], consults: ['🚑', 'استشارات'], topDays: ['🌟', 'نجم اليوم'], monthTops: ['👑', 'مقيم الشهر'], populars: ['💖', 'محبوب الشهر'] };
     const MONTHS = ['كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'];
     const monthName = ym => MONTHS[Number(String(ym).slice(5, 7)) - 1] || '';
     const fmt = n => Number(n || 0).toLocaleString('en-US');
@@ -106,6 +106,11 @@
     .xp-month-badge { position: absolute; top: 8px; inset-inline-start: 8px; z-index: 3; padding: 2px 8px; border-radius: 999px; font-size: .62rem; font-weight: 900;
         color: #78350f; background: linear-gradient(135deg, #fde68a, #fbbf24); box-shadow: 0 2px 8px rgba(217,119,6,.35); pointer-events: none; }
     .xp-tro { font: inherit; color: inherit; cursor: pointer; width: 100%; }
+    .xp-pod { cursor: pointer; }
+    .xp-pod.sel .xp-av { transform: scale(1.06); filter: drop-shadow(0 0 10px var(--c2)); transition: transform .2s; }
+    .xp-pod-detail { margin: -4px 0 12px; padding: 10px 12px; border-radius: 16px; background: rgba(142,142,147,.1); animation: xpIn .3s ease both; }
+    .xp-pod-detail b { display: block; font-size: .8rem; font-weight: 900; text-align: center; }
+    .xp-pod-detail .xp-detail { justify-content: center; }
     .xp-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; justify-content: inherit; }
     .xp-pod .xp-badges { justify-content: center; }
     .xp-badge { display: inline-flex; align-items: center; gap: 3px; padding: 1px 7px; border-radius: 999px; font-size: .58rem; font-weight: 900; white-space: nowrap; }
@@ -161,7 +166,7 @@
         host.innerHTML = `<div class="xp-tabs" role="tablist"><span class="xp-pill"></span>
                 ${[['today', 'اليوم'], ['month', 'هذا الشهر'], ['all', 'كل الأوقات']].map(([p, l]) => `<button type="button" role="tab" data-p="${p}">${l}</button>`).join('')}</div>
             <div data-role="board"><div class="xp-empty">جاري التحميل…</div></div>
-            <details class="xp-rules"><summary>كيف أكسب نقاط الخبرة (XP)؟</summary><p class="xp-rules-note">النشاط أولاً: تواصل الزملاء معك يُحسب أكثر قليلاً من الخفارة نفسها، والإعجابات والتعليقات تُحسب قليلاً فقط. مقيم اليوم والشهر هو الأكثر نشاطاً.</p><ul data-role="rules"></ul></details>`;
+            <details class="xp-rules"><summary>كيف أكسب نقاط الخبرة (XP)؟</summary><p class="xp-rules-note">النشاط أولاً: قيمة الخفارة تأتي من انشغالك فيها. الخفارة بلا أي تواصل تكاد لا تُحسب، وكل تواصل خلالها يضاعف قيمتها فوق نقاط التواصل نفسه. الإعجابات والتعليقات تُحسب قليلاً فقط، ومقيم اليوم والشهر هو الأكثر نشاطاً.</p><ul data-role="rules"></ul></details>`;
         const tabs = host.querySelector('.xp-tabs');
         const board = host.querySelector('[data-role="board"]');
         const select = async p => {
@@ -185,8 +190,8 @@
     }
 
     // Social and title badges, on any row (not only the podium).
-    const BADGE = { likes: ['❤️', 'الأكثر إعجاباً', 'الأكثر إعجاباً في هذه الفترة'], comments: ['💬', 'الأكثر تعليقاً', 'الأكثر تعليقاً على بطاقاته في هذه الفترة'],
-        popular: ['💖', 'الأكثر شعبية', 'الأكثر شعبية الشهر الماضي'], star: ['👑', 'مقيم الشهر', 'الأكثر نشاطاً الشهر الماضي'] };
+    const BADGE = { likes: ['❤️', 'محبوب الزملاء', 'نال أكثر الإعجابات على بطاقاته في هذه الفترة'], comments: ['💬', 'حديث القسم', 'تلقّت بطاقاته أكثر التعليقات من الزملاء في هذه الفترة'],
+        popular: ['💖', 'محبوب الشهر', 'نال أكثر الإعجابات والتعليقات على بطاقاته الشهر الماضي'], star: ['👑', 'مقيم الشهر', 'الأكثر نشاطاً الشهر الماضي'] };
     const badgesHtml = r => (r.badges || []).map(b => `<span class="xp-badge b-${b}" title="${esc(BADGE[b][2])}">${BADGE[b][0]} ${esc(BADGE[b][1])}</span>`).join('');
     const PERIOD = { today: 'اليوم', month: 'هذا الشهر', all: 'كل الأوقات' };
     function rankCard(data) {
@@ -207,7 +212,7 @@
         if (!rows.length) { board.innerHTML = rankCard(data) + '<div class="xp-empty"><div style="font-size:2rem">🏆</div>لا توجد نقاط في هذه الفترة بعد.</div>'; return; }
         const top = rows.slice(0, 3);
         const order = [top[1], top[0], top[2]];
-        const pod = order.map((r, i) => r ? `<div class="xp-pod p${[2, 1, 3][i]}" style="${tierVars(r.tier)}">
+        const pod = order.map((r, i) => r ? `<div class="xp-pod p${[2, 1, 3][i]}" style="${tierVars(r.tier)}" data-pod="${[2, 1, 3][i] - 1}" role="button" tabindex="0" aria-label="${esc(r.name)}: التفاصيل">
                 <div class="xp-av">${[2, 1, 3][i] === 1 ? '<span class="xp-crown">👑</span>' : ''}${avatar(r, [2, 1, 3][i] === 1 ? 64 : 52)}</div>
                 <div class="xp-pn">${esc(r.name.replace(/^د\.?\s*/, ''))}</div>${r.badges ? `<div class="xp-badges">${badgesHtml(r)}</div>` : ''}
                 <div class="xp-px">${xpText(r.xp)}</div>
@@ -226,9 +231,25 @@
         const rest = rows.slice(3);
         const star = (data.star ? `<div class="xp-star"><span class="xp-star-i">👑</span><div><small>مقيم شهر ${esc(monthName(data.star.ym))} · الأكثر نشاطاً</small>
                 <b>${esc(data.star.name)}</b><small>${xpText(data.star.xp)} من النشاط في الشهر</small></div></div>` : '')
-            + (data.popular ? `<div class="xp-star xp-pop"><span class="xp-star-i">💖</span><div><small>الأكثر شعبية في ${esc(monthName(data.popular.ym))}</small>
-                <b>${esc(data.popular.name)}</b><small>${fmt(data.popular.count)} إعجاباً وتعليقاً</small></div></div>` : '');
-        board.innerHTML = `${rankCard(data)}${star}<div class="xp-podium">${pod}</div>${rest.map((r, i) => row(r, i)).join('')}${data.me ? `<div class="xp-pin">${row(data.me, 0)}</div>` : ''}`;
+            + (data.popular ? `<div class="xp-star xp-pop"><span class="xp-star-i">💖</span><div><small>محبوب شهر ${esc(monthName(data.popular.ym))}</small>
+                <b>${esc(data.popular.name)}</b><small>نال ${fmt(data.popular.count)} إعجاباً وتعليقاً على بطاقاته</small></div></div>` : '');
+        board.innerHTML = `${rankCard(data)}${star}<div class="xp-podium">${pod}</div><div class="xp-pod-detail" hidden></div>${rest.map((r, i) => row(r, i)).join('')}${data.me ? `<div class="xp-pin">${row(data.me, 0)}</div>` : ''}`;
+        const detailOf = r => Object.entries(r.stats || {}).filter(([k, v]) => v && STAT[k]).map(([k, v]) => `<span>${STAT[k][0]} ${fmt(v)} ${STAT[k][1]}</span>`).join('') || '<span>—</span>';
+        // Tap a winner: their counts under the podium.
+        const podDetail = board.querySelector('.xp-pod-detail');
+        board.querySelectorAll('[data-pod]').forEach(el => {
+            const showIt = () => {
+                const r = top[Number(el.dataset.pod)];
+                const same = !podDetail.hidden && podDetail.dataset.i === el.dataset.pod;
+                board.querySelectorAll('[data-pod]').forEach(x => x.classList.toggle('sel', !same && x === el));
+                if (same) { podDetail.hidden = true; return; }
+                podDetail.dataset.i = el.dataset.pod;
+                podDetail.hidden = false;
+                podDetail.innerHTML = `<b>${['🥇', '🥈', '🥉'][Number(el.dataset.pod)]} ${esc(r.name)} · ${xpText(r.xp)}</b><div class="xp-detail">${detailOf(r)}</div>`;
+            };
+            el.addEventListener('click', showIt);
+            el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showIt(); } });
+        });
         // Tap a row: what the points came from.
         board.querySelectorAll('.xp-row').forEach(el => el.addEventListener('click', () => {
             const r = el.closest('.xp-pin') ? data.me : rest[Number(el.dataset.i)];
@@ -236,7 +257,7 @@
             if (open) { open.remove(); return; }
             const d = document.createElement('div');
             d.className = 'xp-detail';
-            d.innerHTML = Object.entries(r.stats || {}).filter(([k, v]) => v && STAT[k]).map(([k, v]) => `<span>${STAT[k][0]} ${fmt(v)} ${STAT[k][1]}</span>`).join('') || '<span>—</span>';
+            d.innerHTML = detailOf(r);
             el.appendChild(d);
         }));
     }
@@ -309,7 +330,7 @@
                     badge.className = 'xp-pop-badge';
                     (card.querySelector('.card-front') || card).appendChild(badge);
                 }
-                badge.textContent = '💖 الأكثر شعبية';
+                badge.textContent = '💖 محبوب الشهر';
                 badge.title = `أكثر الإعجابات والتعليقات في ${monthName(pop.ym)}`;
             });
             list.forEach(c => {

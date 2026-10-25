@@ -58,3 +58,33 @@ test('resident of the month: last month\'s most points, on the leaderboard and i
   const total = all.data.rows.reduce((n, r) => n + (r.stats.monthTops || 0), 0);
   assert.ok(total <= [...months].filter(x => x < m).length, `${total} trophies`);
 });
+
+test('busy duties beat quiet ones: 30 duties with 1 contact < 3 duties with 10 contacts each', async () => {
+  const RUN = Date.now().toString(36).slice(-6);
+  const h = 'xp' + RUN;   // a hospital of its own (the leaderboard is cached per hospital)
+  const quiet = 'د. هادئ الخفارات', busy = 'د. مشغول الخفارات';
+  const ops = [];
+  const day = i => { const d = new Date(Date.UTC(2025, 0, 1 + i)); return `${String(d.getUTCDate()).padStart(2, '0')}/${String(d.getUTCMonth() + 1).padStart(2, '0')}/${d.getUTCFullYear()}`; };
+  for (let i = 0; i < 30; i++) ops.push({ c: 'sched', id: `${h}:q-${i}`, h, o: 99000 + i, bv: 0, d: { date: day(i), specCode: 'GS', name: quiet, timestamp: '08:00', VisitCount: i === 0 ? 1 : 0 } });
+  for (let i = 0; i < 3; i++) ops.push({ c: 'sched', id: `${h}:b-${i}`, h, o: 99100 + i, bv: 0, d: { date: day(40 + i), specCode: 'GS', name: busy, timestamp: '08:00', VisitCount: 10 } });
+  const sync = body => fetch(BASE + '/api/sync', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + t.owner }, body: JSON.stringify(body) }).then(r => r.json());
+  const put = await sync({ msg: 'xp test', ops });
+  assert.equal((put.applied || []).length, ops.length, JSON.stringify(put).slice(0, 300));
+  try {
+    const lb = (await call('GET', `/api/leaderboard?h=${h}&p=all`, { token: t.owner })).data;
+    const q = lb.rows.find(r => r.name === quiet), b = lb.rows.find(r => r.name === busy);
+    const R = lb.xpRules;
+    // Titles (alone in their month here: resident of the month, star of the day) are counted apart.
+    const titles = r => (r.stats.topDays || 0) * R.topDay + (r.stats.monthTops || 0) * R.monthTop + (r.stats.populars || 0) * R.popular;
+    const qWork = q.xp - titles(q), bWork = b.xp - titles(b);
+    assert.equal(qWork, 30 * R.duty + R.dutyBoost + R.visit, 'quiet: 1 XP a duty, one boosted by its contact');
+    assert.equal(bWork, 3 * (R.duty + 10 * R.dutyBoost) + 30 * R.visit, 'busy: each duty boosted by its 10 contacts');
+    assert.ok(bWork > qWork * 5, `${bWork} vs ${qWork}`);
+    assert.equal(q.stats.topDays, 1, 'a quiet duty never makes the star of the day (only the day with a contact)');
+    assert.equal(b.stats.topDays, 3);
+    assert.equal(q.stats.monthTops, 1, 'alone in January with one contact: the most active there');
+    assert.equal(q.stats.duties, 30, 'the duty count stays visible');
+  } finally {
+    await sync({ msg: 'xp test cleanup', ops: ops.map((o, i) => ({ c: 'sched', id: o.id, bv: put.applied[i] ? put.applied[i].v || 1 : 1, del: 1 })) });
+  }
+});

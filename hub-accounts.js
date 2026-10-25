@@ -487,6 +487,8 @@
                 return { icon: '⚠️', text: `${d.item || ''} قارب على النفاد في ${d.place || ''}: بقي ${d.left} فقط.`, open: () => openPanel('opioids-mine') };
             case 'opioid_empty':
                 return { icon: '⛔', text: `نفد ${d.item || ''} في ${d.place || ''}. اطلب التعويض من الإدارة.`, open: () => openPanel('opioids-mine') };
+            case 'opioid_replenished':
+                return { icon: '💊', text: `${d.by || 'المسؤول'} عوّض ذمته: أضاف ${d.qty} من ${d.item || ''} (${d.place || ''}). المتبقي: ${d.left}.`, open: () => openPanel('opioids') };
             case 'opioid_stock':
                 return { icon: '💊', text: `${d.kind === 'withdraw' ? 'سُحبت' : 'أُضيفت'} ${d.qty} من ${d.item || ''} ${d.kind === 'withdraw' ? 'من' : 'إلى'} ذمتك (${d.place || ''}). المتبقي: ${d.left}.`, open: () => openPanel('opioids-mine') };
             default:
@@ -545,7 +547,9 @@
         if (!notif.items.length && account()) parts.push('<div class="hacc-empty">لا توجد إشعارات بعد</div>');
         notif.items.forEach((n, i) => {
             const d = describe(n);
-            parts.push(`<div class="hacc-notif-row"><button type="button" class="hacc-notif ${n.seen && !notif.fresh.has(n.nid) ? '' : 'unread'}" data-i="${i}">
+            // Opioids: their own look (purple), red when one ran out, amber when one runs low.
+            const opi = /^opioid_/.test(n.type) ? ` opi${n.type === 'opioid_empty' ? ' opi-out' : n.type === 'opioid_low' ? ' opi-low' : ''}` : '';
+            parts.push(`<div class="hacc-notif-row"><button type="button" class="hacc-notif${opi} ${n.seen && !notif.fresh.has(n.nid) ? '' : 'unread'}" data-i="${i}">
                 <span class="hacc-notif-icon" aria-hidden="true">${d.icon}</span>
                 <span class="hacc-notif-main"><span class="hacc-notif-text">${esc(d.text)}</span>
                 <time class="hacc-notif-time">${esc(timeAgo(n.ts))}</time></span></button>
@@ -1261,6 +1265,7 @@
         if (m[1] === 'exchanges') { setTimeout(openExchanges, 400); return; }
         if (m[1] === 'requests') { setTimeout(openRequests, 400); return; }
         if (m[1] === 'opioids') { setTimeout(() => openPanel('opioids-mine'), 400); return; }
+        if (m[1] === 'opioidsadmin') { setTimeout(() => openPanel('opioids'), 400); return; }
         // #panel=schedule = the ER preferences portal (its notification); #panel=duties = My Schedule.
         setTimeout(() => openPanel(m[1] === 'schedule' ? 'portal' : m[1] === 'duties' ? 'schedule' : m[1]), 400);
     }

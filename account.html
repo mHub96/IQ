@@ -135,6 +135,9 @@
         .badge.active { background: rgba(5, 150, 105, 0.12); color: #047857; }
         .badge.disabled, .badge.rejected { background: rgba(220, 38, 38, 0.1); color: var(--hacc-danger); }
         .badge.role { background: var(--hacc-accent-soft); color: var(--hacc-accent); }
+        .badge.dev { background: rgba(10,132,255,.1); color: #0a6cd6; font-variant-numeric: tabular-nums; }
+        .badge.dev.none { background: rgba(142,142,147,.14); color: var(--hacc-muted); }
+        .badge.dev.full { background: rgba(255,149,0,.16); color: #b45309; }
         .acc-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
         .acc-actions .hacc-btn { flex: 1; min-width: 110px; }
         .approve-as { flex: 1 1 100%; display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 800; color: var(--hacc-muted); }
@@ -1230,6 +1233,13 @@
             return /iPhone|Android|iPad/.test(label || '') ? 'fa-mobile-screen' : 'fa-laptop';
         }
 
+        /** The number of devices signed in to this account, on the card without opening it. */
+        function devBadge(a) {
+            const n = (a.devices || []).length;
+            const full = a.max_devices && n >= a.max_devices;
+            const last = (a.devices || []).reduce((m, d) => Math.max(m, d.last || 0), 0);
+            return `<span class="badge dev ${n ? '' : 'none'} ${full ? 'full' : ''}" title="${n ? `${n} ${n === 1 ? 'جهاز مرتبط' : n === 2 ? 'جهازان مرتبطان' : 'أجهزة مرتبطة'}${last ? ' · آخر نشاط ' + esc(timeAgo(last)) : ''}` : 'لا توجد أجهزة مرتبطة'}"><i class="fas fa-mobile-screen"></i> ${n}${a.max_devices ? '/' + a.max_devices : ''}</span>`;
+        }
         function devicesHtml(devices, { thisDevice, removable }) {
             if (!devices || !devices.length) return '<li class="hacc-muted" style="padding:8px 0">لا توجد أجهزة مسجّلة.</li>';
             return [...devices].sort((a, b) => (b.last || 0) - (a.last || 0)).map(d => `<li data-device="${esc(d.id)}">
@@ -1473,7 +1483,7 @@
                 return `<article class="acc" data-id="${esc(a.id)}">
                     <div class="acc-head">${HubAccounts.avatarHtml(a, 42)}
                     <div style="min-width:0;flex:1"><div class="acc-name">${esc(a.name)}
-                        <span class="badge ${esc(a.status)}">${esc(statusText)}</span>${a.role !== 'user' ? `<span class="badge role">${esc(ROLE_NAMES[a.role] || a.role)}</span>` : ''}${a.reset === 'requested' ? '<span class="badge pending">طلب كلمة مرور</span>' : ''}${a.max_devices ? `<span class="badge role">🔒 ${esc(limitText(a.max_devices))}</span>` : ''}${a.no_comment ? '<span class="badge disabled">🚫 ممنوع من التعليق</span>' : ''}${a.warnings ? `<span class="badge pending">⚠️ ${a.warnings === 1 ? 'تحذير واحد' : a.warnings === 2 ? 'تحذيران' : a.warnings + ' تحذيرات'}</span>` : ''}</div>
+                        <span class="badge ${esc(a.status)}">${esc(statusText)}</span>${devBadge(a)}${a.role !== 'user' ? `<span class="badge role">${esc(ROLE_NAMES[a.role] || a.role)}</span>` : ''}${a.reset === 'requested' ? '<span class="badge pending">طلب كلمة مرور</span>' : ''}${a.max_devices ? `<span class="badge role">🔒 ${esc(limitText(a.max_devices))}</span>` : ''}${a.no_comment ? '<span class="badge disabled">🚫 ممنوع من التعليق</span>' : ''}${a.warnings ? `<span class="badge pending">⚠️ ${a.warnings === 1 ? 'تحذير واحد' : a.warnings === 2 ? 'تحذيران' : a.warnings + ' تحذيرات'}</span>` : ''}</div>
                     <div class="acc-sub"><span dir="ltr">@${esc(a.username)}</span> · ${esc(SEX[a.sex] || '')} · ${esc(hospitalName(a.hosp))}${a.phone ? ` · <a href="tel:${esc(localPhone(a.phone))}" dir="ltr">${esc(localPhone(a.phone))}</a>` : ''}</div>
                     ${a.role === 'rotator' ? '<div class="acc-sub">🔄 روتيتر: تصفح الموقع والتواصل مع المقيمين، وتبديل خفارات الروتيشن في مستشفاه فقط.</div>'
                         : officer ? `<div class="acc-sub">🏢 الشؤون الإدارية · ${esc(a.aa_job_name || '')}${a.resident_id ? ' · ✓ موجود في قاعدة البيانات' : ''}</div>${a.status === 'pending' && !a.resident_id ? '<div class="acc-sub" style="color:#b45309">⚠️ غير موجود في قاعدة بيانات الشؤون الإدارية: عند الموافقة يُضاف تحت العنوان الوظيفي الذي اختاره.</div>' : ''}`

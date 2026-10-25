@@ -21,6 +21,8 @@
         not_enough: 'العدد المطلوب أكثر من المتبقي.', patient_required: 'اكتب اسم المريض.', sex_required: 'اختر الجنس.',
         age_required: 'اكتب عمراً صحيحاً.', ward_required: 'اختر الردهة.', bad_date: 'التاريخ غير صحيح (لا يكون في المستقبل).',
         reason_required: 'اكتب سبب الإلغاء.', forbidden: 'لا تملك صلاحية لهذا.', rate_limited: 'محاولات كثيرة، انتظر قليلاً.',
+        patient_three_names: 'اكتب اسم المريض الثلاثي (اسمه واسم أبيه وجده).', would_go_negative: 'لا يمكن الحذف: سيصبح المتبقي أقل من صفر.',
+        not_editable: 'سجل الاستلام من المسؤول السابق لا يُعدَّل.', deleted: 'هذا السجل محذوف.',
     };
     const errText = e => { const c = e && e.data && e.data.error; return (c === 'item_not_empty' && e.data.item ? `«${e.data.item}»: ` : '') + (ERR[c] || (A && A.errorText ? A.errorText(e) : 'تعذر الإتمام')); };
     const api = (method, path, body) => Hub.api(method, path, body, { retries: method === 'GET' ? 1 : 0 });
@@ -30,6 +32,7 @@
     const hospName = id => { const h = Hub.getHospital && Hub.getHospital(id); return h ? (h.name_ar || h.hospitalName || id) : id; };
     const level = (left, low) => left <= 0 ? 'out' : left <= low ? 'low' : 'ok';
     const SEX = { m: 'ذكر', f: 'أنثى' };
+    const threeNames = n => String(n || '').trim().split(/\s+/).filter(w => w.replace(/[^\p{L}]/gu, '').length >= 2).length >= 3;
     const KIND = { issue: ['📦', 'استلام / تعويض'], use: ['💉', 'استخدام'], withdraw: ['↩️', 'سحب'], handover: ['🤝', 'استلام من المسؤول السابق'] };
 
     const CSS = `
@@ -118,6 +121,17 @@
     .opi-seg { display: inline-grid; grid-auto-flow: column; gap: 4px; padding: 3px; border-radius: 12px; background: rgba(142,142,147,.14); }
     .opi-seg button { border: 0; padding: 7px 14px; border-radius: 9px; background: transparent; color: inherit; font: 800 .78rem inherit; font-family: inherit; cursor: pointer; }
     .opi-seg button.on { background: #fff; color: #111827; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+    .opi-warn { color: #b45309 !important; font-weight: 800; }
+    div.opi-warn { margin: -4px 0 10px; padding: 8px 10px; border-radius: 12px; background: #fef3c7; font-size: .74rem; line-height: 1.6; }
+    .opi-noacc { color: #b45309; font-size: .66rem; font-weight: 800; }
+    .opi-ed { font-size: .62rem; opacity: .75; }
+    .opi-row-acts { white-space: nowrap; }
+    .opi-row-acts .opi-btn { padding: 4px 7px; margin-inline-end: 3px; }
+    .opi-editbox { padding: 12px; margin-bottom: 12px; border-radius: 16px; border: 1.5px solid #a78bfa; background: rgba(124,58,237,.06); animation: opiIn .25s ease both; }
+    @keyframes opiIn { from { opacity: 0; transform: translateY(-6px); } }
+    .opi-chk { display: flex !important; align-items: center; gap: 8px; grid-template-columns: none !important; }
+    .opi-chk input { width: 18px !important; min-height: 0 !important; height: 18px; }
+    .opi-refill { margin-top: 6px; font-size: .66rem; padding: 4px 8px; }
     .nav-btn.nav-opi { background: linear-gradient(135deg, #7c3aed, #db2777) !important; color: #fff !important; border: 0 !important; box-shadow: 0 4px 14px rgba(124,58,237,.35) !important; }
     .nav-btn.nav-opi .opi-dot { width: 8px; height: 8px; border-radius: 50%; background: #fde047; box-shadow: 0 0 0 2px rgba(255,255,255,.5); }
     `;
@@ -140,25 +154,163 @@
                 ${acts ? `<div class="opi-item-acts"><button type="button" class="opi-btn" data-stock="issue">＋ تعويض</button><button type="button" class="opi-btn warn" data-stock="withdraw">－ سحب</button></div>` : ''}
             </div>`).join('')}</div>`;
     }
-    function logTable(moves, { showHolder = false, canVoid = null } = {}) {
+    function logTable(moves, { showHolder = false, canEdit = null } = {}) {
         if (!moves.length) return '<div class="opi-empty">لا توجد سجلات بعد.</div>';
-        return `<div class="opi-log"><table><thead><tr><th>النوع</th><th>المادة</th><th>العدد</th><th>المريض</th><th>الجنس</th><th>العمر</th><th>الردهة</th><th>التاريخ</th><th>سجّله</th>${showHolder ? '<th>المسؤول</th>' : ''}${canVoid ? '<th></th>' : ''}</tr></thead><tbody>
-            ${moves.map(m => `<tr class="${m.voided ? 'void' : ''}" title="${m.voided ? 'أُلغي: ' + esc(m.voidReason) : ''}">
+        return `<div class="opi-log"><table><thead><tr><th>النوع</th><th>المادة</th><th>العدد</th><th>المريض</th><th>الجنس</th><th>العمر</th><th>الردهة</th><th>التاريخ</th><th>سجّله</th>${showHolder ? '<th>المسؤول</th>' : ''}${canEdit ? '<th></th>' : ''}</tr></thead><tbody>
+            ${moves.map(m => `<tr class="${m.voided ? 'void' : ''}" title="${m.voided ? `حذفه ${esc(m.voidedBy)}${m.voidReason && m.voidReason !== 'حُذف' ? ': ' + esc(m.voidReason) : ''}` : m.edited ? `عدّله ${esc(m.editedBy)} · ${esc(timeText(m.edited))}` : ''}">
                 <td class="k-${m.kind}">${KIND[m.kind][0]} ${KIND[m.kind][1]}${m.note && m.kind !== 'use' ? `<br><small>${esc(m.note)}</small>` : ''}</td>
                 <td>${esc(m.itemName)}</td><td>${m.kind === 'use' || m.kind === 'withdraw' ? '−' : '+'}${fmt(m.qty)}</td>
                 <td>${esc(m.patient)}</td><td>${SEX[m.sex] || ''}</td><td>${m.age != null && m.kind === 'use' ? m.age : ''}</td><td>${esc(m.ward)}</td>
-                <td>${m.date ? dateText(m.date) : timeText(m.at)}</td><td>${esc(m.by)}</td>
+                <td>${m.date ? dateText(m.date) : timeText(m.at)}</td><td>${esc(m.by)}${m.edited ? '<br><small class="opi-ed">✎ عُدّل</small>' : ''}${m.voided ? `<br><small class="opi-ed">🗑️ حذفه ${esc(m.voidedBy)}</small>` : ''}</td>
                 ${showHolder ? `<td>${esc(m.holder)}</td>` : ''}
-                ${canVoid ? `<td>${m.kind === 'use' && !m.voided && canVoid(m) ? `<button type="button" class="opi-btn danger" data-void="${m.id}">إلغاء</button>` : ''}</td>` : ''}
+                ${canEdit ? `<td class="opi-row-acts">${m.kind !== 'handover' && !m.voided && canEdit(m) ? `<button type="button" class="opi-btn" data-edit="${m.id}" aria-label="تعديل">✏️</button><button type="button" class="opi-btn danger" data-del="${m.id}" aria-label="حذف">🗑️</button>` : ''}</td>` : ''}
             </tr>`).join('')}</tbody></table></div>`;
     }
-    function bindVoid(host, after) {
-        host.querySelectorAll('[data-void]').forEach(b => b.addEventListener('click', async () => {
-            const reason = prompt('سبب إلغاء هذا السجل (يُعاد العدد إلى المتبقي):');
-            if (!reason || !reason.trim()) return;
-            try { await api('POST', '/api/opioids/void', { id: Number(b.dataset.void), reason: reason.trim() }); toast('أُلغي السجل وأُعيد العدد ✓', 'success'); after(); }
+    /** Edit / delete buttons of a log table. dutyOf(move) gives its duty (wards, items) for the edit form. */
+    function bindRowActions(host, moves, dutyOf, after) {
+        host.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
+            const m = moves.find(x => x.id === Number(b.dataset.del));
+            if (!confirm(`حذف هذا السجل (${KIND[m.kind][1]} · ${m.itemName} · ${m.qty})؟ يبقى ظاهراً مشطوباً مع اسم من حذفه${m.kind === 'use' ? '، ويعود العدد إلى المتبقي' : ''}.`)) return;
+            const reason = prompt('سبب الحذف (اختياري):') || '';
+            try { await api('POST', '/api/opioids/move', { id: m.id, action: 'delete', reason }); toast('حُذف السجل ✓', 'success'); after(); }
             catch (e) { toast(errText(e), 'error'); }
         }));
+        host.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => {
+            const m = moves.find(x => x.id === Number(b.dataset.edit));
+            editEntry(host, m, dutyOf(m), after);
+        }));
+    }
+    /** The edit form of a log entry, at the top of the tab (inside the panel). */
+    function editEntry(host, m, duty, after) {
+        const old = host.querySelector('.opi-editbox');
+        if (old) old.remove();
+        const box = document.createElement('div');
+        box.className = 'opi-editbox opi-form';
+        const st = { patient: m.patient, sex: m.sex, age: m.age == null ? '' : String(m.age), ward: m.ward, date: m.date, qty: m.qty, note: m.note };
+        box.innerHTML = `<div class="opi-top" style="margin:0"><b>✏️ تعديل السجل · ${esc(m.itemName)}</b><button type="button" class="opi-btn" data-act="x">✕</button></div>
+            ${m.kind === 'use' ? `
+                <div class="opi-row"><label style="flex:1">اسم المريض الثلاثي<input data-f="patient" maxlength="80" value="${esc(st.patient)}"></label>
+                    <label style="width:80px">العدد<input data-f="qty" type="number" min="1" max="10" value="${st.qty}"></label></div>
+                <div class="opi-row"><label style="flex:1">الجنس<div class="opi-seg" style="display:grid;grid-template-columns:1fr 1fr"><button type="button" data-sex="m" class="${st.sex === 'm' ? 'on' : ''}">ذكر</button><button type="button" data-sex="f" class="${st.sex === 'f' ? 'on' : ''}">أنثى</button></div></label>
+                    <label style="width:80px">العمر<input data-f="age" type="number" min="0" max="120" value="${esc(st.age)}"></label></div>
+                <label>الردهة<select data-f="ward">${(duty ? duty.wards : [st.ward]).map(w => `<option ${w === st.ward ? 'selected' : ''}>${esc(w)}</option>`).join('')}</select></label>
+                <label>تاريخ الاستخدام<input data-f="date" type="date" max="${today()}" value="${esc(st.date)}"></label>`
+            : `<div class="opi-row"><label style="width:100px">العدد<input data-f="qty" type="number" min="1" max="500" value="${st.qty}"></label>
+                <label style="flex:1">ملاحظة<input data-f="note" maxlength="120" value="${esc(st.note)}"></label></div>`}
+            <button type="button" class="opi-new" data-act="save">حفظ التعديل</button>`;
+        const root = host.querySelector('.opi') || host;
+        root.prepend(box);
+        box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        box.querySelectorAll('[data-f]').forEach(i => i.addEventListener(i.tagName === 'SELECT' ? 'change' : 'input', () => { st[i.dataset.f] = i.value; }));
+        box.querySelectorAll('[data-sex]').forEach(b => b.addEventListener('click', () => { st.sex = b.dataset.sex; box.querySelectorAll('[data-sex]').forEach(x => x.classList.toggle('on', x === b)); }));
+        box.querySelector('[data-act="x"]').addEventListener('click', () => box.remove());
+        box.querySelector('[data-act="save"]').addEventListener('click', async e => {
+            if (m.kind === 'use' && !threeNames(st.patient)) { toast(ERR.patient_three_names, 'error'); return; }
+            e.currentTarget.disabled = true;
+            try { await api('POST', '/api/opioids/move', { id: m.id, action: 'edit', ...st, qty: Number(st.qty), age: st.age === '' ? '' : Number(st.age) }); toast('حُفظ التعديل ✓', 'success'); after(); }
+            catch (err) { e.currentTarget.disabled = false; toast(errText(err), 'error'); }
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // Printing the log (A4, through a hidden frame: stays inside the app)
+    // ------------------------------------------------------------------
+    function monthsOf(moves) { return [...new Set(moves.map(m => (m.date || new Date(m.at).toISOString().slice(0, 10)).slice(0, 7)))].sort().reverse(); }
+    const MONTHS_AR = ['كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'];
+    const monthText = ym => `${MONTHS_AR[Number(ym.slice(5, 7)) - 1]} ${ym.slice(0, 4)}`;
+    /** The print options (a period), at the top of the tab, then the A4 page. */
+    function printChooser(host, duty, moves, holderName) {
+        const old = host.querySelector('.opi-editbox');
+        if (old) old.remove();
+        const months = monthsOf(moves);
+        const box = document.createElement('div');
+        box.className = 'opi-editbox opi-form';
+        box.innerHTML = `<div class="opi-top" style="margin:0"><b>🖨️ طباعة سجل ${esc(duty.place)}</b><button type="button" class="opi-btn" data-act="x">✕</button></div>
+            <label>الفترة<select data-f="period"><option value="">كل السجلات</option>${months.map(m => `<option value="${m}">${monthText(m)}</option>`).join('')}</select></label>
+            <label class="opi-chk"><input type="checkbox" data-f="deleted"> إظهار السجلات المحذوفة (مشطوبة)</label>
+            <button type="button" class="opi-new" data-act="print">طباعة (A4)</button>`;
+        (host.querySelector('.opi') || host).prepend(box);
+        box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        box.querySelector('[data-act="x"]').addEventListener('click', () => box.remove());
+        box.querySelector('[data-act="print"]').addEventListener('click', () => {
+            const ym = box.querySelector('[data-f="period"]').value;
+            const withDeleted = box.querySelector('[data-f="deleted"]').checked;
+            printLog(duty, moves.filter(m => (!ym || (m.date || new Date(m.at).toISOString().slice(0, 10)).startsWith(ym)) && (withDeleted || !m.voided)), ym, holderName);
+            box.remove();
+        });
+    }
+    function printLog(duty, moves, ym, holderName) {
+        const hosp = hospName(duty.hosp);
+        const rows = [...moves].sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.at - b.at);
+        const items = {};
+        rows.filter(m => !m.voided).forEach(m => {
+            const it = items[m.itemName] || (items[m.itemName] = { recv: 0, used: 0, out: 0 });
+            if (m.kind === 'issue' || m.kind === 'handover') it.recv += m.qty; else if (m.kind === 'use') it.used += m.qty; else if (m.kind === 'withdraw') it.out += m.qty;
+        });
+        const left = Object.fromEntries((duty.items || []).map(i => [i.name, i.left]));
+        const printedBy = (Hub.auth.getAccount() || {}).name || '';
+        const now = new Date().toLocaleString('ar-IQ-u-nu-latn', { dateStyle: 'long', timeStyle: 'short', timeZone: 'Asia/Baghdad' });
+        const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>سجل ذمة المخدرات · ${esc(duty.place)}</title>
+            <style>
+            @page { size: A4 portrait; margin: 14mm 12mm 16mm; }
+            * { box-sizing: border-box; }
+            body { font-family: 'Segoe UI', Tahoma, 'Noto Naskh Arabic', Arial, sans-serif; color: #111; font-size: 10.5pt; margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2.5pt solid #4c1d95; padding-bottom: 6pt; margin-bottom: 8pt; }
+            header h1 { margin: 0; font-size: 16pt; color: #4c1d95; }
+            header .sub { font-size: 9.5pt; color: #444; margin-top: 2pt; }
+            header .ref { text-align: left; font-size: 8.5pt; color: #555; line-height: 1.5; }
+            .meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4pt 10pt; border: 0.8pt solid #c4b5fd; background: #f5f3ff; border-radius: 4pt; padding: 6pt 8pt; margin-bottom: 8pt; font-size: 9.5pt; }
+            .meta b { display: block; font-size: 8pt; color: #5b21b6; font-weight: 700; }
+            h2 { font-size: 11pt; margin: 10pt 0 4pt; color: #4c1d95; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 0.6pt solid #999; padding: 3.5pt 4pt; text-align: center; vertical-align: middle; }
+            th { background: #ede9fe; font-size: 9pt; }
+            td { font-size: 9.2pt; }
+            td.l { text-align: right; }
+            tr { page-break-inside: avoid; }
+            thead { display: table-header-group; }
+            tr.void td { text-decoration: line-through; color: #888; }
+            .k-issue { color: #15803d; font-weight: 700; } .k-withdraw { color: #b45309; font-weight: 700; } .k-handover { color: #1d4ed8; font-weight: 700; }
+            .sum td:first-child { text-align: right; font-weight: 700; }
+            .sign { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18pt; margin-top: 26pt; page-break-inside: avoid; }
+            .sign div { border-top: 0.8pt solid #333; padding-top: 4pt; text-align: center; font-size: 9.5pt; }
+            .sign small { display: block; color: #555; font-size: 8pt; margin-top: 2pt; }
+            footer { position: fixed; bottom: 0; left: 0; right: 0; font-size: 7.5pt; color: #666; display: flex; justify-content: space-between; border-top: 0.5pt solid #ccc; padding-top: 2pt; background: #fff; }
+            body { padding-bottom: 8mm; }
+            .empty { text-align: center; padding: 18pt; color: #666; border: 0.6pt dashed #999; }
+            </style></head><body>
+            <header><div><h1>سجل ذمة المخدرات</h1><div class="sub">${esc(hosp)}</div></div>
+                <div class="ref">الفترة: ${ym ? esc(monthText(ym)) : 'كل السجلات'}<br>تاريخ الطباعة: ${esc(now)}<br>طبعه: ${esc(printedBy)}</div></header>
+            <div class="meta">
+                <div><b>المكان</b>${esc(duty.place)}</div>
+                <div><b>الردهات</b>${esc((duty.wards || []).join('، '))}</div>
+                <div><b>المقيم المسؤول</b>${esc(holderName || '')}</div>
+                <div><b>عدد السجلات</b>${rows.filter(m => !m.voided).length}</div>
+            </div>
+            <h2>ملخص المواد</h2>
+            <table class="sum"><thead><tr><th>المادة</th><th>المستلَم</th><th>المستخدَم</th><th>المسحوب</th><th>المتبقي حالياً</th></tr></thead><tbody>
+                ${Object.keys(items).length ? Object.entries(items).map(([n, v]) => `<tr><td>${esc(n)}</td><td>${v.recv}</td><td>${v.used}</td><td>${v.out}</td><td>${left[n] != null ? left[n] : '—'}</td></tr>`).join('') : '<tr><td colspan="5">—</td></tr>'}
+            </tbody></table>
+            <h2>السجل التفصيلي</h2>
+            ${rows.length ? `<table><thead><tr><th>#</th><th>التاريخ</th><th>النوع</th><th>المادة</th><th>العدد</th><th>اسم المريض</th><th>الجنس</th><th>العمر</th><th>الردهة</th><th>سجّله</th></tr></thead><tbody>
+                ${rows.map((m, i) => `<tr class="${m.voided ? 'void' : ''}"><td>${i + 1}</td><td>${m.date ? dateText(m.date) : new Date(m.at).toLocaleDateString('en-GB')}</td>
+                    <td class="k-${m.kind}">${KIND[m.kind][1]}</td><td>${esc(m.itemName)}</td><td>${m.kind === 'use' || m.kind === 'withdraw' ? '−' : '+'}${m.qty}</td>
+                    <td class="l">${esc(m.patient)}</td><td>${SEX[m.sex] || ''}</td><td>${m.kind === 'use' && m.age != null ? m.age : ''}</td><td>${esc(m.ward)}</td><td>${esc(m.by)}</td></tr>`).join('')}
+            </tbody></table>` : '<div class="empty">لا توجد سجلات في هذه الفترة.</div>'}
+            <div class="sign"><div>المقيم المسؤول<small>${esc(holderName || '')}</small></div><div>مسؤول الصيدلية<small>&nbsp;</small></div><div>مدير المستشفى / المسؤول الإداري<small>&nbsp;</small></div></div>
+            <footer><span>بوابة المستشفيات · ذمة المخدرات · ${esc(duty.place)}</span><span>${esc(hosp)}</span></footer>
+            </body></html>`;
+        const f = document.createElement('iframe');
+        f.setAttribute('aria-hidden', 'true');
+        f.style.cssText = 'position:fixed;width:0;height:0;border:0;left:0;bottom:0;opacity:0';
+        document.body.appendChild(f);
+        f.contentDocument.open();
+        f.contentDocument.write(html);
+        f.contentDocument.close();
+        setTimeout(() => {
+            try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { toast('تعذرت الطباعة على هذا الجهاز.', 'error'); }
+            setTimeout(() => f.remove(), 60000);
+        }, 300);
     }
 
     // ------------------------------------------------------------------
@@ -172,6 +324,7 @@
         const scope = data.scope.includes('*') ? (Hub.getHospitals ? Hub.getHospitals().map(h => h.id) : []) : data.scope;
         let hosp = host._opiHosp && (data.scope.includes('*') || scope.includes(host._opiHosp)) ? host._opiHosp : (scope[0] || '');
         const openLogs = host._opiLogs || (host._opiLogs = new Set());
+        const movesOf = {};
         const paint = () => {
             host._opiHosp = hosp;
             const duties = data.duties.filter(d => !hosp || d.hosp === hosp);
@@ -187,6 +340,7 @@
             host.querySelector('[data-act="new"]').addEventListener('click', () => editor(host, { hosp }, () => manager(host)));
             host.querySelectorAll('.opi-card').forEach(el => {
                 const d = data.duties.find(x => x.id === Number(el.dataset.duty));
+                const moves = movesOf[d.id] || [];
                 el.querySelector('[data-act="edit"]').addEventListener('click', () => editor(host, d, () => manager(host)));
                 el.querySelector('[data-act="delete"]').addEventListener('click', async () => {
                     if (!confirm(`حذف ذمة «${d.place}»؟ تبقى سجلاتها محفوظة للإدارة والمالك.`)) return;
@@ -212,26 +366,30 @@
                     try { const r = await api('POST', '/api/opioids/stock', { item: itemId, qty: n, kind: withdraw ? 'withdraw' : 'issue', note }); toast(`${withdraw ? 'سُحب' : 'أُضيف'} ✓ · المتبقي ${r.left}`, 'success'); manager(host); }
                     catch (e) { toast(errText(e), 'error'); }
                 }));
-                bindVoid(el, () => manager(host));
+                bindRowActions(el, moves, () => d, () => manager(host));
+                el.querySelector('[data-act="print"]').addEventListener('click', () => printChooser(host, d, moves, d.holder ? d.holder.name : (d.next ? d.next.name : '')));
             });
         };
         const card = d => {
             const status = d.status === 'draft' ? ['draft', 'مسودة · لم تُؤكد'] : d.pending ? ['pending', 'بانتظار تأكيد المسؤول الجديد'] : ['active', 'فعّالة'];
             const moves = data.moves.filter(m => m.duty === d.id);
+            movesOf[d.id] = moves;
             return `<div class="opi-card" data-duty="${d.id}">
                 <div class="opi-head"><div><h3>📍 ${esc(d.place)}</h3><div class="opi-sub">${data.owner || data.scope.length > 1 ? esc(hospName(d.hosp)) + ' · ' : ''}آخر تحديث ${esc(timeText(d.updated))}</div></div>
                     <span class="opi-chip ${status[0]}">${status[1]}</span></div>
                 <div class="opi-wards">${d.wards.map(w => `<span>🛏️ ${esc(w)}</span>`).join('')}</div>
                 <div class="opi-holder">👤 ${d.holder ? `المسؤول: ${esc(d.holder.name)} <span class="opi-sub">منذ ${esc(timeText(d.holder.since))}</span>` : 'لا يوجد مسؤول مؤكد بعد'}
                     ${d.pending && d.next && (!d.holder || d.holder.key !== d.next.key) ? `<span class="next">← ${esc(d.next.name)} (بانتظار التأكيد)</span>` : ''}</div>
+                ${(d.next && d.next.account === false) || (!d.next && d.holder && d.holder.account === false) ? `<div class="opi-warn">⚠️ ${esc((d.next || d.holder).name)} لا يملك حساباً فعّالاً في الموقع: لن يصله الإشعار ولن يرى الذمة في حسابه حتى ينشئ حساباً وتتم الموافقة عليه.</div>` : ''}
                 ${itemsHtml(d.items, d.status === 'active')}
                 ${d.pending ? `<button type="button" class="opi-confirm" data-act="confirm">✅ تأكيد ${d.status === 'draft' ? 'الذمة' : 'التغيير'} وإشعار ${esc(d.next ? d.next.name : 'المقيم')}</button>` : ''}
                 <div class="opi-acts">
                     <button type="button" class="opi-btn" data-act="edit">✏️ تعديل</button>
                     <button type="button" class="opi-btn" data-act="log">📋 السجل (${moves.length})</button>
+                    <button type="button" class="opi-btn" data-act="print">🖨️ طباعة</button>
                     <button type="button" class="opi-btn danger" data-act="delete">🗑️ حذف</button>
                 </div>
-                ${openLogs.has(d.id) ? logTable(moves, { showHolder: true, canVoid: () => true }) : ''}
+                ${openLogs.has(d.id) ? logTable(moves, { showHolder: true, canEdit: () => true }) : ''}
             </div>`;
         };
         paint();
@@ -257,7 +415,7 @@
                     </label>
                     <label>المقيم المسؤول
                         <div class="opi-sugg"><input data-f="holder" autocomplete="off" placeholder="اكتب الاسم واختر من القائمة" value="${esc(st.holder ? st.holder.name : '')}"><div class="opi-sugg-list" hidden></div></div>
-                        <small class="opi-sub">${st.holder ? '✓ ' + esc(st.holder.name) : 'كل مقيمي المستشفى عدا الروتيترية.'}</small>
+                        <small class="opi-sub ${st.holder && st.holder.account === false ? 'opi-warn' : ''}">${st.holder ? (st.holder.account === false ? `⚠️ ${esc(st.holder.name)} لا يملك حساباً فعّالاً في الموقع: لن يصله الإشعار ولن يرى الذمة حتى ينشئ حساباً.` : '✓ ' + esc(st.holder.name)) : 'كل مقيمي المستشفى عدا الروتيترية.'}</small>
                     </label>
                     <div><div class="opi-h4" style="margin-top:0">المواد المخدرة</div>
                         ${st.items.map((it, i) => `<div class="opi-it-row" data-i="${i}" style="margin-bottom:6px">
@@ -290,10 +448,16 @@
             let timer = null, found = [], idx = -1;
             const show = () => {
                 list.hidden = !found.length;
-                list.innerHTML = found.map((r, i) => `<button type="button" class="${i === idx ? 'on' : ''}" data-r="${i}">${esc(r.name)}</button>`).join('');
+                list.innerHTML = found.map((r, i) => `<button type="button" class="${i === idx ? 'on' : ''}" data-r="${i}">${esc(r.name)}${r.account ? '' : ' <small class="opi-noacc">لا يملك حساباً</small>'}</button>`).join('');
                 list.querySelectorAll('[data-r]').forEach(b => b.addEventListener('mousedown', e => { e.preventDefault(); choose(found[Number(b.dataset.r)]); }));
             };
-            const choose = r => { st.holder = r; inp.value = r.name; list.hidden = true; host.querySelector('.opi-sugg + small').textContent = '✓ ' + r.name; };
+            const note = () => {
+                const el = host.querySelector('.opi-sugg + small');
+                el.className = 'opi-sub' + (st.holder && st.holder.account === false ? ' opi-warn' : '');
+                el.textContent = !st.holder ? 'اختر الاسم من القائمة.' : st.holder.account === false
+                    ? `⚠️ ${st.holder.name} لا يملك حساباً فعّالاً في الموقع: لن يصله الإشعار ولن يرى الذمة حتى ينشئ حساباً.` : '✓ ' + st.holder.name + ' (لديه حساب فعّال)';
+            };
+            const choose = r => { st.holder = r; inp.value = r.name; list.hidden = true; note(); };
             inp.addEventListener('input', () => {
                 st.holder = null;
                 host.querySelector('.opi-sugg + small').textContent = 'اختر الاسم من القائمة.';
@@ -314,6 +478,7 @@
             $('[data-act="save"]').addEventListener('click', async e => {
                 const btn = e.currentTarget;
                 if (!st.holder) { toast('اختر المقيم المسؤول من القائمة.', 'error'); inp.focus(); return; }
+                if (st.holder.account === false && !confirm(`${st.holder.name} لا يملك حساباً فعّالاً في الموقع، فلن يصله الإشعار ولن يرى الذمة حتى ينشئ حساباً. المتابعة؟`)) return;
                 btn.disabled = true;
                 try {
                     await api('POST', '/api/opioids/duty', {
@@ -360,7 +525,8 @@
                     <div class="opi-wards">${d.wards.map(w => `<span>🛏️ ${esc(w)}</span>`).join('')}</div></div>
                 ${d.holding ? `
                     ${alerts.map(i => `<div class="opi-alert ${level(i.left, i.low)}">${i.left <= 0 ? '⛔' : '⚠️'} ${esc(i.name)}: ${i.left <= 0 ? 'نفد تماماً، اطلب التعويض من الإدارة.' : `بقي ${fmt(i.left)} فقط.`}</div>`).join('')}
-                    <div class="opi-counters">${d.items.map(i => `<div class="opi-counter ${level(i.left, i.low)}"><span>💊 ${esc(i.name)}</span><b>${fmt(i.left)}</b><small>أمبولة متبقية${i.low ? ` · التنبيه عند ${i.low}` : ''}</small></div>`).join('')}</div>
+                    <div class="opi-counters">${d.items.map(i => `<div class="opi-counter ${level(i.left, i.low)}"><span>💊 ${esc(i.name)}</span><b>${fmt(i.left)}</b><small>أمبولة متبقية${i.low ? ` · التنبيه عند ${i.low}` : ''}</small>
+                        <button type="button" class="opi-btn opi-refill" data-refill="${i.id}">＋ تعويض</button></div>`).join('')}</div>
                     <button type="button" class="opi-new" data-act="log" style="width:100%;margin-bottom:12px">💉 تسجيل استخدام أمبولة</button>` : ''}
                 <div class="opi-stats">
                     <div class="opi-stat"><b>${fmt(uses.filter(m => m.date >= weekAgo).reduce((n, m) => n + m.qty, 0))}</b><small>آخر 7 أيام</small></div>
@@ -368,14 +534,22 @@
                     <div class="opi-stat"><b>${fmt(uses.reduce((n, m) => n + m.qty, 0))}</b><small>كل استخداماتك</small></div>
                 </div>
                 ${Object.keys(byWard).length ? `<div class="opi-h4">حسب الردهة</div><div class="opi-wardbars">${Object.entries(byWard).sort((a, b) => b[1] - a[1]).map(([w, n]) => `<div class="opi-wardbar"><span>${esc(w)}</span><div><i style="width:${Math.round(n / topWard * 100)}%"></i></div><b>${n}</b></div>`).join('')}</div>` : ''}
-                <div class="opi-h4">سجل الاستخدام (${fmt(moves.length)})</div>
-                ${logTable(moves, { canVoid: () => d.holding })}
+                <div class="opi-top" style="margin:14px 0 8px"><b class="opi-h4" style="margin:0">سجل الاستخدام (${fmt(moves.length)})</b><button type="button" class="opi-btn" data-act="print">🖨️ طباعة السجل</button></div>
+                ${logTable(moves, { canEdit: () => true })}
                 ${past.length && d.holding ? `<div class="opi-sub" style="margin-top:10px">لك ذمم سابقة: اخترها من الأعلى لعرض سجلاتك فيها.</div>` : ''}
             </div>`;
             host.querySelectorAll('[data-sel]').forEach(b => b.addEventListener('click', () => { sel = Number(b.dataset.sel); paint(); }));
             const logBtn = host.querySelector('[data-act="log"]');
-            if (logBtn) logBtn.addEventListener('click', () => useForm([{ id: d.id, place: d.place, wards: d.wards, items: d.items }], () => mine(host)));
-            bindVoid(host, () => mine(host));
+            if (logBtn) logBtn.addEventListener('click', () => useForm([{ id: d.id, place: d.place, wards: d.wards, items: d.items }], () => mine(host), host));
+            bindRowActions(host, moves, () => d, () => mine(host));
+            host.querySelector('[data-act="print"]').addEventListener('click', () => printChooser(host, d, moves, (Hub.auth.getAccount() || {}).name || ''));
+            host.querySelectorAll('[data-refill]').forEach(b => b.addEventListener('click', async () => {
+                const it = d.items.find(i => i.id === Number(b.dataset.refill));
+                const n = Number(prompt(`تعويض «${it.name}»: كم أمبولة استلمت؟ (المتبقي ${it.left})`, ''));
+                if (!n || n < 1) return;
+                try { const r = await api('POST', '/api/opioids/stock', { item: it.id, qty: n, kind: 'issue', note: 'تعويض من المسؤول' }); toast(`أُضيف ✓ · المتبقي ${r.left}. أُبلغت الإدارة.`, 'success'); mine(host); }
+                catch (e) { toast(errText(e), 'error'); }
+            }));
         };
         paint();
     }
@@ -383,13 +557,25 @@
     // ------------------------------------------------------------------
     // Recording a use (a pop-up: the duty roster's button, or the holder's tab)
     // ------------------------------------------------------------------
-    function useForm(duties, after) {
+    function useForm(duties, after, host) {
         if (!duties.length) return;
-        const sheet = A.openSheet(`<header class="hacc-sheet-head"><div><h2>💉 تسجيل استخدام مادة مخدرة</h2><div class="hacc-muted">يُسجَّل باسمك تلقائياً: ${esc((Hub.auth.getAccount() || {}).name || '')}</div></div>
-                <button type="button" class="hacc-icon-btn" data-act="close" aria-label="إغلاق">✕</button></header>
-            <div class="hacc-sheet-body opi"><div class="opi-form" data-role="form"></div></div>`, { label: 'تسجيل استخدام مادة مخدرة', tall: true });
-        sheet.querySelector('[data-act="close"]').addEventListener('click', A.closeSheet);
-        const form = sheet.querySelector('[data-role="form"]');
+        const who = esc((Hub.auth.getAccount() || {}).name || '');
+        let form, close;
+        if (host) {
+            // Inside the account panel: the form takes the tab's place ("رجوع" returns).
+            host.innerHTML = `<div class="opi"><div class="opi-top"><button type="button" class="opi-btn" data-act="back">→ رجوع</button><b>💉 تسجيل استخدام</b></div>
+                <div class="opi-sub" style="margin-bottom:8px">يُسجَّل باسمك تلقائياً: ${who}</div><div class="opi-form" data-role="form"></div></div>`;
+            form = host.querySelector('[data-role="form"]');
+            close = () => { if (after) after(); };
+            host.querySelector('[data-act="back"]').addEventListener('click', close);
+        } else {
+            const sheet = A.openSheet(`<header class="hacc-sheet-head"><div><h2>💉 تسجيل استخدام مادة مخدرة</h2><div class="hacc-muted">يُسجَّل باسمك تلقائياً: ${who}</div></div>
+                    <button type="button" class="hacc-icon-btn" data-act="close" aria-label="إغلاق">✕</button></header>
+                <div class="hacc-sheet-body opi"><div class="opi-form" data-role="form"></div></div>`, { label: 'تسجيل استخدام مادة مخدرة', tall: true });
+            sheet.querySelector('[data-act="close"]').addEventListener('click', A.closeSheet);
+            form = sheet.querySelector('[data-role="form"]');
+            close = () => { A.closeSheet(); if (after) after(); };
+        }
         const st = { duty: duties[0].id, item: null, qty: 1, patient: '', sex: '', age: '', ward: '', date: today() };
         const paint = () => {
             const d = duties.find(x => x.id === st.duty);
@@ -399,14 +585,15 @@
             form.innerHTML = `
                 ${duties.length > 1 ? `<label>الذمة (المكان)<select data-f="duty">${duties.map(x => `<option value="${x.id}" ${x.id === st.duty ? 'selected' : ''}>${esc(x.place)}${x.holder ? ' · ' + esc(x.holder) : ''}</option>`).join('')}</select></label>` : `<div class="opi-sub">📍 ${esc(d.place)}${d.holder ? ' · المسؤول: ' + esc(d.holder) : ''}</div>`}
                 <label>المادة<select data-f="item">${d.items.map(i => `<option value="${i.id}" ${i.id === st.item ? 'selected' : ''} ${i.left <= 0 ? 'disabled' : ''}>${esc(i.name)} · المتبقي ${fmt(i.left)}</option>`).join('')}</select></label>
-                <div class="opi-row"><label style="flex:1">اسم المريض<input data-f="patient" maxlength="80" value="${esc(st.patient)}" autocomplete="off"></label>
-                    <label style="width:90px">العدد<input data-f="qty" type="number" min="1" max="${Math.min(10, it ? it.left : 1)}" inputmode="numeric" value="${st.qty}"></label></div>
+                <div class="opi-row"><label style="flex:1">اسم المريض الثلاثي *<input data-f="patient" maxlength="80" value="${esc(st.patient)}" autocomplete="off" placeholder="الاسم واسم الأب والجد" required></label>
+                    <label style="width:90px">العدد *<input data-f="qty" type="number" min="1" max="${Math.min(10, it ? it.left : 1)}" inputmode="numeric" value="${st.qty}" required></label></div>
                 <div class="opi-row">
-                    <label style="flex:1">الجنس<div class="opi-seg" style="display:grid;grid-template-columns:1fr 1fr"><button type="button" data-sex="m" class="${st.sex === 'm' ? 'on' : ''}">ذكر</button><button type="button" data-sex="f" class="${st.sex === 'f' ? 'on' : ''}">أنثى</button></div></label>
-                    <label style="width:90px">العمر<input data-f="age" type="number" min="0" max="120" inputmode="numeric" value="${esc(st.age)}"></label>
+                    <label style="flex:1">الجنس *<div class="opi-seg" style="display:grid;grid-template-columns:1fr 1fr"><button type="button" data-sex="m" class="${st.sex === 'm' ? 'on' : ''}">ذكر</button><button type="button" data-sex="f" class="${st.sex === 'f' ? 'on' : ''}">أنثى</button></div></label>
+                    <label style="width:90px">العمر *<input data-f="age" type="number" min="0" max="120" inputmode="numeric" value="${esc(st.age)}" required></label>
                 </div>
-                <label>الردهة<select data-f="ward"><option value="">اختر الردهة</option>${d.wards.map(w => `<option ${w === st.ward ? 'selected' : ''}>${esc(w)}</option>`).join('')}</select></label>
-                <label>تاريخ الاستخدام<input data-f="date" type="date" max="${today()}" value="${esc(st.date)}"></label>
+                <label>الردهة *<select data-f="ward" required><option value="">اختر الردهة</option>${d.wards.map(w => `<option ${w === st.ward ? 'selected' : ''}>${esc(w)}</option>`).join('')}</select></label>
+                <label>تاريخ الاستخدام *<input data-f="date" type="date" max="${today()}" value="${esc(st.date)}" required></label>
+                <div class="opi-sub">كل الحقول مطلوبة: السجل الرسمي يحتاجها كاملة.</div>
                 <button type="button" class="opi-new" data-act="submit" ${!it || it.left <= 0 ? 'disabled' : ''}>تسجيل الاستخدام</button>`;
             form.querySelectorAll('[data-f]').forEach(inp => inp.addEventListener(inp.tagName === 'SELECT' ? 'change' : 'input', () => {
                 const v = inp.value;
@@ -416,6 +603,11 @@
             form.querySelectorAll('[data-sex]').forEach(b => b.addEventListener('click', () => { st.sex = b.dataset.sex; form.querySelectorAll('[data-sex]').forEach(x => x.classList.toggle('on', x === b)); }));
             form.querySelector('[data-act="submit"]').addEventListener('click', async e => {
                 const btn = e.currentTarget;
+                // Every field (the official log needs them all).
+                const miss = !st.item ? 'اختر المادة.' : !threeNames(st.patient) ? ERR.patient_three_names : !(Number(st.qty) >= 1) ? 'اكتب العدد.'
+                    : !st.sex ? ERR.sex_required : st.age === '' || !(Number(st.age) >= 0 && Number(st.age) <= 120) ? ERR.age_required
+                    : !st.ward ? ERR.ward_required : !st.date || st.date > today() ? ERR.bad_date : '';
+                if (miss) { toast(miss, 'error'); return; }
                 btn.disabled = true;
                 try {
                     const r = await api('POST', '/api/opioids/use', { duty: st.duty, item: st.item, qty: Number(st.qty) || 1, patient: st.patient, sex: st.sex, age: st.age === '' ? null : Number(st.age), ward: st.ward, date: st.date });
@@ -423,8 +615,7 @@
                     const ii = dd.items.find(i => i.id === st.item);
                     if (ii) ii.left = r.left;
                     toast(`سُجّل ✓ · المتبقي من ${ii ? ii.name : 'المادة'}: ${r.left}${r.low ? (r.left ? ' ⚠️ قارب على النفاد' : ' ⛔ نفد') : ''}`, r.low ? 'info' : 'success');
-                    A.closeSheet();
-                    if (after) after();
+                    close();
                 } catch (err) { btn.disabled = false; toast(errText(err), 'error'); }
             });
         };

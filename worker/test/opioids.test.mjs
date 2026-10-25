@@ -45,6 +45,8 @@ async function account(res, hosp, u, rotator) {
   return { id, tok: li.token };
 }
 const t = {};
+/** /api/opioids/mine limited to this run's duty (earlier runs may have used the same residents). */
+const own = r => ({ ...r.data, duties: r.data.duties.filter(d => d.id === t.duty.id), moves: r.data.moves.filter(m => m.duty === t.duty.id) });
 
 test('setup: two residents with accounts and a rotator of the same hospital', async () => {
   t.owner = await login(DATA.globalPasswords.owner);
@@ -80,6 +82,8 @@ test('holder suggestions: the hospital\'s residents, closest first, never rotato
   assert.equal(r.data.residents[0].res, t.res.id, 'the closest name first');
   assert.ok(!r.data.residents.some(x => x.name.includes('روتيتر ذمة')));
   assert.equal((await call('GET', `/api/opioids/residents?h=${t.h}&q=x`, { token: t.holder.tok })).status, 403);
+  assert.equal(r.data.residents[0].account, true, 'the holder has an active account');
+  assert.ok(r.data.residents.every(x => typeof x.account === 'boolean'));
 });
 
 test('create (draft), validation, then confirm and notify', async () => {
@@ -97,14 +101,14 @@ test('create (draft), validation, then confirm and notify', async () => {
   assert.equal(t.duty.pending, true);
   assert.deepEqual(t.duty.items.map(i => i.left), [5, 2]);
   // Before confirmation: no tab for the holder, nothing to record.
-  assert.equal((await call('GET', '/api/opioids/mine', { token: t.holder.tok })).data.duties.filter(d => d.id === t.duty.id).length, 0);
+  assert.equal((own(await call('GET', '/api/opioids/mine', { token: t.holder.tok }))).duties.filter(d => d.id === t.duty.id).length, 0);
   assert.equal((await call('GET', `/api/opioids/targets?h=${t.h}`, { token: t.rot.tok })).data.duties.filter(d => d.id === t.duty.id).length, 0);
   const c = await call('POST', '/api/opioids/confirm', { token: t.admin, body: { id: t.duty.id } });
   assert.equal(c.status, 200, JSON.stringify(c.data));
   assert.equal(c.data.notified, 1);
   const n = (await call('GET', '/api/notifications', { token: t.holder.tok })).data.items.find(x => x.type === 'opioid_assigned');
   assert.ok(n && n.data.place.includes(RUN));
-  const mine = (await call('GET', '/api/opioids/mine', { token: t.holder.tok })).data;
+  const mine = (own(await call('GET', '/api/opioids/mine', { token: t.holder.tok })));
   assert.equal(mine.duties.length, 1);
   assert.equal(mine.duties[0].holding, true);
   assert.deepEqual(mine.duties[0].items.map(i => i.left), [5, 2]);
@@ -120,10 +124,13 @@ test('the roster button: the hospital\'s rotators and the holder; not other resi
 
 test('a rotator records a use: the holder is notified, low and empty alerts', async () => {
   const pet = t.duty.items[0], mor = t.duty.items[1];
-  const base = { duty: t.duty.id, item: pet.id, patient: 'مريض اختبار', sex: 'm', age: 45, ward: 'الباطنية', date: dutyDayNow() };
+  const base = { duty: t.duty.id, item: pet.id, patient: 'مريض اختبار ثالث', sex: 'm', age: 45, ward: 'الباطنية', date: dutyDayNow() };
   assert.equal((await call('POST', '/api/opioids/use', { token: t.rot.tok, body: { ...base, ward: 'ليست من الردهات' } })).data.error, 'ward_required');
   assert.equal((await call('POST', '/api/opioids/use', { token: t.rot.tok, body: { ...base, date: '2999-01-01' } })).data.error, 'bad_date');
   assert.equal((await call('POST', '/api/opioids/use', { token: t.second.tok, body: base })).status, 403, 'another resident cannot');
+  assert.equal((await call('POST', '/api/opioids/use', { token: t.rot.tok, body: { ...base, patient: 'مريض فقط' } })).data.error, 'patient_three_names');
+  assert.equal((await call('POST', '/api/opioids/use', { token: t.rot.tok, body: { ...base, age: '' } })).data.error, 'age_required');
+  assert.equal((await call('POST', '/api/opioids/use', { token: t.rot.tok, body: { ...base, sex: '' } })).data.error, 'sex_required');
   const u1 = await call('POST', '/api/opioids/use', { token: t.rot.tok, body: base });
   assert.equal(u1.status, 200, JSON.stringify(u1.data));
   assert.equal(u1.data.left, 4);
@@ -142,26 +149,65 @@ test('a rotator records a use: the holder is notified, low and empty alerts', as
   await call('POST', '/api/opioids/use', { token: t.holder.tok, body: { ...base, item: mor.id, qty: 2 } });
   notes = (await call('GET', '/api/notifications', { token: t.holder.tok })).data.items;
   assert.ok(notes.find(x => x.type === 'opioid_empty' && x.data.item === mor.name && x.data.left === 0));
-  const mine = (await call('GET', '/api/opioids/mine', { token: t.holder.tok })).data;
+  const mine = (own(await call('GET', '/api/opioids/mine', { token: t.holder.tok })));
   const uses = mine.moves.filter(m => m.kind === 'use');
   assert.equal(uses.length, 3);
-  assert.ok(uses.some(m => m.by.includes('روتيتر ذمة') && m.patient === 'مريض اختبار' && m.sex === 'm' && m.age === 45 && m.ward === 'الباطنية'));
+  assert.ok(uses.some(m => m.by.includes('روتيتر ذمة') && m.patient === 'مريض اختبار ثالث' && m.sex === 'm' && m.age === 45 && m.ward === 'الباطنية'));
 });
 
 test('void a mistaken use (the count comes back); admins replenish and withdraw', async () => {
-  const mine = (await call('GET', '/api/opioids/mine', { token: t.holder.tok })).data;
+  const mine = (own(await call('GET', '/api/opioids/mine', { token: t.holder.tok })));
   const use = mine.moves.find(m => m.kind === 'use' && m.qty === 2 && m.itemName.startsWith('Pethidine'));
   assert.equal((await call('POST', '/api/opioids/void', { token: t.rot.tok, body: { id: use.id, reason: 'خطأ' } })).status, 403, 'not the rotator');
   assert.equal((await call('POST', '/api/opioids/void', { token: t.holder.tok, body: { id: use.id } })).data.error, 'reason_required');
   const v = await call('POST', '/api/opioids/void', { token: t.holder.tok, body: { id: use.id, reason: 'سُجّل مرتين' } });
   assert.equal(v.data.left, 4);
   const pet = t.duty.items[0];
-  assert.equal((await call('POST', '/api/opioids/stock', { token: t.holder.tok, body: { item: pet.id, qty: 5 } })).status, 403);
+  assert.equal((await call('POST', '/api/opioids/stock', { token: t.holder.tok, body: { item: pet.id, qty: 5, kind: 'withdraw' } })).status, 403, 'the holder cannot withdraw');
   assert.equal((await call('POST', '/api/opioids/stock', { token: t.admin, body: { item: pet.id, qty: 6 } })).data.left, 10);
   assert.equal((await call('POST', '/api/opioids/stock', { token: t.admin, body: { item: pet.id, qty: 11, kind: 'withdraw' } })).data.error, 'not_enough');
   assert.equal((await call('POST', '/api/opioids/stock', { token: t.admin, body: { item: pet.id, qty: 1, kind: 'withdraw', note: 'منتهي الصلاحية' } })).data.left, 9);
   const notes = (await call('GET', '/api/notifications', { token: t.holder.tok })).data.items;
   assert.ok(notes.find(x => x.type === 'opioid_stock' && x.data.left === 9));
+});
+
+test('log entries: the holder and admins edit and delete them; the stock follows', async () => {
+  const mine = (own(await call('GET', '/api/opioids/mine', { token: t.holder.tok })));
+  const use = mine.moves.find(m => m.kind === 'use' && !m.voided && m.itemName.startsWith('Pethidine'));
+  const before = (await call('GET', `/api/opioids?h=${t.h}`, { token: t.admin })).data.duties.find(x => x.id === t.duty.id).items[0].left;
+  const edit = { id: use.id, action: 'edit', patient: 'مريض معدّل الاسم الثلاثي', sex: 'f', age: 33, ward: 'الجراحة', date: use.date, qty: use.qty + 1 };
+  assert.equal((await call('POST', '/api/opioids/move', { token: t.rot.tok, body: edit })).status, 403, 'not the rotator');
+  assert.equal((await call('POST', '/api/opioids/move', { token: t.holder.tok, body: { ...edit, patient: 'اسم ناقص' } })).data.error, 'patient_three_names');
+  const e = await call('POST', '/api/opioids/move', { token: t.holder.tok, body: edit });
+  assert.equal(e.status, 200, JSON.stringify(e.data));
+  assert.equal(e.data.left, before - 1, 'one more ampoule used');
+  const after = (own(await call('GET', '/api/opioids/mine', { token: t.holder.tok }))).moves.find(m => m.id === use.id);
+  assert.equal(after.patient, 'مريض معدّل الاسم الثلاثي');
+  assert.ok(after.edited && after.editedBy, 'who edited and when');
+  const d = await call('POST', '/api/opioids/move', { token: t.admin, body: { id: use.id, action: 'delete', reason: 'تجربة' } });
+  assert.equal(d.data.left, before + use.qty, 'the ampoules come back');
+  const gone = (await call('GET', `/api/opioids?h=${t.h}`, { token: t.admin })).data.moves.find(m => m.id === use.id);
+  assert.equal(gone.voided, true, 'still listed, crossed out');
+  assert.equal((await call('POST', '/api/opioids/move', { token: t.holder.tok, body: { ...edit } })).data.error, 'deleted');
+  const hand = (await call('GET', `/api/opioids?h=${t.h}`, { token: t.admin })).data.moves.find(m => m.kind === 'handover');
+  if (hand) assert.equal((await call('POST', '/api/opioids/move', { token: t.admin, body: { id: hand.id, action: 'delete' } })).data.error, 'not_editable');
+});
+
+test('the holder replenishes their own stock (only add); the admins and the owner are notified', async () => {
+  const d = (await call('GET', `/api/opioids?h=${t.h}`, { token: t.admin })).data.duties.find(x => x.id === t.duty.id);
+  const it = d.items[0];
+  assert.equal((await call('POST', '/api/opioids/stock', { token: t.holder.tok, body: { item: it.id, qty: 1, kind: 'withdraw' } })).status, 403, 'no withdrawing');
+  assert.equal((await call('POST', '/api/opioids/stock', { token: t.second.tok, body: { item: it.id, qty: 1 } })).status, 403, 'not another resident');
+  const r = await call('POST', '/api/opioids/stock', { token: t.holder.tok, body: { item: it.id, qty: 4 } });
+  assert.equal(r.status, 200, JSON.stringify(r.data));
+  assert.equal(r.data.left, it.left + 4);
+  // The local owner account receives it.
+  const ownerKey = await deriveKey('adm_mv7kjvs4', 'Pass-1234');
+  const ownerTok = (await call('POST', '/api/accounts/login', { body: { username: 'adm_mv7kjvs4', key: ownerKey, deviceId: 'deviceOwnerOpi' + RUN + 'xxxxxxx', deviceLabel: 'Test' } })).data.token;
+  if (ownerTok) {
+    const n = (await call('GET', '/api/notifications', { token: ownerTok })).data.items.find(x => x.type === 'opioid_replenished' && x.data.duty === t.duty.id);
+    assert.ok(n && n.data.qty === 4, JSON.stringify(n));
+  }
 });
 
 test('a new holder: handover; each holder sees only their own records; admins see all', async () => {
@@ -172,27 +218,27 @@ test('a new holder: handover; each holder sees only their own records; admins se
   assert.equal(e.data.duty.pending, true, 'the change waits for confirmation');
   assert.equal(e.data.duty.holder.key.length > 0, true);
   await call('POST', '/api/opioids/confirm', { token: t.admin, body: { id: d.id } });
-  const second = (await call('GET', '/api/opioids/mine', { token: t.second.tok })).data;
+  const second = (own(await call('GET', '/api/opioids/mine', { token: t.second.tok })));
   assert.equal(second.duties[0].holding, true);
   assert.deepEqual(second.moves.map(m => m.kind).sort(), ['handover', 'handover'], 'only the handover so far');
-  assert.equal(second.moves.find(m => m.itemName.startsWith('Pethidine')).qty, 9);
-  const first = (await call('GET', '/api/opioids/mine', { token: t.holder.tok })).data;
+  assert.equal(second.moves.find(m => m.itemName.startsWith('Pethidine')).qty, d.items[0].left);
+  const first = (own(await call('GET', '/api/opioids/mine', { token: t.holder.tok })));
   assert.equal(first.duties[0].holding, false, 'now an earlier duty');
   assert.equal(first.duties[0].items.length, 0, 'no stock for an earlier holder');
   assert.ok(first.moves.every(m => m.kind !== 'handover'), 'not the next holder\'s records');
   // The second records a use; the first does not see it, the admin does.
-  await call('POST', '/api/opioids/use', { token: t.rot.tok, body: { duty: d.id, item: d.items[0].id, patient: 'مريض ثانٍ', sex: 'f', age: 60, ward: 'الجراحة' } });
-  assert.equal((await call('GET', '/api/opioids/mine', { token: t.holder.tok })).data.moves.filter(m => m.patient === 'مريض ثانٍ').length, 0);
-  assert.equal((await call('GET', '/api/opioids/mine', { token: t.second.tok })).data.moves.filter(m => m.patient === 'مريض ثانٍ').length, 1);
+  await call('POST', '/api/opioids/use', { token: t.rot.tok, body: { duty: d.id, item: d.items[0].id, patient: 'مريض ثانٍ اختبار', sex: 'f', age: 60, ward: 'الجراحة', date: dutyDayNow() } });
+  assert.equal((own(await call('GET', '/api/opioids/mine', { token: t.holder.tok }))).moves.filter(m => m.patient === 'مريض ثانٍ اختبار').length, 0);
+  assert.equal((own(await call('GET', '/api/opioids/mine', { token: t.second.tok }))).moves.filter(m => m.patient === 'مريض ثانٍ اختبار').length, 1);
   assert.equal((await call('GET', `/api/opioids?h=${t.h}`, { token: t.admin })).data.moves.filter(m => m.duty === d.id && m.kind === 'use').length, 4);
   assert.equal((await call('POST', '/api/opioids/use', { token: t.holder.tok, body: { duty: d.id, item: d.items[0].id, patient: 'x', sex: 'm', age: 1, ward: 'الجراحة' } })).status, 403, 'the former holder cannot record');
   // Back to the first holder: they see their two tenures' records, not the second's.
   await call('POST', '/api/opioids/duty', { token: t.admin, body: { id: d.id, place: d.place, wards: d.wards, holder: { res: t.res.id, name: t.res.name }, items } });
   await call('POST', '/api/opioids/confirm', { token: t.admin, body: { id: d.id } });
-  const again = (await call('GET', '/api/opioids/mine', { token: t.holder.tok })).data;
+  const again = (own(await call('GET', '/api/opioids/mine', { token: t.holder.tok })));
   assert.equal(again.duties[0].holding, true);
   assert.equal(again.duties[0].tenures.length, 2);
-  assert.equal(again.moves.filter(m => m.patient === 'مريض ثانٍ').length, 0);
+  assert.equal(again.moves.filter(m => m.patient === 'مريض ثانٍ اختبار').length, 0);
   assert.ok(again.moves.some(m => m.kind === 'handover'), 'the handover of their new tenure');
 });
 
@@ -204,7 +250,7 @@ test('an item with ampoules left cannot be removed; delete keeps the records', a
   assert.equal((await call('POST', '/api/opioids/delete', { token: t.holder.tok, body: { id: d.id } })).status, 403);
   assert.equal((await call('POST', '/api/opioids/delete', { token: t.admin, body: { id: d.id } })).data.ok, true);
   assert.equal((await call('GET', `/api/opioids?h=${t.h}`, { token: t.admin })).data.duties.filter(x => x.id === d.id).length, 0);
-  const mine = (await call('GET', '/api/opioids/mine', { token: t.holder.tok })).data;
+  const mine = (own(await call('GET', '/api/opioids/mine', { token: t.holder.tok })));
   assert.equal(mine.duties.find(x => x.id === d.id).holding, false);
   assert.ok(mine.moves.length > 0, 'the holder keeps their records');
 });

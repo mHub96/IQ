@@ -547,6 +547,7 @@ function pushMessage(n) {
     case 'opioid_used': return { title: `💉 استُخدم ${d.item || 'مخدر'}`, body: `${d.qty || 1} أمبولة · ${d.ward || ''} · سجّلها ${d.by || ''}. المتبقي: ${d.left}`, url: './index.html?portal=true#panel=opioids' };
     case 'opioid_low': return { title: `⚠️ ${d.item || 'مخدر'} قارب على النفاد`, body: `بقي ${d.left} فقط في ${d.place || ''}.`, url: './index.html?portal=true#panel=opioids' };
     case 'opioid_empty': return { title: `⛔ نفد ${d.item || 'مخدر'}`, body: `لم يبقَ شيء في ${d.place || ''}. اطلب التعويض من الإدارة.`, url: './index.html?portal=true#panel=opioids' };
+    case 'opioid_replenished': return { title: '💊 تعويض ذمة المخدرات', body: `${d.by || 'المسؤول'} أضاف ${d.qty} من ${d.item || ''} إلى ذمة ${d.place || ''}. المتبقي ${d.left}.`, url: './index.html?portal=true#panel=opioidsadmin' };
     case 'opioid_stock': return { title: d.kind === 'withdraw' ? '💊 سحب من ذمتك' : '💊 تعويض ذمتك', body: `${d.item || ''}: ${d.kind === 'withdraw' ? 'سُحبت' : 'أُضيفت'} ${d.qty} · المتبقي ${d.left} (${d.place || ''})`, url: './index.html?portal=true#panel=opioids' };
     default: return { title: '🔔 إشعار جديد', body: '', url: './index.html?portal=true' };
   }

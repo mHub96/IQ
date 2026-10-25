@@ -106,6 +106,22 @@
     .xp-month-badge { position: absolute; top: 8px; inset-inline-start: 8px; z-index: 3; padding: 2px 8px; border-radius: 999px; font-size: .62rem; font-weight: 900;
         color: #78350f; background: linear-gradient(135deg, #fde68a, #fbbf24); box-shadow: 0 2px 8px rgba(217,119,6,.35); pointer-events: none; }
     .xp-tro { font: inherit; color: inherit; cursor: pointer; width: 100%; }
+    .xp-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; justify-content: inherit; }
+    .xp-pod .xp-badges { justify-content: center; }
+    .xp-badge { display: inline-flex; align-items: center; gap: 3px; padding: 1px 7px; border-radius: 999px; font-size: .58rem; font-weight: 900; white-space: nowrap; }
+    .xp-badge.b-likes { background: #ffe4e6; color: #be123c; } .xp-badge.b-comments { background: #e0f2fe; color: #0369a1; }
+    .xp-badge.b-popular { background: #fce7f3; color: #9d174d; } .xp-badge.b-star { background: #fef3c7; color: #92400e; }
+    .xp-me { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 12px; border-radius: 18px; position: sticky; top: 0; z-index: 2;
+        background: linear-gradient(135deg, var(--k1, #334155), var(--k2, #64748b)); color: #fff; box-shadow: 0 8px 22px rgba(0,0,0,.18); animation: xpIn .35s ease both; }
+    .xp-me.none { background: rgba(142,142,147,.14); color: inherit; box-shadow: none; position: static; }
+    .xp-me-rank { min-width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; font-size: 1.15rem; font-weight: 900; background: rgba(255,255,255,.2); }
+    .xp-me.none .xp-me-rank { background: rgba(142,142,147,.2); }
+    .xp-me-mid { flex: 1; min-width: 0; }
+    .xp-me b { display: block; font-size: .9rem; font-weight: 900; }
+    .xp-me small { display: block; font-size: .7rem; font-weight: 700; opacity: .9; line-height: 1.5; }
+    .xp-me .xp-badge { background: rgba(255,255,255,.92); }
+    .xp-me .xp-score { text-align: center; font: 900 1rem inherit; font-family: inherit; color: #fff; }
+    .xp-me .xp-score small { display: block; font-size: .58rem; opacity: .8; }
     .xp-tro.sel { border-color: #0A84FF; box-shadow: 0 0 0 3px rgba(10,132,255,.18); }
     .xp-how { margin: -4px 0 14px; padding: 12px 14px; border-radius: 16px; background: rgba(10,132,255,.07); border: 1px solid rgba(10,132,255,.25); animation: xpIn .3s ease both; }
     .xp-how-h { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
@@ -168,14 +184,32 @@
         await select(period);
     }
 
+    // Social and title badges, on any row (not only the podium).
+    const BADGE = { likes: ['❤️', 'الأكثر إعجاباً', 'الأكثر إعجاباً في هذه الفترة'], comments: ['💬', 'الأكثر تعليقاً', 'الأكثر تعليقاً على بطاقاته في هذه الفترة'],
+        popular: ['💖', 'الأكثر شعبية', 'الأكثر شعبية الشهر الماضي'], star: ['👑', 'مقيم الشهر', 'الأكثر نشاطاً الشهر الماضي'] };
+    const badgesHtml = r => (r.badges || []).map(b => `<span class="xp-badge b-${b}" title="${esc(BADGE[b][2])}">${BADGE[b][0]} ${esc(BADGE[b][1])}</span>`).join('');
+    const PERIOD = { today: 'اليوم', month: 'هذا الشهر', all: 'كل الأوقات' };
+    function rankCard(data) {
+        const m = data.mine;
+        if (!m) return '';
+        if (m.none) return `<div class="xp-me none"><span class="xp-me-rank">—</span><div><b>ترتيبك ${PERIOD[data.period] || ''}</b><small>لا نقاط لك في هذه الفترة بعد. التواصل معك أثناء خفاراتك هو أسرع طريق للصعود.</small></div></div>`;
+        const medal = m.rank <= 3 ? ['🥇', '🥈', '🥉'][m.rank - 1] : '';
+        return `<div class="xp-me" style="${tierVars(m.tier)}">
+            <span class="xp-me-rank">${medal || '#' + m.rank}</span>
+            <div class="xp-me-mid"><b>ترتيبك ${PERIOD[data.period] || ''}: ${m.rank} من ${m.of}</b>
+                <small>${m.rank === 1 ? 'أنت في الصدارة 🎉' : `أعلى من ${m.beats}% من الزملاء · تحتاج <bdi dir="ltr">${fmt(m.gap)} XP</bdi> لتتجاوز ${esc(String(m.aboveName || '').replace(/^د\.?\s*/, ''))}`}</small>
+                ${badgesHtml(m) ? `<div class="xp-badges">${badgesHtml(m)}</div>` : ''}</div>
+            <div class="xp-score">${fmt(m.xp)}<small>XP</small></div></div>`;
+    }
+
     function paint(board, data, hosp) {
         const rows = data.rows || [];
-        if (!rows.length) { board.innerHTML = '<div class="xp-empty"><div style="font-size:2rem">🏆</div>لا توجد نقاط في هذه الفترة بعد.</div>'; return; }
+        if (!rows.length) { board.innerHTML = rankCard(data) + '<div class="xp-empty"><div style="font-size:2rem">🏆</div>لا توجد نقاط في هذه الفترة بعد.</div>'; return; }
         const top = rows.slice(0, 3);
         const order = [top[1], top[0], top[2]];
         const pod = order.map((r, i) => r ? `<div class="xp-pod p${[2, 1, 3][i]}" style="${tierVars(r.tier)}">
                 <div class="xp-av">${[2, 1, 3][i] === 1 ? '<span class="xp-crown">👑</span>' : ''}${avatar(r, [2, 1, 3][i] === 1 ? 64 : 52)}</div>
-                <div class="xp-pn">${esc(r.name.replace(/^د\.?\s*/, ''))}</div>
+                <div class="xp-pn">${esc(r.name.replace(/^د\.?\s*/, ''))}</div>${r.badges ? `<div class="xp-badges">${badgesHtml(r)}</div>` : ''}
                 <div class="xp-px">${xpText(r.xp)}</div>
                 <div class="xp-step">${[2, 1, 3][i]}</div></div>` : '<div></div>').join('');
         const row = (r, i) => {
@@ -185,6 +219,7 @@
                 <span class="xp-rank">#${r.rank}</span>${avatar(r, 40)}
                 <div class="xp-mid"><span class="xp-nm">${esc(r.name)}${r.key === 'me' ? ' (أنت)' : ''}</span>
                     <span class="xp-sub"><span class="xp-lv">Lv ${r.level} · ${esc((TIER[r.tier] || {}).name || '')}</span>${r.trophies ? `🏆 ${r.trophies}` : ''}<span>${esc(specName(r.spec, hosp))}</span></span>
+                    ${r.badges ? `<div class="xp-badges">${badgesHtml(r)}</div>` : ''}
                     <div class="xp-bar"><i style="width:${pct}%"></i></div></div>
                 <div class="xp-score">${fmt(r.xp)}<small>XP</small></div></div>`;
         };
@@ -193,7 +228,7 @@
                 <b>${esc(data.star.name)}</b><small>${xpText(data.star.xp)} من النشاط في الشهر</small></div></div>` : '')
             + (data.popular ? `<div class="xp-star xp-pop"><span class="xp-star-i">💖</span><div><small>الأكثر شعبية في ${esc(monthName(data.popular.ym))}</small>
                 <b>${esc(data.popular.name)}</b><small>${fmt(data.popular.count)} إعجاباً وتعليقاً</small></div></div>` : '');
-        board.innerHTML = `${star}<div class="xp-podium">${pod}</div>${rest.map((r, i) => row(r, i)).join('')}${data.me ? `<div class="xp-pin">${row(data.me, 0)}</div>` : ''}`;
+        board.innerHTML = `${rankCard(data)}${star}<div class="xp-podium">${pod}</div>${rest.map((r, i) => row(r, i)).join('')}${data.me ? `<div class="xp-pin">${row(data.me, 0)}</div>` : ''}`;
         // Tap a row: what the points came from.
         board.querySelectorAll('.xp-row').forEach(el => el.addEventListener('click', () => {
             const r = el.closest('.xp-pin') ? data.me : rest[Number(el.dataset.i)];

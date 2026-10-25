@@ -5,8 +5,9 @@
  * key, as the duty cards are): duties served, contact taps received (VisitCount), likes and comments
  * on their cards, duties taken over for colleagues (approved exchanges), contact requests answered,
  * days in the operating theatre or out for a consultation (on-call status), and the titles below.
- * Activity weighs most: being contacted counts a little more than a duty (a resident with 1 duty and
- * 20 contacts was needed more than one with 10 duties and none); likes and comments count only a
+ * Activity weighs most: a duty alone gives only a little (being on the roster is not the work); being
+ * contacted, the theatre, consultations and answered requests make the score (15 duties with no
+ * contact stay far below 5 duties with 100 contacts); likes and comments count only a
  * little (the ranking is about what residents do, not how liked they are): they give the popularity
  * title and trophies instead. The resident of the day / month is the most ACTIVE one (contacts,
  * theatre, consultations, answered requests), never the most liked.
@@ -21,7 +22,7 @@ const HOSP_RE = /^[\w-]{1,48}$/;
 const CACHE_SECONDS = 300;
 
 /** Points per thing done. */
-export const XP = { duty: 10, visit: 6, like: 1, comment: 1, exchange: 15, answered: 10, theatre: 15, consult: 12, topDay: 30, monthTop: 200, popular: 20 };
+export const XP = { duty: 3, visit: 6, like: 1, comment: 1, exchange: 15, answered: 10, theatre: 15, consult: 12, topDay: 30, monthTop: 200, popular: 20 };
 /** Which point each counted thing is worth. */
 const WEIGHT = { duties: 'duty', visits: 'visit', likes: 'like', comments: 'comment', exchanges: 'exchange', answered: 'answered', theatre: 'theatre', consults: 'consult', topDays: 'topDay', monthTops: 'monthTop', populars: 'popular' };
 /** What counts as activity (the resident of the day / month): not likes, comments or titles. */
@@ -202,8 +203,27 @@ async function leaderboard(env, auth, url) {
     };
   }).filter(r => r.xp > 0).sort((a, b) => b.xp - a.xp || b.total - a.total);
   rows.forEach((r, i) => { r.rank = i + 1; });
+  // Social badges of the period (anyone, not only the top 3): the most liked, the most commented on.
+  const topOf = field => { const best = Math.max(0, ...rows.map(r => r.stats[field] || 0)); return best > 0 ? best : null; };
+  const topLikes = topOf('likes'), topComments = topOf('comments');
+  const popularKey = stats.popular ? stats.popular.key : null;
+  rows.forEach(r => {
+    const b = [];
+    if (topLikes && r.stats.likes === topLikes) b.push('likes');
+    if (topComments && r.stats.comments === topComments) b.push('comments');
+    if (popularKey && stats.people[popularKey] && stats.people[popularKey].name === r.name) b.push('popular');
+    if (stats.star && stats.star.name === r.name) b.push('star');
+    if (b.length) r.badges = b;
+  });
   const mine = rows.find(r => r.key === 'me') || null;
-  return json({ ok: true, period, hosp, at: stats.at, rows: rows.slice(0, 50), me: mine && mine.rank > 50 ? mine : null, xpRules: XP,
+  // "Your rank": always, with how far the one above is.
+  let meCard = null;
+  if (mine) {
+    const above = rows[mine.rank - 2];
+    meCard = { ...mine, of: rows.length, gap: above ? above.xp - mine.xp + 1 : 0, aboveName: above ? above.name : null,
+      beats: rows.length > 1 ? Math.round((rows.length - mine.rank) / (rows.length - 1) * 100) : 100 };
+  } else if (myKey) meCard = { none: true, of: rows.length };
+  return json({ ok: true, period, hosp, at: stats.at, rows: rows.slice(0, 50), me: mine && mine.rank > 50 ? mine : null, mine: meCard, xpRules: XP,
     star: stats.star ? { name: stats.star.name, ym: stats.star.ym, xp: stats.star.xp } : null,
     popular: stats.popular ? { name: stats.popular.name, ym: stats.popular.ym, count: stats.popular.count } : null });
 }

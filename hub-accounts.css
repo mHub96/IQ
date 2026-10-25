@@ -502,3 +502,15 @@ body.dark .hacc-identity input:checked + span { color: #1C1C1E; }
 /* The opioids holder's tab: its own colour (it holds controlled drugs). */
 .hacc-tabs[role="tablist"] button.hp-tab-opi, body.dark .hacc-tabs[role="tablist"] button.hp-tab-opi { color: #fff !important; background: linear-gradient(135deg, #7c3aed, #db2777) !important; border-radius: 999px; box-shadow: 0 3px 10px rgba(124,58,237,.35); }
 .hacc-tabs[role="tablist"] button.hp-tab-opi[aria-selected="true"], body.dark .hacc-tabs[role="tablist"] button.hp-tab-opi[aria-selected="true"] { color: #fff !important; background: linear-gradient(135deg, #6d28d9, #be185d) !important; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #db2777, 0 3px 10px rgba(124,58,237,.35); }
+
+/* Opioid notifications: a look of their own in the notifications list. */
+.hacc-notif.opi { position: relative; background: linear-gradient(135deg, rgba(124,58,237,.10), rgba(219,39,119,.08)) !important; border-inline-start: 4px solid #7c3aed; border-radius: 14px; }
+.hacc-notif.opi .hacc-notif-icon { background: linear-gradient(135deg, #7c3aed, #db2777) !important; color: #fff; border-radius: 12px; box-shadow: 0 3px 10px rgba(124,58,237,.35); }
+.hacc-notif.opi .hacc-notif-text::before { content: 'ذمة المخدرات'; display: block; font-size: .62rem; font-weight: 900; letter-spacing: .02em; color: #7c3aed; margin-bottom: 2px; }
+body.dark .hacc-notif.opi .hacc-notif-text::before { color: #c4b5fd; }
+.hacc-notif.opi.opi-low { border-inline-start-color: #f59e0b; background: linear-gradient(135deg, rgba(245,158,11,.14), rgba(219,39,119,.06)) !important; }
+.hacc-notif.opi.opi-low .hacc-notif-icon { background: linear-gradient(135deg, #f59e0b, #ea580c) !important; }
+.hacc-notif.opi.opi-out { border-inline-start-color: #dc2626; background: linear-gradient(135deg, rgba(239,68,68,.14), rgba(124,58,237,.06)) !important; }
+.hacc-notif.opi.opi-out .hacc-notif-icon { background: linear-gradient(135deg, #dc2626, #9f1239) !important; animation: haccOpiPulse 1.8s ease-in-out infinite; }
+@keyframes haccOpiPulse { 50% { box-shadow: 0 0 0 6px rgba(220,38,38,.18); } }
+@media (prefers-reduced-motion: reduce) { .hacc-notif.opi.opi-out .hacc-notif-icon { animation: none; } }

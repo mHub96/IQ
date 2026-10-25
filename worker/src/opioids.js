@@ -17,7 +17,7 @@
 import { json, readJson, plainText, overLimit } from './lib.js';
 import { nameKey } from './names.js';
 import { dutyDayNow } from './profile.js';
-import { dispatchPush } from './accounts.js';
+import { dispatchPush, notifyApprovers } from './accounts.js';
 import { isRotatorSpec } from './exchspecs.js';
 
 const HOSP_RE = /^[\w-]{1,48}$/;
@@ -44,6 +44,7 @@ export async function routeOpioids(path, method, request, env, auth, url, ctx) {
     case 'GET /api/opioids/targets': return targets(env, auth, url);
     case 'POST /api/opioids/use': return recordUse(request, env, auth, ctx);
     case 'POST /api/opioids/void': return voidUse(request, env, auth, ctx);
+    case 'POST /api/opioids/move': return editMove(request, env, auth);
     default: return json({ error: 'not_found' }, 404);
   }
 }
@@ -65,7 +66,8 @@ async function leftOf(env, dutyIds) {
 const moveView = m => ({
   id: m.id, duty: m.duty_id, item: m.item_id, itemName: m.item_name || '', tenure: m.tenure_id, kind: m.kind, qty: m.qty,
   patient: m.patient || '', sex: m.sex || '', age: m.age, ward: m.ward || '', date: m.use_date || '', note: m.note || '',
-  by: m.by_name || '', byRole: m.by_role || '', at: m.created_at, voided: !!m.voided_at, voidReason: m.void_reason || '',
+  by: m.by_name || '', byRole: m.by_role || '', at: m.created_at, voided: !!m.voided_at, voidReason: m.void_reason || '', voidedBy: m.voided_by || '',
+  edited: m.edited_at || null, editedBy: m.edited_by || '',
   holder: m.holder_name || '',
 });
 const MOVE_SELECT = `SELECT m.*, i.name AS item_name, t.holder_name FROM opioid_moves m
@@ -80,19 +82,33 @@ async function dutiesView(env, rows) {
     env.DB.prepare('SELECT * FROM opioid_tenures WHERE duty_id IN (SELECT value FROM json_each(?1)) ORDER BY started_at').bind(JSON.stringify(ids)),
   ]);
   const left = await leftOf(env, ids);
+  const keys = [...new Set([...rows.map(d => d.next_key), ...(tenures.results || []).map(t => t.holder_key)].filter(Boolean))];
+  const resIds = [...new Set([...rows.map(d => d.next_res), ...(tenures.results || []).map(t => t.holder_res)].filter(Boolean))];
+  const has = await accountsOf(env, keys, resIds);
   return rows.map(d => {
     const ts = (tenures.results || []).filter(t => t.duty_id === d.id);
     const cur = ts.find(t => !t.ended_at) || null;
     return {
       id: d.id, hosp: d.hosp, place: d.place, wards: parse(d.wards, []), status: d.status,
-      holder: cur ? { tenure: cur.id, res: cur.holder_res, key: cur.holder_key, name: cur.holder_name, since: cur.started_at } : null,
-      next: d.next_key ? { res: d.next_res, key: d.next_key, name: d.next_name } : null,
+      holder: cur ? { tenure: cur.id, res: cur.holder_res, key: cur.holder_key, name: cur.holder_name, since: cur.started_at, account: has(cur.holder_key, cur.holder_res) } : null,
+      next: d.next_key ? { res: d.next_res, key: d.next_key, name: d.next_name, account: has(d.next_key, d.next_res) } : null,
       pending: d.status === 'draft' || (!!d.next_key && (!cur || cur.holder_key !== d.next_key)),
       tenures: ts.map(t => ({ id: t.id, name: t.holder_name, from: t.started_at, to: t.ended_at })),
       items: (items.results || []).filter(i => i.duty_id === d.id && i.active).map(i => ({ id: i.id, name: i.name, low: i.low_at, left: left.get(i.id) || 0 })),
       updated: d.updated_at,
     };
   });
+}
+
+/** has(key, res): does that resident have an active (non-rotator) account? */
+async function accountsOf(env, keys, resIds) {
+  if (!keys.length && !resIds.length) return () => false;
+  const { results } = await env.DB.prepare(
+    `SELECT name_key, resident_id FROM accounts WHERE status = 'active' AND role <> 'rotator'
+       AND (name_key IN (SELECT value FROM json_each(?1)) OR resident_id IN (SELECT value FROM json_each(?2)))`
+  ).bind(JSON.stringify(keys), JSON.stringify(resIds)).all();
+  const k = new Set((results || []).map(r => r.name_key)), r = new Set((results || []).map(x => x.resident_id).filter(Boolean));
+  return (key, res) => k.has(key) || (!!res && r.has(res));
 }
 
 /** GET ?h=: the duties of the hospitals the owner / admin manages (and their records). */
@@ -136,6 +152,8 @@ async function residentChoices(env, auth, url) {
   const list = (res.results || [])
     .filter(r => r.name && r.active !== 0 && r.active !== false && !rotIds.has(r.id) && !rotKeys.has(nameKey(r.name)) && !(r.dept && isRotatorSpec(specs, r.dept)))
     .map(r => ({ res: r.id, name: r.name, key: nameKey(r.name) }));
+  const has = await accountsOf(env, list.map(r => r.key), list.map(r => r.res));
+  list.forEach(r => { r.account = has(r.key, r.res); });
   // Closest first: starts with what was typed, then contains it, then shares its words.
   const score = r => !q ? 0 : r.key.startsWith(q) ? 3 : r.key.includes(q) ? 2 : q.split(' ').filter(w => w && r.key.includes(w)).length ? 1 : -1;
   const out = list.map(r => [score(r), r]).filter(([s]) => s >= 0).sort((a, b) => b[0] - a[0] || a[1].name.localeCompare(b[1].name, 'ar')).slice(0, 12).map(([, r]) => r);
@@ -187,6 +205,8 @@ async function accountKey(env, auth) {
 // The admins: create / edit, confirm and notify, stock, delete
 // ---------------------------------------------------------------------------
 
+/** The patient's name, his father's and grandfather's (at least three words). */
+const threeNames = n => String(n || '').trim().split(/\s+/).filter(w => w.replace(/[^\p{L}]/gu, '').length >= 2).length >= 3;
 const cleanWards = w => [...new Set((Array.isArray(w) ? w : []).map(x => plainText(x, 40)).filter(Boolean))].slice(0, MAX_WARDS);
 const qtyOf = v => { const n = Math.floor(Number(v)); return Number.isFinite(n) && n > 0 && n <= MAX_QTY ? n : 0; };
 
@@ -334,9 +354,15 @@ async function changeStock(request, env, auth, ctx) {
   const body = await readJson(request) || {};
   const item = await env.DB.prepare('SELECT i.*, d.hosp, d.status, d.place FROM opioid_items i JOIN opioid_duties d ON d.id = i.duty_id WHERE i.id = ? AND i.active = 1').bind(Number(body.item)).first();
   if (!item || item.status === 'deleted') return json({ error: 'not_found' }, 404);
-  if (!manages(auth, item.hosp)) return json({ error: 'forbidden' }, 403);
   const qty = qtyOf(body.qty);
   const kind = body.kind === 'withdraw' ? 'withdraw' : 'issue';
+  // The holder replenishes their own stock (only add); the admins of the hospital and the owner are told.
+  let byHolder = false;
+  if (!manages(auth, item.hosp)) {
+    const cur = item.status === 'active' && auth.a ? await env.DB.prepare('SELECT holder_key FROM opioid_tenures WHERE duty_id = ? AND ended_at IS NULL').bind(item.duty_id).first() : null;
+    if (!cur || kind !== 'issue' || (await accountKey(env, auth)) !== cur.holder_key) return json({ error: 'forbidden' }, 403);
+    byHolder = true;
+  }
   if (!qty) return json({ error: 'qty_required' }, 400);
   const left = (await leftOf(env, [item.duty_id])).get(item.id) || 0;
   if (kind === 'withdraw' && qty > left) return json({ error: 'not_enough', left }, 409);
@@ -346,6 +372,12 @@ async function changeStock(request, env, auth, ctx) {
     `INSERT INTO opioid_moves (duty_id, item_id, tenure_id, kind, qty, note, by_id, by_name, by_role, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)`
   ).bind(item.duty_id, item.id, tenure ? tenure.id : null, kind, qty, plainText(body.note, 120) || null, auth.a || auth.r, auth.name || (auth.r === 'owner' ? 'المالك' : 'الإدارة'), auth.r, now).run();
   const after = kind === 'issue' ? left + qty : left - qty;
+  if (byHolder) {
+    const res = await notifyApprovers(env, item.hosp, `opi-refill:${item.id}:${now}`, 'opioid_replenished',
+      JSON.stringify({ duty: item.duty_id, place: item.place, item: item.name, qty, left: after, by: auth.name || '', hosp: item.hosp }), now).run();
+    dispatchPush(env, ctx, res);
+    return json({ ok: true, left: after });
+  }
   if (tenure && item.status === 'active') {
     const { results: accs } = await holderAccounts(env, tenure.holder_res, tenure.holder_key);
     const res = await notifyAccounts(env, (accs || []).map(a => a.id), `opi-stock:${item.id}`, 'opioid_stock',
@@ -398,9 +430,11 @@ async function recordUse(request, env, auth, ctx) {
   const ward = plainText(body.ward, 40);
   let date = String(body.date || dutyDayNow());
   if (!patient) return json({ error: 'patient_required' }, 400);
+  if (!threeNames(patient)) return json({ error: 'patient_three_names' }, 400);
   if (!sex) return json({ error: 'sex_required' }, 400);
-  if (!Number.isFinite(age) || age < 0 || age > 120) return json({ error: 'age_required' }, 400);
+  if (body.age === '' || body.age == null || !Number.isFinite(age) || age < 0 || age > 120) return json({ error: 'age_required' }, 400);
   if (!wards.includes(ward)) return json({ error: 'ward_required' }, 400);
+  if (!body.date) return json({ error: 'bad_date' }, 400);
   if (!DATE_RE.test(date) || date > dutyDayNow()) return json({ error: 'bad_date' }, 400);
 
   const left = (await leftOf(env, [duty.id])).get(item.id) || 0;
@@ -433,6 +467,57 @@ async function recordUse(request, env, auth, ctx) {
     if (low) dispatchPush(env, ctx, low);
   }
   return json({ ok: true, id: ins.id, left: after, low: after <= item.low_at });
+}
+
+/**
+ * Body: { id, action: 'edit' | 'delete', patient, sex, age, ward, date, qty, note, reason }.
+ * The owner, the hospital's admins and the holder of the entry's tenure edit or delete a log entry
+ * (a deleted entry stays visible, crossed out, with who deleted it; a handover cannot change). The
+ * stock must stay at zero or more.
+ */
+async function editMove(request, env, auth) {
+  const body = await readJson(request) || {};
+  const m = await env.DB.prepare(
+    `SELECT m.*, d.hosp, d.wards, t.holder_key FROM opioid_moves m JOIN opioid_duties d ON d.id = m.duty_id
+       LEFT JOIN opioid_tenures t ON t.id = m.tenure_id WHERE m.id = ?`
+  ).bind(Number(body.id)).first();
+  if (!m) return json({ error: 'not_found' }, 404);
+  if (m.kind === 'handover') return json({ error: 'not_editable' }, 400);
+  if (m.voided_at) return json({ error: 'deleted' }, 409);
+  const allowed = manages(auth, m.hosp) || (!!auth.a && !!m.holder_key && (await accountKey(env, auth)) === m.holder_key);
+  if (!allowed) return json({ error: 'forbidden' }, 403);
+  const who = auth.name || (auth.r === 'owner' ? 'المالك' : 'الإدارة');
+  const left = (await leftOf(env, [m.duty_id])).get(m.item_id) || 0;
+  // What the stock would be after: an issue counts +, a use / withdrawal counts −.
+  const sign = m.kind === 'issue' ? 1 : -1;
+  if (body.action === 'delete') {
+    if (left - sign * m.qty < 0) return json({ error: 'would_go_negative', left }, 409);
+    await env.DB.prepare('UPDATE opioid_moves SET voided_at = ?2, voided_by = ?3, void_reason = ?4 WHERE id = ?1')
+      .bind(m.id, Date.now(), who, plainText(body.reason, 120) || 'حُذف').run();
+    return json({ ok: true, left: left - sign * m.qty });
+  }
+  const qty = m.kind === 'use' ? Math.max(1, Math.min(10, Math.floor(Number(body.qty)) || 0)) : qtyOf(body.qty);
+  if (!qty) return json({ error: 'qty_required' }, 400);
+  const after = left - sign * m.qty + sign * qty;
+  if (after < 0) return json({ error: 'not_enough', left }, 409);
+  if (m.kind === 'use') {
+    const patient = plainText(body.patient, 80);
+    const sex = body.sex === 'f' ? 'f' : body.sex === 'm' ? 'm' : '';
+    const age = Math.floor(Number(body.age));
+    const ward = plainText(body.ward, 40);
+    const date = String(body.date || '');
+    if (!threeNames(patient)) return json({ error: 'patient_three_names' }, 400);
+    if (!sex) return json({ error: 'sex_required' }, 400);
+    if (body.age === '' || body.age == null || !Number.isFinite(age) || age < 0 || age > 120) return json({ error: 'age_required' }, 400);
+    if (!parse(m.wards, []).includes(ward)) return json({ error: 'ward_required' }, 400);
+    if (!DATE_RE.test(date) || date > dutyDayNow()) return json({ error: 'bad_date' }, 400);
+    await env.DB.prepare('UPDATE opioid_moves SET qty = ?2, patient = ?3, sex = ?4, age = ?5, ward = ?6, use_date = ?7, edited_at = ?8, edited_by = ?9 WHERE id = ?1')
+      .bind(m.id, qty, patient, sex, age, ward, date, Date.now(), who).run();
+  } else {
+    await env.DB.prepare('UPDATE opioid_moves SET qty = ?2, note = ?3, edited_at = ?4, edited_by = ?5 WHERE id = ?1')
+      .bind(m.id, qty, plainText(body.note, 120) || m.note, Date.now(), who).run();
+  }
+  return json({ ok: true, left: after });
 }
 
 /** Body: { id, reason }. A use recorded by mistake: the holder (their tenure), the admins, the owner. */

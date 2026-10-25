@@ -17,9 +17,10 @@
         diamond: { name: 'ماسي', c1: '#6366f1', c2: '#c4b5fd', k1: '#3730a3', k2: '#6366f1' },
         legend: { name: 'أسطوري', c1: '#db2777', c2: '#f97316', k1: '#9d174d', k2: '#ea580c' },
     };
-    const RULES = [['🩺', 'خفارة أدّيتها', 'duty'], ['📞', 'تواصل زميل معك', 'visit'], ['❤️', 'إعجاب على بطاقتك', 'like'], ['💬', 'تعليق على بطاقتك', 'comment'],
-        ['🤝', 'خفارة تسلّمتها عن زميل', 'exchange'], ['⚡', 'طلب تواصل أجبته', 'answered'], ['🩸', 'يوم في صالة العمليات', 'theatre'], ['🌟', 'يوم كنت فيه الأكثر تواصلاً', 'topDay'], ['👑', 'شهر كنت فيه مقيم الشهر', 'monthTop']];
-    const STAT = { duties: ['🩺', 'خفارات'], visits: ['📞', 'تواصل'], likes: ['❤️', 'إعجابات'], comments: ['💬', 'تعليقات'], exchanges: ['🤝', 'تبديلات'], answered: ['⚡', 'طلبات أُجيبت'], theatre: ['🩸', 'أيام عمليات'], topDays: ['🌟', 'نجم اليوم'], monthTops: ['👑', 'مقيم الشهر'] };
+    const RULES = [['📞', 'تواصل زميل معك', 'visit'], ['🩺', 'خفارة أدّيتها', 'duty'], ['🩸', 'يوم في صالة العمليات', 'theatre'], ['🚑', 'يوم خرجت فيه لاستشارة', 'consult'],
+        ['⚡', 'طلب تواصل أجبته', 'answered'], ['🤝', 'خفارة تسلّمتها عن زميل', 'exchange'], ['🌟', 'يوم كنت فيه الأكثر نشاطاً', 'topDay'], ['👑', 'شهر كنت فيه مقيم الشهر', 'monthTop'],
+        ['❤️', 'إعجاب على بطاقتك', 'like'], ['💬', 'تعليق على بطاقتك', 'comment'], ['💖', 'شهر كنت فيه الأكثر شعبية', 'popular']];
+    const STAT = { duties: ['🩺', 'خفارات'], visits: ['📞', 'تواصل'], likes: ['❤️', 'إعجابات'], comments: ['💬', 'تعليقات'], exchanges: ['🤝', 'تبديلات'], answered: ['⚡', 'طلبات أُجيبت'], theatre: ['🩸', 'أيام عمليات'], consults: ['🚑', 'استشارات'], topDays: ['🌟', 'نجم اليوم'], monthTops: ['👑', 'مقيم الشهر'], populars: ['💖', 'الأكثر شعبية'] };
     const MONTHS = ['كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'];
     const monthName = ym => MONTHS[Number(String(ym).slice(5, 7)) - 1] || '';
     const fmt = n => Number(n || 0).toLocaleString('en-US');
@@ -104,6 +105,23 @@
     .roster-card.xp-month-star .card-front { box-shadow: 0 0 0 2px #fbbf24, 0 0 18px rgba(251,191,36,.55); }
     .xp-month-badge { position: absolute; top: 8px; inset-inline-start: 8px; z-index: 3; padding: 2px 8px; border-radius: 999px; font-size: .62rem; font-weight: 900;
         color: #78350f; background: linear-gradient(135deg, #fde68a, #fbbf24); box-shadow: 0 2px 8px rgba(217,119,6,.35); pointer-events: none; }
+    .xp-tro { font: inherit; color: inherit; cursor: pointer; width: 100%; }
+    .xp-tro.sel { border-color: #0A84FF; box-shadow: 0 0 0 3px rgba(10,132,255,.18); }
+    .xp-how { margin: -4px 0 14px; padding: 12px 14px; border-radius: 16px; background: rgba(10,132,255,.07); border: 1px solid rgba(10,132,255,.25); animation: xpIn .3s ease both; }
+    .xp-how-h { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .xp-how-i { font-size: 1.6rem; }
+    .xp-how-h b { display: block; font-size: .9rem; font-weight: 900; }
+    .xp-how-h small, .xp-how-n { display: block; font-size: .7rem; font-weight: 700; opacity: .75; }
+    .xp-how p { margin: 0 0 8px; font-size: .78rem; font-weight: 700; line-height: 1.6; }
+    .xp-how-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; }
+    .xp-how-steps span { text-align: center; padding: 6px 4px; border-radius: 10px; background: rgba(142,142,147,.1); font-size: .66rem; font-weight: 800; opacity: .6; }
+    .xp-how-steps span.on { opacity: 1; background: rgba(250,204,21,.22); }
+    .xp-how-steps b { display: block; font-size: .8rem; }
+    .xp-rules-note { margin: 6px 0; font-size: .72rem; font-weight: 700; opacity: .8; line-height: 1.6; }
+    .xp-star.xp-pop { color: #831843; background: linear-gradient(135deg, #fce7f3, #fbcfe8 55%, #f9a8d4); box-shadow: 0 6px 20px rgba(219,39,119,.22); }
+    .xp-pop-badge { position: absolute; top: 8px; inset-inline-start: 8px; z-index: 3; padding: 2px 8px; border-radius: 999px; font-size: .62rem; font-weight: 900;
+        color: #831843; background: linear-gradient(135deg, #fbcfe8, #f472b6); box-shadow: 0 2px 8px rgba(219,39,119,.35); pointer-events: none; }
+    .roster-card.xp-month-star .xp-pop-badge { top: 30px; }
     @media (max-width: 380px) { .xp-shelf { grid-template-columns: repeat(3, 1fr); } }
     @media (prefers-reduced-motion: reduce) { .xp-row, .xp-card, .xp-tro, .xp-pod .xp-step, .xp-pod .xp-av, .xp-bar i, .xp-pod .xp-crown { animation: none !important; } }
     `;
@@ -127,7 +145,7 @@
         host.innerHTML = `<div class="xp-tabs" role="tablist"><span class="xp-pill"></span>
                 ${[['today', 'اليوم'], ['month', 'هذا الشهر'], ['all', 'كل الأوقات']].map(([p, l]) => `<button type="button" role="tab" data-p="${p}">${l}</button>`).join('')}</div>
             <div data-role="board"><div class="xp-empty">جاري التحميل…</div></div>
-            <details class="xp-rules"><summary>كيف أكسب نقاط الخبرة (XP)؟</summary><ul data-role="rules"></ul></details>`;
+            <details class="xp-rules"><summary>كيف أكسب نقاط الخبرة (XP)؟</summary><p class="xp-rules-note">النشاط أولاً: تواصل الزملاء معك يُحسب أكثر قليلاً من الخفارة نفسها، والإعجابات والتعليقات تُحسب قليلاً فقط. مقيم اليوم والشهر هو الأكثر نشاطاً.</p><ul data-role="rules"></ul></details>`;
         const tabs = host.querySelector('.xp-tabs');
         const board = host.querySelector('[data-role="board"]');
         const select = async p => {
@@ -171,8 +189,10 @@
                 <div class="xp-score">${fmt(r.xp)}<small>XP</small></div></div>`;
         };
         const rest = rows.slice(3);
-        const star = data.star ? `<div class="xp-star"><span class="xp-star-i">👑</span><div><small>مقيم شهر ${esc(monthName(data.star.ym))}</small>
-                <b>${esc(data.star.name)}</b><small>${xpText(data.star.xp)} في الشهر</small></div></div>` : '';
+        const star = (data.star ? `<div class="xp-star"><span class="xp-star-i">👑</span><div><small>مقيم شهر ${esc(monthName(data.star.ym))} · الأكثر نشاطاً</small>
+                <b>${esc(data.star.name)}</b><small>${xpText(data.star.xp)} من النشاط في الشهر</small></div></div>` : '')
+            + (data.popular ? `<div class="xp-star xp-pop"><span class="xp-star-i">💖</span><div><small>الأكثر شعبية في ${esc(monthName(data.popular.ym))}</small>
+                <b>${esc(data.popular.name)}</b><small>${fmt(data.popular.count)} إعجاباً وتعليقاً</small></div></div>` : '');
         board.innerHTML = `${star}<div class="xp-podium">${pod}</div>${rest.map((r, i) => row(r, i)).join('')}${data.me ? `<div class="xp-pin">${row(data.me, 0)}</div>` : ''}`;
         // Tap a row: what the points came from.
         board.querySelectorAll('.xp-row').forEach(el => el.addEventListener('click', () => {
@@ -181,7 +201,7 @@
             if (open) { open.remove(); return; }
             const d = document.createElement('div');
             d.className = 'xp-detail';
-            d.innerHTML = Object.entries(r.stats || {}).filter(([, v]) => v).map(([k, v]) => `<span>${STAT[k][0]} ${fmt(v)} ${STAT[k][1]}</span>`).join('') || '<span>—</span>';
+            d.innerHTML = Object.entries(r.stats || {}).filter(([k, v]) => v && STAT[k]).map(([k, v]) => `<span>${STAT[k][0]} ${fmt(v)} ${STAT[k][1]}</span>`).join('') || '<span>—</span>';
             el.appendChild(d);
         }));
     }
@@ -205,9 +225,27 @@
                 <div class="xp-nums"><span><bdi dir="ltr">${fmt(me.xp - me.levelStart)} / ${fmt(me.levelNext - me.levelStart)}</bdi></span><span>المستوى ${me.level + 1} بعد ${xpText(me.levelNext - me.xp)}</span></div>
             </div>
             <div class="xp-shelf-h">🏆 كؤوسي</div>
-            <div class="xp-shelf">${me.trophies.map((t, i) => `<div class="xp-tro t${t.tier}" style="animation-delay:${i * 40}ms" title="${esc(t.desc)}: ${fmt(t.value)}">
+            <div class="xp-shelf">${me.trophies.map((t, i) => `<button type="button" class="xp-tro t${t.tier}" data-i="${i}" style="animation-delay:${i * 40}ms" aria-label="${esc(t.name)}: كيف أحصل عليها؟">
                 <div class="xp-ti">${t.icon}</div><b>${esc(t.name)}</b>
-                <small>${t.tier ? esc(t.tierName) : ''}${t.next ? `${t.tier ? ' · ' : ''}${fmt(t.value)}/${fmt(t.next)}` : ' · مكتملة ✓'}</small></div>`).join('')}</div>`;
+                <small>${t.tier ? esc(t.tierName) : ''}${t.next ? `${t.tier ? ' · ' : ''}${fmt(t.value)}/${fmt(t.next)}` : ' · مكتملة ✓'}</small></button>`).join('')}</div>
+            <div class="xp-how" data-role="how" hidden></div>`;
+        // Tap a trophy: how it is earned, its levels and the progress.
+        const how = host.querySelector('[data-role="how"]');
+        host.querySelectorAll('.xp-tro').forEach(btn => btn.addEventListener('click', () => {
+            const t = me.trophies[Number(btn.dataset.i)];
+            const open = !how.hidden && how.dataset.i === btn.dataset.i;
+            host.querySelectorAll('.xp-tro').forEach(b => b.classList.toggle('sel', !open && b === btn));
+            if (open) { how.hidden = true; return; }
+            how.dataset.i = btn.dataset.i;
+            how.hidden = false;
+            const pct = t.next ? Math.min(100, Math.round(t.value / t.next * 100)) : 100;
+            how.innerHTML = `<div class="xp-how-h"><span class="xp-how-i">${t.icon}</span><div><b>${esc(t.name)}</b><small>${esc(t.desc)}: ${fmt(t.value)}</small></div></div>
+                <p>${esc(t.how || '')}</p>
+                <div class="xp-how-steps">${(t.steps || []).map((n, k) => `<span class="${t.tier > k ? 'on' : ''}">${['🥉', '🥈', '🥇'][k]} ${['برونزية', 'فضية', 'ذهبية'][k]}<b>${fmt(n)}</b></span>`).join('')}</div>
+                <div class="xp-bar"><i style="width:${pct}%"></i></div>
+                <small class="xp-how-n">${t.next ? `باقٍ ${fmt(t.next - t.value)} للمستوى التالي` : 'حصلت على أعلى مستوى ✓'}${t.xp ? ` · كل واحدة = <bdi dir="ltr">+${t.xp} XP</bdi>` : ''}</small>`;
+            how.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }));
     }
 
     // ------------------------------------------------------------------
@@ -221,10 +259,24 @@
         for (const [h, list] of byHosp) {
             let hit = stars.get(h);
             if (!hit || Date.now() - hit.t > 600000) {
-                try { hit = { t: Date.now(), v: (await Hub.api('GET', `/api/leaderboard/star?h=${encodeURIComponent(h)}`, undefined, { retries: 1 })).star }; stars.set(h, hit); }
+                try { const r = await Hub.api('GET', `/api/leaderboard/star?h=${encodeURIComponent(h)}`, undefined, { retries: 1 }); hit = { t: Date.now(), v: r.star, p: r.popular }; stars.set(h, hit); }
                 catch (e) { continue; }
             }
-            const star = hit.v;
+            const star = hit.v, pop = hit.p;
+            list.forEach(c => {
+                const card = c.wrapper && c.wrapper.querySelector('.roster-card');
+                if (!card) return;
+                const on = !!pop && Hub.nameKey(c.n) === pop.key;
+                let badge = card.querySelector('.xp-pop-badge');
+                if (!on) { if (badge) badge.remove(); return; }
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'xp-pop-badge';
+                    (card.querySelector('.card-front') || card).appendChild(badge);
+                }
+                badge.textContent = '💖 الأكثر شعبية';
+                badge.title = `أكثر الإعجابات والتعليقات في ${monthName(pop.ym)}`;
+            });
             list.forEach(c => {
                 const card = c.wrapper && c.wrapper.querySelector('.roster-card');
                 if (!card) return;
@@ -238,7 +290,7 @@
                     (card.querySelector('.card-front') || card).appendChild(badge);
                 }
                 badge.textContent = '👑 مقيم الشهر';
-                badge.title = `الأعلى نقاطاً في ${monthName(star.ym)}: ${fmt(star.xp)} XP`;
+                badge.title = `الأكثر نشاطاً في ${monthName(star.ym)}`;
             });
         }
     }

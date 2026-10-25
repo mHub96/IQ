@@ -543,6 +543,11 @@ function pushMessage(n) {
     case 'contact_request': return { title: '📞 طلب تواصل', body: `${d.last || 'أحد الزملاء'} يطلب التواصل معك${d.count > 1 ? ` (${d.count} طلبات بانتظارك)` : ''}.`, url: './index.html?portal=true#panel=requests' };
     case 'er_portal': return { title: d.extended ? '🗓️ تمديد بوابة رغبات الطوارئ' : '🗓️ بوابة رغبات خفارات الطوارئ مفتوحة', body: `اختر رغباتك لجدول ${MONTH_AR[Number(String(d.ym || '').slice(5))] || ''} ${String(d.ym || '').slice(0, 4)} قبل ${closesText(d.closes)}`, url: './index.html?portal=true#panel=schedule' };
     case 'duty_reminder': return { title: `⏰ خفارتك بعد ${durationText(d.in || d.lead || 60)}`, body: `${d.title || ''} · ${startText(d.start)}${d.hospName ? ' · ' + d.hospName : ''}`, url: './index.html?portal=true#panel=duties' };
+    case 'opioid_assigned': return { title: '💊 ذمة المخدرات', body: `أُسندت إليك ذمة المخدرات: ${d.place || ''}${d.hospName ? ' · ' + d.hospName : ''}.`, url: './index.html?portal=true#panel=opioids' };
+    case 'opioid_used': return { title: `💉 استُخدم ${d.item || 'مخدر'}`, body: `${d.qty || 1} أمبولة · ${d.ward || ''} · سجّلها ${d.by || ''}. المتبقي: ${d.left}`, url: './index.html?portal=true#panel=opioids' };
+    case 'opioid_low': return { title: `⚠️ ${d.item || 'مخدر'} قارب على النفاد`, body: `بقي ${d.left} فقط في ${d.place || ''}.`, url: './index.html?portal=true#panel=opioids' };
+    case 'opioid_empty': return { title: `⛔ نفد ${d.item || 'مخدر'}`, body: `لم يبقَ شيء في ${d.place || ''}. اطلب التعويض من الإدارة.`, url: './index.html?portal=true#panel=opioids' };
+    case 'opioid_stock': return { title: d.kind === 'withdraw' ? '💊 سحب من ذمتك' : '💊 تعويض ذمتك', body: `${d.item || ''}: ${d.kind === 'withdraw' ? 'سُحبت' : 'أُضيفت'} ${d.qty} · المتبقي ${d.left} (${d.place || ''})`, url: './index.html?portal=true#panel=opioids' };
     default: return { title: '🔔 إشعار جديد', body: '', url: './index.html?portal=true' };
   }
 }

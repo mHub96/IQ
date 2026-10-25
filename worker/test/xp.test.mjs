@@ -36,7 +36,9 @@ test('resident of the month: last month\'s most points, on the leaderboard and i
   assert.equal(star.status, 200, JSON.stringify(star.data));
   const all = await call('GET', `/api/leaderboard?h=${t.h}&p=all`, { token: t.owner });
   assert.equal(all.status, 200);
-  assert.equal(all.data.xpRules.monthTop, 150);
+  assert.equal(all.data.xpRules.monthTop, 200);
+  assert.ok(all.data.xpRules.visit > all.data.xpRules.duty / 2 && all.data.xpRules.like < all.data.xpRules.visit, 'contacts weigh more, likes little');
+  assert.ok('popular' in all.data, 'the popularity title');
   const m = dutyDayNow().slice(0, 7);
   const [y, mo] = m.split('-').map(Number);
   const prev = mo === 1 ? `${y - 1}-12` : `${y}-${String(mo - 1).padStart(2, '0')}`;

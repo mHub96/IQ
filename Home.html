@@ -1625,6 +1625,7 @@
         <!-- Nav Row with Rotation Heroes (Initially Locked) -->
         <div class="nav-row">
             <a href="https://khafarat-alsadr.netlify.app/" class="nav-btn locked" id="btn-rotation-heroes"><i class="fas fa-user-md"></i><span>Rotation Heroes</span></a>
+            <a href="#" class="nav-btn nav-opi" id="btn-opioids" hidden role="button"></a>
         </div>
 
         <!-- Trending Resident Panel -->
@@ -1689,6 +1690,7 @@
     <script src="./hub-accounts.js"></script>
     <script src="./hub-oncall.js"></script>
     <script src="./hub-xp.js"></script>
+    <script src="./hub-opioids.js"></script>
     <script src="./nav-component.js"></script>
     <script>
         // ================================================================
@@ -3291,6 +3293,9 @@
             if (btnExchange) {
                 btnExchange.href = `./signup.html?hospital=${encodeURIComponent(currentHospital.id)}`;
             }
+
+            // The opioids responsibility: recording a used ampoule (the hospital's rotators, the holder, the owner).
+            if (window.HubOpioids) HubOpioids.homeButton(document.getElementById('btn-opioids'), currentHospital.id);
 
             // Update Rotation Heroes button according to hospital configuration
             if (btnRotation) {

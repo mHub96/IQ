@@ -479,6 +479,16 @@
                 const at = d.start ? new Date(d.start).toLocaleString('ar-IQ-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Baghdad' }) : '';
                 return { icon: '⏰', text: `تذكير: خفارتك ${d.title ? '«' + d.title + '» ' : ''}${at ? 'تبدأ ' + at : 'قريباً'}${d.hospName ? ' (' + d.hospName + ')' : ''}.`, open: () => openPanel('schedule') };
             }
+            case 'opioid_assigned':
+                return { icon: '💊', text: `أُسندت إليك ذمة المخدرات: ${d.place || ''}${d.hospName ? ' (' + d.hospName + ')' : ''}. اضغط لفتحها.`, open: () => openPanel('opioids-mine') };
+            case 'opioid_used':
+                return { icon: '💉', text: `${d.by || 'أحدهم'} سجّل استخدام ${d.qty || 1} من ${d.item || ''} في ${d.ward || ''} (${d.place || ''}). المتبقي: ${d.left}.`, open: () => openPanel('opioids-mine') };
+            case 'opioid_low':
+                return { icon: '⚠️', text: `${d.item || ''} قارب على النفاد في ${d.place || ''}: بقي ${d.left} فقط.`, open: () => openPanel('opioids-mine') };
+            case 'opioid_empty':
+                return { icon: '⛔', text: `نفد ${d.item || ''} في ${d.place || ''}. اطلب التعويض من الإدارة.`, open: () => openPanel('opioids-mine') };
+            case 'opioid_stock':
+                return { icon: '💊', text: `${d.kind === 'withdraw' ? 'سُحبت' : 'أُضيفت'} ${d.qty} من ${d.item || ''} ${d.kind === 'withdraw' ? 'من' : 'إلى'} ذمتك (${d.place || ''}). المتبقي: ${d.left}.`, open: () => openPanel('opioids-mine') };
             default:
                 return { icon: '🔔', text: 'إشعار جديد' };
         }
@@ -1250,6 +1260,7 @@
         history.replaceState(null, '', location.pathname + location.search);
         if (m[1] === 'exchanges') { setTimeout(openExchanges, 400); return; }
         if (m[1] === 'requests') { setTimeout(openRequests, 400); return; }
+        if (m[1] === 'opioids') { setTimeout(() => openPanel('opioids-mine'), 400); return; }
         // #panel=schedule = the ER preferences portal (its notification); #panel=duties = My Schedule.
         setTimeout(() => openPanel(m[1] === 'schedule' ? 'portal' : m[1] === 'duties' ? 'schedule' : m[1]), 400);
     }

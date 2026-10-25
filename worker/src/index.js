@@ -27,6 +27,7 @@ import { routeUsage } from './usage.js';
 import { routeBackup } from './backup.js';
 import { routeOnCall } from './oncall.js';
 import { routeXp } from './xp.js';
+import { routeOpioids } from './opioids.js';
 import { limitedExchanger, foreignScheduleOps } from './exchspecs.js';
 import { storeSpecWrites, renameSpecialtyCode } from './specguard.js';
 
@@ -100,6 +101,8 @@ async function route(request, env, ctx) {
   if (onCallRoute) return onCallRoute;
   const xpRoute = await routeXp(path, method, request, env, auth, url);
   if (xpRoute) return xpRoute;
+  const opioidsRoute = await routeOpioids(path, method, request, env, auth, url, ctx);
+  if (opioidsRoute) return opioidsRoute;
   const backupRoute = await routeBackup(path, method, request, env, auth, url);
   if (backupRoute) return backupRoute;
   const specialistsRoute = await routeSpecialists(path, method, request, env, auth);

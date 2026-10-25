@@ -54,7 +54,7 @@
         if (!opts.host && frame && document.contains(frame.el)) { frame.onTab(which === 'portal' ? 'schedule' : which, which === 'portal'); return; }
         portalNext = which === 'portal';
         if (portalNext) which = 'schedule';
-        tab = ['profile', 'schedule', 'comments', 'settings', 'admin'].includes(which) ? which : 'profile';
+        tab = ['profile', 'schedule', 'comments', 'settings', 'admin', 'opioids', 'opioids-mine'].includes(which) ? which : 'profile';
         const acc = Hub.auth.getAccount();
         const approver = ['owner', 'admin'].includes(Hub.auth.getRole());
         const inline = !!opts.host;
@@ -72,6 +72,7 @@
                 ${!OFFICER_ROLES.includes(acc.role) ? '<button type="button" role="tab" data-tab="comments">تعليقاتي</button>' : ''}` : ''}
                 <button type="button" role="tab" data-tab="settings">الإعدادات</button>
                 ${Hub.auth.isOwner() ? '<button type="button" role="tab" data-tab="admin">القطاع الإداري</button>' : approver ? '<button type="button" role="tab" data-tab="admin">لوحة الإدارة</button>' : ''}
+                ${approver ? '<button type="button" role="tab" data-tab="opioids">ذمة المخدرات</button>' : ''}
             </div>
             <div class="hacc-sheet-body hp-body" data-role="body"><div class="hacc-empty">جاري التحميل…</div></div>
             <footer class="hp-foot">
@@ -97,6 +98,22 @@
         // In the frame a tab is an address of the account page (the back button steps through them).
         sheet.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => (inline ? frame.onTab(b.dataset.tab) : show(b.dataset.tab))));
         if (acc) await loadMe();
+        // The opioids holder: their own coloured tab (when they hold, or held, a duty).
+        if (acc && !NO_PROFILE.includes(acc.role)) {
+            try {
+                await loadOpioids();
+                if (await window.HubOpioids.holds(tab === 'opioids-mine')) {
+                    const b = document.createElement('button');
+                    b.type = 'button'; b.setAttribute('role', 'tab'); b.dataset.tab = 'opioids-mine'; b.className = 'hp-tab-opi';
+                    b.textContent = approver ? '💊 ذمتي' : '💊 ذمة المخدرات';
+                    b.addEventListener('click', () => (inline ? frame.onTab('opioids-mine') : show('opioids-mine')));
+                    const tabs = sheet.querySelector('.hacc-tabs');
+                    tabs.insertBefore(b, tabs.querySelector('[data-tab="settings"]'));
+                }
+            } catch (e) { /* offline: no tab */ }
+        }
+        if (tab === 'opioids' && !approver) tab = acc ? 'profile' : 'settings';
+        if (tab === 'opioids-mine' && !sheet.querySelector('[data-tab="opioids-mine"]')) tab = acc ? 'profile' : 'settings';
         show(tab);
         if (!inline && saved && saved.tab === tab) restoreInner(saved);
     }
@@ -186,8 +203,32 @@
         if (window.HubMySchedule) window.HubMySchedule.detach();
         const portalForm = portalNext && which === 'schedule';
         portalNext = false;
-        ({ profile: renderProfile, schedule: renderSchedule, comments: renderComments, settings: renderSettings, admin: renderAdmin })[which](body, portalForm);
+        ({ profile: renderProfile, schedule: renderSchedule, comments: renderComments, settings: renderSettings, admin: renderAdmin,
+            opioids: renderOpioids, 'opioids-mine': renderMyOpioids })[which](body, portalForm);
         if (which === 'profile') addXpCard(body);
+    }
+
+    // The opioids responsibility (hub-opioids.js, loaded on first use).
+    let opiLoading = null;
+    function loadOpioids() {
+        if (window.HubOpioids) return Promise.resolve();
+        opiLoading = opiLoading || new Promise((resolve, reject) => {
+            const el = document.createElement('script');
+            const self = document.querySelector('script[src*="hub-panel.js"]');
+            el.src = (self ? self.src.replace(/hub-panel\.js.*$/, '') : './') + 'hub-opioids.js';
+            el.onload = resolve;
+            el.onerror = () => { opiLoading = null; reject(new Error('opioids')); };
+            document.head.appendChild(el);
+        });
+        return opiLoading;
+    }
+    function renderOpioids(body) {
+        body.innerHTML = '<div class="hacc-empty">جاري التحميل…</div>';
+        loadOpioids().then(() => { if (body.isConnected) window.HubOpioids.manager(body); }).catch(() => { body.innerHTML = '<div class="hacc-empty">تعذر التحميل. تحقق من الاتصال.</div>'; });
+    }
+    function renderMyOpioids(body) {
+        body.innerHTML = '<div class="hacc-empty">جاري التحميل…</div>';
+        loadOpioids().then(() => { if (body.isConnected) window.HubOpioids.mine(body); }).catch(() => { body.innerHTML = '<div class="hacc-empty">تعذر التحميل. تحقق من الاتصال.</div>'; });
     }
 
     // XP, level and trophies at the top of the profile (hub-xp.js, loaded on first use).

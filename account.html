@@ -576,10 +576,10 @@
         const { esc, toast, timeAgo, ROLE_NAMES, errorText } = HubAccounts;
         const USERNAME_RE = /^[a-z0-9][a-z0-9._]{2,23}$/;
         const NICK_RE = /^[\p{L}\p{N}][\p{L}\p{N}._-]{2,23}$/u;
-        const VIEWS = ['signin', 'signup', 'forgot', 'me', 'settings', 'manage', 'schedule', 'comments', 'admin'];
+        const VIEWS = ['signin', 'signup', 'forgot', 'me', 'settings', 'manage', 'schedule', 'comments', 'admin', 'opioids', 'myopioids'];
         // The frame's tabs and their addresses on this page.
-        const FRAME_TAB = { me: 'profile', settings: 'settings', schedule: 'schedule', comments: 'comments', admin: 'admin' };
-        const TAB_HASH = { profile: 'me', settings: 'settings', schedule: 'schedule', comments: 'comments', admin: 'admin' };
+        const FRAME_TAB = { me: 'profile', settings: 'settings', schedule: 'schedule', comments: 'comments', admin: 'admin', opioids: 'opioids', myopioids: 'opioids-mine' };
+        const TAB_HASH = { profile: 'me', settings: 'settings', schedule: 'schedule', comments: 'comments', admin: 'admin', opioids: 'opioids', 'opioids-mine': 'myopioids' };
         let framePortal = false;
         /** Shows the frame on `tab` ({ body: false }: only its header and tabs, for the management lists). */
         function showFrame(tab, opts = {}) {
@@ -643,7 +643,7 @@
             const signedIn = Hub.auth.isLoggedIn();
             const approver = ['owner', 'admin'].includes(Hub.auth.getRole());
             if (!VIEWS.includes(view)) view = signedIn ? 'me' : 'signin';
-            if ((view === 'manage' || view === 'admin') && !approver) view = signedIn ? 'me' : 'signin';
+            if ((view === 'manage' || view === 'admin' || view === 'opioids') && !approver) view = signedIn ? 'me' : 'signin';
             if (FRAME_TAB[view] && !signedIn) view = 'signin';
             if (view === 'signin' && Hub.auth.getAccount()) view = 'me';
             VIEWS.forEach(v => { const el = $('view-' + v); if (el) el.hidden = v !== view; });
@@ -660,7 +660,7 @@
                 }
                 lastAuthTab = idx;
             }
-            $('page-title').textContent = { signin: 'تسجيل الدخول', signup: 'حساب جديد', forgot: 'استعادة كلمة المرور', me: 'حسابي', settings: 'الإعدادات', manage: 'الإدارة', schedule: 'جدولي', comments: 'تعليقاتي', admin: 'الإدارة' }[view];
+            $('page-title').textContent = { signin: 'تسجيل الدخول', signup: 'حساب جديد', forgot: 'استعادة كلمة المرور', me: 'حسابي', settings: 'الإعدادات', manage: 'الإدارة', schedule: 'جدولي', comments: 'تعليقاتي', admin: 'الإدارة', opioids: 'ذمة المخدرات', myopioids: 'ذمة المخدرات' }[view];
             // Signed in: the one frame (its tab), and the management lists under its header.
             // Embedded in the account panel (embed=1): only the section itself, the panel is the frame.
             const framed = signedIn && (FRAME_TAB[view] || view === 'manage') && !EMBEDDED;

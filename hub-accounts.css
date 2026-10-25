@@ -498,3 +498,7 @@ body.dark .hacc-identity input:checked + span { color: #1C1C1E; }
   background: linear-gradient(90deg, var(--hacc-surface) 25%, var(--hacc-border) 50%, var(--hacc-surface) 75%); background-size: 200% 100%; animation: hpShimmer 1.2s linear infinite; }
 .hp-subhost.ready .hp-embed-load { display: none; }
 @keyframes hpShimmer { to { background-position: -200% 0; } }
+
+/* The opioids holder's tab: its own colour (it holds controlled drugs). */
+.hacc-tabs[role="tablist"] button.hp-tab-opi, body.dark .hacc-tabs[role="tablist"] button.hp-tab-opi { color: #fff !important; background: linear-gradient(135deg, #7c3aed, #db2777) !important; border-radius: 999px; box-shadow: 0 3px 10px rgba(124,58,237,.35); }
+.hacc-tabs[role="tablist"] button.hp-tab-opi[aria-selected="true"], body.dark .hacc-tabs[role="tablist"] button.hp-tab-opi[aria-selected="true"] { color: #fff !important; background: linear-gradient(135deg, #6d28d9, #be185d) !important; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #db2777, 0 3px 10px rgba(124,58,237,.35); }

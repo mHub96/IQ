@@ -4,7 +4,12 @@
  * Everything is computed from what the site already records, per hospital and per resident (by name
  * key, as the duty cards are): duties served, contact taps received (VisitCount), likes and comments
  * on their cards, duties taken over for colleagues (approved exchanges), contact requests answered,
- * days in the operating theatre (on-call status) and days as the hospital's most contacted resident.
+ * days in the operating theatre or out for a consultation (on-call status), and the titles below.
+ * Activity weighs most: being contacted counts a little more than a duty (a resident with 1 duty and
+ * 20 contacts was needed more than one with 10 duties and none); likes and comments count only a
+ * little (the ranking is about what residents do, not how liked they are): they give the popularity
+ * title and trophies instead. The resident of the day / month is the most ACTIVE one (contacts,
+ * theatre, consultations, answered requests), never the most liked.
  * Results are cached for a few minutes per hospital (Cache API), so the leaderboard costs few reads.
  */
 
@@ -16,9 +21,11 @@ const HOSP_RE = /^[\w-]{1,48}$/;
 const CACHE_SECONDS = 300;
 
 /** Points per thing done. */
-export const XP = { duty: 40, visit: 5, like: 4, comment: 3, exchange: 25, answered: 15, theatre: 10, topDay: 30, monthTop: 150 };
+export const XP = { duty: 10, visit: 6, like: 1, comment: 1, exchange: 15, answered: 10, theatre: 15, consult: 12, topDay: 30, monthTop: 200, popular: 20 };
 /** Which point each counted thing is worth. */
-const WEIGHT = { duties: 'duty', visits: 'visit', likes: 'like', comments: 'comment', exchanges: 'exchange', answered: 'answered', theatre: 'theatre', topDays: 'topDay', monthTops: 'monthTop' };
+const WEIGHT = { duties: 'duty', visits: 'visit', likes: 'like', comments: 'comment', exchanges: 'exchange', answered: 'answered', theatre: 'theatre', consults: 'consult', topDays: 'topDay', monthTops: 'monthTop', populars: 'popular' };
+/** What counts as activity (the resident of the day / month): not likes, comments or titles. */
+const ACTIVE = new Set(['duties', 'visits', 'exchanges', 'answered', 'theatre', 'consults']);
 
 /** Level from XP: each level needs 100 XP more than the one before (100, 200, 300, ...). */
 export function levelOf(xp) {
@@ -33,32 +40,34 @@ export const TIERS = [
 ];
 export const tierOf = level => TIERS.find(t => level >= t.min) || TIERS[TIERS.length - 1];
 
-/** Trophies: [id, icon, name, what is counted, thresholds (bronze, silver, gold), description]. */
+/** Trophies: [id, icon, name, what is counted, thresholds (bronze, silver, gold), description, how to earn it]. */
 export const TROPHIES = [
-  ['duty', '🩺', 'حارس المستشفى', 'duties', [1, 25, 100], 'خفارات أدّيتها'],
-  ['visit', '📞', 'الأكثر طلباً', 'visits', [50, 250, 1000], 'مرات تواصل الزملاء معك'],
-  ['like', '❤️', 'محبوب الزملاء', 'likes', [10, 50, 200], 'إعجابات على بطاقاتك'],
-  ['comment', '💬', 'حديث القسم', 'comments', [10, 50, 150], 'تعليقات على بطاقاتك'],
-  ['exchange', '🤝', 'يد العون', 'exchanges', [1, 10, 30], 'خفارات تسلّمتها عن زملائك'],
-  ['answered', '⚡', 'سريع الاستجابة', 'answered', [5, 25, 100], 'طلبات تواصل أجبتها'],
-  ['theatre', '🩸', 'سيد صالة العمليات', 'theatre', [5, 25, 75], 'أيام في صالة العمليات'],
-  ['topDay', '🌟', 'نجم اليوم', 'topDays', [1, 10, 30], 'أيام كنت فيها الأكثر تواصلاً في مستشفاك'],
-  ['monthTop', '👑', 'مقيم الشهر', 'monthTops', [1, 3, 6], 'أشهر كنت فيها الأعلى نقاطاً في مستشفاك'],
+  ['visit', '📞', 'الأكثر طلباً', 'visits', [50, 250, 1000], 'مرات تواصل الزملاء معك', 'كل ضغطة اتصال أو واتساب على بطاقة خفارتك تُحسب تواصلاً معك.'],
+  ['duty', '🩺', 'حارس المستشفى', 'duties', [1, 25, 100], 'خفارات أدّيتها', 'تُحسب كل خفارة في جدول مستشفاك بعد انقضاء يومها (خفارة واحدة لكل يوم).'],
+  ['theatre', '🩸', 'سيد صالة العمليات', 'theatre', [5, 25, 75], 'أيام في صالة العمليات', 'ضع حالتك «في صالة العمليات» من زر الحالة في بطاقة خفارتك.'],
+  ['consult', '🚑', 'سفير الاستشارات', 'consults', [5, 25, 75], 'أيام خرجت فيها لاستشارة', 'ضع حالتك «خارج القسم لاستشارة» من زر الحالة في بطاقة خفارتك.'],
+  ['answered', '⚡', 'سريع الاستجابة', 'answered', [5, 25, 100], 'طلبات تواصل أجبتها', 'عندما يترك لك زميل طلب تواصل وأنت مشغول، أجبه ثم اضغط «تم» في طلبات التواصل.'],
+  ['exchange', '🤝', 'يد العون', 'exchanges', [1, 10, 30], 'خفارات تسلّمتها عن زملائك', 'اقبل تبديل خفارة زميل لتتسلّمها عنه (بعد الموافقة على التبديل).'],
+  ['topDay', '🌟', 'نجم اليوم', 'topDays', [1, 10, 30], 'أيام كنت فيها الأكثر نشاطاً في مستشفاك', 'كن الأكثر نشاطاً في مستشفاك خلال يوم: تواصل الزملاء، العمليات، الاستشارات، والطلبات المجابة.'],
+  ['monthTop', '👑', 'مقيم الشهر', 'monthTops', [1, 3, 6], 'أشهر كنت فيها الأكثر نشاطاً في مستشفاك', 'كن الأكثر نشاطاً في مستشفاك خلال شهر كامل (لا تُحسب الإعجابات والتعليقات).'],
+  ['like', '❤️', 'محبوب الزملاء', 'likes', [10, 50, 200], 'إعجابات على بطاقاتك', 'يعجب الزملاء ببطاقات خفاراتك.'],
+  ['comment', '💬', 'حديث القسم', 'comments', [10, 50, 150], 'تعليقات على بطاقاتك', 'يكتب الزملاء تعليقات على بطاقات خفاراتك.'],
+  ['popular', '💖', 'الأكثر شعبية', 'populars', [1, 3, 6], 'أشهر كنت فيها الأكثر إعجاباً وتعليقاً', 'اجمع أكثر الإعجابات والتعليقات في مستشفاك خلال شهر.'],
 ];
 const TIER_NAMES = ['برونزية', 'فضية', 'ذهبية'];
 
 function trophiesOf(s) {
-  return TROPHIES.map(([id, icon, name, field, steps, desc]) => {
+  return TROPHIES.map(([id, icon, name, field, steps, desc, how]) => {
     const value = s[field] || 0;
     const tier = steps.filter(t => value >= t).length;          // 0 = not earned yet
     const next = steps[tier] || null;
-    return { id, icon, name, desc, value, tier, tierName: tier ? TIER_NAMES[tier - 1] : null, next };
+    return { id, icon, name, desc, how, steps, xp: XP[WEIGHT[field]] || 0, value, tier, tierName: tier ? TIER_NAMES[tier - 1] : null, next };
   });
 }
 function xpOf(s) {
   return Object.entries(WEIGHT).reduce((sum, [field, w]) => sum + (s[field] || 0) * XP[w], 0);
 }
-const blank = () => ({ duties: 0, visits: 0, likes: 0, comments: 0, exchanges: 0, answered: 0, theatre: 0, topDays: 0, monthTops: 0 });
+const blank = () => ({ duties: 0, visits: 0, likes: 0, comments: 0, exchanges: 0, answered: 0, theatre: 0, consults: 0, topDays: 0, monthTops: 0, populars: 0 });
 
 /**
  * Per resident of a hospital: { key -> { name, spec, all: stats, month: stats, today: stats } }.
@@ -66,7 +75,7 @@ const blank = () => ({ duties: 0, visits: 0, likes: 0, comments: 0, exchanges: 0
  */
 async function hospitalStats(env, hosp) {
   const cache = caches.default;
-  const cacheKey = new Request(`https://xp.internal/${encodeURIComponent(hosp)}`);
+  const cacheKey = new Request(`https://xp.internal/v2/${encodeURIComponent(hosp)}`);
   const hit = await cache.match(cacheKey).catch(() => null);
   if (hit) return hit.json();
 
@@ -82,21 +91,28 @@ async function hospitalStats(env, hosp) {
     env.DB.prepare('SELECT target, COUNT(*) AS c FROM comments WHERE hosp = ? AND deleted = 0 GROUP BY target').bind(hosp),
     env.DB.prepare("SELECT new_name AS n, date AS d FROM exchange_requests WHERE hosp = ? AND status = 'approved'").bind(hosp),
     env.DB.prepare("SELECT holder_key AS k, card_date AS d FROM contact_requests WHERE hosp = ? AND status = 'done'").bind(hosp),
-    env.DB.prepare("SELECT target, card_date AS d FROM duty_status WHERE hosp = ? AND status = 'or'").bind(hosp),
+    env.DB.prepare("SELECT target, card_date AS d, status AS s FROM duty_status WHERE hosp = ? AND status IN ('or', 'consult')").bind(hosp),
   ]);
   const people = {};
   const person = (key, name, spec) => {
-    if (!people[key]) people[key] = { name: name || key, spec: spec || '', all: blank(), month: blank(), today: blank(), byMonth: {} };
+    if (!people[key]) people[key] = { name: name || key, spec: spec || '', all: blank(), month: blank(), today: blank(), act: {}, pop: {} };
     else if (spec && !people[key].spec) people[key].spec = spec;
     return people[key];
   };
+  const dayAct = {};   // iso -> key -> activity points that day
   const add = (p, field, iso, n = 1) => {
     p.all[field] += n;
-    if (iso) { const ym = iso.slice(0, 7); p.byMonth[ym] = (p.byMonth[ym] || 0) + n * XP[WEIGHT[field]]; }
+    if (iso && ACTIVE.has(field)) {
+      const pts = n * XP[WEIGHT[field]];
+      const ym = iso.slice(0, 7);
+      p.act[ym] = (p.act[ym] || 0) + pts;
+      const day = dayAct[iso] || (dayAct[iso] = {});
+      day[p.key] = (day[p.key] || 0) + pts;
+    }
+    if (iso && (field === 'likes' || field === 'comments')) { const ym = iso.slice(0, 7); p.pop[ym] = (p.pop[ym] || 0) + n; }
     if (iso && iso.startsWith(month)) p.month[field] += n;
     if (iso === today) p.today[field] += n;
   };
-  const visitsByDay = {};
   const served = new Set();   // one duty per resident per day (two specialties the same day are one duty)
   for (const r of sched.results || []) {
     if (r.c || !r.n) continue;
@@ -104,41 +120,44 @@ async function hospitalStats(env, hosp) {
     const key = nameKey(r.n);
     if (!iso || !key) continue;
     const p = person(key, r.n, r.s);
+    p.key = key;
     if (iso <= today && !served.has(key + '|' + iso)) { served.add(key + '|' + iso); add(p, 'duties', iso); }
-    if (r.v > 0) {
-      add(p, 'visits', iso, r.v);
-      const day = visitsByDay[iso] || (visitsByDay[iso] = {});
-      day[key] = (day[key] || 0) + r.v;
-    }
-  }
-  // The day's most contacted resident (finished days and today).
-  for (const [iso, byKey] of Object.entries(visitsByDay)) {
-    const top = Object.entries(byKey).sort((a, b) => b[1] - a[1])[0];
-    if (top && top[1] > 0 && people[top[0]]) add(people[top[0]], 'topDays', iso);
+    if (r.v > 0) add(p, 'visits', iso, r.v);
   }
   const fromTarget = t => { const parts = String(t).split(':'); return { iso: parts[2], key: parts.slice(3).join(':') }; };
   for (const r of likes.results || []) { const { iso, key } = fromTarget(r.target); if (people[key]) add(people[key], 'likes', iso, r.c); }
   for (const r of comments.results || []) { const { iso, key } = fromTarget(r.target); if (people[key]) add(people[key], 'comments', iso, r.c); }
   for (const r of exch.results || []) { const key = nameKey(r.n); if (people[key]) add(people[key], 'exchanges', isoDate(r.d)); }
   for (const r of reqs.results || []) { if (people[r.k]) add(people[r.k], 'answered', r.d); }
-  for (const r of status.results || []) { const { iso, key } = fromTarget(r.target); if (people[key]) add(people[key], 'theatre', iso); }
+  for (const r of status.results || []) { const { iso, key } = fromTarget(r.target); if (people[key]) add(people[key], r.s === 'consult' ? 'consults' : 'theatre', iso); }
 
-  // Resident of the month: the most points in each finished month (+ a trophy and its XP); the last
-  // finished month's winner is this month's resident of the month.
-  const months = new Set();
-  for (const p of Object.values(people)) for (const ym of Object.keys(p.byMonth)) if (ym < month) months.add(ym);
-  let star = null;
-  const lastMonth = [...months].sort().pop() || null;
-  for (const ym of [...months].sort()) {
-    let best = null;
-    for (const [key, p] of Object.entries(people)) if ((p.byMonth[ym] || 0) > 0 && (!best || p.byMonth[ym] > best[1].byMonth[ym])) best = [key, p];
-    if (!best) continue;
-    best[1].all.monthTops += 1;
-    if (ym === lastMonth && ym === prevMonth(month)) star = { key: best[0], name: best[1].name, ym, xp: best[1].byMonth[ym] };
+  // The day's most active resident (contacts, theatre, consultations, answered requests; a duty
+  // alone, the same for everyone on duty, does not make a star: there must be something more).
+  for (const [iso, byKey] of Object.entries(dayAct)) {
+    const top = Object.entries(byKey).sort((a, b) => b[1] - a[1])[0];
+    if (top && top[1] > XP.duty && people[top[0]]) add(people[top[0]], 'topDays', iso);
   }
-  for (const p of Object.values(people)) delete p.byMonth;
 
-  const out = { at: Date.now(), today, people, star };
+  // Resident of the month: the most ACTIVE in each finished month; the most popular: the most likes
+  // and comments. Each gives a trophy and its XP; last month's winners are this month's titles.
+  const months = new Set();
+  for (const p of Object.values(people)) for (const ym of [...Object.keys(p.act), ...Object.keys(p.pop)]) if (ym < month) months.add(ym);
+  let star = null, popular = null;
+  const prev = prevMonth(month);
+  const winner = (ym, field) => {
+    let best = null;
+    for (const [key, p] of Object.entries(people)) if ((p[field][ym] || 0) > 0 && (!best || p[field][ym] > best[1][field][ym])) best = [key, p];
+    return best;
+  };
+  for (const ym of [...months].sort()) {
+    const a = winner(ym, 'act');
+    if (a) { a[1].all.monthTops += 1; if (ym === prev) star = { key: a[0], name: a[1].name, ym, xp: a[1].act[ym] }; }
+    const l = winner(ym, 'pop');
+    if (l) { l[1].all.populars += 1; if (ym === prev) popular = { key: l[0], name: l[1].name, ym, count: l[1].pop[ym] }; }
+  }
+  for (const p of Object.values(people)) { delete p.act; delete p.pop; delete p.key; }
+
+  const out = { at: Date.now(), today, people, star, popular };
   await cache.put(cacheKey, new Response(JSON.stringify(out), { headers: { 'Content-Type': 'application/json', 'Cache-Control': `max-age=${CACHE_SECONDS}` } })).catch(() => {});
   return out;
 }
@@ -185,7 +204,8 @@ async function leaderboard(env, auth, url) {
   rows.forEach((r, i) => { r.rank = i + 1; });
   const mine = rows.find(r => r.key === 'me') || null;
   return json({ ok: true, period, hosp, at: stats.at, rows: rows.slice(0, 50), me: mine && mine.rank > 50 ? mine : null, xpRules: XP,
-    star: stats.star ? { name: stats.star.name, ym: stats.star.ym, xp: stats.star.xp } : null });
+    star: stats.star ? { name: stats.star.name, ym: stats.star.ym, xp: stats.star.xp } : null,
+    popular: stats.popular ? { name: stats.popular.name, ym: stats.popular.ym, count: stats.popular.count } : null });
 }
 
 /** ?h=<hospital>: this month's resident of the month (last month's most points), for the duty cards. */
@@ -194,7 +214,8 @@ async function monthStar(env, auth, url) {
   const hosp = String(url.searchParams.get('h') || '');
   if (!HOSP_RE.test(hosp)) return json({ error: 'bad_request' }, 400);
   const stats = await hospitalStats(env, hosp);
-  return json({ ok: true, star: stats.star ? { key: stats.star.key, name: stats.star.name, ym: stats.star.ym, xp: stats.star.xp } : null });
+  return json({ ok: true, star: stats.star ? { key: stats.star.key, name: stats.star.name, ym: stats.star.ym, xp: stats.star.xp } : null,
+    popular: stats.popular ? { key: stats.popular.key, name: stats.popular.name, ym: stats.popular.ym, count: stats.popular.count } : null });
 }
 
 /** The signed-in resident's XP, level, tier and trophies (all their hospitals). */

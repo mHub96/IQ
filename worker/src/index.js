@@ -16,6 +16,7 @@ import { DAY, json, signToken, verifyToken, encrypt, decrypt, bucketOf, neutrali
 import { routeAccounts, resolveAccountAuth, mirrorResident } from './accounts.js';
 import { routeDuties } from './duties.js';
 import { routeReminders, runReminders } from './reminders.js';
+import { linkRotators } from './rotators.js';
 import { routeExchange, approvalHospitals } from './exchange.js';
 import { routeAA, isOfficer, AA_ROLES } from './aa.js';
 import { nameKey } from './names.js';
@@ -59,8 +60,11 @@ export default {
   },
 
   async scheduled(event, env, ctx) {
-    // Every 10 minutes: duty reminders. Once a night: clean-up.
-    if (event.cron !== '17 1 * * *') return runReminders(env, ctx);
+    // Every 10 minutes: duty reminders, then rotators still without a database entry. Once a night: clean-up.
+    if (event.cron !== '17 1 * * *') {
+      await runReminders(env, ctx);
+      return linkRotators(env).catch(err => console.error('rotators', err && err.message));
+    }
     const now = Date.now();
     await env.DB.batch([
       env.DB.prepare('DELETE FROM history WHERE ts < ?').bind(now - HISTORY_KEEP_DAYS * DAY),

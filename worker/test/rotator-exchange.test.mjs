@@ -60,7 +60,7 @@ test('setup: a rotator account and the rotators\' specialty with a branch', asyn
   const asRot = { ...t.meta[5], value: store.map(g => g.id === t.rot ? { ...g, name_en: 'Rotator' } : g) };
   assert.equal((await call('POST', '/api/sync', { token: t.owner, body: { msg: 'test', ops: [{ c: 'meta', id: 'globalSpecialties', h: t.meta[2], o: t.meta[3], bv: t.meta[4], d: asRot }] } })).data.applied.length, 1);
   const username = 'rotx_' + RUN, key = await deriveKey(username, 'pass-R-1');
-  assert.equal((await call('POST', '/api/accounts/signup-rotator', { body: { hosp: t.h, name: 'روتيتر تجربة اختبار', username, key, sex: 'm' } })).status, 200);
+  assert.equal((await call('POST', '/api/accounts/signup-rotator', { body: { hosp: t.h, name: 'روتيتر تجربة اختبار', phone: '0799' + String(Date.now() % 10000000).padStart(7, '0'), username, key, sex: 'm' } })).status, 200);
   t.accountId = (await call('GET', '/api/accounts?filter=pending', { token: t.owner })).data.accounts.find(a => a.username === username).id;
   await call('POST', '/api/accounts/decide', { token: t.owner, body: { id: t.accountId, action: 'approve', role: 'rotator' } });
   const li = (await call('POST', '/api/accounts/login', { body: { username, key, deviceId: 'deviceR-' + RUN + 'xxxxxxxx', deviceLabel: 'Test' } })).data;
@@ -117,6 +117,13 @@ test('cleanup', async () => {
   if (t.holderId) await call('POST', '/api/accounts/decide', { token: t.owner, body: { id: t.holderId, action: 'delete' } });
   const all = await rows(t.owner);
   const dels = ['a', 'b', 'h', 'n'].map(n => row(all, 'sched', ID(t.h, n))).filter(Boolean).map(r => ({ c: 'sched', id: r[1], bv: r[4], del: 1 }));
+  // The approval added the test rotator to the hospital database (rotators.js): that entry goes too.
+  const added = ((await call('GET', '/api/accounts?filter=all', { token: t.owner })).data.accounts.find(a => a.id === t.accountId) || {}).resident_id;
+  const rec = added && row(all, 'resident', added);
+  if (rec) {
+    const h = row(all, 'hospital', t.h);
+    dels.push({ c: 'resident', id: rec[1], bv: rec[4], del: 1 }, { c: 'hospital', id: t.h, h: h[2], o: h[3], bv: h[4], d: { ...h[5], names: (h[5].names || []).filter(n => n.id !== added) } });
+  }
   if (dels.length) await call('POST', '/api/sync', { token: t.owner, body: { msg: 'test cleanup', ops: dels } });
   const m = row(all, 'meta', 'globalSpecialties');
   assert.equal((await call('POST', '/api/sync', { token: t.owner, body: { msg: 'test cleanup', ops: [{ c: 'meta', id: 'globalSpecialties', h: m[2], o: m[3], bv: m[4], d: t.meta[5] }] } })).data.applied.length, 1);

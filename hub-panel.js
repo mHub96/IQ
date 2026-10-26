@@ -502,7 +502,7 @@
     // Tiles shared by the owner's and the hospital admins' tabs: the per-hospital settings view and the
     // duty exchange requests.
     const HOSPITAL_TOOLS = [
-        ['fa-sliders', 'إعدادات المستشفيات', 'التعليقات، والتعليق المجهول، وموافقة تبديل الخفارات، وصلاحية المقيمين على أطباء الاختصاص', { view: 'hospital-settings' }],
+        ['fa-sliders', 'إعدادات المستشفيات', 'التعليقات، والتعليق المجهول، وموافقة تبديل الخفارات، وصلاحية المقيمين على أطباء الاختصاص، والتحقق من أرقام الروتيترز', { view: 'hospital-settings' }],
         ['fa-right-left', 'طلبات تبديل الخفارات', 'الطلبات بانتظار موافقتك في المستشفيات التي فعّلت نظام الموافقة', { open: 'exchanges' }],
     ];
     function tileHtml([icon, label, sub, act]) {
@@ -546,14 +546,15 @@
         body.innerHTML = `<div class="hp-sub-head"><button type="button" class="hacc-btn sm" data-act="back"><i class="fas fa-chevron-right"></i> رجوع</button><h3>إعدادات المستشفيات</h3></div>
             <div class="hacc-empty">جاري التحميل…</div>`;
         body.querySelector('[data-act="back"]').addEventListener('click', () => show('admin'));
-        let off = [], anonOff = [], approval = [], specEdit = [], scope = [], profileLocked = [];
+        let off = [], anonOff = [], approval = [], specEdit = [], scope = [], profileLocked = [], rotCheck = [];
         try {
-            const [c, x, sp] = await Promise.all([
+            const [c, x, sp, rc] = await Promise.all([
                 Hub.api('GET', '/api/social/hospitals', undefined, { retries: 1 }),
                 Hub.api('GET', '/api/exchange/settings', undefined, { retries: 1 }),
                 Hub.api('GET', '/api/specialists/settings', undefined, { retries: 1 }),
+                Hub.api('GET', '/api/accounts/rotator-check', undefined, { retries: 1 }),
             ]);
-            off = c.off || []; anonOff = c.anonOff || []; scope = c.scope || []; approval = x.on || []; specEdit = sp.on || []; profileLocked = c.profileLocked || [];
+            off = c.off || []; anonOff = c.anonOff || []; scope = c.scope || []; approval = x.on || []; specEdit = sp.on || []; profileLocked = c.profileLocked || []; rotCheck = rc.on || [];
         } catch (err) {
             body.querySelector('.hacc-empty').textContent = errorText(err);
             return;
@@ -562,7 +563,7 @@
         const hospitals = Hub.getHospitals().filter(h => scope.includes('*') || scope.includes(h.id));
         let query = '';
         const row = (h) => {
-            const on = !off.includes(h.id), anon = !anonOff.includes(h.id), ap = approval.includes(h.id), se = specEdit.includes(h.id), pe = !profileLocked.includes(h.id);
+            const on = !off.includes(h.id), anon = !anonOff.includes(h.id), ap = approval.includes(h.id), se = specEdit.includes(h.id), pe = !profileLocked.includes(h.id), rc = rotCheck.includes(h.id);
             const sw = (key, label, state, onText, offText) => `<span class="hp-switch-row"><span class="hp-switch-label">${label}</span>
                 <span class="hacc-chip ${state ? 'on' : 'off'}">${state ? onText : offText}</span>
                 <button type="button" class="hacc-btn sm ${state ? 'danger' : 'primary'}" data-act="${key}">${state ? 'إيقاف' : 'تفعيل'}</button></span>`;
@@ -571,7 +572,8 @@
                 ${sw('toggle-anon', '🕶️ التعليق المجهول', anon, 'مسموح', 'متوقف')}
                 ${sw('toggle-approval', '🔁 موافقة تبديل الخفارات', ap, 'مفعّلة', 'متوقفة')}
                 ${sw('toggle-spec', '🩺 المقيمون يعدّلون أطباء اختصاصهم', se, 'مسموح', 'الإدارة فقط')}
-                ${sw('toggle-profile', '🎓 المقيمون يعدّلون معلومات البورد', pe, 'مسموح', 'الإدارة فقط')}</li>`;
+                ${sw('toggle-profile', '🎓 المقيمون يعدّلون معلومات البورد', pe, 'مسموح', 'الإدارة فقط')}
+                ${sw('toggle-rotcheck', '🔄 تسجيل الروتيتر برقم من قاعدة المستشفى فقط', rc, 'مفعّل', 'يقبل أي رقم')}</li>`;
         };
         const paint = () => {
             const list = hospitals.filter(h => !query || String(h.name_ar || h.hospitalName || h.id).includes(query));
@@ -601,6 +603,18 @@
                     ? `السماح لمقيمي ${name} بتعديل معلومات البورد في ملفاتهم (نوع البورد، الاختصاص، المرحلة، سنوات البورد)؟`
                     : `منع مقيمي ${name} من تعديل معلومات البورد؟ يعدّلها بعد ذلك مدير المستشفى من إدارة الحسابات فقط.`;
                 done = allow ? 'أصبح المقيمون يعدّلون معلومات البورد ✓' : 'أصبحت معلومات البورد للإدارة فقط';
+            } else if (kind === 'toggle-rotcheck') {
+                const on = !rotCheck.includes(h);
+                path = '/api/accounts/rotator-check';
+                payload = { hosp: h, on };
+                confirmText = on
+                    ? `تفعيل التحقق من أرقام الروتيترز في ${name}؟
+
+لن يُقبل طلب حساب روتيتر إلا إذا كان اسمه ورقمه مسجّلين في قاعدة المستشفى ضمن المقيمين الدوريين (مثل تسجيل المقيمين).`
+                    : `إيقاف التحقق من أرقام الروتيترز في ${name}؟
+
+يُقبل طلب الروتيتر حتى لو لم يكن رقمه في قاعدة المستشفى، ويُضاف إليها عند الموافقة على حسابه.`;
+                done = on ? 'أصبح تسجيل الروتيتر لمن في قاعدة المستشفى فقط ✓' : 'أصبح تسجيل الروتيتر بأي رقم، ويُضاف عند الموافقة';
             } else if (kind === 'toggle-spec') {
                 const on = !specEdit.includes(h);
                 path = '/api/specialists/settings';
@@ -624,13 +638,14 @@
                 const res = await Hub.api('POST', path, payload, { retries: 0 });
                 if (path === '/api/exchange/settings') approval = res.on || [];
                 else if (path === '/api/specialists/settings') specEdit = res.on || [];
+                else if (path === '/api/accounts/rotator-check') rotCheck = res.on || [];
                 else { off = res.off || off; anonOff = res.anonOff || anonOff; profileLocked = res.profileLocked || profileLocked; }
                 toast(done, 'success');
                 paint();
             } catch (err) { btn.disabled = false; toast(errorText(err), 'error'); }
         };
         body.innerHTML = `<div class="hp-sub-head"><button type="button" class="hacc-btn sm" data-act="back"><i class="fas fa-chevron-right"></i> رجوع</button><h3>إعدادات المستشفيات</h3></div>
-            <p class="hacc-muted hp-switch-note">إيقاف التعليقات يمنع التعليق على بطاقات خفارات المستشفى${Hub.auth.isOwner() ? ' (عدا المالك)' : ''} وتبقى التعليقات السابقة. مع إيقاف «المجهول» تكون التعليقات الجديدة بالاسم الحقيقي. ومع «موافقة التبديل» يمر كل تبديل يطلبه مقيم بموافقة صاحب الخفارة ثم الإدارة. ومع «المقيمون يعدّلون أطباء اختصاصهم» يضيف المقيم ويعدّل بطاقات أطباء اختصاصه (أو اختصاص دورته) في مستشفاه، ويبقى الحذف للإدارة. ومع منع «المقيمون يعدّلون معلومات البورد» يحدد المدير البورد والمرحلة لكل مقيم من إدارة الحسابات.</p>
+            <p class="hacc-muted hp-switch-note">إيقاف التعليقات يمنع التعليق على بطاقات خفارات المستشفى${Hub.auth.isOwner() ? ' (عدا المالك)' : ''} وتبقى التعليقات السابقة. مع إيقاف «المجهول» تكون التعليقات الجديدة بالاسم الحقيقي. ومع «موافقة التبديل» يمر كل تبديل يطلبه مقيم بموافقة صاحب الخفارة ثم الإدارة. ومع «المقيمون يعدّلون أطباء اختصاصهم» يضيف المقيم ويعدّل بطاقات أطباء اختصاصه (أو اختصاص دورته) في مستشفاه، ويبقى الحذف للإدارة. ومع منع «المقيمون يعدّلون معلومات البورد» يحدد المدير البورد والمرحلة لكل مقيم من إدارة الحسابات. ومع تفعيل «تسجيل الروتيتر برقم من قاعدة المستشفى فقط» يُرفض طلب الروتيتر الذي لا يوجد اسمه ورقمه في قاعدة المستشفى؛ ومع إيقافه يُقبل الطلب ويُضاف الروتيتر إلى القاعدة عند الموافقة.</p>
             ${hospitals.length > 4 ? '<input type="search" class="hp-hs-search" data-role="hs-search" placeholder="ابحث عن مستشفى…" aria-label="ابحث عن مستشفى">' : ''}
             <ul class="hp-switches" data-role="hs-list"></ul>`;
         body.querySelector('[data-act="back"]').addEventListener('click', () => show('admin'));

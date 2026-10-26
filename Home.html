@@ -3157,6 +3157,85 @@
         // ================================================================
         // REPORT GENERATOR (WHATSAPP READY WITH REPO LINK)
         // ================================================================
+        /**
+         * The WhatsApp report of who is on duty now: the hospital's own specialties first, then the ones
+         * mirrored from other hospitals (by source hospital). Every line starts with a right-to-left mark so
+         * WhatsApp shows it right to left, numbers included; *bold* and _italic_ are WhatsApp's formatting.
+         */
+        function buildDailyReport(currentResidents) {
+            const RLM = '\u200F', LRM = '\u200E';
+            const lines = [];
+            const line = (t = '') => lines.push(t ? RLM + t : '');
+            const clock = min => {
+                const t = (DAY_START * 60 + Math.round(min)) % TOTAL_MINUTES;
+                const h = Math.floor(t / 60), m = t % 60;
+                return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'ص' : 'م'}`;
+            };
+            const phoneText = raw => {
+                const d = String(raw || '').replace(/[٠-٩]/g, c => String(c.charCodeAt(0) - 0x660)).replace(/\D/g, '').replace(/^(00)?964/, '').replace(/^0/, '');
+                // The left-to-right mark keeps the "+" in front of the number inside a right-to-left line.
+                return /^7\d{9}$/.test(d) ? `${LRM}+964 ${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6)}` : 'رقم غير متوفر';
+            };
+            const ordinal = ['أولاً', 'ثانياً', 'ثالثاً', 'رابعاً', 'خامساً', 'سادساً', 'سابعاً', 'ثامناً'];
+            const hospName = currentHospital.name_ar || currentHospital.hospitalName;
+            const hospLoc = currentHospital.location || 'Basra · Iraq';
+            const dateStr = Hub.getMedicalDate();
+            const [dd, mm, yyyy] = String(dateStr).split('/').map(Number);
+            const day = dd && mm && yyyy ? ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'][new Date(yyyy, mm - 1, dd).getDay()] : '';
+            const now = new Date();
+            const nowText = `${now.getHours() % 12 || 12}:${String(now.getMinutes()).padStart(2, '0')} ${now.getHours() < 12 ? 'ص' : 'م'}`;
+
+            // A resident with one of the hospital's own specialties is listed there; one who covers only
+            // mirrored specialties is listed under the hospital the duty comes from.
+            const own = currentResidents.filter(r => r.specs.some(s => !s.isClone));
+            const mirrored = new Map();
+            currentResidents.filter(r => !own.includes(r)).forEach(r => {
+                const from = r.parentHospitalName || (r.specs[0] && r.specs[0].parentHospitalName) || 'مستشفى آخر';
+                if (!mirrored.has(from)) mirrored.set(from, []);
+                mirrored.get(from).push(r);
+            });
+
+            line('🏥 *تقرير الخفارات اليومي*');
+            line(`*${hospName}*`);
+            line(`📍 _${hospLoc}_`);
+            line('━━━━━━━━━━━━━━━━');
+            line(`📅 *التاريخ:* ${day ? day + ' ' : ''}${dateStr}`);
+            line(`⏰ *وقت التقرير:* ${nowText}`);
+            line(`👥 *الخفراء الآن:* ${currentResidents.length}`);
+            line('━━━━━━━━━━━━━━━━');
+
+            let n = 0, section = 0;
+            const entry = (r, showSource) => {
+                n++;
+                const specs = r.specs.map(s => `${s.icon} ${s.name}${showSource && s.isClone && s.parentHospitalName ? ` (${s.parentHospitalName})` : ''}`).join(' + ');
+                const until = Math.min(...r.specs.map(s => s.endMin).filter(x => isFinite(x)));
+                line();
+                line(`*${n}. ${specs}*`);
+                line(`👨‍⚕️ ${r.name}`);
+                line(`📞 ${phoneText(r.phone)}`);
+                if (isFinite(until)) line(`⏳ _حتى ${clock(until)}_`);
+            };
+            if (own.length) {
+                line();
+                line(`*${ordinal[section++]}: تخصصات المستشفى* (${own.length})`);
+                own.forEach(r => entry(r, true));
+            }
+            if (mirrored.size) {
+                line();
+                line(`*${ordinal[section++]}: التخصصات المرتبطة من مستشفيات أخرى* (${currentResidents.length - own.length})`);
+                for (const [from, list] of mirrored) {
+                    line();
+                    line(`🔗 _من ${from}_`);
+                    list.forEach(r => entry(r, false));
+                }
+            }
+            line();
+            line('━━━━━━━━━━━━━━━━');
+            line('_تم التوليد عبر بوابة المستشفيات التعليمية_ 🇮🇶');
+            line('🔗 https://mhub96.github.io/IQ/Home.html');
+            return lines.join('\n') + '\n';
+        }
+
         function generateAndCopyReport() {
             const currentResidents = getAllCurrentResidents();
             if (currentResidents.length === 0) {
@@ -3164,27 +3243,7 @@
                 return;
             }
 
-            const hospName = currentHospital.name_ar || currentHospital.hospitalName;
-            const hospLoc = currentHospital.location || 'Basra · Iraq';
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-            let report = `🏥 *جدول المقيمين الخفراء في الخدمة*\n`;
-            report += `📍 *${hospName}* (${hospLoc})\n`;
-            report += `📅 *التاريخ:* ${Hub.getMedicalDate()}\n`;
-            report += `⏰ *الوقت:* ${timeStr}\n`;
-            report += `┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n`;
-
-            currentResidents.forEach(res => {
-                const specs = res.specs.map(s => `${s.icon} ${s.name}`).join(' + ');
-                report += `🩺 *${specs}*\n`;
-                report += `👨‍⚕️ *${res.name}*\n`;
-                report += `☎️ _${res.phone}_\n\n`;
-            });
-
-            report += `┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n`;
-            report += `تم التوليد عبر: بوابة المستشفيات التعليمية 🇮🇶\n`;
-            report += `🔗 https://mhub96.github.io/IQ/Home.html\n`;
+            const report = buildDailyReport(currentResidents);
 
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(report).then(() => {

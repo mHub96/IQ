@@ -9,6 +9,11 @@
  * The Action authenticates with the X-Backup-Key header (secret BACKUP_KEY). Reading a backup needs
  * a sign-in: the full one is the owner's, a hospital's one the owner's and that hospital's admins'.
  * As everywhere in this Worker, nothing is parsed here: SQLite builds the rows and KV streams files.
+ *
+ * The owner's full backup file also carries every table of the database as it is (/api/backup/table):
+ * accounts and their settings, comments, likes, notifications, XP and duty data, opioid records, the
+ * switches... Left out: the edit history (hundreds of MB, the undo log), the ER conflict copies, and
+ * the rate-limit and failed-sign-in counters.
  */
 
 import { json, timingSafeEqual } from './lib.js';
@@ -30,6 +35,8 @@ export async function routeBackup(path, method, request, env, auth, url) {
     case 'PUT /api/backup/latest': return keyOk(request, env) ? store(request, env, url) : json({ error: 'unauthorized' }, 401);
     case 'GET /api/backup/latest': return latest(env, auth, url);
     case 'GET /api/backup/info': return info(env, auth);
+    case 'GET /api/backup/tables': return auth && auth.r === 'owner' ? tables(env) : json({ error: auth ? 'forbidden' : 'unauthorized' }, auth ? 403 : 401);
+    case 'GET /api/backup/table': return auth && auth.r === 'owner' ? table(env, url) : json({ error: auth ? 'forbidden' : 'unauthorized' }, auth ? 403 : 401);
   }
   return json({ error: 'not_found' }, 404);
 }
@@ -89,4 +96,49 @@ async function info(env, auth) {
     else out.hospitals[name.slice(5)] = k.metadata || {};
   }
   return json(out);
+}
+
+const SKIP_TABLES = new Set(['history', 'rate_limit', 'login_fail']);
+const TABLE_ROWS = 500;
+
+/** The database's own tables (not SQLite's or Cloudflare's), without the ones the backup leaves out. */
+async function tableNames(env) {
+  const { results } = await env.DB.prepare(
+    "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name"
+  ).all();
+  return (results || []).map(r => r.name)
+    .filter(n => /^\w+$/.test(n) && !/^(sqlite_|_cf_|d1_)/i.test(n) && !SKIP_TABLES.has(n));
+}
+
+/** { tables: [{ name, rows }] }: what the owner's full backup reads, table by table. */
+async function tables(env) {
+  const names = await tableNames(env);
+  const counts = await env.DB.batch(names.map(n => env.DB.prepare(
+    `SELECT COUNT(*) AS n FROM "${n}"${n === 'records' ? " WHERE coll <> 'er_conflict'" : ''}`)));
+  return json({ ok: true, tables: names.map((name, i) => ({ name, rows: (counts[i].results[0] || {}).n || 0 })), skipped: [...SKIP_TABLES] });
+}
+
+const b64 = buf => { let s = ''; const u = new Uint8Array(buf); for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode(...u.subarray(i, i + 0x8000)); return btoa(s); };
+
+/** ?t=<table>&after=<rowid>: { cols, rows: [[rowid, ...values]], last, more }. Binary values as { b64 }. */
+async function table(env, url) {
+  const t = String(url.searchParams.get('t') || '');
+  if (!(await tableNames(env)).includes(t)) return json({ error: 'bad_table' }, 400);
+  const after = Math.max(0, Number(url.searchParams.get('after')) || 0);
+  let res;
+  try {
+    res = await env.DB.prepare(
+      `SELECT rowid AS __rowid, * FROM "${t}" WHERE rowid > ?1${t === 'records' ? " AND coll <> 'er_conflict'" : ''} ORDER BY rowid LIMIT ${TABLE_ROWS}`
+    ).bind(after).all();
+  } catch (err) {
+    // A table without rowids (WITHOUT ROWID): all of it in one page.
+    if (after) return json({ ok: true, cols: [], rows: [], last: after, more: false });
+    res = await env.DB.prepare(`SELECT * FROM "${t}"`).all();
+  }
+  const list = res.results || [];
+  const cols = list.length ? Object.keys(list[0]).filter(c => c !== '__rowid') : [];
+  const rows = list.map(r => cols.map(c => (r[c] instanceof ArrayBuffer || ArrayBuffer.isView(r[c]) ? { b64: b64(r[c].buffer || r[c]) } : r[c])));
+  const hasRowid = list.length && list[0].__rowid !== undefined;
+  const last = hasRowid ? list[list.length - 1].__rowid : after;
+  return json({ ok: true, cols, rows, last, more: !!hasRowid && list.length === TABLE_ROWS });
 }

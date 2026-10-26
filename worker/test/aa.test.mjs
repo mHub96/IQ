@@ -237,7 +237,7 @@ test('mirror: the doctors\' roster shows only the job titles the hospital chose,
 });
 
 test('rotators have no board, specialty or stage', async () => {
-  const r = await call('POST', '/api/accounts/signup-rotator', { body: { hosp: H, name: 'د. سارة محمد علي', username: U.r, key: await deriveKey(U.r, 'Pass-1234'), sex: 'f' } });
+  const r = await call('POST', '/api/accounts/signup-rotator', { body: { hosp: H, name: 'د. سارة محمد علي', phone: '0799' + String(Date.now() % 10000000).padStart(7, '0'), username: U.r, key: await deriveKey(U.r, 'Pass-1234'), sex: 'f' } });
   assert.equal(r.data.ok, true);
   const pending = (await call('GET', '/api/accounts?filter=pending', { token: state.owner })).data.accounts;
   state.r = pending.find(x => x.username === U.r).id;

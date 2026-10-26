@@ -1965,7 +1965,7 @@
                 <button type="button" onclick="exportFullSystemBackupFile()" style="width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(10, 132, 255,0.3); background:#ffffff; color:#007AFF; font-weight:800; font-size:0.82rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" class="hover:bg-teal-50 transition shadow-xs">
                     <div style="text-align:right;">
                         <div style="font-size:0.85rem; font-weight:800;">نسخة المنظومة الشاملة (JSON)</div>
-                        <div style="font-size:0.7rem; color:#8A8A8E; margin-top:2px;">كافة المستشفيات والجداول وإعدادات الطوارئ</div>
+                        <div style="font-size:0.7rem; color:#8A8A8E; margin-top:2px;">كل شيء: المستشفيات والجداول والطوارئ، الحسابات وإعداداتها، التعليقات والإعجابات والإشعارات، الإحصائيات وذمم المخدرات</div>
                     </div>
                     <i class="fas fa-network-wired text-lg text-teal-600"></i>
                 </button>
@@ -3105,6 +3105,32 @@
                 showToast('جارٍ تجهيز النسخة الشاملة من الخادم…', 'info');
                 const [hubRows, erRows] = await Promise.all([readAll('/api/db'), readAll('/api/er')]);
                 if (!hubRows.some(r => r[0] === 'hospital')) throw new Error('empty');
+                // Every table of the database as it is: accounts and their settings, comments, likes,
+                // notifications, XP and duty data, opioid records, switches, statistics…
+                const list = await Hub.api('GET', '/api/backup/tables', undefined, { retries: 2 });
+                const tables = {};
+                let done = 0;
+                for (const t of list.tables || []) {
+                    const rows = [];
+                    let cols = [], after = 0, page;
+                    do {
+                        page = await Hub.api('GET', `/api/backup/table?t=${encodeURIComponent(t.name)}&after=${after}`, undefined, { retries: 2 });
+                        if (page.cols && page.cols.length) cols = page.cols;
+                        rows.push(...(page.rows || []));
+                        after = page.last;
+                    } while (page.more);
+                    tables[t.name] = { cols, rows };
+                    if (++done % 6 === 0) showToast(`جارٍ تجهيز النسخة الشاملة… ${done}/${list.tables.length} جدول`, 'info');
+                }
+                // This device's own settings: not the sign-in, nor its copies of the server's data (above).
+                const deviceSettings = {};
+                try {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const k = localStorage.key(i);
+                        if (!k || /token|session|database_v\d|aa_mirror|^hosp_hub_emergency_(sched|alloc)_/i.test(k)) continue;
+                        deviceSettings[k] = localStorage.getItem(k);
+                    }
+                } catch (e) {}
                 const ER = { state: 'hosp_hub_emergency_state_v3', colors: 'hosp_hub_emergency_specialty_colors', sched: 'hosp_hub_emergency_sched_', alloc: 'hosp_hub_emergency_alloc_' };
                 const emergencySchedules = {}, emergencyAllocations = {};
                 let emergencyState = null, emergencyColors = null;
@@ -3121,7 +3147,12 @@
                     exportedAt: made.toISOString(), exportDateFormatted: made.toLocaleString('ar-IQ', { timeZone: 'Asia/Baghdad' }),
                     hubDatabase: HubSync.compose(hubRows.filter(r => r[0] !== 'er')),
                     emergencyState, emergencyAllocations, emergencySchedules, emergencyColors,
-                    counts: { records: hubRows.length, erMonths: Object.keys(emergencySchedules).length, erAllocations: Object.keys(emergencyAllocations).length },
+                    database: { tables, skipped: list.skipped || [] },
+                    deviceSettings,
+                    counts: {
+                        records: hubRows.length, erMonths: Object.keys(emergencySchedules).length, erAllocations: Object.keys(emergencyAllocations).length,
+                        tables: Object.fromEntries(Object.entries(tables).map(([k, v]) => [k, v.rows.length])),
+                    },
                 };
                 const url = URL.createObjectURL(new Blob([JSON.stringify(full)], { type: 'application/json' }));
                 const a = document.createElement('a');
@@ -3131,7 +3162,7 @@
                 a.click();
                 a.remove();
                 setTimeout(() => URL.revokeObjectURL(url), 60000);
-                showToast(`تم تنزيل النسخة الشاملة ✓ · ${Object.keys(full.hubDatabase.hospitals || {}).length} مستشفى · ${full.counts.erMonths} شهر طوارئ`, 'success');
+                showToast(`تم تنزيل النسخة الشاملة ✓ · ${Object.keys(full.hubDatabase.hospitals || {}).length} مستشفى · ${full.counts.erMonths} شهر طوارئ · ${Object.keys(tables).length} جدول (${(full.counts.tables.accounts || 0)} حساب)`, 'success');
                 return;
             } catch (e) {
                 console.warn('Full backup from the server failed, using this device copy:', e);

@@ -17,6 +17,7 @@ import { durationText } from './reminders.js';
 import { BOARDS, dutyDayNow, getStageMonth, setStageMonth, currentStage, profileComplete, suggestProfile } from './profile.js';
 import { AA_ROLES, findOfficer, officerLink, divisionJob, addOfficer } from './aa.js';
 import { canUseEr } from './eraccess.js';
+import { ensureRotatorRecord, rotatorCheckHospitals, setRotatorCheck } from './rotators.js';
 
 const USERNAME_RE = /^[a-z0-9][a-z0-9._]{2,23}$/;
 const KEY_RE = /^[A-Za-z0-9+/]{43}=$/; // 32 bytes, base64
@@ -53,6 +54,7 @@ export async function routeAccounts(path, method, request, env, auth, url, ctx) 
     case 'GET /api/accounts/username': return usernameFree(env, url, ip);
     case 'POST /api/accounts/signup': return signup(request, env, ip, ctx);
     case 'POST /api/accounts/signup-rotator': return signupRotator(request, env, ip, ctx);
+    case 'POST /api/accounts/check-rotator': return checkRotator(request, env, ip);
     case 'POST /api/accounts/signup-officer': return signupOfficer(request, env, ip, ctx);
     case 'POST /api/accounts/login': return accountLogin(request, env, ip);
     case 'POST /api/accounts/forgot': return forgot(request, env, ip, ctx);
@@ -79,6 +81,8 @@ export async function routeAccounts(path, method, request, env, auth, url, ctx) 
     case 'POST /api/accounts/devices/remove': return removeOwnDevice(request, env, auth);
     case 'GET /api/accounts': return listAccounts(env, auth, url);
     case 'POST /api/accounts/decide': return decide(request, env, auth, ctx);
+    case 'GET /api/accounts/rotator-check': return json({ ok: true, on: await rotatorCheckHospitals(env) });
+    case 'POST /api/accounts/rotator-check': return setRotatorCheck(request, env, auth);
     case 'GET /api/notifications': return listNotifications(env, auth, url);
     case 'POST /api/notifications/seen': return markSeen(request, env, auth);
     case 'POST /api/notifications/clear': return clearNotifications(request, env, auth);
@@ -349,6 +353,26 @@ async function signup(request, env, ip, ctx) {
   return json({ ok: true, status: 'pending', name: match.name });
 }
 
+/** The rotators' database entry for this name and number, and whether an account already holds it. */
+async function findRotator(env, hosp, name, phone) {
+  const found = await findResident(env, hosp, name, phone);
+  if (!found.match || !(await isRotatorRecord(env, hosp, found.match.id))) return { linked: null, taken: false };
+  const taken = await env.DB.prepare("SELECT 1 AS t FROM accounts WHERE resident_id = ? AND status IN ('pending', 'active')").bind(found.match.id).first();
+  return { linked: taken ? null : found.match, taken: !!taken };
+}
+
+/** For the rotator sign-up form: is the number check on here, and is this rotator in the database? */
+async function checkRotator(request, env, ip) {
+  if (await overLimit(env, 'check:' + ip, 60)) return json({ error: 'rate_limited' }, 429);
+  const body = await readJson(request);
+  if (!body) return json({ error: 'bad_request' }, 400);
+  const hosp = String(body.hosp || '');
+  const check = (await rotatorCheckHospitals(env)).includes(hosp);
+  if (!phoneKey(body.phone) || !String(body.name || '').trim()) return json({ ok: true, check, match: false });
+  const { linked, taken } = await findRotator(env, hosp, String(body.name), String(body.phone));
+  return json({ ok: true, check, match: !!linked || taken, taken, name: linked ? linked.name : null });
+}
+
 /**
  * Rotators: doctors on rotation, not in the roster. Name, username, password, sex and the hospital
  * they rotate in (whose admins approve them). They can view the site and comment, nothing more.
@@ -369,18 +393,16 @@ async function signupRotator(request, env, ip, ctx) {
   if (!KEY_RE.test(key)) return json({ error: 'bad_key' }, 400);
   if (!HOSP_RE.test(hosp) || !(await env.DB.prepare("SELECT 1 AS ok FROM records WHERE coll = 'hospital' AND id = ?").bind(hosp).first())) return json({ error: 'bad_hospital' }, 400);
 
+  if (!phoneKey(body.phone)) return json({ error: 'bad_phone' }, 400);
+
   // A rotator found in the hospital's database (name and phone, filed under the rotators' specialty) is
   // linked to that record: the account carries its name, and the record cannot get a second account.
-  let linked = null, phone = '';
-  if (body.phone) {
-    const found = await findResident(env, hosp, name, String(body.phone));
-    if (found.match && await isRotatorRecord(env, hosp, found.match.id)) {
-      const taken = await env.DB.prepare("SELECT 1 AS t FROM accounts WHERE resident_id = ? AND status IN ('pending', 'active')").bind(found.match.id).first();
-      if (taken) return json({ error: 'already_registered' }, 409);
-      linked = found.match;
-      phone = found.pk;
-    }
-  }
+  // With the hospital's number check on, only those can sign up; otherwise the others are added to the
+  // database when their account is approved (rotators.js).
+  const { linked, taken } = await findRotator(env, hosp, name, String(body.phone));
+  if (taken) return json({ error: 'already_registered' }, 409);
+  if (!linked && (await rotatorCheckHospitals(env)).includes(hosp)) return json({ error: 'no_match' }, 400);
+  const phone = phoneKey(body.phone);
   const accName = linked ? linked.name : name;
 
   const now = Date.now();
@@ -1026,6 +1048,10 @@ async function decide(request, env, auth, ctx) {
     `Account ${action}: ${row.username}${role !== row.role ? ' -> ' + role : ''}${body.maxDevices !== undefined ? ' devices=' + body.maxDevices : ''}`));
   const results = await env.DB.batch(stmts);
   dispatchPush(env, ctx, ...notes.map(i => results[i]));
+  if (action === 'approve' && role === 'rotator' && !row.resident_id) {
+    await ensureRotatorRecord(env, { id: row.id, name: row.name, phone: row.phone, hosp: row.hosp }, by)
+      .catch(err => console.error('rotator entry', row.id, err && err.message));
+  }
   const updated = await env.DB.prepare(
     `SELECT ${PUBLIC_FIELDS},
             (SELECT json_group_array(json_object('id', device_id, 'label', label, 'first', first_seen, 'last', last_seen))

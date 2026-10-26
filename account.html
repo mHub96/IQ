@@ -405,9 +405,12 @@
                     <div class="hint" id="ro-name-hint">الاسم الثلاثي كما تحب أن يظهر في التعليقات.</div>
                 </div>
                 <div class="field">
-                    <label for="ro-phone">رقم الهاتف (اختياري)</label>
-                    <input id="ro-phone" type="tel" dir="ltr" autocomplete="tel" inputmode="tel" placeholder="07XX XXX XXXX" maxlength="20" />
-                    <div class="hint">إن كان اسمك ورقمك مسجّلين في قاعدة المستشفى كمقيم دوري، يُربط حسابك بسجلّك.</div>
+                    <label for="ro-phone">رقم الهاتف</label>
+                    <input id="ro-phone" type="tel" dir="ltr" autocomplete="tel" inputmode="tel" placeholder="07XX XXX XXXX" maxlength="20" required />
+                    <div class="hint">إن كان اسمك ورقمك مسجّلين في قاعدة المستشفى كمقيم دوري، يُربط حسابك بسجلّك؛ وإلا يُضاف اسمك ورقمك إلى قاعدة المستشفى عند الموافقة على حسابك.</div>
+                </div>
+                <div class="verify-box" id="ro-verify" aria-live="polite">
+                    <i class="fas fa-id-card"></i><span>اختر المستشفى واكتب اسمك ورقم هاتفك للتحقق.</span>
                 </div>
                 <div class="field">
                     <span class="field-label" style="display:block;font-size:0.8rem;font-weight:800;margin-bottom:6px">الجنس</span>
@@ -746,7 +749,7 @@
         }
 
         // -------------------- Sign up as a rotator --------------------
-        const ro = { userFree: false };
+        const ro = { userFree: false, check: null, checkSeq: 0 };
         function setKind(kind) {
             document.querySelectorAll('.su-kind [data-kind]').forEach(x => x.setAttribute('aria-selected', String(x.dataset.kind === kind)));
             const kinds = [...document.querySelectorAll('.su-kind [data-kind]')].map(x => x.dataset.kind);
@@ -778,7 +781,45 @@
         const roSex = () => (document.querySelector('input[name="ro-sex"]:checked') || {}).value || '';
         const roNameOk = () => { const n = $('ro-name').value.trim().replace(/\s+/g, ' '); return n.length >= 5 && n.split(' ').length >= 2; };
         const roPassOk = () => $('ro-pass').value.length >= 8 && $('ro-pass').value === $('ro-pass2').value;
-        const roUpdate = () => { $('ro-submit').disabled = !($('ro-hosp').value && roNameOk() && roSex() && ro.userFree && roPassOk()); };
+        const roPhoneOk = () => /^7\d{9}$/.test($('ro-phone').value.replace(/[٠-٩]/g, c => String(c.charCodeAt(0) - 0x660)).replace(/\D/g, '').replace(/^(00)?964/, '').replace(/^0/, ''));
+        // With the hospital's number check on, only a rotator found in its database can send the request.
+        const roCheckOk = () => !!ro.check && !ro.check.taken && (ro.check.match || !ro.check.check);
+        const roUpdate = () => { $('ro-submit').disabled = !($('ro-hosp').value && roNameOk() && roPhoneOk() && roCheckOk() && roSex() && ro.userFree && roPassOk()); };
+        function roVerifyBox(kind, html) {
+            const box = $('ro-verify');
+            box.className = 'verify-box' + (kind ? ' ' + kind : '');
+            box.innerHTML = html;
+        }
+        const roRunCheck = debounce(async () => {
+            const hosp = $('ro-hosp').value, name = $('ro-name').value.trim(), phone = $('ro-phone').value.trim();
+            ro.check = null;
+            roUpdate();
+            if (!hosp || !roNameOk() || !roPhoneOk()) {
+                roVerifyBox('', `<i class="fas fa-id-card"></i><span>${$('ro-phone').value.trim() && !roPhoneOk() ? 'رقم الهاتف غير صحيح: اكتبه بصيغة 07XX XXX XXXX.' : 'اختر المستشفى واكتب اسمك الثنائي على الأقل ورقم هاتفك للتحقق.'}</span>`);
+                return;
+            }
+            const seq = ++ro.checkSeq;
+            roVerifyBox('', '<i class="fas fa-circle-notch fa-spin"></i><span>جاري التحقق من قاعدة بيانات المستشفى…</span>');
+            try {
+                const res = await Hub.api('POST', '/api/accounts/check-rotator', { hosp, name, phone }, { useToken: false, retries: 1 });
+                if (seq !== ro.checkSeq) return;
+                ro.check = res;
+                if (res.taken) {
+                    roVerifyBox('bad', '<i class="fas fa-user-lock"></i><span>هذا المقيم الدوري لديه حساب (أو طلب) مسبقاً. استخدم «تسجيل الدخول» أو «نسيت كلمة المرور».</span>');
+                } else if (res.match) {
+                    roVerifyBox('ok', `<i class="fas fa-circle-check"></i><span>تم التحقق: <b>${esc(res.name)}</b> – مقيم دوري في ${esc(hospitalName(hosp))}. سيُربط حسابك بسجلّك.</span>`);
+                } else if (res.check) {
+                    roVerifyBox('bad', `<i class="fas fa-circle-xmark"></i><span>لم نجد هذا الاسم ورقم الهاتف بين المقيمين الدوريين في قاعدة ${esc(hospitalName(hosp))}، ولا يقبل هذا المستشفى إلا المسجّلين. تأكد من الرقم أو راجع مدير المستشفى ليضيفك.</span>`);
+                } else {
+                    roVerifyBox('warn', `<i class="fas fa-circle-info"></i><span>اسمك غير موجود بعد في قاعدة ${esc(hospitalName(hosp))}. يمكنك إرسال الطلب، وعند الموافقة يُضاف اسمك ورقمك إلى المقيمين الدوريين في قاعدة المستشفى.</span>`);
+                }
+            } catch (err) {
+                if (seq !== ro.checkSeq) return;
+                roVerifyBox('bad', `<i class="fas fa-wifi"></i><span>${esc(errorText(err))}</span>`);
+            }
+            roUpdate();
+        }, 550);
+        ['ro-name', 'ro-phone'].forEach(id => $(id).addEventListener('input', roRunCheck));
         const roCheckUser = debounce(async () => {
             const u = $('ro-user').value.trim().toLowerCase();
             const hint = $('ro-user-hint');
@@ -809,7 +850,7 @@
         $('ro-pass').addEventListener('input', roPaintPass);
         $('ro-pass2').addEventListener('input', roPaintPass);
         $('ro-name').addEventListener('input', () => { setMsg($('ro-name-hint'), roNameOk() || !$('ro-name').value ? 'الاسم الثلاثي كما تحب أن يظهر في التعليقات.' : 'اكتب الاسم الأول والثاني على الأقل.', roNameOk() || !$('ro-name').value ? '' : 'bad'); roUpdate(); });
-        $('ro-hosp').addEventListener('change', roUpdate);
+        $('ro-hosp').addEventListener('change', roRunCheck);
         document.querySelectorAll('input[name="ro-sex"]').forEach(r => r.addEventListener('change', roUpdate));
         $('rotator-form').addEventListener('submit', async e => {
             e.preventDefault();
@@ -828,7 +869,7 @@
                 $('si-user').value = username;
             } catch (err) {
                 const code = err && err.data && err.data.error;
-                setMsg(msg, ({ already_registered: 'هذا المقيم الدوري لديه حساب (أو طلب) مسبقاً. استخدم «تسجيل الدخول» أو «نسيت كلمة المرور».', username_taken: 'اسم المستخدم أصبح مستخدماً، اختر اسماً آخر.', bad_name: 'اكتب الاسم الأول والثاني على الأقل (أحرف فقط).', bad_sex: 'اختر الجنس.', bad_hospital: 'اختر المستشفى.' })[code] || errorText(err), 'bad');
+                setMsg(msg, ({ already_registered: 'هذا المقيم الدوري لديه حساب (أو طلب) مسبقاً. استخدم «تسجيل الدخول» أو «نسيت كلمة المرور».', username_taken: 'اسم المستخدم أصبح مستخدماً، اختر اسماً آخر.', bad_name: 'اكتب الاسم الأول والثاني على الأقل (أحرف فقط).', bad_sex: 'اختر الجنس.', bad_hospital: 'اختر المستشفى.', bad_phone: 'اكتب رقم هاتف عراقياً صحيحاً (07XX XXX XXXX).', no_match: 'لم نجد اسمك ورقمك بين المقيمين الدوريين في قاعدة هذا المستشفى، ولا يقبل إلا المسجّلين. راجع مدير المستشفى.' })[code] || errorText(err), 'bad');
                 roUpdate();
             }
         });

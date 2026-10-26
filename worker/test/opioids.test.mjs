@@ -36,7 +36,7 @@ async function rows(token) {
 async function account(res, hosp, u, rotator) {
   const username = u + '_' + RUN, key = await deriveKey(username, 'pass-O-1');
   const up = rotator
-    ? await call('POST', '/api/accounts/signup-rotator', { body: { hosp, name: 'روتيتر ذمة اختبار', username, key, sex: 'm' } })
+    ? await call('POST', '/api/accounts/signup-rotator', { body: { hosp, name: 'روتيتر ذمة اختبار', phone: '0799' + String(Date.now() % 10000000).padStart(7, '0'), username, key, sex: 'm' } })
     : await call('POST', '/api/accounts/signup', { body: { hosp, name: res.name, phone: res.phone, username, key, sex: 'm' } });
   assert.equal(up.status, 200, JSON.stringify(up.data));
   const id = (await call('GET', '/api/accounts?filter=pending', { token: t.owner })).data.accounts.find(a => a.username === username).id;

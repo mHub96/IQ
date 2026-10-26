@@ -100,9 +100,11 @@ function withPrefix(name, prefix) {
  * the entry under the rotators' specialty when there is none. Only while the account has no entry yet
  * (two runs at once cannot add it twice). Returns { linked, added, id, name } or null.
  */
-export async function ensureRotatorRecord(env, acc, by) {
+export async function ensureRotatorRecord(env, acc, by, cache) {
   if (!acc || !acc.id || !HOSP_RE.test(String(acc.hosp || ''))) return null;
-  const specs = await specsOf(env, acc.hosp);
+  // `cache` (hospital -> specialties): read once per hospital when many rotators are handled together.
+  const specs = (cache && cache.get(acc.hosp)) || await specsOf(env, acc.hosp);
+  if (cache) cache.set(acc.hosp, specs);
   if (!specs.hospital) return null;
   const now = Date.now();
   const unlinked = 'EXISTS (SELECT 1 FROM accounts WHERE id = ?1 AND resident_id IS NULL)';
@@ -141,22 +143,25 @@ export async function ensureRotatorRecord(env, acc, by) {
     env.DB.prepare('INSERT INTO audit (ts, role, msg, n) SELECT ?2, ?3, ?4, 1 WHERE ' + unlinked).bind(acc.id, now, by, msg),
     env.DB.prepare('UPDATE accounts SET resident_id = ?2, name = ?3 WHERE id = ?1 AND resident_id IS NULL').bind(acc.id, id, name),
   ]);
+  // The hospital now has the rotators' specialty: the next rotator of the same run must not add it again.
+  if (add) specs.own.push(add);
   return { linked: true, added: true, id, name };
 }
 
 /**
- * Active rotator accounts without an entry (approved before entries were added): ten per run, so
- * the cron stays short. Once all have one, this is a single small query.
+ * Active rotator accounts without an entry (approved before entries were added): up to a hundred per
+ * run, each hospital's specialties read once. Once all have one, this is a single small query.
  */
 export async function linkRotators(env) {
   const { results } = await env.DB.prepare(
     `SELECT id, name, phone, hosp FROM accounts WHERE role = 'rotator' AND status = 'active' AND resident_id IS NULL
-        AND hosp IN (SELECT id FROM records WHERE coll = 'hospital') ORDER BY created_at LIMIT 11`
+        AND hosp IN (SELECT id FROM records WHERE coll = 'hospital') ORDER BY created_at LIMIT 101`
   ).all();
-  const out = { linked: 0, added: 0, skipped: 0, left: Math.max(0, (results || []).length - 10) };
-  for (const acc of (results || []).slice(0, 10)) {
+  const out = { linked: 0, added: 0, skipped: 0, left: Math.max(0, (results || []).length - 100) };
+  const cache = new Map();
+  for (const acc of (results || []).slice(0, 100)) {
     try {
-      const r = await ensureRotatorRecord(env, acc, 'system:rotators');
+      const r = await ensureRotatorRecord(env, acc, 'system:rotators', cache);
       if (!r) out.skipped++;
       else if (r.added) out.added++;
       else out.linked++;

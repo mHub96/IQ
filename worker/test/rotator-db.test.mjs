@@ -121,10 +121,17 @@ test('on: a rotator in the database signs up (linked); the same one again is alr
 });
 
 test('the cron: rotators approved before get an entry (or their existing one, by the exact name)', async () => {
+  // The hospital without the rotators' specialty again: the run puts it back once, for two rotators.
+  let all0 = await rows(t.owner);
+  const h0 = row(all0, 'hospital', t.h);
+  assert.equal((await call('POST', '/api/sync', { token: t.owner, body: { msg: 'test', ops: [{ c: 'hospital', id: t.h, h: h0[2], o: h0[3], bv: h0[4], d: { ...h0[5], specialties: h0[5].specialties.filter(s => s.id !== SPEC) } }] } })).data.applied.length, 1);
   // Active without the approval path ("enable"), as accounts approved before entries were added.
   await signup(NAMES[2], phone(4), 4);
   const noEntry = lastId();
   await call('POST', '/api/accounts/decide', { token: t.owner, body: { id: noEntry, action: 'enable' } });
+  await signup('رامي روتيتر اختبار', phone(6), 6);
+  const noEntry2 = lastId();
+  await call('POST', '/api/accounts/decide', { token: t.owner, body: { id: noEntry2, action: 'enable' } });
   const id = 'res-rdb2-' + RUN;
   await call('POST', '/api/sync', { token: t.owner, body: { msg: 'test', ops: [{ c: 'resident', id, o: 99999, bv: 0, d: { id, name: 'د. ' + NAMES[3], phone: 'رقم غير متوفر', spec: SPEC, tag: SPEC, dept: SPEC, department: SPEC, active: true, hospitals: [t.h] } }] } });
   t.records.push(id);
@@ -140,6 +147,10 @@ test('the cron: rotators approved before get an entry (or their existing one, by
   const all = await rows(t.owner);
   assert.equal(row(all, 'resident', a.resident_id)[5].phone, '+964' + phone(4).slice(1));
   t.records.push(a.resident_id);
+  const a2 = await account(noEntry2);
+  assert.ok(a2.resident_id && a2.resident_id !== a.resident_id, 'the second one added in the same run');
+  t.records.push(a2.resident_id);
+  assert.equal(row(all, 'hospital', t.h)[5].specialties.filter(s => s.id === SPEC).length, 1, 'the specialty put back once');
 });
 
 test('cleanup', async () => {

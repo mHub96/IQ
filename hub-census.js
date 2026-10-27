@@ -15,6 +15,19 @@
     const TITLE_RE = /^(د\.|د|dr\.|dr)[\s:/]+/i;
     const bare = name => String(name || '').trim().replace(TITLE_RE, '').trim();
     const stageText = s => s == null ? 'غير محددة' : (STAGES[s] ? `المرحلة ${STAGES[s]}` : `المرحلة ${s}`);
+    /** What the census can carry (the person printing picks; the name is always there). */
+    const OPTIONS = [
+        { key: 'board', label: 'نوع البورد', hint: 'العراقي، العربي، آخر، بدون', on: true },
+        { key: 'stage', label: 'المرحلة', hint: 'المرحلة الحالية لكل مقيم', on: true },
+        { key: 'specialty', label: 'اختصاص البورد', hint: 'كما في ملف المقيم', on: true },
+        { key: 'phone', label: 'رقم الهاتف', hint: '', on: true },
+        { key: 'notes', label: 'عمود ملاحظات فارغ', hint: 'للكتابة باليد بعد الطباعة', on: false },
+        { key: 'signCol', label: 'عمود توقيع المقيم', hint: 'فارغ، لتوقيع كل مقيم', on: false },
+        { key: 'summary', label: 'جدول الخلاصة', hint: 'الأعداد حسب الاختصاص', on: true, section: true },
+        { key: 'sign', label: 'خانات توقيع الإدارة', hint: 'في نهاية الوثيقة', on: true, section: true },
+    ];
+    const DEFAULTS = Object.fromEntries(OPTIONS.map(o => [o.key, o.on]));
+    const SAVED_KEY = 'hub_census_options';
     const phoneText = raw => {
         const d = String(raw || '').replace(/[٠-٩]/g, c => String(c.charCodeAt(0) - 0x660)).replace(/\D/g, '').replace(/^(00)?964/, '').replace(/^0/, '');
         return /^7\d{9}$/.test(d) ? `0${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6)}` : '—';
@@ -57,7 +70,8 @@
         return { hosp, list, inactive: all.length - active.length };
     }
 
-    function documentHtml(hospId, data) {
+    function documentHtml(hospId, data, opts = DEFAULTS) {
+        const o = { ...DEFAULTS, ...opts };
         const { hosp, list, inactive } = data;
         const hospName = hosp.name_ar || hosp.hospitalName || hospId;
         const font = file => new URL('./fonts/' + file, location.href).href;
@@ -96,6 +110,7 @@ td.muted, .muted { color: #8a8a8a; }
 tr { page-break-inside: avoid; break-inside: avoid; }
 thead { display: table-header-group; }
 tbody tr:nth-child(even) td { background: #f7f9fb; }
+th.blank { width: 22%; }
 .summary td:first-child { text-align: right; font-weight: 700; }
 .summary tfoot td { font-weight: 700; background: #e6edf5; }
 .note { font-size: 9.5pt; color: #444; margin: 6pt 0 0; line-height: 1.6; }
@@ -110,28 +125,92 @@ footer { position: fixed; bottom: 0; left: 0; right: 0; font-size: 8.5pt; color:
     <div class="ref"><b>التاريخ:</b> ${esc(dateText)}<br><b>العدد الكلي:</b> ${total} طبيباً مقيماً<br><b>عدد الاختصاصات:</b> ${list.length}</div>
 </div>
 
-<h2>أولاً: الخلاصة</h2>
-<table class="summary"><thead><tr><th>الاختصاص</th><th>العدد</th><th>${BOARDS.iraqi}</th><th>${BOARDS.arab}</th><th>${BOARDS.other}</th><th>${BOARDS.none}</th><th>غير محدد</th></tr></thead>
-<tbody>${list.map(g => `<tr><td>${esc(g.name)}</td><td>${g.rows.length}</td><td>${count(g.rows, 'iraqi') || '—'}</td><td>${count(g.rows, 'arab') || '—'}</td><td>${count(g.rows, 'other') || '—'}</td><td>${count(g.rows, 'none') || '—'}</td><td>${count(g.rows, null) || '—'}</td></tr>`).join('')}</tbody>
-<tfoot><tr><td>المجموع</td><td>${total}</td><td>${count(allRows, 'iraqi')}</td><td>${count(allRows, 'arab')}</td><td>${count(allRows, 'other')}</td><td>${count(allRows, 'none')}</td><td>${count(allRows, null)}</td></tr></tfoot></table>
-${stages.length ? `<table class="summary" style="margin-top:6pt"><thead><tr><th>المرحلة</th>${stages.map(s => `<th>${esc(STAGES[s] || s)}</th>`).join('')}<th>غير محددة</th></tr></thead>
+${o.summary ? `<h2>أولاً: الخلاصة</h2>
+<table class="summary"><thead><tr><th>الاختصاص</th><th>العدد</th>${o.board ? `<th>${BOARDS.iraqi}</th><th>${BOARDS.arab}</th><th>${BOARDS.other}</th><th>${BOARDS.none}</th><th>غير محدد</th>` : ''}</tr></thead>
+<tbody>${list.map(g => `<tr><td>${esc(g.name)}</td><td>${g.rows.length}</td>${o.board ? `<td>${count(g.rows, 'iraqi') || '—'}</td><td>${count(g.rows, 'arab') || '—'}</td><td>${count(g.rows, 'other') || '—'}</td><td>${count(g.rows, 'none') || '—'}</td><td>${count(g.rows, null) || '—'}</td>` : ''}</tr>`).join('')}</tbody>
+<tfoot><tr><td>المجموع</td><td>${total}</td>${o.board ? `<td>${count(allRows, 'iraqi')}</td><td>${count(allRows, 'arab')}</td><td>${count(allRows, 'other')}</td><td>${count(allRows, 'none')}</td><td>${count(allRows, null)}</td>` : ''}</tr></tfoot></table>
+${o.stage && stages.length ? `<table class="summary" style="margin-top:6pt"><thead><tr><th>المرحلة</th>${stages.map(s => `<th>${esc(STAGES[s] || s)}</th>`).join('')}<th>غير محددة</th></tr></thead>
 <tbody><tr><td>عدد المقيمين</td>${stages.map(s => `<td>${allRows.filter(r => r.stage === s).length}</td>`).join('')}<td>${allRows.filter(r => r.stage == null).length}</td></tr></tbody></table>` : ''}
 <p class="note">الترتيب داخل كل اختصاص: المرحلة (الأعلى أولاً)، ثم نوع البورد (العراقي، العربي، الآخر)، ثم الاسم أبجدياً. نوع البورد والمرحلة من الملفات الشخصية لحسابات المقيمين في الموقع؛ ويظهر «غير محدد» لمن لا يملك حساباً أو لم يُكمل ملفه.${inactive ? ` لا تشمل الإحصائية ${inactive} من المقيمين غير الفعّالين.` : ''}</p>
-
-<h2>ثانياً: قوائم المقيمين حسب الاختصاص</h2>
+` : ''}
+<h2>${o.summary ? 'ثانياً: ' : ''}قوائم المقيمين حسب الاختصاص</h2>
 ${list.map(g => `
 <h2>${g.icon ? esc(g.icon) + ' ' : ''}${esc(g.name)}<small>${g.rows.length} ${g.rows.length === 1 ? 'مقيم' : 'مقيمين'}</small></h2>
-<table><thead><tr><th>ت</th><th>الاسم</th><th>نوع البورد</th><th>المرحلة</th><th>اختصاص البورد</th><th>رقم الهاتف</th></tr></thead><tbody>
-${g.rows.map((r, i) => `<tr><td class="num">${i + 1}</td><td class="name">${esc(r.name)}</td><td class="${r.board ? '' : 'muted'}">${esc(BOARDS[r.board] || 'غير محدد')}</td><td class="${r.stage == null ? 'muted' : ''}">${esc(r.stage == null ? 'غير محددة' : (STAGES[r.stage] || r.stage))}</td><td class="${r.specialty ? '' : 'muted'}">${esc(r.specialty || '—')}</td><td class="ph">${esc(phoneText(r.phone))}</td></tr>`).join('')}
+<table><thead><tr><th>ت</th><th>الاسم</th>${o.board ? '<th>نوع البورد</th>' : ''}${o.stage ? '<th>المرحلة</th>' : ''}${o.specialty ? '<th>اختصاص البورد</th>' : ''}${o.phone ? '<th>رقم الهاتف</th>' : ''}${o.notes ? '<th class="blank">ملاحظات</th>' : ''}${o.signCol ? '<th class="blank">التوقيع</th>' : ''}</tr></thead><tbody>
+${g.rows.map((r, i) => `<tr><td class="num">${i + 1}</td><td class="name">${esc(r.name)}</td>${o.board ? `<td class="${r.board ? '' : 'muted'}">${esc(BOARDS[r.board] || 'غير محدد')}</td>` : ''}${o.stage ? `<td class="${r.stage == null ? 'muted' : ''}">${esc(r.stage == null ? 'غير محددة' : (STAGES[r.stage] || r.stage))}</td>` : ''}${o.specialty ? `<td class="${r.specialty ? '' : 'muted'}">${esc(r.specialty || '—')}</td>` : ''}${o.phone ? `<td class="ph">${esc(phoneText(r.phone))}</td>` : ''}${o.notes ? '<td></td>' : ''}${o.signCol ? '<td></td>' : ''}</tr>`).join('')}
 </tbody></table>`).join('')}
 
-<div class="sign"><div>مسؤول الأطباء المقيمين<small>&nbsp;</small></div><div>معاون المدير للشؤون الطبية<small>&nbsp;</small></div><div>مدير المستشفى<small>&nbsp;</small></div></div>
+${o.sign ? '<div class="sign"><div>مسؤول الأطباء المقيمين<small>&nbsp;</small></div><div>معاون المدير للشؤون الطبية<small>&nbsp;</small></div><div>مدير المستشفى<small>&nbsp;</small></div></div>' : ''}
 <footer><span>بوابة المستشفيات · إحصائية الأطباء المقيمين · ${esc(hospName)}</span><span>طُبعت في ${esc(dateText)}${printedBy ? ' · ' + esc(printedBy) : ''}</span></footer>
 </body></html>`;
     }
 
-    /** Builds and prints the census of `hospId` (the print dialog saves it as PDF). */
-    async function print(hospId, toast = () => {}) {
+    const POP_CSS = `
+    .hcen-back { position: fixed; inset: 0; z-index: 2147483000; display: grid; place-items: center; padding: 16px; background: rgba(15,23,42,.45); backdrop-filter: blur(3px); }
+    .hcen { width: min(420px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; border-radius: 22px; background: #fff; color: #0f172a; box-shadow: 0 24px 60px rgba(15,23,42,.3);
+        direction: rtl; text-align: right; font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif; animation: hcen-in .22s ease-out; }
+    @keyframes hcen-in { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+    .hcen-head { display: flex; gap: 10px; align-items: center; padding: 16px 16px 6px; }
+    .hcen-head i { width: 40px; height: 40px; flex: none; border-radius: 13px; display: grid; place-items: center; background: #e0f2fe; color: #0369a1; font-size: 1.1rem; }
+    .hcen-head b { display: block; font-size: .98rem; font-weight: 900; }
+    .hcen-head small { display: block; font-size: .72rem; opacity: .65; font-weight: 700; margin-top: 2px; }
+    .hcen-sec { margin: 12px 16px 6px; font-size: .7rem; font-weight: 900; opacity: .6; }
+    .hcen-list { display: grid; gap: 6px; padding: 0 16px; }
+    .hcen-opt { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 14px; border: 1.5px solid rgba(100,116,139,.22); cursor: pointer; transition: border-color .15s, background .15s; }
+    .hcen-opt.on { border-color: #0284c7; background: rgba(2,132,199,.07); }
+    .hcen-opt input { width: 18px; height: 18px; accent-color: #0284c7; flex: none; margin: 0; }
+    .hcen-opt span { flex: 1; font-size: .84rem; font-weight: 800; }
+    .hcen-opt small { display: block; font-size: .68rem; font-weight: 600; opacity: .6; margin-top: 1px; }
+    .hcen-fixed { margin: 0 16px 6px; font-size: .7rem; font-weight: 700; opacity: .6; }
+    .hcen-foot { position: sticky; bottom: 0; display: flex; gap: 8px; padding: 14px 16px 16px; background: inherit; border-radius: 0 0 22px 22px; }
+    .hcen-foot button { flex: 1; padding: 11px; border-radius: 14px; border: 0; font: inherit; font-weight: 900; font-size: .85rem; cursor: pointer; }
+    .hcen-go { background: linear-gradient(135deg, #0369a1, #0284c7); color: #fff; }
+    .hcen-cancel { background: rgba(100,116,139,.14); color: inherit; }
+    html.dark .hcen, body.dark .hcen { background: #1c1c1e; color: #f1f5f9; }
+    html.dark .hcen-head i, body.dark .hcen-head i { background: rgba(2,132,199,.2); color: #7dd3fc; }`;
+
+    /** The options pop-up: which columns and sections the census carries (remembered on this device). */
+    function print(hospId, toast = () => {}) {
+        if (!hospId) return;
+        if (!document.getElementById('hcen-css')) {
+            const st = document.createElement('style');
+            st.id = 'hcen-css';
+            st.textContent = POP_CSS;
+            document.head.appendChild(st);
+        }
+        let saved = {};
+        try { saved = JSON.parse(localStorage.getItem(SAVED_KEY) || '{}') || {}; } catch (e) {}
+        const opts = { ...DEFAULTS, ...saved };
+        const item = o => `<label class="hcen-opt ${opts[o.key] ? 'on' : ''}"><input type="checkbox" data-k="${o.key}" ${opts[o.key] ? 'checked' : ''}><span>${esc(o.label)}${o.hint ? `<small>${esc(o.hint)}</small>` : ''}</span></label>`;
+        const back = document.createElement('div');
+        back.className = 'hcen-back';
+        back.innerHTML = `<div class="hcen" role="dialog" aria-modal="true" aria-label="خيارات إحصائية المقيمين">
+            <div class="hcen-head"><i class="fas fa-file-pdf"></i><div><b>إحصائية المقيمين (PDF)</b><small>اختر البيانات التي تظهر في الإحصائية</small></div></div>
+            <div class="hcen-sec">الأعمدة</div>
+            <div class="hcen-fixed">التسلسل واسم المقيم يظهران دائماً.</div>
+            <div class="hcen-list">${OPTIONS.filter(o => !o.section).map(item).join('')}</div>
+            <div class="hcen-sec">أقسام الوثيقة</div>
+            <div class="hcen-list">${OPTIONS.filter(o => o.section).map(item).join('')}</div>
+            <div class="hcen-foot"><button type="button" class="hcen-go" data-act="go"><i class="fas fa-print"></i> طباعة / حفظ PDF</button><button type="button" class="hcen-cancel" data-act="cancel">إلغاء</button></div>
+        </div>`;
+        back.querySelectorAll('[data-k]').forEach(i => i.addEventListener('change', () => i.closest('.hcen-opt').classList.toggle('on', i.checked)));
+        const onKey = e => { if (e.key === 'Escape') close(); };
+        const close = () => { back.remove(); document.removeEventListener('keydown', onKey); };
+        document.addEventListener('keydown', onKey);
+        back.addEventListener('click', e => { if (e.target === back) close(); });
+        back.querySelector('[data-act="cancel"]').addEventListener('click', close);
+        back.querySelector('[data-act="go"]').addEventListener('click', () => {
+            const chosen = Object.fromEntries([...back.querySelectorAll('[data-k]')].map(i => [i.dataset.k, i.checked]));
+            try { localStorage.setItem(SAVED_KEY, JSON.stringify(chosen)); } catch (e) {}
+            close();
+            make(hospId, toast, chosen);
+        });
+        document.body.appendChild(back);
+        back.querySelector('[data-act="go"]').focus({ preventScroll: true });
+    }
+
+    /** Builds and prints the census of `hospId` with the chosen columns (the print dialog saves it as PDF). */
+    async function make(hospId, toast = () => {}, opts = DEFAULTS) {
         if (!hospId) return;
         toast('جاري تجهيز إحصائية المقيمين…', 'info');
         let profiles = [];
@@ -144,7 +223,7 @@ ${g.rows.map((r, i) => `<tr><td class="num">${i + 1}</td><td class="name">${esc(
         f.style.cssText = 'position:fixed;width:0;height:0;border:0;left:0;bottom:0;opacity:0';
         document.body.appendChild(f);
         f.contentDocument.open();
-        f.contentDocument.write(documentHtml(hospId, data));
+        f.contentDocument.write(documentHtml(hospId, data, opts));
         f.contentDocument.close();
         // The formal font first, so the PDF does not fall back to the system's.
         try {
@@ -157,5 +236,5 @@ ${g.rows.map((r, i) => `<tr><td class="num">${i + 1}</td><td class="name">${esc(
         }, 250);
     }
 
-    window.HubCensus = { print, compare, groups, documentHtml };
+    window.HubCensus = { print, make, compare, groups, documentHtml, OPTIONS };
 })();

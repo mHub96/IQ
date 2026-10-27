@@ -27,6 +27,26 @@
         { key: 'sign', label: 'خانات توقيع الإدارة', hint: 'في نهاية الوثيقة', on: true, section: true },
     ];
     const DEFAULTS = Object.fromEntries(OPTIONS.map(o => [o.key, o.on]));
+    /** Column widths in mm; the name takes the rest (at least NAME_MIN). */
+    const COL_MM = { num: 10, board: 24, stage: 19, specialty: 38, phone: 27, notes: 32, signCol: 24 };
+    const NAME_MIN = 55;
+    /** A4 printable area (12 mm sides, 12 mm top, 16 mm bottom for the page footer). */
+    const PAGE = { portrait: { w: 186, h: 269 }, landscape: { w: 273, h: 182 } };
+    const ROW_MM = 8, OPENING_MM = 21; // a row; a specialty's title + the table's header row
+
+    /** Portrait when the chosen columns leave the names enough room, otherwise landscape. */
+    function layout(o) {
+        const cols = ['board', 'stage', 'specialty', 'phone', 'notes', 'signCol'].filter(k => o[k]);
+        const fixed = COL_MM.num + cols.reduce((n, k) => n + COL_MM[k], 0);
+        const orient = fixed + NAME_MIN <= PAGE.portrait.w ? 'portrait' : 'landscape';
+        const { w, h } = PAGE[orient];
+        const pct = mm => (mm / w * 100).toFixed(2) + '%';
+        const colgroup = `<colgroup><col style="width:${pct(COL_MM.num)}"><col style="width:${pct(w - fixed)}">${cols.map(k => `<col style="width:${pct(COL_MM[k])}">`).join('')}</colgroup>`;
+        // A specialty starts only where its title and first rows (about a quarter page) fit together.
+        const keep = Math.max(3, Math.floor((h / 4 - OPENING_MM) / ROW_MM));
+        return { orient, colgroup, keep };
+    }
+    const cssText = t => '"' + String(t).replace(/[\\"]/g, '\\$&').replace(/[\r\n]+/g, ' ') + '"';
     const SAVED_KEY = 'hub_census_options';
     const phoneText = raw => {
         const d = String(raw || '').replace(/[٠-٩]/g, c => String(c.charCodeAt(0) - 0x660)).replace(/\D/g, '').replace(/^(00)?964/, '').replace(/^0/, '');
@@ -73,6 +93,7 @@
     function documentHtml(hospId, data, opts = DEFAULTS) {
         const o = { ...DEFAULTS, ...opts };
         const { hosp, list, inactive } = data;
+        const lay = layout(o);
         const hospName = hosp.name_ar || hosp.hospitalName || hospId;
         const font = file => new URL('./fonts/' + file, location.href).href;
         const now = new Date();
@@ -86,9 +107,13 @@
 <style>
 @font-face { font-family: 'Amiri'; src: url('${font('Amiri-Regular.ttf')}') format('truetype'); font-weight: 400; }
 @font-face { font-family: 'Amiri'; src: url('${font('Amiri-Bold.ttf')}') format('truetype'); font-weight: 700; }
-@page { size: A4 portrait; margin: 13mm 12mm 15mm; }
+@page { size: A4 ${lay.orient}; margin: 12mm 12mm 16mm;
+  @bottom-right { content: ${cssText('إحصائية الأطباء المقيمين · ' + hospName)}; font-family: 'Amiri', serif; font-size: 8.5pt; color: #666; vertical-align: top; padding-top: 3mm; }
+  @bottom-center { content: ${cssText('طُبعت في ' + dateText)}; font-family: 'Amiri', serif; font-size: 8.5pt; color: #666; vertical-align: top; padding-top: 3mm; }
+  @bottom-left { content: "صفحة " counter(page) " من " counter(pages); font-family: 'Amiri', serif; font-size: 8.5pt; color: #666; vertical-align: top; padding-top: 3mm; }
+}
 * { box-sizing: border-box; }
-body { font-family: 'Amiri', 'Traditional Arabic', 'Times New Roman', serif; color: #111; font-size: 11.5pt; margin: 0; padding-bottom: 7mm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { font-family: 'Amiri', 'Traditional Arabic', 'Times New Roman', serif; color: #111; font-size: 11.5pt; margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8pt; padding-bottom: 6pt; border-bottom: 2.4pt double #0f2a4a; }
 .head .gov { font-size: 11pt; font-weight: 700; line-height: 1.45; color: #0f2a4a; }
 .head .gov span { display: block; font-size: 12.5pt; }
@@ -100,29 +125,31 @@ body { font-family: 'Amiri', 'Traditional Arabic', 'Times New Roman', serif; col
 h2 { font-size: 13pt; margin: 12pt 0 4pt; color: #0f2a4a; display: flex; justify-content: space-between; align-items: baseline; break-after: avoid; page-break-after: avoid; border-bottom: 0.8pt solid #0f2a4a; padding-bottom: 2pt; }
 h2 small { font-size: 9.5pt; color: #555; font-weight: 400; }
 table { width: 100%; border-collapse: collapse; }
-th, td { border: 0.6pt solid #7d8b99; padding: 3pt 5pt; text-align: center; vertical-align: middle; }
+table.list { table-layout: fixed; }
+th, td { border: 0.6pt solid #7d8b99; padding: 2.5pt 4pt; text-align: center; vertical-align: middle; line-height: 1.35; overflow-wrap: anywhere; word-break: normal; }
 th { background: #e6edf5; color: #0f2a4a; font-size: 10pt; font-weight: 700; }
 td { font-size: 10.5pt; }
 td.name { text-align: right; font-weight: 700; }
 td.num { width: 22pt; color: #555; }
-td.ph { direction: ltr; unicode-bidi: isolate; font-family: 'Times New Roman', serif; font-size: 10pt; white-space: nowrap; }
+td.ph { direction: ltr; unicode-bidi: isolate; font-family: 'Times New Roman', serif; font-size: 10pt; white-space: nowrap; overflow-wrap: normal; }
 td.muted, .muted { color: #8a8a8a; }
 tr { page-break-inside: avoid; break-inside: avoid; }
+/* A specialty's title, header row and first rows stay together: near the bottom of a page they all move on. */
+h2.spec { break-after: avoid; page-break-after: avoid; }
+tbody.open { break-inside: avoid; page-break-inside: avoid; }
 thead { display: table-header-group; }
 tbody tr:nth-child(even) td { background: #f7f9fb; }
-th.blank { width: 22%; }
 .summary td:first-child { text-align: right; font-weight: 700; }
 .summary tfoot td { font-weight: 700; background: #e6edf5; }
 .note { font-size: 9.5pt; color: #444; margin: 6pt 0 0; line-height: 1.6; }
 .sign { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20pt; margin-top: 30pt; page-break-inside: avoid; break-inside: avoid; }
 .sign div { border-top: 0.8pt solid #222; padding-top: 4pt; text-align: center; font-size: 10.5pt; font-weight: 700; }
 .sign small { display: block; font-weight: 400; color: #666; font-size: 9pt; margin-top: 2pt; }
-footer { position: fixed; bottom: 0; left: 0; right: 0; font-size: 8.5pt; color: #666; display: flex; justify-content: space-between; border-top: 0.5pt solid #b8c4d0; padding-top: 2pt; background: #fff; }
 </style></head><body>
 <div class="head">
     <div class="gov"><span>جمهورية العراق</span>وزارة الصحة<br>${esc(hospName)}</div>
     <div class="title"><h1>إحصائية الأطباء المقيمين</h1><div>حسب الاختصاص · المرحلة · نوع البورد</div></div>
-    <div class="ref"><b>التاريخ:</b> ${esc(dateText)}<br><b>العدد الكلي:</b> ${total} طبيباً مقيماً<br><b>عدد الاختصاصات:</b> ${list.length}</div>
+    <div class="ref"><b>التاريخ:</b> ${esc(dateText)}<br><b>العدد الكلي:</b> ${total} طبيباً مقيماً<br><b>عدد الاختصاصات:</b> ${list.length}${printedBy ? `<br><b>أعدّها:</b> ${esc(printedBy)}` : ''}</div>
 </div>
 
 ${o.summary ? `<h2>أولاً: الخلاصة</h2>
@@ -135,13 +162,19 @@ ${o.stage && stages.length ? `<table class="summary" style="margin-top:6pt"><the
 ` : ''}
 <h2>${o.summary ? 'ثانياً: ' : ''}قوائم المقيمين حسب الاختصاص</h2>
 ${list.map(g => `
-<h2>${g.icon ? esc(g.icon) + ' ' : ''}${esc(g.name)}<small>${g.rows.length} ${g.rows.length === 1 ? 'مقيم' : 'مقيمين'}</small></h2>
-<table><thead><tr><th>ت</th><th>الاسم</th>${o.board ? '<th>نوع البورد</th>' : ''}${o.stage ? '<th>المرحلة</th>' : ''}${o.specialty ? '<th>اختصاص البورد</th>' : ''}${o.phone ? '<th>رقم الهاتف</th>' : ''}${o.notes ? '<th class="blank">ملاحظات</th>' : ''}${o.signCol ? '<th class="blank">التوقيع</th>' : ''}</tr></thead><tbody>
-${g.rows.map((r, i) => `<tr><td class="num">${i + 1}</td><td class="name">${esc(r.name)}</td>${o.board ? `<td class="${r.board ? '' : 'muted'}">${esc(BOARDS[r.board] || 'غير محدد')}</td>` : ''}${o.stage ? `<td class="${r.stage == null ? 'muted' : ''}">${esc(r.stage == null ? 'غير محددة' : (STAGES[r.stage] || r.stage))}</td>` : ''}${o.specialty ? `<td class="${r.specialty ? '' : 'muted'}">${esc(r.specialty || '—')}</td>` : ''}${o.phone ? `<td class="ph">${esc(phoneText(r.phone))}</td>` : ''}${o.notes ? '<td></td>' : ''}${o.signCol ? '<td></td>' : ''}</tr>`).join('')}
-</tbody></table>`).join('')}
+<h2 class="spec">${g.icon ? esc(g.icon) + ' ' : ''}${esc(g.name)}<small>${g.rows.length} ${g.rows.length === 1 ? 'مقيم' : 'مقيمين'}</small></h2>
+<table class="list">${lay.colgroup}<thead><tr><th>ت</th><th>الاسم</th>${o.board ? '<th>نوع البورد</th>' : ''}${o.stage ? '<th>المرحلة</th>' : ''}${o.specialty ? '<th>اختصاص البورد</th>' : ''}${o.phone ? '<th>رقم الهاتف</th>' : ''}${o.notes ? '<th class="blank">ملاحظات</th>' : ''}${o.signCol ? '<th class="blank">التوقيع</th>' : ''}</tr></thead>
+${(() => {
+    const row = (r, i) => `<tr><td class="num">${i + 1}</td><td class="name">${esc(r.name)}</td>${o.board ? `<td class="${r.board ? '' : 'muted'}">${esc(BOARDS[r.board] || 'غير محدد')}</td>` : ''}${o.stage ? `<td class="${r.stage == null ? 'muted' : ''}">${esc(r.stage == null ? 'غير محددة' : (STAGES[r.stage] || r.stage))}</td>` : ''}${o.specialty ? `<td class="${r.specialty ? '' : 'muted'}">${esc(r.specialty || '—')}</td>` : ''}${o.phone ? `<td class="ph">${esc(phoneText(r.phone))}</td>` : ''}${o.notes ? '<td></td>' : ''}${o.signCol ? '<td></td>' : ''}</tr>`;
+    // A short specialty stays whole; a long one keeps its opening rows with its title, and its last
+    // three rows together (no single row left alone on a page).
+    const n = g.rows.length, k = n <= lay.keep + 3 ? n : lay.keep, tail = n - k >= 6 ? n - 3 : n;
+    const part = (from, to, cls) => from < to ? `<tbody${cls ? ` class="${cls}"` : ''}>${g.rows.slice(from, to).map((r, i) => row(r, i + from)).join('')}</tbody>` : '';
+    return part(0, k, 'open') + (tail < n ? part(k, tail) + part(tail, n, 'open') : part(k, n, k < n ? 'open' : ''));
+})()}
+</table>`).join('')}
 
 ${o.sign ? '<div class="sign"><div>مسؤول الأطباء المقيمين<small>&nbsp;</small></div><div>معاون المدير للشؤون الطبية<small>&nbsp;</small></div><div>مدير المستشفى<small>&nbsp;</small></div></div>' : ''}
-<footer><span>بوابة المستشفيات · إحصائية الأطباء المقيمين · ${esc(hospName)}</span><span>طُبعت في ${esc(dateText)}${printedBy ? ' · ' + esc(printedBy) : ''}</span></footer>
 </body></html>`;
     }
 
@@ -236,5 +269,5 @@ ${o.sign ? '<div class="sign"><div>مسؤول الأطباء المقيمين<sm
         }, 250);
     }
 
-    window.HubCensus = { print, make, compare, groups, documentHtml, OPTIONS };
+    window.HubCensus = { print, make, compare, groups, documentHtml, layout, OPTIONS };
 })();

@@ -25,6 +25,7 @@ import { routeErFonts } from './erfonts.js';
 import { routeSpecialists, residentSpecialistsEditAllowed, isResidentEditor } from './specialists.js';
 import { canUseEr, erFieldWrites } from './eraccess.js';
 import { routeUsage } from './usage.js';
+import { routeStats, snapshotStats } from './stats.js';
 import { routeBackup } from './backup.js';
 import { routeOnCall } from './oncall.js';
 import { routeXp } from './xp.js';
@@ -66,6 +67,8 @@ export default {
       return linkRotators(env).catch(err => console.error('rotators', err && err.message));
     }
     const now = Date.now();
+    // The day's statistics first (before the clean-up), then the clean-up.
+    await snapshotStats(env).catch(err => console.error('stats snapshot', err && err.message));
     await env.DB.batch([
       env.DB.prepare('DELETE FROM history WHERE ts < ?').bind(now - HISTORY_KEEP_DAYS * DAY),
       env.DB.prepare('DELETE FROM audit WHERE ts < ?').bind(now - 365 * DAY),
@@ -125,6 +128,8 @@ async function route(request, env, ctx) {
   if (aaRoute) return aaRoute;
   const exchangeRoute = await routeExchange(path, method, request, env, auth, url, ctx);
   if (exchangeRoute) return exchangeRoute;
+  const statsRoute = await routeStats(path, method, env, auth, url);
+  if (statsRoute) return statsRoute;
   const usageRoute = await routeUsage(path, method, env, auth);
   if (usageRoute) return usageRoute;
   const remindersRoute = await routeReminders(path, method, request, env, auth);

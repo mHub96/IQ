@@ -183,6 +183,7 @@
         exchanges: ['طلبات تبديل الخفارات', host => A.openExchanges(host)],
         requests: ['طلبات التواصل', host => A.openRequests(host)],
         'duty-status': ['حالات الخفارة', host => A.loadOnCall().then(m => m.editor(host))],
+        analytics: ['التحليلات المتقدمة', host => loadStats().then(() => window.HubStats.advanced(host)).catch(() => { host.innerHTML = '<div class="hacc-empty">تعذر التحميل. تحقق من الاتصال.</div>'; })],
     };
     function openView(key) {
         const v = VIEWS[key];
@@ -206,6 +207,30 @@
         ({ profile: renderProfile, schedule: renderSchedule, comments: renderComments, settings: renderSettings, admin: renderAdmin,
             opioids: renderOpioids, 'opioids-mine': renderMyOpioids })[which](body, portalForm);
         if (which === 'profile') addXpCard(body);
+    }
+
+    // The statistics dashboard and the owner's analytics (hub-stats.js, loaded on first use).
+    let statsLoading = null;
+    function loadStats() {
+        if (window.HubStats) return Promise.resolve();
+        statsLoading = statsLoading || new Promise((resolve, reject) => {
+            const el = document.createElement('script');
+            const self = document.querySelector('script[src*="hub-panel.js"]');
+            el.src = (self ? self.src.replace(/hub-panel\.js.*$/, '') : './') + 'hub-stats.js';
+            el.onload = resolve;
+            el.onerror = () => { statsLoading = null; reject(new Error('stats')); };
+            document.head.appendChild(el);
+        });
+        return statsLoading;
+    }
+    /** The dashboard under the tab's first link (the hospital's admins: their hospital; the owner: any). */
+    function addStats(body) {
+        const lead = body.querySelector('.hp-admin-lead');
+        if (!lead) return;
+        lead.insertAdjacentHTML('afterend', '<section data-role="stats"></section>');
+        const box = body.querySelector('[data-role="stats"]');
+        loadStats().then(() => { if (box.isConnected) window.HubStats.dashboard(box, { onAdvanced: () => openView('analytics') }); })
+            .catch(() => { box.innerHTML = '<div class="hacc-empty">تعذر تحميل الإحصائيات.</div>'; });
     }
 
     // The opioids responsibility (hub-opioids.js, loaded on first use).
@@ -535,6 +560,7 @@
         body.innerHTML = lead + `<section class="hp-section"><h3>الحسابات والتعليقات</h3><div class="hp-admin-grid">${items.map(tileHtml).join('')}</div></section>
             <section class="hp-section"><h3>المستشفى</h3><div class="hp-admin-grid">${HOSPITAL_TOOLS.map(tileHtml).join('')}</div></section>`;
         bindTiles(body);
+        addStats(body);
     }
 
     /**
@@ -678,6 +704,7 @@
             ]],
         ];
         body.innerHTML = lead + groups.map(([title, items]) => `<section class="hp-section"><h3>${title}</h3><div class="hp-admin-grid">${items.map(tileHtml).join('')}</div></section>`).join('');
+        addStats(body);
         // One site-wide switch: anaesthesia residents and the ICUs they may edit.
         body.querySelector('.hp-section:last-child').insertAdjacentHTML('beforeend', `<div class="hp-switch-card" data-role="icu-all">
             <span class="hp-switch-main"><b><i class="fas fa-bed-pulse"></i> تعديل العناية المركزة في كل المستشفيات</b>

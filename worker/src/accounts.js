@@ -75,6 +75,7 @@ export async function routeAccounts(path, method, request, env, auth, url, ctx) 
     case 'GET /api/accounts/received': return receivedComments(env, auth, url);
     case 'GET /api/accounts/stage-month': return json({ ok: true, month: await getStageMonth(env) });
     case 'GET /api/accounts/er-profiles': return erProfiles(env, auth, url);
+    case 'GET /api/accounts/census': return census(env, auth, url);
     case 'POST /api/accounts/specialty-rename': return renameSpecialty(request, env, auth);
     case 'POST /api/accounts/stage-month': return putStageMonth(request, env, auth);
     case 'POST /api/accounts/anon': return setAnon(request, env, auth);
@@ -1130,6 +1131,27 @@ async function erProfiles(env, auth, url) {
   return json({ ok: true, profiles: results.map(r => ({
     id: r.id, resident_id: r.resident_id, phone: r.phone, sex: r.sex, board: r.board, specialty: r.specialty,
     stage_now: currentStage(r.stage, r.stage_ref, r.board_years, month), board_years: r.board_years,
+  })) });
+}
+
+/**
+ * The residents census of a hospital (owner and the hospital's admins): the board information of every
+ * resident of its database who has an account, with the stage as it is today. Residents without an
+ * account have none (the census lists them as not set).
+ */
+async function census(env, auth, url) {
+  const hosp = String(url.searchParams.get('h') || '');
+  if (!HOSP_RE.test(hosp)) return json({ error: 'bad_request' }, 400);
+  if (!(auth.r === 'owner' || (auth.r === 'admin' && hospInScope(auth, hosp)))) return json({ error: 'forbidden' }, 403);
+  const { results } = await env.DB.prepare(
+    `SELECT resident_id, role, board, specialty, stage, stage_ref, board_years FROM accounts
+      WHERE status = 'active' AND resident_id IN (
+        SELECT id FROM records WHERE coll = 'resident' AND EXISTS (SELECT 1 FROM json_each(records.data, '$.hospitals') h WHERE h.value = ?1))`
+  ).bind(hosp).all();
+  const month = await getStageMonth(env);
+  return json({ ok: true, profiles: (results || []).map(r => ({
+    resident_id: r.resident_id, role: r.role, board: r.board, specialty: r.specialty, board_years: r.board_years,
+    stage: currentStage(r.stage, r.stage_ref, r.board_years, month),
   })) });
 }
 

@@ -135,6 +135,10 @@
     /* The recording form (the duty roster's pop-up, and the holder's tab) */
     .opu { --o1: #6d28d9; --o2: #db2777; display: flex; flex-direction: column; min-height: 100%; }
     .opu-sheet { padding: 0 !important; overflow: hidden; }
+    /* In the sheet (fixed height): the form scrolls between the header and the submit bar. */
+    .opu-sheet .opu { flex: 1; min-height: 0; }
+    .opu-sheet .opu-hero, .opu-sheet .opu-steps, .opu-sheet .opu-foot { flex: none; }
+    .opu-sheet .opu-body { min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
     .opu-hero { position: relative; display: flex; gap: 12px; align-items: center; padding: 18px 16px 16px; color: #fff; border-radius: 0 0 26px 26px;
         background: radial-gradient(120% 140% at 100% 0%, rgba(255,255,255,.18), transparent 50%), linear-gradient(135deg, #4c1d95, #7c3aed 55%, #db2777); box-shadow: 0 10px 28px rgba(109,40,217,.35); }
     .opu-ic { width: 48px; height: 48px; flex: none; border-radius: 16px; display: grid; place-items: center; font-size: 1.5rem; background: rgba(255,255,255,.18); backdrop-filter: blur(6px); }

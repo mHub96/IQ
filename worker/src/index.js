@@ -520,10 +520,9 @@ async function sync(request, env, auth) {
   }
   if (ords.length) {
     stmts.push(env.DB.prepare(
-      `UPDATE records SET ord = (
-         SELECT json_extract(j.value, '$.o') FROM json_each(?1) j
-          WHERE json_extract(j.value, '$.c') = records.coll AND json_extract(j.value, '$.id') = records.id)
-       WHERE (coll, id) IN (SELECT json_extract(value, '$.c'), json_extract(value, '$.id') FROM json_each(?1))`
+      `UPDATE records SET ord = j.o
+         FROM (SELECT json_extract(value, '$.c') AS c, json_extract(value, '$.id') AS id, json_extract(value, '$.o') AS o FROM json_each(?1)) j
+        WHERE records.coll = j.c AND records.id = j.id`
     ).bind(JSON.stringify(ords)));
   }
   stmts.push(env.DB.prepare('INSERT INTO audit (ts, role, msg, n) VALUES (?, ?, ?, ?)').bind(now, by, msg, ops.length - rejected.length));

@@ -24,6 +24,8 @@ const dayOf = col => `date((${col} + ${IRAQ}) / 1000, 'unixepoch')`;
 const RESIDENT_ROLES = "('user', 'anaesthesia', 'admin')";
 /** Feature adoption counts the people whose accounts are active today (out of the active accounts). */
 const ACTIVE = "(SELECT id FROM accounts WHERE status = 'active')";
+/** Resident ids held by active accounts: one pass over the accounts (a per-resident lookup read them all again for each resident). */
+const LINKED = "(SELECT resident_id FROM accounts WHERE status = 'active' AND resident_id IS NOT NULL)";
 
 const seesAll = auth => auth.r === 'owner' || (auth.h || []).includes('*');
 
@@ -71,7 +73,7 @@ async function buildSummary(env, h, now) {
     ).bind(h, all, d7, d30, d1),
     env.DB.prepare(
       `SELECT COUNT(*) AS total, SUM(COALESCE(json_extract(r.data, '$.active'), 1) != 0) AS active,
-              SUM(EXISTS (SELECT 1 FROM accounts a WHERE a.resident_id = r.id AND a.status = 'active')) AS linked
+              SUM(r.id IN ${LINKED}) AS linked
          FROM records r WHERE r.coll = 'resident' AND (?2 = 1 OR ${inHosp})`
     ).bind(h, all),
     env.DB.prepare(
@@ -146,7 +148,7 @@ async function perHospital(env, now) {
     ).bind(d30, now - 7 * DAY),
     env.DB.prepare(
       `SELECT x.value AS hosp, COUNT(*) AS total,
-              SUM(EXISTS (SELECT 1 FROM accounts a WHERE a.resident_id = r.id AND a.status = 'active')) AS linked
+              SUM(r.id IN ${LINKED}) AS linked
          FROM records r, json_each(r.data, '$.hospitals') x
         WHERE r.coll = 'resident' AND COALESCE(json_extract(r.data, '$.active'), 1) != 0 GROUP BY x.value`
     ),

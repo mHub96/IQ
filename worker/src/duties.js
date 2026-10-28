@@ -20,6 +20,11 @@ import { notifyHospitalResidents, dispatchPush } from './accounts.js';
 import { inSpecialty } from './exchspecs.js';
 import { refreshFromMyDuties } from './reminders.js';
 import { canUseEr } from './eraccess.js';
+import { residentList, revision, cachedValue } from './revcache.js';
+
+// The month of a duty's "D/M/YYYY" date as "YYYY-M", the expression of the index idx_sched_month
+// (migration 0018): it must stay exactly the same for the index to be used.
+const SCHED_MONTH = "(substr(json_extract(data, '$.date'), -4) || '-' || CAST(substr(json_extract(data, '$.date'), instr(json_extract(data, '$.date'), '/') + 1) AS INTEGER))";
 
 const HOSP_RE = /^[\w-]{1,48}$/;
 const YM_RE = /^(20\d\d)-(0[1-9]|1[0-2])$/;
@@ -88,12 +93,14 @@ const erPath = hosp => `$.hospitalResidents."${hosp}"`;
 /** The account's entry in the ER residents database of its hospital: by phone, then by name. */
 async function findErResident(env, account) {
   if (!HOSP_RE.test(account.hosp || '')) return null;
-  const list = async path => (await env.DB.prepare(
+  // The ER database's residents are read again only after the ER scheduler's data changed.
+  const rev = await revision(env, 'er');
+  const list = path => cachedValue(`er-residents/${path}`, rev, async () => (await env.DB.prepare(
     `SELECT json_extract(j.value, '$.id') AS id, json_extract(j.value, '$.name') AS name,
             json_extract(j.value, '$.sex') AS sex, json_extract(j.value, '$.phone') AS phone
        FROM records r, json_each(r.data, ?1) j
       WHERE r.coll = 'er' AND r.id = ?2`
-  ).bind(path, ER_STATE_ID).all()).results || [];
+  ).bind(path, ER_STATE_ID).all()).results || []);
   let path = erPath(account.hosp);
   let rows = await list(path);
   if (!rows.length) {
@@ -160,14 +167,20 @@ export async function collectDuties(env, acc, ym) {
 
   // Every hospital's roster and ER schedule of the month: a resident who moved keeps the duties of the
   // hospital they were in, each labelled with its hospital.
-  const [rosterRes, erRes, marksRes, hospRes, recRes, erListRes] = await env.DB.batch([
+  // Who is in each hospital's ER list (the residents that ER assigns duties to).
+  const erList = await cachedValue('er-lists', await revision(env, 'er'), async () => (await env.DB.prepare(
+    `SELECT j.key AS h, json_extract(r.value, '$.name') AS n
+       FROM records, json_each(records.data, '$.hospitalResidents') j, json_each(j.value) r
+      WHERE records.coll = 'er' AND records.id = ?`
+  ).bind(ER_STATE_ID).all()).results || []);
+  const [rosterRes, erRes, marksRes, hospRes, recRes] = await env.DB.batch([
     env.DB.prepare(
       `SELECT id, hosp, json_extract(data, '$.date') AS date, json_extract(data, '$.name') AS name,
               json_extract(data, '$.specCode') AS spec, json_extract(data, '$.dutyTime') AS time,
               json_extract(data, '$.dutySlot') AS slot, json_extract(data, '$.resId') AS rid
          FROM records
-        WHERE coll = 'sched' AND (json_extract(data, '$.date') LIKE ?1 OR json_extract(data, '$.date') LIKE ?2)`
-    ).bind(`%/${String(month).padStart(2, '0')}/${year}`, `%/${month}/${year}`),
+        WHERE coll = 'sched' AND ${SCHED_MONTH} = ?1`
+    ).bind(`${year}-${month}`),
     env.DB.prepare(
       `SELECT r.id, r.data FROM records r
         WHERE r.coll = 'er' AND r.id IN (SELECT 'hosp_hub_emergency_sched_' || h.id || '_' || ?1 FROM records h WHERE h.coll = 'hospital')
@@ -178,12 +191,6 @@ export async function collectDuties(env, acc, ym) {
       .bind(acc.id, `${ym}-%`),
     env.DB.prepare("SELECT id FROM records WHERE coll = 'hospital'"),
     env.DB.prepare("SELECT json_extract(data, '$.hospitals') AS hs FROM records WHERE coll = 'resident' AND id = ?").bind(acc.resident_id || ''),
-    // Who is in each hospital's ER list (the residents that ER assigns duties to).
-    env.DB.prepare(
-      `SELECT j.key AS h, json_extract(r.value, '$.name') AS n
-         FROM records, json_each(records.data, '$.hospitalResidents') j, json_each(j.value) r
-        WHERE records.coll = 'er' AND records.id = ?`
-    ).bind(ER_STATE_ID),
   ]);
   // The resident's own hospitals: the account's, and those of their record in the hospital database.
   const home = new Set([acc.hosp]);
@@ -197,13 +204,9 @@ export async function collectDuties(env, acc, ym) {
     if (home.has(hosp)) return false;
     if (!othersByHosp) {
       othersByHosp = new Map();
-      const { results } = await env.DB.prepare("SELECT id, json_extract(data, '$.name') AS n, json_extract(data, '$.hospitals') AS hs FROM records WHERE coll = 'resident' AND id <> ?")
-        .bind(acc.resident_id || '').all();
-      for (const r of results) {
-        if (!keys.has(nameKey(r.n))) continue;
-        let hs = [];
-        try { hs = JSON.parse(r.hs || '[]'); } catch {}
-        for (const h of hs) othersByHosp.set(String(h), true);
+      for (const r of await residentList(env)) {
+        if (r.id === (acc.resident_id || '') || !keys.has(nameKey(r.name))) continue;
+        for (const h of r.hospitals) othersByHosp.set(String(h), true);
       }
     }
     return othersByHosp.has(hosp);
@@ -215,8 +218,10 @@ export async function collectDuties(env, acc, ym) {
   let namesakes = null, hospSpecs = null, own = null;
   const loadNamesakes = async () => {
     if (namesakes) return;
+    // Only the records of the residents carrying the name are read in full (found in the cached list).
+    const sameName = (await residentList(env)).filter(r => r.id !== (acc.resident_id || '') && keys.has(nameKey(r.name))).map(r => r.id);
     const [others, specs, mine] = await env.DB.batch([
-      env.DB.prepare("SELECT id, data FROM records WHERE coll = 'resident' AND id <> ?").bind(acc.resident_id || ''),
+      env.DB.prepare("SELECT id, data FROM records WHERE coll = 'resident' AND id IN (SELECT value FROM json_each(?1))").bind(JSON.stringify(sameName)),
       env.DB.prepare("SELECT id, json_extract(data, '$.specialties') AS s FROM records WHERE coll = 'hospital'"),
       env.DB.prepare("SELECT data FROM records WHERE coll = 'resident' AND id = ?").bind(acc.resident_id || ''),
     ]);
@@ -260,7 +265,7 @@ export async function collectDuties(env, acc, ym) {
     erMonths.set(hosp, month);
   }
   // An ER schedule counts only in the hospitals whose ER list has this resident.
-  const inErList = new Set((erListRes.results || []).filter(r => matches(r.n)).map(r => r.h));
+  const inErList = new Set(erList.filter(r => matches(r.n)).map(r => r.h));
   for (const [hosp, erMonth] of erMonths) {
     if (!inErList.has(hosp) || await someoneElse(hosp)) continue;
     for (const [type, fields] of Object.entries(monthPositions(erMonth))) {

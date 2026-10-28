@@ -18,6 +18,7 @@ import { BOARDS, dutyDayNow, getStageMonth, setStageMonth, currentStage, profile
 import { AA_ROLES, findOfficer, officerLink, divisionJob, addOfficer } from './aa.js';
 import { canUseEr } from './eraccess.js';
 import { ensureRotatorRecord, rotatorCheckHospitals, setRotatorCheck } from './rotators.js';
+import { residentsOf, residentList } from './revcache.js';
 
 const USERNAME_RE = /^[a-z0-9][a-z0-9._]{2,23}$/;
 const KEY_RE = /^[A-Za-z0-9+/]{43}=$/; // 32 bytes, base64
@@ -236,9 +237,11 @@ async function findResident(env, hosp, name, phone) {
   const cleanPhone = expr => `replace(replace(replace(COALESCE(${expr}, ''), ' ', ''), '-', ''), '+', '')`;
   const [hospRow, residents, names] = await env.DB.batch([
     env.DB.prepare("SELECT 1 AS ok FROM records WHERE coll = 'hospital' AND id = ?").bind(hosp),
+    // The last ten digits of the stored number (the index of migration 0018: the expression must stay
+    // exactly the same). The same as LIKE '%' || pk for a ten-digit key, without reading every resident.
     env.DB.prepare(
       `SELECT id, json_extract(data, '$.name') AS name, json_extract(data, '$.phone') AS phone, json_extract(data, '$.hospitals') AS hospitals
-         FROM records WHERE coll = 'resident' AND ${cleanPhone("json_extract(data, '$.phone')")} LIKE '%' || ?1`
+         FROM records WHERE coll = 'resident' AND substr(${cleanPhone("json_extract(data, '$.phone')")}, -10) = ?1`
     ).bind(pk),
     env.DB.prepare(
       `SELECT json_extract(j.value, '$.id') AS id, json_extract(j.value, '$.name') AS name, json_extract(j.value, '$.phone') AS phone
@@ -261,11 +264,8 @@ async function findResident(env, hosp, name, phone) {
   const elsewhere = residents.results.filter(r => phoneKey(r.phone) === pk && !inHospital(r) && firstOk(r));
   if (elsewhere.length) return { hospOk: true, match: null, pk, reason: 'other_hospital', hospitals: [...new Set(elsewhere.flatMap(hospitalsOf))] };
   if (typed.length >= 2) {
-    const { results: same } = await env.DB.prepare(
-      `SELECT json_extract(data, '$.name') AS name FROM records
-        WHERE coll = 'resident' AND EXISTS (SELECT 1 FROM json_each(records.data, '$.hospitals') h WHERE h.value = ?1)`
-    ).bind(hosp).all();
-    if ((same || []).some(r => namesMatch(name, r.name))) return { hospOk: true, match: null, pk, reason: 'name_other_phone' };
+    const same = await residentsOf(env, hosp);
+    if (same.some(r => namesMatch(name, r.name))) return { hospOk: true, match: null, pk, reason: 'name_other_phone' };
   }
   return { hospOk: true, match: null, pk, reason: 'none' };
 }
@@ -1632,14 +1632,8 @@ export async function mirrorResident(env, id, before, after, by) {
 
   if (oldName && newName && oldName !== newName && oldKey && newKey && hospitals.length) {
     // Two residents sharing the old name in these hospitals: their duties cannot be told apart.
-    const { results: others } = await env.DB.prepare(
-      "SELECT json_extract(data, '$.name') AS n, json_extract(data, '$.hospitals') AS hs FROM records WHERE coll = 'resident' AND id <> ?"
-    ).bind(id).all();
-    const ambiguous = others.some(o => {
-      let hs = [];
-      try { hs = JSON.parse(o.hs || '[]'); } catch {}
-      return nameKey(o.n) === oldKey && hs.some(h => hospitals.includes(h));
-    });
+    const others = (await residentList(env)).filter(o => o.id !== id);
+    const ambiguous = others.some(o => nameKey(o.name) === oldKey && o.hospitals.some(h => hospitals.includes(h)));
     if (!ambiguous) {
       const hj = JSON.stringify(hospitals);
       const { results: names } = await env.DB.prepare(

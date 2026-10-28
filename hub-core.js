@@ -98,6 +98,9 @@
     // kept in localStorage so later page views only fetch what changed since `syncSince`.
     let serverRows = null;
     let syncSince = 0;
+    // The server's change counter when this copy was read: while it is unchanged the server answers
+    // "nothing new" without reading the database.
+    let syncRev = null;
     const ROWS_CACHE_KEY = AA ? 'hospital_hub_aa_rows_v1:' + AA : 'hospital_hub_rows_v1';
     const AA_ROWS_PREFIX = 'hospital_hub_aa_rows_v1:';
     const AA_MIRROR_CACHE_KEY = 'hospital_hub_aa_mirror_v1';
@@ -664,6 +667,7 @@
         if (HubSync && cachedRows && Array.isArray(cachedRows.rows) && cachedRows.rows.length) {
             setServerRows(cachedRows.rows);
             syncSince = Number(cachedRows.since) || 0;
+            syncRev = typeof cachedRows.rev === 'string' ? cachedRows.rev : null;
             syncBaseFull = !!cachedRows.full;
             db = sanitizeAndMigrateDatabase(HubSync.compose(cachedRows.rows));
         } else if (!AA) {
@@ -769,13 +773,14 @@
         let rows = [];
         let page;
         let firstTime = 0;
+        let firstRev;
         do {
             page = await api('GET', `${endpoint}${endpoint.includes('?') ? '&' : '?'}after=${after}`);
-            if (!firstTime) firstTime = page.time;
+            if (!firstTime) { firstTime = page.time; firstRev = page.rev; }
             rows = rows.concat(page.rows || []);
             after = page.last;
         } while (page.more);
-        return { rows, full: !!page.full, role: page.role, time: firstTime };
+        return { rows, full: !!page.full, role: page.role, time: firstTime, rev: firstRev };
     }
 
     // Sessions created before the move to Cloudflare stored the password itself (base64).
@@ -848,7 +853,7 @@
         if (!serverRows) return;
         let text;
         try {
-            text = JSON.stringify({ since: syncSince, full: syncBaseFull, rows: [...serverRows.values()] });
+            text = JSON.stringify({ since: syncSince, rev: syncRev, full: syncBaseFull, rows: [...serverRows.values()] });
         } catch (e) {
             return;
         }
@@ -884,6 +889,7 @@
             ['1', '2', '3'].forEach(n => localStorage.removeItem('hosp_hub_safety_snap_' + n));
         } catch (e) {}
         syncSince = 0;
+        syncRev = null;
     }
 
     function restoreRidsFromCache(target) {
@@ -952,7 +958,7 @@
         sortByServerOrder(target, remote);
     }
 
-    function applyServerRows(rows, full, serverTime) {
+    function applyServerRows(rows, full, serverTime, rev) {
         const remote = HubSync.baseFromRows(rows);
         if (!db) {
             db = HubSync.compose(rows);
@@ -964,6 +970,7 @@
         syncBaseFull = !!full;
         // Overlap by two minutes so writes that were in flight during this read are not missed.
         syncSince = (Number(serverTime) || Date.now()) - 2 * 60 * 1000;
+        syncRev = typeof rev === 'string' ? rev : null;
         db = sanitizeAndMigrateDatabase(db);
     }
 
@@ -980,7 +987,7 @@
             if (!cached || !Array.isArray(cached.rows) || !cached.rows.length) return null;
             if (!!cached.full !== !!readApiToken()) return null;           // another sign-in state
             if ((Number(cached.since) || 0) < syncSince) return null;       // not newer than ours
-            return { rows: cached.rows, full: !!cached.full, time: (Number(cached.since) || 0) + 2 * 60 * 1000, shared: true };
+            return { rows: cached.rows, full: !!cached.full, time: (Number(cached.since) || 0) + 2 * 60 * 1000, rev: cached.rev, shared: true };
         } catch (e) {
             return null;
         }
@@ -1010,12 +1017,12 @@
     /** Fetch only what changed since the last sync; null when a full reload is needed. */
     async function fetchChangedRows() {
         if (!serverRows || !syncSince || syncBaseFull !== !!readApiToken()) return null;
-        const res = await api('GET', DB_PATH + (AA ? '&' : '?') + 'since=' + syncSince);
+        const res = await api('GET', DB_PATH + (AA ? '&' : '?') + 'since=' + syncSince + (!AA && syncRev !== null ? '&rev=' + encodeURIComponent(syncRev) : ''));
         if (!res || res.reset || res.full !== syncBaseFull) return null;
         const next = new Map(serverRows);
         for (const [c, id] of res.deleted || []) next.delete(HubSync.key(c, id));
         for (const row of res.changed || []) next.set(HubSync.key(row[0], row[1]), row);
-        return { rows: [...next.values()], full: res.full, time: res.time };
+        return { rows: [...next.values()], full: res.full, time: res.time, rev: res.rev };
     }
 
     async function loadSecrets() {
@@ -1094,7 +1101,7 @@
                         else throw err;
                     }
                 }
-                applyServerRows(result.rows, result.full, result.time);
+                applyServerRows(result.rows, result.full, result.time, AA ? undefined : result.rev);
                 if (!result.shared) lastServerSync = Date.now();
                 refreshAuthConfig();
                 if (auth.isOwner() && !AA) await loadSecrets();

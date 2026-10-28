@@ -18,6 +18,7 @@
 import { json } from './lib.js';
 import { nameKey, isoDate } from './names.js';
 import { dutyDayNow } from './profile.js';
+import { revision, cachedValue } from './revcache.js';
 
 const HOSP_RE = /^[\w-]{1,48}$/;
 const CACHE_SECONDS = 300;
@@ -89,12 +90,16 @@ async function hospitalStats(env, hosp) {
 
   const today = dutyDayNow();
   const month = today.slice(0, 7);
-  const [sched, likes, comments, exch, reqs, status] = await env.DB.batch([
-    env.DB.prepare(
+  // The hospital's whole roster is read again only after one of its duties changed.
+  const schedRows = await cachedValue(`xp-sched/${hosp}`, await revision(env, 's:' + hosp), async () => {
+    const { results } = await env.DB.prepare(
       `SELECT json_extract(data, '$.name') AS n, json_extract(data, '$.date') AS d, json_extract(data, '$.specCode') AS s,
               COALESCE(json_extract(data, '$.VisitCount'), 0) AS v, json_extract(data, '$.isClone') AS c
          FROM records WHERE coll = 'sched' AND hosp = ?`
-    ).bind(hosp),
+    ).bind(hosp).all();
+    return results || [];
+  });
+  const [likes, comments, exch, reqs, status] = await env.DB.batch([
     env.DB.prepare("SELECT target, COUNT(*) AS c FROM likes WHERE target LIKE ? GROUP BY target").bind(`duty:${hosp}:%`),
     env.DB.prepare('SELECT target, COUNT(*) AS c FROM comments WHERE hosp = ? AND deleted = 0 GROUP BY target').bind(hosp),
     env.DB.prepare("SELECT new_name AS n, date AS d FROM exchange_requests WHERE hosp = ? AND status = 'approved'").bind(hosp),
@@ -125,7 +130,7 @@ async function hospitalStats(env, hosp) {
   // One duty per resident per day (two specialties the same day are one duty); its worth grows with
   // the contacts received that day.
   const served = new Map();   // key|iso -> { p, iso, contacts }
-  for (const r of sched.results || []) {
+  for (const r of schedRows) {
     if (r.c || !r.n) continue;
     const iso = isoDate(r.d);
     const key = nameKey(r.n);

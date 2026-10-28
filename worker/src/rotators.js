@@ -153,10 +153,13 @@ export async function ensureRotatorRecord(env, acc, by, cache) {
  * run, each hospital's specialties read once. Once all have one, this is a single small query.
  */
 export async function linkRotators(env) {
-  const { results } = await env.DB.prepare(
-    `SELECT id, name, phone, hosp FROM accounts WHERE role = 'rotator' AND status = 'active' AND resident_id IS NULL
+  // Through the index of the unlinked rotators (migration 0018; SQLite would otherwise walk every
+  // active account), or as before while that index is missing.
+  const query = from => env.DB.prepare(
+    `SELECT id, name, phone, hosp FROM ${from} WHERE role = 'rotator' AND status = 'active' AND resident_id IS NULL
         AND hosp IN (SELECT id FROM records WHERE coll = 'hospital') ORDER BY created_at LIMIT 101`
   ).all();
+  const { results } = await query('accounts INDEXED BY idx_accounts_unlinked_rotators').catch(() => query('accounts'));
   const out = { linked: 0, added: 0, skipped: 0, left: Math.max(0, (results || []).length - 100) };
   const cache = new Map();
   for (const acc of (results || []).slice(0, 100)) {

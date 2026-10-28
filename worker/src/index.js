@@ -32,6 +32,7 @@ import { routeXp } from './xp.js';
 import { routeOpioids } from './opioids.js';
 import { limitedExchanger, foreignScheduleOps } from './exchspecs.js';
 import { storeSpecWrites, renameSpecialtyCode } from './specguard.js';
+import { revision, revToken, blockRevisions, cachedBytes, cachedValue } from './revcache.js';
 
 const VISIT_COOLDOWN_MS = 60 * 1000;
 
@@ -91,11 +92,14 @@ async function route(request, env, ctx) {
 
   // Public: the hospitals' names (the sign-up form's list; nothing else of the data).
   if (path === '/api/public/hospitals' && method === 'GET') {
-    const { results } = await env.DB.prepare(
-      `SELECT id, json_extract(data, '$.name_ar') AS name_ar, json_extract(data, '$.hospitalName') AS hospitalName
-         FROM records WHERE coll = 'hospital' ORDER BY ord, id`
-    ).all();
-    return json({ ok: true, hospitals: (results || []).map(h => ({ id: h.id, name_ar: h.name_ar || '', hospitalName: h.hospitalName || '' })) });
+    const hospitals = await cachedValue('public-hospitals', await revision(env, 'c:hospital'), async () => {
+      const { results } = await env.DB.prepare(
+        `SELECT id, json_extract(data, '$.name_ar') AS name_ar, json_extract(data, '$.hospitalName') AS hospitalName
+           FROM records WHERE coll = 'hospital' ORDER BY ord, id`
+      ).all();
+      return (results || []).map(h => ({ id: h.id, name_ar: h.name_ar || '', hospitalName: h.hospitalName || '' }));
+    });
+    return json({ ok: true, hospitals });
   }
 
   // ER print fonts: the files are public (no token needed), the rest checks who asks.
@@ -361,32 +365,113 @@ function allowed(a, op) {
 // ---------------------------------------------------------------------------
 
 async function readRecords(env, auth, url, er) {
-  const after = Math.max(0, Number(url.searchParams.get('after')) || 0);
+  const cursor = String(url.searchParams.get('after') || '');
+  const after = Math.max(0, Number(cursor) || 0);
   // Guests get the roster structure without phone numbers; so do division officers, who only use
   // their division's own data.
   const full = auth && !isOfficer(auth) ? 1 : 0;
   const collFilter = er ? "coll IN ('er')" : "coll NOT IN ('er', 'er_conflict')";
   const since = Number(url.searchParams.get('since'));
-  if (since > 0) return readChanges(env, auth, full, collFilter, since);
-  const row = await env.DB.prepare(
-    `SELECT json_group_array(json_array(coll, id, hosp, ord, v, json(
-              CASE WHEN ?2 = 0 AND coll = 'resident' THEN json_remove(data, '$.phone')
-                   WHEN ?2 = 0 AND coll = 'hospital' THEN json_remove(data, '$.names')
-                   ELSE data END)${er ? ', updated_at' : ''})) AS rows,
-            MAX(rid) AS last, COUNT(*) AS n
-       FROM (SELECT rowid AS rid, * FROM records WHERE rowid > ?1 AND ${collFilter} ORDER BY rowid LIMIT ${PAGE_ROWS})`
-  ).bind(after, full).first();
-  const n = row ? row.n : 0;
-  const body = `{"rows":${n ? row.rows : '[]'},"last":${n ? row.last : after},"more":${n === PAGE_ROWS},"full":${!!full},"role":${JSON.stringify(auth ? auth.r : 'guest')},"time":${Date.now()}}`;
-  return new Response(body, { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
+  // The time is taken before anything is read: the client asks for the changes from then on, so a write
+  // landing during this read is fetched again rather than missed.
+  const time = Date.now();
+  // The database download in blocks, each cached until it changes (its cursor starts with '~'). A
+  // numeric cursor other than 0 continues the plain pages below (a download begun before this version).
+  if (!er && !(since > 0) && (cursor.startsWith('~') || after === 0)) {
+    const state = await blockRevisions(env);
+    if (state) return blockPage(env, auth, state, full, cursor.startsWith('~') ? cursor.slice(1) : null, time);
+    if (cursor.startsWith('~')) return json({ error: 'retry' }, 503);
+  }
+  const rev = await revision(env, er ? 'er' : 'main');
+  if (since > 0) return readChanges(env, auth, full, collFilter, since, rev, url, time);
+  // A page is the same for everyone with the same view (phones or not) until a record changes.
+  const page = await cachedBytes(`db/${er ? 'er' : 'main'}/${full}/${after}`, rev, async () => {
+    const row = await env.DB.prepare(
+      `SELECT json_group_array(json_array(coll, id, hosp, ord, v, json(
+                CASE WHEN ?2 = 0 AND coll = 'resident' THEN json_remove(data, '$.phone')
+                     WHEN ?2 = 0 AND coll = 'hospital' THEN json_remove(data, '$.names')
+                     ELSE data END)${er ? ', updated_at' : ''})) AS rows,
+              MAX(rid) AS last, COUNT(*) AS n
+         FROM (SELECT rowid AS rid, * FROM records WHERE rowid > ?1 AND ${collFilter} ORDER BY rowid LIMIT ${PAGE_ROWS})`
+    ).bind(after, full).first();
+    const n = row ? row.n : 0;
+    return `"rows":${n ? row.rows : '[]'},"last":${n ? row.last : after},"more":${n === PAGE_ROWS},"full":${!!full}}`;
+  });
+  const head = `{"role":${JSON.stringify(auth ? auth.r : 'guest')},"time":${time},"rev":${JSON.stringify(revToken(rev))},`;
+  return new Response(new Blob([head, page]), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
+}
+
+const BLOCKS_PER_PAGE = 6;        // each a cache lookup: well inside the free plan's subrequests per request
+const PAGE_BYTES = 1536 * 1024;
+const dec = new TextDecoder();
+
+/**
+ * A page of the database download: the next blocks after the block `from` (null: from the start). A
+ * block is one hospital's duties ('s:<hospital>') or another collection ('c:<coll>'); each is cached
+ * under its own change counter, so after a change only that block is read again. The pages compose
+ * by key (hub-sync.js sorts every collection), so the rows' order across blocks does not matter.
+ */
+async function blockPage(env, auth, state, full, from, time) {
+  const todo = state.blocks.filter(([k]) => from === null || k > from);
+  const parts = [];
+  let bytes = 0, taken = 0, last = from;
+  for (const [k, n] of todo) {
+    if (taken >= BLOCKS_PER_PAGE || (parts.length && bytes >= PAGE_BYTES)) break;
+    const block = await cachedBytes(`db-block/${full}/${k}`, n, () => buildBlock(env, k, full));
+    taken++;
+    last = k;
+    const sep = block.indexOf(124);   // "<row count>|<rows without the brackets>"
+    if (Number(dec.decode(block.subarray(0, sep))) > 0) {
+      parts.push(block.subarray(sep + 1));
+      bytes += block.byteLength;
+    }
+  }
+  const body = [`{"role":${JSON.stringify(auth ? auth.r : 'guest')},"time":${time},"rev":${JSON.stringify(revToken(state.main))},"rows":[`];
+  parts.forEach((p, i) => { if (i) body.push(','); body.push(p); });
+  body.push(`],"last":${JSON.stringify('~' + (last || ''))},"more":${todo.length > taken},"full":${!!full}}`);
+  return new Response(new Blob(body), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
+}
+
+/** One block's rows, read in pages of PAGE_ROWS: "<row count>|<rows of the JSON array, no brackets>". */
+async function buildBlock(env, k, full) {
+  const sched = k.startsWith('s:');
+  const name = k.slice(2);
+  const where = !sched ? 'coll = ?2' : name ? "coll = 'sched' AND hosp = ?2" : "coll = 'sched' AND hosp IS NULL AND ?2 IS NULL";
+  const parts = [];
+  let count = 0, last = 0;
+  for (;;) {
+    const row = await env.DB.prepare(
+      `SELECT json_group_array(json_array(coll, id, hosp, ord, v, json(
+                CASE WHEN ?1 = 0 AND coll = 'resident' THEN json_remove(data, '$.phone')
+                     WHEN ?1 = 0 AND coll = 'hospital' THEN json_remove(data, '$.names')
+                     ELSE data END))) AS rows,
+              MAX(rid) AS last, COUNT(*) AS n
+         FROM (SELECT rowid AS rid, * FROM records WHERE ${where} AND rowid > ?3 ORDER BY rowid LIMIT ${PAGE_ROWS})`
+    ).bind(full, sched && !name ? null : name, last).first();
+    const n = row ? row.n : 0;
+    if (n) {
+      parts.push(row.rows.slice(1, -1));
+      count += n;
+      last = row.last;
+    }
+    if (n < PAGE_ROWS) break;
+  }
+  return `${count}|${parts.join(',')}`;
 }
 
 /**
  * Incremental read: rows changed at or after `since` plus rows deleted since then.
  * Uses the updated_at / history.ts indexes, so a page view reads only what changed.
  */
-async function readChanges(env, auth, full, collFilter, since) {
-  if (Date.now() - since > (HISTORY_KEEP_DAYS - 7) * DAY) return json({ reset: true });
+async function readChanges(env, auth, full, collFilter, since, rev, url, time) {
+  if (time - since > (HISTORY_KEEP_DAYS - 7) * DAY) return json({ reset: true });
+  const role = JSON.stringify(auth ? auth.r : 'guest');
+  const headers = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
+  // Nothing changed since the client's copy (its counter is still the current one): no need to look.
+  const token = revToken(rev);
+  if (token !== null && url.searchParams.get('rev') === token) {
+    return new Response(`{"changed":[],"deleted":[],"full":${!!full},"role":${role},"time":${time},"rev":${JSON.stringify(token)}}`, { headers });
+  }
   const [changed, deleted] = await env.DB.batch([
     env.DB.prepare(
       `SELECT json_group_array(json_array(coll, id, hosp, ord, v, json(
@@ -407,8 +492,8 @@ async function readChanges(env, auth, full, collFilter, since) {
   ]);
   const c = changed.results[0], d = deleted.results[0];
   if (c.n > 2000 || d.m > 2000) return json({ reset: true });
-  const body = `{"changed":${c.n ? c.rows : '[]'},"deleted":${d.n ? d.rows : '[]'},"full":${!!full},"role":${JSON.stringify(auth ? auth.r : 'guest')},"time":${Date.now()}}`;
-  return new Response(body, { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
+  const body = `{"changed":${c.n ? c.rows : '[]'},"deleted":${d.n ? d.rows : '[]'},"full":${!!full},"role":${role},"time":${time},"rev":${JSON.stringify(token)}}`;
+  return new Response(body, { headers });
 }
 
 async function getHistory(env, auth, url) {
@@ -522,7 +607,7 @@ async function sync(request, env, auth) {
     stmts.push(env.DB.prepare(
       `UPDATE records SET ord = j.o
          FROM (SELECT json_extract(value, '$.c') AS c, json_extract(value, '$.id') AS id, json_extract(value, '$.o') AS o FROM json_each(?1)) j
-        WHERE records.coll = j.c AND records.id = j.id`
+        WHERE records.coll = j.c AND records.id = j.id AND records.ord IS NOT j.o`
     ).bind(JSON.stringify(ords)));
   }
   stmts.push(env.DB.prepare('INSERT INTO audit (ts, role, msg, n) VALUES (?, ?, ?, ?)').bind(now, by, msg, ops.length - rejected.length));

@@ -19,6 +19,7 @@ import { nameKey } from './names.js';
 import { dutyDayNow } from './profile.js';
 import { dispatchPush } from './accounts.js';
 import { isRotatorSpec } from './exchspecs.js';
+import { residentsOf } from './revcache.js';
 
 const HOSP_RE = /^[\w-]{1,48}$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -105,9 +106,12 @@ async function dutiesView(env, rows) {
 /** has(key, res): does that resident have an active (non-rotator) account? */
 async function accountsOf(env, keys, resIds) {
   if (!keys.length && !resIds.length) return () => false;
+  // Two lookups through the name and resident indexes (one query with OR read every account).
   const { results } = await env.DB.prepare(
-    `SELECT name_key, resident_id FROM accounts WHERE status = 'active' AND role <> 'rotator'
-       AND (name_key IN (SELECT value FROM json_each(?1)) OR resident_id IN (SELECT value FROM json_each(?2)))`
+    `SELECT name_key, resident_id FROM accounts WHERE name_key IN (SELECT value FROM json_each(?1)) AND status = 'active' AND role <> 'rotator'
+     UNION ALL
+     SELECT name_key, resident_id FROM accounts WHERE resident_id IN (SELECT value FROM json_each(?2))
+        AND status IN ('pending', 'active') AND status = 'active' AND role <> 'rotator'`
   ).bind(JSON.stringify(keys), JSON.stringify(resIds)).all();
   const k = new Set((results || []).map(r => r.name_key)), r = new Set((results || []).map(x => x.resident_id).filter(Boolean));
   return (key, res) => k.has(key) || (!!res && r.has(res));
@@ -136,12 +140,8 @@ async function residentChoices(env, auth, url) {
   const hosp = String(url.searchParams.get('h') || '');
   if (!HOSP_RE.test(hosp) || !manages(auth, hosp)) return json({ error: 'forbidden' }, 403);
   const q = nameKey(String(url.searchParams.get('q') || '').slice(0, 60));
-  const [res, rot, meta, hospital] = await env.DB.batch([
-    env.DB.prepare(
-      `SELECT id, json_extract(data, '$.name') AS name, COALESCE(json_extract(data, '$.dept'), json_extract(data, '$.spec'), json_extract(data, '$.tag')) AS dept,
-              json_extract(data, '$.active') AS active
-         FROM records WHERE coll = 'resident' AND EXISTS (SELECT 1 FROM json_each(records.data, '$.hospitals') h WHERE h.value = ?1)`
-    ).bind(hosp),
+  const residents = await residentsOf(env, hosp);
+  const [rot, meta, hospital] = await env.DB.batch([
     env.DB.prepare("SELECT resident_id, name_key FROM accounts WHERE role = 'rotator'"),
     env.DB.prepare("SELECT data FROM records WHERE coll = 'meta' AND id = 'globalSpecialties'"),
     env.DB.prepare("SELECT json_extract(data, '$.specialties') AS specs FROM records WHERE coll = 'hospital' AND id = ?").bind(hosp),
@@ -151,7 +151,7 @@ async function residentChoices(env, auth, url) {
   const specs = [...store, ...own];
   const rotIds = new Set((rot.results || []).map(r => r.resident_id).filter(Boolean));
   const rotKeys = new Set((rot.results || []).map(r => r.name_key).filter(Boolean));
-  const list = (res.results || [])
+  const list = residents
     .filter(r => r.name && r.active !== 0 && r.active !== false && !rotIds.has(r.id) && !rotKeys.has(nameKey(r.name)) && !(r.dept && isRotatorSpec(specs, r.dept)))
     .map(r => ({ res: r.id, name: r.name, key: nameKey(r.name) }));
   const has = await accountsOf(env, list.map(r => r.key), list.map(r => r.res));

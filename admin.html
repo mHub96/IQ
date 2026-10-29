@@ -1785,10 +1785,9 @@
         function branchesOf(spec, specs) {
             return specs.filter(b => b.id !== spec.id && b.parentSpec === spec.id && !b.isClone);
         }
-        /** A parent's duties are its branches' duties: it is shown while any of its branches is. */
+        /** A specialty looks hidden only when it and every one of its branches are hidden (each has its own switch). */
         function shownInSchedule(spec, specs) {
-            const branches = branchesOf(spec, specs);
-            return branches.length ? branches.some(b => b.enabled !== false) : spec.enabled !== false;
+            return spec.enabled !== false || branchesOf(spec, specs).some(b => b.enabled !== false);
         }
         /** Badges for a specialty's branches; `editable` opens each branch's options (drawing sources). */
         function branchBadges(branches, editable = false) {
@@ -2754,6 +2753,7 @@
             container.innerHTML = displaySpecs.map((s) => {
                 const idx = specs.indexOf(s);
                 const isEnabled = shownInSchedule(s, specs);
+                const ownOn = s.enabled !== false;
                 const ownBranches = branchesOf(s, specs);
                 const isClone = Boolean(s.isClone);
                 let cloneSourceHospName = null;
@@ -2830,6 +2830,10 @@
                                     <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400">
                                         مخفي
                                     </span>
+                                ` : !ownOn ? `
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400" title="التخصص الرئيسي مخفي من الجدول، وفروعه الظاهرة تبقى ظاهرة">
+                                        الرئيسي مخفي
+                                    </span>
                                 ` : ''}
                             </div>
 
@@ -2884,11 +2888,11 @@
                                 <!-- Visibility Toggle -->
                                 <div class="p-2.5 rounded-xl bg-white/70 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between">
                                     <span class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                                        <i class="fas ${isEnabled ? 'fa-eye text-teal-600 dark:text-amber-400' : 'fa-eye-slash text-slate-400'}"></i>
-                                        ${ownBranches.length ? (isEnabled ? 'ظاهر في الجدول (عبر فروعه)' : 'كل فروعه مخفية') : (isEnabled ? 'ظاهر في جدول الخفارات' : 'مخفي من الجدول')}
+                                        <i class="fas ${ownOn ? 'fa-eye text-teal-600 dark:text-amber-400' : 'fa-eye-slash text-slate-400'}"></i>
+                                        ${ownBranches.length ? (ownOn ? 'التخصص الرئيسي ظاهر في الجدول' : 'التخصص الرئيسي مخفي (فروعه حسب مفاتيحها)') : (ownOn ? 'ظاهر في جدول الخفارات' : 'مخفي من الجدول')}
                                     </span>
-                                    <label class="toggle-switch-compact" title="${isEnabled ? 'ظاهر في الجدول' : 'مخفي من الجدول'}">
-                                        <input type="checkbox" ${isEnabled ? 'checked' : ''} onchange="toggleSpecEnabled('${s.id}', this.checked)" />
+                                    <label class="toggle-switch-compact" title="${ownOn ? 'ظاهر في الجدول' : 'مخفي من الجدول'}">
+                                        <input type="checkbox" ${ownOn ? 'checked' : ''} onchange="toggleSpecEnabled('${s.id}', this.checked)" />
                                         <span class="toggle-slider-compact"></span>
                                     </label>
                                 </div>
@@ -3071,10 +3075,8 @@
                 if (!window.expandedSpecIds) window.expandedSpecIds = new Set();
                 window.expandedSpecIds.add(specId);
                 if (s.parentSpec) window.expandedSpecIds.add(s.parentSpec);
-                // A parent shows in the schedule through its branches: its switch is theirs.
-                const branches = branchesOf(s, specs);
-                if (branches.length) branches.forEach(b => { b.enabled = checked; });
-                else s.enabled = checked;
+                // Each switch is its own: a main specialty's leaves its branches as they are.
+                s.enabled = checked;
                 renderSpecialtiesList();
                 renderResidentsAccordion({ preserveScroll: true });
                 populateSpecialtyDropdowns();

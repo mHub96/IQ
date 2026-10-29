@@ -68,7 +68,7 @@ async function leftOf(env, dutyIds) {
 
 const moveView = m => ({
   id: m.id, duty: m.duty_id, item: m.item_id, itemName: m.item_name || '', tenure: m.tenure_id, kind: m.kind, qty: m.qty,
-  patient: m.patient || '', sex: m.sex || '', age: m.age, ward: m.ward || '', date: m.use_date || '', note: m.note || '',
+  patient: m.patient || '', patientNo: m.patient_no || '', diagnosis: m.diagnosis || '', sex: m.sex || '', age: m.age, ward: m.ward || '', date: m.use_date || '', note: m.note || '',
   by: m.by_name || '', byRole: m.by_role || '', at: m.created_at, voided: !!m.voided_at, voidReason: m.void_reason || '', voidedBy: m.voided_by || '',
   edited: m.edited_at || null, editedBy: m.edited_by || '',
   holder: m.holder_name || '',
@@ -491,7 +491,7 @@ async function deleteDuty(request, env, auth) {
 // Recording a use (rotators of the hospital, the holder, the owner)
 // ---------------------------------------------------------------------------
 
-/** Body: { duty, item, qty, patient, sex, age, ward, date }. */
+/** Body: { duty, item, qty, patient, patientNo?, diagnosis, sex, age, ward, date }. */
 async function recordUse(request, env, auth, ctx) {
   const body = await readJson(request) || {};
   const duty = await env.DB.prepare("SELECT * FROM opioid_duties WHERE id = ? AND status = 'active'").bind(Number(body.duty)).first();
@@ -510,6 +510,8 @@ async function recordUse(request, env, auth, ctx) {
   if (!item) return json({ error: 'item_not_found' }, 404);
   const qty = Math.max(1, Math.min(10, Math.floor(Number(body.qty)) || 1));
   const patient = plainText(body.patient, 80);
+  const patientNo = plainText(body.patientNo, 30) || null;
+  const diagnosis = plainText(body.diagnosis, 120);
   const sex = body.sex === 'f' ? 'f' : body.sex === 'm' ? 'm' : '';
   const age = Math.floor(Number(body.age));
   const wards = parse(duty.wards, []);
@@ -517,6 +519,7 @@ async function recordUse(request, env, auth, ctx) {
   let date = String(body.date || dutyDayNow());
   if (!patient) return json({ error: 'patient_required' }, 400);
   if (!threeNames(patient)) return json({ error: 'patient_three_names' }, 400);
+  if (!diagnosis) return json({ error: 'diagnosis_required' }, 400);
   if (!sex) return json({ error: 'sex_required' }, 400);
   if (body.age === '' || body.age == null || !Number.isFinite(age) || age < 0 || age > 120) return json({ error: 'age_required' }, 400);
   if (!wards.includes(ward)) return json({ error: 'ward_required' }, 400);
@@ -528,9 +531,9 @@ async function recordUse(request, env, auth, ctx) {
   const now = Date.now();
   const byName = auth.name || (as === 'owner' ? 'المالك' : '');
   const ins = await env.DB.prepare(
-    `INSERT INTO opioid_moves (duty_id, item_id, tenure_id, kind, qty, patient, sex, age, ward, use_date, by_id, by_name, by_role, created_at)
-     VALUES (?1, ?2, ?3, 'use', ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13) RETURNING id`
-  ).bind(duty.id, item.id, tenure.id, qty, patient, sex, age, ward, date, auth.a || auth.r, byName, as, now).first();
+    `INSERT INTO opioid_moves (duty_id, item_id, tenure_id, kind, qty, patient, sex, age, ward, use_date, by_id, by_name, by_role, created_at, patient_no, diagnosis)
+     VALUES (?1, ?2, ?3, 'use', ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15) RETURNING id`
+  ).bind(duty.id, item.id, tenure.id, qty, patient, sex, age, ward, date, auth.a || auth.r, byName, as, now, patientNo, diagnosis).first();
   const after = left - qty;
 
   // The holder: every use (unless they recorded it themselves), and running low / out.
@@ -556,7 +559,7 @@ async function recordUse(request, env, auth, ctx) {
 }
 
 /**
- * Body: { id, action: 'edit' | 'delete', patient, sex, age, ward, date, qty, note, reason }.
+ * Body: { id, action: 'edit' | 'delete', patient, patientNo, diagnosis, sex, age, ward, date, qty, note, reason }.
  * The owner, the hospital's admins and the holder of the entry's tenure edit or delete a log entry
  * (a deleted entry stays visible, crossed out, with who deleted it; a handover cannot change). The
  * stock must stay at zero or more.
@@ -588,17 +591,21 @@ async function editMove(request, env, auth) {
   if (after < 0) return json({ error: 'not_enough', left }, 409);
   if (m.kind === 'use') {
     const patient = plainText(body.patient, 80);
+    const patientNo = plainText(body.patientNo, 30) || null;
+    const diagnosis = plainText(body.diagnosis, 120) || null;
     const sex = body.sex === 'f' ? 'f' : body.sex === 'm' ? 'm' : '';
     const age = Math.floor(Number(body.age));
     const ward = plainText(body.ward, 40);
     const date = String(body.date || '');
     if (!threeNames(patient)) return json({ error: 'patient_three_names' }, 400);
+    // Records made before the diagnosis was asked for may stay without one.
+    if (!diagnosis && m.diagnosis) return json({ error: 'diagnosis_required' }, 400);
     if (!sex) return json({ error: 'sex_required' }, 400);
     if (body.age === '' || body.age == null || !Number.isFinite(age) || age < 0 || age > 120) return json({ error: 'age_required' }, 400);
     if (!parse(m.wards, []).includes(ward)) return json({ error: 'ward_required' }, 400);
     if (!DATE_RE.test(date) || date > dutyDayNow()) return json({ error: 'bad_date' }, 400);
-    await env.DB.prepare('UPDATE opioid_moves SET qty = ?2, patient = ?3, sex = ?4, age = ?5, ward = ?6, use_date = ?7, edited_at = ?8, edited_by = ?9 WHERE id = ?1')
-      .bind(m.id, qty, patient, sex, age, ward, date, Date.now(), who).run();
+    await env.DB.prepare('UPDATE opioid_moves SET qty = ?2, patient = ?3, sex = ?4, age = ?5, ward = ?6, use_date = ?7, edited_at = ?8, edited_by = ?9, patient_no = ?10, diagnosis = ?11 WHERE id = ?1')
+      .bind(m.id, qty, patient, sex, age, ward, date, Date.now(), who, patientNo, diagnosis).run();
   } else {
     await env.DB.prepare('UPDATE opioid_moves SET qty = ?2, note = ?3, edited_at = ?4, edited_by = ?5 WHERE id = ?1')
       .bind(m.id, qty, plainText(body.note, 120) || m.note, Date.now(), who).run();

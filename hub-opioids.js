@@ -22,7 +22,7 @@
         age_required: 'اكتب عمراً صحيحاً.', ward_required: 'اختر الردهة.', bad_date: 'التاريخ غير صحيح (لا يكون في المستقبل).',
         reason_required: 'اكتب سبب الإلغاء.', forbidden: 'لا تملك صلاحية لهذا.', rate_limited: 'محاولات كثيرة، انتظر قليلاً.',
         patient_three_names: 'اكتب اسم المريض الثلاثي (اسمه واسم أبيه وجده).', would_go_negative: 'لا يمكن الحذف: سيصبح المتبقي أقل من صفر.',
-        not_editable: 'سجل الاستلام من المسؤول السابق لا يُعدَّل.', deleted: 'هذا السجل محذوف.',
+        not_editable: 'سجل الاستلام من المسؤول السابق لا يُعدَّل.', deleted: 'هذا السجل محذوف.', diagnosis_required: 'اكتب التشخيص.',
     };
     const errText = e => { const c = e && e.data && e.data.error; return (c === 'item_not_empty' && e.data.item ? `«${e.data.item}»: ` : '') + (ERR[c] || (A && A.errorText ? A.errorText(e) : 'تعذر الإتمام')); };
     const api = (method, path, body) => Hub.api(method, path, body, { retries: method === 'GET' ? 1 : 0 });
@@ -88,7 +88,7 @@
     .opi-it-row small { font-size: .62rem; opacity: .7; }
     .opi-x { border: 0; border-radius: 9px; height: 40px; background: rgba(220,38,38,.1); color: #dc2626; cursor: pointer; }
     .opi-log { margin-top: 10px; overflow-x: auto; border-radius: 12px; border: 1px solid rgba(142,142,147,.2); }
-    .opi-log table { width: 100%; border-collapse: collapse; font-size: .7rem; min-width: 520px; }
+    .opi-log table { width: 100%; border-collapse: collapse; font-size: .7rem; min-width: 700px; }
     .opi-log th { background: rgba(142,142,147,.12); font-weight: 900; padding: 7px 6px; text-align: start; white-space: nowrap; }
     .opi-log td { padding: 7px 6px; border-top: 1px solid rgba(142,142,147,.15); font-weight: 700; vertical-align: top; }
     .opi-log tr.void td { text-decoration: line-through; opacity: .5; }
@@ -227,11 +227,11 @@
     }
     function logTable(moves, { showHolder = false, canEdit = null } = {}) {
         if (!moves.length) return '<div class="opi-empty">لا توجد سجلات بعد.</div>';
-        return `<div class="opi-log"><table><thead><tr><th>النوع</th><th>المادة</th><th>العدد</th><th>المريض</th><th>الجنس</th><th>العمر</th><th>الردهة</th><th>التاريخ</th><th>سجّله</th>${showHolder ? '<th>المسؤول</th>' : ''}${canEdit ? '<th></th>' : ''}</tr></thead><tbody>
+        return `<div class="opi-log"><table><thead><tr><th>النوع</th><th>المادة</th><th>العدد</th><th>المريض</th><th>الرقم الإحصائي</th><th>التشخيص</th><th>الجنس</th><th>العمر</th><th>الردهة</th><th>التاريخ</th><th>سجّله</th>${showHolder ? '<th>المسؤول</th>' : ''}${canEdit ? '<th></th>' : ''}</tr></thead><tbody>
             ${moves.map(m => `<tr class="${m.voided ? 'void' : ''}" title="${m.voided ? `حذفه ${esc(m.voidedBy)}${m.voidReason && m.voidReason !== 'حُذف' ? ': ' + esc(m.voidReason) : ''}` : m.edited ? `عدّله ${esc(m.editedBy)} · ${esc(timeText(m.edited))}` : ''}">
                 <td class="k-${m.kind}">${KIND[m.kind][0]} ${KIND[m.kind][1]}${m.note && m.kind !== 'use' ? `<br><small>${esc(m.note)}</small>` : ''}</td>
                 <td>${esc(m.itemName)}</td><td>${m.kind === 'use' || m.kind === 'withdraw' ? '−' : '+'}${fmt(m.qty)}</td>
-                <td>${esc(m.patient)}</td><td>${SEX[m.sex] || ''}</td><td>${m.age != null && m.kind === 'use' ? m.age : ''}</td><td>${esc(m.ward)}</td>
+                <td>${esc(m.patient)}</td><td>${esc(m.patientNo)}</td><td>${esc(m.diagnosis)}</td><td>${SEX[m.sex] || ''}</td><td>${m.age != null && m.kind === 'use' ? m.age : ''}</td><td>${esc(m.ward)}</td>
                 <td>${m.date ? dateText(m.date) : timeText(m.at)}</td><td>${esc(m.by)}${m.edited ? '<br><small class="opi-ed">✎ عُدّل</small>' : ''}${m.voided ? `<br><small class="opi-ed">🗑️ حذفه ${esc(m.voidedBy)}</small>` : ''}</td>
                 ${showHolder ? `<td>${esc(m.holder)}</td>` : ''}
                 ${canEdit ? `<td class="opi-row-acts">${m.kind !== 'handover' && !m.voided && canEdit(m) ? `<button type="button" class="opi-btn" data-edit="${m.id}" aria-label="تعديل">✏️</button><button type="button" class="opi-btn danger" data-del="${m.id}" aria-label="حذف">🗑️</button>` : ''}</td>` : ''}
@@ -257,11 +257,13 @@
         if (old) old.remove();
         const box = document.createElement('div');
         box.className = 'opi-editbox opi-form';
-        const st = { patient: m.patient, sex: m.sex, age: m.age == null ? '' : String(m.age), ward: m.ward, date: m.date, qty: m.qty, note: m.note };
+        const st = { patient: m.patient, patientNo: m.patientNo, diagnosis: m.diagnosis, sex: m.sex, age: m.age == null ? '' : String(m.age), ward: m.ward, date: m.date, qty: m.qty, note: m.note };
         box.innerHTML = `<div class="opi-top" style="margin:0"><b>✏️ تعديل السجل · ${esc(m.itemName)}</b><button type="button" class="opi-btn" data-act="x">✕</button></div>
             ${m.kind === 'use' ? `
                 <div class="opi-row"><label style="flex:1">اسم المريض الثلاثي<input data-f="patient" maxlength="80" value="${esc(st.patient)}"></label>
                     <label style="width:80px">العدد<input data-f="qty" type="number" min="1" max="10" value="${st.qty}"></label></div>
+                <div class="opi-row"><label style="width:130px">الرقم الإحصائي (اختياري)<input data-f="patientNo" maxlength="30" inputmode="numeric" value="${esc(st.patientNo)}"></label>
+                    <label style="flex:1">التشخيص<input data-f="diagnosis" maxlength="120" value="${esc(st.diagnosis)}"></label></div>
                 <div class="opi-row"><label style="flex:1">الجنس<div class="opi-seg" style="display:grid;grid-template-columns:1fr 1fr"><button type="button" data-sex="m" class="${st.sex === 'm' ? 'on' : ''}">ذكر</button><button type="button" data-sex="f" class="${st.sex === 'f' ? 'on' : ''}">أنثى</button></div></label>
                     <label style="width:80px">العمر<input data-f="age" type="number" min="0" max="120" value="${esc(st.age)}"></label></div>
                 <label>الردهة<select data-f="ward">${(duty ? duty.wards : [st.ward]).map(w => `<option ${w === st.ward ? 'selected' : ''}>${esc(w)}</option>`).join('')}</select></label>
@@ -277,6 +279,7 @@
         box.querySelector('[data-act="x"]').addEventListener('click', () => box.remove());
         box.querySelector('[data-act="save"]').addEventListener('click', async e => {
             if (m.kind === 'use' && !threeNames(st.patient)) { toast(ERR.patient_three_names, 'error'); return; }
+            if (m.kind === 'use' && m.diagnosis && !String(st.diagnosis || '').trim()) { toast(ERR.diagnosis_required, 'error'); return; }
             e.currentTarget.disabled = true;
             try { await api('POST', '/api/opioids/move', { id: m.id, action: 'edit', ...st, qty: Number(st.qty), age: st.age === '' ? '' : Number(st.age) }); toast('حُفظ التعديل ✓', 'success'); after(); }
             catch (err) { e.currentTarget.disabled = false; toast(errText(err), 'error'); }
@@ -464,7 +467,7 @@
             table { width: 100%; border-collapse: collapse; }
             th, td { border: 0.6pt solid #999; padding: 3.5pt 4pt; text-align: center; vertical-align: middle; }
             th { background: #ede9fe; font-size: 9pt; }
-            td { font-size: 9.2pt; }
+            td { font-size: 8.6pt; }
             td.l { text-align: right; }
             tr { page-break-inside: avoid; }
             thead { display: table-header-group; }
@@ -491,10 +494,10 @@
                 ${Object.keys(items).length ? Object.entries(items).map(([n, v]) => `<tr><td>${esc(n)}</td><td>${v.recv}</td><td>${v.used}</td><td>${v.out}</td><td>${left[n] != null ? left[n] : '—'}</td></tr>`).join('') : '<tr><td colspan="5">—</td></tr>'}
             </tbody></table>
             <h2>السجل التفصيلي</h2>
-            ${rows.length ? `<table><thead><tr><th>#</th><th>التاريخ</th><th>النوع</th><th>المادة</th><th>العدد</th><th>اسم المريض</th><th>الجنس</th><th>العمر</th><th>الردهة</th><th>سجّله</th></tr></thead><tbody>
+            ${rows.length ? `<table><thead><tr><th>#</th><th>التاريخ</th><th>النوع</th><th>المادة</th><th>العدد</th><th>اسم المريض</th><th>الرقم الإحصائي</th><th>التشخيص</th><th>الجنس</th><th>العمر</th><th>الردهة</th><th>سجّله</th></tr></thead><tbody>
                 ${rows.map((m, i) => `<tr class="${m.voided ? 'void' : ''}"><td>${i + 1}</td><td>${m.date ? dateText(m.date) : new Date(m.at).toLocaleDateString('en-GB')}</td>
                     <td class="k-${m.kind}">${KIND[m.kind][1]}</td><td>${esc(m.itemName)}</td><td>${m.kind === 'use' || m.kind === 'withdraw' ? '−' : '+'}${m.qty}</td>
-                    <td class="l">${esc(m.patient)}</td><td>${SEX[m.sex] || ''}</td><td>${m.kind === 'use' && m.age != null ? m.age : ''}</td><td>${esc(m.ward)}</td><td>${esc(m.by)}</td></tr>`).join('')}
+                    <td class="l">${esc(m.patient)}</td><td>${esc(m.patientNo)}</td><td class="l">${esc(m.diagnosis)}</td><td>${SEX[m.sex] || ''}</td><td>${m.kind === 'use' && m.age != null ? m.age : ''}</td><td>${esc(m.ward)}</td><td>${esc(m.by)}</td></tr>`).join('')}
             </tbody></table>` : '<div class="empty">لا توجد سجلات في هذه الفترة.</div>'}
             <div class="sign"><div>المقيم المسؤول<small>${esc(holderName || '')}</small></div><div>مسؤول الصيدلية<small>&nbsp;</small></div><div>مدير المستشفى / المسؤول الإداري<small>&nbsp;</small></div></div>
             <footer><span>بوابة المستشفيات · ذمة المخدرات · ${esc(duty.place)}</span><span>${esc(hosp)}</span></footer>
@@ -787,12 +790,12 @@
         }
         const form = root.querySelector('[data-role="form"]');
         // Nothing is chosen for the recorder: every field is theirs to fill.
-        const st = { duty: duties.length === 1 ? duties[0].id : null, item: null, qty: '', patient: '', sex: '', age: '', ward: '', date: '' };
+        const st = { duty: duties.length === 1 ? duties[0].id : null, item: null, qty: '', patient: '', patientNo: '', diagnosis: '', sex: '', age: '', ward: '', date: '' };
         const duty = () => duties.find(x => x.id === st.duty) || null;
         const item = () => (duty() ? duty().items.find(i => i.id === st.item) : null) || null;
         const valid = {
             1: () => !!duty() && !!item() && Number(st.qty) >= 1 && Number(st.qty) <= Math.min(10, item().left),
-            2: () => threeNames(st.patient) && !!st.sex && st.age !== '' && Number(st.age) >= 0 && Number(st.age) <= 120,
+            2: () => threeNames(st.patient) && !!st.diagnosis.trim() && !!st.sex && st.age !== '' && Number(st.age) >= 0 && Number(st.age) <= 120,
             3: () => !!st.ward && !!st.date && st.date <= today(),
         };
         const refresh = () => {
@@ -800,7 +803,7 @@
             const it = item();
             const ok = valid[1]() && valid[2]() && valid[3]();
             root.querySelector('[data-act="submit"]').disabled = !ok;
-            const missing = !valid[1]() ? 'اختر المادة والعدد' : !valid[2]() ? 'أكمل بيانات المريض (الاسم الثلاثي، الجنس، العمر)' : !valid[3]() ? 'اختر الردهة وتاريخ الاستخدام' : '';
+            const missing = !valid[1]() ? 'اختر المادة والعدد' : !valid[2]() ? 'أكمل بيانات المريض (الاسم الثلاثي، التشخيص، الجنس، العمر)' : !valid[3]() ? 'اختر الردهة وتاريخ الاستخدام' : '';
             root.querySelector('[data-role="sum"]').innerHTML = ok
                 ? `<b>${esc(it.name)} × ${Number(st.qty)}</b> · سيتبقى <b class="${level(it.left - Number(st.qty), it.low || 0)}">${fmt(it.left - Number(st.qty))}</b>`
                 : esc(missing);
@@ -821,6 +824,10 @@
                 <div class="opu-lab">اسم المريض الثلاثي</div>
                 <input class="opu-in" data-f="patient" maxlength="80" autocomplete="off" placeholder="مثال: علي حسين كاظم" value="${esc(st.patient)}">
                 <div class="opu-namecheck"></div>
+                <div class="opu-lab">الرقم الإحصائي <span style="font-weight:700;opacity:.7">(اختياري)</span></div>
+                <input class="opu-in" data-f="patientNo" maxlength="30" inputmode="numeric" autocomplete="off" placeholder="رقم المريض الإحصائي" value="${esc(st.patientNo)}">
+                <div class="opu-lab">التشخيص</div>
+                <input class="opu-in" data-f="diagnosis" maxlength="120" autocomplete="off" placeholder="مثال: ألم ما بعد العملية" value="${esc(st.diagnosis)}">
                 <div class="opu-two">
                     <div><div class="opu-lab">الجنس</div><div class="opu-sex"><button type="button" data-sex="m" class="${st.sex === 'm' ? 'on' : ''}"><i class="fas fa-mars"></i> ذكر</button><button type="button" data-sex="f" class="${st.sex === 'f' ? 'on' : ''}"><i class="fas fa-venus"></i> أنثى</button></div></div>
                     <div><div class="opu-lab">العمر</div><input class="opu-in" data-f="age" type="number" inputmode="numeric" min="0" max="120" placeholder="بالسنوات" value="${esc(st.age)}"></div>
@@ -849,7 +856,7 @@
             btn.disabled = true;
             btn.classList.add('busy');
             try {
-                const r = await api('POST', '/api/opioids/use', { duty: st.duty, item: st.item, qty: Number(st.qty), patient: st.patient.trim(), sex: st.sex, age: Number(st.age), ward: st.ward, date: st.date });
+                const r = await api('POST', '/api/opioids/use', { duty: st.duty, item: st.item, qty: Number(st.qty), patient: st.patient.trim(), patientNo: st.patientNo.trim(), diagnosis: st.diagnosis.trim(), sex: st.sex, age: Number(st.age), ward: st.ward, date: st.date });
                 const it = item();
                 if (it) it.left = r.left;
                 toast(`سُجّل ✓ · المتبقي من ${it ? it.name : 'المادة'}: ${r.left}${r.low ? (r.left ? ' ⚠️ قارب على النفاد' : ' ⛔ نفد') : ''}`, r.low ? 'info' : 'success');

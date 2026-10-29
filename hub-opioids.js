@@ -160,6 +160,8 @@
     .opu-card b { display: block; font-size: .8rem; font-weight: 900; }
     .opu-card small { display: block; font-size: .66rem; font-weight: 800; margin-top: 3px; opacity: .75; }
     .opu-card.on { border-color: var(--o1); background: rgba(124,58,237,.1); box-shadow: 0 0 0 3px rgba(124,58,237,.18); }
+    .opu-item { text-align: center; }
+    .opu-item b { unicode-bidi: plaintext; }
     .opu-item.low small { color: #d97706; opacity: 1; } .opu-item.out small { color: #dc2626; opacity: 1; }
     .opu-card:disabled { opacity: .45; cursor: not-allowed; }
     .opu-step { display: grid; grid-template-columns: 52px 1fr 52px; gap: 6px; max-width: 260px; }

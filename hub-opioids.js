@@ -767,6 +767,11 @@
     function useForm(duties, after, host) {
         if (!duties.length) return;
         const who = (Hub.auth.getAccount() || {}).name || '';
+        // The duty roster's form shows no counts (the recorder picks the opioid; one that ran out is greyed
+        // out); the holder's tab shows them.
+        const counts = !!host;
+        const isOut = i => i.out === true || (Number.isFinite(i.left) && i.left <= 0);
+        const maxQty = it => counts && Number.isFinite(it.left) ? Math.min(10, it.left) : 10;
         let root, close;
         const shell = `<div class="opu">
             <div class="opu-hero"><span class="opu-ic">💉</span><div><h2>تسجيل استخدام مادة مخدرة</h2>
@@ -794,7 +799,7 @@
         const duty = () => duties.find(x => x.id === st.duty) || null;
         const item = () => (duty() ? duty().items.find(i => i.id === st.item) : null) || null;
         const valid = {
-            1: () => !!duty() && !!item() && Number(st.qty) >= 1 && Number(st.qty) <= Math.min(10, item().left),
+            1: () => !!duty() && !!item() && !isOut(item()) && Number(st.qty) >= 1 && Number(st.qty) <= maxQty(item()),
             2: () => threeNames(st.patient) && !!st.diagnosis.trim() && !!st.sex && st.age !== '' && Number(st.age) >= 0 && Number(st.age) <= 120,
             3: () => !!st.ward && !!st.date && st.date <= today(),
         };
@@ -805,7 +810,7 @@
             root.querySelector('[data-act="submit"]').disabled = !ok;
             const missing = !valid[1]() ? 'اختر المادة والعدد' : !valid[2]() ? 'أكمل بيانات المريض (الاسم الثلاثي، التشخيص، الجنس، العمر)' : !valid[3]() ? 'اختر الردهة وتاريخ الاستخدام' : '';
             root.querySelector('[data-role="sum"]').innerHTML = ok
-                ? `<b>${esc(it.name)} × ${Number(st.qty)}</b> · سيتبقى <b class="${level(it.left - Number(st.qty), it.low || 0)}">${fmt(it.left - Number(st.qty))}</b>`
+                ? `<b>${esc(it.name)} × ${Number(st.qty)}</b>${counts ? ` · سيتبقى <b class="${level(it.left - Number(st.qty), it.low || 0)}">${fmt(it.left - Number(st.qty))}</b>` : ''}`
                 : esc(missing);
             const nameOk = form.querySelector('.opu-namecheck');
             if (nameOk) { nameOk.className = 'opu-namecheck ' + (threeNames(st.patient) ? 'ok' : st.patient ? 'bad' : ''); nameOk.textContent = threeNames(st.patient) ? '✓ اسم ثلاثي' : st.patient ? 'يحتاج اسم الأب والجد' : 'الاسم واسم الأب والجد'; }
@@ -816,8 +821,8 @@
                 ${duties.length > 1 ? `<div class="opu-lab">الذمة (المكان)</div>
                     <div class="opu-cards">${duties.map(x => `<button type="button" class="opu-card ${x.id === st.duty ? 'on' : ''}" data-duty="${x.id}"><b>📍 ${esc(x.place)}</b><small>${esc(x.holder || '')}</small></button>`).join('')}</div>` : `<div class="opu-place">📍 ${esc(d.place)}${d.holder ? ` · <span>المسؤول: ${esc(d.holder)}</span>` : ''}</div>`}
                 ${d ? `<div class="opu-lab">المادة</div>
-                    <div class="opu-cards">${d.items.map(i => `<button type="button" class="opu-card opu-item ${level(i.left, i.low || 0)} ${i.id === st.item ? 'on' : ''}" data-item="${i.id}" ${i.left <= 0 ? 'disabled' : ''}>
-                        <b>💊 ${esc(i.name)}</b><small>${i.left <= 0 ? 'نفدت' : `المتبقي ${fmt(i.left)}`}</small></button>`).join('')}</div>
+                    <div class="opu-cards">${d.items.map(i => `<button type="button" class="opu-card opu-item ${isOut(i) ? 'out' : counts ? level(i.left, i.low || 0) : ''} ${i.id === st.item ? 'on' : ''}" data-item="${i.id}" ${isOut(i) ? 'disabled' : ''}>
+                        <b>💊 ${esc(i.name)}</b>${isOut(i) ? '<small>نفدت</small>' : counts ? `<small>المتبقي ${fmt(i.left)}</small>` : ''}</button>`).join('')}</div>
                     <div class="opu-lab">عدد الأمبولات</div>
                     <div class="opu-step"><button type="button" data-q="-1" aria-label="أقل">−</button><input data-f="qty" type="number" inputmode="numeric" min="1" max="10" placeholder="—" value="${esc(st.qty)}" aria-label="عدد الأمبولات"><button type="button" data-q="1" aria-label="أكثر">＋</button></div>` : ''}
                 <div class="opu-sep"></div>
@@ -839,7 +844,7 @@
             form.querySelectorAll('[data-duty]').forEach(b => b.addEventListener('click', () => { st.duty = Number(b.dataset.duty); st.item = null; st.ward = ''; paint(); }));
             form.querySelectorAll('[data-item]').forEach(b => b.addEventListener('click', () => { st.item = Number(b.dataset.item); paint(); }));
             form.querySelectorAll('[data-q]').forEach(b => b.addEventListener('click', () => {
-                const max = item() ? Math.min(10, item().left) : 10;
+                const max = item() ? maxQty(item()) : 10;
                 st.qty = String(Math.max(1, Math.min(max, (Number(st.qty) || 0) + Number(b.dataset.q))));
                 form.querySelector('[data-f="qty"]').value = st.qty;
                 refresh();
@@ -858,8 +863,9 @@
             try {
                 const r = await api('POST', '/api/opioids/use', { duty: st.duty, item: st.item, qty: Number(st.qty), patient: st.patient.trim(), patientNo: st.patientNo.trim(), diagnosis: st.diagnosis.trim(), sex: st.sex, age: Number(st.age), ward: st.ward, date: st.date });
                 const it = item();
-                if (it) it.left = r.left;
-                toast(`سُجّل ✓ · المتبقي من ${it ? it.name : 'المادة'}: ${r.left}${r.low ? (r.left ? ' ⚠️ قارب على النفاد' : ' ⛔ نفد') : ''}`, r.low ? 'info' : 'success');
+                if (it && Number.isFinite(r.left)) it.left = r.left;
+                if (counts && Number.isFinite(r.left)) toast(`سُجّل ✓ · المتبقي من ${it ? it.name : 'المادة'}: ${r.left}${r.low ? (r.left ? ' ⚠️ قارب على النفاد' : ' ⛔ نفد') : ''}`, r.low ? 'info' : 'success');
+                else toast('سُجّل الاستخدام ✓', 'success');
                 close();
             } catch (err) { btn.disabled = false; btn.classList.remove('busy'); toast(errText(err), 'error'); }
         });
@@ -882,7 +888,7 @@
         const duties = hit.v.duties || [];
         if (!duties.length) return;
         btn.hidden = false;
-        const out = duties.some(d => d.items.some(i => i.left <= 0));
+        const out = duties.some(d => d.items.some(i => i.out === true || i.left <= 0));
         btn.innerHTML = `<i class="fas fa-syringe"></i><span>ذمة المخدرات</span>${out ? '<span class="opi-dot" title="مادة نفدت"></span>' : ''}`;
         btn.onclick = e => {
             e.preventDefault();

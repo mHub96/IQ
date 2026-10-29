@@ -134,18 +134,21 @@ test('a rotator records a use: the holder is notified, low and empty alerts', as
   assert.equal((await call('POST', '/api/opioids/use', { token: t.rot.tok, body: { ...base, diagnosis: '  ' } })).data.error, 'diagnosis_required');
   const u1 = await call('POST', '/api/opioids/use', { token: t.rot.tok, body: base });
   assert.equal(u1.status, 200, JSON.stringify(u1.data));
-  assert.equal(u1.data.left, 4);
-  assert.equal(u1.data.low, false);
+  assert.equal(u1.data.left, undefined, 'a rotator is not told what is left');
+  const tgt = (await call('GET', `/api/opioids/targets?h=${t.h}`, { token: t.rot.tok })).data.duties.find(d => d.id === t.duty.id);
+  assert.ok(tgt.items.every(i => i.left === undefined && i.low === undefined && i.out === false), JSON.stringify(tgt.items));
+  const held = (await call('GET', `/api/opioids/targets?h=${t.h}`, { token: t.holder.tok })).data.duties.find(d => d.id === t.duty.id);
+  assert.equal(held.items.find(i => i.id === pet.id).left, 4, 'the holder is told');
   let notes = (await call('GET', '/api/notifications', { token: t.holder.tok })).data.items;
   const used = notes.find(x => x.type === 'opioid_used' && x.data.duty === t.duty.id);
   assert.ok(used && used.data.left === 4 && used.data.by.includes('روتيتر ذمة'), JSON.stringify(used));
   // Two more: down to 2 = running low.
   const u2 = await call('POST', '/api/opioids/use', { token: t.rot.tok, body: { ...base, qty: 2, sex: 'f', age: 30, ward: 'الجراحة', patientNo: '' } });
-  assert.equal(u2.data.left, 2);
-  assert.equal(u2.data.low, true);
+  assert.equal(u2.status, 200);
   notes = (await call('GET', '/api/notifications', { token: t.holder.tok })).data.items;
   assert.ok(notes.find(x => x.type === 'opioid_low' && x.data.item === pet.name && x.data.left === 2));
-  assert.equal((await call('POST', '/api/opioids/use', { token: t.rot.tok, body: { ...base, qty: 3 } })).data.error, 'not_enough');
+  const tooMany = (await call('POST', '/api/opioids/use', { token: t.rot.tok, body: { ...base, qty: 3 } })).data;
+  assert.deepEqual([tooMany.error, tooMany.left], ['not_enough', undefined]);
   // The holder uses the morphine to the end: empty.
   await call('POST', '/api/opioids/use', { token: t.holder.tok, body: { ...base, item: mor.id, qty: 2 } });
   notes = (await call('GET', '/api/notifications', { token: t.holder.tok })).data.items;

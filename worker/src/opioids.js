@@ -189,14 +189,16 @@ async function targets(env, auth, url) {
   if (!HOSP_RE.test(hosp)) return json({ error: 'bad_request' }, 400);
   const { results } = await env.DB.prepare("SELECT * FROM opioid_duties WHERE hosp = ? AND status = 'active' ORDER BY created_at").bind(hosp).all();
   let duties = await dutiesView(env, results || []);
-  if (auth.r === 'owner') return json({ ok: true, duties: duties.map(targetView), as: 'owner' });
+  if (auth.r === 'owner') return json({ ok: true, duties: duties.map(d => targetView(d, true)), as: 'owner' });
   if (!auth.a) return json({ ok: true, duties: [] });
-  if (auth.r === 'rotator') return json({ ok: true, duties: auth.hosp === hosp ? duties.map(targetView) : [], as: 'rotator' });
+  // Rotators are not told how many ampoules are left: only which opioids have run out.
+  if (auth.r === 'rotator') return json({ ok: true, duties: auth.hosp === hosp ? duties.map(d => targetView(d, false)) : [], as: 'rotator' });
   const key = await accountKey(env, auth);
   duties = duties.filter(d => d.holder && key && d.holder.key === key);
-  return json({ ok: true, duties: duties.map(targetView), as: 'holder' });
+  return json({ ok: true, duties: duties.map(d => targetView(d, true)), as: 'holder' });
 }
-const targetView = d => ({ id: d.id, place: d.place, wards: d.wards, holder: d.holder ? d.holder.name : '', items: d.items.map(i => ({ id: i.id, name: i.name, left: i.left, low: i.low })) });
+const targetView = (d, counts) => ({ id: d.id, place: d.place, wards: d.wards, holder: d.holder ? d.holder.name : '',
+  items: d.items.map(i => counts ? { id: i.id, name: i.name, left: i.left, low: i.low, out: i.left <= 0 } : { id: i.id, name: i.name, out: i.left <= 0 }) });
 
 async function accountKey(env, auth) {
   const row = await env.DB.prepare('SELECT name_key, role FROM accounts WHERE id = ?').bind(auth.a).first();
@@ -527,7 +529,7 @@ async function recordUse(request, env, auth, ctx) {
   if (!DATE_RE.test(date) || date > dutyDayNow()) return json({ error: 'bad_date' }, 400);
 
   const left = (await leftOf(env, [duty.id])).get(item.id) || 0;
-  if (qty > left) return json({ error: 'not_enough', left }, 409);
+  if (qty > left) return json({ error: 'not_enough', ...(as === 'rotator' ? {} : { left }) }, 409);
   const now = Date.now();
   const byName = auth.name || (as === 'owner' ? 'المالك' : '');
   const ins = await env.DB.prepare(
@@ -555,6 +557,7 @@ async function recordUse(request, env, auth, ctx) {
       { duty: duty.id, place: duty.place, item: item.name, left: after, low: item.low_at }, now + 1);
     if (low) dispatchPush(env, ctx, low);
   }
+  if (as === 'rotator') return json({ ok: true, id: ins.id });
   return json({ ok: true, id: ins.id, left: after, low: after <= item.low_at });
 }
 

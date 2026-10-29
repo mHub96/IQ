@@ -151,6 +151,35 @@ export async function cachedValue(key, rev, build) {
 }
 
 /**
+ * Like cachedValue(), for answers that may lag a little behind a change: the copy built at another
+ * revision is still used while it is under `maxAgeMs` old. For data changed many times an hour by
+ * counters nobody needs to the minute (contact taps raise a duty's VisitCount, and with it its
+ * hospital's 's:' counter): built again at most once per `maxAgeMs`, and never while nothing changed.
+ */
+export async function cachedRecent(key, rev, maxAgeMs, build) {
+  if (rev === null || rev === undefined || epoch === null) return build();
+  const k = keyOf(key, 'recent');
+  const now = Date.now();
+  const fresh = e => e && (e.rev === rev || now - e.at < maxAgeMs);
+  let entry = memGet(k);
+  if (!fresh(entry)) {
+    entry = undefined;
+    try {
+      const hit = await caches.default.match(edgeKey(k));
+      if (hit) { const e = await hit.json(); if (fresh(e)) entry = e; }
+    } catch {}
+    if (!entry) {
+      entry = { rev, at: now, value: await build() };
+      try {
+        await caches.default.put(edgeKey(k), new Response(JSON.stringify(entry), { headers: { 'Content-Type': 'application/json', 'Cache-Control': `max-age=${EDGE_SECONDS}` } }));
+      } catch {}
+    }
+    memSet(k, entry, JSON.stringify(entry.value).length * 2);
+  }
+  return entry.value;
+}
+
+/**
  * Every resident record of the hospital database, without phone numbers:
  * [{ id, name, dept, active, hospitals }] (`hospitals` as stored: the ids, usually strings). Read again
  * only after a resident record changed; callers must not change the list.

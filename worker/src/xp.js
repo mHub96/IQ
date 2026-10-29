@@ -18,10 +18,11 @@
 import { json } from './lib.js';
 import { nameKey, isoDate } from './names.js';
 import { dutyDayNow } from './profile.js';
-import { revision, cachedValue } from './revcache.js';
+import { revision, cachedRecent } from './revcache.js';
 
 const HOSP_RE = /^[\w-]{1,48}$/;
 const CACHE_SECONDS = 300;
+const SCHED_LAG_MS = 30 * 60 * 1000;
 
 /** Points per thing done. */
 /** duty: a duty with no contact; dutyBoost: what each contact during it adds to it (up to DUTY_BOOST_MAX). */
@@ -90,8 +91,9 @@ async function hospitalStats(env, hosp) {
 
   const today = dutyDayNow();
   const month = today.slice(0, 7);
-  // The hospital's whole roster is read again only after one of its duties changed.
-  const schedRows = await cachedValue(`xp-sched/${hosp}`, await revision(env, 's:' + hosp), async () => {
+  // The hospital's whole roster is read again only after one of its duties changed, and then at most
+  // once per SCHED_LAG_MS: every contact tap changes a duty (its VisitCount).
+  const schedRows = await cachedRecent(`xp-sched/${hosp}`, await revision(env, 's:' + hosp), SCHED_LAG_MS, async () => {
     const { results } = await env.DB.prepare(
       `SELECT json_extract(data, '$.name') AS n, json_extract(data, '$.date') AS d, json_extract(data, '$.specCode') AS s,
               COALESCE(json_extract(data, '$.VisitCount'), 0) AS v, json_extract(data, '$.isClone') AS c

@@ -1185,6 +1185,10 @@
         .board-container.single-view .navigation-arrows {
             display: flex;
         }
+        /* A table's own previous / next arrows belong to the single-table view only. */
+        .board-container:not(.single-view) .track-navigation {
+            display: none;
+        }
 
         .track-indicators {
             position: fixed;
@@ -1829,6 +1833,27 @@
         // ================================================================
         // SPECIALTY MANAGEMENT
         // ================================================================
+        var allSpecialtyTracks = []; // every enabled specialty; specialtyList = the ones shown
+
+        /** Shows a table only when someone can be put on it, it already has duties, or it mirrors another hospital. */
+        function pruneEmptyTracks() {
+            var withDuties = {};
+            getActiveSchedule().forEach(function(e) { if (e && e.specCode) withDuties[e.specCode] = true; });
+            // The specialty's own residents (no "everyone" fallback, which the name list offers for an empty one).
+            var ownCount = function(sp) {
+                if (window.Hub && Hub.residentsOfSpecialty) { try { return Hub.residentsOfSpecialty(database, sp.id).list.length; } catch (e) {} }
+                return (nameData[sp.id] || []).length;
+            };
+            var current = specialtyList[currentTrackIndex] && specialtyList[currentTrackIndex].id;
+            // (The specialists' tables take any name when a specialty has no specialist listed: all stay.)
+            specialtyList = allSpecialtyTracks.filter(function(sp) {
+                return schedulerMode === 'specialists' || sp.isClone || ownCount(sp) > 0 || withDuties[sp.id];
+            });
+            var at = specialtyList.findIndex(function(sp) { return sp.id === current; });
+            currentTrackIndex = at !== -1 ? at : Math.min(currentTrackIndex || 0, Math.max(0, specialtyList.length - 1));
+            populateSpecialtyQuickSelect();
+        }
+
         function buildSpecialtyList() {
             specialtyColorMap = {};
             var enabledSpecialties = (database.specialties || []).filter(function(specialty) { return specialty.enabled !== false; });
@@ -1850,9 +1875,11 @@
                         clonedFromSpecId: specialty.clonedFromSpecId
                     };
                 });
+                allSpecialtyTracks = specialtyList.slice();
                 return;
             }
             specialtyList = [];
+            allSpecialtyTracks = [];
             specialtyColorMap = {};
         }
 
@@ -1868,7 +1895,7 @@
                     allSpecialists = database.specialists || [];
                 }
 
-                specialtyList.forEach(function(specialty) {
+                allSpecialtyTracks.forEach(function(specialty) {
                     var specId = specialty.id;
                     var matching = allSpecialists.filter(function(s) {
                         var sCode = s.spec || s.specCode || s.specialty || '';
@@ -1880,11 +1907,12 @@
                     });
                     nameData[specialty.id] = matching.map(function(s) { return s.name; });
                 });
+                pruneEmptyTracks();
                 return;
             }
 
             var residents = database.names || [];
-            specialtyList.forEach(function(specialty) {
+            allSpecialtyTracks.forEach(function(specialty) {
                 if (window.Hub && typeof window.Hub.getEligibleResidentsForSpecialty === 'function') {
                     var eligible = window.Hub.getEligibleResidentsForSpecialty(database, specialty.id);
                     nameData[specialty.id] = eligible.map(function(resident) { return resident.name; });
@@ -1910,6 +1938,7 @@
                     nameData[specialty.id] = eligible.map(function(resident) { return resident.name; });
                 }
             });
+            pruneEmptyTracks();
         }
 
         function getSpecialtyColor(specialtyId) {
@@ -2471,12 +2500,10 @@
                         ` : `
                             <span class="specialty-count">${totalResidents} ${roleCountLabel}</span>
                         `}
-                        ${isSingleView ? `
-                            <div class="track-navigation">
-                                <button onclick="event.stopPropagation(); navigateTrack(-1)">‹</button>
-                                <button onclick="event.stopPropagation(); navigateTrack(1)">›</button>
-                            </div>
-                        ` : ''}
+                        <div class="track-navigation">
+                            <button onclick="event.stopPropagation(); navigateTrack(-1)" aria-label="الجدول السابق">‹</button>
+                            <button onclick="event.stopPropagation(); navigateTrack(1)" aria-label="الجدول التالي">›</button>
+                        </div>
                     </div>
                     <div class="days-list">
                 `;

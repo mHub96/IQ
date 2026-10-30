@@ -43,6 +43,8 @@ const ROLES = ['user', 'anaesthesia', 'admin', 'owner'];
 const TOKEN_ROLES = [...ROLES, 'rotator', ...AA_ROLES];
 const PAGE_ROWS = 1500;
 const HISTORY_KEEP_DAYS = 120;
+const ER_HISTORY_KEEP = 20;  // copies of each ER record always kept (see the nightly clean-up)
+const ER_HISTORY_DAYS = 30;  // and one a day for this many days
 const LOGIN_FAIL_LIMIT = 20;
 
 export default {
@@ -73,6 +75,17 @@ export default {
     await snapshotStats(env).catch(err => console.error('stats snapshot', err && err.message));
     await env.DB.batch([
       env.DB.prepare('DELETE FROM history WHERE ts < ?').bind(now - HISTORY_KEEP_DAYS * DAY),
+      // The ER page saves its whole record (up to ~2 MB) on every save, some 30 times a day: of each ER
+      // record keep the latest ER_HISTORY_KEEP copies, and the last copy of each day (Iraq time) for
+      // ER_HISTORY_DAYS days. (Unthinned, these copies filled the database's 500 MB in under three weeks.)
+      env.DB.prepare(
+        `DELETE FROM history WHERE hid IN (
+           SELECT hid FROM (
+             SELECT hid, ts, ROW_NUMBER() OVER (PARTITION BY id ORDER BY hid DESC) AS rn,
+                    ROW_NUMBER() OVER (PARTITION BY id, date(ts / 1000, 'unixepoch', '+3 hours') ORDER BY hid DESC) AS dn
+               FROM history WHERE coll = 'er')
+            WHERE rn > ?1 AND (dn > 1 OR ts < ?2))`
+      ).bind(ER_HISTORY_KEEP, now - ER_HISTORY_DAYS * DAY),
       env.DB.prepare('DELETE FROM audit WHERE ts < ?').bind(now - 365 * DAY),
       env.DB.prepare('DELETE FROM login_fail WHERE bucket < ?').bind(bucketOf(now) - 6),
     ]);

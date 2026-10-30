@@ -1935,6 +1935,25 @@
         return true;
     }
 
+    /**
+     * The months kept inside the saved state. Every month is also its own entry (prefix + key, mirrored
+     * to the server as its own record), which the page reads first; a copy of every month inside the
+     * state made that one record grow each month towards the 1.8 MB an ER record may be. Kept: the month
+     * on screen and the next one, and any month whose own entry is missing or not the same.
+     */
+    function slimMonths(months, prefix) {
+        if (!months || typeof months !== 'object') return months;
+        const y = Number(state.year), m = Number(state.month);
+        const keep = new Set([`${state.hospitalId}_${y}_${m}`, m === 12 ? `${state.hospitalId}_${y + 1}_1` : `${state.hospitalId}_${y}_${m + 1}`]);
+        const out = {};
+        Object.keys(months).forEach(k => {
+            let own = null;
+            try { own = localStorage.getItem(prefix + k); } catch (e) {}
+            if (keep.has(k) || own === null || own !== JSON.stringify(months[k])) out[k] = months[k];
+        });
+        return out;
+    }
+
     function saveState() {
         saveCurrentMonthScheduleToStore();
         saveCurrentMonthAllocationsToStore();
@@ -1944,6 +1963,8 @@
         // the state it held up to 50 copies of the schedules and residents, outgrew the browser's storage,
         // and the failed save stopped the table from redrawing.
         const { undoStack, redoStack, ...saved } = state;
+        saved.monthlySchedules = slimMonths(state.monthlySchedules, MONTH_STORAGE_PREFIX);
+        saved.monthlyAllocations = slimMonths(state.monthlyAllocations, MONTH_ALLOC_PREFIX);
         try {
             localStorage.setItem(STATE_KEY, JSON.stringify(saved));
         } catch (e) {

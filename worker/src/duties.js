@@ -129,7 +129,8 @@ export async function findErResident(env, account) {
   ).bind(path, ER_STATE_ID, match.id).first();
   let res = {};
   try { res = JSON.parse(full ? full.v : '{}'); } catch {}
-  return { id: match.id, name: match.name, sex: match.sex === 'F' ? 'f' : match.sex === 'M' ? 'm' : null, prefs: cleanPrefs(res, null, true) };
+  return { id: match.id, name: match.name, sex: match.sex === 'F' ? 'f' : match.sex === 'M' ? 'm' : null, prefs: cleanPrefs(res, null, true),
+    prefsYm: typeof res.prefsYm === 'string' ? res.prefsYm : null };
 }
 
 export function pickResident(rows, account) {
@@ -596,6 +597,7 @@ export function cleanPrefs(p, ym, loose = false) {
     excludedIntervals: [],
     noConsecutiveDays: p.noConsecutiveDays !== false,
     prefNote: plainText(p.prefNote, 500),
+    prefsKeep: p.prefsKeep === true,  // carry on to the following months (else: this month only)
   };
   for (const iv of (Array.isArray(p.excludedIntervals) ? p.excludedIntervals : []).slice(0, 12)) {
     let s = isoDate(iv && iv.start), e = isoDate(iv && iv.end);
@@ -636,7 +638,8 @@ async function portalMine(env, auth) {
     ok: true,
     portal: { hosp: portal.hosp, ym: portal.ym, closesAt: portal.closes_at, opensAt: portal.opens_at },
     er: er ? { id: er.id, name: er.name, sex: er.sex } : null,
-    prefs: prefs || (er ? er.prefs : cleanPrefs({}, portal.ym)),
+    // A new request starts from the preferences in the ER page when they still apply to this month.
+    prefs: prefs || (er && (!er.prefsYm || er.prefs.prefsKeep || er.prefsYm === portal.ym) ? er.prefs : cleanPrefs({}, portal.ym)),
     request: req ? { at: req.updated_at, applied: !!req.applied_at && req.applied_at >= req.updated_at } : null,
   });
 }

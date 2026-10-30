@@ -252,6 +252,21 @@
     }
     const preferDaysOf = r => dayPrefsOf(r).prefer;
 
+    // Preferences apply to the month they were chosen for (prefsYm), or to every month while the
+    // resident (or the hospital's admins / the owner) keeps them on (prefsKeep). Preferences saved before
+    // months were recorded have no prefsYm and keep applying, as they always did, until edited.
+    const ymOfState = () => `${state.year}-${String(state.month).padStart(2, '0')}`;
+    function prefsApplyTo(r, ym) {
+        if (!r || r.prefsKeep === true || !r.prefsYm) return true;
+        return r.prefsYm === ym;
+    }
+    /** The resident as the automatic distribution of the month on screen sees them. */
+    function withMonthPrefs(r) {
+        if (prefsApplyTo(r, ymOfState())) return r;
+        return { ...r, prefShifts: [], prefDays: [], daysPrefer: [], daysExclude: [], specificDays: [], prefDaysMode: 'exclude',
+            excludedDates: [], intervalMode: 'exclude', excludedIntervals: [], noConsecutiveDays: true, preferences: { prefShifts: [], prefDays: [] } };
+    }
+
     /** Writes both day lists, plus the single list older pages read (the days off win). */
     function setDayPrefs(r, prefer, exclude, month) {
         r.daysPrefer = [...new Set(prefer.map(Number))].sort((a, b) => a - b);
@@ -6035,6 +6050,12 @@
         selectResidentSpecialty(residentId, specName);
     }
 
+    function hasAnyPrefs(r) {
+        return (Array.isArray(r.prefDays) && r.prefDays.length > 0) || (Array.isArray(r.prefShifts) && r.prefShifts.length > 0)
+            || dayPrefsOf(r).prefer.length > 0 || dayPrefsOf(r).exclude.length > 0
+            || (Array.isArray(r.excludedIntervals) && r.excludedIntervals.length > 0) || r.noConsecutiveDays === false || !!r.prefNote;
+    }
+
     function renderResidentPrefsButtonHTML(r) {
         const hasPrefs = (Array.isArray(r.prefDays) && r.prefDays.length > 0) || 
                          (Array.isArray(r.prefShifts) && r.prefShifts.length > 0) || 
@@ -6045,6 +6066,14 @@
                          (Array.isArray(r.excludedDates) && r.excludedDates.length > 0) ||
                          (Array.isArray(r.excludedIntervals) && r.excludedIntervals.length > 0) ||
                          (r.noConsecutiveDays === false);
+        if (hasPrefs && !prefsApplyTo(r, ymOfState())) {
+            return `
+                <button type="button" onclick="openResidentPrefsModal('${r.id}')" class="px-2.5 py-1 rounded-xl text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-700 hover:bg-slate-100 transition flex items-center justify-center gap-1 mx-auto" title="رغبات شهر آخر، لا تُطبق على هذا الشهر - انقر للتعديل">
+                    <i class="fas fa-sliders"></i>
+                    <span>رغبات ${String(r.prefsYm || '').slice(5, 7)}/${String(r.prefsYm || '').slice(0, 4)}</span>
+                </button>
+            `;
+        }
         if (hasPrefs) {
             return `
                 <button type="button" onclick="openResidentPrefsModal('${r.id}')" class="px-2.5 py-1 rounded-xl text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition shadow-2xs flex items-center justify-center gap-1 mx-auto" title="لديه رغبات محددة - انقر للتعديل">
@@ -6666,6 +6695,7 @@
             specificDays: Array.isArray(r.specificDays) ? [...r.specificDays] : [],
             ...(Array.isArray(r.daysPrefer) || Array.isArray(r.daysExclude) ? { daysPrefer: [...(r.daysPrefer || [])], daysExclude: [...(r.daysExclude || [])] } : {}),
             prefNote: r.prefNote || '',
+            ...(r.prefsYm ? { prefsYm: r.prefsYm, prefsKeep: r.prefsKeep === true } : {}),
             excludedDates: Array.isArray(r.excludedDates) ? [...r.excludedDates] : [],
             intervalMode: r.intervalMode || 'exclude',
             excludedIntervals: Array.isArray(r.excludedIntervals) ? JSON.parse(JSON.stringify(r.excludedIntervals)) : [],
@@ -6804,6 +6834,7 @@
                     specificDays: Array.isArray(r.specificDays) ? [...r.specificDays] : [],
                     ...(Array.isArray(r.daysPrefer) || Array.isArray(r.daysExclude) ? { daysPrefer: [...(r.daysPrefer || [])], daysExclude: [...(r.daysExclude || [])] } : {}),
                     prefNote: r.prefNote || '',
+                    ...(r.prefsYm ? { prefsYm: r.prefsYm, prefsKeep: r.prefsKeep === true } : {}),
                     excludedDates: Array.isArray(r.excludedDates) ? [...r.excludedDates] : [],
                     intervalMode: r.intervalMode || 'exclude',
                     excludedIntervals: Array.isArray(r.excludedIntervals) ? JSON.parse(JSON.stringify(r.excludedIntervals)) : [],
@@ -7037,6 +7068,17 @@
         tempDaysMode = 'exclude';
         const noteEl = document.getElementById('pref-note');
         if (noteEl) noteEl.value = res.prefNote || '';
+        // Which month these preferences are for, and whether they carry on to the following months.
+        const keepEl = document.getElementById('pref-keep');
+        if (keepEl) keepEl.checked = res.prefsKeep === true || (!res.prefsYm && hasAnyPrefs(res));
+        const monthNote = document.getElementById('pref-month-note');
+        if (monthNote) {
+            const other = res.prefsYm && res.prefsYm !== ymOfState();
+            monthNote.textContent = other
+                ? `هذه الرغبات محفوظة لشهر ${Number(res.prefsYm.slice(5, 7))}/${res.prefsYm.slice(0, 4)}${res.prefsKeep ? ' وتستمر للأشهر التالية' : '، ولا تُطبق على هذا الشهر'}. الحفظ يجعلها لشهر ${state.month}/${state.year}.`
+                : `محفوظة لشهر ${state.month}/${state.year}.`;
+            monthNote.className = 'text-[10.5px] mt-1.5 leading-relaxed ' + (other && !res.prefsKeep ? 'text-amber-600 dark:text-amber-400 font-bold' : 'text-slate-500');
+        }
         tempIntervalMode = res.intervalMode || 'exclude';
         tempIntervals = Array.isArray(res.excludedIntervals) ? JSON.parse(JSON.stringify(res.excludedIntervals)) : [];
 
@@ -7289,6 +7331,10 @@
         setDayPrefs(res, tempPreferDays, tempExcludeDays, curMonth);
         const noteEl = document.getElementById('pref-note');
         if (noteEl) res.prefNote = noteEl.value.trim().slice(0, 500);
+        // Saved for the month on screen; kept for the following months only while the switch is on.
+        res.prefsYm = ymOfState();
+        const keepEl = document.getElementById('pref-keep');
+        res.prefsKeep = !!(keepEl && keepEl.checked);
 
         // Save interval mode and intervals (directly scrape DOM for 100% sync)
         const rowInputs = modal.querySelectorAll('.pref-interval-row');
@@ -9265,7 +9311,8 @@
      */
     function runAutoDistribution(type, mode) {
         const daysCount = getDaysInMonth(state.year, state.month);
-        const activeDocs = (state.residents || []).filter(r => r.active && !isResidentExpired(r, state.year, state.month));
+        // Each resident's preferences count only in their month (or while kept for the following months).
+        const activeDocs = (state.residents || []).filter(r => r.active && !isResidentExpired(r, state.year, state.month)).map(withMonthPrefs);
 
         if (activeDocs.length === 0) {
             alert('لا يوجد أطباء نشطون مؤهلون للتوزيع لهذا الشهر!');

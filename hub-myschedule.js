@@ -862,6 +862,8 @@
                 <p class="msp-note" data-role="iv-desc"></p></div>
             <div class="msp-card"><label class="msp-check"><input type="checkbox" data-role="nocons" ${prefs.noConsecutiveDays !== false ? 'checked' : ''}>
                 <span>تجنب الخفارات في أيام متتالية<br><small class="hacc-muted">مفضل افتراضياً لمنع الإجهاد وضمان فاصل كافٍ بين الخفارات</small></span></label></div>
+            <div class="msp-card"><label class="msp-check"><input type="checkbox" data-role="keep" ${prefs.prefsKeep ? 'checked' : ''}>
+                <span>إبقاء هذه الرغبات للأشهر التالية<br><small class="hacc-muted">عند الإيقاف تُطبق على شهر ${esc(monthTitle(p.ym))} فقط</small></span></label></div>
             <div class="msp-card"><div class="t"><i class="fas fa-comment-dots"></i> ملاحظة أو طلب خاص (اختياري)</div>
                 <textarea class="ms-textarea" data-role="note" maxlength="500" placeholder="مثلاً: لدي امتحان يوم 15، أفضّل الخفارات في الأسبوع الأخير…">${esc(prefs.prefNote || '')}</textarea></div>
             <div class="msp-save"><button type="button" class="ms-btn primary" data-act="send" style="width:100%"><i class="fas fa-paper-plane"></i> ${portal.request ? 'حفظ التعديلات' : 'إرسال رغباتي'}</button>
@@ -924,6 +926,7 @@
                 daysPrefer: prefs.daysPrefer,
                 daysExclude: prefs.daysExclude,
                 prefNote: form.querySelector('[data-role="note"]').value.trim(),
+                prefsKeep: form.querySelector('[data-role="keep"]').checked,
                 intervalMode: prefs.intervalMode,
                 excludedIntervals: prefs.excludedIntervals.filter(iv => iv.start || iv.end),
                 noConsecutiveDays: form.querySelector('[data-role="nocons"]').checked,

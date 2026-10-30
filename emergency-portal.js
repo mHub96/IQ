@@ -45,7 +45,7 @@
     let last = null; // last GET /api/er-portal response for the hospital on screen
     let syncing = null;
 
-    function applyPrefs(res, p, month, at) {
+    function applyPrefs(res, p, month, at, ym) {
         res.prefShifts = [...(p.prefShifts || [])];
         res.prefDays = [...(p.prefDays || [])];
         res.noConsecutiveDays = p.noConsecutiveDays !== false;
@@ -56,6 +56,9 @@
         res.specificDays = res.prefDaysMode === 'exclude' ? [...res.daysExclude] : [...res.daysPrefer];
         res.excludedDates = res.daysExclude.map(d => `${d}/${month}`);
         res.prefNote = String(p.prefNote || '').slice(0, 500);
+        // For the portal's month; carried on to the following months only if the resident asked.
+        if (ym) res.prefsYm = ym;
+        res.prefsKeep = p.prefsKeep === true;
         res.intervalMode = p.intervalMode === 'strictly_within' ? 'strictly_within' : 'exclude';
         res.excludedIntervals = (p.excludedIntervals || []).map(iv => ({ start: iv.start, end: iv.end }));
         res.preferences = { prefDays: [...res.prefDays], prefShifts: [...res.prefShifts], noConsecutiveDays: res.noConsecutiveDays };
@@ -80,7 +83,7 @@
             pending.forEach(r => {
                 const target = (st.residents || []).find(x => String(x.id) === String(r.erId));
                 if (!target) return;
-                applyPrefs(target, r.prefs || {}, per.month, r.at);
+                applyPrefs(target, r.prefs || {}, per.month, r.at, per.ym);
                 done.push({ accountId: r.accountId, at: r.at });
             });
             if (!done.length) return res;
@@ -383,6 +386,7 @@
         const p = {
             prefShifts: res.prefShifts || [], prefDays: res.prefDays || [], daysPrefer: res.daysPrefer || [], daysExclude: res.daysExclude || [],
             intervalMode: res.intervalMode, excludedIntervals: res.excludedIntervals || [], noConsecutiveDays: res.noConsecutiveDays !== false, prefNote: res.prefNote || '',
+            prefsKeep: res.prefsKeep === true,
         };
         Hub().api('POST', '/api/er-pref-history', { hosp: per.hosp, ym: per.ym, erId: String(res.id), erName: res.name, prefs: p }, { retries: 1 })
             .catch(err => console.warn('preferences history not saved', err));

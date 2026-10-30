@@ -34,6 +34,7 @@
         (p.excludedIntervals || []).forEach(iv => chip('iv', p.intervalMode === 'strictly_within' ? 'fa-bullseye' : 'fa-ban',
             `${p.intervalMode === 'strictly_within' ? 'حصراً' : 'استبعاد'} من ${esc(day(iv.start))} إلى ${esc(day(iv.end))}`));
         if (p.noConsecutiveDays === false) chip('', 'fa-repeat', 'يقبل أياماً متتالية');
+        if (p.prefsKeep === true) chip('', 'fa-forward', 'تستمر للأشهر التالية');
         return out.length ? `<div class="hph-chips">${out.join('')}</div>` : '';
     }
 

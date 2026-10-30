@@ -889,6 +889,18 @@
                     <textarea id="pref-note" maxlength="500" rows="3" placeholder="مثلاً: لدي امتحان في 15، أفضّل الخفارات في الأسبوع الأخير…" class="w-full p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100 leading-relaxed resize-y"></textarea>
                 </div>
 
+                <!-- The month these preferences are for -->
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <label class="flex items-center gap-3 p-3 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-900 cursor-pointer">
+                        <input type="checkbox" id="pref-keep" class="w-4 h-4 rounded accent-indigo-600">
+                        <div>
+                            <span class="font-bold text-slate-800 dark:text-slate-200 text-xs">إبقاء هذه الرغبات للأشهر التالية</span>
+                            <p class="text-[10px] text-slate-400 mt-0.5">عند الإيقاف تُطبق الرغبات على شهر الجدول الحالي فقط</p>
+                        </div>
+                    </label>
+                    <p id="pref-month-note" class="text-[10.5px] mt-1.5 text-slate-500"></p>
+                </div>
+
                 <p class="text-[11px] text-slate-400">
                     * يراعي التوزيع الآلي الأيام والفترات المستبعدة بدقة تامة ويمنع تكليف الطبيب فيها نهائياً.
                 </p>

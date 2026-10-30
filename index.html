@@ -2023,6 +2023,7 @@
     <script src="./hub-aa.js"></script>
     <script src="./hub-avatar.js"></script>
     <script src="./hub-accounts.js"></script>
+    <script src="./hub-chiefs.js"></script>
     <script src="./nav-component.js"></script>
     <script>
         // ============================================================
@@ -2801,6 +2802,7 @@
                             <a href="./Home.html?hospital=${h.id}" class="ios-btn primary hosp-roster-btn" onclick="Hub.setActiveHospitalId('${h.id}')">
                                 <i class="fas fa-users-viewfinder"></i> <span>الخفراء اليوم</span>
                             </a>
+                            ${!Hub.aa.active && window.HubChiefs ? HubChiefs.cardButton(h) : ''}
                             <button type="button" class="hosp-expand-arrow-btn" onclick="toggleHospitalCardExpand('${h.id}', event)" aria-label="عرض المزيد من الخيارات" title="المزيد من الخيارات" aria-expanded="false">
                                 <i class="fas fa-chevron-down"></i>
                             </button>

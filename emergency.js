@@ -239,6 +239,28 @@
         return targetTs >= min && targetTs <= max;
     }
 
+    // Days of the month a resident prefers and days they want off. Both lists at once since 2026-10-30
+    // (daysPrefer / daysExclude); older data has one list (specificDays) and a mode saying which it is.
+    function dayPrefsOf(r) {
+        const nums = a => (Array.isArray(a) ? a : []).map(Number).filter(n => Number.isInteger(n) && n >= 1 && n <= 31);
+        if (r && (Array.isArray(r.daysPrefer) || Array.isArray(r.daysExclude))) {
+            const prefer = nums(r.daysPrefer);
+            return { prefer, exclude: nums(r.daysExclude).filter(d => !prefer.includes(d)), split: true };
+        }
+        const one = nums(r && r.specificDays);
+        return (r && r.prefDaysMode === 'prefer') ? { prefer: one, exclude: [], split: false } : { prefer: [], exclude: one, split: false };
+    }
+    const preferDaysOf = r => dayPrefsOf(r).prefer;
+
+    /** Writes both day lists, plus the single list older pages read (the days off win). */
+    function setDayPrefs(r, prefer, exclude, month) {
+        r.daysPrefer = [...new Set(prefer.map(Number))].sort((a, b) => a - b);
+        r.daysExclude = [...new Set(exclude.map(Number))].filter(d => !r.daysPrefer.includes(d)).sort((a, b) => a - b);
+        r.prefDaysMode = r.daysExclude.length || !r.daysPrefer.length ? 'exclude' : 'prefer';
+        r.specificDays = r.prefDaysMode === 'exclude' ? [...r.daysExclude] : [...r.daysPrefer];
+        r.excludedDates = r.daysExclude.map(d => `${d}/${month}`);
+    }
+
     // Helper: Check if specific date or interval is excluded for a resident (Rule 2)
     function isDateExcludedForResident(r, dayNumber, dateStr) {
         if (!r) return false;
@@ -249,11 +271,10 @@
         const curDateStr = dateStr || formatDateStr(curYear, curMonth, dNum);
         const targetTs = parseDateToTimestamp(curDateStr) || new Date(curYear, curMonth - 1, dNum).getTime();
 
-        // 1. Check specific days of the month (only if mode is 'exclude')
-        const prefDaysMode = r.prefDaysMode || 'exclude';
-        if (prefDaysMode === 'exclude') {
-            const specificDays = Array.isArray(r.specificDays) ? r.specificDays.map(Number) : [];
-            if (specificDays.includes(dNum)) return true;
+        // 1. Check the days of the month the resident wants off
+        const dayPrefs = dayPrefsOf(r);
+        if (dayPrefs.exclude.includes(dNum)) return true;
+        if (dayPrefs.split || (r.prefDaysMode || 'exclude') === 'exclude') {
 
             if (Array.isArray(r.excludedDates) && r.excludedDates.length > 0) {
                 const dayPadded = String(dNum).padStart(2, '0');
@@ -6018,6 +6039,9 @@
         const hasPrefs = (Array.isArray(r.prefDays) && r.prefDays.length > 0) || 
                          (Array.isArray(r.prefShifts) && r.prefShifts.length > 0) || 
                          (Array.isArray(r.specificDays) && r.specificDays.length > 0) ||
+                         (Array.isArray(r.daysPrefer) && r.daysPrefer.length > 0) ||
+                         (Array.isArray(r.daysExclude) && r.daysExclude.length > 0) ||
+                         !!r.prefNote ||
                          (Array.isArray(r.excludedDates) && r.excludedDates.length > 0) ||
                          (Array.isArray(r.excludedIntervals) && r.excludedIntervals.length > 0) ||
                          (r.noConsecutiveDays === false);
@@ -6640,6 +6664,8 @@
             noConsecutiveDays: r.noConsecutiveDays !== false,
             prefDaysMode: r.prefDaysMode || 'exclude',
             specificDays: Array.isArray(r.specificDays) ? [...r.specificDays] : [],
+            ...(Array.isArray(r.daysPrefer) || Array.isArray(r.daysExclude) ? { daysPrefer: [...(r.daysPrefer || [])], daysExclude: [...(r.daysExclude || [])] } : {}),
+            prefNote: r.prefNote || '',
             excludedDates: Array.isArray(r.excludedDates) ? [...r.excludedDates] : [],
             intervalMode: r.intervalMode || 'exclude',
             excludedIntervals: Array.isArray(r.excludedIntervals) ? JSON.parse(JSON.stringify(r.excludedIntervals)) : [],
@@ -6776,6 +6802,8 @@
                     noConsecutiveDays: r.noConsecutiveDays !== false,
                     prefDaysMode: r.prefDaysMode || 'exclude',
                     specificDays: Array.isArray(r.specificDays) ? [...r.specificDays] : [],
+                    ...(Array.isArray(r.daysPrefer) || Array.isArray(r.daysExclude) ? { daysPrefer: [...(r.daysPrefer || [])], daysExclude: [...(r.daysExclude || [])] } : {}),
+                    prefNote: r.prefNote || '',
                     excludedDates: Array.isArray(r.excludedDates) ? [...r.excludedDates] : [],
                     intervalMode: r.intervalMode || 'exclude',
                     excludedIntervals: Array.isArray(r.excludedIntervals) ? JSON.parse(JSON.stringify(r.excludedIntervals)) : [],
@@ -6954,8 +6982,9 @@
     // =========================================================================
 
     let activePrefsResId = null;
-    let tempDaysMode = 'exclude';
-    let tempSpecificDays = [];
+    let tempDaysMode = 'exclude';     // which colour a tapped day takes (switching it changes no day)
+    let tempPreferDays = [];
+    let tempExcludeDays = [];
     let tempIntervalMode = 'exclude';
     let tempIntervals = [];
     let tempExcludedDates = [];
@@ -7000,13 +7029,14 @@
             noConsecutiveCb.checked = (res.noConsecutiveDays !== false);
         }
 
-        // Initialize temporary days mode, specific calendar days, interval mode, and intervals
-        tempDaysMode = res.prefDaysMode || 'exclude';
-        tempSpecificDays = Array.isArray(res.specificDays) 
-            ? [...res.specificDays] 
-            : (Array.isArray(res.excludedDates) 
-                ? [...res.excludedDates].map(d => parseInt(String(d).split(/[\/\-]/)[0], 10)).filter(n => !isNaN(n)) 
-                : []);
+        // Initialize the preferred / excluded days, interval mode, and intervals
+        const dayPrefs = dayPrefsOf(res);
+        tempPreferDays = [...dayPrefs.prefer];
+        tempExcludeDays = dayPrefs.exclude.length || dayPrefs.split || !Array.isArray(res.excludedDates) ? [...dayPrefs.exclude]
+            : [...res.excludedDates].map(d => parseInt(String(d).split(/[\/\-]/)[0], 10)).filter(n => !isNaN(n));
+        tempDaysMode = 'exclude';
+        const noteEl = document.getElementById('pref-note');
+        if (noteEl) noteEl.value = res.prefNote || '';
         tempIntervalMode = res.intervalMode || 'exclude';
         tempIntervals = Array.isArray(res.excludedIntervals) ? JSON.parse(JSON.stringify(res.excludedIntervals)) : [];
 
@@ -7031,7 +7061,8 @@
         const modal = document.getElementById('resident-prefs-modal');
         if (modal) modal.classList.add('hidden');
         activePrefsResId = null;
-        tempSpecificDays = [];
+        tempPreferDays = [];
+        tempExcludeDays = [];
         tempIntervals = [];
     }
 
@@ -7055,7 +7086,7 @@
             }
             if (descEl) {
                 descEl.className = 'text-[10px] font-bold text-emerald-600 dark:text-emerald-400';
-                descEl.textContent = 'الوضع: أيام مفضلة للخفارة (أخضر)';
+                descEl.textContent = 'اضغط الأيام لتفضيلها (أخضر)';
             }
         } else {
             if (exBtn) {
@@ -7066,7 +7097,7 @@
             }
             if (descEl) {
                 descEl.className = 'text-[10px] font-bold text-rose-600 dark:text-rose-400';
-                descEl.textContent = 'الوضع: أيام مستبعدة من الخفارات (أحمر)';
+                descEl.textContent = 'اضغط الأيام لاستبعادها (أحمر)';
             }
         }
     }
@@ -7104,13 +7135,18 @@
         }
     }
 
+    // A tapped day takes the colour of the switch (green = preferred, red = off); tapping it again in the
+    // same colour clears it. Switching only changes what the next tap does.
     function togglePrefDayNumber(dayNum) {
         const d = Number(dayNum);
-        const idx = tempSpecificDays.indexOf(d);
-        if (idx !== -1) {
-            tempSpecificDays.splice(idx, 1);
-        } else {
-            tempSpecificDays.push(d);
+        const mine = tempDaysMode === 'prefer' ? tempPreferDays : tempExcludeDays;
+        const other = tempDaysMode === 'prefer' ? tempExcludeDays : tempPreferDays;
+        const idx = mine.indexOf(d);
+        if (idx !== -1) mine.splice(idx, 1);
+        else {
+            mine.push(d);
+            const o = other.indexOf(d);
+            if (o !== -1) other.splice(o, 1);
         }
         renderPrefCalendarGrid();
     }
@@ -7138,12 +7174,13 @@
 
         // Calendar days 1..daysCount
         for (let d = 1; d <= daysCount; d++) {
-            const isSelected = tempSpecificDays.includes(d);
+            const isPrefer = tempPreferDays.includes(d);
+            const isSelected = isPrefer || tempExcludeDays.includes(d);
             let btnClass = '';
             let icon = '';
 
             if (isSelected) {
-                if (tempDaysMode === 'prefer') {
+                if (isPrefer) {
                     btnClass = 'bg-emerald-600 text-white border-emerald-600 shadow-xs font-black';
                     icon = '<i class="fas fa-check text-[9px] mr-1"></i>';
                 } else {
@@ -7155,7 +7192,7 @@
             }
 
             const title = isSelected 
-                ? (tempDaysMode === 'prefer' ? `اليوم ${d} مفضل للخفارة - انقر للإلغاء` : `اليوم ${d} مستبعد - انقر لإلغاء الاستبعاد`)
+                ? (isPrefer ? `اليوم ${d} مفضل للخفارة` : `اليوم ${d} مستبعد`)
                 : `انقر لتحديد اليوم ${d}`;
 
             html += `
@@ -7248,10 +7285,10 @@
 
         const curMonth = (state && state.month) ? Number(state.month) : (new Date().getMonth() + 1);
 
-        // Save days mode and specific calendar days
-        res.prefDaysMode = tempDaysMode;
-        res.specificDays = tempSpecificDays.map(Number).sort((a, b) => a - b);
-        res.excludedDates = (tempDaysMode === 'exclude') ? res.specificDays.map(d => `${d}/${curMonth}`) : [];
+        // Preferred and excluded days of the month, and the resident's note
+        setDayPrefs(res, tempPreferDays, tempExcludeDays, curMonth);
+        const noteEl = document.getElementById('pref-note');
+        if (noteEl) res.prefNote = noteEl.value.trim().slice(0, 500);
 
         // Save interval mode and intervals (directly scrape DOM for 100% sync)
         const rowInputs = modal.querySelectorAll('.pref-interval-row');
@@ -7275,6 +7312,8 @@
 
         saveState();
         pushDBHistory(`تعديل رغبات الطبيب (${res.name})`);
+        // This month's entry in the resident's preferences history (kept on the server).
+        try { if (window.ErPortal && window.ErPortal.recordHistory) window.ErPortal.recordHistory(res); } catch (e) {}
         closeResidentPrefsModal();
 
         // In-place update resident row's preference cell to eliminate any scroll jump
@@ -9447,7 +9486,7 @@
             const likes = r => (Array.isArray(r.prefDays) && r.prefDays.includes(dayName) ? 1 : 0)
                 + (sheet.key === 'er' && (preferredErShifts(r) || []).includes(L().shiftOf(s)) ? 1 : 0)
                 + (sheet.type === 'er' || sheet.type === 'rs_er' ? (branchFit(r, sheet.type, s) - 1) : 0)
-                + (r.prefDaysMode === 'prefer' && Array.isArray(r.specificDays) && r.specificDays.map(Number).includes(d) ? 2 : 0);
+                + (preferDaysOf(r).includes(d) ? 2 : 0);
             return list.map(r => ({ r, k: [-remaining(r), -likes(r), Math.random()] }))
                 .sort((a, b) => a.k[0] - b.k[0] || a.k[1] - b.k[1] || a.k[2] - b.k[2]).map(x => x.r);
         }
@@ -9546,7 +9585,7 @@
                 if (Array.isArray(r.prefDays) && r.prefDays.includes(day.dayName)) liked++;
                 if (sheet.key === 'er' && (preferredErShifts(r) || []).includes(L().shiftOf(s))) liked++;
                 if ((sheet.type === 'er' || sheet.type === 'rs_er') && branchFit(r, sheet.type, s) === 0) misfit++;
-                if (r.prefDaysMode === 'prefer' && Array.isArray(r.specificDays) && r.specificDays.map(Number).includes(day.dayNumber)) liked++;
+                if (preferDaysOf(r).includes(day.dayNumber)) liked++;
             });
         });
         const overrides = sheet.key === 'er' ? Object.keys(state.prefOverrides || {}).filter(k => k.startsWith('er_')).length : 0;
@@ -9779,7 +9818,7 @@
         // Doctors who specifically requested exact calendar days
         // -----------------------------------------------------------------
         const specificDayDocs = activeDocs.filter(r => 
-            hasRemainingQuota(r) && r.prefDaysMode === 'prefer' && Array.isArray(r.specificDays) && r.specificDays.length > 0
+            hasRemainingQuota(r) && preferDaysOf(r).length > 0
         );
 
         let p1Progress = true;
@@ -9794,7 +9833,7 @@
 
             for (const r of candidates) {
                 if (!hasRemainingQuota(r)) continue;
-                const targetDays = shuffleArray(r.specificDays.map(Number).filter(d => d >= 1 && d <= daysCount));
+                const targetDays = shuffleArray(preferDaysOf(r).filter(d => d >= 1 && d <= daysCount));
                 const candidateShifts = shuffleArray(getAllowedShifts(r, true));
 
                 let assignedOne = false;
@@ -10203,7 +10242,7 @@
         const shuffledDaysCon = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
 
         // Pass 0: Specific Calendar Days Preference (prefDaysMode === 'prefer')
-        const conSpecificDayDocs = conCandidates.filter(r => r.prefDaysMode === 'prefer' && Array.isArray(r.specificDays) && r.specificDays.length > 0);
+        const conSpecificDayDocs = conCandidates.filter(r => preferDaysOf(r).length > 0);
         for (const r of shuffleArray(conSpecificDayDocs)) {
             const clean = normalizeArabic(r.name);
             if ((assigned[clean] || 0) >= (Number(r.con_target) || 0)) continue;
@@ -10352,7 +10391,7 @@
         const shuffledDaysDC = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
 
         // Pass 0: Specific Calendar Days Preference (prefDaysMode === 'prefer')
-        const dcSpecificDayDocs = dcCandidates.filter(r => r.prefDaysMode === 'prefer' && Array.isArray(r.specificDays) && r.specificDays.length > 0);
+        const dcSpecificDayDocs = dcCandidates.filter(r => preferDaysOf(r).length > 0);
         for (const r of shuffleArray(dcSpecificDayDocs)) {
             const clean = normalizeArabic(r.name);
             if ((assigned[clean] || 0) >= (Number(r.dc_target) || 0)) continue;
@@ -11743,6 +11782,10 @@
     window.setPrefDaysMode = setPrefDaysMode;
     window.updatePrefDaysModeUI = updatePrefDaysModeUI;
     window.togglePrefDayNumber = togglePrefDayNumber;
+    window.openActivePrefsHistory = () => {
+        const res = (state.residents || []).find(r => String(r.id) === String(activePrefsResId));
+        if (res && window.ErPortal && window.ErPortal.openHistory) window.ErPortal.openHistory(res.id, res.name);
+    };
     window.renderPrefCalendarGrid = renderPrefCalendarGrid;
     window.setPrefIntervalMode = setPrefIntervalMode;
     window.updatePrefIntervalModeUI = updatePrefIntervalModeUI;

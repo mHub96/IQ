@@ -549,6 +549,9 @@
                     <button type="button" onclick="openSpecialtiesModal()" class="btn-ghost text-xs">
                         <i class="fas fa-tags"></i> إدارة التخصصات
                     </button>
+                    <button type="button" onclick="HubChiefs.openEditor(currentHospital && currentHospital.id)" class="btn-ghost text-xs text-amber-800 dark:text-amber-200 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100" title="تعيين رئيس الأطباء ورديفه (يظهر للتواصل على بطاقة المستشفى)">
+                        <i class="fas fa-user-tie text-amber-600 dark:text-amber-400"></i> رئيس الأطباء ورديفه
+                    </button>
                     <button type="button" onclick="HubCensus.print(currentHospital && currentHospital.id, showToast)" class="btn-ghost text-xs text-sky-800 dark:text-sky-200 border-sky-300 dark:border-sky-700 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100" title="إحصائية رسمية بالأطباء المقيمين (PDF): حسب الاختصاص، ثم المرحلة، ثم نوع البورد، ثم الاسم">
                         <i class="fas fa-file-pdf text-sky-700 dark:text-sky-300"></i> إحصائية المقيمين (PDF)
                     </button>
@@ -1457,6 +1460,7 @@
     <script src="./hub-avatar.js"></script>
     <script src="./hub-accounts.js"></script>
     <script src="./hub-census.js"></script>
+    <script src="./hub-chiefs.js"></script>
     <script src="./nav-component.js"></script>
     <script>
         // ============================================================

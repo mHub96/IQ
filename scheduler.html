@@ -486,6 +486,24 @@
             border: 1px solid var(--border-subtle);
         }
 
+        /* A table's title opens its export / import menu. */
+        .track-header h2.track-title { cursor: pointer; user-select: none; }
+        .track-header h2.track-title .csv-caret { font-size: 0.62em; opacity: 0.6; margin-inline-start: 0.3rem; }
+        .csv-menu {
+            position: fixed; z-index: 9000; min-width: 12rem; padding: 0.35rem;
+            background: var(--popup-bg); border: 1px solid var(--popup-border); color: var(--text-primary-color);
+            border-radius: 0.9rem; box-shadow: var(--popup-shadow);
+            font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
+        }
+        .csv-menu .csv-menu-title { font-size: 0.68rem; font-weight: 800; opacity: 0.6; padding: 0.3rem 0.6rem 0.4rem; }
+        .csv-menu button {
+            display: flex; align-items: center; gap: 0.55rem; width: 100%; padding: 0.6rem 0.7rem;
+            border: 0; background: transparent; color: inherit; border-radius: 0.6rem;
+            font: inherit; font-size: 0.82rem; font-weight: 700; text-align: start; cursor: pointer;
+        }
+        .csv-menu button:hover { background: var(--custom-menu-item-hover-bg); }
+        .csv-menu button i { width: 1rem; text-align: center; color: var(--specialty-color, #3b82f6); }
+
         .track-navigation {
             display: flex;
             gap: 0.3rem;
@@ -2445,7 +2463,7 @@
                 var html = `
                     <div class="track-header" style="border-bottom-color: ${specialtyColor};">
                         <span class="specialty-icon">${specialty.icon || '🏥'}</span>
-                        <h2 style="color: ${specialtyColor};">${specialty.name_ar || specialty.name}</h2>
+                        <h2 class="track-title" style="color: ${specialtyColor};" onclick="openTableMenu(event, '${specialty.id}')" title="تصدير / استيراد CSV">${specialty.name_ar || specialty.name}<i class="fas fa-file-csv csv-caret"></i></h2>
                         ${isCloneTrack ? `
                             <span class="specialty-count" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 9999px;" title="مرآة حية من ${sourceHospName}">
                                 <i class="fas fa-lock text-[10px] ml-1"></i> مستنسخ من: ${sourceHospName}
@@ -2901,6 +2919,200 @@
             }
 
             return validNames.some(function(n) { return n.toLowerCase() === trimmed.toLowerCase(); });
+        }
+
+        // ================================================================
+        // CSV EXPORT / IMPORT OF ONE TABLE (tap the table's title)
+        // ================================================================
+        // Done in the browser on the data already loaded: nothing extra is read from the server.
+        // An import changes the table on the page only; "حفظ الجدول" saves it as usual.
+        var CSV_HEAD = ['رقم اليوم', 'التاريخ', 'اليوم', 'الخانة', 'الوقت', 'الاسم'];
+
+        function closeTableMenu() {
+            var m = document.getElementById('csv-menu');
+            if (m) m.remove();
+            document.removeEventListener('pointerdown', tableMenuOutside, true);
+        }
+        function tableMenuOutside(e) {
+            var m = document.getElementById('csv-menu');
+            if (m && !m.contains(e.target)) closeTableMenu();
+        }
+
+        function openTableMenu(event, specialtyCode) {
+            event.stopPropagation();
+            closeAllMenus();
+            closeTableMenu();
+            var spec = specialtyList.find(function(s) { return s.id === specialtyCode; });
+            if (!spec) return;
+            var menu = document.createElement('div');
+            menu.id = 'csv-menu';
+            menu.className = 'csv-menu';
+            menu.style.setProperty('--specialty-color', getSpecialtyColor(spec.id));
+            menu.innerHTML = '<div class="csv-menu-title"></div>'
+                + '<button type="button" data-act="export"><i class="fas fa-file-arrow-down"></i> تصدير الجدول (CSV)</button>'
+                + (spec.isClone ? '' : '<button type="button" data-act="import"><i class="fas fa-file-arrow-up"></i> استيراد جدول (CSV)</button>');
+            menu.querySelector('.csv-menu-title').textContent = (spec.name_ar || spec.name) + ' · ' + document.getElementById('month-picker').value;
+            menu.addEventListener('click', function(e) {
+                var b = e.target.closest('button[data-act]');
+                if (!b) return;
+                closeTableMenu();
+                if (b.dataset.act === 'export') exportTableCsv(spec);
+                else importTableCsv(spec);
+            });
+            document.body.appendChild(menu);
+            var r = event.currentTarget.getBoundingClientRect();
+            var w = menu.offsetWidth, h = menu.offsetHeight;
+            menu.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
+            menu.style.top = Math.min(window.innerHeight - h - 8, r.bottom + 6) + 'px';
+            setTimeout(function() { document.addEventListener('pointerdown', tableMenuOutside, true); }, 0);
+        }
+
+        function shownMonth() {
+            var parts = document.getElementById('month-picker').value.split('-').map(Number);
+            return { year: parts[0], month: parts[1], days: new Date(parts[0], parts[1], 0).getDate() };
+        }
+        function dayDate(m, d) { return String(d).padStart(2, '0') + '/' + String(m.month).padStart(2, '0') + '/' + m.year; }
+
+        function tableEntries(spec, date) {
+            if (spec.isClone) {
+                var src = spec.clonedFromHospitalId && window.Hub ? window.Hub.getHospital(spec.clonedFromHospitalId) : null;
+                var list = src ? (schedulerMode === 'specialists' ? (src.specialistSchedule || []) : (src.schedule || [])) : [];
+                return list.filter(function(e) { return e.date === date && e.specCode === spec.clonedFromSpecId; });
+            }
+            return getActiveSchedule().filter(function(e) { return e.date === date && e.specCode === spec.id; });
+        }
+
+        function csvCell(v) {
+            v = String(v == null ? '' : v);
+            return /[",\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+        }
+
+        function exportTableCsv(spec) {
+            var m = shownMonth();
+            var AR_WEEKDAYS = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            var rows = [CSV_HEAD];
+            for (var d = 1; d <= m.days; d++) {
+                var date = dayDate(m, d), dayName = AR_WEEKDAYS[new Date(m.year, m.month - 1, d).getDay()];
+                var entries = tableEntries(spec, date).slice().sort(function(a, b) { return (a.dutySlot || 0) - (b.dutySlot || 0); });
+                if (!entries.length) rows.push([d, date, dayName, 1, '', '']);
+                entries.forEach(function(e, i) { rows.push([d, date, dayName, i + 1, entries.length > 1 ? (e.dutyTime || '') : '24h', e.name || '']); });
+            }
+            var text = '\uFEFF' + rows.map(function(r) { return r.map(csvCell).join(','); }).join('\r\n') + '\r\n';
+            var hospName = (database.name_ar || database.hospitalName || 'hospital');
+            var fileName = (hospName + '_' + (spec.name_ar || spec.name) + '_' + m.year + '-' + String(m.month).padStart(2, '0') + '.csv').replace(/[\\/:*?"<>|]+/g, '_');
+            var url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function() { a.remove(); URL.revokeObjectURL(url); }, 500);
+            showToast('📄 تم تصدير جدول ' + (spec.name_ar || spec.name), 'success', 2200);
+        }
+
+        /** Rows of a CSV text (quotes, commas, semicolons or tabs as separators). */
+        function parseCsv(text) {
+            text = String(text || '').replace(/^\uFEFF/, '');
+            var first = text.split(/\r?\n/)[0] || '';
+            var sep = [',', ';', '\t'].sort(function(a, b) { return first.split(b).length - first.split(a).length; })[0];
+            var rows = [], row = [], cell = '', q = false;
+            for (var i = 0; i < text.length; i++) {
+                var c = text[i];
+                if (q) {
+                    if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; }
+                    else cell += c;
+                } else if (c === '"') q = true;
+                else if (c === sep) { row.push(cell); cell = ''; }
+                else if (c === '\n' || c === '\r') {
+                    if (c === '\r' && text[i + 1] === '\n') i++;
+                    row.push(cell); rows.push(row); row = []; cell = '';
+                } else cell += c;
+            }
+            if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+            return rows.map(function(r) { return r.map(function(x) { return x.trim(); }); }).filter(function(r) { return r.some(function(x) { return x; }); });
+        }
+
+        function importTableCsv(spec) {
+            var input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.csv,text/csv';
+            input.style.display = 'none';
+            input.onchange = function() {
+                var file = input.files && input.files[0];
+                input.remove();
+                if (!file) return;
+                var reader = new FileReader();
+                reader.onload = function() { applyTableCsv(spec, String(reader.result || '')); };
+                reader.onerror = function() { showToast('❌ تعذرت قراءة الملف', 'error'); };
+                reader.readAsText(file, 'utf-8');
+            };
+            document.body.appendChild(input);
+            input.click();
+        }
+
+        function applyTableCsv(spec, text) {
+            var m = shownMonth();
+            var rows = parseCsv(text);
+            if (!rows.length) { showToast('❌ الملف فارغ', 'error'); return; }
+            var head = rows[0].map(function(h) { return h.replace(/\s+/g, ' ').toLowerCase(); });
+            var col = function(names) { for (var i = 0; i < head.length; i++) if (names.indexOf(head[i]) !== -1) return i; return -1; };
+            var cDay = col(['رقم اليوم', 'day']), cDate = col(['التاريخ', 'date']), cTime = col(['الوقت', 'time', 'duty time']), cName = col(['الاسم', 'name', 'resident', 'المقيم']);
+            var hasHead = cName !== -1 || cDay !== -1 || cDate !== -1;
+            if (!hasHead) { cDay = -1; cDate = 0; cName = rows[0].length - 1; cTime = rows[0].length > 2 ? rows[0].length - 2 : -1; }
+            if (cName === -1) { showToast('❌ لا يوجد عمود "الاسم" في الملف', 'error', 3500); return; }
+
+            // The day each row is for: "رقم اليوم", else the date (D/M/YYYY, YYYY-MM-DD, or a day number).
+            function dayOf(r) {
+                var n = cDay !== -1 ? parseInt(r[cDay], 10) : NaN;
+                if (!(n >= 1 && n <= m.days) && cDate !== -1) {
+                    var v = String(r[cDate] || '').replace(/[٠-٩]/g, function(x) { return '٠١٢٣٤٥٦٧٨٩'.indexOf(x); });
+                    var iso = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/), dmy = v.match(/^(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{2,4}))?/);
+                    if (iso) n = Number(iso[1]) === m.year && Number(iso[2]) === m.month ? Number(iso[3]) : NaN;
+                    else if (dmy) n = Number(dmy[2]) === m.month ? Number(dmy[1]) : (Number(dmy[1]) === m.month ? Number(dmy[2]) : NaN);
+                    else if (/^\d{1,2}$/.test(v)) n = Number(v);
+                }
+                return n >= 1 && n <= m.days ? n : null;
+            }
+            var canon = {};
+            (nameData[spec.id] || []).forEach(function(n) { canon[n.trim().toLowerCase()] = n; });
+            var byDay = {}, unknown = [], skipped = 0;
+            rows.slice(hasHead ? 1 : 0).forEach(function(r) {
+                var d = dayOf(r);
+                if (!d) { skipped++; return; }
+                if (!byDay[d]) byDay[d] = [];
+                var name = String(r[cName] || '').trim();
+                if (!name) return;
+                var key = name.toLowerCase();
+                if (canon[key]) name = canon[key];
+                else if (!isNameValidForSpecialty(name, spec.id)) { if (unknown.indexOf(name) === -1) unknown.push(name); return; }
+                var t = cTime !== -1 ? String(r[cTime] || '').trim() : '';
+                byDay[d].push({ name: name, dutyTime: parseDutyTime(t) ? t : '' });
+            });
+            var days = Object.keys(byDay).map(Number).sort(function(a, b) { return a - b; });
+            if (!days.length) { showToast('❌ لا توجد أيام من شهر ' + m.month + '/' + m.year + ' في الملف', 'error', 4000); return; }
+            var count = days.reduce(function(s, d) { return s + byDay[d].length; }, 0);
+            var msg = 'استيراد جدول ' + (spec.name_ar || spec.name) + ' لشهر ' + m.month + '/' + m.year + ':\n\n'
+                + '• ' + days.length + ' يوماً في الملف (تُستبدل خفاراتها في هذا الجدول)\n'
+                + '• ' + count + ' خفارة'
+                + (unknown.length ? '\n• أسماء غير موجودة في هذا التخصص (لن تُضاف): ' + unknown.slice(0, 8).join('، ') + (unknown.length > 8 ? ' …' : '') : '')
+                + (skipped ? '\n• ' + skipped + ' صفاً بلا يوم صالح من هذا الشهر (تُتجاهل)' : '')
+                + '\n\nيُطبق على الصفحة فقط؛ اضغط "حفظ الجدول" بعدها للحفظ.';
+            if (!confirm(msg)) return;
+
+            var list = getActiveSchedule();
+            days.forEach(function(d) {
+                var date = dayDate(m, d);
+                for (var i = list.length - 1; i >= 0; i--) if (list[i].date === date && list[i].specCode === spec.id) list.splice(i, 1);
+                var fresh = byDay[d];
+                fresh.forEach(function(x, i) {
+                    var e = { date: date, specCode: spec.id, name: x.name, VisitCount: 0, dutyTime: fresh.length > 1 ? x.dutyTime : '', dutySlot: i };
+                    stampResident(e);
+                    list.push(e);
+                });
+                if (fresh.length) redistributeDayTimes(date, spec.id, null, false);
+            });
+            refreshView();
+            showToast('✅ تم استيراد ' + count + ' خفارة. اضغط "حفظ الجدول" للحفظ', 'success', 4000);
         }
 
         // ================================================================

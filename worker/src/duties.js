@@ -21,6 +21,7 @@ import { inSpecialty } from './exchspecs.js';
 import { refreshFromMyDuties } from './reminders.js';
 import { canUseEr } from './eraccess.js';
 import { residentList, revision, cachedValue } from './revcache.js';
+import { historyStatement } from './prefhistory.js';
 
 // The month of a duty's "D/M/YYYY" date as "YYYY-M", the expression of the index idx_sched_month
 // (migration 0018): it must stay exactly the same for the index to be used.
@@ -67,13 +68,14 @@ export function monthPositions(month) {
 export async function routeDuties(path, method, request, env, auth, url, ctx) {
   // The phone's calendar opens this link itself (no sign-in header): a ticket from my-duties stands in.
   if (path === '/api/cal' && method === 'GET') return dutyCalendar(env, url);
-  if (!/^\/api\/(accounts\/(my-duties|duty-mark)|er-portal)(\/|$)/.test(path)) return null;
+  if (!/^\/api\/(accounts\/(my-duties|duty-mark|custom-duty)|er-portal)(\/|$)/.test(path)) return null;
   if (!auth) return json({ error: 'unauthorized' }, 401);
   // My Schedule and the preferences portal are for the hospital's residents (not rotators or division officers).
   if (NOT_RESIDENT.includes(auth.r) && /^\/api\/(accounts\/|er-portal\/mine$)/.test(path)) return json({ error: 'residents_only' }, 403);
   switch (`${method} ${path}`) {
     case 'GET /api/accounts/my-duties': return myDuties(env, auth, url);
     case 'POST /api/accounts/duty-mark': return saveMark(request, env, auth);
+    case 'POST /api/accounts/custom-duty': return saveCustomDuty(request, env, auth);
     case 'GET /api/er-portal/mine': return portalMine(env, auth);
     case 'POST /api/er-portal/mine': return savePortalRequest(request, env, auth);
     case 'GET /api/er-portal': return portalAdmin(env, auth, url);
@@ -90,9 +92,9 @@ export async function routeDuties(path, method, request, env, auth, url, ctx) {
 
 const erPath = hosp => `$.hospitalResidents."${hosp}"`;
 
-/** The account's entry in the ER residents database of its hospital: by phone, then by name. */
-async function findErResident(env, account) {
-  if (!HOSP_RE.test(account.hosp || '')) return null;
+/** The residents (id, name, sex, phone) of a hospital's ER residents database, and where they are in the ER record. */
+async function erResidentRows(env, hosp) {
+  if (!HOSP_RE.test(hosp || '')) return { path: '', rows: [] };
   // The ER database's residents are read again only after the ER scheduler's data changed.
   const rev = await revision(env, 'er');
   const list = path => cachedValue(`er-residents/${path}`, rev, async () => (await env.DB.prepare(
@@ -101,13 +103,24 @@ async function findErResident(env, account) {
        FROM records r, json_each(r.data, ?1) j
       WHERE r.coll = 'er' AND r.id = ?2`
   ).bind(path, ER_STATE_ID).all()).results || []);
-  let path = erPath(account.hosp);
+  let path = erPath(hosp);
   let rows = await list(path);
   if (!rows.length) {
     // An ER database that was never switched to another hospital keeps its residents in $.residents.
     const cur = await env.DB.prepare("SELECT json_extract(data, '$.hospitalId') AS h FROM records WHERE coll = 'er' AND id = ?").bind(ER_STATE_ID).first();
-    if (cur && cur.h === account.hosp) { path = '$.residents'; rows = await list(path); }
+    if (cur && cur.h === hosp) { path = '$.residents'; rows = await list(path); }
   }
+  return { path, rows };
+}
+
+export async function erResidents(env, hosp) {
+  return (await erResidentRows(env, hosp)).rows;
+}
+
+/** The account's entry in the ER residents database of its hospital: by phone, then by name. */
+export async function findErResident(env, account) {
+  const { path, rows } = await erResidentRows(env, account.hosp);
+  if (!rows.length) return null;
   const match = pickResident(rows, account);
   if (!match) return null;
   const full = await env.DB.prepare(
@@ -187,8 +200,9 @@ export async function collectDuties(env, acc, ym) {
        UNION ALL
        SELECT 'state', json_extract(data, ?2) FROM records WHERE coll = 'er' AND id = ?3`
     ).bind(`${year}_${month}`, `$.monthlySchedules."${acc.hosp}_${year}_${month}"`, ER_STATE_ID),
-    env.DB.prepare('SELECT dkey, kind, flag, flag_text, note, updated_at FROM duty_marks WHERE account_id = ?1 AND dkey LIKE ?2')
-      .bind(acc.id, `${ym}-%`),
+    // A key range (not LIKE) so only this month's rows of the primary key are read.
+    env.DB.prepare('SELECT dkey, kind, flag, flag_text, note, updated_at, custom FROM duty_marks WHERE account_id = ?1 AND dkey >= ?2 AND dkey < ?3')
+      .bind(acc.id, `${ym}-`, `${ym}.`),
     env.DB.prepare("SELECT id FROM records WHERE coll = 'hospital'"),
     env.DB.prepare("SELECT json_extract(data, '$.hospitals') AS hs FROM records WHERE coll = 'resident' AND id = ?").bind(acc.resident_id || ''),
   ]);
@@ -282,10 +296,90 @@ export async function collectDuties(env, acc, ym) {
       }
     }
   }
-  duties.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
   const marks = {};
-  for (const k of marksRes.results || []) marks[k.dkey] = { kind: k.kind, flag: k.flag, flagText: k.flag_text, note: k.note, at: k.updated_at };
-  return { ok: true, ym, hosp: acc.hosp, hospitals: [...new Set(duties.map(d => d.hosp))], name: acc.name, erName: er ? er.name : null, duties, marks };
+  for (const k of marksRes.results || []) {
+    // A duty the resident added themselves: the row carries it (and its marks, like any other duty).
+    if (k.custom) {
+      const c = customView(k.dkey, k.custom, acc.hosp);
+      if (c) duties.push(c); else continue;
+    }
+    if (k.kind || k.flag || k.note) marks[k.dkey] = { kind: k.kind, flag: k.flag, flagText: k.flag_text, note: k.note, at: k.updated_at };
+  }
+  duties.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  // The positions of the account's hospital's ER this month (offered when adding a duty; already read above).
+  const erPositions = erMonths.has(acc.hosp) ? monthPositions(erMonths.get(acc.hosp)) : monthPositions(null);
+  return { ok: true, ym, hosp: acc.hosp, hospitals: [...new Set(duties.filter(d => d.src !== 'custom').map(d => d.hosp))], name: acc.name, erName: er ? er.name : null, duties, marks, erPositions };
+}
+
+// ---------------------------------------------------------------------------
+// Duties a resident adds to their own schedule (stored in duty_marks.custom)
+// ---------------------------------------------------------------------------
+
+const CUSTOM_KINDS = ['er', 'spec', 'own'];
+const MAX_CUSTOM_PER_MONTH = 62;
+
+/** The duty object of a stored custom duty, or null when unreadable. */
+export function customView(dkey, raw, hosp) {
+  let c = null;
+  try { c = JSON.parse(raw); } catch {}
+  if (!c || !CUSTOM_KINDS.includes(c.k)) return null;
+  const date = dkey.slice(0, 10);
+  const d = { key: dkey, date, src: 'custom', hosp, kind: c.k };
+  if (c.k === 'own') d.title = c.t || 'خفارة';
+  if (c.k === 'spec') d.spec = c.spec || '';
+  if (c.k === 'er') { d.type = c.type; d.slot = c.slot; if (c.place) d.place = c.place; }
+  if (c.s && c.e) { d.start = c.s; d.end = c.e; }
+  return d;
+}
+
+/** Validated custom duty to store, or an error code. */
+function cleanCustom(b) {
+  const k = CUSTOM_KINDS.includes(b.kind) ? b.kind : null;
+  if (!k) return { error: 'bad_kind' };
+  const c = { k };
+  if (k === 'own') { c.t = plainText(b.title, 60); if (!c.t) return { error: 'title_required' }; }
+  if (k === 'spec') { c.spec = String(b.spec || '').slice(0, 24); if (!/^[\w-]{1,24}$/.test(c.spec)) return { error: 'bad_spec' }; }
+  if (k === 'er') {
+    c.type = ['er', 'con', 'rs'].includes(b.type) ? b.type : null;
+    c.slot = /^[\w.]{1,40}$/.test(String(b.slot || '')) ? String(b.slot) : null;
+    if (!c.type || !c.slot) return { error: 'bad_slot' };
+    const place = plainText(b.place, 80);
+    if (place) c.place = place;
+  }
+  const s = String(b.start || ''), e = String(b.end || '');
+  if (s || e) {
+    if (!HHMM.test(s) || !HHMM.test(e) || s === e) return { error: 'bad_time' };
+    c.s = s; c.e = e;
+  }
+  return { c };
+}
+
+/** Adds a custom duty (date + duty), or removes one (dkey + remove). */
+async function saveCustomDuty(request, env, auth) {
+  if (!auth.a) return json({ error: 'account_required' }, 403);
+  if (await overLimit(env, 'mark:' + auth.a, 120)) return json({ error: 'rate_limited' }, 429);
+  const b = await readJson(request) || {};
+  if (b.remove) {
+    const dkey = String(b.dkey || '');
+    if (!/^20\d\d-\d\d-\d\d\|c\|[a-z0-9]{6,16}$/.test(dkey)) return json({ error: 'bad_duty' }, 400);
+    await env.DB.prepare('DELETE FROM duty_marks WHERE account_id = ? AND dkey = ?').bind(auth.a, dkey).run();
+    return json({ ok: true });
+  }
+  const date = String(b.date || '');
+  if (!/^20\d\d-\d\d-\d\d$/.test(date) || new Date(date + 'T00:00:00Z').toISOString().slice(0, 10) !== date) return json({ error: 'bad_date' }, 400);
+  const { c, error } = cleanCustom(b);
+  if (error) return json({ error }, 400);
+  const acc = await env.DB.prepare('SELECT hosp FROM accounts WHERE id = ?').bind(auth.a).first();
+  if (!acc) return json({ error: 'account_required' }, 403);
+  const n = await env.DB.prepare('SELECT COUNT(*) AS n FROM duty_marks WHERE account_id = ? AND dkey >= ? AND dkey < ? AND custom IS NOT NULL')
+    .bind(auth.a, `${date.slice(0, 7)}-`, `${date.slice(0, 7)}.`).first();
+  if (n && n.n >= MAX_CUSTOM_PER_MONTH) return json({ error: 'too_many' }, 409);
+  const id = [...crypto.getRandomValues(new Uint8Array(6))].map(x => x.toString(36).padStart(2, '0')).join('').slice(0, 10);
+  const dkey = `${date}|c|${id}`;
+  const raw = JSON.stringify(c);
+  await env.DB.prepare('INSERT INTO duty_marks (account_id, dkey, kind, flag, flag_text, note, updated_at, custom) VALUES (?, ?, NULL, NULL, NULL, NULL, ?, ?)')
+    .bind(auth.a, dkey, Date.now(), raw).run();
+  return json({ ok: true, duty: customView(dkey, raw, acc.hosp) });
 }
 
 // ---------------------------------------------------------------------------
@@ -339,6 +433,23 @@ export function erDutyPlan(d) {
   return { title, h, min: 0, len };
 }
 
+/** Title, start (hour, minute) and length (hours) of any My Schedule duty (roster, ER, or one the resident added). */
+export function anyDutyPlan(d, names) {
+  if (d.src === 'hospital') {
+    const [h, min, len] = hospitalTimes(d.time);
+    return { title: (names && names[d.spec]) || d.spec || 'خفارة المستشفى', h, min, len };
+  }
+  if (d.src !== 'custom') return erDutyPlan(d);
+  if (d.kind === 'er') return erDutyPlan(d);
+  const title = d.kind === 'own' ? d.title : ((names && names[d.spec]) || d.spec || 'خفارة');
+  if (d.start && d.end) {
+    const [h, min] = d.start.split(':').map(Number);
+    const [eh, emin] = d.end.split(':').map(Number);
+    return { title, h, min, len: (((eh * 60 + emin) - (h * 60 + min) + 1440) % 1440 || 1440) / 60 };
+  }
+  return { title, h: 8, min: 0, len: 24 };
+}
+
 /** "08:00PM - 08:00AM" -> [start hour, start minute, length in hours]; a whole duty day (08:00, 24 h) otherwise. */
 export function hospitalTimes(t) {
   const m = String(t || '').match(/(\d{1,2}):(\d{2})\s*(AM|PM)?\s*-\s*(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
@@ -379,13 +490,7 @@ export function buildDutyIcs(data, { remove, names, hospName, accountId, now = D
   const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Hospital Hub//My Schedule//AR', 'CALSCALE:GREGORIAN',
     `METHOD:${remove ? 'CANCEL' : 'PUBLISH'}`, 'X-WR-CALNAME:خفاراتي · Hospital Hub', 'X-WR-TIMEZONE:Asia/Baghdad'];
   for (const d of data.duties) {
-    let title, h, min = 0, len;
-    if (d.src === 'hospital') {
-      [h, min, len] = hospitalTimes(d.time);
-      title = (names && names[d.spec]) || d.spec || 'خفارة المستشفى';
-    } else {
-      ({ title, h, min, len } = erDutyPlan(d));
-    }
+    const { title, h, min, len } = anyDutyPlan(d, names);
     const start = dutyStartUtc(d.date, h, min);
     lines.push('BEGIN:VEVENT', `UID:${accountId}-${d.key.replace(/[^\w-]+/g, '_')}@hosp-hub`, `SEQUENCE:${seq}`, `DTSTAMP:${icsTime(now)}`,
       `DTSTART:${icsTime(start)}`, `DTEND:${icsTime(start + len * 3600 * 1000)}`,
@@ -427,11 +532,19 @@ async function saveMark(request, env, auth) {
   if (await overLimit(env, 'mark:' + auth.a, 120)) return json({ error: 'rate_limited' }, 429);
   const b = await readJson(request) || {};
   const dkey = String(b.dkey || '');
-  if (!/^20\d\d-\d\d-\d\d\|(h|er|con|dc|rs)\|[\w:-]{1,40}$/.test(dkey)) return json({ error: 'bad_duty' }, 400);
+  if (!/^20\d\d-\d\d-\d\d\|(h|er|con|dc|rs|c)\|[\w:-]{1,40}$/.test(dkey)) return json({ error: 'bad_duty' }, 400);
   const kind = KINDS.includes(b.kind) ? b.kind : null;
   const flag = FLAGS.includes(b.flag) ? b.flag : null;
   const flagText = flag ? plainText(b.flagText, 120) || null : null;
   const note = plainText(b.note, 500) || null;
+  // A duty the resident added: its row holds the duty, so clearing its marks keeps the row.
+  if (dkey.includes('|c|')) {
+    const now = Date.now();
+    const r = await env.DB.prepare('UPDATE duty_marks SET kind = ?, flag = ?, flag_text = ?, note = ?, updated_at = ? WHERE account_id = ? AND dkey = ? AND custom IS NOT NULL')
+      .bind(kind, flag, flagText, note, now, auth.a, dkey).run();
+    if (!(r.meta && r.meta.changes)) return json({ error: 'not_found' }, 404);
+    return json({ ok: true, mark: kind || flag || note ? { kind, flag, flagText, note, at: now } : null });
+  }
   if (!kind && !flag && !note) {
     await env.DB.prepare('DELETE FROM duty_marks WHERE account_id = ? AND dkey = ?').bind(auth.a, dkey).run();
     return json({ ok: true, mark: null });
@@ -459,14 +572,30 @@ export function cleanPrefs(p, ym, loose = false) {
   p = p && typeof p === 'object' ? p : {};
   const uniq = a => [...new Set(a)];
   const max = daysIn(ym);
+  const days = a => uniq((Array.isArray(a) ? a : []).map(Number).filter(n => Number.isInteger(n) && n >= 1 && n <= max)).sort((a, b) => a - b);
+  // Days of the month the resident prefers and days they want off, both at once (since 2026-10-30);
+  // older data has one list (specificDays) and a mode saying which of the two it is.
+  let daysPrefer, daysExclude;
+  if (Array.isArray(p.daysPrefer) || Array.isArray(p.daysExclude)) {
+    daysPrefer = days(p.daysPrefer);
+    daysExclude = days(p.daysExclude).filter(d => !daysPrefer.includes(d));
+  } else {
+    const one = days(p.specificDays);
+    [daysPrefer, daysExclude] = p.prefDaysMode === 'prefer' ? [one, []] : [[], one];
+  }
+  // The single list an older ER page reads (the days off win: they are the stronger wish).
+  const legacyMode = daysExclude.length || !daysPrefer.length ? 'exclude' : 'prefer';
   const out = {
     prefShifts: uniq((Array.isArray(p.prefShifts) ? p.prefShifts : []).filter(s => SHIFTS.includes(s))),
     prefDays: uniq((Array.isArray(p.prefDays) ? p.prefDays : []).filter(d => WEEKDAYS.includes(d))),
-    prefDaysMode: p.prefDaysMode === 'prefer' ? 'prefer' : 'exclude',
-    specificDays: uniq((Array.isArray(p.specificDays) ? p.specificDays : []).map(Number).filter(n => Number.isInteger(n) && n >= 1 && n <= max)).sort((a, b) => a - b),
+    daysPrefer,
+    daysExclude,
+    prefDaysMode: legacyMode,
+    specificDays: legacyMode === 'exclude' ? daysExclude : daysPrefer,
     intervalMode: p.intervalMode === 'strictly_within' ? 'strictly_within' : 'exclude',
     excludedIntervals: [],
     noConsecutiveDays: p.noConsecutiveDays !== false,
+    prefNote: plainText(p.prefNote, 500),
   };
   for (const iv of (Array.isArray(p.excludedIntervals) ? p.excludedIntervals : []).slice(0, 12)) {
     let s = isoDate(iv && iv.start), e = isoDate(iv && iv.end);
@@ -523,12 +652,16 @@ async function savePortalRequest(request, env, auth) {
   if (!er) return json({ error: 'not_in_er' }, 404);
   const prefs = cleanPrefs(b.prefs, portal.ym);
   const now = Date.now();
-  await env.DB.prepare(
-    `INSERT INTO er_pref_requests (hosp, ym, account_id, er_id, er_name, name, prefs, updated_at, applied_at)
-     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, NULL)
-     ON CONFLICT (hosp, ym, account_id) DO UPDATE SET er_id = excluded.er_id, er_name = excluded.er_name, name = excluded.name,
-       prefs = excluded.prefs, updated_at = excluded.updated_at, applied_at = NULL`
-  ).bind(portal.hosp, portal.ym, auth.a, er.id, er.name, acc.name, JSON.stringify(prefs), now).run();
+  await env.DB.batch([
+    env.DB.prepare(
+      `INSERT INTO er_pref_requests (hosp, ym, account_id, er_id, er_name, name, prefs, updated_at, applied_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, NULL)
+       ON CONFLICT (hosp, ym, account_id) DO UPDATE SET er_id = excluded.er_id, er_name = excluded.er_name, name = excluded.name,
+         prefs = excluded.prefs, updated_at = excluded.updated_at, applied_at = NULL`
+    ).bind(portal.hosp, portal.ym, auth.a, er.id, er.name, acc.name, JSON.stringify(prefs), now),
+    // The month's entry in the resident's preferences history.
+    historyStatement(env, { hosp: portal.hosp, erId: er.id, erName: er.name, ym: portal.ym, prefs, source: 'portal', now }),
+  ]);
   return json({ ok: true, prefs, request: { at: now, applied: false } });
 }
 

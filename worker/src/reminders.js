@@ -9,7 +9,7 @@
  */
 
 import { DAY, json, readJson, plainText } from './lib.js';
-import { collectDuties, erDutyPlan, hospitalTimes, dutyStartUtc } from './duties.js';
+import { collectDuties, anyDutyPlan, dutyStartUtc } from './duties.js';
 import { notifyOne, dispatchPush } from './accounts.js';
 
 export const LEAD_MIN = 5;
@@ -30,13 +30,7 @@ function iraqYm(now, k = 0) {
 
 /** Start time (ms) and title of one My Schedule duty. */
 export function dutyPlan(d, names) {
-  let h, min = 0, title;
-  if (d.src === 'hospital') {
-    [h, min] = hospitalTimes(d.time);
-    title = (names && names[d.spec]) || d.spec || 'خفارة المستشفى';
-  } else {
-    ({ title, h, min } = erDutyPlan(d));
-  }
+  const { title, h, min } = anyDutyPlan(d, names);
   return { start: dutyStartUtc(d.date, h, min), title };
 }
 

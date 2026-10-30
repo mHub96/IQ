@@ -21,6 +21,8 @@
   --ms-minus-soft: rgba(156, 53, 64, 0.1);
   --ms-flag: #a8681a;
   --ms-flag-soft: rgba(168, 104, 26, 0.12);
+  --ms-cu: #2c6670;
+  --ms-cu-soft: rgba(44, 102, 112, 0.1);
   color: var(--ms-ink);
 }
 html.dark .ms, body.dark .ms, html.dark .msp, body.dark .msp {
@@ -42,6 +44,8 @@ html.dark .ms, body.dark .ms, html.dark .msp, body.dark .msp {
   --ms-minus-soft: rgba(239, 138, 147, 0.13);
   --ms-flag: #e2ad5f;
   --ms-flag-soft: rgba(226, 173, 95, 0.15);
+  --ms-cu: #7cc3cc;
+  --ms-cu-soft: rgba(124, 195, 204, 0.14);
 }
 
 /* ---------- Portal banner ---------- */
@@ -410,3 +414,28 @@ html.dark .ms-pdf-cover, body.dark .ms-pdf-cover { background: #10131a; color: #
 .ms-remind-next .ok { color: var(--ms-plus); font-weight: 700; }
 .ms-remind-warn { font-size: 0.74rem; line-height: 1.6; padding: 8px 10px; border-radius: 12px; background: var(--ms-flag-soft); color: var(--ms-flag); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .ms-btn.sm { min-height: 32px; padding: 0 10px; font-size: 0.74rem; }
+
+/* ---------- Duties the resident added (a teal shade of the navy theme) ---------- */
+.ms-pip.cu { background: var(--ms-cu); }
+.ms-duty.src-custom { border-right-color: var(--ms-cu); border-style: dashed solid dashed dashed; background: linear-gradient(90deg, var(--ms-card) 70%, var(--ms-cu-soft)); }
+.ms-duty.src-custom .ms-date { background: var(--ms-cu-soft); color: var(--ms-cu); }
+.ms-cu-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 0.64rem; font-weight: 800; padding: 1px 7px; border-radius: 999px; background: var(--ms-cu-soft); color: var(--ms-cu); }
+.ms-btn.cu { background: var(--ms-cu); border-color: var(--ms-cu); color: #fff; }
+html.dark .ms-btn.cu, body.dark .ms-btn.cu { color: #0f1a1c; }
+.ms-pdf .cu { display: inline-block; height: 16px; line-height: 16px; padding: 0 7px; border-radius: 8px; background: #e3eff1; color: #2c6670; font-size: 9.5px; font-weight: 800; margin-right: 4px; }
+.ms-dayact { margin: 10px 0 4px; padding: 12px; border-radius: 16px; background: var(--ms-card); border: 1px solid var(--ms-line); box-shadow: 0 0 0 2px var(--ms-cu-soft); }
+.ms-dayact-h { position: relative; display: flex; flex-direction: column; gap: 2px; padding-left: 36px; margin-bottom: 10px; }
+.ms-dayact-h b { font-size: 0.88rem; color: var(--ms-navy); }
+.ms-dayact-h span { font-size: 0.72rem; color: var(--ms-ink2); line-height: 1.5; }
+.ms-dayact-x { position: absolute; left: 0; top: -2px; width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--ms-line); background: var(--ms-paper); color: var(--ms-ink2); cursor: pointer; }
+.ms-add { display: flex; flex-direction: column; gap: 10px; }
+.ms-seg.two { grid-template-columns: 1fr 1fr; }
+.ms-seg button i { margin-inline-end: 4px; opacity: 0.8; }
+.ms-add-l { display: flex; flex-direction: column; gap: 6px; font-size: 0.74rem; font-weight: 800; color: var(--ms-ink2); }
+.ms-add-time { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ms-add-time label { display: flex; flex-direction: column; gap: 4px; font-size: 0.72rem; font-weight: 800; color: var(--ms-ink2); }
+.ms-add-time input { min-width: 0; }
+
+/* ---------- ER preferences history button ---------- */
+.ms-hist-btn { width: 100%; margin-bottom: 12px; color: var(--ms-navy); }
+.ms-hist-btn i { color: var(--ms-gold); }

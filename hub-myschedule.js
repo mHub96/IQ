@@ -84,6 +84,10 @@
     const hm = t => { const [h, m] = String(t).split(':').map(Number); return `${h % 12 || 12}:${String(m || 0).padStart(2, '0')} ${h < 12 ? 'ص' : 'م'}`; };
     /** A duty's name and time (its start and end, or the whole 24-hour duty day). */
     function view(d) {
+        if (d.src === 'custom' && d.kind !== 'er') {
+            const title = d.kind === 'own' ? d.title : ((Hub.getSpecialtyName && Hub.getSpecialtyName(d.spec, d.hosp || data.hosp)) || d.spec || 'خفارة');
+            return { title, time: d.start && d.end ? `${hm(d.start)} – ${hm(d.end)}` : FULL_DAY, er: false };
+        }
         if (d.src === 'hospital') {
             const name = (Hub.getSpecialtyName && Hub.getSpecialtyName(d.spec, d.hosp || data.hosp)) || d.spec || 'خفارة المستشفى';
             return { title: name, time: d.time ? fmtTime(d.time) : FULL_DAY, er: false };
@@ -174,7 +178,7 @@
             ].join('');
             cells += `<button type="button" class="ms-day ${list.length ? 'has' : ''} ${iso === today ? 'today' : ''} ${iso === selDate ? 'sel' : ''} ${dow === 5 || dow === 6 ? 'wk' : ''}" data-date="${iso}" aria-label="${d} ${MONTHS[parseYm(ym).m]}${list.length ? '، ' + list.length + ' خفارة' : ''}">
                 <span class="n">${d}</span>
-                ${list.length ? `<span class="ms-pips">${list.slice(0, 3).map(x => `<span class="ms-pip ${x.src === 'er' ? 'er' : ''}"></span>`).join('')}</span>` : ''}
+                ${list.length ? `<span class="ms-pips">${list.slice(0, 3).map(x => `<span class="ms-pip ${x.src === 'er' ? 'er' : x.src === 'custom' ? 'cu' : ''}"></span>`).join('')}</span>` : ''}
                 ${tags ? `<span class="ms-day-tags">${tags}</span>` : ''}
             </button>`;
         }
@@ -183,6 +187,7 @@
 
         root.innerHTML = `
             <div data-role="portal">${portalHtml()}</div>
+            <button type="button" class="ms-btn ms-hist-btn" data-act="pref-history"><i class="fas fa-clock-rotate-left"></i> سجل رغباتي في خفارات الطوارئ</button>
             <div data-role="reminder">${reminderHtml()}</div>
             <div class="ms-bar">
                 <button type="button" class="ms-nav" data-act="next" aria-label="الشهر التالي"><i class="fas fa-chevron-right"></i></button>
@@ -199,8 +204,9 @@
                 <div class="ms-cal-head">${WEEK.map(i => `<span class="${i === 5 || i === 6 ? 'wk' : ''}">${DAY_NAMES[i]}</span>`).join('')}</div>
                 <div class="ms-cal-grid">${cells}</div>
             </div>
+            <div data-role="day"></div>
             <div class="ms-legend">
-                <span><i class="ms-pip"></i> المستشفى</span><span><i class="ms-pip er"></i> الطوارئ</span>
+                <span><i class="ms-pip"></i> المستشفى</span><span><i class="ms-pip er"></i> الطوارئ</span><span><i class="ms-pip cu"></i> أضفتها</span>
                 <span><i class="tday"></i> اليوم</span><span><b class="ms-mini p">+$</b> مشتراة</span><span><b class="ms-mini m">-$</b> مباعة</span>
             </div>
             <div class="ms-section-title">خفاراتي في ${esc(monthTitle(ym))}</div>
@@ -212,7 +218,7 @@
                 <a class="ms-cal-remove" data-act="cal-remove" href="${esc(calLink('remove'))}" ${PLATFORM === 'ios' ? 'target="_blank" rel="noopener"' : ''}><i class="fas fa-calendar-xmark"></i> إزالة تذكيرات هذا الشهر من التقويم</a>
                 <small>تذكير قبل كل خفارة بـ 24 ساعة</small>
             </div>` : ''}
-            <p class="ms-foot-note">الملاحظات والعلامات خاصة بك ولا يراها غيرك.</p>`;
+            <p class="ms-foot-note">الملاحظات والعلامات والخفارات التي تضيفها خاصة بك ولا يراها غيرك.<br>اضغط أي يوم في التقويم لإضافة خفارة.</p>`;
 
         root.querySelector('[data-act="prev"]').addEventListener('click', () => showMonth(shiftYm(ym, -1)));
         root.querySelector('[data-act="next"]').addEventListener('click', () => showMonth(shiftYm(ym, 1)));
@@ -232,6 +238,8 @@
         });
         bindPortal(root);
         bindReminder(root);
+        root.querySelector('[data-act="pref-history"]').addEventListener('click', openPrefHistory);
+        if (selDate && selDate.startsWith(ym)) dayPanel(selDate);
 
         // First view of the current month: bring today's (or the next) duty into view.
         if (!selDate && ym === today.slice(0, 7)) {
@@ -268,13 +276,13 @@
         const f = flagOf(mk.flag);
         const today = iraqToday();
         const isNext = d.key === nextKey;
-        return `<article class="ms-duty ${mk.kind ? 'kind-' + mk.kind : ''} ${d.date === today ? 'is-today' : ''} ${isNext ? 'is-next' : ''}" data-date="${d.date}" data-key="${esc(d.key)}">
+        return `<article class="ms-duty ${d.src === 'custom' ? 'src-custom' : ''} ${mk.kind ? 'kind-' + mk.kind : ''} ${d.date === today ? 'is-today' : ''} ${isNext ? 'is-next' : ''}" data-date="${d.date}" data-key="${esc(d.key)}">
             ${isNext ? `<span class="ms-next-badge"><i class="fas fa-bell"></i> ${d.date === today ? 'خفارتك اليوم' : 'الخفارة القادمة'}</span>` : ''}
             ${mk.kind === 'bought' ? '<span class="ms-badge-big p">+$</span>' : mk.kind === 'sold' ? '<span class="ms-badge-big m">-$</span>' : ''}
             <div class="ms-date"><b>${Number(d.date.slice(8))}</b><span>${DAY_NAMES[dowOf(d.date)]}</span></div>
             <div class="ms-main">
                 <div class="ms-t">${esc(v.title)}</div>
-                <div class="ms-s"><span class="ms-time"><i class="far fa-clock"></i> ${esc(v.time)}</span>${showsHospital(d) ? `<span class="ms-hosp-tag"><i class="fas fa-hospital"></i> ${esc(hospitalName(d.hosp))}</span>` : ''}</div>
+                <div class="ms-s">${d.src === 'custom' ? '<span class="ms-cu-tag"><i class="fas fa-user-pen"></i> أضفتها</span>' : ''}<span class="ms-time"><i class="far fa-clock"></i> ${esc(v.time)}</span>${showsHospital(d) ? `<span class="ms-hosp-tag"><i class="fas fa-hospital"></i> ${esc(hospitalName(d.hosp))}</span>` : ''}</div>
                 ${mk.kind || f ? `<div class="ms-tags">
                     ${mk.kind === 'bought' ? '<span class="ms-tag p"><span class="cur">+$</span> خفارة مشتراة</span>' : ''}
                     ${mk.kind === 'sold' ? '<span class="ms-tag m"><span class="cur">-$</span> خفارة مباعة</span>' : ''}
@@ -291,10 +299,146 @@
         host.querySelectorAll('.ms-day.sel').forEach(el => el.classList.remove('sel'));
         const cell = host.querySelector(`.ms-day[data-date="${iso}"]`);
         if (cell) cell.classList.add('sel');
+        dayPanel(iso);
+    }
+
+    function showDayDuties(iso) {
         const card = host.querySelector(`.ms-duty[data-date="${iso}"]`);
-        if (!card) { toast(`لا توجد خفارة يوم ${Number(iso.slice(8))} ${MONTHS[Number(iso.slice(5, 7))]}`, 'info'); return; }
+        if (!card) return;
         card.scrollIntoView({ behavior: 'smooth', block: 'center' });
         card.classList.remove('flash'); void card.offsetWidth; card.classList.add('flash');
+    }
+
+    // ------------------------------------------------------------------
+    // The picked day: its duties, and adding a duty of one's own
+    // ------------------------------------------------------------------
+    const dayTitle = iso => `${DAY_NAMES[dowOf(iso)]} ${Number(iso.slice(8))} ${MONTHS[Number(iso.slice(5, 7))]}`;
+
+    function dayPanel(iso, adding) {
+        const slot = host && host.querySelector('[data-role="day"]');
+        if (!slot) return;
+        const list = (data.duties || []).filter(d => d.date === iso);
+        slot.innerHTML = `<div class="ms-dayact">
+            <div class="ms-dayact-h"><b>${esc(dayTitle(iso))}</b><span>${list.length ? `${list.length} ${list.length === 1 ? 'خفارة' : 'خفارات'}: ${list.map(d => esc(view(d).title)).join('، ')}` : 'لا توجد خفارة'}</span>
+                <button type="button" class="ms-dayact-x" data-act="day-close" aria-label="إغلاق"><i class="fas fa-xmark"></i></button></div>
+            ${adding ? '<div data-role="add"></div>' : `<div class="ms-row">
+                ${list.length ? '<button type="button" class="ms-btn" data-act="day-show"><i class="fas fa-list"></i> عرض خفارات اليوم</button>' : ''}
+                <button type="button" class="ms-btn cu" data-act="day-add"><i class="fas fa-plus"></i> إضافة خفارة</button></div>`}
+        </div>`;
+        slot.querySelector('[data-act="day-close"]').addEventListener('click', () => {
+            selDate = '';
+            slot.innerHTML = '';
+            host.querySelectorAll('.ms-day.sel').forEach(el => el.classList.remove('sel'));
+        });
+        const show = slot.querySelector('[data-act="day-show"]');
+        if (show) show.addEventListener('click', () => showDayDuties(iso));
+        const add = slot.querySelector('[data-act="day-add"]');
+        if (add) add.addEventListener('click', () => dayPanel(iso, true));
+        if (adding) addForm(slot.querySelector('[data-role="add"]'), iso);
+    }
+
+    /** The ER positions of the month (from the server's reading of the ER schedule) as choices. */
+    function erChoices() {
+        const pos = (data && data.erPositions) || {};
+        const out = [];
+        for (const type of ['er', 'con', 'rs']) {
+            for (const p of pos[type] || []) {
+                const d = { src: 'er', type, slot: p.key, place: p.place, start: p.start, end: p.end };
+                const v = view(d);
+                out.push({ d, label: `${v.title}${v.time && v.time !== FULL_DAY ? ' · ' + v.time : ''}` });
+            }
+        }
+        return out;
+    }
+
+    /** The specialties the resident does duties in (as for exchanges), else the hospital's own. */
+    function specChoices() {
+        const hosp = data.hosp;
+        const h = Hub.getHospital && Hub.getHospital(hosp);
+        const all = ((h && h.specialties) || []).filter(s => s && s.id && s.enabled !== false && !s.isClone);
+        const allowed = Hub.exchangeSpecialtiesFor ? Hub.exchangeSpecialtiesFor(hosp) : null;
+        const list = Array.isArray(allowed) ? all.filter(s => allowed.includes(s.id)) : all;
+        return list.map(s => ({ id: s.id, name: (Hub.getSpecialtyName && Hub.getSpecialtyName(s.id, hosp)) || s.name_ar || s.id }));
+    }
+
+    function addForm(box, iso) {
+        const ers = erChoices(), specs = specChoices();
+        const st = { kind: ers.length ? 'er' : 'spec', er: 0, spec: specs[0] ? specs[0].id : '', allDay: true, start: '08:00', end: '14:00', title: '' };
+        const draw = () => {
+            const timed = st.kind !== 'er';
+            box.innerHTML = `<div class="ms-add">
+                <div class="ms-seg" role="group" aria-label="نوع الخفارة">
+                    <button type="button" data-k="er" aria-pressed="${st.kind === 'er'}"><i class="fas fa-truck-medical"></i> طوارئ</button>
+                    <button type="button" data-k="spec" aria-pressed="${st.kind === 'spec'}"><i class="fas fa-stethoscope"></i> تخصصي</button>
+                    <button type="button" data-k="own" aria-pressed="${st.kind === 'own'}"><i class="fas fa-pen"></i> خاصة</button>
+                </div>
+                ${st.kind === 'er' ? (ers.length ? `<label class="ms-add-l">موقع الخفارة (حسب هيكلية طوارئ مستشفاك)
+                    <select class="ms-input" data-role="er">${ers.map((c, i) => `<option value="${i}" ${i === st.er ? 'selected' : ''}>${esc(c.label)}</option>`).join('')}</select></label>`
+                    : '<p class="msp-note">لا توجد هيكلية طوارئ لمستشفاك.</p>') : ''}
+                ${st.kind === 'spec' ? (specs.length ? `<label class="ms-add-l">التخصص
+                    <select class="ms-input" data-role="spec">${specs.map(s => `<option value="${esc(s.id)}" ${s.id === st.spec ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select></label>`
+                    : '<p class="msp-note">لا توجد تخصصات مسموحة لك في مستشفاك.</p>') : ''}
+                ${st.kind === 'own' ? `<label class="ms-add-l">اسم الخفارة
+                    <input class="ms-input" data-role="title" maxlength="60" placeholder="مثلاً: عيادة خارجية، تغطية ردهة" value="${esc(st.title)}"></label>` : ''}
+                ${timed ? `<div class="ms-seg two" role="group" aria-label="الوقت">
+                        <button type="button" data-all="1" aria-pressed="${st.allDay}">24 ساعة</button>
+                        <button type="button" data-all="0" aria-pressed="${!st.allDay}">من – إلى</button></div>
+                    ${st.allDay ? '' : `<div class="ms-add-time"><label>من <input type="time" class="ms-input" data-role="start" value="${st.start}"></label>
+                        <label>إلى <input type="time" class="ms-input" data-role="end" value="${st.end}"></label></div>`}` : ''}
+                <div class="ms-row">
+                    <button type="button" class="ms-btn cu" data-act="add-save"><i class="fas fa-check"></i> إضافة إلى جدولي</button>
+                    <button type="button" class="ms-btn" data-act="add-cancel">إلغاء</button>
+                </div></div>`;
+            box.querySelectorAll('[data-k]').forEach(b => b.addEventListener('click', () => { st.kind = b.dataset.k; draw(); }));
+            box.querySelectorAll('[data-all]').forEach(b => b.addEventListener('click', () => { st.allDay = b.dataset.all === '1'; draw(); }));
+            const bind = (role, key, num) => { const el = box.querySelector(`[data-role="${role}"]`); if (el) el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', () => { st[key] = num ? Number(el.value) : el.value; }); };
+            bind('er', 'er', true); bind('spec', 'spec'); bind('title', 'title'); bind('start', 'start'); bind('end', 'end');
+            box.querySelector('[data-act="add-cancel"]').addEventListener('click', () => dayPanel(iso));
+            box.querySelector('[data-act="add-save"]').addEventListener('click', save);
+        };
+        const save = async e => {
+            const btn = e.currentTarget;
+            const body = { date: iso, kind: st.kind };
+            if (st.kind === 'er') {
+                const c = ers[st.er];
+                if (!c) { toast('اختر موقع الخفارة', 'error'); return; }
+                Object.assign(body, { type: c.d.type, slot: c.d.slot, place: c.d.place || '', start: c.d.start || '', end: c.d.end || '' });
+            } else {
+                if (st.kind === 'spec') { if (!st.spec) { toast('اختر التخصص', 'error'); return; } body.spec = st.spec; }
+                if (st.kind === 'own') { body.title = st.title.trim(); if (!body.title) { toast('اكتب اسم الخفارة', 'error'); return; } }
+                if (!st.allDay) {
+                    if (!st.start || !st.end || st.start === st.end) { toast('اختر وقت البداية والنهاية', 'error'); return; }
+                    body.start = st.start; body.end = st.end;
+                }
+            }
+            btn.disabled = true;
+            try {
+                const res = await Hub.api('POST', '/api/accounts/custom-duty', body, { retries: 0 });
+                // Added to the month on the page: no need to load the month again.
+                data.duties = (data.duties || []).concat(res.duty).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+                cache.set(ym, data);
+                paint();
+                toast('أُضيفت الخفارة إلى جدولك ✓ يمكنك إضافة ملاحظة أو علامة عليها', 'success');
+            } catch (err) {
+                btn.disabled = false;
+                const code = err && err.data && err.data.error;
+                toast(({ too_many: 'وصلت إلى الحد الأعلى للخفارات المضافة في هذا الشهر.', bad_time: 'وقت غير صالح.', title_required: 'اكتب اسم الخفارة.' })[code] || errorText(err), 'error');
+            }
+        };
+        draw();
+    }
+
+    async function removeCustom(key) {
+        if (!confirm('حذف هذه الخفارة التي أضفتها من جدولك؟')) return;
+        try {
+            await Hub.api('POST', '/api/accounts/custom-duty', { dkey: key, remove: true }, { retries: 0 });
+            data.duties = (data.duties || []).filter(d => d.key !== key);
+            if (data.marks) delete data.marks[key];
+            cache.set(ym, data);
+            openEditor = null;
+            paint();
+            toast('حُذفت الخفارة', 'success');
+        } catch (err) { toast(errorText(err), 'error'); }
     }
 
     // ------------------------------------------------------------------
@@ -329,7 +473,8 @@
                 <button type="button" class="ms-btn primary" data-act="save"><i class="fas fa-check"></i> حفظ</button>
                 <button type="button" class="ms-btn" data-act="cancel">إلغاء</button>
                 ${mk.kind || mk.flag || mk.note ? '<button type="button" class="ms-btn ghost-danger" data-act="clear"><i class="fas fa-eraser"></i> مسح</button>' : ''}
-            </div>`;
+            </div>
+            ${duty.src === 'custom' ? '<button type="button" class="ms-btn ghost-danger" data-act="remove-custom"><i class="fas fa-trash"></i> حذف هذه الخفارة من جدولي</button>' : ''}`;
         card.after(ed);
         ed.querySelectorAll('[data-kind]').forEach(b => b.addEventListener('click', () => {
             mk.kind = b.dataset.kind || null;
@@ -364,6 +509,8 @@
         ed.querySelector('[data-act="save"]').addEventListener('click', () => save(false));
         const clr = ed.querySelector('[data-act="clear"]');
         if (clr) clr.addEventListener('click', () => save(true));
+        const rm = ed.querySelector('[data-act="remove-custom"]');
+        if (rm) rm.addEventListener('click', () => removeCustom(key));
         ed.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
@@ -409,7 +556,7 @@
                 <td class="num">${i + 1}</td>
                 <td class="dt"><b>${d.date.slice(8)}/${d.date.slice(5, 7)}</b></td>
                 <td class="dy">${DAY_NAMES[dow]}</td>
-                <td class="nm"><b>${esc(v.title)}</b>${isNext ? ' <span class="nx">القادمة</span>' : ''}${showsHospital(d) ? `<div class="hs">${esc(hospitalName(d.hosp))}</div>` : ''}</td>
+                <td class="nm"><b>${esc(v.title)}</b>${d.src === 'custom' ? ' <span class="cu">مضافة</span>' : ''}${isNext ? ' <span class="nx">القادمة</span>' : ''}${showsHospital(d) ? `<div class="hs">${esc(hospitalName(d.hosp))}</div>` : ''}</td>
                 <td class="tm">${esc(v.time)}</td>
                 <td class="st">${status || '<span class="dash">—</span>'}</td>
             </tr>`;
@@ -667,7 +814,15 @@
         const prefs = JSON.parse(JSON.stringify(portal.prefs || {}));
         prefs.prefShifts = prefs.prefShifts || [];
         prefs.prefDays = prefs.prefDays || [];
-        prefs.specificDays = prefs.specificDays || [];
+        // Preferred (green) and excluded (red) days side by side; the switch only says which colour a tap gives.
+        if (!Array.isArray(prefs.daysPrefer) && !Array.isArray(prefs.daysExclude)) {
+            const one = prefs.specificDays || [];
+            prefs.daysPrefer = prefs.prefDaysMode === 'prefer' ? [...one] : [];
+            prefs.daysExclude = prefs.prefDaysMode === 'prefer' ? [] : [...one];
+        }
+        prefs.daysPrefer = (prefs.daysPrefer || []).map(Number);
+        prefs.daysExclude = (prefs.daysExclude || []).map(Number);
+        let tapMode = 'exclude';
         prefs.excludedIntervals = prefs.excludedIntervals || [];
         const female = portal.er && portal.er.sex === 'f';
         const min = `${p.ym}-01`, max = `${p.ym}-${pad2(daysIn(p.ym))}`;
@@ -693,6 +848,7 @@
                     <button type="button" data-mode="exclude">🚫 استبعاد الأيام</button>
                     <button type="button" data-mode="prefer">✓ أيام مفضلة للخفارة</button>
                 </div>
+                <p class="msp-note" style="margin:0 0 8px">يمكنك تحديد أيام مفضلة (خضراء) وأيام مستبعدة (حمراء) معاً؛ التبديل بين الوضعين لا يغيّر الأيام المحددة.</p>
                 <div class="msp-cal-head">${WEEK.map(i => `<span>${DAY_NAMES[i]}</span>`).join('')}</div>
                 <div class="msp-cal" data-role="cal"></div>
                 <p class="msp-note" data-role="days-desc"></p></div>
@@ -706,6 +862,8 @@
                 <p class="msp-note" data-role="iv-desc"></p></div>
             <div class="msp-card"><label class="msp-check"><input type="checkbox" data-role="nocons" ${prefs.noConsecutiveDays !== false ? 'checked' : ''}>
                 <span>تجنب الخفارات في أيام متتالية<br><small class="hacc-muted">مفضل افتراضياً لمنع الإجهاد وضمان فاصل كافٍ بين الخفارات</small></span></label></div>
+            <div class="msp-card"><div class="t"><i class="fas fa-comment-dots"></i> ملاحظة أو طلب خاص (اختياري)</div>
+                <textarea class="ms-textarea" data-role="note" maxlength="500" placeholder="مثلاً: لدي امتحان يوم 15، أفضّل الخفارات في الأسبوع الأخير…">${esc(prefs.prefNote || '')}</textarea></div>
             <div class="msp-save"><button type="button" class="ms-btn primary" data-act="send" style="width:100%"><i class="fas fa-paper-plane"></i> ${portal.request ? 'حفظ التعديلات' : 'إرسال رغباتي'}</button>
                 <div class="msp-status" data-role="status">${portal.request ? `<span class="ok">✓ أُرسلت</span> · آخر تعديل ${esc(new Date(portal.request.at).toLocaleString('ar-IQ-u-nu-latn', { day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Baghdad' }))}` : 'لم ترسل رغباتك بعد'}</div></div>
         </div>`;
@@ -714,20 +872,23 @@
         const paintCal = () => {
             const lead = WEEK.indexOf(dowOf(min));
             const n = daysIn(p.ym);
-            const cls = prefs.prefDaysMode === 'prefer' ? 'pr' : 'ex';
+            const dayCls = d => (prefs.daysPrefer.includes(d) ? 'pr' : prefs.daysExclude.includes(d) ? 'ex' : '');
             let html = '';
             for (let i = 0; i < lead; i++) html += '<span class="msp-d pad"></span>';
-            for (let d = 1; d <= n; d++) html += `<button type="button" class="msp-d ${cls}" data-d="${d}" aria-pressed="${prefs.specificDays.includes(d)}">${d}</button>`;
+            for (let d = 1; d <= n; d++) html += `<button type="button" class="msp-d ${dayCls(d)}" data-d="${d}" aria-pressed="${!!dayCls(d)}">${d}</button>`;
             form.querySelector('[data-role="cal"]').innerHTML = html;
             form.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', () => {
                 const d = Number(b.dataset.d);
-                prefs.specificDays = prefs.specificDays.includes(d) ? prefs.specificDays.filter(x => x !== d) : prefs.specificDays.concat(d).sort((a, c) => a - c);
-                b.setAttribute('aria-pressed', String(prefs.specificDays.includes(d)));
+                const mine = tapMode === 'prefer' ? 'daysPrefer' : 'daysExclude', other = tapMode === 'prefer' ? 'daysExclude' : 'daysPrefer';
+                if (prefs[mine].includes(d)) prefs[mine] = prefs[mine].filter(x => x !== d);
+                else { prefs[mine] = prefs[mine].concat(d).sort((a, c) => a - c); prefs[other] = prefs[other].filter(x => x !== d); }
+                b.className = `msp-d ${dayCls(d)}`;
+                b.setAttribute('aria-pressed', String(!!dayCls(d)));
             }));
-            form.querySelector('[data-role="days-desc"]').textContent = prefs.prefDaysMode === 'prefer'
-                ? 'الأيام المحددة باللون الأخضر تُفضَّل لخفاراتك.'
-                : 'الأيام المحددة باللون الأحمر لن تُوزَّع عليك فيها أي خفارة.';
-            paintMode('days-mode', prefs.prefDaysMode);
+            form.querySelector('[data-role="days-desc"]').textContent = tapMode === 'prefer'
+                ? 'اضغط الأيام التي تفضّل الخفارة فيها (تصبح خضراء).'
+                : 'اضغط الأيام التي لا تريد خفارة فيها (تصبح حمراء).';
+            paintMode('days-mode', tapMode);
         };
         const paintIvs = () => {
             const box = form.querySelector('[data-role="ivs"]');
@@ -747,11 +908,10 @@
                 : 'لن تُوزَّع عليك خفارات خلال هذه الفترات.';
             paintMode('iv-mode', prefs.intervalMode);
         };
-        form.querySelectorAll('[data-role="days-mode"] [data-mode]').forEach(b => b.addEventListener('click', () => { prefs.prefDaysMode = b.dataset.mode; paintCal(); }));
+        form.querySelectorAll('[data-role="days-mode"] [data-mode]').forEach(b => b.addEventListener('click', () => { tapMode = b.dataset.mode; paintCal(); }));
         form.querySelectorAll('[data-role="iv-mode"] [data-mode]').forEach(b => b.addEventListener('click', () => { prefs.intervalMode = b.dataset.mode; paintIvs(); }));
         form.querySelector('[data-act="add-iv"]').addEventListener('click', () => { prefs.excludedIntervals.push({ start: '', end: '' }); paintIvs(); });
         form.querySelector('[data-act="back"]').addEventListener('click', () => paint());
-        prefs.prefDaysMode = prefs.prefDaysMode === 'prefer' ? 'prefer' : 'exclude';
         prefs.intervalMode = prefs.intervalMode === 'strictly_within' ? 'strictly_within' : 'exclude';
         paintCal();
         paintIvs();
@@ -761,8 +921,9 @@
             const out = {
                 prefShifts: [...form.querySelectorAll('[data-shift]:checked')].map(i => i.dataset.shift),
                 prefDays: [...form.querySelectorAll('[data-wd]:checked')].map(i => i.dataset.wd),
-                prefDaysMode: prefs.prefDaysMode,
-                specificDays: prefs.specificDays,
+                daysPrefer: prefs.daysPrefer,
+                daysExclude: prefs.daysExclude,
+                prefNote: form.querySelector('[data-role="note"]').value.trim(),
                 intervalMode: prefs.intervalMode,
                 excludedIntervals: prefs.excludedIntervals.filter(iv => iv.start || iv.end),
                 noConsecutiveDays: form.querySelector('[data-role="nocons"]').checked,
@@ -780,6 +941,24 @@
                 toast(({ portal_closed: 'انتهت مدة البوابة، لم يعد التعديل ممكناً.', not_in_er: 'اسمك غير موجود في قاعدة بيانات الطوارئ.' })[code] || errorText(err), 'error');
                 if (code === 'portal_closed') { portal = null; paint(); }
             }
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // My ER preferences history (5 months a page)
+    // ------------------------------------------------------------------
+    async function openPrefHistory() {
+        const root = host.querySelector('.ms');
+        host.scrollTop = 0;
+        root.innerHTML = `<div class="msp"><div class="msp-head"><button type="button" class="ms-nav" data-act="back" aria-label="رجوع"><i class="fas fa-arrow-right"></i></button>
+            <div><h3>سجل رغباتي في خفارات الطوارئ</h3><small>رغباتك وملاحظاتك شهراً بشهر</small></div></div><div data-role="hist"><div class="hacc-empty">جاري التحميل…</div></div></div>`;
+        root.querySelector('[data-act="back"]').addEventListener('click', () => paint());
+        const box = root.querySelector('[data-role="hist"]');
+        try { await loadScript('./hub-prefhistory.js'); } catch (e) { box.innerHTML = '<div class="ms-empty">تعذر التحميل. تحقق من الاتصال.</div>'; return; }
+        window.HubPrefHistory.mount(box, async before => {
+            const res = await Hub.api('GET', '/api/er-pref-history/mine' + (before ? '?before=' + before : ''), undefined, { retries: 1 });
+            if (!res.er) throw new Error('لم نجد اسمك في قاعدة بيانات أطباء الطوارئ لمستشفاك، لذلك لا يوجد سجل رغبات مرتبط بحسابك.');
+            return res;
         });
     }
 

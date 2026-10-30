@@ -710,9 +710,14 @@
                         <p class="text-[11px] text-slate-500" id="prefs-modal-docname">اسم الطبيب</p>
                     </div>
                 </div>
-                <button type="button" onclick="closeResidentPrefsModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                    <i class="fas fa-times text-sm"></i>
-                </button>
+                <div class="flex items-center gap-1.5">
+                    <button type="button" onclick="openActivePrefsHistory()" class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 transition flex items-center gap-1.5" title="رغبات هذا الطبيب وملاحظاته في الأشهر السابقة">
+                        <i class="fas fa-clock-rotate-left"></i><span>سجل الرغبات</span>
+                    </button>
+                    <button type="button" onclick="closeResidentPrefsModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="p-5 space-y-4 text-xs overflow-y-auto flex-1">
@@ -814,6 +819,8 @@
                         <span id="pref-days-mode-desc" class="text-[10px] font-bold"></span>
                     </div>
 
+                    <p class="text-[10.5px] text-slate-500 mb-2 leading-relaxed">اختر <b class="text-emerald-600">أيام مفضلة</b> ثم اضغط الأيام لتصبح خضراء، أو <b class="text-rose-600">استبعاد الأيام</b> لتصبح حمراء. يمكن تحديد النوعين معاً، والتبديل بين الوضعين لا يغيّر الأيام المحددة.</p>
+
                     <!-- Month Calendar Grid with 7 Weekday Headers -->
                     <div class="p-2.5 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
                         <div class="grid grid-cols-7 gap-1 text-center font-bold text-[10px] text-slate-400 dark:text-slate-500 mb-1.5 pb-1 border-b border-slate-200 dark:border-slate-800">
@@ -872,6 +879,14 @@
                             <p class="text-[10px] text-slate-400 mt-0.5">مفضل افتراضياً لجميع الأطباء لمنع الإجهاد وضمان فاصل زمني كافٍ بين الخفارات</p>
                         </div>
                     </label>
+                </div>
+
+                <!-- The resident's note -->
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <label for="pref-note" class="block font-black text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
+                        <i class="fas fa-comment-dots text-amber-500"></i><span>ملاحظة أو طلب خاص (اختياري):</span>
+                    </label>
+                    <textarea id="pref-note" maxlength="500" rows="3" placeholder="مثلاً: لدي امتحان في 15، أفضّل الخفارات في الأسبوع الأخير…" class="w-full p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100 leading-relaxed resize-y"></textarea>
                 </div>
 
                 <p class="text-[11px] text-slate-400">
@@ -1031,6 +1046,7 @@
     <script src="./emergency-link.js"></script>
     <script src="./emergency-residents.js"></script>
     <script src="./emergency-save.js"></script>
+    <script src="./hub-prefhistory.js"></script>
     <script src="./emergency-portal.js"></script>
     <script src="./emergency-print.js"></script>
     <script src="./emergency-shell.js"></script>

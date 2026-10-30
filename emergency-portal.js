@@ -49,9 +49,13 @@
         res.prefShifts = [...(p.prefShifts || [])];
         res.prefDays = [...(p.prefDays || [])];
         res.noConsecutiveDays = p.noConsecutiveDays !== false;
-        res.prefDaysMode = p.prefDaysMode === 'prefer' ? 'prefer' : 'exclude';
-        res.specificDays = [...(p.specificDays || [])];
-        res.excludedDates = res.prefDaysMode === 'exclude' ? res.specificDays.map(d => `${d}/${month}`) : [];
+        const days = window.HubPrefHistory ? HubPrefHistory.dayLists(p) : { prefer: [], exclude: p.specificDays || [] };
+        res.daysPrefer = [...days.prefer].map(Number);
+        res.daysExclude = [...days.exclude].map(Number).filter(d => !res.daysPrefer.includes(d));
+        res.prefDaysMode = res.daysExclude.length || !res.daysPrefer.length ? 'exclude' : 'prefer';
+        res.specificDays = res.prefDaysMode === 'exclude' ? [...res.daysExclude] : [...res.daysPrefer];
+        res.excludedDates = res.daysExclude.map(d => `${d}/${month}`);
+        res.prefNote = String(p.prefNote || '').slice(0, 500);
         res.intervalMode = p.intervalMode === 'strictly_within' ? 'strictly_within' : 'exclude';
         res.excludedIntervals = (p.excludedIntervals || []).map(iv => ({ start: iv.start, end: iv.end }));
         res.preferences = { prefDays: [...res.prefDays], prefShifts: [...res.prefShifts], noConsecutiveDays: res.noConsecutiveDays };
@@ -199,6 +203,7 @@
                 ${open ? '<button type="button" data-act="close-now" class="px-4 py-2.5 rounded-xl text-xs font-black text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition flex items-center gap-1.5"><i class="fas fa-lock"></i> إغلاق الآن</button>' : ''}
                 <button type="button" data-act="summary" class="px-4 py-2.5 rounded-xl text-xs font-black text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-50 transition flex items-center gap-1.5"><i class="fas fa-list-check"></i> ملخص الطلبات</button>
             </div>
+            <button type="button" data-act="import-hist" class="w-full px-4 py-2 rounded-xl text-[11px] font-bold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-700 hover:bg-slate-100 transition flex items-center justify-center gap-1.5"><i class="fab fa-google"></i> استيراد إجابات استمارة Google القديمة إلى سجل الرغبات (ملف JSON)</button>
             ${(res.portals || []).filter(p => !p.open).length ? `<div class="pt-3 border-t border-slate-100 dark:border-slate-800">
                 <div class="font-black text-slate-700 dark:text-slate-300 mb-2">بوابات سابقة</div>
                 <div class="space-y-1.5">${res.portals.filter(p => !p.open).map(p => `<div class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
@@ -208,6 +213,7 @@
         card.innerHTML = head('fa-door-open', 'بوابة رغبات خفارات الطوارئ', esc(hospitalName(per.hosp)), 'er-portal-modal') + body;
         bindClose(card);
         card.querySelector('[data-act="summary"]').addEventListener('click', () => { close('er-portal-modal'); openSummary(open ? open.ym : undefined); });
+        card.querySelector('[data-act="import-hist"]').addEventListener('click', () => importHistoryFile());
         card.querySelector('[data-act="open"]').addEventListener('click', async e => {
             const btn = e.currentTarget;
             const ym = card.querySelector('[data-role="ym"]').value;
@@ -247,10 +253,13 @@
         const out = [];
         if ((p.prefShifts || []).length) out.push(chip(`<i class="fas fa-clock"></i> ${p.prefShifts.map(s => SHIFT_AR[s] || s).join('، ')}`, 'bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300'));
         if ((p.prefDays || []).length) out.push(chip(`<i class="fas fa-calendar-week"></i> ${p.prefDays.join('، ')}`, 'bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300'));
-        if ((p.specificDays || []).length) out.push(chip(`${p.prefDaysMode === 'prefer' ? '✓ أيام مفضلة' : '🚫 أيام مستبعدة'}: ${p.specificDays.join('، ')}`, p.prefDaysMode === 'prefer' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300' : 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300'));
+        const days = window.HubPrefHistory ? HubPrefHistory.dayLists(p) : { prefer: [], exclude: p.specificDays || [] };
+        if (days.prefer.length) out.push(chip(`✓ أيام مفضلة: ${days.prefer.join('، ')}`, 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300'));
+        if (days.exclude.length) out.push(chip(`🚫 أيام مستبعدة: ${days.exclude.join('، ')}`, 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300'));
         const day = iso => `${Number(iso.slice(8))}/${Number(iso.slice(5, 7))}`;
         (p.excludedIntervals || []).forEach(iv => out.push(chip(`${p.intervalMode === 'strictly_within' ? '🎯 حصراً' : '🚫 استبعاد'} من ${esc(day(iv.start))} إلى ${esc(day(iv.end))}`, 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300')));
         out.push(chip(p.noConsecutiveDays !== false ? 'بدون أيام متتالية' : 'يقبل أياماً متتالية', 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'));
+        if (p.prefNote) out.push(`<div class="w-full mt-1 p-2 rounded-xl bg-amber-50 dark:bg-amber-950/30 text-amber-900 dark:text-amber-200 text-[11px] leading-relaxed whitespace-pre-wrap"><i class="fas fa-comment-dots"></i> ${esc(p.prefNote)}</div>`);
         return out.join(' ');
     }
 
@@ -317,6 +326,7 @@
                                 <div class="flex items-center gap-1.5">
                                     ${r.appliedAt && r.appliedAt >= r.at ? '<span class="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 text-[10.5px] font-bold"><i class="fas fa-check"></i> في قاعدة البيانات</span>' : '<span class="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 text-[10.5px] font-bold">بانتظار الإضافة</span>'}
                                     ${sameMonth && r.erId ? `<button type="button" data-prefs="${esc(r.erId)}" class="px-2.5 py-1 rounded-xl text-[11px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800">التفضيلات</button>` : ''}
+                                    ${r.erId ? `<button type="button" data-hist="${esc(r.erId)}" data-name="${esc(r.erName || r.name)}" class="px-2.5 py-1 rounded-xl text-[11px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800"><i class="fas fa-clock-rotate-left"></i> السجل</button>` : ''}
                                 </div>
                             </div>
                             <div class="mt-2 flex flex-wrap gap-1.5">${prefsChips(r.prefs || {})}</div>
@@ -336,6 +346,7 @@
                 window.onMonthYearChange(Number(res.ym.slice(5, 7)), Number(res.ym.slice(0, 4)));
             });
             card.querySelectorAll('[data-prefs]').forEach(b => b.addEventListener('click', () => { close('er-portal-summary-modal'); window.openResidentPrefsModal(b.dataset.prefs); }));
+            card.querySelectorAll('[data-hist]').forEach(b => b.addEventListener('click', () => openHistory(b.dataset.hist, b.dataset.name)));
         };
         if (period() && (!ymWanted || ymWanted === period().ym)) await sync();
         await load(false);
@@ -347,5 +358,66 @@
         }, 30000);
     }
 
-    window.ErPortal = { openControl, openSummary, sync };
+    // ------------------------------------------------------------------
+    // Preferences history (5 months a page) and the one-time import of the old Google Form
+    // ------------------------------------------------------------------
+    function openHistory(erId, name) {
+        const per = period();
+        if (!per || !window.HubPrefHistory) return;
+        const el = modal('er-pref-history-modal', 'max-w-lg');
+        const card = el.firstElementChild;
+        card.innerHTML = head('fa-clock-rotate-left', 'سجل الرغبات', `${esc(name || '')} · ${esc(hospitalName(per.hosp))}`, 'er-pref-history-modal')
+            + '<div class="p-4 sm:p-5 overflow-y-auto flex-1 text-slate-800 dark:text-slate-100" data-role="hist"></div>';
+        bindClose(card);
+        el.style.zIndex = '100000';
+        el.classList.remove('hidden');
+        HubPrefHistory.mount(card.querySelector('[data-role="hist"]'), before =>
+            Hub().api('GET', `/api/er-pref-history?hosp=${encodeURIComponent(per.hosp)}&er=${encodeURIComponent(erId)}${before ? '&before=' + before : ''}`, undefined, { retries: 1 })
+                .catch(err => { throw new Error(apiError(err)); }));
+    }
+
+    /** The month on screen's entry in a resident's history, after the preferences panel saved them. */
+    function recordHistory(res) {
+        const per = period();
+        if (!per || !res || !res.id || !Hub() || !Hub().api) return;
+        const p = {
+            prefShifts: res.prefShifts || [], prefDays: res.prefDays || [], daysPrefer: res.daysPrefer || [], daysExclude: res.daysExclude || [],
+            intervalMode: res.intervalMode, excludedIntervals: res.excludedIntervals || [], noConsecutiveDays: res.noConsecutiveDays !== false, prefNote: res.prefNote || '',
+        };
+        Hub().api('POST', '/api/er-pref-history', { hosp: per.hosp, ym: per.ym, erId: String(res.id), erName: res.name, prefs: p }, { retries: 1 })
+            .catch(err => console.warn('preferences history not saved', err));
+    }
+
+    /** Owner / ER admin: import a prepared file of the old Google Form's answers into the history. */
+    function importHistoryFile() {
+        const per = period();
+        if (!per) return;
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json,application/json';
+        input.onchange = async () => {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            let data;
+            try { data = JSON.parse(await file.text()); } catch (e) { notify('الملف غير صالح', 'error'); return; }
+            const hosp = data.hosp || per.hosp;
+            const entries = Array.isArray(data.entries) ? data.entries : [];
+            if (!entries.length) { notify('لا توجد إجابات في الملف', 'error'); return; }
+            if (!confirm(`استيراد ${entries.length} إجابة من استمارة Google إلى سجل رغبات أطباء ${hospitalName(hosp)}؟\nتُطابق الأسماء مع قاعدة بيانات الطوارئ، وتُحفظ في سجل كل طبيب حسب الشهر.`)) return;
+            try {
+                let saved = 0, residents = 0;
+                const unmatched = new Set();
+                for (let i = 0; i < entries.length; i += 400) {
+                    const r = await Hub().api('POST', '/api/er-pref-history/import', { hosp, entries: entries.slice(i, i + 400) }, { retries: 1 });
+                    saved += r.saved; residents += r.residents;
+                    (r.unmatched || []).forEach(n => unmatched.add(n));
+                }
+                const list = [...unmatched];
+                alert(`تم حفظ ${saved} إجابة في سجل الرغبات.` + (list.length ? `\n\nأسماء لم يُعثر عليها في قاعدة بيانات الطوارئ (${list.length}):\n• ${list.join('\n• ')}` : '\n\nطوبقت كل الأسماء ✓'));
+            } catch (err) { notify(apiError(err), 'error'); }
+        };
+        input.click();
+    }
+
+    window.ErPortal = { openControl, openSummary, sync, openHistory, recordHistory, importHistoryFile };
 })(window, document);

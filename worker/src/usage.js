@@ -9,7 +9,9 @@
 import { json } from './lib.js';
 
 // Workers Free plan (developers.cloudflare.com/d1/platform/pricing, /workers/platform/limits).
-export const FREE_LIMITS = { rowsRead: 5000000, rowsWritten: 100000, requests: 100000 };
+// dbBytes: the most one database may hold (500 MB, counted as Cloudflare shows it: 1 MB = 10^6 bytes);
+// at the cap every save fails while reading goes on (2026-10-30).
+export const FREE_LIMITS = { rowsRead: 5000000, rowsWritten: 100000, requests: 100000, dbBytes: 500000000 };
 const CACHE_MS = 60 * 1000;
 
 const QUERY = `query($a: string!, $d: Date!, $s: Time!, $e: Time!) {
@@ -26,15 +28,19 @@ const QUERY = `query($a: string!, $d: Date!, $s: Time!, $e: Time!) {
 export async function routeUsage(path, method, env, auth) {
   if (path !== '/api/usage' || method !== 'GET') return null;
   if (!auth || auth.r !== 'owner') return json({ error: 'forbidden' }, auth ? 403 : 401);
-  if (!env.CF_ACCOUNT_ID || !env.CF_ANALYTICS_TOKEN) return json({ ok: false, configured: false, limits: FREE_LIMITS });
+  // The database's size comes with the answer of any query (meta.size_after): the cache lookup below
+  // reports it, so it is always current and costs no extra read.
+  const look = await env.DB.prepare("SELECT v FROM kv WHERE k = 'usage_cache'").all().catch(() => null);
+  const dbBytes = look && look.meta && Number(look.meta.size_after) > 0 ? Number(look.meta.size_after) : null;
+  if (!env.CF_ACCOUNT_ID || !env.CF_ANALYTICS_TOKEN) return json({ ok: false, configured: false, limits: FREE_LIMITS, dbBytes });
 
   const now = Date.now();
   const day = new Date(now).toISOString().slice(0, 10);   // the limits reset at 00:00 UTC
-  const cached = await env.DB.prepare("SELECT v FROM kv WHERE k = 'usage_cache'").first().catch(() => null);
+  const cached = look && look.results && look.results[0];
   if (cached) {
     try {
       const c = JSON.parse(cached.v);
-      if (c.day === day && now - c.at < CACHE_MS) return json({ ...c.body, cached: true });
+      if (c.day === day && now - c.at < CACHE_MS) return json({ ...c.body, limits: FREE_LIMITS, dbBytes, cached: true });
     } catch {}
   }
 
@@ -67,5 +73,5 @@ export async function routeUsage(path, method, env, auth) {
   };
   await env.DB.prepare("INSERT INTO kv (k, v) VALUES ('usage_cache', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v")
     .bind(JSON.stringify({ day, at: now, body })).run().catch(() => {});
-  return json(body);
+  return json({ ...body, dbBytes });
 }

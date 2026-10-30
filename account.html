@@ -1364,6 +1364,16 @@
 
         // Owner: today's use of the free plan's daily limits (Cloudflare analytics, see worker/src/usage.js).
         const fmtN = n => Number(n || 0).toLocaleString('en-US');
+        // The database's size against the plan's cap (500 MB): at the cap every save fails.
+        const fmtMB = b => `<bdi dir="ltr">${(Number(b || 0) / 1e6).toLocaleString('en-US', { maximumFractionDigits: 1 })} MB</bdi>`;
+        let sizeCardBar = null;
+        function sizeCard(u) {
+            if (!u || !(u.dbBytes > 0) || !u.limits || !u.limits.dbBytes) return '';
+            const draw = sizeCardBar || ((t, i, used, limit) => `<div class="card"><h2>${t}</h2><p class="lead">${fmtMB(used)} / ${fmtMB(limit)} (${(used / limit * 100).toFixed(1)}%)</p></div>`);
+            return draw('حجم الموقع (قاعدة البيانات)', 'fa-hard-drive', u.dbBytes, u.limits.dbBytes, '',
+                'الحجم الحالي لكل بيانات الموقع وسجل تعديلاتها. عند بلوغ حد الخطة يتوقف حفظ أي تعديل (تبقى القراءة). تُخفَّف نسخ صفحة الطوارئ القديمة تلقائياً كل ليلة.',
+                fmtMB, ['الحجم الحالي', 'المتبقي', 'حد الخطة المجانية']);
+        }
         async function renderStats() {
             const box = $('mg-list');
             let u;
@@ -1375,11 +1385,11 @@
             }
             if (mg.filter !== 'stats') return;
             if (!u.configured) {
-                box.innerHTML = `<div class="card"><h2>الإحصائيات غير مفعّلة بعد</h2>
+                box.innerHTML = sizeCard(u) + `<div class="card"><h2>الإحصائيات غير مفعّلة بعد</h2>
                     <p class="lead">تحتاج قراءة أرقام الاستهلاك مفتاحاً من Cloudflare بصلاحية <b dir="ltr">Account Analytics: Read</b> يُضاف إلى الخادم باسم <b dir="ltr">CF_ANALYTICS_TOKEN</b>.</p></div>`;
                 return;
             }
-            const bar = (title, icon, used, limit, unit, note) => {
+            const bar = (title, icon, used, limit, unit, note, fmt = fmtN, labels = ['المستهلك اليوم', 'المتبقي', 'الحد اليومي ' + unit]) => {
                 const pct = Math.min(100, used / limit * 100);
                 const left = Math.max(0, limit - used);
                 const tone = pct >= 90 ? 'bad' : pct >= 70 ? 'warn' : 'ok';
@@ -1387,14 +1397,16 @@
                     <div class="usage-head"><span class="usage-ic"><i class="fas ${icon}"></i></span><h2>${title}</h2><b class="usage-pct">${pct < 10 ? pct.toFixed(1) : Math.round(pct)}%</b></div>
                     <div class="usage-bar"><span style="width:${pct.toFixed(2)}%"></span></div>
                     <div class="usage-nums">
-                        <div><b>${fmtN(used)}</b><span>المستهلك اليوم</span></div>
-                        <div><b>${fmtN(left)}</b><span>المتبقي (${(100 - pct).toFixed(pct > 99 ? 2 : 1)}%)</span></div>
-                        <div><b>${fmtN(limit)}</b><span>الحد اليومي ${unit}</span></div>
+                        <div><b>${fmt(used)}</b><span>${labels[0]}</span></div>
+                        <div><b>${fmt(left)}</b><span>${labels[1]} (${(100 - pct).toFixed(pct > 99 ? 2 : 1)}%)</span></div>
+                        <div><b>${fmt(limit)}</b><span>${labels[2]}</span></div>
                     </div>
                     ${note ? `<p class="hacc-muted usage-note">${note}</p>` : ''}
                 </div>`;
             };
+            sizeCardBar = bar;
             const resetIn = Math.max(0, u.nextReset - Date.now());
+            const sizeHtml = sizeCard(u);
             const h = Math.floor(resetIn / 3600000), m = Math.floor(resetIn % 3600000 / 60000);
             const resetAt = new Date(u.nextReset).toLocaleTimeString('ar-IQ-u-nu-latn', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Baghdad' });
             box.innerHTML = `
@@ -1402,6 +1414,7 @@
                     <span><i class="fas fa-clock-rotate-left"></i> يتجدد الحد بعد <b>${h} س ${m} د</b> (الساعة ${esc(resetAt)} بتوقيت بغداد)</span>
                     <button type="button" class="hacc-btn sm" id="usage-refresh"><i class="fas fa-rotate"></i> تحديث</button>
                 </div>
+                ${sizeHtml}
                 ${bar('قراءات قاعدة البيانات', 'fa-database', u.rowsRead, u.limits.rowsRead, '(صفوف)', `${fmtN(u.readQueries)} استعلام قراءة اليوم. عند بلوغ الحد يتوقف الموقع عن جلب البيانات حتى التجدد.`)}
                 ${bar('كتابات قاعدة البيانات', 'fa-pen-to-square', u.rowsWritten, u.limits.rowsWritten, '(صفوف)', `${fmtN(u.writeQueries)} عملية حفظ اليوم.`)}
                 ${bar('طلبات الخادم', 'fa-server', u.requests, u.limits.requests, '', (u.workers || []).map(w => `${w.name === 'hosp-hub-api' ? 'الموقع الرئيسي' : w.name === 'hosp-hub-api-beta' ? 'الموقع التجريبي' : esc(w.name)}: ${fmtN(w.requests)}`).join(' · '))}

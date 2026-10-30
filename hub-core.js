@@ -4657,7 +4657,6 @@
         deleteHospitalSpecialty,
         deleteEmptyHospitalSpecialties,
         getEligibleResidentsForSpecialty,
-        residentsOfSpecialty,
         exchangeSpecialtiesFor,
         isStoreSpecialty,
         residentIdFor,

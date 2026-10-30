@@ -1556,8 +1556,9 @@
                     ownerFullRestoreBtn.style.display = isOwner ? 'inline-flex' : 'none';
                 }
 
-                // Empty specialties display state (default false = hidden by default)
-                window.showEmptySpecialties = false;
+                // Empty specialties are listed too (default on): only a specialty's own switch hides it,
+                // so each one must be reachable here to switch it off. The toggle can still narrow the list.
+                window.showEmptySpecialties = true;
                 const toggleMain = document.getElementById('show-empty-specs-toggle');
                 if (toggleMain) toggleMain.checked = window.showEmptySpecialties;
                 const toggleModal = document.getElementById('modal-show-empty-specs-toggle');

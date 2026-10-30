@@ -355,7 +355,7 @@
         <section id="view-matrix" hidden>
             <div class="grid-bar">
                 <span id="matrix-stats-text"></span>
-                <label><input type="checkbox" id="grid-all-specs" onchange="renderMatrixView()" /> كل التخصصات</label>
+                <label><input type="checkbox" id="grid-all-specs" onchange="renderMatrixView()" checked /> كل التخصصات</label>
             </div>
             <div class="grid-wrap"><div class="grid-scroll" id="grid-scroll"><table class="grid-table" id="schedule-matrix-table"></table></div></div>
         </section>
@@ -424,7 +424,7 @@
             });
             let specs = (currentHospital.specialties || []).filter(s => s.enabled !== false);
             if (currentViewMode === 'single' && selectedSpecialtyId) specs = specs.filter(s => s.id === selectedSpecialtyId);
-            else specs = specs.filter(s => map[s.id]); // columns without a single duty this month are left out
+            // (every specialty that is not switched off has its column, with or without duties this month)
             const roleLabel = currentScheduleRole === 'specialists' ? 'خفارات الاختصاصيين' : 'خفارات المقيمين';
             const monthLabel = `${MONTH_NAMES_AR[currentMonth - 1]} ${currentYear}`;
             const hospName = currentHospital.name_ar || currentHospital.hospitalName || '';
@@ -978,7 +978,7 @@
             if (!all && withDuties.length) specs = withDuties;
             const hiddenCount = enabledSpecs().length - specs.length;
             const roleLabel = currentScheduleRole === 'specialists' ? 'خفارة اختصاصي' : 'خفارة';
-            stats.textContent = `${total} ${roleLabel} · ${specs.length} تخصص${hiddenCount ? ` (أُخفي ${hiddenCount} بلا خفارات)` : ''}`;
+            stats.textContent = `${total} ${roleLabel} · ${specs.length} تخصص${hiddenCount ? ` (معروضة ذات الخفارات فقط؛ ${hiddenCount} بلا خفارات)` : ''}`;
 
             if (!specs.length) {
                 table.innerHTML = '<tbody><tr><td class="blank" style="border:0">لا توجد تخصصات مضافة لهذا المستشفى</td></tr></tbody>';

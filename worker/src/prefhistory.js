@@ -99,7 +99,7 @@ async function importEntries(request, env, auth) {
   const rows = await erResidents(env, hosp);
   if (!rows.length) return json({ error: 'no_er_residents' }, 409);
   const now = Date.now();
-  const stmts = [], unmatched = new Set(), matched = new Map();
+  const unmatched = new Set(), matched = new Map(), byMonth = new Map();
   for (const e of entries) {
     const name = plainText(e && e.name, 120), ym = String(e && e.ym || '');
     if (!name || !YM_RE.test(ym)) continue;
@@ -108,7 +108,14 @@ async function importEntries(request, env, auth) {
     const r = pickResident(rows, { name, phone: e.phone || '' });
     if (!r) { unmatched.add(name); continue; }
     matched.set(name, r.name);
-    const imported = JSON.stringify({ name, at: Number(e.at) || null, items });
+    // Two spellings of one resident in the same month: one entry with both answers.
+    const k = `${r.id}|${ym}`, cur = byMonth.get(k);
+    if (cur) { cur.items.push(...items); cur.at = Math.max(cur.at || 0, Number(e.at) || 0) || null; }
+    else byMonth.set(k, { r, ym, name, at: Number(e.at) || null, items });
+  }
+  const stmts = [];
+  for (const { r, ym, name, at, items } of byMonth.values()) {
+    const imported = JSON.stringify({ name, at, items: items.slice(0, 20) });
     stmts.push(env.DB.prepare(
       `INSERT INTO er_pref_history (hosp, er_id, ym, er_name, prefs, note, source, updated_at, imported)
        VALUES (?1, ?2, ?3, ?4, NULL, NULL, 'import', ?5, ?6)
@@ -118,5 +125,5 @@ async function importEntries(request, env, auth) {
   for (let i = 0; i < stmts.length; i += 50) await env.DB.batch(stmts.slice(i, i + 50));
   await env.DB.prepare('INSERT INTO audit (ts, role, msg, n) VALUES (?, ?, ?, ?)')
     .bind(now, auth.name ? `${auth.r}:${auth.name}` : auth.r, `ER preference history import ${hosp}`, stmts.length).run();
-  return json({ ok: true, saved: stmts.length, residents: matched.size, unmatched: [...unmatched] });
+  return json({ ok: true, saved: stmts.length, residents: new Set([...byMonth.values()].map(x => String(x.r.id))).size, unmatched: [...unmatched] });
 }

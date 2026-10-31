@@ -376,13 +376,22 @@
         if (o.dateFont !== 'same') fams.push('Arial');
         area.innerHTML = buildSheet(sheet, o);
         await fontsReady(fams);
-        // The browser names the PDF after the page title.
-        const title = document.title;
-        const restore = () => { document.title = title; window.removeEventListener('afterprint', restore); };
-        try { document.title = L().fileName(sheet); } catch (e) {}
-        window.addEventListener('afterprint', restore);
+        // The browser names the PDF after the page title, and inside the app (app.html) after the title
+        // of the app's own page. On phones the PDF is made after print() returns, so the titles come
+        // back only at the next touch or key.
+        const docs = [document];
+        try { if (window.top !== window && window.top.document) docs.push(window.top.document); } catch (e) {}
+        let name = '';
+        try { name = L().fileName(sheet); } catch (e) {}
+        const titles = docs.map(d => d.title);
+        const EVENTS = ['pointerdown', 'keydown'];
+        const restore = () => {
+            docs.forEach((d, i) => { if (d.title === name) d.title = titles[i]; });
+            docs.forEach(d => EVENTS.forEach(t => d.removeEventListener(t, restore, true)));
+        };
+        if (name) docs.forEach(d => { d.title = name; });
         window.print();
-        setTimeout(restore, 1500);
+        if (name) setTimeout(() => docs.forEach(d => EVENTS.forEach(t => d.addEventListener(t, restore, true))), 1000);
     }
 
     // ------------------------------------------------------------------------------------------

@@ -382,7 +382,7 @@
         const docs = [document];
         try { if (window.top !== window && window.top.document) docs.push(window.top.document); } catch (e) {}
         let name = '';
-        try { name = L().fileName(sheet); } catch (e) {}
+        try { name = L().fileName(sheet).replace(/\.(\d{2})$/, '\u2024$1'); } catch (e) {}
         const titles = docs.map(d => d.title);
         const EVENTS = ['pointerdown', 'keydown'];
         const restore = () => {

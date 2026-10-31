@@ -842,6 +842,11 @@
                 <p class="hacc-muted" data-role="dev-lead"></p>
                 <ul class="hp-devices" data-role="devices"></ul>
             </section>
+            <section class="hp-section" data-role="pk-section" hidden>
+                <h3>الدخول بالبصمة / الوجه</h3>
+                <div class="hp-line"><span data-role="pk-text">جاري الفحص…</span><button type="button" class="hacc-btn sm primary" data-act="pk-on" hidden><i class="fas fa-fingerprint"></i> تفعيل</button></div>
+                <ul class="hp-devices" data-role="pk-list"></ul>
+            </section>
             <section class="hp-section">
                 <details><summary><h3 style="display:inline">تغيير كلمة المرور</h3></summary>
                 <form class="hp-form" data-role="pw-form" novalidate style="margin-top:10px">
@@ -1027,6 +1032,49 @@
             }));
         };
         paintDevices(a);
+
+        // Fingerprint / face sign-in (passkeys): turn it on for this device, see and remove the devices that have it.
+        const pkSec = body.querySelector('[data-role="pk-section"]');
+        const paintPasskeys = async () => {
+            if (!pkSec) return;
+            const supported = await Hub.auth.passkeySupported();
+            let list = [];
+            try { list = (await Hub.api('GET', '/api/passkeys', undefined, { retries: 1 })).passkeys || []; } catch (e) {}
+            if (!supported && !list.length) { pkSec.hidden = true; return; }
+            pkSec.hidden = false;
+            const hereId = Hub.auth.passkeyIdHere();
+            const here = !!hereId && list.some(p => p.id === hereId);
+            if (hereId && !here && list.length) Hub.auth.forgetPasskeyHere(hereId);
+            pkSec.querySelector('[data-role="pk-text"]').textContent = !supported ? 'هذا الجهاز لا يدعم الدخول بالبصمة.'
+                : here ? 'مفعّل على هذا الجهاز ✓ ادخل بلمسة إصبع أو بالوجه.' : 'ادخل على هذا الجهاز ببصمة الإصبع أو الوجه بدل كلمة المرور.';
+            pkSec.querySelector('[data-act="pk-on"]').hidden = !supported || here;
+            const ul = pkSec.querySelector('[data-role="pk-list"]');
+            ul.innerHTML = list.map(p => `<li data-pk="${esc(p.id)}">
+                    <i class="fas fa-fingerprint"></i>
+                    <span class="hp-dev-main"><b>${esc(p.label || 'جهاز')}</b>${p.id === hereId ? ' <span class="hacc-chip">هذا الجهاز</span>' : ''}
+                    <small>${p.used ? 'آخر دخول ' + esc(timeAgo(p.used)) : 'أُضيف ' + esc(timeAgo(p.at))}</small></span>
+                    <button type="button" class="hacc-btn sm danger" data-act="pk-remove">إيقاف</button></li>`).join('');
+            ul.querySelectorAll('[data-act="pk-remove"]').forEach(btn => btn.addEventListener('click', async () => {
+                const id = btn.closest('li').dataset.pk;
+                if (!confirm('إيقاف الدخول بالبصمة على هذا الجهاز؟ يبقى الدخول بكلمة المرور.')) return;
+                try {
+                    await Hub.api('POST', '/api/passkeys/remove', { id }, { retries: 0 });
+                    Hub.auth.forgetPasskeyHere(id);
+                    paintPasskeys();
+                } catch (err) { toast(errorText(err), 'error'); }
+            }));
+        };
+        if (pkSec) {
+            pkSec.querySelector('[data-act="pk-on"]').addEventListener('click', async e => {
+                const btn = e.currentTarget;
+                btn.disabled = true;
+                const r = await Hub.auth.registerPasskey();
+                btn.disabled = false;
+                toast(r.ok ? 'تم تفعيل الدخول بالبصمة على هذا الجهاز ✓' : r.error, r.ok ? 'success' : 'error');
+                paintPasskeys();
+            });
+            paintPasskeys();
+        }
 
         // Password
         const pw = body.querySelector('[data-role="pw-form"]');

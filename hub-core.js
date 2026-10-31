@@ -4087,6 +4087,19 @@
         return [os, browser].filter(Boolean).join(' · ') + app;
     }
 
+    // Passkeys (fingerprint / face, worker/src/passkeys.js): WebAuthn wants bytes, the API base64url.
+    const toB64url = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    const fromB64url = s => Uint8Array.from(atob(String(s).replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((String(s).length + 3) % 4)), c => c.charCodeAt(0));
+    // This device has a passkey of an account (shows the fingerprint button on the sign-in screen).
+    const PASSKEY_KEY = 'hub_passkey_here';
+    const passkeyErrorText = err => {
+        const name = err && err.name;
+        if (name === 'NotAllowedError' || name === 'AbortError') return 'تم إلغاء التحقق بالبصمة أو انتهت مهلته.';
+        if (name === 'InvalidStateError') return 'البصمة مفعّلة مسبقاً على هذا الجهاز.';
+        if (name === 'NotSupportedError' || name === 'SecurityError') return 'هذا الجهاز أو المتصفح لا يدعم الدخول بالبصمة.';
+        return (err && err.data && err.data.error) || (err && err.message) || 'تعذر الدخول بالبصمة.';
+    };
+
     function storeAccount(account) {
         try {
             if (account) localStorage.setItem(ACCOUNT_KEY, JSON.stringify(account));
@@ -4151,15 +4164,79 @@
                 const key = await deriveAccountKey(user, password);
                 const res = await api('POST', '/api/accounts/login', { username: user, key, remember, deviceId: deviceId(), deviceLabel: deviceLabel() }, { useToken: false, retries: 1 });
                 if (res && res.success) {
-                    pendingToken = { token: res.token, exp: res.exp };
-                    storeAccount(res.account);
-                    this.saveSession(res.role, '', remember, res.adminHospitals || []);
+                    this.applyAccountLogin(res, remember);
                     return { success: true, role: res.role, account: res.account };
                 }
                 return { success: false, error: (res && res.error) || 'اسم المستخدم أو كلمة المرور غير صحيحة', status: res && res.status };
             } catch (err) {
                 if (err instanceof ApiError && err.data && err.data.error) return { success: false, error: err.data.error };
                 return { success: false, error: 'تعذر الاتصال بالخادم. تحقق من الاتصال بالإنترنت وحاول مجدداً.' };
+            }
+        },
+
+        /** Signs this device in with a successful reply of the server (password, passkey, approved sign-up). */
+        applyAccountLogin(res, remember = true) {
+            pendingToken = { token: res.token, exp: res.exp };
+            storeAccount(res.account);
+            this.saveSession(res.role, '', remember, res.adminHospitals || []);
+        },
+
+        /** True when this device can sign in with its fingerprint / face (a platform authenticator with user verification). */
+        async passkeySupported() {
+            try {
+                return !!(window.PublicKeyCredential && navigator.credentials && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable
+                    && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());
+            } catch (e) { return false; }
+        },
+        /** Whether this device has a passkey of an account (it can then offer the fingerprint on the sign-in screen). */
+        passkeyHere() { try { return !!localStorage.getItem(PASSKEY_KEY); } catch (e) { return false; } },
+        passkeyIdHere() { try { return localStorage.getItem(PASSKEY_KEY) || ''; } catch (e) { return ''; } },
+
+        /** Turns on signing in with the fingerprint / face on this device for the signed-in account. */
+        async registerPasskey() {
+            try {
+                const opt = await api('POST', '/api/passkeys/register-options', {}, { retries: 1 });
+                const cred = await navigator.credentials.create({ publicKey: {
+                    challenge: fromB64url(opt.challenge),
+                    rp: { id: location.hostname, name: 'بوابة المستشفيات' },
+                    user: { id: fromB64url(opt.user.id), name: opt.user.name, displayName: opt.user.displayName },
+                    pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+                    authenticatorSelection: { authenticatorAttachment: 'platform', residentKey: 'required', requireResidentKey: true, userVerification: 'required' },
+                    excludeCredentials: (opt.exclude || []).map(id => ({ type: 'public-key', id: fromB64url(id) })),
+                    attestation: 'none',
+                    timeout: 60000,
+                } });
+                const res = await api('POST', '/api/passkeys/register', {
+                    token: opt.token, attestationObject: toB64url(cred.response.attestationObject), clientDataJSON: toB64url(cred.response.clientDataJSON), label: deviceLabel(),
+                }, { retries: 0 });
+                try { localStorage.setItem(PASSKEY_KEY, res.id || cred.id); } catch (e) {}
+                return { ok: true, id: res.id || cred.id };
+            } catch (err) {
+                return { ok: false, error: passkeyErrorText(err) };
+            }
+        },
+        /** Forgets this device's passkey locally (after it is removed from the account). */
+        forgetPasskeyHere(id) { try { if (!id || localStorage.getItem(PASSKEY_KEY) === id) localStorage.removeItem(PASSKEY_KEY); } catch (e) {} },
+
+        /** Signs in with the fingerprint / face. Resolves to { success, role, account } or { success: false, error }. */
+        async passkeyLogin() {
+            try {
+                const opt = await api('POST', '/api/passkeys/login-options', {}, { useToken: false, retries: 1 });
+                const cred = await navigator.credentials.get({ publicKey: { challenge: fromB64url(opt.challenge), rpId: location.hostname, userVerification: 'required', timeout: 60000 } });
+                const r = cred.response;
+                const res = await api('POST', '/api/passkeys/login', {
+                    token: opt.token, id: cred.id, clientDataJSON: toB64url(r.clientDataJSON), authenticatorData: toB64url(r.authenticatorData), signature: toB64url(r.signature),
+                    deviceId: deviceId(), deviceLabel: deviceLabel(), remember: true,
+                }, { useToken: false, retries: 0 });
+                if (res && res.success) {
+                    try { localStorage.setItem(PASSKEY_KEY, cred.id); } catch (e) {}
+                    this.applyAccountLogin(res, true);
+                    return { success: true, role: res.role, account: res.account };
+                }
+                if (res && res.status === 'unknown_passkey') this.forgetPasskeyHere();
+                return { success: false, error: (res && res.error) || 'تعذر الدخول بالبصمة.', status: res && res.status };
+            } catch (err) {
+                return { success: false, error: passkeyErrorText(err) };
             }
         },
 
@@ -4192,6 +4269,7 @@
 
         deriveAccountKey,
         deviceId,
+        deviceLabel,
 
         saveSession(role, password = '', remember = true, adminHospitals = null) {
             localStorage.setItem(SESSION_ROLE_KEY, role);

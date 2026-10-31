@@ -294,6 +294,13 @@
                 <a href="#signup">حساب جديد</a>
                 <a href="#forgot">نسيت كلمة المرور</a>
             </nav>
+            <div class="card done" id="signup-wait" hidden>
+                <div class="big">⏳</div>
+                <h2>طلب حسابك بانتظار الموافقة</h2>
+                <p class="lead" data-role="wait-text">سنُعلمك فور موافقة مشرف المستشفى، ويتم دخولك تلقائياً على هذا الجهاز.</p>
+                <button type="button" class="hacc-btn btn-block" data-act="wait-push" hidden><i class="fas fa-bell"></i> تفعيل الإشعارات لتصلك الموافقة والتطبيق مغلق</button>
+                <div class="msg" data-role="wait-msg" role="status"></div>
+            </div>
             <form class="card" id="signin-form" novalidate>
                 <h2>تسجيل الدخول</h2>
                 <p class="lead">ادخل باسم المستخدم وكلمة المرور الخاصة بحسابك الشخصي.</p>
@@ -310,6 +317,7 @@
                 </div>
                 <label class="check"><input type="checkbox" id="si-remember" checked /> تذكرني على هذا الجهاز (30 يوماً)</label>
                 <button class="hacc-btn primary btn-block" type="submit">دخول</button>
+                <button class="hacc-btn btn-block" type="button" id="si-passkey" hidden><i class="fas fa-fingerprint"></i> الدخول بالبصمة / الوجه</button>
                 <div class="msg" id="si-msg" role="alert"></div>
                 <div class="links">
                     <a href="#forgot">نسيت كلمة المرور؟</a>
@@ -495,6 +503,8 @@
                 <div class="big">📨</div>
                 <h2>تم إرسال طلبك</h2>
                 <p class="lead" id="su-done-text">سيصلك إشعار عند الموافقة.</p>
+                <p class="lead" data-role="su-done-wait">عند الموافقة يتم دخولك تلقائياً على هذا الجهاز، وعند الرفض نُعلمك بذلك.</p>
+                <button type="button" class="hacc-btn btn-block" data-act="wait-push" hidden><i class="fas fa-bell"></i> تفعيل الإشعارات لتصلك الموافقة والتطبيق مغلق</button>
                 <a class="hacc-btn primary" href="#signin">الذهاب لتسجيل الدخول</a>
             </div>
         </section>
@@ -727,6 +737,123 @@
             }
         });
 
+        // -------------------- Sign in with the fingerprint / face (passkeys) --------------------
+        // Shown on a device where an account turned it on (account panel > الدخول بالبصمة).
+        (async () => {
+            const btn = $('si-passkey');
+            if (!Hub.auth.passkeyHere() || !(await Hub.auth.passkeySupported())) return;
+            btn.hidden = false;
+            btn.addEventListener('click', async () => {
+                const msg = $('si-msg');
+                btn.disabled = true;
+                setMsg(msg, '');
+                const res = await Hub.auth.passkeyLogin();
+                btn.disabled = false;
+                if (res.success) {
+                    if (navigator.vibrate) navigator.vibrate(18);
+                    setMsg(msg, 'تم تسجيل الدخول ✓', 'ok');
+                    localStorage.setItem('pwa_last_page', './index.html');
+                    setTimeout(() => { location.href = './index.html?portal=true'; }, 300);
+                } else {
+                    setMsg(msg, res.error, 'bad');
+                    if (!Hub.auth.passkeyHere()) btn.hidden = true;
+                }
+            });
+        })();
+
+        // -------------------- A sign-up waiting for its approval --------------------
+        // The server gave this device a ticket with the request (accounts.js signupWait). While the
+        // app is open it asks every 20 seconds (and whenever it comes back to the screen): approved,
+        // the same answer signs this device in; rejected, it says so. With notifications on, the
+        // decision also arrives as a push while the app is closed.
+        const WAIT_KEY = 'hub_signup_wait';
+        const readWait = () => { try { return JSON.parse(localStorage.getItem(WAIT_KEY) || 'null'); } catch (e) { return null; } };
+        const dropWait = () => { try { localStorage.removeItem(WAIT_KEY); } catch (e) {} };
+        const pushReady = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+        function paintWait() {
+            const w = readWait();
+            const card = $('signup-wait');
+            card.hidden = !w || !!Hub.auth.getAccount();
+            if (w) card.querySelector('[data-role="wait-text"]').textContent = `أهلاً ${w.name || ''}! طلب حسابك «${w.username || ''}» بانتظار موافقة مشرف المستشفى. سنُعلمك فور الموافقة، ويتم دخولك تلقائياً على هذا الجهاز.`;
+            const askPush = !!w && pushReady() && Notification.permission === 'default';
+            document.querySelectorAll('[data-act="wait-push"]').forEach(b => { b.hidden = !askPush; });
+        }
+        async function waitSubscription(ask) {
+            try {
+                if (!pushReady()) return null;
+                if (ask && Notification.permission === 'default') await Notification.requestPermission();
+                if (Notification.permission !== 'granted') return null;
+                const { key } = await Hub.api('GET', '/api/push/key', undefined, { useToken: false, retries: 1 });
+                if (!key) return null;
+                const reg = await Promise.race([navigator.serviceWorker.ready, new Promise(r => setTimeout(() => r(null), 5000))]);
+                if (!reg) return null;
+                let sub = await reg.pushManager.getSubscription();
+                if (!sub) {
+                    const raw = atob(key.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((key.length + 3) % 4));
+                    sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: Uint8Array.from(raw, c => c.charCodeAt(0)) });
+                }
+                return sub.toJSON();
+            } catch (e) { return null; }
+        }
+        async function localNotice(title, body) {
+            try {
+                if (!pushReady() || Notification.permission !== 'granted') return;
+                const reg = await navigator.serviceWorker.getRegistration();
+                if (reg) reg.showNotification(title, { body, icon: './pwa-icon.svg', tag: 'signup-decision' });
+            } catch (e) {}
+        }
+        let waitBusy = false;
+        async function checkWait(sub) {
+            const w = readWait();
+            if (!w || waitBusy || Hub.auth.getAccount()) return;
+            waitBusy = true;
+            let res = null;
+            try {
+                res = await Hub.api('POST', '/api/accounts/signup-wait', { ticket: w.ticket, deviceId: Hub.auth.deviceId(), deviceLabel: Hub.auth.deviceLabel(), subscription: sub || undefined }, { useToken: false, retries: 0 });
+            } catch (e) { res = null; }
+            waitBusy = false;
+            if (!res) return;
+            const msg = document.querySelector('#signup-wait [data-role="wait-msg"]');
+            if (res.status === 'active' && res.success) {
+                dropWait();
+                localNotice('✅ تمت الموافقة على حسابك', 'تم تسجيل دخولك تلقائياً. أهلاً بك!');
+                setMsg(msg, '✅ تمت الموافقة على حسابك! جاري الدخول…', 'ok');
+                $('signup-wait').hidden = false;
+                Hub.auth.applyAccountLogin(res, true);
+                localStorage.setItem('pwa_last_page', './index.html');
+                setTimeout(() => { location.href = './index.html?portal=true'; }, 1200);
+            } else if (res.status === 'rejected') {
+                dropWait();
+                localNotice('❌ لم تتم الموافقة على حسابك', 'رفض مشرف المستشفى طلب الحساب. تواصل معه للاستفسار.');
+                paintWait();
+                setMsg($('si-msg'), `❌ لم تتم الموافقة على طلب حسابك «${w.username || ''}». تواصل مع مشرف المستشفى للاستفسار.`, 'bad');
+            } else if (res.status === 'gone') {
+                dropWait();
+                paintWait();
+            } else if (res.status === 'pending') {
+                paintWait();
+            } else if (res.error) {
+                // Approved, but this device could not be signed in (e.g. the account's device limit).
+                dropWait();
+                paintWait();
+                setMsg($('si-msg'), `✅ تمت الموافقة على حسابك. ${res.error}`, 'bad');
+            }
+        }
+        function startWait(res, username) {
+            if (!res || !res.ticket) return;
+            try { localStorage.setItem(WAIT_KEY, JSON.stringify({ ticket: res.ticket, username, name: res.name, at: Date.now() })); } catch (e) {}
+            paintWait();
+            waitSubscription(true).then(sub => { paintWait(); return checkWait(sub); });
+        }
+        document.querySelectorAll('[data-act="wait-push"]').forEach(b => b.addEventListener('click', async () => {
+            const sub = await waitSubscription(true);
+            paintWait();
+            if (sub) checkWait(sub);
+        }));
+        setInterval(() => { if (!document.hidden && readWait()) checkWait(); }, 20000);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden && readWait()) checkWait(); });
+        if (readWait()) { paintWait(); waitSubscription(false).then(sub => checkWait(sub)); }
+
         // -------------------- Sign up --------------------
         const su = { verified: null, userFree: false, checkSeq: 0, init: false };
         const sexValue = () => (document.querySelector('input[name="su-sex"]:checked') || {}).value || '';
@@ -862,11 +989,12 @@
             setMsg(msg, 'جاري تأمين كلمة المرور وإرسال الطلب…');
             try {
                 const key = await Hub.auth.deriveAccountKey(username, $('ro-pass').value);
-                const res = await Hub.api('POST', '/api/accounts/signup-rotator', { hosp, name: $('ro-name').value.trim(), phone: $('ro-phone').value.trim(), username, key, sex: roSex() }, { useToken: false, retries: 0 });
+                const res = await Hub.api('POST', '/api/accounts/signup-rotator', { hosp, name: $('ro-name').value.trim(), phone: $('ro-phone').value.trim(), username, key, sex: roSex(), deviceId: Hub.auth.deviceId() }, { useToken: false, retries: 0 });
                 $('rotator-form').hidden = true;
                 $('su-done').hidden = false;
                 $('su-done-text').textContent = `أهلاً ${res.name}! أُرسل طلب حساب الروتيتر إلى مالك المنظومة ومدراء ${hospitalName(hosp)}. يمكنك تسجيل الدخول باسم المستخدم «${username}» بعد الموافقة.`;
                 $('si-user').value = username;
+                startWait(res, username);
             } catch (err) {
                 const code = err && err.data && err.data.error;
                 setMsg(msg, ({ already_registered: 'هذا المقيم الدوري لديه حساب (أو طلب) مسبقاً. استخدم «تسجيل الدخول» أو «نسيت كلمة المرور».', username_taken: 'اسم المستخدم أصبح مستخدماً، اختر اسماً آخر.', bad_name: 'اكتب الاسم الأول والثاني على الأقل (أحرف فقط).', bad_sex: 'اختر الجنس.', bad_hospital: 'اختر المستشفى.', bad_phone: 'اكتب رقم هاتف عراقياً صحيحاً (07XX XXX XXXX).', no_match: 'لم نجد اسمك ورقمك بين المقيمين الدوريين في قاعدة هذا المستشفى، ولا يقبل إلا المسجّلين. راجع مدير المستشفى.' })[code] || errorText(err), 'bad');
@@ -987,12 +1115,13 @@
             try {
                 const key = await Hub.auth.deriveAccountKey(username, $('of-pass').value);
                 const res = await Hub.api('POST', '/api/accounts/signup-officer', {
-                    hosp, job: $('of-job').value, name: $('of-name').value.trim(), phone: $('of-phone').value.trim(), username, key, sex: ofSex(),
+                    hosp, job: $('of-job').value, name: $('of-name').value.trim(), phone: $('of-phone').value.trim(), username, key, sex: ofSex(), deviceId: Hub.auth.deviceId(),
                 }, { useToken: false, retries: 0 });
                 $('officer-form').hidden = true;
                 $('su-done').hidden = false;
                 $('su-done-text').textContent = `أهلاً ${res.name}! أُرسل طلبك إلى مالك المنظومة ومدراء ${hospitalName(hosp)}${res.verified ? '' : ' (اسمك غير موجود في قاعدة البيانات بعد، وسيراجعه المدير)'}. يمكنك تسجيل الدخول باسم المستخدم «${username}» بعد الموافقة.`;
                 $('si-user').value = username;
+                startWait(res, username);
             } catch (err) {
                 const code = err && err.data && err.data.error;
                 setMsg(msg, ({
@@ -1147,11 +1276,12 @@
             setMsg(msg, 'جاري تأمين كلمة المرور وإرسال الطلب…');
             try {
                 const key = await Hub.auth.deriveAccountKey(username, $('su-pass').value);
-                const res = await Hub.api('POST', '/api/accounts/signup', { ...su.verified, username, key, sex: sexValue() }, { useToken: false, retries: 0 });
+                const res = await Hub.api('POST', '/api/accounts/signup', { ...su.verified, username, key, sex: sexValue(), deviceId: Hub.auth.deviceId() }, { useToken: false, retries: 0 });
                 $('signup-form').hidden = true;
                 $('su-done').hidden = false;
                 $('su-done-text').textContent = `أهلاً ${res.name}! أُرسل طلبك إلى مالك المنظومة ومدراء ${hospitalName(su.verified.hosp)}. يمكنك تسجيل الدخول باسم المستخدم «${username}» بعد الموافقة.`;
                 $('si-user').value = username;
+                startWait(res, username);
             } catch (err) {
                 const code = err && err.data && err.data.error;
                 if (code === 'is_rotator') {

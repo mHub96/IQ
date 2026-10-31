@@ -65,7 +65,17 @@
         res.portalPrefsAt = at;
     }
 
-    /** Fetches the requests of the month on screen and copies the new ones. Returns the response. */
+    /**
+     * A request is in the residents database when the resident carries it (portalPrefsAt), whatever the
+     * server says: a save from another device made before the copy can overwrite it (2026-10-31: 8 of
+     * Iraqi's 14 November requests were marked added but missing), and it is then copied again.
+     */
+    function inDatabase(r, residents) {
+        const target = (residents || []).find(x => String(x.id) === String(r.erId));
+        return !!target && Number(target.portalPrefsAt) >= Number(r.at);
+    }
+
+    /** Fetches the requests of the month on screen and copies the ones not in the database. Returns the response. */
     function sync() {
         if (syncing) return syncing;
         syncing = (async () => {
@@ -74,9 +84,9 @@
             const res = await Hub().api('GET', `/api/er-portal?hosp=${encodeURIComponent(per.hosp)}&ym=${per.ym}`, undefined, { retries: 1 });
             last = { ...res, hosp: per.hosp };
             paintPill();
-            const pending = (res.requests || []).filter(r => r.erId && (!r.appliedAt || r.appliedAt < r.at));
-            if (!pending.length) return res;
             const st = core().state();
+            const pending = (res.requests || []).filter(r => r.erId && !inDatabase(r, st.residents));
+            if (!pending.length) return res;
             const now = period();
             if (!now || now.hosp !== per.hosp || now.ym !== per.ym) return res; // the admin moved on meanwhile
             const done = [];
@@ -299,7 +309,8 @@
             const st = core().state();
             const requestedIds = new Set(res.requests.map(r => String(r.erId)));
             const missing = sameMonth ? (st.residents || []).filter(r => r.active !== false && !requestedIds.has(String(r.id))) : [];
-            const applied = res.requests.filter(r => r.appliedAt && r.appliedAt >= r.at).length;
+            const isIn = r => sameMonth ? inDatabase(r, st.residents) : !!(r.appliedAt && r.appliedAt >= r.at);
+            const applied = res.requests.filter(isIn).length;
             const scrollY = card.lastElementChild ? card.lastElementChild.scrollTop : 0;
             card.innerHTML = head('fa-list-check', 'ملخص طلبات رغبات المقيمين', `${esc(hospitalName(per.hosp))} · ${esc(monthTitle(res.ym))}`, 'er-portal-summary-modal') + `
                 <div class="p-4 sm:p-5 space-y-4 text-xs overflow-y-auto flex-1">
@@ -327,7 +338,7 @@
                                 <div class="min-w-0"><div class="font-black text-sm text-slate-800 dark:text-slate-100">${esc(r.erName || r.name)}</div>
                                     <div class="text-[11px] text-slate-400"><span dir="ltr">@${esc(r.username || '')}</span> · آخر تعديل ${esc(when(r.at))}</div></div>
                                 <div class="flex items-center gap-1.5">
-                                    ${r.appliedAt && r.appliedAt >= r.at ? '<span class="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 text-[10.5px] font-bold"><i class="fas fa-check"></i> في قاعدة البيانات</span>' : '<span class="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 text-[10.5px] font-bold">بانتظار الإضافة</span>'}
+                                    ${isIn(r) ? '<span class="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 text-[10.5px] font-bold"><i class="fas fa-check"></i> في قاعدة البيانات</span>' : '<span class="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 text-[10.5px] font-bold">بانتظار الإضافة</span>'}
                                     ${sameMonth && r.erId ? `<button type="button" data-prefs="${esc(r.erId)}" class="px-2.5 py-1 rounded-xl text-[11px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800">التفضيلات</button>` : ''}
                                     ${r.erId ? `<button type="button" data-hist="${esc(r.erId)}" data-name="${esc(r.erName || r.name)}" class="px-2.5 py-1 rounded-xl text-[11px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800"><i class="fas fa-clock-rotate-left"></i> السجل</button>` : ''}
                                 </div>

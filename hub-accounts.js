@@ -1280,6 +1280,24 @@
         document.documentElement.classList.toggle('role-rotator', Hub.auth.getRole() === 'rotator');
     }
 
+    /**
+     * Once per device, after signing in with the password on a phone or computer that can do it: offer
+     * to sign in with the fingerprint / face from now on (it can be turned on later in the account panel).
+     */
+    async function offerPasskey() {
+        const acc = account();
+        if (!acc || !/index\.html$|\/$/.test(location.pathname) || Hub.auth.passkeyHere()) return;
+        const KEY = 'hub_passkey_offered_' + acc.id;
+        try { if (localStorage.getItem(KEY)) return; } catch (e) { return; }
+        if (!(await Hub.auth.passkeySupported())) return;
+        await new Promise(r => setTimeout(r, 4000));
+        if (document.hidden || Hub.auth.passkeyHere()) return;
+        try { if (localStorage.getItem(KEY)) return; localStorage.setItem(KEY, String(Date.now())); } catch (e) { return; }
+        if (!confirm('هل تريد الدخول على هذا الجهاز ببصمة الإصبع أو الوجه من الآن، بدل كتابة كلمة المرور؟\n\n(يمكنك تفعيله أو إيقافه لاحقاً من حسابي ← الإعدادات)')) return;
+        const r = await Hub.auth.registerPasskey();
+        toast(r.ok ? 'تم تفعيل الدخول بالبصمة على هذا الجهاز ✓' : r.error, r.ok ? 'success' : 'error');
+    }
+
     function start() {
         markRole();
         window.addEventListener('hub:auth-changed', markRole);
@@ -1294,6 +1312,7 @@
         window.addEventListener('hashchange', openPanelFromHash);
         initIosChrome();
         scheduleInstallOffer();
+        offerPasskey();
     }
 
     /** Owner tools that live on the portal page (index.html) or in the shared navigation script. */

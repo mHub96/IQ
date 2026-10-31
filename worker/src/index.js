@@ -13,7 +13,8 @@
  */
 
 import { DAY, json, signToken, verifyToken, encrypt, decrypt, bucketOf, neutralize } from './lib.js';
-import { routeAccounts, resolveAccountAuth, mirrorResident } from './accounts.js';
+import { routeAccounts, resolveAccountAuth, mirrorResident, finishLogin } from './accounts.js';
+import { routePasskeys } from './passkeys.js';
 import { routeDuties } from './duties.js';
 import { routePrefHistory } from './prefhistory.js';
 import { routeReminders, runReminders } from './reminders.js';
@@ -88,6 +89,8 @@ export default {
       ).bind(ER_HISTORY_KEEP, now - ER_HISTORY_DAYS * DAY),
       env.DB.prepare('DELETE FROM audit WHERE ts < ?').bind(now - 365 * DAY),
       env.DB.prepare('DELETE FROM login_fail WHERE bucket < ?').bind(bucketOf(now) - 6),
+      // Sign-ups whose device never came back for the decision.
+      env.DB.prepare('DELETE FROM signup_waits WHERE created_at < ?').bind(now - 90 * DAY),
     ]);
   },
 };
@@ -156,6 +159,8 @@ async function route(request, env, ctx) {
   if (dutiesRoute) return dutiesRoute;
   const prefHistoryRoute = await routePrefHistory(path, method, request, env, auth, url);
   if (prefHistoryRoute) return prefHistoryRoute;
+  const passkeyRoute = await routePasskeys(path, method, request, env, auth, finishLogin, request.headers.get('CF-Connecting-IP') || 'unknown');
+  if (passkeyRoute) return passkeyRoute;
   const accountRoute = await routeAccounts(path, method, request, env, auth, url, ctx);
   if (accountRoute) return accountRoute;
 

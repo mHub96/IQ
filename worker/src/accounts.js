@@ -58,6 +58,7 @@ export async function routeAccounts(path, method, request, env, auth, url, ctx) 
     case 'POST /api/accounts/check-rotator': return checkRotator(request, env, ip);
     case 'POST /api/accounts/signup-officer': return signupOfficer(request, env, ip, ctx);
     case 'POST /api/accounts/login': return accountLogin(request, env, ip);
+    case 'POST /api/accounts/signup-wait': return signupWait(request, env, ip);
     case 'POST /api/accounts/forgot': return forgot(request, env, ip, ctx);
     case 'POST /api/accounts/reset': return resetPassword(request, env, ip);
     case 'GET /api/social': return auth ? socialSummary(env, auth, url) : json({ error: 'unauthorized' }, 401);
@@ -351,7 +352,7 @@ async function signup(request, env, ip, ctx) {
     if (/resident_id|idx_accounts_resident/.test(msg)) return json({ error: 'already_registered' }, 409);
     throw err;
   }
-  return json({ ok: true, status: 'pending', name: match.name });
+  return json({ ok: true, status: 'pending', name: match.name, ticket: await waitTicket(env, id, body) });
 }
 
 /** The rotators' database entry for this name and number, and whether an account already holds it. */
@@ -426,7 +427,7 @@ async function signupRotator(request, env, ip, ctx) {
     if (/resident_id|idx_accounts_resident/.test(String(err && err.message || err))) return json({ error: 'already_registered' }, 409);
     throw err;
   }
-  return json({ ok: true, status: 'pending', name: accName, linked: !!linked });
+  return json({ ok: true, status: 'pending', name: accName, linked: !!linked, ticket: await waitTicket(env, id, body) });
 }
 
 /**
@@ -479,7 +480,7 @@ async function signupOfficer(request, env, ip, ctx) {
     if (/resident_id|idx_accounts_resident/.test(msg)) return json({ error: 'already_registered' }, 409);
     throw err;
   }
-  return json({ ok: true, status: 'pending', name, verified: !!match });
+  return json({ ok: true, status: 'pending', name, verified: !!match, ticket: await waitTicket(env, id, body) });
 }
 
 // ---------------------------------------------------------------------------
@@ -549,7 +550,8 @@ function pushMessage(n) {
     case 'reply': return { title: '↩️ ردّ على تعليقك', body: `${d.last || 'أحدهم'}: ${d.text || ''}`, url: card };
     case 'signup_request': return { title: '🆕 طلب حساب جديد', body: `${d.name || ''} (@${d.username || ''})`, url: './account.html#manage' };
     case 'reset_request': return { title: '🔑 طلب تغيير كلمة المرور', body: `${d.name || ''} (@${d.username || ''})`, url: './account.html#manage-resets' };
-    case 'account_approved': return { title: '✅ تم تفعيل حسابك', body: 'أهلاً بك في بوابة المستشفيات!', url: './index.html?portal=true' };
+    case 'account_approved': return { title: '✅ تم تفعيل حسابك', body: 'وافق مشرف المستشفى على حسابك. افتح التطبيق لتدخل مباشرة.', url: './index.html?portal=true' };
+    case 'account_rejected': return { title: '❌ لم تتم الموافقة على حسابك', body: 'رفض مشرف المستشفى طلب الحساب. تواصل معه للاستفسار.', url: './account.html#signin' };
     case 'reset_approved': return { title: '🔓 تمت الموافقة', body: 'يمكنك الآن اختيار كلمة مرور جديدة.', url: './account.html#forgot' };
     case 'role_changed': return { title: '⭐ تغيّرت صلاحياتك', body: `صلاحيتك الآن: ${ROLE_AR[d.role] || d.role || ''}`, url: './account.html' };
     case 'profile_set': return { title: '🎓 تحديث معلومات البورد', body: `حدّث ${d.by || 'مدير المستشفى'} معلومات البورد في ملفك الشخصي.`, url: './index.html?portal=true#panel=profile' };
@@ -641,6 +643,56 @@ async function pushTest(env, auth, ctx) {
 }
 
 // ---------------------------------------------------------------------------
+// A sign-up waiting for its approval (migration 0021)
+// ---------------------------------------------------------------------------
+// The device that sent a sign-up keeps a ticket ("<account id>.<secret>"; the server keeps only the
+// secret's hash). While the app is open it asks with it; once the request is approved the same call
+// signs that device in, and once rejected it says so. The device can also hand in its push
+// subscription with the ticket, so the approval (or the rejection) reaches it while the app is closed.
+
+async function waitTicket(env, accountId, body) {
+  const secret = b64(crypto.getRandomValues(new Uint8Array(24))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const deviceId = DEVICE_RE.test(String(body.deviceId || '')) ? String(body.deviceId) : null;
+  try {
+    await env.DB.prepare('INSERT INTO signup_waits (account_id, secret_hash, device_id, created_at) VALUES (?, ?, ?, ?) ON CONFLICT (account_id) DO UPDATE SET secret_hash = excluded.secret_hash, device_id = excluded.device_id')
+      .bind(accountId, await sha256b64(secret), deviceId, Date.now()).run();
+  } catch (err) {
+    console.warn('signup wait ticket', err && err.message);
+    return null;
+  }
+  return `${accountId}.${secret}`;
+}
+
+async function signupWait(request, env, ip) {
+  if (await overLimit(env, 'swait:' + ip, 240)) return json({ error: 'rate_limited' }, 429);
+  const body = await readJson(request) || {};
+  const [accountId, secret] = String(body.ticket || '').split('.');
+  if (!accountId || !secret || accountId.length > 64 || secret.length > 64) return json({ status: 'gone' });
+  const wait = await env.DB.prepare('SELECT secret_hash FROM signup_waits WHERE account_id = ?').bind(accountId).first();
+  if (!wait || wait.secret_hash !== await sha256b64(secret)) return json({ status: 'gone' });
+  const row = await env.DB.prepare('SELECT * FROM accounts WHERE id = ?').bind(accountId).first();
+  const done = () => env.DB.prepare('DELETE FROM signup_waits WHERE account_id = ?').bind(accountId).run();
+  if (!row) { await done(); return json({ status: 'gone' }); }
+  if (row.status === 'pending') {
+    // The device's push subscription, so the decision reaches it while the app is closed.
+    const sub = body.subscription;
+    const keys = (sub && sub.keys) || {};
+    if (sub && isPushEndpoint(String(sub.endpoint || '')) && /^[A-Za-z0-9_-]{80,100}$/.test(keys.p256dh || '') && /^[A-Za-z0-9_-]{16,32}$/.test(keys.auth || '')) {
+      await env.DB.prepare(
+        `INSERT INTO push_subs (endpoint, account_id, device_id, p256dh, auth, created_at) VALUES (?, ?, ?, ?, ?, ?)
+         ON CONFLICT (endpoint) DO UPDATE SET account_id = excluded.account_id, device_id = excluded.device_id, p256dh = excluded.p256dh, auth = excluded.auth`
+      ).bind(String(sub.endpoint), row.id, DEVICE_RE.test(String(body.deviceId || '')) ? String(body.deviceId) : null, keys.p256dh, keys.auth, Date.now()).run();
+    }
+    return json({ status: 'pending', name: row.name });
+  }
+  if (row.status !== 'active') { await done(); return json({ status: 'rejected', name: row.name }); }
+  const res = await finishLogin(env, row, { ...body, remember: true });
+  const out = await res.clone().json().catch(() => null);
+  if (out && out.success) await done();
+  return out && out.success ? json({ status: 'active', ...out }) : res;
+}
+
+// ---------------------------------------------------------------------------
 // Sign-in, password change, forgotten password, devices
 // ---------------------------------------------------------------------------
 
@@ -672,6 +724,17 @@ async function accountLogin(request, env, ip) {
     ]);
     return json({ success: false, error: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
   }
+  return finishLogin(env, row, body);
+}
+
+/**
+ * Signs a verified account in on the device in body (deviceId, deviceLabel, remember): the account
+ * must be active and the device within the account's limit. Used by the password, the passkeys
+ * (passkeys.js) and a sign-up approved while its device was waiting (signupWait).
+ */
+export async function finishLogin(env, row, body) {
+  const deviceId = String(body.deviceId || '');
+  if (!DEVICE_RE.test(deviceId)) return json({ success: false, error: 'bad_device' }, 400);
   if (row.status === 'pending') return json({ success: false, status: 'pending', error: 'حسابك بانتظار موافقة مشرف المستشفى.' });
   if (row.status !== 'active') return json({ success: false, status: row.status, error: 'هذا الحساب غير مفعّل. تواصل مع مشرف المستشفى.' });
 
@@ -969,6 +1032,7 @@ async function decide(request, env, auth, ctx) {
     case 'reject':
       if (row.status !== 'pending') return json({ error: 'not_pending' }, 409);
       stmts.push(setStatus('rejected', true));
+      notes.push(stmts.push(notifyOne(env, row.id, 'rejected', 'account_rejected', JSON.stringify({ by: auth.name || null }), now)) - 1);
       break;
     case 'disable':
       stmts.push(setStatus('disabled', true));
@@ -1036,6 +1100,8 @@ async function decide(request, env, auth, ctx) {
         env.DB.prepare('DELETE FROM duty_reminders WHERE account_id = ?').bind(row.id),
         env.DB.prepare('DELETE FROM duty_reminder_queue WHERE account_id = ?').bind(row.id),
         env.DB.prepare("UPDATE comments SET deleted = 1, deleted_by = 'account deleted' WHERE account_id = ?").bind(row.id),
+        env.DB.prepare('DELETE FROM passkeys WHERE account_id = ?').bind(row.id),
+        env.DB.prepare('DELETE FROM signup_waits WHERE account_id = ?').bind(row.id),
         env.DB.prepare('DELETE FROM accounts WHERE id = ?').bind(row.id),
       );
       break;

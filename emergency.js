@@ -267,6 +267,43 @@
             excludedDates: [], intervalMode: 'exclude', excludedIntervals: [], noConsecutiveDays: true, preferences: { prefShifts: [], prefDays: [] } };
     }
 
+    /**
+     * Why a duty goes against the resident's wishes for the month on screen ([] = it does not): an ER
+     * shift they did not ask for, a day or period they excluded, a weekday other than the ones they
+     * asked for, a calendar day other than the ones they asked for (while one of those is still free
+     * of their duties), a duty next to another one when they asked for no back-to-back days. Shown on
+     * every filled cell, however it was filled (user request, 2026-10-31).
+     */
+    function prefViolations(r, type, dayNumber, slotKey) {
+        if (!r) return [];
+        r = withMonthPrefs(r);
+        const out = [];
+        const d = Number(dayNumber);
+        const dayName = getArabicDayName(state.year, state.month, d);
+        if (type === 'er' || (type === 'rs' && String(slotKey).startsWith('er_'))) {
+            const pref = preferredErShifts(r), sh = L().shiftOf(slotKey);
+            if (pref && sh && !pref.includes(sh)) out.push(`الوجبة ليست من الوجبات التي طلبها (${pref.map(x => L().SHIFT_INFO[x].name).join('، ')})`);
+        }
+        if (isDateExcludedForResident(r, d, formatDateStr(state.year, state.month, d))) out.push('يوم أو فترة استثناها من خفاراته');
+        if (Array.isArray(r.prefDays) && r.prefDays.length && !r.prefDays.includes(dayName)) out.push(`ليس من أيام الأسبوع التي يفضّلها (${r.prefDays.join('، ')})`);
+        const wanted = preferDaysOf(r);
+        if (wanted.length && !wanted.includes(d)) {
+            const clean = normalizeArabic(r.name);
+            const busy = new Set();
+            ['er', 'con', 'dc', 'rs'].forEach(t => (state.schedules[t] || []).forEach(day => {
+                if (Object.keys(day).some(k => !['dayNumber', 'date', 'dayName', 'notes'].includes(k) && day[k] && normalizeArabic(day[k]) === clean)) busy.add(day.dayNumber);
+            }));
+            const freeWanted = wanted.filter(x => !busy.has(x));
+            if (freeWanted.length) out.push(`ليس من الأيام التي طلبها، وما زال منها بلا خفارة: ${freeWanted.join('، ')}`);
+        }
+        if (r.noConsecutiveDays !== false && hasDoctorDutyOnAdjacentDay(r.name, d, getDaysInMonth(state.year, state.month))) out.push('خفارة في يوم مجاور لخفارة أخرى، وهو لا يرغب بالأيام المتتالية');
+        return out;
+    }
+    function showPrefViolations(name, type, dayNumber, slotKey) {
+        const list = prefViolations(getResidentByName(name), type, dayNumber, slotKey);
+        alert(`ℹ️ هذه الخفارة خلاف رغبات ${name}:\n\n• ${list.join('\n• ') || 'لم تعد خلاف رغباته.'}`);
+    }
+
     /** Writes both day lists, plus the single list older pages read (the days off win). */
     function setDayPrefs(r, prefer, exclude, month) {
         r.daysPrefer = [...new Set(prefer.map(Number))].sort((a, b) => a - b);
@@ -4543,8 +4580,9 @@
         }
 
         const conflictInfo = evaluateCellConflict(assignedDoctor, dateStr, tableType, slotKey);
-        const cellSlotId = `${tableType}_${dayNumber}_${slotKey}`;
-        const hasPrefOverride = state.prefOverrides && state.prefOverrides[cellSlotId];
+        // Against the resident's wishes: worked out on every render, so cells filled by hand show it too.
+        const prefIssues = prefViolations(getResidentByName(assignedDoctor), tableType, dayNumber, slotKey);
+        const hasPrefOverride = prefIssues.length > 0;
 
         let badgeHTML = '';
         if (tableType === 'dc' && conflictInfo.isDcHospitalDuty && !conflictInfo.hasConflict) {
@@ -4568,8 +4606,8 @@
         let overrideBadge = '';
         if (hasPrefOverride) {
             overrideBadge = `
-                <button type="button" onclick="alert('ℹ️ تم تعيين هذه الخفارة خارج رغبة الطبيب المحددة لعدم توفر شواغر مطابقة في جدول الشهر.')" 
-                    title="تم التعيين خارج رغبة الطبيب (انقر للتوضيح)" class="text-blue-500 hover:text-blue-600 text-[11px] ml-1">
+                <button type="button" onclick="event.stopPropagation(); showPrefViolations('${escapeForInline(assignedDoctor)}', '${tableType}', ${dayNumber}, '${slotKey}')"
+                    title="${escapeHtml('خلاف رغبة الطبيب: ' + prefIssues.join(' · '))}" class="text-blue-500 hover:text-blue-600 text-[11px] ml-1">
                     <i class="fas fa-circle-info"></i>
                 </button>
             `;
@@ -8301,9 +8339,15 @@
             const hospDuty = hospDoctorMap.get(cleanName);
 
             const conflictEval = evaluateCellConflict(r.name, activeSlot.dateStr, activeSlot.type, activeSlot.slotKey);
+            // Asked for this day: a calendar day of their wishes, or one of their weekdays.
+            const mp = withMonthPrefs(r);
+            const wantsDay = preferDaysOf(mp).includes(activeSlot.dayNumber) || (Array.isArray(mp.prefDays) && mp.prefDays.includes(activeSlot.dayName));
+            const against = prefViolations(r, activeSlot.type, activeSlot.dayNumber, activeSlot.slotKey);
 
             return {
                 resident: r,
+                wantsDay: wantsDay && !conflictEval.hasConflict,
+                against,
                 filled,
                 target,
                 remaining,
@@ -8316,6 +8360,7 @@
 
         // Sorting: For DC, doctors with hospital duty ranked first!
         enriched.sort((a, b) => {
+            if (a.wantsDay !== b.wantsDay) return a.wantsDay ? -1 : 1;
             if (activeSlot.type === 'dc') {
                 if (a.isHospOnCall && !b.isHospOnCall) return -1;
                 if (!a.isHospOnCall && b.isHospOnCall) return 1;
@@ -8350,7 +8395,10 @@
             let cardBorder = 'border-slate-200 dark:border-slate-800 hover:border-rose-400';
             let cardBg = 'bg-white dark:bg-slate-900/60';
 
-            if (isDcTopChoice) {
+            if (item.wantsDay) {
+                cardBorder = 'border-violet-300 dark:border-violet-700/80 ring-1 ring-violet-500/25';
+                cardBg = 'bg-violet-50 dark:bg-violet-950/30';
+            } else if (isDcTopChoice) {
                 cardBorder = 'border-emerald-300 dark:border-emerald-800/80 ring-1 ring-emerald-500/20';
                 cardBg = 'bg-emerald-50/40 dark:bg-emerald-950/20';
             } else if (item.hasConflict) {
@@ -8369,6 +8417,8 @@
                         <div>
                             <div class="font-bold text-xs text-slate-800 dark:text-slate-100 flex items-center gap-2">
                                 <span>${r.name}</span>
+                                ${item.wantsDay ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300"><i class="fas fa-heart"></i> طلب هذا اليوم</span>' : ''}
+                                ${item.against.length && !item.hasConflict ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300" title="${escapeHtml(item.against.join(' · '))}"><i class="fas fa-circle-info"></i> خلاف رغبته</span>` : ''}
                                 ${isDcTopChoice ? `
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
                                         خافر في المستشفى اليوم: ${item.hospDuty.specName}
@@ -9568,14 +9618,30 @@
         autoDistributionRunning = true;
         pushScheduleHistory(`توليد جدول ${type} آلياً`);
 
+        // ER, consultation clinic and death certificates: the best arrangement of the whole month at once.
+        if (type === 'er' || type === 'con' || type === 'dc') {
+            const sheet = autoSheetOf(type, daysCount);
+            const original = snapshotAutoSheet(sheet);
+            return (async () => {
+                await new Promise(resolve => setTimeout(resolve, 0));
+                let result = null;
+                try {
+                    result = optimalDistribution(sheet, mode, original, activeDocs, daysCount);
+                    arrangeBranches(sheet, mode, original, activeDocs);
+                } catch (err) {
+                    console.error('Auto distribution failed:', err);
+                    restoreAutoSheet(sheet, original);
+                }
+                autoDistributionRunning = false;
+                saveState();
+                renderActiveTab();
+                if (result) reportBestDistribution(sheet, result, activeDocs);
+                else showNotification('تعذّر إكمال التوليد الآلي.', 'error');
+            })();
+        }
+
         function runOnce() {
-            if (type === 'er') {
-                runAutoDistributionER(mode, daysCount, activeDocs);
-            } else if (type === 'con') {
-                runAutoDistributionCon(mode, daysCount, activeDocs);
-            } else if (type === 'dc') {
-                runAutoDistributionDC(mode, daysCount, activeDocs);
-            } else if (type === 'rs_er') {
+            if (type === 'rs_er') {
                 runAutoDistributionRSER(mode, daysCount, activeDocs);
             } else if (type === 'rs_wards') {
                 runAutoDistributionRSWards(mode, daysCount, activeDocs);
@@ -9887,6 +9953,15 @@
         return (a.empty - b.empty) || (a.overrides - b.overrides) || (a.consecutive - b.consecutive) || (a.misfit - b.misfit) || (b.liked - a.liked);
     }
 
+    /** The result of optimalDistribution. */
+    function reportBestDistribution(sheet, res, activeDocs) {
+        if (res.empty) return reportAutoDistribution(sheet, { empty: res.empty }, activeDocs);
+        if (sheet.key !== 'dc') { showNotification('تم اكتمال التوليد والتوزيع الآلي بنجاح!', 'success'); return; }
+        let msg = `تم ملء كل خانات شهادات الوفاة. ${res.aligned} من ${res.dcCells} خفارة على يوم خفارة الاختصاص للطبيب نفسه (أكبر عدد ممكن).`;
+        if (res.overQuota) msg += ` وتجاوزت ${res.overQuota} خفارة نصاب أصحابها لأن مجموع الأنصبة أقل من عدد الخانات.`;
+        showNotification(msg, 'success');
+    }
+
     /** The result, and why cells stayed empty when some did. */
     function reportAutoDistribution(sheet, score, activeDocs) {
         if (score.empty === 0) {
@@ -9899,6 +9974,321 @@
             ? 'لأن مجموع نصاب الأطباء لهذا الجدول لا يكفي لكل الخانات. زِد النصاب ثم اضغط «ملء الفراغات فقط».'
             : 'لأن الأطباء الذين بقي لهم نصاب لا يمكنهم أخذها (أيام مستثناة، أو خفارة أخرى في اليوم نفسه، أو خفارات ليلية لا تُوزَّع على الطبيبات).';
         showNotification(`تم التوليد، وبقيت ${score.empty} خانة فارغة ${why}`, 'error');
+    }
+
+    // =========================================================================
+    // BEST DISTRIBUTION: ER, CONSULTATION CLINIC, DEATH CERTIFICATES
+    // =========================================================================
+    // The whole month is solved at once instead of cell by cell (2026-10-31). Rules that are never
+    // broken: a resident's quota (death certificates may go over it only to fill every cell), a day
+    // or period they excluded, no night shift for female residents (ER), one duty a day (none on a day
+    // with any other duty: ER, consultation clinic, the hospital's specialty duty; death certificates
+    // go WITH the specialty duty). Within them every possible arrangement has a cost, and the one with
+    // the lowest is found exactly by a minimum-cost flow:
+    //   1. as many cells filled as possible (every cell when the quotas and rules allow it);
+    //   2. death certificates: as many as possible on a day of the resident's specialty duty;
+    //   3. ER: no shift outside the shifts a resident asked for;
+    //   4. the calendar days a resident asked for, then the weekdays they asked for;
+    //   5. no duty the day before or after another of their duties (when they asked for none);
+    //   6. duties shared evenly when the quotas are more than the cells.
+    // Back-to-back days inside the sheet itself (two duties of the same sheet on neighbouring days)
+    // and an even mix of shifts are then improved by swapping cells, keeping 1-4 as they are.
+    const OPT_COST = {
+        dcAligned: -10000,  // death certificate on the day of the resident's specialty duty
+        offShift: 1000,     // ER shift outside the ones asked for
+        wantedDay: -150,    // a calendar day the resident asked for
+        offWeekday: 100,    // not one of the weekdays asked for
+        nextToDuty: 400,    // the day before / after another duty (resident asked for no back-to-back days)
+        share: 20,          // each further duty of the same resident (spreads duties when cells are fewer)
+        overQuota: 1000000, // death certificates only: a duty beyond the quota (only to fill every cell)
+        shiftMix: 15,       // ER: same shift again for the same resident (local search only)
+    };
+    const OPT_SEARCH_MS = 1200;
+
+    /** Days of the month on which each resident (normalized name) has a duty of the hospital's own schedule. */
+    function hospitalDutyDaysIndex() {
+        const out = new Map();
+        if (!window.Hub || typeof window.Hub.getHospital !== 'function') return out;
+        const ids = new Set([state.hospitalId || 'iraqi']);
+        (state.residents || []).forEach(r => {
+            if (Array.isArray(r.hospitals)) r.hospitals.forEach(h => ids.add(h));
+            else if (r.hospitalId) ids.add(r.hospitalId);
+        });
+        const suffix = `/${String(state.month).padStart(2, '0')}/${state.year}`;
+        ids.forEach(hId => {
+            const hosp = window.Hub.getHospital(hId);
+            if (!hosp || !Array.isArray(hosp.schedule)) return;
+            const byName = new Map();
+            hosp.schedule.forEach(item => {
+                if (!item || !item.name || typeof item.date !== 'string' || !item.date.endsWith(suffix)) return;
+                const d = parseInt(item.date, 10);
+                const k = normalizeArabic(item.name);
+                if (!byName.has(k)) byName.set(k, new Set());
+                byName.get(k).add(d);
+            });
+            out.set(hId, byName);
+        });
+        return out;
+    }
+    /** The hospitals whose schedule counts for a resident (as getHospitalDutiesForDoctor checks them). */
+    function doctorHospitalIds(r) {
+        let ids = [];
+        if (Array.isArray(r.hospitals) && r.hospitals.length) ids = [...r.hospitals];
+        else if (r.hospitalId) ids = [r.hospitalId];
+        if (!ids.length && window.Hub && typeof window.Hub.getResident === 'function') {
+            const hubRes = window.Hub.getResident(r.name);
+            if (hubRes && Array.isArray(hubRes.hospitals)) ids = [...hubRes.hospitals];
+        }
+        if (!ids.length) ids = [state.hospitalId || 'iraqi'];
+        if (state.hospitalId && !ids.includes(state.hospitalId)) ids.push(state.hospitalId);
+        return ids;
+    }
+
+    /** Days on which a resident has a duty in the ER page's other sheets. */
+    function otherSheetDays(sheetKey, daysCount) {
+        const out = new Map();
+        const add = (name, d) => { const k = normalizeArabic(name); if (!out.has(k)) out.set(k, new Set()); out.get(k).add(d); };
+        const sheets = [['er', posKeys('er')], ['con', posKeys('con')], ['dc', posKeys('dc')]];
+        if (state.rsEnabled) sheets.push(['rs', L().allKeys('rs').concat(['ward_private', 'ward_floor4', 'ward_floor5'])]);
+        sheets.forEach(([key, keys]) => {
+            if (key === sheetKey) return;
+            (state.schedules[key] || []).forEach(day => {
+                if (!day || day.dayNumber < 1 || day.dayNumber > daysCount) return;
+                keys.forEach(k => { if (day[k] && String(day[k]).trim()) add(day[k], day.dayNumber); });
+            });
+        });
+        return out;
+    }
+
+    /** Minimum-cost maximum flow (successive shortest paths, SPFA). Edges: [to, cap, cost, rev]. */
+    function minCostMaxFlow(n, edges, s, t) {
+        const g = Array.from({ length: n }, () => []);
+        const E = [];
+        edges.forEach(([u, v, cap, cost]) => {
+            const a = { to: v, cap, cost, rev: null, flow: 0 }, b = { to: u, cap: 0, cost: -cost, rev: a, flow: 0 };
+            a.rev = b;
+            g[u].push(a); g[v].push(b);
+            E.push(a);
+        });
+        const dist = new Float64Array(n), inQ = new Uint8Array(n), prevE = new Array(n);
+        let flow = 0, cost = 0;
+        for (;;) {
+            dist.fill(Infinity); dist[s] = 0;
+            const q = [s]; inQ.fill(0); inQ[s] = 1;
+            for (let h = 0; h < q.length; h++) {
+                const u = q[h]; inQ[u] = 0;
+                for (const e of g[u]) {
+                    if (e.cap - e.flow <= 0) continue;
+                    const nd = dist[u] + e.cost;
+                    if (nd < dist[e.to] - 1e-9) {
+                        dist[e.to] = nd; prevE[e.to] = e;
+                        if (!inQ[e.to]) { inQ[e.to] = 1; q.push(e.to); }
+                    }
+                }
+            }
+            if (dist[t] === Infinity) break;
+            let push = Infinity;
+            for (let v = t; v !== s; v = prevE[v].rev.to) push = Math.min(push, prevE[v].cap - prevE[v].flow);
+            for (let v = t; v !== s; v = prevE[v].rev.to) { prevE[v].flow += push; prevE[v].rev.flow -= push; }
+            flow += push; cost += push * dist[t];
+        }
+        return { flow, cost, edges: E };
+    }
+
+    /**
+     * Fills the sheet (er | con | dc) as described above. Cells filled before "fill the empty cells
+     * only" stay. Returns { empty, aligned, dcCells, overQuota, sheetCost }.
+     */
+    function optimalDistribution(sheet, mode, original, activeDocs, daysCount) {
+        const key = sheet.key, isEr = key === 'er', isDc = key === 'dc';
+        const days = state.schedules[key] || [];
+        const byDay = new Map(days.map(d => [d.dayNumber, d]));
+        const slots = posKeys(key);
+        // Cells kept from before (fill_empty), and everything else empty.
+        const keep = new Set();
+        if (mode !== 'fresh') (original.days || []).forEach(d => slots.forEach(s => { if (d[s] && String(d[s]).trim()) keep.add(d.dayNumber + '|' + s); }));
+        days.forEach(day => slots.forEach(s => { if (!keep.has(day.dayNumber + '|' + s)) day[s] = ''; }));
+        if (isEr && state.prefOverrides) Object.keys(state.prefOverrides).forEach(id => { const [, d, ...k] = id.split('_'); if (id.startsWith('er_') && !keep.has(d + '|' + k.join('_'))) delete state.prefOverrides[id]; });
+
+        const groupOf = s => isEr ? (L().shiftOf(s) || s) : 'day';
+        const people = activeDocs.filter(r => (Number(r[sheet.target]) || 0) > 0).map(r => ({ r, clean: normalizeArabic(r.name) }));
+        const other = otherSheetDays(key, daysCount);
+        const hospIdx = hospitalDutyDaysIndex();
+        const lockedDays = new Map();   // clean -> Set(days) of the kept cells
+        const lockedCount = new Map();
+        days.forEach(day => slots.forEach(s => {
+            const v = day[s] && String(day[s]).trim();
+            if (!v) return;
+            const k = normalizeArabic(v);
+            if (!lockedDays.has(k)) lockedDays.set(k, new Set());
+            lockedDays.get(k).add(day.dayNumber);
+            lockedCount.set(k, (lockedCount.get(k) || 0) + 1);
+        }));
+        people.forEach(p => {
+            p.quota = Math.max(0, (Number(p.r[sheet.target]) || 0) - (lockedCount.get(p.clean) || 0));
+            p.other = other.get(p.clean) || new Set();
+            p.hosp = new Set();
+            doctorHospitalIds(p.r).forEach(h => { const m = hospIdx.get(h); const s = m && m.get(p.clean); if (s) s.forEach(d => p.hosp.add(d)); });
+            p.locked = lockedDays.get(p.clean) || new Set();
+            p.female = isFemaleResident(p.r);
+            p.pref = isEr ? preferredErShifts(p.r) : null;
+            p.wanted = new Set(preferDaysOf(p.r));
+            p.weekdays = Array.isArray(p.r.prefDays) && p.r.prefDays.length ? new Set(p.r.prefDays) : null;
+            p.noNext = p.r.noConsecutiveDays !== false;
+        });
+
+        // Free capacity of each group of a day (ER: the free positions of a shift; others: the free duties of the day).
+        const groups = [];   // { d, g, keys: [free position keys] }
+        const groupAt = new Map();
+        days.forEach(day => {
+            if (day.dayNumber < sheet.from || day.dayNumber > sheet.to) return;
+            slots.forEach(s => {
+                if (day[s] && String(day[s]).trim()) return;
+                const id = day.dayNumber + '|' + groupOf(s);
+                if (!groupAt.has(id)) { groupAt.set(id, groups.length); groups.push({ d: day.dayNumber, g: groupOf(s), keys: [] }); }
+                groups[groupAt.get(id)].keys.push(s);
+            });
+        });
+
+        // Hard rules, and the cost of one duty of resident p on day d in group g (null = not allowed).
+        const dayOk = new Map();
+        function allowedDay(p, d) {
+            const id = p.clean + '|' + d;
+            if (dayOk.has(id)) return dayOk.get(id);
+            let ok = !p.locked.has(d) && !p.other.has(d) && !(p.hosp.has(d) && !isDc);
+            if (ok && isDateExcludedForResident(p.r, d, formatDateStr(state.year, state.month, d))) ok = false;
+            dayOk.set(id, ok);
+            return ok;
+        }
+        function cost(p, d, g) {
+            if (!allowedDay(p, d)) return null;
+            if (isEr && p.female && isNightShift(g)) return null;
+            let c = 0;
+            if (isDc && p.hosp.has(d)) c += OPT_COST.dcAligned;
+            if (isEr && p.pref && !p.pref.includes(g)) c += OPT_COST.offShift;
+            if (p.wanted.has(d)) c += OPT_COST.wantedDay;
+            if (p.weekdays && !p.weekdays.has((byDay.get(d) || {}).dayName)) c += OPT_COST.offWeekday;
+            if (p.noNext && (p.other.has(d - 1) || p.other.has(d + 1) || p.locked.has(d - 1) || p.locked.has(d + 1))) c += OPT_COST.nextToDuty;
+            return c;
+        }
+
+        // The flow: source -> resident (one unit per duty of the quota) -> resident-day (one duty a day)
+        // -> group of that day -> sink (its free cells).
+        const S = 0, T = 1;
+        let n = 2;
+        const edges = [];
+        const resNode = people.map(() => n++);
+        const groupNode = groups.map(() => n++);
+        const dayNodes = new Map();
+        const cells = groups.reduce((s, gr) => s + gr.keys.length, 0);
+        const totalQuota = people.reduce((s, p) => s + p.quota, 0);
+        // Death certificates must all be filled: beyond the quotas when they fall short, spread evenly.
+        const extra = isDc ? Math.max(0, cells - totalQuota) : 0;
+        people.forEach((p, i) => {
+            for (let j = 0; j < p.quota; j++) edges.push([S, resNode[i], 1, OPT_COST.share * j]);
+            if (extra) for (let j = 0; j < Math.min(extra, daysCount); j++) edges.push([S, resNode[i], 1, OPT_COST.overQuota * (j + 1)]);
+        });
+        groups.forEach((gr, gi) => edges.push([groupNode[gi], T, gr.keys.length, 0]));
+        const flowEdgeInfo = [];   // index in edges -> { i, gi }
+        people.forEach((p, i) => {
+            const byD = new Map();
+            groups.forEach((gr, gi) => {
+                const c = cost(p, gr.d, gr.g);
+                if (c === null) return;
+                if (!byD.has(gr.d)) byD.set(gr.d, []);
+                byD.get(gr.d).push([gi, c]);
+            });
+            byD.forEach((list, d) => {
+                const x = n++;
+                dayNodes.set(i + '|' + d, x);
+                edges.push([resNode[i], x, 1, 0]);
+                list.forEach(([gi, c]) => { flowEdgeInfo[edges.length] = { i, gi }; edges.push([x, groupNode[gi], 1, c]); });
+            });
+        });
+        const res = minCostMaxFlow(n, edges, S, T);
+
+        // Place the result: each resident into a free position of the group the flow chose.
+        const free = groups.map(gr => gr.keys.slice());
+        res.edges.forEach((e, idx) => {
+            const info = flowEdgeInfo[idx];
+            if (!info || e.flow <= 0) return;
+            const p = people[info.i], gr = groups[info.gi];
+            const list = free[info.gi];
+            let pick = 0;
+            if (isEr) { let bf = -1; list.forEach((k, j) => { const f = branchFit(p.r, 'er', k); if (f > bf) { bf = f; pick = j; } }); }
+            const k = list.splice(pick, 1)[0];
+            if (k) byDay.get(gr.d)[k] = p.r.name;
+        });
+
+        // Local search: swaps between two residents' cells (and moves into empty cells) that lower the
+        // whole cost, counting back-to-back days inside the sheet and the mix of shifts as well.
+        const pIndex = new Map(people.map((p, i) => [p.clean, i]));
+        const free2 = [];
+        const cellList = [];
+        days.forEach(day => {
+            if (day.dayNumber < sheet.from || day.dayNumber > sheet.to) return;
+            slots.forEach(s => { if (!keep.has(day.dayNumber + '|' + s)) cellList.push({ d: day.dayNumber, s, g: groupOf(s) }); });
+        });
+        const who = cell => { const v = byDay.get(cell.d)[cell.s]; return v ? pIndex.get(normalizeArabic(v)) : undefined; };
+        const own = people.map(() => new Map());   // resident -> Map(day -> group)
+        cellList.forEach(c => { const i = who(c); if (i !== undefined) own[i].set(c.d, c.g); });
+        const used = people.map((p, i) => own[i].size);
+        function personCost(i) {
+            const p = people[i], m = own[i];
+            let c = 0;
+            const mix = {};
+            m.forEach((g, d) => {
+                c += cost(p, d, g) || 0;
+                if (p.noNext && m.has(d + 1)) c += OPT_COST.nextToDuty;
+                if (isEr) { mix[g] = (mix[g] || 0) + 1; }
+            });
+            if (isEr) Object.values(mix).forEach(k => { c += OPT_COST.shiftMix * k * (k - 1) / 2; });
+            const u = m.size;
+            c += OPT_COST.share * u * (u - 1) / 2;
+            if (u > p.quota) c += OPT_COST.overQuota * (u - p.quota);
+            return c;
+        }
+        const canSit = (i, d, g, ignoreDay) => cost(people[i], d, g) !== null && (!own[i].has(d) || d === ignoreDay);
+        const started = Date.now();
+        for (let pass = 0; pass < 20 && Date.now() - started < OPT_SEARCH_MS; pass++) {
+            let improved = false;
+            const order = shuffleArray(cellList);
+            for (let a = 0; a < order.length && Date.now() - started < OPT_SEARCH_MS; a++) {
+                const A = order[a], i = who(A);
+                if (i === undefined) continue;
+                for (let b = a + 1; b < order.length; b++) {
+                    const B = order[b], j = who(B);
+                    if (j === i) continue;
+                    if (A.d === B.d && A.g === B.g) continue;
+                    if (j === undefined) {
+                        // Move i into an empty cell.
+                        if (!canSit(i, B.d, B.g, A.d)) continue;
+                        const before = personCost(i);
+                        own[i].delete(A.d); own[i].set(B.d, B.g);
+                        if (personCost(i) < before - 1e-9) {
+                            byDay.get(B.d)[B.s] = byDay.get(A.d)[A.s]; byDay.get(A.d)[A.s] = '';
+                            improved = true; break;
+                        }
+                        own[i].delete(B.d); own[i].set(A.d, A.g);
+                        continue;
+                    }
+                    if (!canSit(i, B.d, B.g, A.d) || !canSit(j, A.d, A.g, B.d)) continue;
+                    const before = personCost(i) + personCost(j);
+                    own[i].delete(A.d); own[j].delete(B.d); own[i].set(B.d, B.g); own[j].set(A.d, A.g);
+                    if (personCost(i) + personCost(j) < before - 1e-9) {
+                        const t = byDay.get(A.d)[A.s]; byDay.get(A.d)[A.s] = byDay.get(B.d)[B.s]; byDay.get(B.d)[B.s] = t;
+                        improved = true; break;
+                    }
+                    own[i].delete(B.d); own[j].delete(A.d); own[i].set(A.d, A.g); own[j].set(B.d, B.g);
+                }
+            }
+            if (!improved) break;
+        }
+
+        let empty = 0, aligned = 0, dcCells = 0, over = 0;
+        cellList.forEach(c => { const i = who(c); if (i === undefined) { empty++; return; } if (isDc) { dcCells++; if (people[i].hosp.has(c.d)) aligned++; } });
+        people.forEach((p, i) => { if (own[i].size > p.quota) over += own[i].size - p.quota; });
+        return { empty, aligned, dcCells, overQuota: over, used };
     }
 
     /**
@@ -9949,843 +10339,6 @@
             [a[i], a[j]] = [a[j], a[i]];
         }
         return a;
-    }
-
-    function runAutoDistributionER(mode, daysCount, activeDocs) {
-        const schedule = state.schedules.er;
-        const shifts = ['morning', 'afternoon', 'preNight', 'lateNight'];
-
-        if (mode === 'fresh') {
-            schedule.forEach(d => {
-                posKeys('er').forEach(k => d[k] = '');
-            });
-            state.prefOverrides = {};
-        }
-
-        // The phases choose a shift; the resident then takes a free position of it, a division of their
-        // own branch first (several residents per shift with a structure; the shift itself classically).
-        function freeSlot(dayEntry, shift, r) {
-            let best = null, bestFit = -1;
-            for (const p of L().positionsOfShift('er', shift)) {
-                if (dayEntry[p.key] && String(dayEntry[p.key]).trim()) continue;
-                const f = r ? branchFit(r, 'er', p.key) : 1;
-                if (f > bestFit) { best = p.key; bestFit = f; }
-            }
-            return best;
-        }
-
-        // Track assignments strictly by normalized doctor name
-        const assignedCount = {};
-        const assignedShifts = {}; // cleanName => Set of shift names
-        const assignedDays = {};   // dayNumber => Set of cleanNames
-        const assignedShiftCounts = {}; // cleanName => { morning: 0, afternoon: 0, preNight: 0, lateNight: 0 }
-        const assignedDayNameCounts = {}; // cleanName => { [dayName]: count }
-
-        for (let d = 1; d <= daysCount; d++) {
-            assignedDays[d] = new Set();
-        }
-
-        activeDocs.forEach(r => {
-            const clean = normalizeArabic(r.name);
-            assignedCount[clean] = 0;
-            assignedShifts[clean] = new Set();
-            assignedShiftCounts[clean] = { morning: 0, afternoon: 0, preNight: 0, lateNight: 0 };
-            assignedDayNameCounts[clean] = {};
-        });
-
-        // Initialize with existing entries if fill_empty
-        schedule.forEach(day => {
-            posKeys('er').forEach(k => {
-                const s = L().shiftOf(k);
-                if (day[k] && day[k].trim()) {
-                    const clean = normalizeArabic(day[k].trim());
-                    assignedCount[clean] = (assignedCount[clean] || 0) + 1;
-                    if (!assignedShifts[clean]) assignedShifts[clean] = new Set();
-                    assignedShifts[clean].add(s);
-                    if (!assignedShiftCounts[clean]) assignedShiftCounts[clean] = { morning: 0, afternoon: 0, preNight: 0, lateNight: 0 };
-                    assignedShiftCounts[clean][s] = (assignedShiftCounts[clean][s] || 0) + 1;
-                    if (!assignedDayNameCounts[clean]) assignedDayNameCounts[clean] = {};
-                    assignedDayNameCounts[clean][day.dayName] = (assignedDayNameCounts[clean][day.dayName] || 0) + 1;
-                    if (assignedDays[day.dayNumber]) assignedDays[day.dayNumber].add(clean);
-                }
-            });
-        });
-
-        function getQuota(r) {
-            return Math.max(0, Number(r.er_target) || 0);
-        }
-
-        function getAssigned(r) {
-            const clean = normalizeArabic(r.name);
-            return assignedCount[clean] || 0;
-        }
-
-        function hasRemainingQuota(r) {
-            return getAssigned(r) < getQuota(r);
-        }
-
-        function getShiftCount(r, s) {
-            const clean = normalizeArabic(r.name);
-            return (assignedShiftCounts[clean] && assignedShiftCounts[clean][s]) || 0;
-        }
-
-        function getDayNameCount(r, dn) {
-            const clean = normalizeArabic(r.name);
-            return (assignedDayNameCounts[clean] && assignedDayNameCounts[clean][dn]) || 0;
-        }
-
-        // Strict availability check:
-        // Must NEVER exceed quota!
-        // Rule 1: Females NEVER distributed to prenight or night shifts (8PM-2AM, 2AM-8AM) - strictly enforced!
-        // Rule 2: Excluded specific days and period intervals (strictly_within or exclude modes)
-        // Rule 3: Must NEVER duplicate doctor on same day!
-        // Rule 4: Must NOT conflict with other schedules!
-        // Rule 5: Must avoid consecutive days if preferred (r.noConsecutiveDays !== false)
-        function isDoctorAvailable(r, dayNumber, shiftKey, allowConsecutive = false) {
-            if (!r || !hasRemainingQuota(r)) return false;
-
-            // Rule 1: Females are NEVER auto-distributed to prenight or night shifts (8PM-2AM, 2AM-8AM)
-            if (isFemaleResident(r) && isNightShift(shiftKey)) return false;
-
-            // Rule 2: Excluded specific days and period intervals
-            const dateStr = formatDateStr(state.year, state.month, dayNumber);
-            if (isDateExcludedForResident(r, dayNumber, dateStr)) return false;
-
-            // Rule 3: Single duty per day
-            const clean = normalizeArabic(r.name);
-            if (assignedDays[dayNumber] && assignedDays[dayNumber].has(clean)) return false;
-
-            // Rule 4: Conflict check
-            const conflict = evaluateCellConflict(r.name, dateStr, 'er', shiftKey);
-            if (conflict && conflict.hasConflict) return false;
-
-            // Rule 5: Consecutive days avoidance
-            if (!allowConsecutive && r.noConsecutiveDays !== false) {
-                if (hasDoctorDutyOnAdjacentDay(clean, dayNumber, daysCount)) return false;
-            }
-
-            return true;
-        }
-
-        function assignSlot(dayEntry, shiftKey, r, dayNumber) {
-            const posKey = freeSlot(dayEntry, shiftKey, r) || shiftKey;
-            dayEntry[posKey] = r.name;
-            const clean = normalizeArabic(r.name);
-            assignedCount[clean] = (assignedCount[clean] || 0) + 1;
-            if (!assignedShifts[clean]) assignedShifts[clean] = new Set();
-            assignedShifts[clean].add(shiftKey);
-
-            if (!assignedShiftCounts[clean]) assignedShiftCounts[clean] = { morning: 0, afternoon: 0, preNight: 0, lateNight: 0 };
-            assignedShiftCounts[clean][shiftKey] = (assignedShiftCounts[clean][shiftKey] || 0) + 1;
-
-            if (!assignedDayNameCounts[clean]) assignedDayNameCounts[clean] = {};
-            const dName = dayEntry.dayName;
-            assignedDayNameCounts[clean][dName] = (assignedDayNameCounts[clean][dName] || 0) + 1;
-
-            if (assignedDays[dayNumber]) assignedDays[dayNumber].add(clean);
-
-            // Preference Override Check (track if doctor preferred a shift but was given a different one)
-            const cellSlotId = `er_${dayNumber}_${posKey}`;
-            if (r.prefShifts && r.prefShifts.length > 0) {
-                if (!r.prefShifts.includes(shiftKey)) {
-                    if (!state.prefOverrides) state.prefOverrides = {};
-                    state.prefOverrides[cellSlotId] = true;
-                }
-            }
-        }
-
-        // Helper: get candidate shifts respecting female exclusion and preferred shifts
-        function getAllowedShifts(r, respectPrefShifts = true) {
-            const isF = isFemaleResident(r);
-            const baseShifts = isF ? ['morning', 'afternoon'] : shifts;
-            if (respectPrefShifts && Array.isArray(r.prefShifts) && r.prefShifts.length > 0) {
-                const filtered = r.prefShifts.filter(s => baseShifts.includes(s));
-                if (filtered.length > 0) return filtered;
-            }
-            return baseShifts;
-        }
-
-        // -----------------------------------------------------------------
-        // PHASE 1: EXACT CALENDAR DAYS PREFERENCE (prefDaysMode === 'prefer')
-        // Doctors who specifically requested exact calendar days
-        // -----------------------------------------------------------------
-        const specificDayDocs = activeDocs.filter(r => 
-            hasRemainingQuota(r) && preferDaysOf(r).length > 0
-        );
-
-        let p1Progress = true;
-        let p1Guard = 0;
-        while (p1Progress && p1Guard < 500) {
-            p1Guard++;
-            p1Progress = false;
-
-            const candidates = specificDayDocs.filter(r => hasRemainingQuota(r));
-            if (candidates.length === 0) break;
-            candidates.sort((a, b) => getAssigned(a) - getAssigned(b));
-
-            for (const r of candidates) {
-                if (!hasRemainingQuota(r)) continue;
-                const targetDays = shuffleArray(preferDaysOf(r).filter(d => d >= 1 && d <= daysCount));
-                const candidateShifts = shuffleArray(getAllowedShifts(r, true));
-
-                let assignedOne = false;
-                for (const d of targetDays) {
-                    const dayEntry = schedule.find(s => s.dayNumber === d);
-                    if (!dayEntry) continue;
-
-                    for (const s of candidateShifts) {
-                        if (freeSlot(dayEntry, s, r) && isDoctorAvailable(r, d, s, false)) {
-                            assignSlot(dayEntry, s, r, d);
-                            assignedOne = true;
-                            p1Progress = true;
-                            break;
-                        }
-                    }
-                    if (assignedOne) break;
-                }
-                if (assignedOne) break; // Break to re-sort candidates by lowest assigned count!
-            }
-        }
-
-        // -----------------------------------------------------------------
-        // PHASE 2: TIME INTERVALS & RESTRICTED AVAILABILITY DOCTORS
-        // Must schedule doctors with interval constraints (strictly_within or exclude)
-        // within their limited window first so other doctors don't starve them!
-        // -----------------------------------------------------------------
-        const intervalDocs = activeDocs.filter(r => 
-            hasRemainingQuota(r) && Array.isArray(r.excludedIntervals) && r.excludedIntervals.length > 0
-        );
-
-        let p2Progress = true;
-        let p2Guard = 0;
-        while (p2Progress && p2Guard < 600) {
-            p2Guard++;
-            p2Progress = false;
-
-            const candidates = intervalDocs.filter(r => hasRemainingQuota(r));
-            if (candidates.length === 0) break;
-            candidates.sort((a, b) => getAssigned(a) - getAssigned(b));
-
-            for (const r of candidates) {
-                if (!hasRemainingQuota(r)) continue;
-                const candidateShifts = shuffleArray(getAllowedShifts(r, true));
-                const daysOrder = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
-
-                let assignedOne = false;
-
-                // Step 2A: Try with preferred shifts & preferred days of week
-                for (const d of daysOrder) {
-                    const dayEntry = schedule.find(s => s.dayNumber === d);
-                    if (!dayEntry) continue;
-                    if (Array.isArray(r.prefDays) && r.prefDays.length > 0 && !r.prefDays.includes(dayEntry.dayName)) continue;
-
-                    for (const s of candidateShifts) {
-                        if (freeSlot(dayEntry, s, r) && isDoctorAvailable(r, d, s, false)) {
-                            assignSlot(dayEntry, s, r, d);
-                            assignedOne = true;
-                            p2Progress = true;
-                            break;
-                        }
-                    }
-                    if (assignedOne) break;
-                }
-
-                // Step 2B: If preferred weekdays yielded no slot within the interval, relax prefDays within their allowed interval
-                if (!assignedOne) {
-                    for (const d of daysOrder) {
-                        const dayEntry = schedule.find(s => s.dayNumber === d);
-                        if (!dayEntry) continue;
-
-                        for (const s of candidateShifts) {
-                            if (freeSlot(dayEntry, s, r) && isDoctorAvailable(r, d, s, false)) {
-                                assignSlot(dayEntry, s, r, d);
-                                assignedOne = true;
-                                p2Progress = true;
-                                break;
-                            }
-                        }
-                        if (assignedOne) break;
-                    }
-                }
-
-                // Step 2C: If still needy and non-consecutive constraint prevented assignment, relax consecutive
-                if (!assignedOne && hasRemainingQuota(r)) {
-                    for (const d of daysOrder) {
-                        const dayEntry = schedule.find(s => s.dayNumber === d);
-                        if (!dayEntry) continue;
-
-                        for (const s of candidateShifts) {
-                            if (freeSlot(dayEntry, s, r) && isDoctorAvailable(r, d, s, true)) {
-                                assignSlot(dayEntry, s, r, d);
-                                assignedOne = true;
-                                p2Progress = true;
-                                break;
-                            }
-                        }
-                        if (assignedOne) break;
-                    }
-                }
-
-                if (assignedOne) break; // Break to re-sort candidates by lowest assigned count!
-            }
-        }
-
-        // -----------------------------------------------------------------
-        // PHASE 3: DUAL PREFERENCE (BOTH Day & Shift Preferences)
-        // -----------------------------------------------------------------
-        const dualPrefDocs = activeDocs.filter(r => 
-            hasRemainingQuota(r) && Array.isArray(r.prefDays) && r.prefDays.length > 0 && Array.isArray(r.prefShifts) && r.prefShifts.length > 0
-        );
-
-        let p3Progress = true;
-        let p3Guard = 0;
-        while (p3Progress && p3Guard < 500) {
-            p3Guard++;
-            p3Progress = false;
-
-            const candidates = dualPrefDocs.filter(r => hasRemainingQuota(r));
-            if (candidates.length === 0) break;
-            candidates.sort((a, b) => getAssigned(a) - getAssigned(b));
-
-            for (const r of candidates) {
-                if (!hasRemainingQuota(r)) continue;
-                const allowedPrefShifts = getAllowedShifts(r, true);
-                allowedPrefShifts.sort((s1, s2) => getShiftCount(r, s1) - getShiftCount(r, s2));
-
-                const daysOrder = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
-                let assignedOne = false;
-
-                for (const s of allowedPrefShifts) {
-                    for (const d of daysOrder) {
-                        const dayEntry = schedule.find(entry => entry.dayNumber === d);
-                        if (dayEntry && freeSlot(dayEntry, s, r) && r.prefDays.includes(dayEntry.dayName) && isDoctorAvailable(r, d, s, false)) {
-                            assignSlot(dayEntry, s, r, d);
-                            assignedOne = true;
-                            p3Progress = true;
-                            break;
-                        }
-                    }
-                    if (assignedOne) break;
-                }
-                if (assignedOne) break;
-            }
-        }
-
-        // -----------------------------------------------------------------
-        // PHASE 4A: PREFERRED SHIFTS ONLY (any day of month)
-        // -----------------------------------------------------------------
-        const shiftPrefDocs = activeDocs.filter(r => 
-            hasRemainingQuota(r) && Array.isArray(r.prefShifts) && r.prefShifts.length > 0 && (!r.prefDays || r.prefDays.length === 0)
-        );
-
-        let p4aProgress = true;
-        let p4aGuard = 0;
-        while (p4aProgress && p4aGuard < 500) {
-            p4aGuard++;
-            p4aProgress = false;
-
-            const candidates = shiftPrefDocs.filter(r => hasRemainingQuota(r));
-            if (candidates.length === 0) break;
-            candidates.sort((a, b) => getAssigned(a) - getAssigned(b));
-
-            for (const r of candidates) {
-                if (!hasRemainingQuota(r)) continue;
-                const allowedPrefShifts = getAllowedShifts(r, true);
-                allowedPrefShifts.sort((s1, s2) => getShiftCount(r, s1) - getShiftCount(r, s2));
-
-                const daysOrder = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
-                let assignedOne = false;
-
-                for (const s of allowedPrefShifts) {
-                    for (const d of daysOrder) {
-                        const dayEntry = schedule.find(entry => entry.dayNumber === d);
-                        if (dayEntry && freeSlot(dayEntry, s, r) && isDoctorAvailable(r, d, s, false)) {
-                            assignSlot(dayEntry, s, r, d);
-                            assignedOne = true;
-                            p4aProgress = true;
-                            break;
-                        }
-                    }
-                    if (assignedOne) break;
-                }
-                if (assignedOne) break;
-            }
-        }
-
-        // -----------------------------------------------------------------
-        // PHASE 4B: PREFERRED DAYS ONLY (any allowed shift)
-        // -----------------------------------------------------------------
-        const dayPrefDocs = activeDocs.filter(r => 
-            hasRemainingQuota(r) && Array.isArray(r.prefDays) && r.prefDays.length > 0 && (!r.prefShifts || r.prefShifts.length === 0)
-        );
-
-        let p4bProgress = true;
-        let p4bGuard = 0;
-        while (p4bProgress && p4bGuard < 500) {
-            p4bGuard++;
-            p4bProgress = false;
-
-            const candidates = dayPrefDocs.filter(r => hasRemainingQuota(r));
-            if (candidates.length === 0) break;
-            candidates.sort((a, b) => getAssigned(a) - getAssigned(b));
-
-            for (const r of candidates) {
-                if (!hasRemainingQuota(r)) continue;
-                const isF = isFemaleResident(r);
-                let shiftCandidates = isF 
-                    ? ['morning', 'afternoon']
-                    : ['preNight', 'lateNight', 'morning', 'afternoon'];
-                shiftCandidates.sort((s1, s2) => getShiftCount(r, s1) - getShiftCount(r, s2));
-
-                const daysOrder = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
-                let assignedOne = false;
-
-                for (const d of daysOrder) {
-                    const dayEntry = schedule.find(entry => entry.dayNumber === d);
-                    if (dayEntry && r.prefDays.includes(dayEntry.dayName)) {
-                        for (const s of shiftCandidates) {
-                            if (freeSlot(dayEntry, s, r) && isDoctorAvailable(r, d, s, false)) {
-                                assignSlot(dayEntry, s, r, d);
-                                assignedOne = true;
-                                p4bProgress = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (assignedOne) break;
-                }
-                if (assignedOne) break;
-            }
-        }
-
-        // -----------------------------------------------------------------
-        // PHASE 5: PROPORTIONAL FAIR ROUND-ROBIN FOR ALL REMAINING QUOTAS
-        // Guarantees NO RESIDENT IS LEFT WITH 0 DUTIES!
-        // Females strictly daytime (morning/afternoon).
-        // Males steered to nights first to preserve daytime for females.
-        // Lowest assigned count ALWAYS scheduled first!
-        // -----------------------------------------------------------------
-        let p5Progress = true;
-        let p5Guard = 0;
-        while (p5Progress && p5Guard < 1500) {
-            p5Guard++;
-            p5Progress = false;
-
-            const needyDocs = activeDocs.filter(r => hasRemainingQuota(r));
-            if (needyDocs.length === 0) break;
-
-            // Sort by lowest assigned count!
-            needyDocs.sort((a, b) => {
-                const diff = getAssigned(a) - getAssigned(b);
-                if (diff !== 0) return diff;
-                // Females prioritized for morning/afternoon since they have fewer choices (2 vs 4)
-                if (isFemaleResident(a) && !isFemaleResident(b)) return -1;
-                if (!isFemaleResident(a) && isFemaleResident(b)) return 1;
-                return Math.random() - 0.5;
-            });
-
-            for (const r of needyDocs) {
-                if (!hasRemainingQuota(r)) continue;
-
-                const isF = isFemaleResident(r);
-                let candidateShifts = getAllowedShifts(r, true);
-
-                // If male without shift prefs, prioritize night shifts to preserve day slots for females
-                if (!isF && (!r.prefShifts || r.prefShifts.length === 0)) {
-                    candidateShifts = ['preNight', 'lateNight', 'morning', 'afternoon'];
-                }
-                candidateShifts.sort((s1, s2) => getShiftCount(r, s1) - getShiftCount(r, s2));
-
-                const daysOrder = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
-                let assignedOne = false;
-
-                for (const s of candidateShifts) {
-                    for (const d of daysOrder) {
-                        const dayEntry = schedule.find(entry => entry.dayNumber === d);
-                        if (dayEntry && freeSlot(dayEntry, s, r) && isDoctorAvailable(r, d, s, false)) {
-                            assignSlot(dayEntry, s, r, d);
-                            assignedOne = true;
-                            p5Progress = true;
-                            break;
-                        }
-                    }
-                    if (assignedOne) break;
-                }
-
-                if (assignedOne) break; // Break to re-sort needyDocs by lowest assigned count!
-            }
-        }
-
-        // -----------------------------------------------------------------
-        // PHASE 6: CONSECUTIVE RELAXATION FALLBACK (ONLY IF STRICTLY NEEDED)
-        // Absolute rules (Female night ban, date exclusions) STILL 100% ENFORCED.
-        // -----------------------------------------------------------------
-        let p6Progress = true;
-        let p6Guard = 0;
-        while (p6Progress && p6Guard < 500) {
-            p6Guard++;
-            p6Progress = false;
-
-            const needyDocs = activeDocs.filter(r => hasRemainingQuota(r));
-            if (needyDocs.length === 0) break;
-            needyDocs.sort((a, b) => getAssigned(a) - getAssigned(b));
-
-            for (const r of needyDocs) {
-                if (!hasRemainingQuota(r)) continue;
-                const isF = isFemaleResident(r);
-                let candidateShifts = getAllowedShifts(r, true);
-                if (!isF && (!r.prefShifts || r.prefShifts.length === 0)) {
-                    candidateShifts = ['preNight', 'lateNight', 'morning', 'afternoon'];
-                }
-                candidateShifts.sort((s1, s2) => getShiftCount(r, s1) - getShiftCount(r, s2));
-
-                const daysOrder = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
-                let assignedOne = false;
-
-                for (const s of candidateShifts) {
-                    for (const d of daysOrder) {
-                        const dayEntry = schedule.find(entry => entry.dayNumber === d);
-                        if (dayEntry && freeSlot(dayEntry, s, r) && isDoctorAvailable(r, d, s, true)) {
-                            assignSlot(dayEntry, s, r, d);
-                            assignedOne = true;
-                            p6Progress = true;
-                            break;
-                        }
-                    }
-                    if (assignedOne) break;
-                }
-                if (assignedOne) break;
-            }
-        }
-    }
-
-    /**
-     * CON AUTOMATIC DISTRIBUTION
-     */
-    /** Consultation clinic: every daily duty (one, or several with their own hours) in turn. */
-    function runAutoDistributionCon(mode, daysCount, activeDocs) {
-        const slots = posKeys('con');
-        if (mode === 'fresh') (state.schedules.con || []).forEach(d => slots.forEach(k => { d[k] = ''; }));
-        slots.forEach(slot => runAutoDistributionConSlot(mode, daysCount, activeDocs, slot));
-    }
-
-    function runAutoDistributionConSlot(mode, daysCount, activeDocs, slot) {
-        const schedule = state.schedules.con;
-        if (mode === 'fresh') {
-            schedule.forEach(d => d[slot] = '');
-        }
-
-        const conCandidates = activeDocs.filter(r => (Number(r.con_target) || 0) > 0);
-        const assigned = countScheduledDutiesPerResident('con');
-
-        function isConAvailable(r, dayNumber, allowConsecutive = false) {
-            if (!r) return false;
-            const clean = normalizeArabic(r.name);
-            const filled = assigned[clean] || 0;
-            const target = Number(r.con_target) || 0;
-            if (filled >= target) return false;
-
-            const dateStr = formatDateStr(state.year, state.month, dayNumber);
-            if (isDateExcludedForResident(r, dayNumber, dateStr)) return false;
-
-            const evalRes = evaluateCellConflict(r.name, dateStr, 'con', slot);
-            if (evalRes.hasConflict) return false;
-
-            if (!allowConsecutive && r.noConsecutiveDays !== false) {
-                if (hasDoctorDutyOnAdjacentDay(clean, dayNumber, daysCount)) return false;
-            }
-
-            return true;
-        }
-
-        const assignedDayNameCounts = {};
-        schedule.forEach(day => {
-            if (day[slot] && day[slot].trim()) {
-                const clean = normalizeArabic(day[slot].trim());
-                assignedDayNameCounts[clean] = assignedDayNameCounts[clean] || {};
-                assignedDayNameCounts[clean][day.dayName] = (assignedDayNameCounts[clean][day.dayName] || 0) + 1;
-            }
-        });
-
-        function getDayNameCountCon(r, dn) {
-            const clean = normalizeArabic(r.name);
-            return (assignedDayNameCounts[clean] && assignedDayNameCounts[clean][dn]) || 0;
-        }
-
-        function getMinPrefDayCountCon(r) {
-            if (!Array.isArray(r.prefDays) || r.prefDays.length <= 1) return 0;
-            return Math.min(...r.prefDays.map(dn => getDayNameCountCon(r, dn)));
-        }
-
-        function isDayVarietySatisfiedCon(r, dn) {
-            if (!Array.isArray(r.prefDays) || r.prefDays.length <= 1) return true;
-            if (!r.prefDays.includes(dn)) return true;
-            return getDayNameCountCon(r, dn) <= getMinPrefDayCountCon(r);
-        }
-
-        function assignCon(dayEntry, r) {
-            dayEntry[slot] = r.name;
-            const clean = normalizeArabic(r.name);
-            assigned[clean] = (assigned[clean] || 0) + 1;
-            assignedDayNameCounts[clean] = assignedDayNameCounts[clean] || {};
-            assignedDayNameCounts[clean][dayEntry.dayName] = (assignedDayNameCounts[clean][dayEntry.dayName] || 0) + 1;
-        }
-
-        const shuffledDaysCon = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
-
-        // Pass 0: Specific Calendar Days Preference (prefDaysMode === 'prefer')
-        const conSpecificDayDocs = conCandidates.filter(r => preferDaysOf(r).length > 0);
-        for (const r of shuffleArray(conSpecificDayDocs)) {
-            const clean = normalizeArabic(r.name);
-            if ((assigned[clean] || 0) >= (Number(r.con_target) || 0)) continue;
-            for (const d of shuffleArray(r.specificDays.map(Number).filter(d => d >= 1 && d <= daysCount))) {
-                if ((assigned[clean] || 0) >= (Number(r.con_target) || 0)) break;
-                const dayEntry = schedule.find(s => s.dayNumber === d);
-                if (dayEntry && !dayEntry[slot] && isConAvailable(r, d, false)) {
-                    assignCon(dayEntry, r);
-                }
-            }
-        }
-
-        // Pass 1: Preferences (Doctors who prefer this day)
-        for (const d of shuffledDaysCon) {
-            const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (dayEntry && !dayEntry[slot]) {
-                // Tier 1: Day variety satisfied (doctor hasn't had more of this day than of their other preferred days)
-                let prefMatches = conCandidates.filter(r => {
-                    if (!isConAvailable(r, d, false)) return false;
-                    return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName) && isDayVarietySatisfiedCon(r, dayEntry.dayName);
-                });
-
-                if (prefMatches.length === 0) {
-                    prefMatches = conCandidates.filter(r => {
-                        if (!isConAvailable(r, d, false)) return false;
-                        return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
-                    });
-                }
-
-                if (prefMatches.length === 0) {
-                    prefMatches = conCandidates.filter(r => {
-                        if (!isConAvailable(r, d, true)) return false;
-                        return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
-                    });
-                }
-
-                if (prefMatches.length > 0) {
-                    prefMatches.sort((a, b) => {
-                        const dayDiff = getDayNameCountCon(a, dayEntry.dayName) - getDayNameCountCon(b, dayEntry.dayName);
-                        if (dayDiff !== 0) return dayDiff;
-                        const remA = (Number(a.con_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
-                        const remB = (Number(b.con_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
-                        if (remB !== remA) return remB - remA;
-                        return Math.random() - 0.5;
-                    });
-                    assignCon(dayEntry, prefMatches[0]);
-                }
-            }
-        }
-
-        // Pass 2: General Fill for remaining slots
-        for (const d of shuffledDaysCon) {
-            const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (dayEntry && !dayEntry[slot]) {
-                let available = conCandidates.filter(r => isConAvailable(r, d, false));
-                if (available.length === 0) {
-                    available = conCandidates.filter(r => isConAvailable(r, d, true));
-                }
-                if (available.length > 0) {
-                    available.sort((a, b) => {
-                        const dayDiff = getDayNameCountCon(a, dayEntry.dayName) - getDayNameCountCon(b, dayEntry.dayName);
-                        if (dayDiff !== 0) return dayDiff;
-                        const remA = (Number(a.con_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
-                        const remB = (Number(b.con_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
-                        if (remB !== remA) return remB - remA;
-                        return Math.random() - 0.5;
-                    });
-                    assignCon(dayEntry, available[0]);
-                }
-            }
-        }
-    }
-
-    /**
-     * DC AUTOMATIC DISTRIBUTION (Prioritizes Hospital On-Call specialty doctors!)
-     */
-    /** Death certificates: every daily duty (one, or several with their own hours) in turn. */
-    function runAutoDistributionDC(mode, daysCount, activeDocs) {
-        const slots = posKeys('dc');
-        if (mode === 'fresh') (state.schedules.dc || []).forEach(d => slots.forEach(k => { d[k] = ''; }));
-        slots.forEach(slot => runAutoDistributionDCSlot(mode, daysCount, activeDocs, slot));
-    }
-
-    function runAutoDistributionDCSlot(mode, daysCount, activeDocs, slot) {
-        const schedule = state.schedules.dc;
-        if (mode === 'fresh') {
-            schedule.forEach(d => d[slot] = '');
-        }
-
-        const dcCandidates = activeDocs.filter(r => (Number(r.dc_target) || 0) > 0);
-        const assigned = countScheduledDutiesPerResident('dc');
-
-        function isDCAvailable(r, dayNumber, allowConsecutive = false) {
-            if (!r) return false;
-            const clean = normalizeArabic(r.name);
-            const filled = assigned[clean] || 0;
-            const target = Number(r.dc_target) || 0;
-            if (filled >= target) return false;
-
-            const dateStr = formatDateStr(state.year, state.month, dayNumber);
-            if (isDateExcludedForResident(r, dayNumber, dateStr)) return false;
-
-            const evalRes = evaluateCellConflict(r.name, dateStr, 'dc', slot);
-            if (evalRes.hasConflict) return false;
-
-            if (!allowConsecutive && r.noConsecutiveDays !== false) {
-                if (hasDoctorDutyOnAdjacentDay(clean, dayNumber, daysCount)) return false;
-            }
-
-            return true;
-        }
-
-        const assignedDayNameCounts = {};
-        schedule.forEach(day => {
-            if (day[slot] && day[slot].trim()) {
-                const clean = normalizeArabic(day[slot].trim());
-                assignedDayNameCounts[clean] = assignedDayNameCounts[clean] || {};
-                assignedDayNameCounts[clean][day.dayName] = (assignedDayNameCounts[clean][day.dayName] || 0) + 1;
-            }
-        });
-
-        function getDayNameCountDC(r, dn) {
-            const clean = normalizeArabic(r.name);
-            return (assignedDayNameCounts[clean] && assignedDayNameCounts[clean][dn]) || 0;
-        }
-
-        function getMinPrefDayCountDC(r) {
-            if (!Array.isArray(r.prefDays) || r.prefDays.length <= 1) return 0;
-            return Math.min(...r.prefDays.map(dn => getDayNameCountDC(r, dn)));
-        }
-
-        function isDayVarietySatisfiedDC(r, dn) {
-            if (!Array.isArray(r.prefDays) || r.prefDays.length <= 1) return true;
-            if (!r.prefDays.includes(dn)) return true;
-            return getDayNameCountDC(r, dn) <= getMinPrefDayCountDC(r);
-        }
-
-        function assignDC(dayEntry, r) {
-            dayEntry[slot] = r.name;
-            const clean = normalizeArabic(r.name);
-            assigned[clean] = (assigned[clean] || 0) + 1;
-            assignedDayNameCounts[clean] = assignedDayNameCounts[clean] || {};
-            assignedDayNameCounts[clean][dayEntry.dayName] = (assignedDayNameCounts[clean][dayEntry.dayName] || 0) + 1;
-        }
-
-        const shuffledDaysDC = shuffleArray([...Array(daysCount).keys()].map(i => i + 1));
-
-        // Pass 0: Specific Calendar Days Preference (prefDaysMode === 'prefer')
-        const dcSpecificDayDocs = dcCandidates.filter(r => preferDaysOf(r).length > 0);
-        for (const r of shuffleArray(dcSpecificDayDocs)) {
-            const clean = normalizeArabic(r.name);
-            if ((assigned[clean] || 0) >= (Number(r.dc_target) || 0)) continue;
-            for (const d of shuffleArray(r.specificDays.map(Number).filter(d => d >= 1 && d <= daysCount))) {
-                if ((assigned[clean] || 0) >= (Number(r.dc_target) || 0)) break;
-                const dayEntry = schedule.find(s => s.dayNumber === d);
-                if (dayEntry && !dayEntry[slot] && isDCAvailable(r, d, false)) {
-                    assignDC(dayEntry, r);
-                }
-            }
-        }
-
-        // Pass 1: Preferences (Doctors who prefer this day)
-        for (const d of shuffledDaysDC) {
-            const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (dayEntry && !dayEntry[slot]) {
-                // Tier 1: Day variety satisfied
-                let prefMatches = dcCandidates.filter(r => {
-                    if (!isDCAvailable(r, d, false)) return false;
-                    return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName) && isDayVarietySatisfiedDC(r, dayEntry.dayName);
-                });
-                if (prefMatches.length === 0) {
-                    prefMatches = dcCandidates.filter(r => {
-                        if (!isDCAvailable(r, d, false)) return false;
-                        return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
-                    });
-                }
-                if (prefMatches.length === 0) {
-                    prefMatches = dcCandidates.filter(r => {
-                        if (!isDCAvailable(r, d, true)) return false;
-                        return Array.isArray(r.prefDays) && r.prefDays.includes(dayEntry.dayName);
-                    });
-                }
-
-                if (prefMatches.length > 0) {
-                    prefMatches.sort((a, b) => {
-                        const dayDiff = getDayNameCountDC(a, dayEntry.dayName) - getDayNameCountDC(b, dayEntry.dayName);
-                        if (dayDiff !== 0) return dayDiff;
-                        const remA = (Number(a.dc_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
-                        const remB = (Number(b.dc_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
-                        if (remB !== remA) return remB - remA;
-                        return Math.random() - 0.5;
-                    });
-                    assignDC(dayEntry, prefMatches[0]);
-                }
-            }
-        }
-
-        // Pass 2: Doctors on-call in hospital on this date
-        for (const d of shuffledDaysDC) {
-            const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (dayEntry && !dayEntry[slot]) {
-                const dateStr = formatDateStr(state.year, state.month, d);
-                const hospOnCall = getAllHospitalOnCallDoctors(dateStr);
-                const hospCleanSet = new Set(hospOnCall.map(h => h.cleanName));
-
-                let onCallCandidates = dcCandidates.filter(r => {
-                    if (!isDCAvailable(r, d, false)) return false;
-                    return hospCleanSet.has(normalizeArabic(r.name));
-                });
-                if (onCallCandidates.length === 0) {
-                    onCallCandidates = dcCandidates.filter(r => {
-                        if (!isDCAvailable(r, d, true)) return false;
-                        return hospCleanSet.has(normalizeArabic(r.name));
-                    });
-                }
-
-                if (onCallCandidates.length > 0) {
-                    onCallCandidates.sort((a, b) => {
-                        const dayDiff = getDayNameCountDC(a, dayEntry.dayName) - getDayNameCountDC(b, dayEntry.dayName);
-                        if (dayDiff !== 0) return dayDiff;
-                        const remA = (Number(a.dc_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
-                        const remB = (Number(b.dc_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
-                        if (remB !== remA) return remB - remA;
-                        return Math.random() - 0.5;
-                    });
-                    assignDC(dayEntry, onCallCandidates[0]);
-                }
-            }
-        }
-
-        // Pass 3: General Fallback for remaining slots
-        for (const d of shuffledDaysDC) {
-            const dayEntry = schedule.find(s => s.dayNumber === d);
-            if (dayEntry && !dayEntry[slot]) {
-                let available = dcCandidates.filter(r => isDCAvailable(r, d, false));
-                if (available.length === 0) {
-                    available = dcCandidates.filter(r => isDCAvailable(r, d, true));
-                }
-                if (available.length > 0) {
-                    available.sort((a, b) => {
-                        const dayDiff = getDayNameCountDC(a, dayEntry.dayName) - getDayNameCountDC(b, dayEntry.dayName);
-                        if (dayDiff !== 0) return dayDiff;
-                        const remA = (Number(a.dc_target) || 0) - (assigned[normalizeArabic(a.name)] || 0);
-                        const remB = (Number(b.dc_target) || 0) - (assigned[normalizeArabic(b.name)] || 0);
-                        if (remB !== remA) return remB - remA;
-                        return Math.random() - 0.5;
-                    });
-                    assignDC(dayEntry, available[0]);
-                }
-            }
-        }
     }
 
     /**
@@ -11896,7 +11449,9 @@
         pushDBHistory,
         initDBHistory,
         updateDBUndoRedoUI,
-        hasDoctorDutyOnAdjacentDay
+        hasDoctorDutyOnAdjacentDay,
+        renderShiftCellHTML,
+        prefViolations
     };
 
     // Global direct aliases for inline HTML attributes
@@ -11907,6 +11462,7 @@
     window.updateDBUndoRedoUI = updateDBUndoRedoUI;
     window.hasDoctorDutyOnAdjacentDay = hasDoctorDutyOnAdjacentDay;
     window.clearCurrentSchedule = clearCurrentSchedule;
+    window.showPrefViolations = showPrefViolations;
     window.openTableCsvMenu = openTableCsvMenu;
     window.copyAllocationsFromPreviousMonth = copyAllocationsFromPreviousMonth;
     window.updateResidentRowFulfillment = updateResidentRowFulfillment;

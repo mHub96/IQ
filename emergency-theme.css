@@ -282,6 +282,21 @@ html.dark .erp-btn.primary { color: #1a0605; }
 .erp-seg button small { display: block; font-size: 10.5px; font-weight: 500; color: var(--ers-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .erp-seg button.on { background: var(--ers-surface); color: var(--ers-text); font-weight: 700; box-shadow: 0 1px 3px rgba(16, 24, 40, 0.12); }
 html.dark .erp-seg button.on { background: var(--ers-border-2); }
+
+/* CSV menu of a table (emergency.js openTableCsvMenu) */
+.er-csv-menu {
+    position: fixed; z-index: 9000; min-width: 13rem; max-width: calc(100vw - 16px); padding: 0.35rem;
+    background: var(--ers-surface); border: 1px solid var(--ers-border); color: var(--ers-text);
+    border-radius: 0.9rem; box-shadow: var(--ers-shadow-lg); font-family: var(--ers-font);
+}
+.er-csv-menu .er-csv-title { font-size: 0.7rem; font-weight: 800; color: var(--ers-text-3); padding: 0.3rem 0.6rem 0.4rem; }
+.er-csv-menu button {
+    display: flex; align-items: center; gap: 0.55rem; width: 100%; padding: 0.6rem 0.7rem;
+    border: 0; background: transparent; color: inherit; border-radius: 0.6rem;
+    font: inherit; font-size: 0.82rem; font-weight: 700; text-align: start; cursor: pointer;
+}
+.er-csv-menu button:hover { background: var(--ers-surface-2); }
+.er-csv-menu button i { width: 1rem; text-align: center; color: var(--ers-green); }
 .erp-seg.sm button { padding: 5px 6px; font-size: 12px; }
 .erp-field { display: grid; gap: 7px; margin: 12px 0; }
 .erp-field > span { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; font-weight: 600; color: var(--ers-text-2); }

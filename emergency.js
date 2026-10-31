@@ -1688,6 +1688,222 @@
         });
     }
 
+    // =========================================================================
+    // CSV EXPORT / IMPORT OF ONE TABLE (ER, consultation clinic, death certificates)
+    // =========================================================================
+    // One row per day and one column per duty, as on the page. An import fills the month on screen
+    // (undo brings the table back). Death certificates can also be sent to the hospital's own
+    // death-certificates table in the scheduler, which shows them for review before its save.
+    const CSV_SHEETS = { er: 'الطوارئ', con: 'الاستشارية', dc: 'شهادات الوفاة' };
+    const CSV_DAY_HEAD = ['رقم اليوم', 'التاريخ', 'اليوم'];
+    const DC_HANDOFF_KEY = 'hub_er_dc_to_scheduler';   // read by scheduler.html (takeErDeathCertificates)
+
+    function csvColumnTitle(sheet, key) {
+        const lbl = L().label(sheet, key);
+        if (sheet === 'er') return lbl;
+        const base = sheet === 'dc' ? 'طبيب شهادات الوفاة' : 'طبيب الاستشارية';
+        return lbl ? `${base} ${lbl}` : base;
+    }
+    const csvCell = v => { v = String(v == null ? '' : v); return /[",\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+
+    /** Rows of a CSV text (quotes, commas, semicolons or tabs as separators). */
+    function parseCsvText(text) {
+        text = String(text || '').replace(/^\uFEFF/, '');
+        const first = text.split(/\r?\n/)[0] || '';
+        const sep = [',', ';', '\t'].sort((a, b) => first.split(b).length - first.split(a).length)[0];
+        const rows = [];
+        let row = [], cell = '', q = false;
+        for (let i = 0; i < text.length; i++) {
+            const c = text[i];
+            if (q) {
+                if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; }
+                else cell += c;
+            } else if (c === '"') q = true;
+            else if (c === sep) { row.push(cell); cell = ''; }
+            else if (c === '\n' || c === '\r') {
+                if (c === '\r' && text[i + 1] === '\n') i++;
+                row.push(cell); rows.push(row); row = []; cell = '';
+            } else cell += c;
+        }
+        if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+        return rows.map(r => r.map(x => x.trim())).filter(r => r.some(x => x));
+    }
+
+    function closeTableCsvMenu() {
+        const m = document.getElementById('er-csv-menu');
+        if (m) m.remove();
+        document.removeEventListener('pointerdown', tableCsvMenuOutside, true);
+    }
+    function tableCsvMenuOutside(e) {
+        const m = document.getElementById('er-csv-menu');
+        if (m && !m.contains(e.target)) closeTableCsvMenu();
+    }
+
+    function openTableCsvMenu(event, sheet) {
+        event.stopPropagation();
+        closeTableCsvMenu();
+        const menu = document.createElement('div');
+        menu.id = 'er-csv-menu';
+        menu.className = 'er-csv-menu no-print';
+        menu.innerHTML = `<div class="er-csv-title">${CSV_SHEETS[sheet]} · ${state.month}/${state.year}</div>
+            <button type="button" data-act="export"><i class="fas fa-file-arrow-down"></i> تصدير الجدول (CSV)</button>
+            <button type="button" data-act="import"><i class="fas fa-file-arrow-up"></i> استيراد جدول (CSV)</button>
+            ${sheet === 'dc' ? '<button type="button" data-act="scheduler"><i class="fas fa-share-from-square"></i> نقل إلى جدول الوفيات في جدول المستشفى</button>' : ''}`;
+        menu.addEventListener('click', e => {
+            const b = e.target.closest('button[data-act]');
+            if (!b) return;
+            closeTableCsvMenu();
+            if (b.dataset.act === 'export') exportSheetCsv(sheet);
+            else if (b.dataset.act === 'import') importSheetCsv(sheet);
+            else sendDcToScheduler();
+        });
+        document.body.appendChild(menu);
+        const r = event.currentTarget.getBoundingClientRect();
+        const w = menu.offsetWidth, h = menu.offsetHeight;
+        menu.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
+        menu.style.top = Math.max(8, Math.min(window.innerHeight - h - 8, r.bottom + 6)) + 'px';
+        setTimeout(() => document.addEventListener('pointerdown', tableCsvMenuOutside, true), 0);
+    }
+
+    function csvFileName(sheet) {
+        const h = window.Hub && window.Hub.getHospital ? window.Hub.getHospital(state.hospitalId) : null;
+        const hosp = (h && (h.name_ar || h.hospitalName)) || state.hospitalId || 'hospital';
+        return `${hosp}_${CSV_SHEETS[sheet]}_${state.year}-${String(state.month).padStart(2, '0')}.csv`.replace(/[\\/:*?"<>|]+/g, '_');
+    }
+
+    function exportSheetCsv(sheet) {
+        const keys = posKeys(sheet);
+        const rows = [[...CSV_DAY_HEAD, ...keys.map(k => csvColumnTitle(sheet, k))]];
+        (state.schedules[sheet] || []).forEach(d => rows.push([d.dayNumber, d.date, d.dayName, ...keys.map(k => d[k] || '')]));
+        const text = '\uFEFF' + rows.map(r => r.map(csvCell).join(',')).join('\r\n') + '\r\n';
+        const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = csvFileName(sheet);
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 500);
+        showNotification(`تم تصدير جدول ${CSV_SHEETS[sheet]}`, 'success');
+    }
+
+    function importSheetCsv(sheet) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.csv,text/csv';
+        input.style.display = 'none';
+        input.onchange = () => {
+            const file = input.files && input.files[0];
+            input.remove();
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => applySheetCsv(sheet, String(reader.result || ''));
+            reader.onerror = () => showNotification('تعذرت قراءة الملف', 'error');
+            reader.readAsText(file, 'utf-8');
+        };
+        document.body.appendChild(input);
+        input.click();
+    }
+
+    function applySheetCsv(sheet, text) {
+        const rows = parseCsvText(text);
+        const title = CSV_SHEETS[sheet];
+        if (rows.length < 2) { showNotification('الملف فارغ', 'error'); return; }
+        const norm = s => String(s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+        const head = rows[0].map(norm);
+        const at = names => head.findIndex(h => names.includes(h));
+        const cDay = at(['رقم اليوم', 'day', '#']), cDate = at(['التاريخ', 'date']), cName = at(['اليوم', 'weekday']);
+        if (cDay === -1 && cDate === -1) { showNotification('لا يوجد في الملف عمود "رقم اليوم" أو "التاريخ"', 'error'); return; }
+        // The duty columns: by their titles, else the other columns in order.
+        const keys = posKeys(sheet);
+        let cols = keys.map(k => { const c = head.indexOf(norm(csvColumnTitle(sheet, k))); return c !== -1 ? c : head.indexOf(norm(k)); });
+        if (cols.some(c => c === -1)) {
+            const rest = head.map((_, i) => i).filter(i => i !== cDay && i !== cDate && i !== cName);
+            if (rest.length !== keys.length) {
+                showNotification(`أعمدة الملف لا تطابق خفارات الجدول (${keys.length} عمود للخفارات). صدّر الجدول أولاً واستخدم نفس الأعمدة.`, 'error');
+                return;
+            }
+            cols = rest;
+        }
+        const days = getDaysInMonth(state.year, state.month);
+        const dayOf = r => {
+            let n = cDay !== -1 ? parseInt(r[cDay], 10) : NaN;
+            if (!(n >= 1 && n <= days) && cDate !== -1) {
+                const v = String(r[cDate] || '').replace(/[٠-٩]/g, x => '٠١٢٣٤٥٦٧٨٩'.indexOf(x));
+                const iso = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/), dmy = v.match(/^(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{2,4}))?/);
+                if (iso) n = Number(iso[1]) === Number(state.year) && Number(iso[2]) === Number(state.month) ? Number(iso[3]) : NaN;
+                else if (dmy) n = Number(dmy[2]) === Number(state.month) ? Number(dmy[1]) : NaN;
+            }
+            return n >= 1 && n <= days ? n : null;
+        };
+        // Names as they are in the residents database (spelling, spaces); others are left out.
+        const canon = new Map((state.residents || []).filter(r => r && r.name).map(r => [normalizeArabic(r.name), r.name]));
+        const byDay = new Map(), unknown = [];
+        let skipped = 0, count = 0;
+        rows.slice(1).forEach(r => {
+            const d = dayOf(r);
+            if (!d) { skipped++; return; }
+            const vals = {};
+            keys.forEach((k, i) => {
+                const raw = String(r[cols[i]] || '').trim();
+                if (!raw) { vals[k] = ''; return; }
+                const name = canon.get(normalizeArabic(raw));
+                if (name) { vals[k] = name; count++; }
+                else { vals[k] = ''; if (!unknown.includes(raw)) unknown.push(raw); }
+            });
+            byDay.set(d, vals);
+        });
+        if (!byDay.size) { showNotification(`لا توجد أيام من شهر ${state.month}/${state.year} في الملف`, 'error'); return; }
+        const msg = `استيراد جدول ${title} لشهر ${state.month}/${state.year}:\n\n`
+            + `• ${byDay.size} يوماً في الملف (تُستبدل خفاراتها في هذا الجدول)\n`
+            + `• ${count} خفارة`
+            + (unknown.length ? `\n• أسماء غير موجودة في قاعدة بيانات المقيمين (لن تُضاف): ${unknown.slice(0, 8).join('، ')}${unknown.length > 8 ? ' …' : ''}` : '')
+            + (skipped ? `\n• ${skipped} صفاً بلا يوم صالح من هذا الشهر (تُتجاهل)` : '')
+            + '\n\n(يمكنك التراجع بزر "تراجع" أو Ctrl+Z)';
+        if (!confirm(msg)) return;
+        pushScheduleHistory(`استيراد جدول ${title}`);
+        (state.schedules[sheet] || []).forEach(day => {
+            const vals = byDay.get(day.dayNumber);
+            if (vals) keys.forEach(k => { day[k] = vals[k]; });
+        });
+        saveState();
+        renderActiveTab();
+        updateDutyDashboard();
+        showNotification(`تم استيراد ${count} خفارة في جدول ${title}`, 'success');
+    }
+
+    /**
+     * Death certificates of the month on screen -> the hospital's death-certificates table in the
+     * scheduler. The rows wait in this browser (DC_HANDOFF_KEY) and the scheduler takes them when it
+     * opens on this hospital: it checks the names, shows what will change, and saves only with
+     * its own "حفظ الجدول".
+     */
+    function sendDcToScheduler() {
+        const hosp = state.hospitalId;
+        if (!(window.Hub && window.Hub.auth && window.Hub.auth.isAdmin && window.Hub.auth.isAdmin(hosp))) {
+            showNotification('النقل إلى جدول المستشفى متاح لمسؤولي المستشفى فقط', 'error');
+            return;
+        }
+        const keys = posKeys('dc');
+        const many = keys.length > 1;
+        // 'HH:MM' -> '08:00PM', as the scheduler writes its duty times.
+        const t12 = t => { const m = /^(\d\d):(\d\d)$/.exec(t || ''); if (!m) return ''; const h = Number(m[1]); return `${String(h % 12 || 12).padStart(2, '0')}:${m[2]}${h < 12 ? 'AM' : 'PM'}`; };
+        const timeOf = k => { const p = L().position('dc', k); return many && p && t12(p.start) && t12(p.end) ? `${t12(p.start)} - ${t12(p.end)}` : ''; };
+        const rows = [['رقم اليوم', 'الوقت', 'الاسم']];
+        let count = 0;
+        (state.schedules.dc || []).forEach(d => keys.forEach(k => {
+            const name = String(d[k] || '').trim();
+            if (name) count++;
+            rows.push([String(d.dayNumber), timeOf(k), name]);
+        }));
+        if (!count) { showNotification('جدول شهادات الوفاة لهذا الشهر فارغ', 'error'); return; }
+        try {
+            localStorage.setItem(DC_HANDOFF_KEY, JSON.stringify({ hosp, ym: `${state.year}-${String(state.month).padStart(2, '0')}`, at: Date.now(), rows }));
+        } catch (e) { showNotification('تعذر تجهيز الجدول للنقل', 'error'); return; }
+        const url = `./scheduler.html?hospital=${encodeURIComponent(hosp)}`;
+        if (window.HubView && window.HubView.go) window.HubView.go(url, 'push');
+        else window.location.href = url;
+    }
+
     function clearCurrentSchedule(sheetType) {
         const sheetLabels = {
             er: 'جدول خفارات الطوارئ (ER)',
@@ -3865,6 +4081,10 @@
                         <i class="fas fa-print"></i>
                         <span>طباعة رسمية (A4)</span>
                     </button>
+                    <button type="button" onclick="openTableCsvMenu(event, 'er')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5" title="تصدير / استيراد الجدول (CSV)">
+                        <i class="fas fa-file-csv text-emerald-600"></i>
+                        <span>CSV</span>
+                    </button>
                 </div>
             </div>
 
@@ -3954,6 +4174,10 @@
                         <i class="fas fa-print"></i>
                         <span>طباعة رسمية (A4)</span>
                     </button>
+                    <button type="button" onclick="openTableCsvMenu(event, 'con')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5" title="تصدير / استيراد الجدول (CSV)">
+                        <i class="fas fa-file-csv text-emerald-600"></i>
+                        <span>CSV</span>
+                    </button>
                 </div>
             </div>
 
@@ -4034,6 +4258,10 @@
                     <button type="button" onclick="prepareOfficialPrint('dc')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
                         <i class="fas fa-print"></i>
                         <span>طباعة رسمية (A4)</span>
+                    </button>
+                    <button type="button" onclick="openTableCsvMenu(event, 'dc')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5" title="تصدير / استيراد الجدول، أو نقله إلى جدول المستشفى (CSV)">
+                        <i class="fas fa-file-csv text-emerald-600"></i>
+                        <span>CSV</span>
                     </button>
                 </div>
             </div>
@@ -11683,6 +11911,7 @@
     window.updateDBUndoRedoUI = updateDBUndoRedoUI;
     window.hasDoctorDutyOnAdjacentDay = hasDoctorDutyOnAdjacentDay;
     window.clearCurrentSchedule = clearCurrentSchedule;
+    window.openTableCsvMenu = openTableCsvMenu;
     window.copyAllocationsFromPreviousMonth = copyAllocationsFromPreviousMonth;
     window.updateResidentRowFulfillment = updateResidentRowFulfillment;
     window.updateScheduleUndoRedoUI = updateScheduleUndoRedoUI;

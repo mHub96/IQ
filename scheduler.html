@@ -1825,6 +1825,7 @@
                 updateSchedulerModeButtons();
                 updateNameLookup();
                 refreshView();
+                takeErDeathCertificates();
             } catch (error) { console.error("Initialisation Error", error); }
 
             if (wrapper) wrapper.classList.remove('loading-active');
@@ -3054,7 +3055,7 @@
 
         function applyTableCsv(spec, text) {
             var m = shownMonth();
-            var rows = parseCsv(text);
+            var rows = Array.isArray(text) ? text : parseCsv(text);   // rows already split (from the ER page)
             if (!rows.length) { showToast('❌ الملف فارغ', 'error'); return; }
             var head = rows[0].map(function(h) { return h.replace(/\s+/g, ' ').toLowerCase(); });
             var col = function(names) { for (var i = 0; i < head.length; i++) if (names.indexOf(head[i]) !== -1) return i; return -1; };
@@ -3116,6 +3117,46 @@
             refreshView();
             showToast('✅ تم استيراد ' + count + ' خفارة. اضغط "حفظ الجدول" للحفظ', 'success', 4000);
         }
+
+        // ================================================================
+        // DEATH CERTIFICATES SENT FROM THE ER PAGE (emergency.js sendDcToScheduler)
+        // ================================================================
+        // The rows wait in this browser until the scheduler opens on their hospital; they then go
+        // through the CSV import (name check, summary to confirm), and "حفظ الجدول" saves them.
+        var ER_DC_KEY = 'hub_er_dc_to_scheduler';
+        var ER_DC_MAX_AGE = 30 * 60 * 1000;
+
+        function isDeathCertSpec(s) {
+            if (s.id === 'D') return true;
+            if (window.Hub && typeof window.Hub.normalizeSpecialtyId === 'function' && window.Hub.normalizeSpecialtyId(s.id) === 'D') return true;
+            return /الوفي|الوفاة|death/i.test((s.name_ar || '') + ' ' + (s.name || '') + ' ' + (s.name_en || ''));
+        }
+
+        function takeErDeathCertificates() {
+            var raw = null, h = null;
+            try { raw = localStorage.getItem(ER_DC_KEY); } catch (e) {}
+            if (!raw) return;
+            try { h = JSON.parse(raw); } catch (e) {}
+            var hid = database.id || (window.Hub ? window.Hub.getActiveHospitalId() : '');
+            if (!h || !Array.isArray(h.rows) || !(Date.now() - h.at < ER_DC_MAX_AGE)) { try { localStorage.removeItem(ER_DC_KEY); } catch (e) {} return; }
+            if (h.hosp !== hid) return;
+            try { localStorage.removeItem(ER_DC_KEY); } catch (e) {}
+            if (schedulerMode !== 'residents') switchSchedulerMode('residents');
+            var picker = document.getElementById('month-picker');
+            if (picker && /^\d{4}-\d{2}$/.test(h.ym) && picker.value !== h.ym) { picker.value = h.ym; refreshView(); }
+            var spec = specialtyList.find(function(s) { return !s.isClone && isDeathCertSpec(s); });
+            if (!spec) {
+                var hidden = (database.specialties || []).some(function(s) { return s.enabled === false && isDeathCertSpec(s); });
+                showToast(hidden ? '❌ جدول الوفيات مخفي في هذا المستشفى. فعّله من لوحة الإدارة ثم أعد النقل' : '❌ لا يوجد جدول للوفيات في هذا المستشفى', 'error', 5000);
+                return;
+            }
+            if (currentView === 'single') {
+                var idx = specialtyList.indexOf(spec);
+                if (idx !== -1 && idx !== currentTrackIndex) { currentTrackIndex = idx; refreshView(); }
+            }
+            setTimeout(function() { applyTableCsv(spec, h.rows); }, 300);
+        }
+        window.addEventListener('hub:view-shown', function() { if (specialtyList.length) takeErDeathCertificates(); });
 
         // ================================================================
         // ADD / DELETE SLOT

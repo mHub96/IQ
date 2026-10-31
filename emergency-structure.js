@@ -127,7 +127,6 @@
         const st = S();
         const keep = (modal.querySelector('.erst-body') || {}).scrollTop || 0;
         const hosp = window.Hub && window.Hub.getHospital ? window.Hub.getHospital(st.hospitalId) : null;
-        const autoCode = L().hospitalCode(st.hospitalId, true);
         modal.innerHTML = `<div class="erst-panel" role="dialog" aria-modal="true" aria-label="هيكلية الطوارئ">
             <header class="erst-head">
                 <div><h3><i class="fas fa-sitemap"></i> هيكلية الخفارات</h3><p>${esc((hosp && (hosp.name_ar || hosp.hospitalName)) || st.hospitalName || '')} · لكل مستشفى هيكليته</p></div>
@@ -145,9 +144,8 @@
                 <div class="erst-shifts">${timesHtml('con')}${timesHtml('dc')}</div>
                 <section class="erst-sec">
                     <h4><i class="fas fa-file-pdf"></i> اسم ملف الطباعة</h4>
-                    <div class="erst-row"><input class="erst-in" data-act="code" value="${esc(draft.code || '')}" placeholder="${esc(autoCode)}" maxlength="12" dir="ltr" style="max-width:140px">
-                        <span class="erst-hint" dir="ltr">${esc((draft.code || autoCode) + ' ER.' + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][(st.month || 1) - 1] + '.' + String(st.year % 100).padStart(2, '0'))}</span></div>
-                    <p class="erst-hint">رمز المستشفى في اسم ملف PDF (فارغ = الأحرف الأولى من اسمه الإنكليزي).</p>
+                    <div class="erst-row"><span class="erst-hint" dir="ltr">${esc(L().fileName('dc'))}</span></div>
+                    <p class="erst-hint">اسم المستشفى ثم الجدول ثم الشهر، لملفات الطباعة وCSV وExcel.</p>
                 </section>
                 <datalist id="erst-div-names">${DIVISION_PRESETS.map(([n]) => `<option value="${esc(n)}"></option>`).join('')}</datalist>
             </div>

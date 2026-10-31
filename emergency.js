@@ -1765,11 +1765,7 @@
         setTimeout(() => document.addEventListener('pointerdown', tableCsvMenuOutside, true), 0);
     }
 
-    function csvFileName(sheet) {
-        const h = window.Hub && window.Hub.getHospital ? window.Hub.getHospital(state.hospitalId) : null;
-        const hosp = (h && (h.name_ar || h.hospitalName)) || state.hospitalId || 'hospital';
-        return `${hosp}_${CSV_SHEETS[sheet]}_${state.year}-${String(state.month).padStart(2, '0')}.csv`.replace(/[\\/:*?"<>|]+/g, '_');
-    }
+    const csvFileName = sheet => L().fileName(sheet) + '.csv';
 
     function exportSheetCsv(sheet) {
         const keys = posKeys(sheet);
@@ -11778,7 +11774,7 @@
         const wsDb = XLSX.utils.aoa_to_sheet(dbData);
         XLSX.utils.book_append_sheet(wb, wsDb, 'Residents_DB');
 
-        XLSX.writeFile(wb, `جدول_خفارات_${state.hospitalId}_${state.month}_${state.year}.xlsx`);
+        XLSX.writeFile(wb, L().fileName('all') + '.xlsx');
         showNotification('تم تصدير ملف Excel بنجاح', 'success');
     }
 

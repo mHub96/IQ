@@ -233,11 +233,23 @@
         const en = String((h && h.hospitalName) || '').replace(/[^A-Za-z\s-]/g, ' ').split(/[\s-]+/).filter(w => w && !/^(of|the|and|al|el)$/i.test(w));
         return en.length ? en.map(w => w[0].toUpperCase()).join('') : String(id || 'ER').toUpperCase();
     }
-    const SHEET_CODES = { er: 'ER', con: 'CC', dc: 'DC', rs_er: 'RS-ER', rs_wards: 'RS-W' };
-    /** "BTH ER.Oct.26": the printed file's name. */
-    function fileName(sheet) {
+    const SHEET_NAMES = { er: 'ER', con: 'Consultation Clinic', dc: 'Death Certificates', rs_er: 'RS ER', rs_wards: 'RS Wards', all: 'ER Schedules' };
+    /** The hospital's English name ("Iraqi Teaching Hospital"); its Arabic name or id when it has none. */
+    function hospitalFileName(hospId) {
+        const id = hospId || hospitalId();
+        const h = window.Hub && window.Hub.getHospital ? window.Hub.getHospital(id) : null;
+        const en = String((h && h.hospitalName) || '').replace(/\s+/g, ' ').trim();
+        return en || String((h && h.name_ar) || id || 'Hospital').trim();
+    }
+    /**
+     * "Iraqi Teaching Hospital Death Certificates Nov.26": the name of every file of a table (print,
+     * CSV, Excel), set by the user on 2026-10-31. sheet: er | con | dc | rs_er | rs_wards | all.
+     */
+    function fileName(sheet, year, month) {
         const st = S();
-        return `${hospitalCode()} ${SHEET_CODES[sheet] || 'ER'}.${MONTHS_EN[(Number(st.month) || 1) - 1]}.${String(Number(st.year) % 100).padStart(2, '0')}`;
+        const y = Number(year || st.year), m = Number(month || st.month) || 1;
+        return `${hospitalFileName()} ${SHEET_NAMES[sheet] || 'ER'} ${MONTHS_EN[m - 1]}.${String(y % 100).padStart(2, '0')}`
+            .replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
     }
 
     /** Surgical / medical branch of a resident of the ER list ('' when unknown). */
@@ -253,6 +265,6 @@
         toMin, timeAr, rangeAr, spanMin, checkTimes,
         structureOf, setStructure, layoutFrom, isClassic, monthLayout,
         positions, keys, allKeys, position, shiftOf, positionsOfShift, perDay, placeLabel, label,
-        ensureMonthLayout, applyToMonth, hospitalCode, fileName, residentBranch,
+        ensureMonthLayout, applyToMonth, hospitalCode, hospitalFileName, fileName, residentBranch,
     };
 })(window);

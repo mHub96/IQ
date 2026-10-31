@@ -2611,23 +2611,8 @@
             ...(cleanBranch(specData.branch) ? { branch: cleanBranch(specData.branch) } : {})
         };
 
+        // The store only (user rule, 2026-10-31): each hospital adds it from the store when it wants it.
         db.globalSpecialties.push(newSpec);
-
-        // Also add to all existing hospitals with default color #0f766e
-        if (db.hospitals) {
-            Object.keys(db.hospitals).forEach(hid => {
-                const h = db.hospitals[hid];
-                // A new branch goes to the hospitals that have its parent.
-                if (parentSpec && !(h.specialties || []).some(s => s.id === parentSpec)) return;
-                if (Array.isArray(h.specialties) && !h.specialties.some(s => s.id === id)) {
-                    h.specialties.push({
-                        ...newSpec,
-                        color: '#0f766e',
-                        enabled: true
-                    });
-                }
-            });
-        }
 
         await saveDatabase(`Owner add global specialty: ${id} (${nameAr})`);
         return newSpec;

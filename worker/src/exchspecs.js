@@ -89,9 +89,10 @@ async function rotatorSpecialties(env, hosp) {
 export async function branchSpecialties(env, hosp, spec) {
   if (!spec) return new Set();
   const row = await env.DB.prepare("SELECT json_extract(data, '$.specialties') AS specs FROM records WHERE coll = 'hospital' AND id = ?").bind(hosp).first();
-  const specs = (row && parse(row.specs)) || [];
-  return new Set([spec, ...specs.filter(s => s && s.parentSpec === spec).map(s => s.id)]);
+  return branchOf((row && parse(row.specs)) || [], spec);
 }
+/** The same from a hospital's specialties already at hand. */
+export const branchOf = (specs, spec) => new Set([spec, ...specs.filter(s => s && s.parentSpec === spec).map(s => s.id)]);
 
 /**
  * Roster writes this account may not make: the ops (by index) to refuse. In each hospital the entry
@@ -110,15 +111,16 @@ export async function foreignScheduleOps(env, auth, ops, approval = new Set()) {
   const allowed = new Map(), runs = new Map();
   for (const { op, i } of mine) {
     const hosp = op.id.split(':')[0];
-    if (!allowed.has(hosp)) {
-      allowed.set(hosp, await exchangeSpecialties(env, auth, hosp));
-      runs.set(hosp, await branchSpecialties(env, hosp, branchSpecAt(auth, hosp)));
-    }
+    if (!runs.has(hosp)) runs.set(hosp, await branchSpecialties(env, hosp, branchSpecAt(auth, hosp)));
     const own = runs.get(hosp);
-    const free = approval.has(hosp) ? own : new Set([...allowed.get(hosp), ...own]);
     const old = before.get(op.id);
     const next = op.del ? undefined : op.d && op.d.specCode;
-    if ((old != null && !free.has(old)) || (!op.del && !free.has(next))) out.add(i);
+    const isOwn = code => own.has(code);
+    if ((old == null || isOwn(old)) && (op.del || isOwn(next))) continue;   // their own specialty: nothing more to read
+    if (approval.has(hosp)) { out.add(i); continue; }
+    if (!allowed.has(hosp)) allowed.set(hosp, await exchangeSpecialties(env, auth, hosp));
+    const free = allowed.get(hosp);
+    if ((old != null && !free.has(old) && !isOwn(old)) || (!op.del && !free.has(next) && !isOwn(next))) out.add(i);
   }
   return out;
 }

@@ -205,7 +205,6 @@
         .access-row select { flex: 0 1 auto; max-width: 100%; }
         .access-cover { display: inline-flex; cursor: pointer; }
         .access-cover input { width: 18px; height: 18px; accent-color: var(--hacc-accent); margin: 0; }
-        .access-cover span { display: none; }
         .hosp-pick { display: flex; flex-wrap: wrap; gap: 6px; }
         .hosp-pick label { cursor: pointer; }
         .hosp-pick input { position: absolute; opacity: 0; pointer-events: none; }
@@ -1150,7 +1149,7 @@
             try {
                 const key = await Hub.auth.deriveAccountKey(username, $('of-pass').value);
                 const res = await Hub.api('POST', '/api/accounts/signup-officer', {
-                    hosp, job: $('of-job').value, name: $('of-name').value.trim(), phone: $('of-phone').value.trim(), username, key, sex: ofSex(), deviceId: Hub.auth.deviceId(),
+                    hosp, job: $('of-job').value, name: $('of-name').value.trim(), phone: $('of-phone').value.trim(), username, key, sex: ofSex(), deviceId: Hub.auth.deviceId(), deviceLabel: Hub.auth.deviceLabel(),
                 }, { useToken: false, retries: 0 });
                 $('officer-form').hidden = true;
                 $('su-done').hidden = false;
@@ -1387,7 +1386,7 @@
             } catch (err) { if (loud) setMsg($('fg-msg'), errorText(err), 'bad'); }
         }
         $('fg-status').addEventListener('click', () => fgCheck(true));
-        setInterval(() => { if (!document.hidden && !Hub.auth.getAccount() && fgRead()) fgCheck(false); }, 15000);
+        setInterval(() => { if (!document.hidden && !Hub.auth.getAccount() && fgRead()) fgCheck(false); }, 20000);
         document.addEventListener('visibilitychange', () => { if (!document.hidden && !Hub.auth.getAccount() && fgRead()) fgCheck(false); });
         if (fgSaved && !Hub.auth.getAccount()) fgCheck(false);
 
@@ -1824,7 +1823,7 @@
                 const v = access[h] || {};
                 const roles = ACCESS_ROLES.filter(([r]) => (isOwner || r) && (!fixedRotator || r === 'rotator' || r === ''));
                 return `<div class="access-row" data-h="${esc(h)}">
-                    ${isOwner && rec ? `<label class="access-cover" title="يداوم في هذا المستشفى (قاعدة المقيمين)"><input type="checkbox" data-f="covered" ${covered.includes(h) ? 'checked' : ''}><span></span></label>` : ''}
+                    ${isOwner && rec ? `<label class="access-cover" title="يداوم في هذا المستشفى (قاعدة المقيمين)"><input type="checkbox" data-f="covered" ${covered.includes(h) ? 'checked' : ''}></label>` : ''}
                     <span class="access-name">${esc(hospitalName(h))}${h === a.hosp ? ' <small>(مستشفى الحساب)</small>' : ''}</span>
                     <select data-f="role" aria-label="الصلاحية في ${esc(hospitalName(h))}">${roles.map(([r, label]) => `<option value="${r}" ${r === (v.r || '') ? 'selected' : ''}>${label}</option>`).join('')}</select>
                     <select data-f="spec" aria-label="اختصاص مدير الفرع" ${v.r === 'branch' ? '' : 'hidden'}>${specOptions(h, v.s, rec)}</select>
@@ -1880,10 +1879,10 @@
                 if (Object.keys(changes).length) {
                     const res = await Hub.api('POST', '/api/accounts/decide', { id: a.id, action: 'set_access', access: changes }, { retries: 0 });
                     if (res.account) Object.assign(a, res.account);
-                } else {
-                    const fresh = await Hub.api('GET', '/api/accounts?filter=all', undefined, { retries: 1 });
-                    const same = (fresh.accounts || []).find(x => x.id === a.id);
-                    if (same) Object.assign(a, same);
+                }
+                if (rec) {
+                    a.cover = next;
+                    if (!next.includes(a.hosp)) a.hosp = next[0];
                 }
                 toast('تم الحفظ ✓', 'success');
                 renderManage();

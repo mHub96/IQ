@@ -41,6 +41,7 @@ const UNSCOPED = ['user', 'owner', 'rotator', ...AA_ROLES];
 const NO_PROFILE = ['rotator', ...AA_ROLES];
 // Roster specialty codes of anaesthesia residents (suggested role "anaesthesia" on their sign-up request).
 const ANAESTHESIA_CODES = ['A', 'ICU', 'OP', 'GA'];
+const isAnaesthesiaResident = (code, specialty) => ANAESTHESIA_CODES.includes(code) || /تخدير|anaes|anest/i.test(specialty || '');
 const ROTATOR_NAME_RE = /^[\p{L}][\p{L}\p{M} .'-]{3,59}$/u;
 const RESET_VALID_MS = 3 * DAY;
 const ACTIVE_WRITE_MS = 60 * 60 * 1000; // last_seen is refreshed at most hourly (D1 write budget)
@@ -76,6 +77,8 @@ export async function routeAccounts(path, method, request, env, auth, url, ctx) 
     case 'POST /api/accounts/profile': return saveProfile(request, env, auth);
     case 'GET /api/accounts/auto-approve': return autoApproveSettings(env, auth);
     case 'POST /api/accounts/auto-approve': return setAutoApprove(request, env, auth);
+    case 'GET /api/accounts/auto-approve-staff': return autoStaffSettings(env, auth);
+    case 'POST /api/accounts/auto-approve-staff': return setAutoStaff(request, env, auth);
     case 'POST /api/accounts/avatar': return saveAvatar(request, env, auth);
     case 'GET /api/accounts/received': return receivedComments(env, auth, url);
     case 'GET /api/accounts/stage-month': return json({ ok: true, month: await getStageMonth(env) });
@@ -148,7 +151,7 @@ function profile(row, stageMonth = 10) {
   if ('roster_spec' in row) {
     delete out.roster_spec;
     // Pending requests: suggest the anaesthesia role for anaesthesia residents.
-    if (row.role === 'user' && (ANAESTHESIA_CODES.includes(row.roster_spec) || /تخدير|anaes|anest/i.test(row.specialty || ''))) out.suggested_role = 'anaesthesia';
+    if (row.role === 'user' && isAnaesthesiaResident(row.roster_spec, row.specialty)) out.suggested_role = 'anaesthesia';
   }
   if (NO_PROFILE.includes(row.role)) {
     for (const k of ['board', 'specialty', 'stage', 'stage_ref', 'board_years', 'profile_src']) delete out[k];
@@ -246,11 +249,13 @@ async function findResident(env, hosp, name, phone) {
     // The last ten digits of the stored number (the index of migration 0018: the expression must stay
     // exactly the same). The same as LIKE '%' || pk for a ten-digit key, without reading every resident.
     env.DB.prepare(
-      `SELECT id, json_extract(data, '$.name') AS name, json_extract(data, '$.phone') AS phone, json_extract(data, '$.hospitals') AS hospitals
+      `SELECT id, json_extract(data, '$.name') AS name, json_extract(data, '$.phone') AS phone, json_extract(data, '$.hospitals') AS hospitals,
+              COALESCE(json_extract(data, '$.spec'), json_extract(data, '$.dept')) AS roster_spec
          FROM records WHERE coll = 'resident' AND substr(${cleanPhone("json_extract(data, '$.phone')")}, -10) = ?1`
     ).bind(pk),
     env.DB.prepare(
-      `SELECT json_extract(j.value, '$.id') AS id, json_extract(j.value, '$.name') AS name, json_extract(j.value, '$.phone') AS phone
+      `SELECT json_extract(j.value, '$.id') AS id, json_extract(j.value, '$.name') AS name, json_extract(j.value, '$.phone') AS phone,
+              COALESCE(json_extract(j.value, '$.spec'), json_extract(j.value, '$.dept')) AS roster_spec
          FROM records r, json_each(r.data, '$.names') j
         WHERE r.coll = 'hospital' AND r.id = ?2 AND ${cleanPhone("json_extract(j.value, '$.phone')")} LIKE '%' || ?1`
     ).bind(pk, hosp),
@@ -337,19 +342,22 @@ async function signup(request, env, ip, ctx) {
   const id = crypto.randomUUID();
   const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
   const pw = await sha256b64(salt + key);
-  const note = JSON.stringify({ id, name: match.name, username, hosp });
   const auto = await autoApproved(env, hosp);
   // Profile filled in from the roster and the ER scheduler; the user confirms or edits it later.
   const suggested = await suggestProfile(env, { name: match.name, hosp, residentId: match.id, phone: pk }).catch(() => ({}));
+  // Approved automatically, an anaesthesia resident is one from the start (for an approver it is a suggestion).
+  const autoRole = auto && isAnaesthesiaResident(match.roster_spec, suggested.specialty) ? 'anaesthesia' : 'user';
+  const note = JSON.stringify({ id, name: match.name, username, hosp, role: auto ? autoRole : undefined });
   try {
     const results = await withUniqueNick(sex, lang, (tag, tagKey) => env.DB.batch([
       env.DB.prepare(
         `INSERT INTO accounts (id, username, pw, salt, name, name_key, phone, sex, hosp, resident_id, anon_tag, anon_key, anon_lang, created_at,
-                               board, specialty, stage, stage_ref, profile_src, status, decided_at, decided_by, cover)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                               board, specialty, stage, stage_ref, profile_src, status, decided_at, decided_by, cover, role, hospitals)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(id, username, pw, salt, match.name, nameKey(match.name), pk, sex, hosp, match.id || null, tag, tagKey, lang, now,
         suggested.board || null, suggested.specialty || null, suggested.stage ?? null, suggested.stage != null ? now : null, suggested.source && suggested.source.length ? 'auto' : null,
-        auto ? 'active' : 'pending', auto ? now : null, auto ? AUTO_BY : null, match.hospitals ? String(match.hospitals) : JSON.stringify([hosp])),
+        auto ? 'active' : 'pending', auto ? now : null, auto ? AUTO_BY : null, match.hospitals ? String(match.hospitals) : JSON.stringify([hosp]),
+        auto ? autoRole : 'user', autoRole === 'anaesthesia' ? JSON.stringify([hosp]) : '[]'),
       notifyApprovers(env, hosp, 'signup:' + id, auto ? 'signup_auto' : 'signup_request', note, now),
     ]));
     dispatchPush(env, ctx, results[1]);
@@ -476,22 +484,32 @@ async function signupOfficer(request, env, ip, ctx) {
   const pw = await sha256b64(salt + key);
   const jobName = job.name_ar || job.id;
   const note = JSON.stringify({ id, name, username, hosp, officer: true, job: jobName, verified: !!match });
+  // Automatic approval (the division admin's switch) needs the name and number in the division's database.
+  const auto = !!match && (await hospitalList(env, 'auto_approve_staff')).includes(hosp);
   try {
     const results = await withUniqueNick(sex, lang, (tag, tagKey) => env.DB.batch([
       // name_key is private to the account: officers never receive the doctors' duty-card notifications.
       env.DB.prepare(
-        `INSERT INTO accounts (id, username, pw, salt, name, name_key, phone, sex, hosp, resident_id, role, anon_tag, anon_key, anon_lang, created_at, aa_job, aa_job_name)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'aa_user', ?, ?, ?, ?, ?, ?)`
-      ).bind(id, username, pw, salt, name, 'aa:' + id, pk, sex, hosp, match ? officerLink(hosp, match.id) : null, tag, tagKey, lang, now, job.id, jobName),
-      notifyApprovers(env, hosp, 'signup:' + id, 'signup_request', note, now),
+        `INSERT INTO accounts (id, username, pw, salt, name, name_key, phone, sex, hosp, resident_id, role, anon_tag, anon_key, anon_lang, created_at, aa_job, aa_job_name, status, decided_at, decided_by)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'aa_user', ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(id, username, pw, salt, name, 'aa:' + id, pk, sex, hosp, match ? officerLink(hosp, match.id) : null, tag, tagKey, lang, now, job.id, jobName,
+        auto ? 'active' : 'pending', auto ? now : null, auto ? AUTO_BY : null),
+      notifyApprovers(env, hosp, 'signup:' + id, auto ? 'signup_auto' : 'signup_request', note, now),
+      ...(auto ? [env.DB.prepare(
+        `INSERT INTO notifications (account_id, gkey, type, data, ts, seen)
+         SELECT id, ?1, 'signup_auto', ?2, ?3, 0 FROM accounts WHERE status = 'active' AND role = 'aa_admin' AND hosp = ?4
+         ON CONFLICT (account_id, gkey) DO UPDATE SET data = excluded.data, ts = excluded.ts, seen = 0
+         ${RETURNING}`
+      ).bind('signup:' + id, note, now, hosp)] : []),
     ]));
-    dispatchPush(env, ctx, results[1]);
+    dispatchPush(env, ctx, ...results.slice(1));
   } catch (err) {
     const msg = String(err && err.message || err);
     if (/accounts\.username/.test(msg)) return json({ error: 'username_taken' }, 409);
     if (/resident_id|idx_accounts_resident/.test(msg)) return json({ error: 'already_registered' }, 409);
     throw err;
   }
+  if (auto) return signInApproved(env, id, body, name);
   return json({ ok: true, status: 'pending', name, verified: !!match, ticket: await waitTicket(env, id, body) });
 }
 
@@ -690,6 +708,29 @@ async function setAutoApprove(request, env, auth) {
     env.DB.prepare('INSERT INTO audit (ts, role, msg, n) VALUES (?, ?, ?, 1)').bind(Date.now(), auth.a ? `${auth.r}:${auth.name || auth.a}` : auth.r, `Automatic sign-up approval ${body.on ? 'on' : 'off'} (${hosp})`),
   ]);
   return json({ ok: true, on: [...on] });
+}
+
+/** The same for the Administrative Affairs staff: the division admin's switch (and the owner's), not the hospital admins'. */
+const staffSwitch = (auth, hosp) => auth.r === 'owner' || (auth.r === 'aa_admin' && auth.hosp === hosp);
+
+async function autoStaffSettings(env, auth) {
+  if (auth.r !== 'owner' && auth.r !== 'aa_admin') return json({ error: 'forbidden' }, 403);
+  const on = await hospitalList(env, 'auto_approve_staff');
+  return json({ ok: true, on: auth.r === 'owner' ? on : on.filter(h => h === auth.hosp) });
+}
+
+async function setAutoStaff(request, env, auth) {
+  const body = await readJson(request) || {};
+  const hosp = String(body.hosp || '');
+  if (!HOSP_RE.test(hosp) || typeof body.on !== 'boolean') return json({ error: 'bad_request' }, 400);
+  if (!staffSwitch(auth, hosp)) return json({ error: 'forbidden' }, 403);
+  const on = new Set(await hospitalList(env, 'auto_approve_staff'));
+  if (body.on) on.add(hosp); else on.delete(hosp);
+  await env.DB.batch([
+    env.DB.prepare("INSERT INTO kv (k, v) VALUES ('auto_approve_staff', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v").bind(JSON.stringify([...on])),
+    env.DB.prepare('INSERT INTO audit (ts, role, msg, n) VALUES (?, ?, ?, 1)').bind(Date.now(), `${auth.r}:${auth.name || auth.a}`, `Automatic staff sign-up approval ${body.on ? 'on' : 'off'} (${hosp})`),
+  ]);
+  return json({ ok: true, on: auth.r === 'owner' ? [...on] : [...on].filter(h => h === auth.hosp) });
 }
 
 /** The reply to a sign-up approved at once: signed in on the device that sent it. */
@@ -935,7 +976,7 @@ async function forgot(request, env, ip, ctx) {
  * of the device that asked (a request from before tickets: the username and phone).
  */
 async function resetPassword(request, env, ip) {
-  if (await overLimit(env, 'reset:' + ip, 30)) return json({ error: 'rate_limited' }, 429);
+  if (await overLimit(env, 'reset:' + ip, 120)) return json({ error: 'rate_limited' }, 429);
   const body = await readJson(request);
   if (!body) return json({ error: 'bad_request' }, 400);
   const [accountId, secret] = String(body.ticket || '').split('.');

@@ -32,7 +32,7 @@ import { routeBackup } from './backup.js';
 import { routeOnCall } from './oncall.js';
 import { routeXp } from './xp.js';
 import { routeOpioids } from './opioids.js';
-import { limitedExchanger, foreignScheduleOps, branchSpecialties } from './exchspecs.js';
+import { limitedExchanger, foreignScheduleOps, branchOf } from './exchspecs.js';
 import { roleAt, branchSpecAt, hospitalsWithRole } from './access.js';
 import { storeSpecWrites, renameSpecialtyCode } from './specguard.js';
 import { revision, revToken, blockRevisions, cachedBytes, cachedValue } from './revcache.js';
@@ -393,7 +393,7 @@ async function branchWrites(env, auth, ops) {
     const row = await env.DB.prepare("SELECT data FROM records WHERE coll = 'hospital' AND id = ?").bind(op.id).first();
     if (!row) continue;
     const stored = JSON.parse(row.data);
-    const mine = await branchSpecialties(env, op.id, spec);
+    const mine = branchOf(stored.specialties || [], spec);
     const listOf = v => (Array.isArray(v) ? v : []);
     stored.specialistSchedule = [
       ...listOf(stored.specialistSchedule).filter(e => !e || !mine.has(e.specCode)),

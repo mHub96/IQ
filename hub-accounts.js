@@ -451,7 +451,7 @@
             case 'reset_approved':
                 return { icon: '🔓', text: 'تمت الموافقة على طلب تغيير كلمة المرور.' };
             case 'signup_auto':
-                return { icon: '✅', text: `موافقة تلقائية: ${d.name} (@${d.username}). اسمه ورقمه في قاعدة ${hospitalName(d.hosp)}.`, href: './account.html#manage-all' };
+                return { icon: '✅', text: `موافقة تلقائية: ${d.name} (@${d.username})${d.role === 'anaesthesia' ? ' كمقيم تخدير' : ''}. اسمه ورقمه في قاعدة ${d.officer ? 'الشؤون الإدارية في ' : ''}${hospitalName(d.hosp)}.`, href: d.officer ? undefined : './account.html#manage-all' };
             case 'role_changed':
                 return { icon: '⭐', text: `تم تغيير صلاحياتك إلى: ${ROLE_NAMES[d.role] || d.role}` };
             case 'profile_set':

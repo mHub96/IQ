@@ -11,6 +11,8 @@ const CACHE_NAME = `${SCOPE_PREFIX}hospital-hub-${CACHE_VERSION}`;
 const CDN_CACHE = 'hospital-hub-cdn-v1';
 const NETWORK_TIMEOUT_MS = 4000;
 
+// Downloaded for everyone at each release. The ER and hospital-management pages are not: only their
+// users open them, and they are kept here the first time they do.
 const APP_SHELL = [
   './',
   './app.html',
@@ -19,26 +21,11 @@ const APP_SHELL = [
   './app-view.js',
   './index.html',
   './Home.html',
-  './emergency.html',
-  './emergency-layout.js',
-  './emergency.js',
-  './emergency-structure.js',
-  './emergency-data.js',
-  './emergency-link.js',
-  './emergency-residents.js',
-  './emergency-save.js',
-  './emergency-portal.js',
-  './emergency-print.js',
-  './emergency-shell.js',
-  './emergency-theme.css',
   './residents.html',
   './schedule.html',
   './specialists.html',
   './icu.html',
   './signup.html',
-  './admin.html',
-  './scheduler.html',
-  './s.html',
   './hub-sync.js',
   './hub-core.js',
   './hub-spec-branches.js',

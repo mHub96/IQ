@@ -573,16 +573,18 @@
         body.innerHTML = `<div class="hp-sub-head"><button type="button" class="hacc-btn sm" data-act="back"><i class="fas fa-chevron-right"></i> رجوع</button><h3>إعدادات المستشفيات</h3></div>
             <div class="hacc-empty">جاري التحميل…</div>`;
         body.querySelector('[data-act="back"]').addEventListener('click', () => show('admin'));
-        let off = [], anonOff = [], approval = [], specEdit = [], scope = [], profileLocked = [], rotCheck = [], autoOn = [];
+        let off = [], anonOff = [], approval = [], specEdit = [], scope = [], profileLocked = [], rotCheck = [], autoOn = [], staffOn = [];
         try {
-            const [c, x, sp, rc, au] = await Promise.all([
+            const [c, x, sp, rc, au, st] = await Promise.all([
                 Hub.api('GET', '/api/social/hospitals', undefined, { retries: 1 }),
                 Hub.api('GET', '/api/exchange/settings', undefined, { retries: 1 }),
                 Hub.api('GET', '/api/specialists/settings', undefined, { retries: 1 }),
                 Hub.api('GET', '/api/accounts/rotator-check', undefined, { retries: 1 }),
                 Hub.api('GET', '/api/accounts/auto-approve', undefined, { retries: 1 }),
+                Hub.auth.isOwner() ? Hub.api('GET', '/api/accounts/auto-approve-staff', undefined, { retries: 1 }) : {},
             ]);
             autoOn = au.on || [];
+            staffOn = st.on || [];
             off = c.off || []; anonOff = c.anonOff || []; scope = c.scope || []; approval = x.on || []; specEdit = sp.on || []; profileLocked = c.profileLocked || []; rotCheck = rc.on || [];
         } catch (err) {
             body.querySelector('.hacc-empty').textContent = errorText(err);
@@ -603,7 +605,8 @@
                 ${sw('toggle-spec', '🩺 المقيمون يعدّلون أطباء اختصاصهم', se, 'مسموح', 'الإدارة فقط')}
                 ${sw('toggle-profile', '🎓 المقيمون يعدّلون معلومات البورد', pe, 'مسموح', 'الإدارة فقط')}
                 ${sw('toggle-rotcheck', '🔄 تسجيل الروتيتر برقم من قاعدة المستشفى فقط', rc, 'مفعّل', 'يقبل أي رقم')}
-                ${sw('toggle-auto', '✅ الموافقة التلقائية على طلبات الحساب', autoOn.includes(h.id), 'تلقائية', 'يدوية')}</li>`;
+                ${sw('toggle-auto', '✅ الموافقة التلقائية على طلبات الحساب', autoOn.includes(h.id), 'تلقائية', 'يدوية')}
+                ${Hub.auth.isOwner() ? sw('toggle-auto-staff', '🏢 الموافقة التلقائية لموظفي الشؤون الإدارية', staffOn.includes(h.id), 'تلقائية', 'يدوية') : ''}</li>`;
         };
         const paint = () => {
             const list = hospitals.filter(h => !query || String(h.name_ar || h.hospitalName || h.id).includes(query));
@@ -638,9 +641,15 @@
                 path = '/api/accounts/auto-approve';
                 payload = { hosp: h, on };
                 confirmText = on
-                    ? `تفعيل الموافقة التلقائية في ${name}؟\n\nمن كان اسمه ورقمه في قاعدة المستشفى يُفعَّل حسابه فور التسجيل ويدخل مباشرة كمقيم عادي، ويصلك إشعار بذلك. ومن لم يكن فيها فلا يمكنه التسجيل كمقيم أصلاً.`
+                    ? `تفعيل الموافقة التلقائية في ${name}؟\n\nمن كان اسمه ورقمه في قاعدة المستشفى يُفعَّل حسابه فور التسجيل ويدخل مباشرة (مقيم، أو مقيم تخدير لمن اختصاصه التخدير)، ويصلك إشعار بذلك. ومن لم يكن فيها فلا يمكنه التسجيل كمقيم أصلاً.`
                     : `إيقاف الموافقة التلقائية في ${name}؟ كل طلب حساب ينتظر موافقة المدير أو المالك.`;
                 done = on ? 'أصبحت الموافقة على الحسابات تلقائية ✓' : 'أصبحت الموافقة على الحسابات يدوية';
+            } else if (kind === 'toggle-auto-staff') {
+                const on = !staffOn.includes(h);
+                path = '/api/accounts/auto-approve-staff';
+                payload = { hosp: h, on };
+                confirmText = on ? `تفعيل الموافقة التلقائية لموظفي الشؤون الإدارية في ${name}؟` : `إيقاف الموافقة التلقائية لموظفي الشؤون الإدارية في ${name}؟`;
+                done = on ? 'أصبحت الموافقة على الموظفين تلقائية ✓' : 'أصبحت الموافقة على الموظفين يدوية';
             } else if (kind === 'toggle-rotcheck') {
                 const on = !rotCheck.includes(h);
                 path = '/api/accounts/rotator-check';
@@ -678,6 +687,7 @@
                 else if (path === '/api/specialists/settings') specEdit = res.on || [];
                 else if (path === '/api/accounts/rotator-check') rotCheck = res.on || [];
                 else if (path === '/api/accounts/auto-approve') autoOn = res.on || [];
+                else if (path === '/api/accounts/auto-approve-staff') staffOn = res.on || [];
                 else { off = res.off || off; anonOff = res.anonOff || anonOff; profileLocked = res.profileLocked || profileLocked; }
                 toast(done, 'success');
                 paint();
@@ -805,9 +815,34 @@
     // ------------------------------------------------------------------
     // Settings
     // ------------------------------------------------------------------
+    /** The division admin: sign-ups of their staff approved automatically, or by hand. */
+    async function bindStaffAuto(sec, hosp) {
+        const sw = sec.querySelector('.hp-toggle');
+        try {
+            sw.setAttribute('aria-checked', ((await Hub.api('GET', '/api/accounts/auto-approve-staff', undefined, { retries: 1 })).on || []).includes(hosp) ? 'true' : 'false');
+        } catch (err) { toast(errorText(err), 'error'); }
+        sw.addEventListener('click', async () => {
+            const on = sw.getAttribute('aria-checked') !== 'true';
+            if (!confirm(on ? 'تفعيل الموافقة التلقائية؟ من كان اسمه ورقمه في قاعدة الشؤون الإدارية يُفعَّل حسابه فور التسجيل ويدخل مباشرة، ويصلك إشعار بذلك.' : 'إيقاف الموافقة التلقائية؟ كل طلب حساب ينتظر الموافقة.')) return;
+            sw.disabled = true;
+            try {
+                const res = await Hub.api('POST', '/api/accounts/auto-approve-staff', { hosp, on }, { retries: 0 });
+                sw.setAttribute('aria-checked', (res.on || []).includes(hosp) ? 'true' : 'false');
+                toast(on ? 'أصبحت الموافقة على الموظفين تلقائية ✓' : 'أصبحت الموافقة على الموظفين يدوية', 'success');
+            } catch (err) { toast(errorText(err), 'error'); }
+            sw.disabled = false;
+        });
+    }
+
     function renderSettings(body) {
         const a = me || Hub.auth.getAccount();
+        if (a && a.role === 'aa_admin') queueMicrotask(() => { const s = body.querySelector('[data-role="staff-auto"]'); if (s) bindStaffAuto(s, a.hosp); });
         body.innerHTML = `
+            ${a && a.role === 'aa_admin' ? `<section class="hp-section"><h3>طلبات حسابات الموظفين</h3><div class="hp-switch-card" data-role="staff-auto">
+                <span class="hp-switch-main"><b><i class="fas fa-user-check"></i> الموافقة التلقائية</b>
+                <small>من كان اسمه ورقمه في قاعدة الشؤون الإدارية يدخل فور التسجيل. ومن لم يكن فيها ينتظر الموافقة.</small></span>
+                <button type="button" class="hp-toggle" role="switch" aria-checked="false" aria-label="الموافقة التلقائية"><span></span></button>
+            </div></section>` : ''}
             <section class="hp-section" data-role="install-section" hidden>
                 <h3>التطبيق</h3>
                 <div class="hp-line"><span data-role="install-text"></span><button type="button" class="hacc-btn sm primary" data-act="install" hidden>تثبيت</button></div>

@@ -203,8 +203,7 @@
         .access-name { flex: 1 1 120px; min-width: 0; font-size: 0.8rem; font-weight: 700; }
         .access-name small { font-weight: 500; opacity: .7; }
         .access-row select { flex: 0 1 auto; max-width: 100%; }
-        .access-cover { display: inline-flex; cursor: pointer; }
-        .access-cover input { width: 18px; height: 18px; accent-color: var(--hacc-accent); margin: 0; }
+        .access-x { border: 0; background: none; color: inherit; opacity: .55; cursor: pointer; padding: 4px 6px; font-size: .85rem; }
         .hosp-pick { display: flex; flex-wrap: wrap; gap: 6px; }
         .hosp-pick label { cursor: pointer; }
         .hosp-pick input { position: absolute; opacity: 0; pointer-events: none; }
@@ -643,7 +642,7 @@
         const NO_PROFILE = ['rotator', ...OFFICER_ROLES];
         const ALL_ROLES = ['user', 'anaesthesia', 'branch', 'admin', 'owner', 'rotator', ...OFFICER_ROLES];
         // Types a hospital admin gives the residents of their hospital (never owner), rotator included.
-        const ADMIN_ROLE_CHOICES = ['user', 'anaesthesia', 'admin', 'rotator'];
+        const ADMIN_ROLE_CHOICES = ['user', 'anaesthesia', 'branch', 'admin', 'rotator'];
         const RESIDENT_ROLES = ['user', 'anaesthesia', 'branch', 'admin'];
         // The management list is shown in these groups.
         const ROLE_GROUPS = [
@@ -819,7 +818,7 @@
             let res = null;
             try {
                 res = await Hub.api('POST', '/api/accounts/signup-wait', { ticket: w.ticket, deviceId: Hub.auth.deviceId(), deviceLabel: Hub.auth.deviceLabel(), subscription: sub || undefined }, { useToken: false, retries: 0 });
-            } catch (e) { res = null; }
+            } catch (e) { res = e && e.data && e.data.error ? e.data : null; }
             waitBusy = false;
             if (!res) return;
             const msg = document.querySelector('#signup-wait [data-role="wait-msg"]');
@@ -864,10 +863,12 @@
             document.querySelector('[data-role="su-done-wait"]').hidden = true;
         }
         let waitSince = Date.now();
+        let waitingHere = !!readWait();
         function startWait(res, username) {
             if (res && res.auto) return signedUpAtOnce(res);
             if (!res || !res.ticket) return;
             waitSince = Date.now();
+            waitingHere = true;
             try { localStorage.setItem(WAIT_KEY, JSON.stringify({ ticket: res.ticket, username, name: res.name, at: Date.now() })); } catch (e) {}
             paintWait();
             waitSubscription(true).then(sub => { paintWait(); return checkWait(sub); });
@@ -877,6 +878,13 @@
             paintWait();
             if (sub) checkWait(sub);
         }));
+        // Another page of the app or another tab got the approval first: this one must not stay behind.
+        window.addEventListener('storage', e => {
+            if (!e.key || !e.key.endsWith('hospital_hub_session_role') || !e.newValue || !waitingHere || !Hub.auth.getAccount()) return;
+            waitingHere = false;
+            localStorage.setItem('pwa_last_page', './index.html');
+            location.href = './index.html?portal=true';
+        });
         // Every 5 seconds for the first 10 minutes, then every 15.
         let waitTick = 0;
         setInterval(() => {
@@ -1663,14 +1671,15 @@
                 // a resident before (still linked to the hospital database); one who signed up as a rotator stays.
                 const roleChoices = officer ? OFFICER_ROLES
                     : a.role === 'rotator' ? (a.resident_id ? ['rotator', ...RESIDENT_ROLES] : [])
-                    : isOwner ? ALL_ROLES.filter(r => r !== 'branch' && (r !== 'rotator' || RESIDENT_ROLES.includes(a.role))) : ADMIN_ROLE_CHOICES;
+                    : isOwner ? ALL_ROLES.filter(r => (r !== 'branch' || a.status === 'pending') && (r !== 'rotator' || RESIDENT_ROLES.includes(a.role))) : ADMIN_ROLE_CHOICES;
                 const proposed = a.status === 'pending' && a.role === 'user' && a.suggested_role ? a.suggested_role : a.role;
                 const rolePick = roleChoices.length > 1 ? `<select data-role="approve-role" aria-label="الصلاحية عند الموافقة">${roleChoices.map(r => `<option value="${r}" ${proposed === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>` : '';
                 const statusText = { pending: 'بانتظار الموافقة', active: 'مفعّل', disabled: 'موقوف', rejected: 'مرفوض' }[a.status] || a.status;
                 const actions = [];
                 if (canManage && !peer && !mainHere && a.reset === 'requested') actions.push('<button class="hacc-btn good" data-act="approve_reset">🔓 السماح بتغيير كلمة المرور</button>', '<button class="hacc-btn" data-act="deny_reset">تجاهل الطلب</button>');
                 if (canManage && !peer && mainHere) {
-                    if (a.status === 'pending') actions.push(rolePick ? `<label class="approve-as">الموافقة بصلاحية ${rolePick}</label>` : '', '<button class="hacc-btn good" data-act="approve">✓ موافقة</button>', '<button class="hacc-btn danger" data-act="reject">✗ رفض</button>');
+                    if (a.status === 'pending') actions.push(rolePick ? `<label class="approve-as">الموافقة بصلاحية ${rolePick}</label>
+                        ${roleChoices.includes('branch') ? `<select data-role="approve-spec" aria-label="اختصاص مدير الفرع" hidden>${specOptions(a.hosp, null, pendingRecord(a))}</select>` : ''}` : '', '<button class="hacc-btn good" data-act="approve">✓ موافقة</button>', '<button class="hacc-btn danger" data-act="reject">✗ رفض</button>');
                     if (a.reset === 'requested') actions.push('<button class="hacc-btn good" data-act="approve_reset">🔓 السماح بتغيير كلمة المرور</button>', '<button class="hacc-btn" data-act="deny_reset">تجاهل الطلب</button>');
                     // Commenting: the owner and the hospital's admins allow or bar it per account.
                     if (a.status === 'active' && mg.filter !== 'resets' && a.role !== 'owner' && a.id !== myId) actions.push(a.no_comment
@@ -1717,9 +1726,12 @@
                         </div>
                         <button class="hacc-btn primary sm" data-act="set_profile" style="margin-top:8px">حفظ الملف</button></div>` : ''}
                     ${accessEditor ? `<div data-role="access"><h4>${isOwner ? 'المستشفيات والصلاحيات' : 'الصلاحية في مستشفاك'}</h4>
-                        <p class="hacc-muted" style="margin:6px 0 0;font-size:.78rem">${isOwner ? '✓ = يداوم فيه (قائمة مقيمي المستشفى، ويبدّل خفاراته فيه). والصلاحية تخص ذلك المستشفى وحده.' : 'تخص مستشفاك وحده. صلاحياته في المستشفيات الأخرى تبقى كما هي.'}</p>
+                        ${isOwner ? '' : '<p class="hacc-muted" style="margin:6px 0 0;font-size:.78rem">تخص مستشفاك وحده. صلاحياته في المستشفيات الأخرى تبقى كما هي.</p>'}
                         <div class="access-list" data-role="access-list" style="margin-top:8px"><span class="hacc-muted">جاري التحميل…</span></div>
-                        <button class="hacc-btn primary sm" data-act="set_access" style="margin-top:8px" disabled>حفظ</button></div>
+                        <div class="limit-row" style="margin-top:8px">
+                            ${isOwner ? '<select data-role="access-add" aria-label="إضافة مستشفى" hidden></select>' : ''}
+                            <button class="hacc-btn primary sm" data-act="set_access" disabled>حفظ</button>
+                        </div></div>
                         ${isOwner ? `<div data-role="global"><h4>صلاحية عامة</h4>
                         <div class="limit-row" style="margin-top:6px">
                             <select data-role="global-role" aria-label="صلاحية عامة">
@@ -1771,6 +1783,10 @@
 
             $('mg-list').querySelectorAll('[data-act]').forEach(btn => btn.addEventListener('click', () => act(btn)));
             $('mg-list').querySelectorAll('details.edit-wrap').forEach(d => d.addEventListener('toggle', () => { if (d.open) fillAccess(d.closest('.acc')); }));
+            $('mg-list').querySelectorAll('[data-role="approve-role"]').forEach(sel => sel.addEventListener('change', () => {
+                const spec = sel.closest('.acc').querySelector('[data-role="approve-spec"]');
+                if (spec) spec.hidden = sel.value !== 'branch';
+            }));
             $('mg-list').querySelectorAll('[data-role="limit-mode"]').forEach(sel => sel.addEventListener('change', () => {
                 sel.parentElement.querySelector('[data-role="limit-n"]').hidden = sel.value !== 'n';
             }));
@@ -1781,10 +1797,11 @@
         }
 
         // -------------------- An account's hospitals and its role in each --------------------
-        // The account is one person. A hospital is "covered" when it is in their record in the hospital
-        // database (db.residents[].hospitals: each hospital's residents list is built from it), and the role
-        // is per hospital. The owner edits every hospital, an admin only the role in their own (the API checks).
-        const ACCESS_ROLES = [['', 'بدون صلاحية'], ['user', 'مقيم'], ['anaesthesia', 'مقيم تخدير'], ['branch', 'مدير فرع'], ['admin', 'مدير مستشفى'], ['rotator', 'روتيتر']];
+        // The account is one person. Usually one row: the hospital they cover and their role there. A hospital
+        // they cover is in their record in the hospital database (db.residents[].hospitals: each hospital's
+        // residents list is built from it). The owner adds and removes hospitals, an admin only sets the role
+        // in their own (the API checks).
+        const ACCESS_ROLES = [['user', 'مقيم'], ['anaesthesia', 'مقيم تخدير'], ['branch', 'مدير فرع'], ['admin', 'مدير مستشفى'], ['rotator', 'روتيتر']];
         const accessEditable = a => !OFFICER_ROLES.includes(a.role) && a.role !== 'owner' && a.status !== 'pending' && a.status !== 'rejected';
         const myAccessHospitals = a => {
             const scope = Hub.auth.getAdminHospitalIds();
@@ -1795,6 +1812,7 @@
             if (entries.length < 2 && !(a.hosp_roles && Object.keys(a.hosp_roles).length)) return '';
             return `<div class="acc-sub">🏥 ${entries.map(([h, v]) => `${esc(hospitalName(h))}: ${esc(ROLE_NAMES[v.r] || v.r)}${v.s ? ' (' + esc(specName(v.s, h)) + ')' : ''}`).join(' · ')}</div>`;
         };
+        const pendingRecord = a => { const db = Hub.getDatabase() || {}; return (Array.isArray(db.residents) ? db.residents : []).find(r => r.id === a.resident_id) || null; };
         const specName = (id, h) => { try { return Hub.getSpecialtyName(id, h) || id; } catch (e) { return id; } };
         async function accessRecord(a) {
             if (!a.resident_id) return null;
@@ -1808,6 +1826,16 @@
             const want = picked || (rec && (rec.dept || rec.spec)) || '';
             return list.map(s => `<option value="${esc(s.id)}" ${s.id === want ? 'selected' : ''}>${esc(specName(s.id, h))}</option>`).join('');
         }
+        function accessRowHtml(a, h, v, rec, isOwner, fixedRotator, isNew) {
+            const roles = ACCESS_ROLES.filter(([r]) => r && (!fixedRotator || r === 'rotator'));
+            const removable = isOwner && !fixedRotator && (rec || h !== a.hosp);
+            return `<div class="access-row" data-h="${esc(h)}" ${isNew ? 'data-new="1"' : ''}>
+                <span class="access-name">${esc(hospitalName(h))}</span>
+                <select data-f="role" aria-label="الصلاحية في ${esc(hospitalName(h))}">${roles.map(([r, label]) => `<option value="${r}" ${r === (v.r || '') ? 'selected' : ''}>${label}</option>`).join('')}</select>
+                <select data-f="spec" aria-label="اختصاص مدير الفرع" ${v.r === 'branch' ? '' : 'hidden'}>${specOptions(h, v.s, rec)}</select>
+                ${removable ? `<button type="button" class="access-x" data-f="remove" aria-label="إزالة ${esc(hospitalName(h))}">✕</button>` : ''}
+            </div>`;
+        }
         async function fillAccess(card) {
             const box = card && card.querySelector('[data-role="access-list"]');
             if (!box) return;
@@ -1816,61 +1844,64 @@
             const isOwner = Hub.auth.isOwner();
             const rec = await accessRecord(a);
             const access = Hub.auth.accessOf(a);
-            const covered = rec && Array.isArray(rec.hospitals) ? rec.hospitals : [];
             const fixedRotator = a.role === 'rotator' && !a.resident_id;
-            const rows = isOwner ? Hub.getHospitals().map(h => h.id) : myAccessHospitals(a);
-            box.innerHTML = rows.map(h => {
-                const v = access[h] || {};
-                const roles = ACCESS_ROLES.filter(([r]) => (isOwner || r) && (!fixedRotator || r === 'rotator' || r === ''));
-                return `<div class="access-row" data-h="${esc(h)}">
-                    ${isOwner && rec ? `<label class="access-cover" title="يداوم في هذا المستشفى (قاعدة المقيمين)"><input type="checkbox" data-f="covered" ${covered.includes(h) ? 'checked' : ''}></label>` : ''}
-                    <span class="access-name">${esc(hospitalName(h))}${h === a.hosp ? ' <small>(مستشفى الحساب)</small>' : ''}</span>
-                    <select data-f="role" aria-label="الصلاحية في ${esc(hospitalName(h))}">${roles.map(([r, label]) => `<option value="${r}" ${r === (v.r || '') ? 'selected' : ''}>${label}</option>`).join('')}</select>
-                    <select data-f="spec" aria-label="اختصاص مدير الفرع" ${v.r === 'branch' ? '' : 'hidden'}>${specOptions(h, v.s, rec)}</select>
-                </div>`;
-            }).join('') || '<span class="hacc-muted">لا توجد مستشفيات.</span>';
-            box.querySelectorAll('.access-row').forEach(row => {
-                const cov = row.querySelector('[data-f="covered"]'), role = row.querySelector('[data-f="role"]'), spec = row.querySelector('[data-f="spec"]');
-                role.addEventListener('change', () => { spec.hidden = role.value !== 'branch'; if (cov && role.value && !cov.checked) cov.checked = true; });
-                // Ticking a hospital makes them a resident there; unticking takes away only that plain standing.
-                if (cov) cov.addEventListener('change', () => {
-                    if (cov.checked && !role.value) role.value = a.role === 'rotator' ? 'rotator' : 'user';
-                    if (!cov.checked && (role.value === 'user' || role.value === 'rotator')) { role.value = ''; }
-                    spec.hidden = role.value !== 'branch';
-                });
-            });
+            const base = a.role === 'rotator' ? 'rotator' : 'user';
+            // Only the hospitals the account is in: usually one.
+            const rows = isOwner ? [...new Set([...Object.keys(access), ...((rec && rec.hospitals) || [])])] : myAccessHospitals(a);
+            box.innerHTML = rows.map(h => accessRowHtml(a, h, access[h] || { r: base }, rec, isOwner, fixedRotator)).join('');
+            const add = card.querySelector('[data-role="access-add"]');
+            const paintAdd = () => {
+                if (!add) return;
+                const shown = [...box.querySelectorAll('.access-row')].map(r => r.dataset.h);
+                const rest = Hub.getHospitals().filter(h => !shown.includes(h.id));
+                add.hidden = !isOwner || fixedRotator || !rest.length;
+                add.innerHTML = `<option value="">＋ إضافة مستشفى…</option>${rest.map(h => `<option value="${esc(h.id)}">${esc(h.name_ar || h.hospitalName || h.id)}</option>`).join('')}`;
+            };
+            const bindRow = row => {
+                const role = row.querySelector('[data-f="role"]'), spec = row.querySelector('[data-f="spec"]'), x = row.querySelector('[data-f="remove"]');
+                role.addEventListener('change', () => { spec.hidden = role.value !== 'branch'; });
+                if (x) x.addEventListener('click', () => { row.remove(); paintAdd(); });
+            };
+            box.querySelectorAll('.access-row').forEach(bindRow);
+            if (add) add.onchange = () => {
+                if (!add.value) return;
+                box.insertAdjacentHTML('beforeend', accessRowHtml(a, add.value, { r: base }, rec, isOwner, fixedRotator, true));
+                bindRow(box.lastElementChild);
+                paintAdd();
+            };
+            paintAdd();
             const btn = card.querySelector('[data-act="set_access"]');
-            if (btn) btn.disabled = !rows.length;
+            if (btn) btn.disabled = !rows.length && !isOwner;
         }
         async function saveAccess(card, a, btn) {
             const isOwner = Hub.auth.isOwner();
             const current = Hub.auth.accessOf(a);
             const rows = [...card.querySelectorAll('[data-role="access-list"] .access-row')].map(row => ({
-                h: row.dataset.h,
-                covered: row.querySelector('[data-f="covered"]') ? row.querySelector('[data-f="covered"]').checked : null,
+                h: row.dataset.h, isNew: !!row.dataset.new,
                 r: row.querySelector('[data-f="role"]').value,
                 s: row.querySelector('[data-f="spec"]').value,
             }));
             const rec = isOwner ? await accessRecord(a) : null;
             const before = rec && Array.isArray(rec.hospitals) ? rec.hospitals : [];
-            const chosen = rec ? rows.filter(x => x.covered).map(x => x.h) : before;
-            if (rec && !chosen.length) { toast('اختر مستشفى واحداً على الأقل يداوم فيه.', 'error'); return; }
-            const next = rec ? [...before.filter(h => chosen.includes(h)), ...chosen.filter(h => !before.includes(h))] : before;
+            const here = rows.map(x => x.h);
+            // A hospital added here is one they cover; one taken off, they no longer do.
+            const next = rec ? [...before.filter(h => here.includes(h)), ...rows.filter(x => x.isNew).map(x => x.h)] : before;
+            if (rec && !next.length) { toast('يبقى مستشفى واحد على الأقل يداوم فيه.', 'error'); return; }
             const added = next.filter(h => !before.includes(h)), removed = before.filter(h => !next.includes(h));
             const changes = {};
             rows.forEach(x => {
                 const was = current[x.h] || {};
-                const nowR = x.r || '';
-                if (nowR === (was.r || '') && (nowR !== 'branch' || x.s === was.s)) return;
-                changes[x.h] = { r: nowR, s: nowR === 'branch' ? x.s : undefined };
+                if (x.r === (was.r || '') && (x.r !== 'branch' || x.s === was.s)) return;
+                changes[x.h] = { r: x.r, s: x.r === 'branch' ? x.s : undefined };
             });
+            if (isOwner) Object.keys(current).forEach(h => { if (!here.includes(h)) changes[h] = { r: '' }; });
             if (Object.values(changes).some(v => v.r === 'branch' && !v.s)) { toast('اختر اختصاص مدير الفرع.', 'error'); return; }
             if (!added.length && !removed.length && !Object.keys(changes).length) { toast('لا يوجد تغيير.', 'info'); return; }
             const lines = [`تعديل ${a.name}:`];
             if (added.length) lines.push(`➕ يداوم أيضاً في: ${added.map(hospitalName).join('، ')}`);
             if (removed.length) lines.push(`➖ لا يداوم في: ${removed.map(hospitalName).join('، ')} (يُزال من قائمة مقيميها، وتبقى خفاراته السابقة في الجداول.)`);
             if (removed.includes(a.hosp)) lines.push(`🏥 مستشفى الحساب ينتقل إلى ${hospitalName(next[0])}.`);
-            Object.entries(changes).forEach(([h, v]) => lines.push(`⭐ ${hospitalName(h)}: ${v.r ? ROLE_NAMES[v.r] : 'بدون صلاحية'}${v.r === 'branch' ? ' (' + specName(v.s, h) + ')' : ''}`));
+            Object.entries(changes).forEach(([h, v]) => { if (v.r) lines.push(`⭐ ${hospitalName(h)}: ${ROLE_NAMES[v.r]}${v.r === 'branch' ? ' (' + specName(v.s, h) + ')' : ''}`); });
             if (!confirm(lines.join('\n'))) return;
             btn.disabled = true;
             try {
@@ -1928,6 +1959,10 @@
                 const pick = card.querySelector('[data-role="approve-role"]');
                 if (pick) {
                     body.role = pick.value;
+                    if (body.role === 'branch') {
+                        body.spec = (card.querySelector('[data-role="approve-spec"]') || {}).value;
+                        if (!body.spec) { toast('اختر اختصاص مدير الفرع.', 'error'); return; }
+                    }
                     // The owner approving an anaesthesia resident or admin: scope = the account's hospital.
                     if (Hub.auth.isOwner() && ['admin', 'anaesthesia'].includes(body.role)) body.hospitals = [a.hosp];
                 }

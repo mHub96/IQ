@@ -1130,8 +1130,8 @@ async function decide(request, env, auth, ctx) {
   let role = row.role, hospitals = scopeOf(row);
   if (body.role !== undefined || body.hospitals !== undefined) {
     if (isOwner) {
-      // A branch representative runs a specialty of a hospital: set_access says which.
-      if (body.role === 'branch') return json({ error: 'bad_request' }, 400);
+      // A branch representative runs a specialty of a hospital: set_access says which (or the approval).
+      if (body.role === 'branch' && action !== 'approve') return json({ error: 'bad_request' }, 400);
       role = ACCOUNT_ROLES.includes(body.role) ? body.role : row.role;
       hospitals = Array.isArray(body.hospitals) ? body.hospitals.map(String).filter(h => h === '*' || HOSP_RE.test(h)).slice(0, 50) : hospitals;
     } else {
@@ -1143,7 +1143,13 @@ async function decide(request, env, auth, ctx) {
       hospitals = [row.hosp];
     }
     if (!UNSCOPED.includes(role) && !hospitals.length) hospitals = [row.hosp];
+    if (role === 'branch') hospitals = [row.hosp];
     stmts.push(env.DB.prepare('UPDATE accounts SET role = ?, hospitals = ?, hosp_roles = NULL WHERE id = ?').bind(role, JSON.stringify(UNSCOPED.includes(role) ? [] : hospitals), row.id));
+    if (role === 'branch') {
+      const spec = plainText(body.spec, 32);
+      if (!spec) return json({ error: 'no_specialty' }, 400);
+      stmts.push(env.DB.prepare('UPDATE accounts SET hosp_roles = ? WHERE id = ?').bind(JSON.stringify({ [row.hosp]: { r: 'branch', s: spec } }), row.id));
+    }
     // A rotator's name key is private to the account, so its duty cards are never theirs; a resident
     // again takes the key of their name back (their duty cards, likes and comments).
     if (role === 'rotator' && row.role !== 'rotator') stmts.push(env.DB.prepare('UPDATE accounts SET name_key = ? WHERE id = ?').bind('rotator:' + row.id, row.id));

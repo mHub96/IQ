@@ -3495,6 +3495,8 @@
             active: residentData.active !== false,
             hospitals: hospitals
         };
+        // A branch representative may later remove the residents they added themselves.
+        if (!auth.isAdmin()) { const me = auth.getAccount(); if (me) newRes.addedBy = me.id; }
 
         db.residents.push(newRes);
         syncHospitalsWithSharedResidents();
@@ -3658,7 +3660,7 @@
     }
 
     async function deleteResident(idOrName) {
-        if (!auth.isAdmin()) {
+        if (!auth.isAdmin() && !auth.branchHospitals().length) {
             throw new Error('غير مصرح لك بحذف المقيم. يتطلب صلاحيات المدير.');
         }
         if (!db) throw new Error('قاعدة البيانات غير محملة');
@@ -3672,6 +3674,9 @@
             idx = db.residents.findIndex(r => (r.name || '').replace(/^(د\.|د|dr\.|dr|mr\.|mr|ms\.|ms|أ\.|أ|م\.|م|ص\.|ص)[\s\:\/]+/gi, '').trim() === cleanTarget);
         }
         if (idx === -1) throw new Error('المقيم غير موجود');
+        if (!auth.isAdmin() && !auth.addedByMe(db.residents[idx])) {
+            throw new Error('يمكنك حذف المقيمين الذين أضفتهم أنت فقط.');
+        }
 
         const name = db.residents[idx].name;
         db.residents.splice(idx, 1);
@@ -4448,6 +4453,8 @@
             return [...out];
         },
         branchHospitals() { return this.hospitalsWithRole('branch'); },
+        /** A resident this branch representative added themselves (they may remove them). */
+        addedByMe(rec) { const me = this.getAccount(); return !!me && !!rec && rec.addedBy === me.id; },
         isBranchAt(hospId) { return !!hospId && this.roleAt(hospId) === 'branch'; },
         /** The specialty a branch representative runs in a hospital (null elsewhere). */
         branchSpecAt(hospId) {

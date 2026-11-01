@@ -362,7 +362,8 @@ const inScope = (a, hosp) => a.h && (a.h.includes('*') || (hosp && a.h.includes(
 
 /**
  * What a branch representative may write besides roster entries (those: exchspecs.js):
- * - residents: added to their hospital or edited there, never removed, never moved out of a hospital;
+ * - residents: added to their hospital or edited there, never moved out of a hospital; removed only
+ *   when they added them themselves (the record's addedBy, set here);
  * - their hospital's record: only the specialist duties of their specialty. The stored record is the
  *   base, so nothing else in it can change whatever the client sends.
  * Returns the ops allowed. Reads only when such a write is asked for.
@@ -377,12 +378,22 @@ async function branchWrites(env, auth, ops) {
       .bind(JSON.stringify(resOps.map(op => op.id))).all();
     const before = new Map((results || []).map(r => [r.id, JSON.parse(r.data)]));
     for (const op of resOps) {
-      if (op.del || !op.d || !Array.isArray(op.d.hospitals)) continue;
-      const had = (before.get(op.id) || {}).hospitals || [];
+      const prior = before.get(op.id);
+      const theirs = !!prior && prior.addedBy === auth.a;
+      const had = (prior || {}).hospitals || [];
+      if (op.del) {
+        if (theirs && had.some(h => hosps.includes(h))) ok.add(op);
+        continue;
+      }
+      if (!op.d || !Array.isArray(op.d.hospitals)) continue;
       const added = op.d.hospitals.filter(h => !had.includes(h));
-      const kept = had.every(h => op.d.hospitals.includes(h));
-      const mine = op.d.hospitals.some(h => hosps.includes(h));
-      if (kept && mine && added.every(h => hosps.includes(h))) ok.add(op);
+      const kept = had.every(h => op.d.hospitals.includes(h) || (theirs && hosps.includes(h)));
+      const mine = [...op.d.hospitals, ...(theirs ? had : [])].some(h => hosps.includes(h));
+      if (!kept || !mine || !added.every(h => hosps.includes(h))) continue;
+      // Who added a record is the server's word, not the client's.
+      const { addedBy, ...rest } = op.d;
+      op.d = prior ? (prior.addedBy ? { ...rest, addedBy: prior.addedBy } : rest) : { ...rest, addedBy: auth.a };
+      ok.add(op);
     }
   }
   for (const op of ops) {

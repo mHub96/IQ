@@ -2237,6 +2237,14 @@
             const drop = () => { try { localStorage.removeItem(KEY); } catch (e) {} };
             const since = Date.now();
             let busy = false, tick = 0;
+            // In the app this page stays loaded behind others: the page on screen does the waiting, or the
+            // approval would be used up here and the person would keep looking at the page in front.
+            const inFront = () => {
+                const f = window.frameElement;
+                if (!f) return true;
+                const c = getComputedStyle(f);
+                return c.display !== 'none' && c.visibility !== 'hidden' && Number(c.opacity) > 0;
+            };
             const paint = (text, bad) => {
                 const el = document.getElementById('lock-signup-wait');
                 if (!el) return;
@@ -2246,12 +2254,12 @@
             };
             async function check() {
                 const w = read();
-                if (!w || busy || !window.Hub) return;
+                if (!w || busy || !window.Hub || !inFront()) return;
                 if (Hub.auth.getAccount()) { drop(); return paint(''); }
                 busy = true;
                 paint(`طلب حسابك «${w.username || ''}» بانتظار الموافقة. عند الموافقة يتم دخولك هنا تلقائياً.`);
                 let res = null;
-                try { res = await Hub.api('POST', '/api/accounts/signup-wait', { ticket: w.ticket, deviceId: Hub.auth.deviceId(), deviceLabel: Hub.auth.deviceLabel() }, { useToken: false, retries: 0 }); } catch (e) {}
+                try { res = await Hub.api('POST', '/api/accounts/signup-wait', { ticket: w.ticket, deviceId: Hub.auth.deviceId(), deviceLabel: Hub.auth.deviceLabel() }, { useToken: false, retries: 0 }); } catch (e) { res = e && e.data && e.data.error ? e.data : null; }
                 busy = false;
                 if (!res) return;
                 if (res.status === 'active' && res.success) {

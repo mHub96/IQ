@@ -56,7 +56,7 @@ test('off: own hospital only; on: every hospital; only the owner switches it', a
   assert.equal((await call('POST', '/api/icu-access', { token: t.an, body: { on: true } })).status, 403);
   assert.equal((await call('POST', '/api/icu-access', { token: t.owner, body: { on: true } })).data.icuAll, true);
   assert.equal((await call('GET', '/api/auth-config')).data.icuAll, true);
-  const fresh = (await rows(t.owner)).find(r => r[1] === other[1]);
+  const fresh = (await rows(t.owner)).find(r => r[0] === 'icu' && r[1] === other[1]);
   assert.equal((await write(fresh, 'from another hospital')).applied.length, 1);
   // Still only the ICU: other hospitals' rosters stay closed to them.
   const sched = all.find(r => r[0] === 'sched' && r[2] && r[2] !== H);
@@ -64,7 +64,7 @@ test('off: own hospital only; on: every hospital; only the owner switches it', a
   assert.deepEqual(s.data.rejected, [0]);
 
   await call('POST', '/api/icu-access', { token: t.owner, body: { on: false } });
-  const again = (await rows(t.owner)).find(r => r[1] === other[1]);
+  const again = (await rows(t.owner)).find(r => r[0] === 'icu' && r[1] === other[1]);
   assert.deepEqual((await write(again, 'y')).rejected, [0]);
   assert.equal((await call('GET', '/api/auth-config')).data.icuAll, false);
 });

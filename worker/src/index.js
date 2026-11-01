@@ -32,7 +32,8 @@ import { routeBackup } from './backup.js';
 import { routeOnCall } from './oncall.js';
 import { routeXp } from './xp.js';
 import { routeOpioids } from './opioids.js';
-import { limitedExchanger, foreignScheduleOps, coveredHospitals } from './exchspecs.js';
+import { limitedExchanger, foreignScheduleOps, branchSpecialties } from './exchspecs.js';
+import { roleAt, branchSpecAt, hospitalsWithRole } from './access.js';
 import { storeSpecWrites, renameSpecialtyCode } from './specguard.js';
 import { revision, revToken, blockRevisions, cachedBytes, cachedValue } from './revcache.js';
 
@@ -41,7 +42,7 @@ const VISIT_COOLDOWN_MS = 60 * 1000;
 const ROLES = ['user', 'anaesthesia', 'admin', 'owner'];
 // Roles a login token may carry: the shared-password roles plus the personal-account-only roles
 // (rotators, and the officers of a hospital's Administrative Affairs division).
-const TOKEN_ROLES = [...ROLES, 'rotator', ...AA_ROLES];
+const TOKEN_ROLES = [...ROLES, 'branch', 'rotator', ...AA_ROLES];
 const PAGE_ROWS = 1500;
 const HISTORY_KEEP_DAYS = 120;
 const ER_HISTORY_KEEP = 20;  // copies of each ER record always kept (see the nightly clean-up)
@@ -91,6 +92,11 @@ export default {
       env.DB.prepare('DELETE FROM login_fail WHERE bucket < ?').bind(bucketOf(now) - 6),
       // Sign-ups whose device never came back for the decision.
       env.DB.prepare('DELETE FROM signup_waits WHERE created_at < ?').bind(now - 90 * DAY),
+      // The accounts' copy of their record's hospitals, for anything that went around mirrorResident.
+      env.DB.prepare(
+        `UPDATE accounts SET cover = r.hs FROM (SELECT id, json_extract(data, '$.hospitals') AS hs FROM records WHERE coll = 'resident') r
+          WHERE r.id = accounts.resident_id AND accounts.cover IS NOT r.hs`
+      ),
     ]);
   },
 };
@@ -353,8 +359,51 @@ async function revokeSessions(env, auth) {
 
 const isOwner = a => a && a.r === 'owner';
 const inScope = (a, hosp) => a.h && (a.h.includes('*') || (hosp && a.h.includes(hosp)));
-/** The doctor's own hospital: a personal account's hospital, or one the session is scoped to. */
-const ownHospital = (a, hosp) => !!hosp && ((a.a && a.hosp === hosp) || inScope(a, hosp));
+
+/**
+ * What a branch representative may write besides roster entries (those: exchspecs.js):
+ * - residents: added to their hospital or edited there, never removed, never moved out of a hospital;
+ * - their hospital's record: only the specialist duties of their specialty. The stored record is the
+ *   base, so nothing else in it can change whatever the client sends.
+ * Returns the ops allowed. Reads only when such a write is asked for.
+ */
+async function branchWrites(env, auth, ops) {
+  const ok = new Set();
+  const hosps = auth.a ? hospitalsWithRole(auth, 'branch') : [];
+  if (!hosps.length) return ok;
+  const resOps = auth.r === 'admin' ? [] : ops.filter(op => op && op.c === 'resident' && typeof op.id === 'string' && !op.ordOnly);
+  if (resOps.length) {
+    const { results } = await env.DB.prepare("SELECT id, data FROM records WHERE coll = 'resident' AND id IN (SELECT value FROM json_each(?))")
+      .bind(JSON.stringify(resOps.map(op => op.id))).all();
+    const before = new Map((results || []).map(r => [r.id, JSON.parse(r.data)]));
+    for (const op of resOps) {
+      if (op.del || !op.d || !Array.isArray(op.d.hospitals)) continue;
+      const had = (before.get(op.id) || {}).hospitals || [];
+      const added = op.d.hospitals.filter(h => !had.includes(h));
+      const kept = had.every(h => op.d.hospitals.includes(h));
+      const mine = op.d.hospitals.some(h => hosps.includes(h));
+      if (kept && mine && added.every(h => hosps.includes(h))) ok.add(op);
+    }
+  }
+  for (const op of ops) {
+    if (!op || op.c !== 'hospital' || typeof op.id !== 'string' || op.del || op.ordOnly || !op.d || !op.bv) continue;
+    if (auth.r === 'admin' && inScope(auth, op.id)) continue;
+    const spec = branchSpecAt(auth, op.id);
+    if (!spec) continue;
+    const row = await env.DB.prepare("SELECT data FROM records WHERE coll = 'hospital' AND id = ?").bind(op.id).first();
+    if (!row) continue;
+    const stored = JSON.parse(row.data);
+    const mine = await branchSpecialties(env, op.id, spec);
+    const listOf = v => (Array.isArray(v) ? v : []);
+    stored.specialistSchedule = [
+      ...listOf(stored.specialistSchedule).filter(e => !e || !mine.has(e.specCode)),
+      ...listOf(op.d.specialistSchedule).filter(e => e && mine.has(e.specCode)),
+    ];
+    op.d = stored;
+    ok.add(op);
+  }
+  return ok;
+}
 
 /** Server-side copy of the permission rules the pages already apply in the UI. */
 function allowed(a, op) {
@@ -362,12 +411,12 @@ function allowed(a, op) {
   const isNew = !op.bv;
   switch (op.c) {
     case 'sched':
-      // The hospital's doctors exchange duties, in their own hospital only (the hospital is the id's
-      // prefix, not the client's word); rotators the rotators' duties only (exchspecs.js). Division
-      // officers have their own roster (aa.js).
-      return ['user', 'anaesthesia', 'rotator', 'admin'].includes(a.r) && ownHospital(a, String(op.id || '').split(':')[0]);
+      // The hospital's doctors exchange duties in the hospitals they stand in (the hospital is the id's
+      // prefix, not the client's word); what each may touch there: exchspecs.js. Division officers have
+      // their own roster (aa.js).
+      return ['user', 'anaesthesia', 'branch', 'rotator', 'admin'].includes(roleAt(a, String(op.id || '').split(':')[0]));
     case 'icu':
-      return a.r === 'anaesthesia' && inScope(a, op.h);
+      return roleAt(a, op.h) === 'anaesthesia';
     case 'hospital':
       return a.r === 'admin' && !isNew && !op.del && inScope(a, op.id);
     case 'resident':
@@ -550,10 +599,13 @@ async function sync(request, env, auth) {
   const msg = String(body.msg || '').slice(0, 300);
 
   // Hospitals where residents' exchanges need approval: their roster writes go through /api/exchange.
-  const approval = ['user', 'anaesthesia', 'rotator'].includes(auth.r) && ops.some(op => op && op.c === 'sched')
-    ? new Set(await approvalHospitals(env)) : null;
+  const schedOps = ops.some(op => op && op.c === 'sched' && typeof op.id === 'string');
+  const approval = auth.a && schedOps && ops.some(op => op && op.c === 'sched' && typeof op.id === 'string' && limitedExchanger(auth, op.id.split(':')[0]))
+    ? new Set(await approvalHospitals(env)) : new Set();
   // Anaesthesia residents edit every hospital's ICU while the owner's switch is on.
-  const icuAll = auth.r === 'anaesthesia' && ops.some(op => op && op.c === 'icu') && await icuAllOn(env);
+  const icuAll = hospitalsWithRole(auth, 'anaesthesia').length > 0 && ops.some(op => op && op.c === 'icu') && await icuAllOn(env);
+  // A branch representative: residents of their hospital, and their specialty's specialist duties.
+  const branchOk = await branchWrites(env, auth, ops);
   // A hospital's admin changes only the specialists of their own hospitals (the directory is one record).
   const specOp = auth.r === 'admin' && !(auth.h || []).includes('*') && ops.find(op => op && op.c === 'meta' && op.id === 'specialists' && !op.ordOnly);
   const specOk = specOp ? await specialistsEditAllowed(env, auth, specOp) : true;
@@ -568,21 +620,16 @@ async function sync(request, env, auth) {
   // hospitals' copies of its specialties take from it (specguard.js).
   const storeLocked = auth.r === 'admin' ? await storeSpecWrites(env, ops.filter(op => op && op.c === 'hospital' && typeof op.id === 'string' && !op.del && !op.ordOnly && op.d)) : new Set();
   // Residents change only the duties of the specialties their name can be put in (exchspecs.js).
-  const foreign = limitedExchanger(auth) && ops.some(op => op && op.c === 'sched' && !op.ordOnly) ? await foreignScheduleOps(env, auth, ops) : new Set();
-  // A resident also exchanges in the other hospitals they cover (their database record's hospitals).
-  const schedHosp = op => String(op.id || '').split(':')[0];
-  const covered = ['user', 'anaesthesia'].includes(auth.r) && auth.a
-    && ops.some(op => op && op.c === 'sched' && typeof op.id === 'string' && !ownHospital(auth, schedHosp(op)))
-    ? await coveredHospitals(env, auth) : null;
+  const foreign = auth.a && schedOps ? await foreignScheduleOps(env, auth, ops, approval) : new Set();
   const puts = [], dels = [], ords = [], rejected = [], checks = [];
   ops.forEach((op, i) => {
     if (!op || typeof op.c !== 'string' || typeof op.id !== 'string' || !op.id) { rejected.push(i); return; }
-    if (!allowed(auth, op) && !(icuAll && op.c === 'icu') && !(resSpecOk && op === resSpecOp)
-      && !(covered && op.c === 'sched' && covered.has(schedHosp(op)))) { rejected.push(i); return; }
+    if (!allowed(auth, op) && !(icuAll && op.c === 'icu') && !(resSpecOk && op === resSpecOp) && !branchOk.has(op)) { rejected.push(i); return; }
     if (!specOk && op === specOp) { rejected.push(i); return; }
     if ((!erOk && (op.c === 'er' || op.c === 'er_conflict')) || erLocked.has(op)) { rejected.push(i); return; }
     if (storeLocked.has(op) || (auth.r === 'admin' && op.c === 'meta' && op.id === 'globalSpecialties' && !op.ordOnly)) { rejected.push(i); return; }
-    if (approval && op.c === 'sched' && approval.has(String(op.id).split(':')[0])) { rejected.push(i); return; }
+    // Reordering only: a request cannot do it, and a branch representative's board needs it.
+    if (op.c === 'sched' && op.ordOnly && approval.has(String(op.id).split(':')[0]) && roleAt(auth, String(op.id).split(':')[0]) !== 'branch') { rejected.push(i); return; }
     if (foreign.has(i)) { rejected.push(i); return; }
     const bv = Number(op.bv) || 0;
     if (op.ordOnly) {

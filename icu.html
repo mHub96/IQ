@@ -626,7 +626,7 @@
 
             const allHospitals = window.Hub.getHospitals();
             // An anaesthesia resident's own hospitals come first (also when the owner lets them edit every ICU).
-            const ownIds = window.Hub.auth.getRole() === 'anaesthesia' ? (window.Hub.auth.getAdminHospitalIds() || []).filter(h => h !== '*') : [];
+            const ownIds = window.Hub.auth.hospitalsWithRole('anaesthesia').filter(h => h !== '*');
             const icuStatsList = allHospitals.map(h => window.Hub.getICUStats(h.id)).filter(Boolean)
                 .map((s, i) => ({ s, i, own: ownIds.includes(s.hospitalId) }))
                 .sort((a, b) => (b.own - a.own) || (a.i - b.i))

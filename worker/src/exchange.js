@@ -14,7 +14,8 @@
 import { json, readJson, overLimit, plainText } from './lib.js';
 import { nameKey } from './names.js';
 import { notifyOne, notifyApprovers, dispatchPush } from './accounts.js';
-import { limitedExchanger, exchangeSpecialties, coveredHospitals } from './exchspecs.js';
+import { limitedExchanger, exchangeSpecialties, branchSpecialties } from './exchspecs.js';
+import { roleAt, branchSpecAt } from './access.js';
 
 const HOSP_RE = /^[\w-]{1,48}$/;
 const DATE_RE = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
@@ -29,8 +30,6 @@ export async function approvalHospitals(env) {
 const isOwner = a => a.r === 'owner';
 const seesAll = a => isOwner(a) || (a.h || []).includes('*');
 const moderates = (a, hosp) => isOwner(a) || (a.r === 'admin' && (seesAll(a) || (a.h || []).includes(hosp)));
-/** The requester's own hospital (the same rule as roster writes in index.js). */
-const ownHospital = (a, hosp) => (a.a && a.hosp === hosp) || seesAll(a) || (a.h || []).includes(hosp);
 const byOf = a => (a.a ? `${a.r}:${a.name || a.a}` : a.r);
 
 export async function routeExchange(path, method, request, env, auth, url, ctx) {
@@ -105,15 +104,16 @@ async function rotatorHolder(env, hosp, name) {
 /** Body: { h, date: 'DD/MM/YYYY', spec, oldName, newName }. */
 async function createRequest(request, env, auth, ctx) {
   if (!auth.a) return json({ error: 'account_required' }, 403);
-  if (!['user', 'anaesthesia', 'rotator', 'admin', 'owner'].includes(auth.r)) return json({ error: 'forbidden' }, 403);
+  if (!['user', 'anaesthesia', 'branch', 'rotator', 'admin', 'owner'].includes(auth.r)) return json({ error: 'forbidden' }, 403);
   const body = await readJson(request) || {};
   const hosp = String(body.h || ''), date = String(body.date || ''), spec = String(body.spec || '');
   const oldName = plainText(body.oldName, 120), newName = plainText(body.newName, 120);
   if (!HOSP_RE.test(hosp) || !DATE_RE.test(date) || !spec || !oldName || !newName) return json({ error: 'bad_request' }, 400);
   if (nameKey(oldName) === nameKey(newName)) return json({ error: 'same_person' }, 400);
-  if (!ownHospital(auth, hosp) && !(await coveredHospitals(env, auth)).has(hosp)) return json({ error: 'not_your_hospital' }, 403);
+  if (!['user', 'anaesthesia', 'branch', 'rotator', 'admin', 'owner'].includes(roleAt(auth, hosp))) return json({ error: 'not_your_hospital' }, 403);
   if (!(await approvalHospitals(env)).includes(hosp)) return json({ error: 'approval_off' }, 409);
-  if (limitedExchanger(auth) && !(await exchangeSpecialties(env, auth, hosp)).has(spec)) return json({ error: 'not_your_specialty' }, 403);
+  if (limitedExchanger(auth, hosp) && !(await exchangeSpecialties(env, auth, hosp)).has(spec)
+    && !(await branchSpecialties(env, hosp, branchSpecAt(auth, hosp))).has(spec)) return json({ error: 'not_your_specialty' }, 403);
   if (await overLimit(env, 'xreq:' + auth.a, 20)) return json({ error: 'rate_limited' }, 429);
   // The duty must be on the roster as it is now.
   const entry = await env.DB.prepare(
@@ -125,10 +125,9 @@ async function createRequest(request, env, auth, ctx) {
   if (dup) return json({ error: 'already_requested' }, 409);
   // The duty holder's account (registered at this hospital), unless they are the one asking.
   const holder = await env.DB.prepare(
-    `SELECT id FROM accounts WHERE name_key = ? AND status = 'active' AND role IN ('user', 'anaesthesia', 'admin')
+    `SELECT id FROM accounts WHERE name_key = ? AND status = 'active' AND role IN ('user', 'anaesthesia', 'branch', 'admin')
       AND (hosp = ?2 OR EXISTS (SELECT 1 FROM json_each(accounts.hospitals) WHERE value = ?2)
-           OR EXISTS (SELECT 1 FROM records r, json_each(json_extract(r.data, '$.hospitals')) h
-                       WHERE r.coll = 'resident' AND r.id = accounts.resident_id AND h.value = ?2)) LIMIT 1`
+           OR EXISTS (SELECT 1 FROM json_each(COALESCE(accounts.cover, '[]')) WHERE value = ?2)) LIMIT 1`
   ).bind(nameKey(oldName), hosp).first();
   // A rotator's account is not found by name (rotators are kept apart from duty cards): one linked to a
   // hospital database record holds the duty when that record's name is the duty's. Without an

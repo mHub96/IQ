@@ -198,6 +198,14 @@
         .hacc-btn.danger { color: var(--hacc-danger); }
         .hacc-btn.good { background: #059669; border-color: #059669; color: #fff; }
         .role-edit { display: grid; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--hacc-border); }
+        .access-list { display: grid; gap: 6px; }
+        .access-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid var(--hacc-border); border-radius: 10px; }
+        .access-name { flex: 1 1 120px; min-width: 0; font-size: 0.8rem; font-weight: 700; }
+        .access-name small { font-weight: 500; opacity: .7; }
+        .access-row select { flex: 0 1 auto; max-width: 100%; }
+        .access-cover { display: inline-flex; cursor: pointer; }
+        .access-cover input { width: 18px; height: 18px; accent-color: var(--hacc-accent); margin: 0; }
+        .access-cover span { display: none; }
         .hosp-pick { display: flex; flex-wrap: wrap; gap: 6px; }
         .hosp-pick label { cursor: pointer; }
         .hosp-pick input { position: absolute; opacity: 0; pointer-events: none; }
@@ -518,14 +526,14 @@
             </nav>
             <form class="card" id="forgot-form" novalidate>
                 <h2>نسيت كلمة المرور؟</h2>
-                <p class="lead">أرسل طلباً إلى مدير مستشفاك. بعد موافقته تعود إلى هذه الصفحة وتختار كلمة مرور جديدة.</p>
+                <p class="lead" data-role="fg-lead">أرسل طلباً إلى مدير مستشفاك. بعد موافقته تعود إلى هذه الصفحة وتختار كلمة مرور جديدة.</p>
                 <div class="field">
-                    <label for="fg-user">اسم المستخدم</label>
-                    <input id="fg-user" dir="ltr" autocomplete="username" autocapitalize="none" spellcheck="false" required />
+                    <label for="fg-user">اسم المستخدم <small class="hacc-muted">(اتركه فارغاً إن نسيته)</small></label>
+                    <input id="fg-user" dir="ltr" autocomplete="username" autocapitalize="none" spellcheck="false" />
                 </div>
                 <div class="field">
-                    <label for="fg-phone">رقم الهاتف المسجّل في الحساب</label>
-                    <input id="fg-phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="07XX XXX XXXX" required />
+                    <label for="fg-phone">رقم الهاتف المسجّل في الحساب <small class="hacc-muted">(اتركه فارغاً إن لم يكن لحسابك رقم)</small></label>
+                    <input id="fg-phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="07XX XXX XXXX" />
                 </div>
                 <div class="links" style="margin:0 0 14px">
                     <button class="hacc-btn primary" type="submit" style="flex:1">إرسال الطلب</button>
@@ -634,13 +642,14 @@
         const MONTHS = ['', 'كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'];
         const OFFICER_ROLES = ['aa_user', 'aa_admin'];
         const NO_PROFILE = ['rotator', ...OFFICER_ROLES];
-        const ALL_ROLES = ['user', 'anaesthesia', 'admin', 'owner', 'rotator', ...OFFICER_ROLES];
+        const ALL_ROLES = ['user', 'anaesthesia', 'branch', 'admin', 'owner', 'rotator', ...OFFICER_ROLES];
         // Types a hospital admin gives the residents of their hospital (never owner), rotator included.
         const ADMIN_ROLE_CHOICES = ['user', 'anaesthesia', 'admin', 'rotator'];
-        const RESIDENT_ROLES = ['user', 'anaesthesia', 'admin'];
+        const RESIDENT_ROLES = ['user', 'anaesthesia', 'branch', 'admin'];
         // The management list is shown in these groups.
         const ROLE_GROUPS = [
             { id: 'admins', title: 'المدراء', icon: 'fa-user-shield', has: r => r === 'owner' || r === 'admin' },
+            { id: 'branch', title: 'مدراء الفروع', icon: 'fa-users-gear', has: r => r === 'branch' },
             { id: 'anaesthesia', title: 'مقيمو التخدير', icon: 'fa-syringe', has: r => r === 'anaesthesia' },
             { id: 'user', title: 'المقيمون', icon: 'fa-user-doctor', has: r => r === 'user' },
             { id: 'rotator', title: 'الروتيترز', icon: 'fa-rotate', has: r => r === 'rotator' },
@@ -763,9 +772,9 @@
 
         // -------------------- A sign-up waiting for its approval --------------------
         // The server gave this device a ticket with the request (accounts.js signupWait). While the
-        // app is open it asks every 20 seconds (and whenever it comes back to the screen): approved,
-        // the same answer signs this device in; rejected, it says so. With notifications on, the
-        // decision also arrives as a push while the app is closed.
+        // app is open it asks every few seconds (and whenever it comes back to the screen, or a
+        // notification arrives): approved, the same answer signs this device in, in front of them;
+        // rejected, it says so. With notifications on, the decision also arrives while the app is closed.
         const WAIT_KEY = 'hub_signup_wait';
         const readWait = () => { try { return JSON.parse(localStorage.getItem(WAIT_KEY) || 'null'); } catch (e) { return null; } };
         const dropWait = () => { try { localStorage.removeItem(WAIT_KEY); } catch (e) {} };
@@ -805,7 +814,8 @@
         let waitBusy = false;
         async function checkWait(sub) {
             const w = readWait();
-            if (!w || waitBusy || Hub.auth.getAccount()) return;
+            if (w && Hub.auth.getAccount()) { dropWait(); return; }
+            if (!w || waitBusy) return;
             waitBusy = true;
             let res = null;
             try {
@@ -839,8 +849,26 @@
                 setMsg($('si-msg'), `✅ تمت الموافقة على حسابك. ${res.error}`, 'bad');
             }
         }
+        /** The hospital approves automatically: the answer to the sign-up already signs this device in. */
+        function signedUpAtOnce(res) {
+            if (res.success) {
+                setMsg($('si-msg'), '');
+                $('su-done').querySelector('.big').textContent = '✅';
+                $('su-done').querySelector('h2').textContent = 'تم تفعيل حسابك';
+                $('su-done-text').textContent = `أهلاً ${res.name}! اسمك ورقمك في قاعدة المستشفى. جاري الدخول…`;
+                Hub.auth.applyAccountLogin(res, true);
+                localStorage.setItem('pwa_last_page', './index.html');
+                setTimeout(() => { location.href = './index.html?portal=true'; }, 900);
+            } else {
+                $('su-done-text').textContent = `أهلاً ${res.name}! تم تفعيل حسابك. يمكنك الآن تسجيل الدخول.`;
+            }
+            document.querySelector('[data-role="su-done-wait"]').hidden = true;
+        }
+        let waitSince = Date.now();
         function startWait(res, username) {
+            if (res && res.auto) return signedUpAtOnce(res);
             if (!res || !res.ticket) return;
+            waitSince = Date.now();
             try { localStorage.setItem(WAIT_KEY, JSON.stringify({ ticket: res.ticket, username, name: res.name, at: Date.now() })); } catch (e) {}
             paintWait();
             waitSubscription(true).then(sub => { paintWait(); return checkWait(sub); });
@@ -850,7 +878,14 @@
             paintWait();
             if (sub) checkWait(sub);
         }));
-        setInterval(() => { if (!document.hidden && readWait()) checkWait(); }, 20000);
+        // Every 5 seconds for the first 10 minutes, then every 15.
+        let waitTick = 0;
+        setInterval(() => {
+            if (document.hidden || !readWait()) return;
+            if (Date.now() - waitSince > 600000 && ++waitTick % 3) return;
+            checkWait();
+        }, 5000);
+        if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'hub:push' && readWait()) checkWait(); });
         document.addEventListener('visibilitychange', () => { if (!document.hidden && readWait()) checkWait(); });
         if (readWait()) { paintWait(); waitSubscription(false).then(sub => checkWait(sub)); }
 
@@ -989,7 +1024,7 @@
             setMsg(msg, 'جاري تأمين كلمة المرور وإرسال الطلب…');
             try {
                 const key = await Hub.auth.deriveAccountKey(username, $('ro-pass').value);
-                const res = await Hub.api('POST', '/api/accounts/signup-rotator', { hosp, name: $('ro-name').value.trim(), phone: $('ro-phone').value.trim(), username, key, sex: roSex(), deviceId: Hub.auth.deviceId() }, { useToken: false, retries: 0 });
+                const res = await Hub.api('POST', '/api/accounts/signup-rotator', { hosp, name: $('ro-name').value.trim(), phone: $('ro-phone').value.trim(), username, key, sex: roSex(), deviceId: Hub.auth.deviceId(), deviceLabel: Hub.auth.deviceLabel() }, { useToken: false, retries: 0 });
                 $('rotator-form').hidden = true;
                 $('su-done').hidden = false;
                 $('su-done-text').textContent = `أهلاً ${res.name}! أُرسل طلب حساب الروتيتر إلى مالك المنظومة ومدراء ${hospitalName(hosp)}. يمكنك تسجيل الدخول باسم المستخدم «${username}» بعد الموافقة.`;
@@ -1276,7 +1311,7 @@
             setMsg(msg, 'جاري تأمين كلمة المرور وإرسال الطلب…');
             try {
                 const key = await Hub.auth.deriveAccountKey(username, $('su-pass').value);
-                const res = await Hub.api('POST', '/api/accounts/signup', { ...su.verified, username, key, sex: sexValue(), deviceId: Hub.auth.deviceId() }, { useToken: false, retries: 0 });
+                const res = await Hub.api('POST', '/api/accounts/signup', { ...su.verified, username, key, sex: sexValue(), deviceId: Hub.auth.deviceId(), deviceLabel: Hub.auth.deviceLabel() }, { useToken: false, retries: 0 });
                 $('signup-form').hidden = true;
                 $('su-done').hidden = false;
                 $('su-done-text').textContent = `أهلاً ${res.name}! أُرسل طلبك إلى مالك المنظومة ومدراء ${hospitalName(su.verified.hosp)}. يمكنك تسجيل الدخول باسم المستخدم «${username}» بعد الموافقة.`;
@@ -1301,48 +1336,76 @@
         });
 
         // -------------------- Forgot password --------------------
-        const fgSaved = (() => { try { return JSON.parse(sessionStorage.getItem('hacc_forgot') || 'null'); } catch (e) { return null; } })();
-        if (fgSaved) { $('fg-user').value = fgSaved.username; $('fg-phone').value = fgSaved.phone; }
+        // The request's ticket stays on this device: the page follows the request by itself, and only
+        // this device can choose the new password once it is approved.
+        const FG_KEY = 'hacc_forgot';
+        const fgRead = () => { try { return JSON.parse(localStorage.getItem(FG_KEY) || 'null'); } catch (e) { return null; } };
+        const fgWrite = v => { try { if (v) localStorage.setItem(FG_KEY, JSON.stringify(v)); else localStorage.removeItem(FG_KEY); } catch (e) {} };
+        const fgSaved = fgRead();
+        if (fgSaved) { $('fg-user').value = fgSaved.username || ''; $('fg-phone').value = fgSaved.phone || ''; }
         const fgValues = () => ({ username: $('fg-user').value.trim().toLowerCase(), phone: $('fg-phone').value.trim() });
 
         $('forgot-form').addEventListener('submit', async e => {
             e.preventDefault();
             const v = fgValues();
-            if (!v.username || !v.phone) return setMsg($('fg-msg'), 'اكتب اسم المستخدم ورقم الهاتف.', 'bad');
+            if (!v.username && !v.phone) return setMsg($('fg-msg'), 'اكتب اسم المستخدم أو رقم الهاتف.', 'bad');
             try {
-                await Hub.api('POST', '/api/accounts/forgot', v, { useToken: false, retries: 1 });
-                sessionStorage.setItem('hacc_forgot', JSON.stringify(v));
-                setMsg($('fg-msg'), 'إذا كانت البيانات صحيحة فقد أُرسل طلبك إلى مدير المستشفى. عد إلى هنا واضغط «متابعة حالة الطلب» بعد الموافقة.', 'ok');
+                const res = await Hub.api('POST', '/api/accounts/forgot', v, { useToken: false, retries: 1 });
+                if (res.state === 'no_match') {
+                    fgWrite(null);
+                    return setMsg($('fg-msg'), 'لم نجد حساباً بهذه البيانات، ولم يُرسل أي طلب. تأكد من الرقم المسجّل في حسابك، أو من اسم المستخدم، أو راجع مدير مستشفاك.', 'bad');
+                }
+                fgWrite({ ...v, ticket: res.ticket });
+                setMsg($('fg-msg'), '✅ أُرسل طلبك إلى مدير المستشفى. ابقَ في هذه الصفحة أو عد إليها: تظهر لك كلمة المرور الجديدة فور الموافقة.', 'ok');
             } catch (err) { setMsg($('fg-msg'), errorText(err), 'bad'); }
         });
 
-        $('fg-status').addEventListener('click', async () => {
-            const v = fgValues();
-            if (!v.username || !v.phone) return setMsg($('fg-msg'), 'اكتب اسم المستخدم ورقم الهاتف.', 'bad');
+        // Asks about the request. Quiet: only the answer that it was approved opens the form by itself.
+        let fgUsername = '';
+        async function fgCheck(loud) {
+            const saved = fgRead();
+            const v = saved && saved.ticket ? { ticket: saved.ticket } : fgValues();
+            if (!v.ticket && (!v.username || !v.phone)) {
+                if (loud) setMsg($('fg-msg'), 'اكتب اسم المستخدم ورقم الهاتف.', 'bad');
+                return;
+            }
             try {
                 const res = await Hub.api('POST', '/api/accounts/reset', v, { useToken: false, retries: 1 });
                 if (res.state === 'approved') {
-                    setMsg($('fg-msg'), '');
+                    fgUsername = res.username || v.username || '';
+                    if (!$('reset-form').hidden) return;
+                    if (location.hash !== '#forgot') location.hash = '#forgot';
+                    setMsg($('fg-msg'), `✅ وافق المدير على طلبك. اسم المستخدم: ${fgUsername}`, 'ok');
                     $('reset-form').hidden = false;
                     $('rs-pass').focus();
-                } else {
+                } else if (res.state === 'none' && saved && !loud) {
+                    fgWrite(null);   // refused, or replaced by a newer request
+                    setMsg($('fg-msg'), 'لم يعد طلبك قائماً. أرسل طلباً جديداً أو راجع مدير مستشفاك.', 'bad');
+                } else if (loud) {
                     setMsg($('fg-msg'), res.state === 'requested' ? '⏳ طلبك ما زال بانتظار موافقة المدير.' : 'لا يوجد طلب موافق عليه لهذه البيانات.', res.state === 'requested' ? '' : 'bad');
                 }
-            } catch (err) { setMsg($('fg-msg'), errorText(err), 'bad'); }
-        });
+            } catch (err) { if (loud) setMsg($('fg-msg'), errorText(err), 'bad'); }
+        }
+        $('fg-status').addEventListener('click', () => fgCheck(true));
+        setInterval(() => { if (!document.hidden && !Hub.auth.getAccount() && fgRead()) fgCheck(false); }, 15000);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden && !Hub.auth.getAccount() && fgRead()) fgCheck(false); });
+        if (fgSaved && !Hub.auth.getAccount()) fgCheck(false);
 
         $('reset-form').addEventListener('submit', async e => {
             e.preventDefault();
             const p = $('rs-pass').value;
             if (p.length < 8) return setMsg($('rs-msg'), 'كلمة المرور قصيرة (٨ أحرف على الأقل).', 'bad');
             if (p !== $('rs-pass2').value) return setMsg($('rs-msg'), 'كلمتا المرور غير متطابقتين.', 'bad');
-            const v = fgValues();
+            const saved = fgRead();
+            const v = saved && saved.ticket ? { ticket: saved.ticket } : fgValues();
+            const username = fgUsername || v.username;
             try {
-                const key = await Hub.auth.deriveAccountKey(v.username, p);
+                const key = await Hub.auth.deriveAccountKey(username, p);
                 await Hub.api('POST', '/api/accounts/reset', { ...v, key }, { useToken: false, retries: 0 });
-                sessionStorage.removeItem('hacc_forgot');
+                fgWrite(null);
                 toast('تم تغيير كلمة المرور ✓', 'success');
-                $('si-user').value = v.username;
+                setMsg($('fg-msg'), '');
+                $('si-user').value = username;
                 $('reset-form').hidden = true;
                 location.hash = '#signin';
             } catch (err) {
@@ -1593,18 +1656,21 @@
                 // Another admin of this admin's own hospital(s): the admin changes only their type.
                 const peer = !isOwner && a.role === 'admin' && a.id !== myId && (a.hospitals || []).length > 0
                     && a.hospitals.every(h => h !== '*' && (myScope.includes('*') || myScope.includes(h)));
-                const canManage = isOwner || peer || (['user', 'anaesthesia', 'rotator', ...OFFICER_ROLES].includes(a.role) && a.id !== myId);
+                // An admin of a hospital the account only covers: its role there and password requests, nothing else.
+                const mainHere = isOwner || myScope.includes('*') || myScope.includes(a.hosp);
+                const canManage = isOwner || peer || (['user', 'anaesthesia', 'branch', 'rotator', ...OFFICER_ROLES].includes(a.role) && a.id !== myId);
                 // Type: admins give regular / anaesthesia resident / admin / rotator, or division user / division
                 // admin for administrative officers. A rotator becomes a resident again only when the account was
                 // a resident before (still linked to the hospital database); one who signed up as a rotator stays.
                 const roleChoices = officer ? OFFICER_ROLES
                     : a.role === 'rotator' ? (a.resident_id ? ['rotator', ...RESIDENT_ROLES] : [])
-                    : isOwner ? ALL_ROLES.filter(r => r !== 'rotator' || RESIDENT_ROLES.includes(a.role)) : ADMIN_ROLE_CHOICES;
+                    : isOwner ? ALL_ROLES.filter(r => r !== 'branch' && (r !== 'rotator' || RESIDENT_ROLES.includes(a.role))) : ADMIN_ROLE_CHOICES;
                 const proposed = a.status === 'pending' && a.role === 'user' && a.suggested_role ? a.suggested_role : a.role;
                 const rolePick = roleChoices.length > 1 ? `<select data-role="approve-role" aria-label="الصلاحية عند الموافقة">${roleChoices.map(r => `<option value="${r}" ${proposed === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>` : '';
                 const statusText = { pending: 'بانتظار الموافقة', active: 'مفعّل', disabled: 'موقوف', rejected: 'مرفوض' }[a.status] || a.status;
                 const actions = [];
-                if (canManage && !peer) {
+                if (canManage && !peer && !mainHere && a.reset === 'requested') actions.push('<button class="hacc-btn good" data-act="approve_reset">🔓 السماح بتغيير كلمة المرور</button>', '<button class="hacc-btn" data-act="deny_reset">تجاهل الطلب</button>');
+                if (canManage && !peer && mainHere) {
                     if (a.status === 'pending') actions.push(rolePick ? `<label class="approve-as">الموافقة بصلاحية ${rolePick}</label>` : '', '<button class="hacc-btn good" data-act="approve">✓ موافقة</button>', '<button class="hacc-btn danger" data-act="reject">✗ رفض</button>');
                     if (a.reset === 'requested') actions.push('<button class="hacc-btn good" data-act="approve_reset">🔓 السماح بتغيير كلمة المرور</button>', '<button class="hacc-btn" data-act="deny_reset">تجاهل الطلب</button>');
                     // Commenting: the owner and the hospital's admins allow or bar it per account.
@@ -1620,14 +1686,16 @@
                 const limit = a.max_devices || 0;
                 const limitMode = limit === 0 ? '0' : limit === 1 ? '1' : 'n';
                 // A pending request takes its type from the picker next to "موافقة", so the editor offers none.
-                const adminEditor = !isOwner && a.status !== 'pending' && roleChoices.length > 1;
+                const adminEditor = !isOwner && a.status !== 'pending' && roleChoices.length > 1 && officer;
+                // The account's hospitals and its role in each: the owner all of them, an admin their own.
+                const accessEditor = accessEditable(a) && a.id !== myId && (isOwner || myAccessHospitals(a).length > 0);
                 // Hospital admins also edit their residents' board information.
-                const adminProfile = !isOwner && !peer && a.status === 'active' && !NO_PROFILE.includes(a.role);
+                const adminProfile = !isOwner && !peer && mainHere && a.status === 'active' && !NO_PROFILE.includes(a.role);
                 const boardFields = `<select data-f="board" aria-label="نوع البورد"><option value="">نوع البورد…</option>${Object.entries(BOARD_NAMES).map(([k, v]) => `<option value="${k}" ${a.board === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
                             <input data-f="specialty" list="mg-specs" value="${esc(a.specialty || '')}" placeholder="الاختصاص" aria-label="الاختصاص" />
                             <select data-f="stage" aria-label="المرحلة الحالية"><option value="">المرحلة…</option>${[1, 2, 3, 4, 5, 6, 7, 8].map(n => `<option value="${n}" ${a.stage_now === n ? 'selected' : ''}>المرحلة ${STAGE_NAMES[n]}</option>`).join('')}</select>
                             <select data-f="boardYears" aria-label="سنوات البورد"><option value="">سنوات البورد…</option>${[3, 4, 5, 6, 7, 8].map(n => `<option value="${n}" ${a.board_years === n ? 'selected' : ''}>${n} سنوات</option>`).join('')}</select>`;
-                const editor = canManage && (isOwner || adminEditor || adminProfile) && a.status !== 'rejected' ? `<details class="edit-wrap"><summary class="hacc-link">⚙️ ${isOwner ? (a.status === 'pending' ? 'الملف والأجهزة' : 'الصلاحيات والأجهزة') : adminEditor && adminProfile ? 'نوع الحساب والبورد' : adminProfile ? 'معلومات البورد' : 'نوع الحساب'}</summary><div class="editor">
+                const editor = (canManage || accessEditor) && (isOwner || adminEditor || adminProfile || accessEditor) && a.status !== 'rejected' ? `<details class="edit-wrap"><summary class="hacc-link">⚙️ ${isOwner ? (a.status === 'pending' ? 'الملف والأجهزة' : 'الصلاحيات والأجهزة') : accessEditor && adminProfile ? 'الصلاحية والبورد' : accessEditor ? 'الصلاحية في مستشفاك' : adminProfile ? 'معلومات البورد' : 'نوع الحساب'}</summary><div class="editor">
                     ${adminEditor ? `<div><h4>نوع الحساب</h4>
                         <select data-role="role" style="margin-top:6px">${roleChoices.map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
                         <button class="hacc-btn primary sm" data-act="set_role" style="margin-top:8px">حفظ</button></div>` : ''}
@@ -1635,7 +1703,7 @@
                         <div class="pf-grid">${boardFields}</div>
                         <button class="hacc-btn primary sm" data-act="set_profile" style="margin-top:8px">حفظ معلومات البورد</button></div>` : ''}
                     ${isOwner && a.status !== 'pending' && a.role === 'rotator' && roleChoices.length < 2 ? '<div><h4>الصلاحية</h4><p class="hacc-muted" style="margin:6px 0 0;font-size:.78rem">🔄 سجّل روتيتر من البداية (غير مرتبط بقاعدة المقيمين): لا يمكن تغيير نوع حسابه.</p></div>' : ''}
-                    ${isOwner && a.status !== 'pending' && roleChoices.length > 1 ? `<div><h4>الصلاحية</h4>
+                    ${isOwner && a.status !== 'pending' && roleChoices.length > 1 && !accessEditable(a) ? `<div><h4>الصلاحية</h4>
                         <select data-role="role" style="margin-top:6px">${roleChoices.map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
                         <div class="hosp-pick" data-role="hosps" style="margin-top:8px" ${['admin', 'anaesthesia'].includes(a.role) ? '' : 'hidden'}>
                             <label><input type="checkbox" value="*" ${scope.includes('*') ? 'checked' : ''}><span>كل المستشفيات</span></label>
@@ -1649,10 +1717,19 @@
                             <select data-f="hosp" aria-label="المستشفى">${hospitals.map(h => `<option value="${esc(h.id)}" ${a.hosp === h.id ? 'selected' : ''}>${esc(h.name_ar || h.hospitalName || h.id)}</option>`).join('')}</select>
                         </div>
                         <button class="hacc-btn primary sm" data-act="set_profile" style="margin-top:8px">حفظ الملف</button></div>` : ''}
-                    ${isOwner && coverageEditable(a) ? `<div data-role="coverage"><h4>تغطية المستشفيات</h4>
-                        <p class="hacc-muted" style="margin:6px 0 0;font-size:.78rem">المستشفيات التي يداوم فيها في قاعدة المقيمين (صفحة إدارة المستشفى)، ويبدّل خفاراته فيها كلها.${a.role === 'admin' ? ' (مدير: يبقى تبديله حسب مستشفيات إدارته.)' : ''}</p>
-                        <div class="hosp-pick" data-role="cov-list" style="margin-top:8px"><span class="hacc-muted">جاري التحميل…</span></div>
-                        <button class="hacc-btn primary sm" data-act="set_coverage" style="margin-top:8px" disabled>حفظ التغطية</button></div>` : ''}
+                    ${accessEditor ? `<div data-role="access"><h4>${isOwner ? 'المستشفيات والصلاحيات' : 'الصلاحية في مستشفاك'}</h4>
+                        <p class="hacc-muted" style="margin:6px 0 0;font-size:.78rem">${isOwner ? '✓ = يداوم فيه (قائمة مقيمي المستشفى، ويبدّل خفاراته فيه). والصلاحية تخص ذلك المستشفى وحده.' : 'تخص مستشفاك وحده. صلاحياته في المستشفيات الأخرى تبقى كما هي.'}</p>
+                        <div class="access-list" data-role="access-list" style="margin-top:8px"><span class="hacc-muted">جاري التحميل…</span></div>
+                        <button class="hacc-btn primary sm" data-act="set_access" style="margin-top:8px" disabled>حفظ</button></div>
+                        ${isOwner ? `<div data-role="global"><h4>صلاحية عامة</h4>
+                        <div class="limit-row" style="margin-top:6px">
+                            <select data-role="global-role" aria-label="صلاحية عامة">
+                                <option value="" ${(a.hospitals || []).includes('*') ? '' : 'selected'}>حسب كل مستشفى (أعلاه)</option>
+                                <option value="all" ${(a.hospitals || []).includes('*') ? 'selected' : ''}>مدير لكل المستشفيات</option>
+                                <option value="owner">مالك</option>
+                            </select>
+                            <button class="hacc-btn sm" data-act="set_global">حفظ</button>
+                        </div></div>` : ''}` : ''}
                     ${isOwner ? `<div><h4>الأجهزة المسموح بها</h4>
                         <div class="limit-row" style="margin-top:6px">
                             <select data-role="limit-mode">
@@ -1676,6 +1753,7 @@
                     ${a.role === 'rotator' ? '<div class="acc-sub">🔄 روتيتر: تصفح الموقع والتواصل مع المقيمين، وتبديل خفارات الروتيشن في مستشفاه فقط.</div>'
                         : officer ? `<div class="acc-sub">🏢 الشؤون الإدارية · ${esc(a.aa_job_name || '')}${a.resident_id ? ' · ✓ موجود في قاعدة البيانات' : ''}</div>${a.status === 'pending' && !a.resident_id ? '<div class="acc-sub" style="color:#b45309">⚠️ غير موجود في قاعدة بيانات الشؤون الإدارية: عند الموافقة يُضاف تحت العنوان الوظيفي الذي اختاره.</div>' : ''}`
                         : `<div class="acc-sub">${profileLine(a)}</div>`}
+                    ${accessLine(a)}
                     ${a.status === 'pending' && a.suggested_role === 'anaesthesia' ? '<div class="acc-sub suggest">💉 مقترح: <b>مقيم تخدير</b> (اختصاصه التخدير في جدول المستشفى)</div>' : ''}
                     <div class="acc-sub">${a.status === 'pending' ? 'طلب ' : 'أُنشئ '}${esc(timeAgo(a.created_at))}${a.decided_by ? ' · بواسطة ' + esc(String(a.decided_by).replace(/^\w+:/, '')) : ''}${a.last_seen ? ' · آخر ظهور ' + esc(timeAgo(a.last_seen)) : ''}</div></div></div>
                     ${actions.length ? `<div class="acc-actions">${actions.join('')}</div>` : ''}${editor}</article>`;
@@ -1693,7 +1771,7 @@
             }));
 
             $('mg-list').querySelectorAll('[data-act]').forEach(btn => btn.addEventListener('click', () => act(btn)));
-            $('mg-list').querySelectorAll('details.edit-wrap').forEach(d => d.addEventListener('toggle', () => { if (d.open) fillCoverage(d.closest('.acc')); }));
+            $('mg-list').querySelectorAll('details.edit-wrap').forEach(d => d.addEventListener('toggle', () => { if (d.open) fillAccess(d.closest('.acc')); }));
             $('mg-list').querySelectorAll('[data-role="limit-mode"]').forEach(sel => sel.addEventListener('change', () => {
                 sel.parentElement.querySelector('[data-role="limit-n"]').hidden = sel.value !== 'n';
             }));
@@ -1703,48 +1781,119 @@
             }));
         }
 
-        // -------------------- Hospital coverage (owner) --------------------
-        // A resident's hospitals are those of their record in the hospital database (db.residents[].hospitals):
-        // each hospital's residents list is built from it, and the resident exchanges duties in all of them.
-        const coverageEditable = a => !!a.resident_id && ['user', 'anaesthesia', 'admin'].includes(a.role) && a.status !== 'pending' && a.status !== 'rejected';
-        async function coverageRecord(a) {
+        // -------------------- An account's hospitals and its role in each --------------------
+        // The account is one person. A hospital is "covered" when it is in their record in the hospital
+        // database (db.residents[].hospitals: each hospital's residents list is built from it), and the role
+        // is per hospital. The owner edits every hospital, an admin only the role in their own (the API checks).
+        const ACCESS_ROLES = [['', 'بدون صلاحية'], ['user', 'مقيم'], ['anaesthesia', 'مقيم تخدير'], ['branch', 'مدير فرع'], ['admin', 'مدير مستشفى'], ['rotator', 'روتيتر']];
+        const accessEditable = a => !OFFICER_ROLES.includes(a.role) && a.role !== 'owner' && a.status !== 'pending' && a.status !== 'rejected';
+        const myAccessHospitals = a => {
+            const scope = Hub.auth.getAdminHospitalIds();
+            return Object.keys(Hub.auth.accessOf(a)).filter(h => scope.includes('*') || scope.includes(h));
+        };
+        const accessLine = a => {
+            const entries = Object.entries(Hub.auth.accessOf(a));
+            if (entries.length < 2 && !(a.hosp_roles && Object.keys(a.hosp_roles).length)) return '';
+            return `<div class="acc-sub">🏥 ${entries.map(([h, v]) => `${esc(hospitalName(h))}: ${esc(ROLE_NAMES[v.r] || v.r)}${v.s ? ' (' + esc(specName(v.s, h)) + ')' : ''}`).join(' · ')}</div>`;
+        };
+        const specName = (id, h) => { try { return Hub.getSpecialtyName(id, h) || id; } catch (e) { return id; } };
+        async function accessRecord(a) {
+            if (!a.resident_id) return null;
             try { await Hub.loadDatabase(); } catch (e) {}
             const db = Hub.getDatabase() || {};
             return (Array.isArray(db.residents) ? db.residents : []).find(r => r.id === a.resident_id) || null;
         }
-        async function fillCoverage(card) {
-            const box = card && card.querySelector('[data-role="cov-list"]');
+        function specOptions(h, picked, rec) {
+            const hosp = Hub.getHospital(h);
+            const list = ((hosp && hosp.specialties) || []).filter(s => !s.isClone && !s.parentSpec);
+            const want = picked || (rec && (rec.dept || rec.spec)) || '';
+            return list.map(s => `<option value="${esc(s.id)}" ${s.id === want ? 'selected' : ''}>${esc(specName(s.id, h))}</option>`).join('');
+        }
+        async function fillAccess(card) {
+            const box = card && card.querySelector('[data-role="access-list"]');
             if (!box) return;
             const a = mg.items.find(x => x.id === card.dataset.id);
-            const rec = a && await coverageRecord(a);
-            const btn = card.querySelector('[data-act="set_coverage"]');
-            if (!rec) { box.innerHTML = '<span class="hacc-muted">لم يُعثر على سجله في قاعدة المقيمين.</span>'; if (btn) btn.disabled = true; return; }
-            const mine = Array.isArray(rec.hospitals) ? rec.hospitals : [];
-            box.innerHTML = Hub.getHospitals().map(h => `<label><input type="checkbox" value="${esc(h.id)}" ${mine.includes(h.id) ? 'checked' : ''}><span>${esc(h.name_ar || h.hospitalName || h.id)}${h.id === a.hosp ? ' <small>(مستشفى الحساب)</small>' : ''}</span></label>`).join('');
-            if (btn) btn.disabled = false;
+            if (!a) return;
+            const isOwner = Hub.auth.isOwner();
+            const rec = await accessRecord(a);
+            const access = Hub.auth.accessOf(a);
+            const covered = rec && Array.isArray(rec.hospitals) ? rec.hospitals : [];
+            const fixedRotator = a.role === 'rotator' && !a.resident_id;
+            const rows = isOwner ? Hub.getHospitals().map(h => h.id) : myAccessHospitals(a);
+            box.innerHTML = rows.map(h => {
+                const v = access[h] || {};
+                const roles = ACCESS_ROLES.filter(([r]) => (isOwner || r) && (!fixedRotator || r === 'rotator' || r === ''));
+                return `<div class="access-row" data-h="${esc(h)}">
+                    ${isOwner && rec ? `<label class="access-cover" title="يداوم في هذا المستشفى (قاعدة المقيمين)"><input type="checkbox" data-f="covered" ${covered.includes(h) ? 'checked' : ''}><span></span></label>` : ''}
+                    <span class="access-name">${esc(hospitalName(h))}${h === a.hosp ? ' <small>(مستشفى الحساب)</small>' : ''}</span>
+                    <select data-f="role" aria-label="الصلاحية في ${esc(hospitalName(h))}">${roles.map(([r, label]) => `<option value="${r}" ${r === (v.r || '') ? 'selected' : ''}>${label}</option>`).join('')}</select>
+                    <select data-f="spec" aria-label="اختصاص مدير الفرع" ${v.r === 'branch' ? '' : 'hidden'}>${specOptions(h, v.s, rec)}</select>
+                </div>`;
+            }).join('') || '<span class="hacc-muted">لا توجد مستشفيات.</span>';
+            box.querySelectorAll('.access-row').forEach(row => {
+                const cov = row.querySelector('[data-f="covered"]'), role = row.querySelector('[data-f="role"]'), spec = row.querySelector('[data-f="spec"]');
+                role.addEventListener('change', () => { spec.hidden = role.value !== 'branch'; if (cov && role.value && !cov.checked) cov.checked = true; });
+                // Ticking a hospital makes them a resident there; unticking takes away only that plain standing.
+                if (cov) cov.addEventListener('change', () => {
+                    if (cov.checked && !role.value) role.value = a.role === 'rotator' ? 'rotator' : 'user';
+                    if (!cov.checked && (role.value === 'user' || role.value === 'rotator')) { role.value = ''; }
+                    spec.hidden = role.value !== 'branch';
+                });
+            });
+            const btn = card.querySelector('[data-act="set_access"]');
+            if (btn) btn.disabled = !rows.length;
         }
-        async function saveCoverage(card, a, btn) {
-            const chosen = [...card.querySelectorAll('[data-role="cov-list"] input:checked')].map(i => i.value);
-            if (!chosen.length) { toast('اختر مستشفى واحداً على الأقل.', 'error'); return; }
-            if (a.hosp && !chosen.includes(a.hosp)) { toast(`لا يمكن إزالة ${hospitalName(a.hosp)} وهو مستشفى الحساب. غيّر مستشفى الحساب أولاً من «الملف الشخصي».`, 'error'); return; }
+        async function saveAccess(card, a, btn) {
+            const isOwner = Hub.auth.isOwner();
+            const current = Hub.auth.accessOf(a);
+            const rows = [...card.querySelectorAll('[data-role="access-list"] .access-row')].map(row => ({
+                h: row.dataset.h,
+                covered: row.querySelector('[data-f="covered"]') ? row.querySelector('[data-f="covered"]').checked : null,
+                r: row.querySelector('[data-f="role"]').value,
+                s: row.querySelector('[data-f="spec"]').value,
+            }));
+            const rec = isOwner ? await accessRecord(a) : null;
+            const before = rec && Array.isArray(rec.hospitals) ? rec.hospitals : [];
+            const chosen = rec ? rows.filter(x => x.covered).map(x => x.h) : before;
+            if (rec && !chosen.length) { toast('اختر مستشفى واحداً على الأقل يداوم فيه.', 'error'); return; }
+            const next = rec ? [...before.filter(h => chosen.includes(h)), ...chosen.filter(h => !before.includes(h))] : before;
+            const added = next.filter(h => !before.includes(h)), removed = before.filter(h => !next.includes(h));
+            const changes = {};
+            rows.forEach(x => {
+                const was = current[x.h] || {};
+                const nowR = x.r || '';
+                if (nowR === (was.r || '') && (nowR !== 'branch' || x.s === was.s)) return;
+                changes[x.h] = { r: nowR, s: nowR === 'branch' ? x.s : undefined };
+            });
+            if (Object.values(changes).some(v => v.r === 'branch' && !v.s)) { toast('اختر اختصاص مدير الفرع.', 'error'); return; }
+            if (!added.length && !removed.length && !Object.keys(changes).length) { toast('لا يوجد تغيير.', 'info'); return; }
+            const lines = [`تعديل ${a.name}:`];
+            if (added.length) lines.push(`➕ يداوم أيضاً في: ${added.map(hospitalName).join('، ')}`);
+            if (removed.length) lines.push(`➖ لا يداوم في: ${removed.map(hospitalName).join('، ')} (يُزال من قائمة مقيميها، وتبقى خفاراته السابقة في الجداول.)`);
+            if (removed.includes(a.hosp)) lines.push(`🏥 مستشفى الحساب ينتقل إلى ${hospitalName(next[0])}.`);
+            Object.entries(changes).forEach(([h, v]) => lines.push(`⭐ ${hospitalName(h)}: ${v.r ? ROLE_NAMES[v.r] : 'بدون صلاحية'}${v.r === 'branch' ? ' (' + specName(v.s, h) + ')' : ''}`));
+            if (!confirm(lines.join('\n'))) return;
             btn.disabled = true;
             try {
-                const rec = await coverageRecord(a);
-                if (!rec) throw new Error('لم يُعثر على سجله في قاعدة المقيمين.');
-                const before = Array.isArray(rec.hospitals) ? rec.hospitals : [];
-                const next = [...before.filter(h => chosen.includes(h)), ...chosen.filter(h => !before.includes(h))];
-                const added = next.filter(h => !before.includes(h)), removed = before.filter(h => !next.includes(h));
-                if (!added.length && !removed.length) { toast('لا يوجد تغيير.', 'info'); btn.disabled = false; return; }
-                const lines = [`تعديل تغطية ${rec.name}:`];
-                if (added.length) lines.push(`➕ إضافة: ${added.map(hospitalName).join('، ')}`);
-                if (removed.length) lines.push(`➖ إزالة: ${removed.map(hospitalName).join('، ')}\n(يُزال من قائمة مقيمي ${removed.length > 1 ? 'هذه المستشفيات' : 'هذا المستشفى'}، وتبقى خفاراته السابقة في الجداول.)`);
-                if (!confirm(lines.join('\n'))) { btn.disabled = false; return; }
-                await Hub.updateResident(rec.id, { hospitals: next });
-                toast('تم حفظ التغطية ✓', 'success');
-                fillCoverage(card);
+                // First the hospital database (the account follows it), then the roles.
+                if (added.length || removed.length) await Hub.updateResident(rec.id, { hospitals: next });
+                if (Object.keys(changes).length) {
+                    const res = await Hub.api('POST', '/api/accounts/decide', { id: a.id, action: 'set_access', access: changes }, { retries: 0 });
+                    if (res.account) Object.assign(a, res.account);
+                } else {
+                    const fresh = await Hub.api('GET', '/api/accounts?filter=all', undefined, { retries: 1 });
+                    const same = (fresh.accounts || []).find(x => x.id === a.id);
+                    if (same) Object.assign(a, same);
+                }
+                toast('تم الحفظ ✓', 'success');
+                renderManage();
+                const again = document.querySelector(`.acc[data-id="${CSS.escape(a.id)}"] details.edit-wrap`);
+                if (again) again.open = true;
+                loadPendingCounts();
             } catch (err) {
-                toast(errorText(err), 'error');
-                fillCoverage(card);
+                btn.disabled = false;
+                toast(({ no_specialty: 'اختر اختصاص مدير الفرع.', rotator_fixed: 'سجّل روتيتر من البداية (غير مرتبط بقاعدة المقيمين): لا يمكن تغيير نوع حسابه.' })[err && err.data && err.data.error] || errorText(err), 'error');
+                fillAccess(card);
             }
         }
 
@@ -1753,7 +1902,21 @@
             const id = card.dataset.id;
             const action = btn.dataset.act.replace('-', '_');
             const a = mg.items.find(x => x.id === id);
-            if (action === 'set_coverage') return saveCoverage(card, a, btn);
+            if (action === 'set_access') return saveAccess(card, a, btn);
+            if (action === 'set_global') {
+                const v = card.querySelector('[data-role="global-role"]').value;
+                const global = (a.hospitals || []).includes('*');
+                if (!v && !global) return toast('لا يوجد تغيير.', 'info');
+                if (!confirm(v === 'owner' ? `جعل ${a.name} مالكاً؟` : v === 'all' ? `جعل ${a.name} مديراً لكل المستشفيات؟` : `إعادة صلاحيات ${a.name} إلى مقيم؟ ثم حدّد صلاحياته في كل مستشفى.`)) return;
+                btn.disabled = true;
+                try {
+                    const res = await Hub.api('POST', '/api/accounts/decide', { id, action: 'set_role', role: v === 'owner' ? 'owner' : v === 'all' ? 'admin' : 'user', hospitals: v === 'all' ? ['*'] : [] }, { retries: 0 });
+                    if (res.account) Object.assign(a, res.account);
+                    toast('تم حفظ الصلاحية ✓', 'success');
+                    renderManage();
+                } catch (err) { btn.disabled = false; toast(errorText(err), 'error'); }
+                return;
+            }
             const body = { id, action };
             if (action === 'set_role') {
                 body.role = card.querySelector('[data-role="role"]').value;

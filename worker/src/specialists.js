@@ -12,7 +12,7 @@ import { json, neutralize } from './lib.js';
 
 const HOSP_RE = /^[\w-]{1,48}$/;
 // Residents with a roster record (personal accounts); rotators and shared-password sessions have none.
-const EDIT_ROLES = ['user', 'anaesthesia'];
+const EDIT_ROLES = ['user', 'anaesthesia', 'branch'];
 // The same short forms hub-core.js maps to the canonical specialty codes.
 const ALIASES = {
   F: 'FM', E: 'EM', IM: 'M', DERM: 'Der', DC: 'D', PAED: 'Pe', PED: 'Pe', CARDIO: 'H', CARD: 'H', PLAST: 'PS',

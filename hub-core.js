@@ -1055,16 +1055,27 @@
 
     // Site-wide switches from the API (cached for instant first paint).
     const icuAllOn = () => { try { return localStorage.getItem('hub_icu_all') === '1'; } catch (e) { return false; } };
+    const AUTH_CONFIG_AT = 'hub_auth_config_at';
     let authConfigAt = 0;
+    // The app keeps several pages open at once: they share one question a minute, and the answer.
     function refreshAuthConfig() {
-        if (Date.now() - authConfigAt < 60000) return;
+        let shared = 0;
+        try { shared = Number(localStorage.getItem(AUTH_CONFIG_AT)) || 0; } catch (e) {}
+        if (Date.now() - Math.max(authConfigAt, shared) < 60000) return;
         authConfigAt = Date.now();
+        try { localStorage.setItem(AUTH_CONFIG_AT, String(authConfigAt)); } catch (e) {}
         api('GET', '/api/auth-config', undefined, { useToken: false, retries: 0 }).then(cfg => {
             const was = icuAllOn();
             try { localStorage.setItem('hub_icu_all', cfg && cfg.icuAll ? '1' : '0'); } catch (e) {}
             if (was !== icuAllOn()) dispatchDataChanged();
         }).catch(() => {});
     }
+    // Another page of the app (or the owner's own tab) learned the switch changed: redraw this one too.
+    window.addEventListener('storage', e => { if (e.key && e.key.endsWith('hub_icu_all')) dispatchDataChanged(); });
+    // Only those it concerns keep asking while the app stays open.
+    const icuConcernsMe = () => { try { return auth.hospitalsWithRole('anaesthesia').length > 0; } catch (e) { return false; } };
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && icuConcernsMe()) refreshAuthConfig(); });
+    setInterval(() => { if (!document.hidden && icuConcernsMe()) refreshAuthConfig(); }, 120000);
 
     // A forced reload asks the server (callers use it right after a change made on the server); only the
     // first load of a page and the background refreshes below may take a sibling page's fresh copy.
@@ -1304,8 +1315,15 @@
         // Records this session may not change are not sent (they would only come back refused): other
         // hospitals' records (each hospital's residents copy is rebuilt on every device), and the general
         // store of specialties, which only the owner edits.
+        // A branch representative's only change to a hospital record: their specialty's specialist duties.
+        const branchHospitalOp = o => {
+            if (!auth.isBranchAt(o.id) || o.del || o.ordOnly || !o.d) return false;
+            const base = syncBase.get(o.k);
+            const before = base ? JSON.parse(base.s).specialistSchedule : null;
+            return JSON.stringify(o.d.specialistSchedule || []) !== JSON.stringify(before || []);
+        };
         let ops = HubSync.diff(syncBase, records).filter(o =>
-            !(o.c === 'hospital' && !auth.isAdmin(o.id)) &&
+            !(o.c === 'hospital' && !auth.isAdmin(o.id) && !branchHospitalOp(o)) &&
             !(!AA && o.c === 'meta' && o.id === 'globalSpecialties' && !auth.isOwner()));
         saveLocalSafetySnapshot(db, message);
         writeCache();
@@ -3079,18 +3097,17 @@
         if (!hospital) return [];
         const role = auth.getRole();
         if (AA) return null;
-        // Rotators: the rotators' specialty and its branches, in their own hospital.
-        if (role === 'rotator') {
-            const acc = auth.getAccount();
-            if (!acc || acc.hosp !== hospital.id) return [];
-            return (hospital.specialties || []).filter(s => !s.isClone && isRotatorSpecialty(s.id, hospital.id)).map(s => s.id);
-        }
-        if (!['user', 'anaesthesia'].includes(role)) return null;
         const acc = auth.getAccount();
-        if (!acc) return null;
+        if (!acc) return role === 'rotator' ? [] : null;
+        const here = auth.roleAt(hospital.id);
+        if (here === 'owner' || here === 'admin') return null;
+        // Rotators: the rotators' specialty and its branches, where they are rotators.
+        if (here === 'rotator') return (hospital.specialties || []).filter(s => !s.isClone && isRotatorSpecialty(s.id, hospital.id)).map(s => s.id);
+        if (role === 'rotator') return [];
+        const runs = auth.branchSpecialties(hospital.id);
         // The resident's own record (each hospital's names list is a copy that can lag behind).
         const rec = acc.resident_id && Array.isArray(db?.residents) ? db.residents.find(r => r.id === acc.resident_id) : null;
-        if (!rec || rec.active === false || rec.spec === 'RESERVE') return [];
+        if (!rec || rec.active === false || rec.spec === 'RESERVE') return runs;
         const inHosp = id => Array.isArray(rec.hospitals) && rec.hospitals.includes(id);
         const fits = (specs, specId) => {
             const s = specs.find(x => x.id === specId);
@@ -3106,7 +3123,7 @@
                 const src = getHospital(s.clonedFromHospitalId);
                 return !!src && inHosp(src.id) && fits(src.specialties || [], s.clonedFromSpecId);
             }
-            return inHosp(hospital.id) && fits(hospital.specialties || [], s.id);
+            return runs.includes(s.id) || (inHosp(hospital.id) && fits(hospital.specialties || [], s.id));
         }).map(s => s.id);
     }
 
@@ -3439,7 +3456,7 @@
     }
 
     async function addResident(residentData) {
-        if (!auth.isAdmin()) {
+        if (!auth.isAdmin() && !auth.isBranchAt((residentData.hospitals || [])[0] || residentData.hospitalId || getActiveHospitalId())) {
             throw new Error('غير مصرح لك بإضافة مقيم. يتطلب صلاحيات المدير.');
         }
         if (!db) throw new Error('قاعدة البيانات غير محملة');
@@ -3560,6 +3577,8 @@
      * hospitals has the same name: their duties could not be told apart.
      */
     function renameInSchedules(before, after) {
+        // Only the admins write every specialty's duties; for a branch representative the API renames them.
+        if (!auth.isAdmin()) return 0;
         const oldKey = nameKeyOf(before.name);
         if (!oldKey || before.name === after.name) return 0;
         const hospitals = new Set([...(before.hospitals || []), ...(after.hospitals || [])]);
@@ -3577,7 +3596,7 @@
     }
 
     async function updateResident(idOrName, updates) {
-        if (!auth.isAdmin()) {
+        if (!auth.isAdmin() && !auth.branchHospitals().length) {
             throw new Error('غير مصرح لك بتعديل بيانات المقيم. يتطلب صلاحيات المدير.');
         }
         if (!db) throw new Error('قاعدة البيانات غير محملة');
@@ -4253,11 +4272,12 @@
         refreshAccount(account, role, adminHospitals) {
             // A reply that arrives after signing out must not bring the session back.
             if (!account || !localStorage.getItem(SESSION_ROLE_KEY) || !readApiToken()) return false;
-            const before = localStorage.getItem(SESSION_ROLE_KEY) + '|' + localStorage.getItem(SESSION_ADMIN_HOSPITALS_KEY);
+            const standing = a => JSON.stringify((a && a.hosp_roles) || null);
+            const before = localStorage.getItem(SESSION_ROLE_KEY) + '|' + localStorage.getItem(SESSION_ADMIN_HOSPITALS_KEY) + '|' + standing(this.getAccount());
             storeAccount(account);
             localStorage.setItem(SESSION_ROLE_KEY, role);
             localStorage.setItem(SESSION_ADMIN_HOSPITALS_KEY, JSON.stringify(adminHospitals || []));
-            const changed = before !== role + '|' + JSON.stringify(adminHospitals || []);
+            const changed = before !== role + '|' + JSON.stringify(adminHospitals || []) + '|' + standing(account);
             if (changed) window.dispatchEvent(new CustomEvent('hub:auth-changed', { detail: { role, adminHospitals } }));
             return changed;
         },
@@ -4325,7 +4345,7 @@
                     return false;
                 }
             } catch (e) {}
-            return ['user', 'anaesthesia', 'admin', 'owner', 'rotator', ...AA_ROLES].includes(role);
+            return ['user', 'anaesthesia', 'branch', 'admin', 'owner', 'rotator', ...AA_ROLES].includes(role);
         },
 
         getRole() {
@@ -4358,11 +4378,11 @@
         },
 
         isLoggedIn() {
-            return this.checkSession() && ['user', 'anaesthesia', 'admin', 'owner', 'rotator', ...AA_ROLES].includes(this.getRole());
+            return this.checkSession() && ['user', 'anaesthesia', 'branch', 'admin', 'owner', 'rotator', ...AA_ROLES].includes(this.getRole());
         },
 
         isUser() {
-            return ['user', 'anaesthesia', 'admin', 'owner', 'rotator', ...AA_ROLES].includes(this.getRole());
+            return ['user', 'anaesthesia', 'branch', 'admin', 'owner', 'rotator', ...AA_ROLES].includes(this.getRole());
         },
 
         /** Officers of an Administrative Affairs division (division user or division admin). */
@@ -4389,24 +4409,74 @@
             return this.isLoggedIn();
         },
 
-        /** Duty exchanges are made in the doctor's own hospital only (the owner: everywhere). The API applies the same rule. */
+        /** Duty exchanges are made in the hospitals the doctor stands in (the owner: everywhere). The API applies the same rule. */
         canExchangeIn(hospId) {
             if (!hospId || !this.isLoggedIn()) return false;
-            const role = this.getRole();
-            if (role === 'owner') return true;
-            // Rotators: their own hospital (the rotators' specialty only: exchangeSpecialtiesFor).
-            if (role === 'rotator') { const acc = this.getAccount(); return !!acc && acc.hosp === hospId; }
             if (AA) return hospId === AA && this.canAccessDivision(hospId);
-            if (AA_ROLES.includes(role)) return false;
+            return ['owner', 'admin', 'branch', 'anaesthesia', 'user', 'rotator'].includes(this.roleAt(hospId));
+        },
+
+        /**
+         * The account's role in a hospital: an account can be a regular resident in one hospital and a
+         * branch representative or admin in another (the API's access.js has the same rules).
+         * null = no standing there.
+         */
+        roleAt(hospId) {
+            const role = this.getRole();
+            if (role === 'owner') return 'owner';
+            if (!hospId) return null;
             const acc = this.getAccount();
-            if (acc && acc.hosp === hospId) return true;
-            // A resident also exchanges in the other hospitals they cover (their database record's hospitals).
-            if (acc && acc.resident_id && ['user', 'anaesthesia'].includes(role)) {
-                const rec = Array.isArray(db?.residents) ? db.residents.find(r => r.id === acc.resident_id) : null;
-                if (rec && Array.isArray(rec.hospitals) && rec.hospitals.includes(hospId)) return true;
-            }
+            const own = acc && acc.hosp_roles && acc.hosp_roles[hospId];
+            if (own && own.r) return own.r;
             const ids = this.getAdminHospitalIds();
-            return ids.includes('*') || ids.includes(hospId);
+            if (ids.includes('*') || ids.includes(hospId)) return role;
+            if (!acc) return null;
+            const base = role === 'rotator' || AA_ROLES.includes(role) ? role : 'user';
+            if (acc.hosp === hospId) return base;
+            if (AA_ROLES.includes(role)) return null;
+            // The copy on the account, or the record itself when the account is not refreshed yet.
+            const rec = acc.resident_id && Array.isArray(db?.residents) ? db.residents.find(r => r.id === acc.resident_id) : null;
+            const cover = rec && Array.isArray(rec.hospitals) ? rec.hospitals : (Array.isArray(acc.cover) ? acc.cover : []);
+            return cover.includes(hospId) ? base : null;
+        },
+        /** The hospitals where this account holds `role`. */
+        hospitalsWithRole(role) {
+            const out = new Set();
+            if (this.getRole() === role) this.getAdminHospitalIds().forEach(h => out.add(h));
+            const acc = this.getAccount();
+            Object.entries((acc && acc.hosp_roles) || {}).forEach(([h, v]) => { if (v && v.r === role) out.add(h); });
+            return [...out];
+        },
+        branchHospitals() { return this.hospitalsWithRole('branch'); },
+        isBranchAt(hospId) { return !!hospId && this.roleAt(hospId) === 'branch'; },
+        /** The specialty a branch representative runs in a hospital (null elsewhere). */
+        branchSpecAt(hospId) {
+            if (!this.isBranchAt(hospId)) return null;
+            const acc = this.getAccount();
+            const own = acc && acc.hosp_roles && acc.hosp_roles[hospId];
+            return (own && own.s) || null;
+        },
+        /** That specialty and its branches: the only schedules they see and edit in the scheduler. */
+        branchSpecialties(hospId) {
+            const spec = this.branchSpecAt(hospId);
+            if (!spec) return [];
+            const h = db?.hospitals?.[hospId];
+            return [spec, ...((h && h.specialties) || []).filter(s => s.parentSpec === spec).map(s => s.id)];
+        },
+        /** The scheduler of a hospital: its admins and the owner, and a branch representative for their specialty. */
+        canUseScheduler(hospId) { return this.isAdmin(hospId) || this.isBranchAt(hospId); },
+
+        /**
+         * { hospital: { r, s? } } for any account from the management list (a resident is a plain
+         * resident where they are registered or cover a hospital, unless a role says otherwise).
+         */
+        accessOf(a) {
+            const out = {};
+            const base = a.role === 'rotator' ? 'rotator' : 'user';
+            [a.hosp, ...(Array.isArray(a.cover) ? a.cover : [])].forEach(h => { if (h) out[h] = { r: base }; });
+            if (['anaesthesia', 'branch', 'admin'].includes(a.role)) (a.hospitals || []).forEach(h => { if (h !== '*') out[h] = { r: a.role }; });
+            Object.entries(a.hosp_roles || {}).forEach(([h, v]) => { if (v && v.r) out[h] = v.s ? { r: v.r, s: v.s } : { r: v.r }; });
+            return out;
         },
 
         isOwner() {
@@ -4471,17 +4541,14 @@
             const role = this.getRole();
             if (role === 'owner') return true;
             // Admin and regular users CANNOT edit ICU! Only the anaesthesia resident of the respective hospital can edit
-            if (role !== 'anaesthesia') return false;
+            if (!this.hospitalsWithRole('anaesthesia').length) return false;
             // The owner's switch: every anaesthesia resident edits every hospital's ICU (the API applies it too).
             if (icuAllOn()) return true;
-
-            const adminHospList = this.getAdminHospitalIds();
-            if (adminHospList.includes('*')) return true;
 
             const target = targetHospitalId || getActiveHospitalId();
             if (!target) return false;
 
-            return adminHospList.includes(target);
+            return this.roleAt(target) === 'anaesthesia';
         },
 
         canEditPasswords() {

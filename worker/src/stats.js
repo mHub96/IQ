@@ -21,7 +21,7 @@ const CACHE_MS = 10 * 60 * 1000;
 const HOSP_RE = /^[\w-]{1,48}$/;
 /** Iraq calendar day of a ms timestamp column, in SQL. */
 const dayOf = col => `date((${col} + ${IRAQ}) / 1000, 'unixepoch')`;
-const RESIDENT_ROLES = "('user', 'anaesthesia', 'admin')";
+const RESIDENT_ROLES = "('user', 'anaesthesia', 'branch', 'admin')";
 /** Feature adoption counts the people whose accounts are active today (out of the active accounts). */
 const ACTIVE = "(SELECT id FROM accounts WHERE status = 'active')";
 /** Resident ids held by active accounts: one pass over the accounts (a per-resident lookup read them all again for each resident). */
@@ -236,8 +236,8 @@ async function buildGrowth(env, days, now) {
     devices: devices.results || [],
     breakdown: {
       roles: count(r => r.role), sex: count(r => r.sex || 'unknown'), lang: count(r => r.lang || 'ar'),
-      boards: count(r => (['user', 'anaesthesia', 'admin'].includes(r.role) ? r.board || 'unset' : 'n/a')),
-      stages: count(r => (['user', 'anaesthesia', 'admin'].includes(r.role) ? String(currentStage(r.stage, r.stage_ref, r.board_years, month) ?? 'unset') : 'n/a')),
+      boards: count(r => (['user', 'anaesthesia', 'branch', 'admin'].includes(r.role) ? r.board || 'unset' : 'n/a')),
+      stages: count(r => (['user', 'anaesthesia', 'branch', 'admin'].includes(r.role) ? String(currentStage(r.stage, r.stage_ref, r.board_years, month) ?? 'unset') : 'n/a')),
       recency: count(r => { const t = ago(r); return t <= DAY ? 'd1' : t <= 7 * DAY ? 'd7' : t <= 30 * DAY ? 'd30' : t <= 90 * DAY ? 'd90' : 'older'; }),
       avatars: rows.filter(r => r.avatar).length, total: rows.length,
     },

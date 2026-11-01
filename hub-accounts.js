@@ -13,7 +13,7 @@
 
     const POLL_MS = 60 * 1000;
     const SUMMARY_TTL_MS = 45 * 1000;
-    const ROLE_NAMES = { owner: 'المالك', admin: 'مدير مستشفى', anaesthesia: 'مقيم تخدير', user: 'مقيم', rotator: 'روتيتر', aa_user: 'موظف الشؤون الإدارية', aa_admin: 'مدير الشؤون الإدارية' };
+    const ROLE_NAMES = { owner: 'المالك', admin: 'مدير مستشفى', branch: 'مدير فرع', anaesthesia: 'مقيم تخدير', user: 'مقيم', rotator: 'روتيتر', aa_user: 'موظف الشؤون الإدارية', aa_admin: 'مدير الشؤون الإدارية' };
 
     // ------------------------------------------------------------------
     // Small helpers
@@ -450,6 +450,8 @@
                 return { icon: '✅', text: 'تمت الموافقة على حسابك. أهلاً بك!' };
             case 'reset_approved':
                 return { icon: '🔓', text: 'تمت الموافقة على طلب تغيير كلمة المرور.' };
+            case 'signup_auto':
+                return { icon: '✅', text: `موافقة تلقائية: ${d.name} (@${d.username}). اسمه ورقمه في قاعدة ${hospitalName(d.hosp)}.`, href: './account.html#manage-all' };
             case 'role_changed':
                 return { icon: '⭐', text: `تم تغيير صلاحياتك إلى: ${ROLE_NAMES[d.role] || d.role}` };
             case 'profile_set':

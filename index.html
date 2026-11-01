@@ -1296,6 +1296,7 @@
                     <i class="fas fa-check auth-ok" aria-hidden="true"></i>
                 </button>
                 <div class="auth-divider"><span>جديد في البوابة؟</span></div>
+                <div id="lock-signup-wait" class="auth-note" role="status" hidden style="margin:10px 0;padding:10px 12px;border-radius:12px;font-size:.8rem;font-weight:700;background:rgba(245,158,11,.14);color:#b45309"></div>
                 <a href="./account.html#signup" class="auth-btn ghost"><i class="fas fa-user-plus"></i> إنشاء حساب جديد</a>
                 <button type="button" id="shared-login-link" class="auth-muted-link" onclick="toggleSharedLogin(true)">الدخول بكلمة المرور المشتركة (مؤقتاً)</button>
             </form>
@@ -2228,6 +2229,60 @@
             }
         }
 
+        // A sign-up waiting for approval on this device (its ticket: account.html). The app may reopen here,
+        // on the sign-in screen: it keeps asking, and the approval signs the device in, in front of them.
+        (function watchSignupWait() {
+            const KEY = 'hub_signup_wait';
+            const read = () => { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } };
+            const drop = () => { try { localStorage.removeItem(KEY); } catch (e) {} };
+            const since = Date.now();
+            let busy = false, tick = 0;
+            const paint = (text, bad) => {
+                const el = document.getElementById('lock-signup-wait');
+                if (!el) return;
+                el.hidden = !text;
+                el.textContent = text || '';
+                el.style.color = bad ? '#b91c1c' : '#b45309';
+            };
+            async function check() {
+                const w = read();
+                if (!w || busy || !window.Hub) return;
+                if (Hub.auth.getAccount()) { drop(); return paint(''); }
+                busy = true;
+                paint(`طلب حسابك «${w.username || ''}» بانتظار الموافقة. عند الموافقة يتم دخولك هنا تلقائياً.`);
+                let res = null;
+                try { res = await Hub.api('POST', '/api/accounts/signup-wait', { ticket: w.ticket, deviceId: Hub.auth.deviceId(), deviceLabel: Hub.auth.deviceLabel() }, { useToken: false, retries: 0 }); } catch (e) {}
+                busy = false;
+                if (!res) return;
+                if (res.status === 'active' && res.success) {
+                    drop();
+                    paint('');
+                    Hub.auth.applyAccountLogin(res, true);
+                    document.getElementById('lock-screen').classList.add('hidden');
+                    await startHub();
+                    showToast(`✅ تمت الموافقة على حسابك. أهلاً ${res.account ? res.account.name : ''} 👋`, 'success');
+                } else if (res.status === 'rejected') {
+                    drop();
+                    paint(`❌ لم تتم الموافقة على طلب حسابك «${w.username || ''}». تواصل مع مشرف المستشفى للاستفسار.`, true);
+                } else if (res.status === 'gone') {
+                    drop();
+                    paint('');
+                } else if (res.error) {
+                    drop();
+                    paint(`✅ تمت الموافقة على حسابك. ${res.error}`, true);
+                }
+            }
+            // Every 5 seconds for the first 10 minutes, then every 15.
+            setInterval(() => {
+                if (document.hidden || !read()) return;
+                if (Date.now() - since > 600000 && ++tick % 3) return;
+                check();
+            }, 5000);
+            document.addEventListener('visibilitychange', () => { if (!document.hidden && read()) check(); });
+            if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'hub:push' && read()) check(); });
+            if (read()) setTimeout(check, 800);
+        })();
+
         async function handleHubLogin() {
             const pwd = document.getElementById('password-input').value.trim();
             const remember = document.getElementById('remember-me').checked;
@@ -2255,6 +2310,9 @@
                 } else if (Hub.auth.isAdmin()) {
                     const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
                     showToast(`تم تسجيل الدخول كمدير لـ (${hName || 'المستشفى'}) 🛡️`, 'success');
+                } else if (Hub.auth.getRole() === 'branch') {
+                    const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
+                    showToast(`تم تسجيل الدخول كمدير فرع في ${hName || 'المستشفى'}`, 'success');
                 } else if (Hub.auth.getRole() === 'anaesthesia') {
                     const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
                     showToast(`تم تسجيل الدخول كمقيم تخدير لـ (${hName || 'العناية'}) 💉`, 'success');
@@ -2302,6 +2360,9 @@
                     badgeEl.className = 'px-2.5 py-1 rounded-full text-xs font-black bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-300';
                     const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : 'مدير';
                     badgeEl.textContent = `مدير (${hName.length > 14 ? 'المستشفى' : hName}) 🛡️`;
+                } else if (role === 'branch') {
+                    badgeEl.className = 'px-2.5 py-1 rounded-full text-xs font-black bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-300';
+                    badgeEl.textContent = 'مدير فرع';
                 } else if (role === 'anaesthesia') {
                     badgeEl.className = 'px-2.5 py-1 rounded-full text-xs font-black bg-sky-100 text-sky-800 dark:bg-sky-900/50 dark:text-sky-300';
                     const hName = Hub.auth.getAdminHospitalName ? Hub.auth.getAdminHospitalName() : '';
@@ -2566,7 +2627,7 @@
             // Toggle Admin Scheduler tab in bottom dock
             const schedBtn = document.getElementById('dock-btn-scheduler');
             if (schedBtn) {
-                schedBtn.style.display = (isAdmin && !isOwner) ? 'flex' : 'none';
+                schedBtn.style.display = ((isAdmin && !isOwner) || Hub.auth.branchHospitals().length) ? 'flex' : 'none';
             }
 
             // Toggle top logout button visibility
@@ -2745,6 +2806,7 @@
                 const icon = h.icon || 'fa-hospital';
                 const location = h.location || 'العراق';
                 const isHospAdmin = Hub.auth.isAdmin(h.id);
+                const isHospBranch = !isHospAdmin && Hub.auth.isBranchAt(h.id);
                 const icuStats = Hub.aa.active ? null : (Hub.getICUStats ? Hub.getICUStats(h.id) : (h.icu || null));
                 // Administrative Affairs division of this hospital (owner, its admins and its officers).
                 const divisionBtn = !Hub.aa.active && Hub.auth.canAccessDivision(h.id) ? `
@@ -2838,6 +2900,13 @@
                                 <button type="button" onclick="exportHospitalBackupFromIndex('${h.id}')" class="ios-btn secondary" style="color:#059669;" title="تنزيل نسخة احتياطية لكافة بيانات وتخصصات ومقيمي هذا المستشفى" data-doctors-only>
                                     <i class="fas fa-download"></i> <span>نسخ احتياطي</span>
                                 </button>` : ''}
+                                ${isHospBranch ? `
+                                <a href="./scheduler.html?hospital=${h.id}" class="ios-btn secondary">
+                                    <i class="fas fa-calendar-alt"></i> <span>جدول اختصاصي</span>
+                                </a>
+                                <a href="./admin.html?hospital=${h.id}" class="ios-btn secondary">
+                                    <i class="fas fa-users"></i> <span>مقيمو المستشفى</span>
+                                </a>` : ''}
                                 ${divisionBtn}
                             </div>
 

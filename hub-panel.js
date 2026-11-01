@@ -77,6 +77,7 @@
             <div class="hacc-sheet-body hp-body" data-role="body"><div class="hacc-empty">جاري التحميل…</div></div>
             <footer class="hp-foot">
                 ${approver && !Hub.auth.isOwner() ? `<a class="hacc-btn sm" href="./scheduler.html?hospital=${encodeURIComponent((Hub.auth.getAdminHospitalIds() || [])[0] || '')}"><i class="fas fa-calendar-alt"></i> المجدول</a>` : ''}
+                ${Hub.auth.branchHospitals().map(h => `<a class="hacc-btn sm" href="./scheduler.html?hospital=${encodeURIComponent(h)}"><i class="fas fa-calendar-alt"></i> جدول اختصاصي</a><a class="hacc-btn sm" href="./admin.html?hospital=${encodeURIComponent(h)}"><i class="fas fa-users"></i> مقيمو المستشفى</a>`).join('')}
                 ${!acc ? '<a class="hacc-btn sm primary" href="./account.html#signup">إنشاء حساب شخصي</a>' : ''}
                 <button type="button" class="hacc-btn sm danger" data-act="logout"><i class="fas fa-sign-out-alt"></i> خروج</button>
             </footer>`;
@@ -572,14 +573,16 @@
         body.innerHTML = `<div class="hp-sub-head"><button type="button" class="hacc-btn sm" data-act="back"><i class="fas fa-chevron-right"></i> رجوع</button><h3>إعدادات المستشفيات</h3></div>
             <div class="hacc-empty">جاري التحميل…</div>`;
         body.querySelector('[data-act="back"]').addEventListener('click', () => show('admin'));
-        let off = [], anonOff = [], approval = [], specEdit = [], scope = [], profileLocked = [], rotCheck = [];
+        let off = [], anonOff = [], approval = [], specEdit = [], scope = [], profileLocked = [], rotCheck = [], autoOn = [];
         try {
-            const [c, x, sp, rc] = await Promise.all([
+            const [c, x, sp, rc, au] = await Promise.all([
                 Hub.api('GET', '/api/social/hospitals', undefined, { retries: 1 }),
                 Hub.api('GET', '/api/exchange/settings', undefined, { retries: 1 }),
                 Hub.api('GET', '/api/specialists/settings', undefined, { retries: 1 }),
                 Hub.api('GET', '/api/accounts/rotator-check', undefined, { retries: 1 }),
+                Hub.api('GET', '/api/accounts/auto-approve', undefined, { retries: 1 }),
             ]);
+            autoOn = au.on || [];
             off = c.off || []; anonOff = c.anonOff || []; scope = c.scope || []; approval = x.on || []; specEdit = sp.on || []; profileLocked = c.profileLocked || []; rotCheck = rc.on || [];
         } catch (err) {
             body.querySelector('.hacc-empty').textContent = errorText(err);
@@ -599,7 +602,8 @@
                 ${sw('toggle-approval', '🔁 موافقة تبديل الخفارات', ap, 'مفعّلة', 'متوقفة')}
                 ${sw('toggle-spec', '🩺 المقيمون يعدّلون أطباء اختصاصهم', se, 'مسموح', 'الإدارة فقط')}
                 ${sw('toggle-profile', '🎓 المقيمون يعدّلون معلومات البورد', pe, 'مسموح', 'الإدارة فقط')}
-                ${sw('toggle-rotcheck', '🔄 تسجيل الروتيتر برقم من قاعدة المستشفى فقط', rc, 'مفعّل', 'يقبل أي رقم')}</li>`;
+                ${sw('toggle-rotcheck', '🔄 تسجيل الروتيتر برقم من قاعدة المستشفى فقط', rc, 'مفعّل', 'يقبل أي رقم')}
+                ${sw('toggle-auto', '✅ الموافقة التلقائية على طلبات الحساب', autoOn.includes(h.id), 'تلقائية', 'يدوية')}</li>`;
         };
         const paint = () => {
             const list = hospitals.filter(h => !query || String(h.name_ar || h.hospitalName || h.id).includes(query));
@@ -629,6 +633,14 @@
                     ? `السماح لمقيمي ${name} بتعديل معلومات البورد في ملفاتهم (نوع البورد، الاختصاص، المرحلة، سنوات البورد)؟`
                     : `منع مقيمي ${name} من تعديل معلومات البورد؟ يعدّلها بعد ذلك مدير المستشفى من إدارة الحسابات فقط.`;
                 done = allow ? 'أصبح المقيمون يعدّلون معلومات البورد ✓' : 'أصبحت معلومات البورد للإدارة فقط';
+            } else if (kind === 'toggle-auto') {
+                const on = !autoOn.includes(h);
+                path = '/api/accounts/auto-approve';
+                payload = { hosp: h, on };
+                confirmText = on
+                    ? `تفعيل الموافقة التلقائية في ${name}؟\n\nمن كان اسمه ورقمه في قاعدة المستشفى يُفعَّل حسابه فور التسجيل ويدخل مباشرة كمقيم عادي، ويصلك إشعار بذلك. ومن لم يكن فيها فلا يمكنه التسجيل كمقيم أصلاً.`
+                    : `إيقاف الموافقة التلقائية في ${name}؟ كل طلب حساب ينتظر موافقة المدير أو المالك.`;
+                done = on ? 'أصبحت الموافقة على الحسابات تلقائية ✓' : 'أصبحت الموافقة على الحسابات يدوية';
             } else if (kind === 'toggle-rotcheck') {
                 const on = !rotCheck.includes(h);
                 path = '/api/accounts/rotator-check';
@@ -665,6 +677,7 @@
                 if (path === '/api/exchange/settings') approval = res.on || [];
                 else if (path === '/api/specialists/settings') specEdit = res.on || [];
                 else if (path === '/api/accounts/rotator-check') rotCheck = res.on || [];
+                else if (path === '/api/accounts/auto-approve') autoOn = res.on || [];
                 else { off = res.off || off; anonOff = res.anonOff || anonOff; profileLocked = res.profileLocked || profileLocked; }
                 toast(done, 'success');
                 paint();
@@ -720,6 +733,8 @@
         const pwSw = body.querySelector('[data-role="shared-pw"] .hp-toggle');
         Hub.api('GET', '/api/auth-config', undefined, { useToken: false, retries: 1 }).then(cfg => {
             pwSw.setAttribute('aria-checked', cfg.sharedPasswords ? 'true' : 'false');
+            body.querySelector('[data-role="icu-all"] .hp-toggle').setAttribute('aria-checked', cfg.icuAll ? 'true' : 'false');
+            try { localStorage.setItem('hub_icu_all', cfg.icuAll ? '1' : '0'); } catch (e) {}
             try { localStorage.setItem('hub_shared_pw_on', cfg.sharedPasswords ? '1' : '0'); } catch (e) {}
         }).catch(() => {});
         pwSw.addEventListener('click', async () => {

@@ -507,6 +507,7 @@
     </style>
     <link rel="stylesheet" href="./tailwind.css" />
     <link rel="stylesheet" href="./hub-ios.css" />
+    <style>.branch-mode .branch-hide { display: none !important; }</style>
 </head>
 <body class="light" id="app-body">
 
@@ -530,7 +531,7 @@
                     <div class="text-xs text-slate-500 mt-0.5" id="admin-hosp-subtitle">Basra · Iraq</div>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2 branch-hide">
                     <a href="./emergency.html" id="admin-owner-emergency-btn" class="btn-ghost text-xs" style="display:none; color:#e11d48; border-color:rgba(225,29,72,0.4); background:rgba(225,29,72,0.08);">
                         <i class="fas fa-truck-medical text-rose-500"></i> نظام خفارات الطوارئ (ER) 🚨
                     </a>
@@ -645,7 +646,7 @@
             </div>
 
             <!-- Hospital Assignment & Multi-Hospital Switch -->
-            <div class="p-3 mb-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40 space-y-2">
+            <div class="branch-hide p-3 mb-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40 space-y-2">
                 <div class="flex items-center justify-between">
                     <div>
                         <div class="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
@@ -767,7 +768,7 @@
                 </div>
 
                 <!-- Hospital Assignment & Multi-Hospital Switch -->
-                <div class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40 space-y-2">
+                <div class="branch-hide p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40 space-y-2">
                     <div class="flex items-center justify-between">
                         <div>
                             <div class="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
@@ -1482,9 +1483,12 @@
             }, duration);
         }
 
+        // A branch representative: adds and edits this hospital's residents, nothing else (the API enforces it).
+        let branchMode = false;
+
         async function initAdmin() {
-            // Strict role guard: Only owner and admin can access this page
-            if (!Hub.auth.isAdmin()) {
+            // Strict role guard: the owner and admins, and branch representatives for their hospital's residents
+            if (!Hub.auth.isAdmin() && !Hub.auth.branchHospitals().length) {
                 window.location.replace('./index.html');
                 return;
             }
@@ -1494,7 +1498,9 @@
             try {
                 await Hub.loadDatabase();
                 const targetHid = Hub.getActiveHospitalId();
-                if (!Hub.auth.isAdmin(targetHid)) {
+                branchMode = !Hub.auth.isAdmin(targetHid) && Hub.auth.isBranchAt(targetHid);
+                document.body.classList.toggle('branch-mode', branchMode);
+                if (!Hub.auth.isAdmin(targetHid) && !branchMode) {
                     alert('عذراً، لا تملك صلاحيات إدارة هذا المستشفى.');
                     window.location.replace(`./Home.html?hospital=${encodeURIComponent(targetHid)}`);
                     return;
@@ -1515,6 +1521,9 @@
                     if (Hub.auth.isOwner()) {
                         roleInd.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-300 dark:border-amber-700';
                         roleInd.innerHTML = '<i class="fas fa-crown ml-1 text-amber-500"></i> وضع المالك (صلاحيات كاملة)';
+                    } else if (branchMode) {
+                        roleInd.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300';
+                        roleInd.innerHTML = '<i class="fas fa-users ml-1 text-teal-600"></i> مدير فرع: إضافة المقيمين وتعديلهم';
                     } else {
                         roleInd.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300 border border-teal-300 dark:border-teal-700';
                         roleInd.innerHTML = '<i class="fas fa-shield-halved ml-1 text-teal-600"></i> وضع المدير';
@@ -2136,7 +2145,7 @@
                         <button type="button" onclick="openEditResident(${realIdx})" class="p-1.5 px-2 text-xs rounded-lg text-blue-600 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button type="button" onclick="deleteResident(${realIdx}, '${r.name}')" class="p-1.5 px-2 text-xs rounded-lg text-red-600 bg-red-50 dark:bg-red-900/30 hover:bg-red-100">
+                        <button type="button" onclick="deleteResident(${realIdx}, '${r.name}')" class="branch-hide p-1.5 px-2 text-xs rounded-lg text-red-600 bg-red-50 dark:bg-red-900/30 hover:bg-red-100">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -2409,6 +2418,7 @@
                 const singleHid = document.getElementById('new-res-hospital-single')?.value || Hub.getActiveHospitalId();
                 assignedHospitals = [singleHid];
             }
+            if (branchMode) assignedHospitals = [Hub.getActiveHospitalId()];
 
             const specPrefix = getSpecialtyPrefix(spec);
             const formattedName = formatDoctorName(name, specPrefix);
@@ -2546,6 +2556,11 @@
             } else {
                 const singleHid = document.getElementById('edit-res-hospital-single')?.value || Hub.getActiveHospitalId();
                 assignedHospitals = [singleHid];
+            }
+            // Their hospitals stay as they are: a branch representative does not move anyone.
+            if (branchMode) {
+                const shared = Hub.getResident(resId || currentHospital.names[idx].name);
+                assignedHospitals = (shared && shared.hospitals) || currentHospital.names[idx].hospitals || [Hub.getActiveHospitalId()];
             }
 
             const oldName = currentHospital.names[idx].name;

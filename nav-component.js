@@ -112,7 +112,7 @@
                     <a href="./signup.html${queryParam}" class="hub-nav-link ${activePageId === 'signup' ? 'active' : ''}" title="تبديل الخفارات">
                         <i class="fas fa-exchange-alt"></i> <span>تبديل الخفارات</span>
                     </a>
-                    ${(!isOwner && (isAdmin || isCurrentHospAdmin)) ? `
+                    ${(!isOwner && (isAdmin || isCurrentHospAdmin || window.Hub.auth.isBranchAt(activeHospitalId))) ? `
                     <a href="./scheduler.html${queryParam}" class="hub-nav-link ${activePageId === 'scheduler' ? 'active' : ''}" title="المجدول">
                         <i class="fas fa-calendar-alt"></i> <span>المجدول</span>
                     </a>` : ''}

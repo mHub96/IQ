@@ -1380,6 +1380,10 @@
     <link rel="stylesheet" href="./hub-accounts.css" />
     <link rel="stylesheet" href="./tailwind.css" />
     <link rel="stylesheet" href="./hub-ios.css" />
+    <style>
+        .branch-lock .view-selector:has(> [data-view]) { display: none !important; }
+        .branch-lock-one #specialty-quick-selector-wrapper { display: none !important; }
+    </style>
 </head>
 <body>
 
@@ -1639,10 +1643,11 @@
             if (window.Hub) {
                 var activeHosp = window.Hub.getActiveHospital();
                 if (activeHosp) {
-                    if (!window.Hub.auth.isAdmin(activeHosp.id)) {
+                    if (!window.Hub.auth.canUseScheduler(activeHosp.id)) {
                         window.location.href = `./schedule.html?hospital=${encodeURIComponent(activeHosp.id)}`;
                         return;
                     }
+                    applyBranchLock(activeHosp.id);
                     database = activeHosp;
                     if (!Array.isArray(database.schedule)) database.schedule = [];
                     if (!Array.isArray(database.specialistSchedule)) database.specialistSchedule = [];
@@ -1671,7 +1676,13 @@
             // Guard: Scheduler edit mode is restricted to Admins and Owner. Regular users are seamlessly routed to the Schedule Table page.
             if (window.Hub && window.Hub.auth) {
                 const hosp = window.Hub.getActiveHospitalId();
-                if (!window.Hub.auth.isAdmin(hosp)) {
+                if (!window.Hub.auth.canUseScheduler(hosp)) {
+                    // A branch representative has one place here: their own hospital's schedule.
+                    const own = window.Hub.auth.branchHospitals()[0];
+                    if (own && !window.Hub.auth.isAdmin()) {
+                        window.location.replace(`./scheduler.html?hospital=${encodeURIComponent(own)}`);
+                        return;
+                    }
                     window.location.href = `./schedule.html?hospital=${encodeURIComponent(hosp)}`;
                     return;
                 }
@@ -1811,6 +1822,7 @@
                     await window.Hub.loadDatabase();
                     var activeHosp = window.Hub.getActiveHospital();
                     if (activeHosp) {
+                        applyBranchLock(activeHosp.id);
                         database = activeHosp;
                         if (!Array.isArray(database.schedule)) database.schedule = [];
                         if (!Array.isArray(database.specialistSchedule)) database.specialistSchedule = [];
@@ -1834,9 +1846,20 @@
         // ================================================================
         // SPECIALTY MANAGEMENT
         // ================================================================
+        // A branch representative sees and edits only their specialty, in their hospital (the API enforces it).
+        var branchSpecs = null;
+        function applyBranchLock(hospitalId) {
+            var auth = window.Hub && window.Hub.auth;
+            branchSpecs = auth && !auth.isAdmin(hospitalId) && auth.isBranchAt(hospitalId) ? auth.branchSpecialties(hospitalId) : null;
+            document.body.classList.toggle('branch-lock', !!branchSpecs);
+            document.body.classList.toggle('branch-lock-one', !!branchSpecs && branchSpecs.length < 2);
+        }
+
         function buildSpecialtyList() {
             specialtyColorMap = {};
-            var enabledSpecialties = (database.specialties || []).filter(function(specialty) { return specialty.enabled !== false; });
+            var enabledSpecialties = (database.specialties || []).filter(function(specialty) {
+                return specialty.enabled !== false && (!branchSpecs || (branchSpecs.indexOf(specialty.id) !== -1 && !specialty.isClone));
+            });
             
             if (enabledSpecialties.length > 0) {
                 enabledSpecialties.forEach(function(specialty) {
@@ -3133,6 +3156,7 @@
         }
 
         function takeErDeathCertificates() {
+            if (branchSpecs) return;
             var raw = null, h = null;
             try { raw = localStorage.getItem(ER_DC_KEY); } catch (e) {}
             if (!raw) return;

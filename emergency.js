@@ -9989,19 +9989,22 @@
     //   2. death certificates: as many as possible on a day of the resident's specialty duty;
     //   3. ER: no shift outside the shifts a resident asked for;
     //   4. the calendar days a resident asked for, then the weekdays they asked for;
-    //   5. no duty the day before or after another of their duties (when they asked for none);
-    //   6. duties shared evenly when the quotas are more than the cells.
+    //   5. rest around the specialty duty: not the night shift right before it, not the morning shift
+    //      right after it;
+    //   6. no duty the day before or after another of their duties (when they asked for none);
+    //   7. duties shared evenly when the quotas are more than the cells.
     // Back-to-back days inside the sheet itself (two duties of the same sheet on neighbouring days)
-    // and an even mix of shifts are then improved by swapping cells, keeping 1-4 as they are.
+    // and varied shifts for each resident are then improved by swapping cells, keeping 1-4 as they are.
     const OPT_COST = {
         dcAligned: -10000,  // death certificate on the day of the resident's specialty duty
         offShift: 1000,     // ER shift outside the ones asked for
         wantedDay: -150,    // a calendar day the resident asked for
         offWeekday: 100,    // not one of the weekdays asked for
+        restGap: 500,       // ER: night shift ending as the specialty duty starts, or morning shift starting as it ends
         nextToDuty: 400,    // the day before / after another duty (resident asked for no back-to-back days)
         share: 20,          // each further duty of the same resident (spreads duties when cells are fewer)
         overQuota: 1000000, // death certificates only: a duty beyond the quota (only to fill every cell)
-        shiftMix: 15,       // ER: same shift again for the same resident (local search only)
+        shiftMix: 45,       // ER: same shift again for the same resident (local search only; less than one asked-for day)
     };
     const OPT_SEARCH_MS = 1200;
 
@@ -10166,6 +10169,9 @@
             let c = 0;
             if (isDc && p.hosp.has(d)) c += OPT_COST.dcAligned;
             if (isEr && p.pref && !p.pref.includes(g)) c += OPT_COST.offShift;
+            // A day's duties run 8 am to 8 am: the night shift (2-8 am) of day d ends as a duty of day d + 1
+            // starts, and the morning shift (8 am - 2 pm) of day d starts as a duty of day d - 1 ends.
+            if (isEr && ((g === 'lateNight' && p.hosp.has(d + 1)) || (g === 'morning' && p.hosp.has(d - 1)))) c += OPT_COST.restGap;
             if (p.wanted.has(d)) c += OPT_COST.wantedDay;
             if (p.weekdays && !p.weekdays.has((byDay.get(d) || {}).dayName)) c += OPT_COST.offWeekday;
             if (p.noNext && (p.other.has(d - 1) || p.other.has(d + 1) || p.locked.has(d - 1) || p.locked.has(d + 1))) c += OPT_COST.nextToDuty;

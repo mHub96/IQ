@@ -1,3 +1,5 @@
+import { roleAt, branchSpecAt } from './access.js';
+
 /**
  * A resident exchanges duties only in the specialties whose duties their name can be put in, as the
  * exchange page offers them (hub-core.js exchangeSpecialtiesFor); a rotator only in the rotators'
@@ -5,8 +7,11 @@
  * shared-password sessions have no such limit.
  */
 
-/** Personal resident and rotator accounts are limited; everyone else is not. */
-export const limitedExchanger = auth => !!auth && !!auth.a && ['user', 'anaesthesia', 'rotator'].includes(auth.r);
+/**
+ * Personal accounts are limited in a hospital where they are a resident, branch representative or
+ * rotator (their standing there: access.js); the hospital's admins and the owner are not.
+ */
+export const limitedExchanger = (auth, hosp) => !!auth && !!auth.a && ['user', 'anaesthesia', 'branch', 'rotator'].includes(roleAt(auth, hosp));
 
 /** The rotators' specialty (by its name: "Rotator" / "مقيم دوري"; its code may change). */
 const ROTATOR_NAME = s => !!s && (/rotat/i.test(s.name_en || '') || /مقيم\s*دوري|روتيتر/.test(s.name_ar || ''));
@@ -34,26 +39,9 @@ export function inSpecialty(specs, specId, r) {
 
 const parse = t => { try { return JSON.parse(t); } catch { return null; } };
 
-/**
- * The hospitals a resident covers: those of their record in the hospital database (the owner sets them
- * from the account's card, the admins from the hospital page). A resident exchanges duties in each of
- * them, as in their own, within their specialties there. Residents only (user / anaesthesia): an admin's
- * hospitals are their scope, and rotators stay in their own hospital.
- */
-export async function coveredHospitals(env, auth) {
-  if (!auth || !auth.a || !['user', 'anaesthesia'].includes(auth.r)) return new Set();
-  const row = await env.DB.prepare(
-    `SELECT json_extract(r.data, '$.hospitals') AS hs FROM accounts a
-       JOIN records r ON r.coll = 'resident' AND r.id = a.resident_id
-      WHERE a.id = ? AND a.status = 'active'`
-  ).bind(auth.a).first();
-  const hs = row && parse(row.hs);
-  return new Set(Array.isArray(hs) ? hs.filter(h => typeof h === 'string') : []);
-}
-
 /** The specialty ids of hospital `hosp` that this account may exchange duties in. */
 export async function exchangeSpecialties(env, auth, hosp) {
-  if (auth.r === 'rotator') return rotatorSpecialties(env, auth, hosp);
+  if (roleAt(auth, hosp) === 'rotator') return rotatorSpecialties(env, hosp);
   const accountId = auth.a;
   const row = await env.DB.prepare(
     `SELECT (SELECT data FROM records WHERE coll = 'resident' AND id = a.resident_id) AS res,
@@ -84,9 +72,8 @@ export async function exchangeSpecialties(env, auth, hosp) {
   return out;
 }
 
-/** A rotator: the rotators' specialty and its branches, in the rotator's own hospital only. */
-async function rotatorSpecialties(env, auth, hosp) {
-  if (auth.hosp !== hosp) return new Set();
+/** A rotator: the rotators' specialty and its branches. */
+async function rotatorSpecialties(env, hosp) {
   const [meta, hospital] = await env.DB.batch([
     env.DB.prepare("SELECT data FROM records WHERE coll = 'meta' AND id = 'globalSpecialties'"),
     env.DB.prepare("SELECT json_extract(data, '$.specialties') AS specs FROM records WHERE coll = 'hospital' AND id = ?").bind(hosp),
@@ -98,26 +85,40 @@ async function rotatorSpecialties(env, auth, hosp) {
   return new Set(own.filter(s => s && s.id && !s.isClone && isRotatorSpec(specs, s.id)).map(s => s.id));
 }
 
+/** The specialties a branch representative runs: their specialty and its branches. */
+export async function branchSpecialties(env, hosp, spec) {
+  if (!spec) return new Set();
+  const row = await env.DB.prepare("SELECT json_extract(data, '$.specialties') AS specs FROM records WHERE coll = 'hospital' AND id = ?").bind(hosp).first();
+  const specs = (row && parse(row.specs)) || [];
+  return new Set([spec, ...specs.filter(s => s && s.parentSpec === spec).map(s => s.id)]);
+}
+
 /**
- * Roster writes outside the resident's specialties: the ops (by index) to refuse. A new or changed
- * entry must be in one of them, and so must the entry it replaces or deletes.
+ * Roster writes this account may not make: the ops (by index) to refuse. In each hospital the entry
+ * and the one it replaces or deletes must be of a specialty the account's standing there allows. A
+ * branch representative's own specialty is theirs to edit, also while the hospital's exchanges need
+ * approval (`approval`: those hospitals); everything else a resident does there is a request.
  */
-export async function foreignScheduleOps(env, auth, ops) {
+export async function foreignScheduleOps(env, auth, ops, approval = new Set()) {
   const out = new Set();
-  const mine = ops.map((op, i) => ({ op, i })).filter(({ op }) => op && op.c === 'sched' && typeof op.id === 'string' && !op.ordOnly);
+  const mine = ops.map((op, i) => ({ op, i })).filter(({ op }) => op && op.c === 'sched' && typeof op.id === 'string' && !op.ordOnly && limitedExchanger(auth, op.id.split(':')[0]));
   if (!mine.length) return out;
   const { results } = await env.DB.prepare(
     "SELECT id, json_extract(data, '$.specCode') AS s FROM records WHERE coll = 'sched' AND id IN (SELECT value FROM json_each(?))"
   ).bind(JSON.stringify(mine.map(({ op }) => op.id))).all();
   const before = new Map((results || []).map(r => [r.id, r.s]));
-  const allowed = new Map();
+  const allowed = new Map(), runs = new Map();
   for (const { op, i } of mine) {
     const hosp = op.id.split(':')[0];
-    if (!allowed.has(hosp)) allowed.set(hosp, await exchangeSpecialties(env, auth, hosp));
-    const set = allowed.get(hosp);
+    if (!allowed.has(hosp)) {
+      allowed.set(hosp, await exchangeSpecialties(env, auth, hosp));
+      runs.set(hosp, await branchSpecialties(env, hosp, branchSpecAt(auth, hosp)));
+    }
+    const own = runs.get(hosp);
+    const free = approval.has(hosp) ? own : new Set([...allowed.get(hosp), ...own]);
     const old = before.get(op.id);
     const next = op.del ? undefined : op.d && op.d.specCode;
-    if ((old != null && !set.has(old)) || (!op.del && !set.has(next))) out.add(i);
+    if ((old != null && !free.has(old)) || (!op.del && !free.has(next))) out.add(i);
   }
   return out;
 }

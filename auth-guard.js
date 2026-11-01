@@ -6,7 +6,7 @@
 // the data to anyone not signed in as well.
 (function () {
     'use strict';
-    var ROLES = ['user', 'anaesthesia', 'admin', 'owner', 'rotator', 'aa_user', 'aa_admin'];
+    var ROLES = ['user', 'anaesthesia', 'branch', 'admin', 'owner', 'rotator', 'aa_user', 'aa_admin'];
     function signedIn() {
         try {
             var role = localStorage.getItem('hospital_hub_session_role');

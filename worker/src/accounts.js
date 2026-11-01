@@ -19,21 +19,22 @@ import { AA_ROLES, findOfficer, officerLink, divisionJob, addOfficer } from './a
 import { canUseEr } from './eraccess.js';
 import { ensureRotatorRecord, rotatorCheckHospitals, setRotatorCheck } from './rotators.js';
 import { residentsOf, residentList } from './revcache.js';
+import { HOSPITAL_ROLES, accessOf, accountHospitals, collapseAccess, parseCover, parseHospRoles } from './access.js';
 
 const USERNAME_RE = /^[a-z0-9][a-z0-9._]{2,23}$/;
 const KEY_RE = /^[A-Za-z0-9+/]{43}=$/; // 32 bytes, base64
 const HOSP_RE = /^[\w-]{1,48}$/;
 const DEVICE_RE = /^[A-Za-z0-9_-]{16,64}$/;
-const ACCOUNT_ROLES = ['user', 'anaesthesia', 'admin', 'owner', 'rotator', ...AA_ROLES];
+const ACCOUNT_ROLES = ['user', 'anaesthesia', 'branch', 'admin', 'owner', 'rotator', ...AA_ROLES];
 // Roles a hospital admin may give when approving or managing a resident of their hospital (never
 // owner), and an officer of the hospital's Administrative Affairs division (division user or admin).
 // A resident can also be made a rotator (and back again, see decide).
-const ADMIN_GIVES = ['user', 'anaesthesia', 'admin', 'rotator'];
+const ADMIN_GIVES = ['user', 'anaesthesia', 'branch', 'admin', 'rotator'];
 // Resident roles: the only accounts that can become rotators.
-const RESIDENT_ROLES = ['user', 'anaesthesia', 'admin'];
+const RESIDENT_ROLES = ['user', 'anaesthesia', 'branch', 'admin'];
 const ADMIN_GIVES_AA = AA_ROLES;
 // Accounts a hospital admin manages (never other admins or the owner).
-const ADMIN_MANAGES = ['user', 'anaesthesia', 'rotator', ...AA_ROLES];
+const ADMIN_MANAGES = ['user', 'anaesthesia', 'branch', 'rotator', ...AA_ROLES];
 // Roles without hospital scope (rights come from the role alone, or from the account's own hospital).
 const UNSCOPED = ['user', 'owner', 'rotator', ...AA_ROLES];
 // Accounts without a resident profile (board, specialty, stage): rotators and division officers.
@@ -43,7 +44,7 @@ const ANAESTHESIA_CODES = ['A', 'ICU', 'OP', 'GA'];
 const ROTATOR_NAME_RE = /^[\p{L}][\p{L}\p{M} .'-]{3,59}$/u;
 const RESET_VALID_MS = 3 * DAY;
 const ACTIVE_WRITE_MS = 60 * 60 * 1000; // last_seen is refreshed at most hourly (D1 write budget)
-const PUBLIC_FIELDS = `id, username, name, phone, sex, hosp, resident_id, role, hospitals, status, max_devices,
+const PUBLIC_FIELDS = `id, username, name, phone, sex, hosp, resident_id, role, hospitals, hosp_roles, cover, status, max_devices,
   anon_tag, anon_lang, reset, reset_at, created_at, decided_at, decided_by, last_seen,
   board, specialty, stage, stage_ref, board_years, profile_src, avatar, aa_job, aa_job_name, no_comment, warnings`;
 
@@ -73,6 +74,8 @@ export async function routeAccounts(path, method, request, env, auth, url, ctx) 
     case 'GET /api/accounts/anon-check': return anonCheck(env, auth, url);
     case 'GET /api/accounts/profile-suggest': return profileSuggest(env, auth);
     case 'POST /api/accounts/profile': return saveProfile(request, env, auth);
+    case 'GET /api/accounts/auto-approve': return autoApproveSettings(env, auth);
+    case 'POST /api/accounts/auto-approve': return setAutoApprove(request, env, auth);
     case 'POST /api/accounts/avatar': return saveAvatar(request, env, auth);
     case 'GET /api/accounts/received': return receivedComments(env, auth, url);
     case 'GET /api/accounts/stage-month': return json({ ok: true, month: await getStageMonth(env) });
@@ -127,18 +130,20 @@ async function issueAccountToken(env, row, deviceId, remember) {
  */
 export async function resolveAccountAuth(env, payload) {
   const row = await env.DB.prepare(
-    `SELECT a.id, a.role, a.hospitals, a.status, a.sess, a.name, a.hosp, a.anon_tag, a.sex, a.avatar, d.device_id AS dev
+    `SELECT a.id, a.role, a.hospitals, a.hosp_roles, a.cover, a.status, a.sess, a.name, a.hosp, a.anon_tag, a.sex, a.avatar, d.device_id AS dev
        FROM accounts a LEFT JOIN account_devices d ON d.account_id = a.id AND d.device_id = ?2
       WHERE a.id = ?1`
   ).bind(payload.a, payload.dv || '').first();
   if (!row || row.status !== 'active' || row.sess !== payload.s || !row.dev) return null;
-  return { r: row.role, h: scopeOf(row), e: payload.e, a: row.id, name: row.name, hosp: row.hosp, anon: row.anon_tag, sex: row.sex, avatar: row.avatar, dv: payload.dv };
+  return { r: row.role, h: scopeOf(row), x: parseHospRoles(row.hosp_roles), cov: parseCover(row.cover), e: payload.e, a: row.id, name: row.name, hosp: row.hosp, anon: row.anon_tag, sex: row.sex, avatar: row.avatar, dv: payload.dv };
 }
 
 function profile(row, stageMonth = 10) {
   if (!row) return null;
-  const { pw, salt, anon_key, devices, ...rest } = row;
+  const { pw, salt, anon_key, devices, reset_ticket, ...rest } = row;
   const out = { ...rest, hospitals: scopeOf(row) };
+  if ('hosp_roles' in row) out.hosp_roles = parseHospRoles(row.hosp_roles);
+  if ('cover' in row) out.cover = parseCover(row.cover);
   if ('avatar' in row) out.avatar = parseAvatar(row.avatar);
   if ('roster_spec' in row) {
     delete out.roster_spec;
@@ -333,17 +338,19 @@ async function signup(request, env, ip, ctx) {
   const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
   const pw = await sha256b64(salt + key);
   const note = JSON.stringify({ id, name: match.name, username, hosp });
+  const auto = await autoApproved(env, hosp);
   // Profile filled in from the roster and the ER scheduler; the user confirms or edits it later.
-  const auto = await suggestProfile(env, { name: match.name, hosp, residentId: match.id, phone: pk }).catch(() => ({}));
+  const suggested = await suggestProfile(env, { name: match.name, hosp, residentId: match.id, phone: pk }).catch(() => ({}));
   try {
     const results = await withUniqueNick(sex, lang, (tag, tagKey) => env.DB.batch([
       env.DB.prepare(
         `INSERT INTO accounts (id, username, pw, salt, name, name_key, phone, sex, hosp, resident_id, anon_tag, anon_key, anon_lang, created_at,
-                               board, specialty, stage, stage_ref, profile_src)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                               board, specialty, stage, stage_ref, profile_src, status, decided_at, decided_by, cover)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(id, username, pw, salt, match.name, nameKey(match.name), pk, sex, hosp, match.id || null, tag, tagKey, lang, now,
-        auto.board || null, auto.specialty || null, auto.stage ?? null, auto.stage != null ? now : null, auto.source && auto.source.length ? 'auto' : null),
-      notifyApprovers(env, hosp, 'signup:' + id, 'signup_request', note, now),
+        suggested.board || null, suggested.specialty || null, suggested.stage ?? null, suggested.stage != null ? now : null, suggested.source && suggested.source.length ? 'auto' : null,
+        auto ? 'active' : 'pending', auto ? now : null, auto ? AUTO_BY : null, match.hospitals ? String(match.hospitals) : JSON.stringify([hosp])),
+      notifyApprovers(env, hosp, 'signup:' + id, auto ? 'signup_auto' : 'signup_request', note, now),
     ]));
     dispatchPush(env, ctx, results[1]);
   } catch (err) {
@@ -352,6 +359,7 @@ async function signup(request, env, ip, ctx) {
     if (/resident_id|idx_accounts_resident/.test(msg)) return json({ error: 'already_registered' }, 409);
     throw err;
   }
+  if (auto) return signInApproved(env, id, body, match.name);
   return json({ ok: true, status: 'pending', name: match.name, ticket: await waitTicket(env, id, body) });
 }
 
@@ -412,14 +420,17 @@ async function signupRotator(request, env, ip, ctx) {
   const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
   const pw = await sha256b64(salt + key);
   const note = JSON.stringify({ id, name: accName, username, hosp, rotator: true });
+  // Automatic approval needs the name and number in the hospital's database.
+  const auto = !!linked && await autoApproved(env, hosp);
   try {
     const results = await withUniqueNick(sex, lang, (tag, tagKey) => env.DB.batch([
       // name_key is private to the account so a rotator never receives a resident's duty-card notifications.
       env.DB.prepare(
-        `INSERT INTO accounts (id, username, pw, salt, name, name_key, phone, sex, hosp, resident_id, role, anon_tag, anon_key, anon_lang, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'rotator', ?, ?, ?, ?)`
-      ).bind(id, username, pw, salt, accName, 'rotator:' + id, phone, sex, hosp, linked ? linked.id || null : null, tag, tagKey, lang, now),
-      notifyApprovers(env, hosp, 'signup:' + id, 'signup_request', note, now),
+        `INSERT INTO accounts (id, username, pw, salt, name, name_key, phone, sex, hosp, resident_id, role, anon_tag, anon_key, anon_lang, created_at, status, decided_at, decided_by)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'rotator', ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(id, username, pw, salt, accName, 'rotator:' + id, phone, sex, hosp, linked ? linked.id || null : null, tag, tagKey, lang, now,
+        auto ? 'active' : 'pending', auto ? now : null, auto ? AUTO_BY : null),
+      notifyApprovers(env, hosp, 'signup:' + id, auto ? 'signup_auto' : 'signup_request', note, now),
     ]));
     dispatchPush(env, ctx, results[1]);
   } catch (err) {
@@ -427,6 +438,7 @@ async function signupRotator(request, env, ip, ctx) {
     if (/resident_id|idx_accounts_resident/.test(String(err && err.message || err))) return json({ error: 'already_registered' }, 409);
     throw err;
   }
+  if (auto) return signInApproved(env, id, body, accName);
   return json({ ok: true, status: 'pending', name: accName, linked: !!linked, ticket: await waitTicket(env, id, body) });
 }
 
@@ -505,7 +517,7 @@ export function notifyApprovers(env, hosp, gkey, type, data, now) {
 export function notifyHospitalResidents(env, hosp, gkey, type, data, now) {
   return env.DB.prepare(
     `INSERT INTO notifications (account_id, gkey, type, data, ts, seen)
-     SELECT id, ?1, ?2, ?3, ?4, 0 FROM accounts WHERE status = 'active' AND hosp = ?5 AND role IN ('user', 'anaesthesia', 'admin')
+     SELECT id, ?1, ?2, ?3, ?4, 0 FROM accounts WHERE status = 'active' AND hosp = ?5 AND role IN ('user', 'anaesthesia', 'branch', 'admin')
      ON CONFLICT (account_id, gkey) DO UPDATE SET data = excluded.data, ts = excluded.ts, seen = 0
      ${RETURNING}`
   ).bind(gkey, type, data, now, hosp);
@@ -536,7 +548,7 @@ function startText(ms) {
   return `${WEEKDAY_AR[d.getUTCDay()]} ${d.getUTCDate()}/${d.getUTCMonth() + 1} · ${h % 12 || 12}:${String(d.getUTCMinutes()).padStart(2, '0')} ${h < 12 ? 'ص' : 'م'}`;
 }
 
-const ROLE_AR = { owner: 'المالك', admin: 'مدير مستشفى', anaesthesia: 'مقيم تخدير', user: 'مقيم', rotator: 'روتيتر', aa_user: 'موظف الشؤون الإدارية', aa_admin: 'مدير الشؤون الإدارية' };
+const ROLE_AR = { owner: 'المالك', admin: 'مدير مستشفى', branch: 'مدير فرع', anaesthesia: 'مقيم تخدير', user: 'مقيم', rotator: 'روتيتر', aa_user: 'موظف الشؤون الإدارية', aa_admin: 'مدير الشؤون الإدارية' };
 
 /** Lock-screen text for one notification row (the in-app list builds its own, richer text). */
 function pushMessage(n) {
@@ -549,6 +561,7 @@ function pushMessage(n) {
     case 'comment': return { title: '💬 تعليق جديد على بطاقتك', body: `${d.last || 'أحدهم'}: ${d.text || ''}`, url: card };
     case 'reply': return { title: '↩️ ردّ على تعليقك', body: `${d.last || 'أحدهم'}: ${d.text || ''}`, url: card };
     case 'signup_request': return { title: '🆕 طلب حساب جديد', body: `${d.name || ''} (@${d.username || ''})`, url: './account.html#manage' };
+    case 'signup_auto': return { title: '✅ موافقة تلقائية على حساب', body: `${d.name || ''} (@${d.username || ''}): اسمه ورقمه في قاعدة المستشفى.`, url: './account.html#manage-all' };
     case 'reset_request': return { title: '🔑 طلب تغيير كلمة المرور', body: `${d.name || ''} (@${d.username || ''})`, url: './account.html#manage-resets' };
     case 'account_approved': return { title: '✅ تم تفعيل حسابك', body: 'وافق مشرف المستشفى على حسابك. افتح التطبيق لتدخل مباشرة.', url: './index.html?portal=true' };
     case 'account_rejected': return { title: '❌ لم تتم الموافقة على حسابك', body: 'رفض مشرف المستشفى طلب الحساب. تواصل معه للاستفسار.', url: './account.html#signin' };
@@ -650,6 +663,43 @@ async function pushTest(env, auth, ctx) {
 // signs that device in, and once rejected it says so. The device can also hand in its push
 // subscription with the ticket, so the approval (or the rejection) reaches it while the app is closed.
 
+/**
+ * Automatic approval of sign-ups, per hospital (kv 'auto_approve': JSON array of ids; off by default).
+ * With it on, a sign-up whose name and number are in the hospital's database is active at once and
+ * signed in on its device, and the hospital's admins and the owner are told it happened.
+ */
+const AUTO_BY = 'تلقائي';
+const autoApproved = async (env, hosp) => (await hospitalList(env, 'auto_approve')).includes(hosp);
+
+async function autoApproveSettings(env, auth) {
+  if (!canApprove(auth)) return json({ error: 'forbidden' }, 403);
+  return json({ ok: true, on: await hospitalList(env, 'auto_approve') });
+}
+
+/** Body: { hosp, on }. The owner switches any hospital, an admin their own. */
+async function setAutoApprove(request, env, auth) {
+  if (!canApprove(auth)) return json({ error: 'forbidden' }, 403);
+  const body = await readJson(request) || {};
+  const hosp = String(body.hosp || '');
+  if (!HOSP_RE.test(hosp) || typeof body.on !== 'boolean') return json({ error: 'bad_request' }, 400);
+  if (!hospInScope(auth, hosp)) return json({ error: 'forbidden' }, 403);
+  const on = new Set(await hospitalList(env, 'auto_approve'));
+  if (body.on) on.add(hosp); else on.delete(hosp);
+  await env.DB.batch([
+    env.DB.prepare("INSERT INTO kv (k, v) VALUES ('auto_approve', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v").bind(JSON.stringify([...on])),
+    env.DB.prepare('INSERT INTO audit (ts, role, msg, n) VALUES (?, ?, ?, 1)').bind(Date.now(), auth.a ? `${auth.r}:${auth.name || auth.a}` : auth.r, `Automatic sign-up approval ${body.on ? 'on' : 'off'} (${hosp})`),
+  ]);
+  return json({ ok: true, on: [...on] });
+}
+
+/** The reply to a sign-up approved at once: signed in on the device that sent it. */
+async function signInApproved(env, id, body, name) {
+  const row = await env.DB.prepare('SELECT * FROM accounts WHERE id = ?').bind(id).first();
+  const res = await finishLogin(env, row, { ...body, remember: true });
+  const out = await res.json().catch(() => null);
+  return json({ ok: true, status: 'active', auto: true, name, ...(out && out.success ? out : {}) });
+}
+
 async function waitTicket(env, accountId, body) {
   const secret = b64(crypto.getRandomValues(new Uint8Array(24))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   const deviceId = DEVICE_RE.test(String(body.deviceId || '')) ? String(body.deviceId) : null;
@@ -664,7 +714,7 @@ async function waitTicket(env, accountId, body) {
 }
 
 async function signupWait(request, env, ip) {
-  if (await overLimit(env, 'swait:' + ip, 240)) return json({ error: 'rate_limited' }, 429);
+  if (await overLimit(env, 'swait:' + ip, 600)) return json({ error: 'rate_limited' }, 429);
   const body = await readJson(request) || {};
   const [accountId, secret] = String(body.ticket || '').split('.');
   if (!accountId || !secret || accountId.length > 64 || secret.length > 64) return json({ status: 'gone' });
@@ -838,45 +888,74 @@ async function removeOwnDevice(request, env, auth) {
   return json({ ok: true, self: deviceId === auth.dv });
 }
 
-/** Always answers the same way, so it cannot be used to find out who has an account. */
+/**
+ * The account a forgotten-password request is for. The username and phone together; or the phone alone
+ * (the username is forgotten too), when one account has it; or the username alone for an account with no
+ * phone on file. Whoever approves the request confirms it is really them.
+ */
+async function resetAccount(env, username, pk) {
+  if (USERNAME_RE.test(username)) {
+    const row = await env.DB.prepare('SELECT * FROM accounts WHERE username = ?').bind(username).first();
+    if (row && row.status === 'active' && (!row.phone || (pk && row.phone === pk))) return row;
+  }
+  if (!pk) return null;
+  const { results } = await env.DB.prepare("SELECT * FROM accounts WHERE phone = ? AND status = 'active' LIMIT 2").bind(pk).all();
+  return results.length === 1 ? results[0] : null;
+}
+const resetApproved = row => row.reset === 'approved' && Date.now() - row.reset_at < RESET_VALID_MS;
+
+/**
+ * Sends the request to the account's hospital admins and the owner, and tells the sender plainly when
+ * these details match no account (a request nobody receives helps nobody). The answer carries a
+ * ticket: only this device can set the new password once the request is approved.
+ */
 async function forgot(request, env, ip, ctx) {
   if (await overLimit(env, 'forgot:' + ip, 10)) return json({ error: 'rate_limited' }, 429);
   const body = await readJson(request);
   if (!body) return json({ error: 'bad_request' }, 400);
   const username = String(body.username || '').trim().toLowerCase();
   const pk = phoneKey(body.phone);
-  const row = USERNAME_RE.test(username) && pk
-    ? await env.DB.prepare('SELECT id, name, hosp, phone, status, reset FROM accounts WHERE username = ?').bind(username).first()
-    : null;
-  if (row && row.phone === pk && row.status === 'active' && row.reset !== 'approved') {
-    const now = Date.now();
-    const results = await env.DB.batch([
-      env.DB.prepare("UPDATE accounts SET reset = 'requested', reset_at = ? WHERE id = ?").bind(now, row.id),
-      notifyApprovers(env, row.hosp, 'reset:' + row.id, 'reset_request', JSON.stringify({ id: row.id, name: row.name, username, hosp: row.hosp }), now),
-    ]);
-    dispatchPush(env, ctx, results[1]);
-  }
-  return json({ ok: true });
+  const row = await resetAccount(env, username, pk);
+  if (!row) return json({ ok: true, state: 'no_match' });
+  const now = Date.now();
+  const secret = b64(crypto.getRandomValues(new Uint8Array(24))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  // Asking again a moment later does not ring the approvers again.
+  const recent = row.reset === 'requested' && now - row.reset_at < 10 * 60 * 1000;
+  const results = await env.DB.batch([
+    env.DB.prepare("UPDATE accounts SET reset = 'requested', reset_at = ?, reset_ticket = ? WHERE id = ?").bind(now, await sha256b64(secret), row.id),
+    notifyApprovers(env, row.hosp, 'reset:' + row.id, 'reset_request', JSON.stringify({ id: row.id, name: row.name, username: row.username, hosp: row.hosp }), now),
+  ]);
+  if (!recent) dispatchPush(env, ctx, results[1]);
+  return json({ ok: true, state: 'requested', ticket: `${row.id}.${secret}` });
 }
 
 /**
- * Without `key`: reports the state of the request ('none' | 'requested' | 'approved').
- * With `key`: sets the new password once an approver has allowed it.
+ * Without `key`: reports the state of the request ('none' | 'requested' | 'approved'), and the username
+ * once approved. With `key`: sets the new password once an approver has allowed it. Needs the ticket
+ * of the device that asked (a request from before tickets: the username and phone).
  */
 async function resetPassword(request, env, ip) {
   if (await overLimit(env, 'reset:' + ip, 30)) return json({ error: 'rate_limited' }, 429);
   const body = await readJson(request);
   if (!body) return json({ error: 'bad_request' }, 400);
-  const username = String(body.username || '').trim().toLowerCase();
-  const pk = phoneKey(body.phone);
-  const row = USERNAME_RE.test(username) && pk ? await env.DB.prepare('SELECT * FROM accounts WHERE username = ?').bind(username).first() : null;
-  if (!row || row.phone !== pk || row.status !== 'active') return json({ ok: true, state: 'none' });
-  const approved = row.reset === 'approved' && Date.now() - row.reset_at < RESET_VALID_MS;
-  if (!body.key) return json({ ok: true, state: approved ? 'approved' : (row.reset === 'requested' ? 'requested' : 'none') });
+  const [accountId, secret] = String(body.ticket || '').split('.');
+  let row = null;
+  if (accountId && secret && accountId.length <= 64 && secret.length <= 64) {
+    row = await env.DB.prepare('SELECT * FROM accounts WHERE id = ?').bind(accountId).first();
+    if (row && (!row.reset_ticket || row.reset_ticket !== await sha256b64(secret))) row = null;
+  } else {
+    const username = String(body.username || '').trim().toLowerCase();
+    const pk = phoneKey(body.phone);
+    row = USERNAME_RE.test(username) && pk ? await env.DB.prepare('SELECT * FROM accounts WHERE username = ?').bind(username).first() : null;
+    if (row && (row.phone !== pk || row.reset_ticket)) row = null;
+  }
+  if (!row || row.status !== 'active') return json({ ok: true, state: 'none' });
+  const approved = resetApproved(row);
+  if (!body.key) return json({ ok: true, state: approved ? 'approved' : (row.reset === 'requested' ? 'requested' : 'none'), username: approved ? row.username : undefined });
   if (!approved) return json({ error: 'not_approved' }, 403);
   if (!KEY_RE.test(String(body.key))) return json({ error: 'bad_key' }, 400);
   const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
-  await env.DB.prepare('UPDATE accounts SET pw = ?, salt = ?, sess = sess + 1, reset = NULL, reset_at = NULL WHERE id = ?')
+  await env.DB.prepare('UPDATE accounts SET pw = ?, salt = ?, sess = sess + 1, reset = NULL, reset_at = NULL, reset_ticket = NULL WHERE id = ?')
     .bind(await sha256b64(salt + body.key), salt, row.id).run();
   return json({ ok: true, state: 'done' });
 }
@@ -946,7 +1025,12 @@ async function listAccounts(env, auth, url) {
        FROM account_devices d WHERE d.account_id = accounts.id) AS devices`;
   const stmt = seesAll(auth)
     ? env.DB.prepare(`SELECT ${fields} FROM accounts WHERE ${where} ORDER BY created_at DESC LIMIT 500`)
-    : env.DB.prepare(`SELECT ${fields} FROM accounts WHERE ${where} AND hosp IN (SELECT value FROM json_each(?)) ORDER BY created_at DESC LIMIT 500`).bind(JSON.stringify(auth.h || []));
+    : env.DB.prepare(
+      `SELECT ${fields} FROM accounts WHERE ${where} AND (hosp IN (SELECT value FROM json_each(?1))
+          OR EXISTS (SELECT 1 FROM json_each(COALESCE(cover, '[]')) WHERE value IN (SELECT value FROM json_each(?1)))
+          OR EXISTS (SELECT 1 FROM json_each(COALESCE(hosp_roles, '{}')) WHERE key IN (SELECT value FROM json_each(?1)))
+          OR EXISTS (SELECT 1 FROM json_each(hospitals) WHERE value IN (SELECT value FROM json_each(?1))))
+        ORDER BY created_at DESC LIMIT 500`).bind(JSON.stringify(auth.h || []));
   const { results } = await stmt.all();
   const month = await getStageMonth(env);
   return json({ ok: true, accounts: results.map(r => profile(r, month)), scope: seesAll(auth) ? ['*'] : auth.h, stageMonth: month });
@@ -957,6 +1041,7 @@ async function listAccounts(env, auth, url) {
  * action: approve | reject | disable | enable | approve_reset | deny_reset | set_role |
  *         set_devices | remove_device | reset_devices | delete
  * Admins act only on plain user accounts of their own hospitals; roles and deletion are the owner's.
+ * An admin of a hospital the account only covers: its role in that hospital, and password requests.
  */
 async function decide(request, env, auth, ctx) {
   if (!canApprove(auth)) return json({ error: 'forbidden' }, 403);
@@ -971,7 +1056,15 @@ async function decide(request, env, auth, ctx) {
   // officer's division role.
   // Another admin of the admin's own hospital(s): only their role can be changed.
   const peerAdmin = !isOwner && row.role === 'admin' && scopeOf(row).length > 0 && scopeOf(row).every(h => h !== '*' && hospInScope(auth, h));
-  if (!isOwner && (!hospInScope(auth, row.hosp) || !(ADMIN_MANAGES.includes(row.role) || peerAdmin) || row.id === auth.a)) return json({ error: 'forbidden' }, 403);
+  const standsHere = !isOwner && accountHospitals(row).some(h => hospInScope(auth, h));
+  // A resident's role is per hospital: an admin's change of type applies to the account's hospital only.
+  if (!isOwner && body.action === 'set_role' && !AA_ROLES.includes(row.role) && HOSPITAL_ROLES.includes(body.role)) {
+    body.action = 'set_access';
+    body.access = { [row.hosp]: { r: body.role, s: body.spec } };
+  }
+  if (body.action === 'set_access') return setAccess(env, auth, row, body, ctx, standsHere);
+  const secondHospital = standsHere && !hospInScope(auth, row.hosp) && ['approve_reset', 'deny_reset'].includes(body.action);
+  if (!isOwner && !secondHospital && (!hospInScope(auth, row.hosp) || !(ADMIN_MANAGES.includes(row.role) || peerAdmin) || row.id === auth.a)) return json({ error: 'forbidden' }, 403);
   // Admins also switch a resident between regular, anaesthesia, admin and rotator, and an officer
   // between division user and division admin; they edit residents' board information too.
   const adminMay = peerAdmin ? body.action === 'set_role'
@@ -996,6 +1089,8 @@ async function decide(request, env, auth, ctx) {
   let role = row.role, hospitals = scopeOf(row);
   if (body.role !== undefined || body.hospitals !== undefined) {
     if (isOwner) {
+      // A branch representative runs a specialty of a hospital: set_access says which.
+      if (body.role === 'branch') return json({ error: 'bad_request' }, 400);
       role = ACCOUNT_ROLES.includes(body.role) ? body.role : row.role;
       hospitals = Array.isArray(body.hospitals) ? body.hospitals.map(String).filter(h => h === '*' || HOSP_RE.test(h)).slice(0, 50) : hospitals;
     } else {
@@ -1007,7 +1102,7 @@ async function decide(request, env, auth, ctx) {
       hospitals = [row.hosp];
     }
     if (!UNSCOPED.includes(role) && !hospitals.length) hospitals = [row.hosp];
-    stmts.push(env.DB.prepare('UPDATE accounts SET role = ?, hospitals = ? WHERE id = ?').bind(role, JSON.stringify(UNSCOPED.includes(role) ? [] : hospitals), row.id));
+    stmts.push(env.DB.prepare('UPDATE accounts SET role = ?, hospitals = ?, hosp_roles = NULL WHERE id = ?').bind(role, JSON.stringify(UNSCOPED.includes(role) ? [] : hospitals), row.id));
     // A rotator's name key is private to the account, so its duty cards are never theirs; a resident
     // again takes the key of their name back (their duty cards, likes and comments).
     if (role === 'rotator' && row.role !== 'rotator') stmts.push(env.DB.prepare('UPDATE accounts SET name_key = ? WHERE id = ?').bind('rotator:' + row.id, row.id));
@@ -1046,7 +1141,7 @@ async function decide(request, env, auth, ctx) {
       notes.push(stmts.push(notifyOne(env, row.id, 'reset', 'reset_approved', JSON.stringify({ by: auth.name || null }), now)) - 1);
       break;
     case 'deny_reset':
-      stmts.push(env.DB.prepare('UPDATE accounts SET reset = NULL, reset_at = NULL WHERE id = ?').bind(row.id));
+      stmts.push(env.DB.prepare('UPDATE accounts SET reset = NULL, reset_at = NULL, reset_ticket = NULL WHERE id = ?').bind(row.id));
       break;
     case 'set_role':
       if (body.role === undefined) return json({ error: 'bad_request' }, 400);
@@ -1128,6 +1223,55 @@ async function decide(request, env, auth, ctx) {
   return json({ ok: true, account: profile(updated, await getStageMonth(env)) });
 }
 
+/**
+ * Body: { id, access: { hospital: { r, s } } }: the account's role in those hospitals (s: a branch
+ * representative's specialty; r '': none there). The owner sets any hospital, an admin only their own;
+ * its roles in other hospitals stay as they are.
+ */
+async function setAccess(env, auth, row, body, ctx, standsHere) {
+  const isOwner = auth.r === 'owner';
+  if (!isOwner && (!standsHere || row.id === auth.a)) return json({ error: 'forbidden' }, 403);
+  if (row.role === 'owner' || AA_ROLES.includes(row.role)) return json({ error: 'forbidden' }, 403);
+  const changes = body.access && typeof body.access === 'object' ? Object.entries(body.access) : [];
+  if (!changes.length) return json({ error: 'bad_request' }, 400);
+  const next = accessOf(row);
+  for (const [h, v] of changes) {
+    if (!HOSP_RE.test(h)) return json({ error: 'bad_request' }, 400);
+    if (!isOwner && !hospInScope(auth, h)) return json({ error: 'forbidden' }, 403);
+    const r = String((v && v.r) || '');
+    if (!r) {
+      if (!isOwner) return json({ error: 'forbidden' }, 403);
+      delete next[h];
+      continue;
+    }
+    if (!HOSPITAL_ROLES.includes(r) || (!isOwner && !ADMIN_GIVES.includes(r))) return json({ error: 'forbidden' }, 403);
+    // One who signed up as a rotator has no record in the hospital database: their type stays.
+    if (row.role === 'rotator' && !row.resident_id && r !== 'rotator') return json({ error: 'rotator_fixed' }, 403);
+    const s = r === 'branch' ? plainText(v.s, 32) : '';
+    if (r === 'branch' && !s) return json({ error: 'no_specialty' }, 400);
+    next[h] = s ? { r, s } : { r };
+  }
+  const now = Date.now();
+  const by = auth.a ? `${auth.r}:${auth.name || auth.a}` : auth.r;
+  const { role, hospitals, hosp_roles } = collapseAccess(next, scopeOf(row).includes('*'));
+  const stmts = [env.DB.prepare('UPDATE accounts SET role = ?, hospitals = ?, hosp_roles = ? WHERE id = ?').bind(role, JSON.stringify(hospitals), hosp_roles, row.id)];
+  // A rotator's name key is private to the account; a resident again takes the key of their name back.
+  if (role === 'rotator' && row.role !== 'rotator') stmts.push(env.DB.prepare('UPDATE accounts SET name_key = ? WHERE id = ?').bind('rotator:' + row.id, row.id));
+  if (role !== 'rotator' && row.role === 'rotator') stmts.push(env.DB.prepare('UPDATE accounts SET name_key = ? WHERE id = ?').bind(nameKey(row.name), row.id));
+  const changed = role !== row.role || JSON.stringify(hospitals) !== JSON.stringify(scopeOf(row)) || hosp_roles !== (row.hosp_roles || null);
+  const note = changed ? stmts.push(notifyOne(env, row.id, 'role', 'role_changed', JSON.stringify({ role, hospitals, access: next }), now)) - 1 : -1;
+  stmts.push(env.DB.prepare('INSERT INTO audit (ts, role, msg, n) VALUES (?, ?, ?, 1)').bind(now, by, `Account access: ${row.username} ${JSON.stringify(Object.fromEntries(changes.map(([h, v]) => [h, (v && v.r) || ''])))}`));
+  const results = await env.DB.batch(stmts);
+  if (note >= 0) dispatchPush(env, ctx, results[note]);
+  const updated = await env.DB.prepare(
+    `SELECT ${PUBLIC_FIELDS},
+            (SELECT json_group_array(json_object('id', device_id, 'label', label, 'first', first_seen, 'last', last_seen))
+               FROM account_devices d WHERE d.account_id = accounts.id) AS devices
+       FROM accounts WHERE id = ?`
+  ).bind(row.id).first();
+  return json({ ok: true, account: profile(updated, await getStageMonth(env)) });
+}
+
 // ---------------------------------------------------------------------------
 // Resident profile (board, specialty, stage) and the comments a resident received
 // ---------------------------------------------------------------------------
@@ -1191,7 +1335,7 @@ async function erProfiles(env, auth, url) {
   if (!(await canUseEr(env, auth, hosp))) return json({ error: 'forbidden' }, 403);
   const { results } = await env.DB.prepare(
     `SELECT id, resident_id, phone, sex, board, specialty, stage, stage_ref, board_years FROM accounts
-      WHERE hosp = ? AND status = 'active' AND role IN ('user', 'anaesthesia', 'admin')`
+      WHERE hosp = ? AND status = 'active' AND role IN ('user', 'anaesthesia', 'branch', 'admin')`
   ).bind(hosp).all();
   const month = await getStageMonth(env);
   return json({ ok: true, profiles: results.map(r => ({
@@ -1692,6 +1836,7 @@ export async function mirrorResident(env, id, before, after, by) {
   const hosps = Array.isArray(after.hospitals) && after.hospitals.length ? after.hospitals.map(String) : null;
   stmts.push(env.DB.prepare(
     `UPDATE accounts SET name = ?1, name_key = CASE WHEN role = 'rotator' THEN name_key ELSE ?2 END, phone = COALESCE(?3, phone),
+            cover = COALESCE(?4, cover),
             hosp = CASE WHEN ?4 IS NULL OR hosp IN (SELECT value FROM json_each(?4)) THEN hosp ELSE json_extract(?4, '$[0]') END
       WHERE resident_id = ?5 AND role NOT IN ('aa_user', 'aa_admin')`
   ).bind(newName, newKey, pk || null, hosps ? JSON.stringify(hosps) : null, id));

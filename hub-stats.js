@@ -22,7 +22,7 @@
     const longDay = d => { const [y, m, day] = d.split('-').map(Number); return `${day} ${MONTHS[m - 1]} ${y}`; };
     const hourText = h => `${h % 12 || 12} ${h < 12 ? 'ص' : 'م'}`;
     const C = { blue: '#0a84ff', green: '#30b158', orange: '#ff9f0a', pink: '#ff375f', purple: '#8e5cf7', teal: '#2bb3c0', gray: '#8e8e93', indigo: '#5856d6', red: '#ff453a', yellow: '#e6b800' };
-    const ROLE_AR = { owner: 'المالك', admin: 'مدير مستشفى', anaesthesia: 'مقيم تخدير', user: 'مقيم', rotator: 'روتيتر', aa_user: 'موظف إداري', aa_admin: 'مدير إداري' };
+    const ROLE_AR = { owner: 'المالك', admin: 'مدير مستشفى', branch: 'مدير فرع', anaesthesia: 'مقيم تخدير', user: 'مقيم', rotator: 'روتيتر', aa_user: 'موظف إداري', aa_admin: 'مدير إداري' };
     const BOARD_AR = { iraqi: 'البورد العراقي', arab: 'البورد العربي', other: 'بورد آخر', none: 'بدون بورد', unset: 'غير محدد' };
     const STAGE_AR = { 1: 'الأولى', 2: 'الثانية', 3: 'الثالثة', 4: 'الرابعة', 5: 'الخامسة', 6: 'السادسة', unset: 'غير محددة' };
     const NOTE_AR = {

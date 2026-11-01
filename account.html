@@ -1649,6 +1649,10 @@
                             <select data-f="hosp" aria-label="المستشفى">${hospitals.map(h => `<option value="${esc(h.id)}" ${a.hosp === h.id ? 'selected' : ''}>${esc(h.name_ar || h.hospitalName || h.id)}</option>`).join('')}</select>
                         </div>
                         <button class="hacc-btn primary sm" data-act="set_profile" style="margin-top:8px">حفظ الملف</button></div>` : ''}
+                    ${isOwner && coverageEditable(a) ? `<div data-role="coverage"><h4>تغطية المستشفيات</h4>
+                        <p class="hacc-muted" style="margin:6px 0 0;font-size:.78rem">المستشفيات التي يداوم فيها في قاعدة المقيمين (صفحة إدارة المستشفى)، ويبدّل خفاراته فيها كلها.${a.role === 'admin' ? ' (مدير: يبقى تبديله حسب مستشفيات إدارته.)' : ''}</p>
+                        <div class="hosp-pick" data-role="cov-list" style="margin-top:8px"><span class="hacc-muted">جاري التحميل…</span></div>
+                        <button class="hacc-btn primary sm" data-act="set_coverage" style="margin-top:8px" disabled>حفظ التغطية</button></div>` : ''}
                     ${isOwner ? `<div><h4>الأجهزة المسموح بها</h4>
                         <div class="limit-row" style="margin-top:6px">
                             <select data-role="limit-mode">
@@ -1689,6 +1693,7 @@
             }));
 
             $('mg-list').querySelectorAll('[data-act]').forEach(btn => btn.addEventListener('click', () => act(btn)));
+            $('mg-list').querySelectorAll('details.edit-wrap').forEach(d => d.addEventListener('toggle', () => { if (d.open) fillCoverage(d.closest('.acc')); }));
             $('mg-list').querySelectorAll('[data-role="limit-mode"]').forEach(sel => sel.addEventListener('change', () => {
                 sel.parentElement.querySelector('[data-role="limit-n"]').hidden = sel.value !== 'n';
             }));
@@ -1698,11 +1703,57 @@
             }));
         }
 
+        // -------------------- Hospital coverage (owner) --------------------
+        // A resident's hospitals are those of their record in the hospital database (db.residents[].hospitals):
+        // each hospital's residents list is built from it, and the resident exchanges duties in all of them.
+        const coverageEditable = a => !!a.resident_id && ['user', 'anaesthesia', 'admin'].includes(a.role) && a.status !== 'pending' && a.status !== 'rejected';
+        async function coverageRecord(a) {
+            try { await Hub.loadDatabase(); } catch (e) {}
+            const db = Hub.getDatabase() || {};
+            return (Array.isArray(db.residents) ? db.residents : []).find(r => r.id === a.resident_id) || null;
+        }
+        async function fillCoverage(card) {
+            const box = card && card.querySelector('[data-role="cov-list"]');
+            if (!box) return;
+            const a = mg.items.find(x => x.id === card.dataset.id);
+            const rec = a && await coverageRecord(a);
+            const btn = card.querySelector('[data-act="set_coverage"]');
+            if (!rec) { box.innerHTML = '<span class="hacc-muted">لم يُعثر على سجله في قاعدة المقيمين.</span>'; if (btn) btn.disabled = true; return; }
+            const mine = Array.isArray(rec.hospitals) ? rec.hospitals : [];
+            box.innerHTML = Hub.getHospitals().map(h => `<label><input type="checkbox" value="${esc(h.id)}" ${mine.includes(h.id) ? 'checked' : ''}><span>${esc(h.name_ar || h.hospitalName || h.id)}${h.id === a.hosp ? ' <small>(مستشفى الحساب)</small>' : ''}</span></label>`).join('');
+            if (btn) btn.disabled = false;
+        }
+        async function saveCoverage(card, a, btn) {
+            const chosen = [...card.querySelectorAll('[data-role="cov-list"] input:checked')].map(i => i.value);
+            if (!chosen.length) { toast('اختر مستشفى واحداً على الأقل.', 'error'); return; }
+            if (a.hosp && !chosen.includes(a.hosp)) { toast(`لا يمكن إزالة ${hospitalName(a.hosp)} وهو مستشفى الحساب. غيّر مستشفى الحساب أولاً من «الملف الشخصي».`, 'error'); return; }
+            btn.disabled = true;
+            try {
+                const rec = await coverageRecord(a);
+                if (!rec) throw new Error('لم يُعثر على سجله في قاعدة المقيمين.');
+                const before = Array.isArray(rec.hospitals) ? rec.hospitals : [];
+                const next = [...before.filter(h => chosen.includes(h)), ...chosen.filter(h => !before.includes(h))];
+                const added = next.filter(h => !before.includes(h)), removed = before.filter(h => !next.includes(h));
+                if (!added.length && !removed.length) { toast('لا يوجد تغيير.', 'info'); btn.disabled = false; return; }
+                const lines = [`تعديل تغطية ${rec.name}:`];
+                if (added.length) lines.push(`➕ إضافة: ${added.map(hospitalName).join('، ')}`);
+                if (removed.length) lines.push(`➖ إزالة: ${removed.map(hospitalName).join('، ')}\n(يُزال من قائمة مقيمي ${removed.length > 1 ? 'هذه المستشفيات' : 'هذا المستشفى'}، وتبقى خفاراته السابقة في الجداول.)`);
+                if (!confirm(lines.join('\n'))) { btn.disabled = false; return; }
+                await Hub.updateResident(rec.id, { hospitals: next });
+                toast('تم حفظ التغطية ✓', 'success');
+                fillCoverage(card);
+            } catch (err) {
+                toast(errorText(err), 'error');
+                fillCoverage(card);
+            }
+        }
+
         async function act(btn) {
             const card = btn.closest('.acc');
             const id = card.dataset.id;
             const action = btn.dataset.act.replace('-', '_');
             const a = mg.items.find(x => x.id === id);
+            if (action === 'set_coverage') return saveCoverage(card, a, btn);
             const body = { id, action };
             if (action === 'set_role') {
                 body.role = card.querySelector('[data-role="role"]').value;

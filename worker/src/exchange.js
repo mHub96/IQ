@@ -14,7 +14,7 @@
 import { json, readJson, overLimit, plainText } from './lib.js';
 import { nameKey } from './names.js';
 import { notifyOne, notifyApprovers, dispatchPush } from './accounts.js';
-import { limitedExchanger, exchangeSpecialties } from './exchspecs.js';
+import { limitedExchanger, exchangeSpecialties, coveredHospitals } from './exchspecs.js';
 
 const HOSP_RE = /^[\w-]{1,48}$/;
 const DATE_RE = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
@@ -111,7 +111,7 @@ async function createRequest(request, env, auth, ctx) {
   const oldName = plainText(body.oldName, 120), newName = plainText(body.newName, 120);
   if (!HOSP_RE.test(hosp) || !DATE_RE.test(date) || !spec || !oldName || !newName) return json({ error: 'bad_request' }, 400);
   if (nameKey(oldName) === nameKey(newName)) return json({ error: 'same_person' }, 400);
-  if (!ownHospital(auth, hosp)) return json({ error: 'not_your_hospital' }, 403);
+  if (!ownHospital(auth, hosp) && !(await coveredHospitals(env, auth)).has(hosp)) return json({ error: 'not_your_hospital' }, 403);
   if (!(await approvalHospitals(env)).includes(hosp)) return json({ error: 'approval_off' }, 409);
   if (limitedExchanger(auth) && !(await exchangeSpecialties(env, auth, hosp)).has(spec)) return json({ error: 'not_your_specialty' }, 403);
   if (await overLimit(env, 'xreq:' + auth.a, 20)) return json({ error: 'rate_limited' }, 429);
@@ -126,7 +126,9 @@ async function createRequest(request, env, auth, ctx) {
   // The duty holder's account (registered at this hospital), unless they are the one asking.
   const holder = await env.DB.prepare(
     `SELECT id FROM accounts WHERE name_key = ? AND status = 'active' AND role IN ('user', 'anaesthesia', 'admin')
-      AND (hosp = ?2 OR EXISTS (SELECT 1 FROM json_each(accounts.hospitals) WHERE value = ?2)) LIMIT 1`
+      AND (hosp = ?2 OR EXISTS (SELECT 1 FROM json_each(accounts.hospitals) WHERE value = ?2)
+           OR EXISTS (SELECT 1 FROM records r, json_each(json_extract(r.data, '$.hospitals')) h
+                       WHERE r.coll = 'resident' AND r.id = accounts.resident_id AND h.value = ?2)) LIMIT 1`
   ).bind(nameKey(oldName), hosp).first();
   // A rotator's account is not found by name (rotators are kept apart from duty cards): one linked to a
   // hospital database record holds the duty when that record's name is the duty's. Without an

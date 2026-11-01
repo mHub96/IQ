@@ -32,7 +32,7 @@ import { routeBackup } from './backup.js';
 import { routeOnCall } from './oncall.js';
 import { routeXp } from './xp.js';
 import { routeOpioids } from './opioids.js';
-import { limitedExchanger, foreignScheduleOps } from './exchspecs.js';
+import { limitedExchanger, foreignScheduleOps, coveredHospitals } from './exchspecs.js';
 import { storeSpecWrites, renameSpecialtyCode } from './specguard.js';
 import { revision, revToken, blockRevisions, cachedBytes, cachedValue } from './revcache.js';
 
@@ -569,10 +569,16 @@ async function sync(request, env, auth) {
   const storeLocked = auth.r === 'admin' ? await storeSpecWrites(env, ops.filter(op => op && op.c === 'hospital' && typeof op.id === 'string' && !op.del && !op.ordOnly && op.d)) : new Set();
   // Residents change only the duties of the specialties their name can be put in (exchspecs.js).
   const foreign = limitedExchanger(auth) && ops.some(op => op && op.c === 'sched' && !op.ordOnly) ? await foreignScheduleOps(env, auth, ops) : new Set();
+  // A resident also exchanges in the other hospitals they cover (their database record's hospitals).
+  const schedHosp = op => String(op.id || '').split(':')[0];
+  const covered = ['user', 'anaesthesia'].includes(auth.r) && auth.a
+    && ops.some(op => op && op.c === 'sched' && typeof op.id === 'string' && !ownHospital(auth, schedHosp(op)))
+    ? await coveredHospitals(env, auth) : null;
   const puts = [], dels = [], ords = [], rejected = [], checks = [];
   ops.forEach((op, i) => {
     if (!op || typeof op.c !== 'string' || typeof op.id !== 'string' || !op.id) { rejected.push(i); return; }
-    if (!allowed(auth, op) && !(icuAll && op.c === 'icu') && !(resSpecOk && op === resSpecOp)) { rejected.push(i); return; }
+    if (!allowed(auth, op) && !(icuAll && op.c === 'icu') && !(resSpecOk && op === resSpecOp)
+      && !(covered && op.c === 'sched' && covered.has(schedHosp(op)))) { rejected.push(i); return; }
     if (!specOk && op === specOp) { rejected.push(i); return; }
     if ((!erOk && (op.c === 'er' || op.c === 'er_conflict')) || erLocked.has(op)) { rejected.push(i); return; }
     if (storeLocked.has(op) || (auth.r === 'admin' && op.c === 'meta' && op.id === 'globalSpecialties' && !op.ordOnly)) { rejected.push(i); return; }

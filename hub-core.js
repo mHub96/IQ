@@ -4400,6 +4400,11 @@
             if (AA_ROLES.includes(role)) return false;
             const acc = this.getAccount();
             if (acc && acc.hosp === hospId) return true;
+            // A resident also exchanges in the other hospitals they cover (their database record's hospitals).
+            if (acc && acc.resident_id && ['user', 'anaesthesia'].includes(role)) {
+                const rec = Array.isArray(db?.residents) ? db.residents.find(r => r.id === acc.resident_id) : null;
+                if (rec && Array.isArray(rec.hospitals) && rec.hospitals.includes(hospId)) return true;
+            }
             const ids = this.getAdminHospitalIds();
             return ids.includes('*') || ids.includes(hospId);
         },

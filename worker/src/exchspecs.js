@@ -34,6 +34,23 @@ export function inSpecialty(specs, specId, r) {
 
 const parse = t => { try { return JSON.parse(t); } catch { return null; } };
 
+/**
+ * The hospitals a resident covers: those of their record in the hospital database (the owner sets them
+ * from the account's card, the admins from the hospital page). A resident exchanges duties in each of
+ * them, as in their own, within their specialties there. Residents only (user / anaesthesia): an admin's
+ * hospitals are their scope, and rotators stay in their own hospital.
+ */
+export async function coveredHospitals(env, auth) {
+  if (!auth || !auth.a || !['user', 'anaesthesia'].includes(auth.r)) return new Set();
+  const row = await env.DB.prepare(
+    `SELECT json_extract(r.data, '$.hospitals') AS hs FROM accounts a
+       JOIN records r ON r.coll = 'resident' AND r.id = a.resident_id
+      WHERE a.id = ? AND a.status = 'active'`
+  ).bind(auth.a).first();
+  const hs = row && parse(row.hs);
+  return new Set(Array.isArray(hs) ? hs.filter(h => typeof h === 'string') : []);
+}
+
 /** The specialty ids of hospital `hosp` that this account may exchange duties in. */
 export async function exchangeSpecialties(env, auth, hosp) {
   if (auth.r === 'rotator') return rotatorSpecialties(env, auth, hosp);

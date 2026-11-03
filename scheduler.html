@@ -503,6 +503,7 @@
         }
         .csv-menu button:hover { background: var(--custom-menu-item-hover-bg); }
         .csv-menu button i { width: 1rem; text-align: center; color: var(--specialty-color, #3b82f6); }
+        .csv-menu button.csv-menu-danger, .csv-menu button.csv-menu-danger i { color: #ef4444; }
 
         .track-navigation {
             display: flex;
@@ -2491,7 +2492,7 @@
                 var html = `
                     <div class="track-header" style="border-bottom-color: ${specialtyColor};">
                         <span class="specialty-icon">${specialty.icon || '🏥'}</span>
-                        <h2 class="track-title" style="color: ${specialtyColor};" onclick="openTableMenu(event, '${specialty.id}')" title="تصدير / استيراد CSV">${specialty.name_ar || specialty.name}<i class="fas fa-file-csv csv-caret"></i></h2>
+                        <h2 class="track-title" style="color: ${specialtyColor};" onclick="openTableMenu(event, '${specialty.id}')" title="تصدير / استيراد CSV / مسح الجدول">${specialty.name_ar || specialty.name}<i class="fas fa-file-csv csv-caret"></i></h2>
                         ${isCloneTrack ? `
                             <span class="specialty-count" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 9999px;" title="مرآة حية من ${sourceHospName}">
                                 <i class="fas fa-lock text-[10px] ml-1"></i> مستنسخ من: ${sourceHospName}
@@ -2976,13 +2977,15 @@
             menu.style.setProperty('--specialty-color', getSpecialtyColor(spec.id));
             menu.innerHTML = '<div class="csv-menu-title"></div>'
                 + '<button type="button" data-act="export"><i class="fas fa-file-arrow-down"></i> تصدير الجدول (CSV)</button>'
-                + (spec.isClone ? '' : '<button type="button" data-act="import"><i class="fas fa-file-arrow-up"></i> استيراد جدول (CSV)</button>');
+                + (spec.isClone ? '' : '<button type="button" data-act="import"><i class="fas fa-file-arrow-up"></i> استيراد جدول (CSV)</button>'
+                    + '<button type="button" data-act="clear" class="csv-menu-danger"><i class="fas fa-eraser"></i> مسح جدول هذا الشهر</button>');
             menu.querySelector('.csv-menu-title').textContent = (spec.name_ar || spec.name) + ' · ' + document.getElementById('month-picker').value;
             menu.addEventListener('click', function(e) {
                 var b = e.target.closest('button[data-act]');
                 if (!b) return;
                 closeTableMenu();
                 if (b.dataset.act === 'export') exportTableCsv(spec);
+                else if (b.dataset.act === 'clear') clearTableMonth(spec);
                 else importTableCsv(spec);
             });
             document.body.appendChild(menu);
@@ -3074,6 +3077,25 @@
             };
             document.body.appendChild(input);
             input.click();
+        }
+
+        /** Empties this table for the month on screen, on the page only; "حفظ الجدول" saves it. */
+        function clearTableMonth(spec) {
+            var m = shownMonth();
+            var inMonth = function(e) {
+                var p = String(e.date || '').split('/').map(Number);
+                return e.specCode === spec.id && p[1] === m.month && p[2] === m.year;
+            };
+            var list = getActiveSchedule();
+            var count = list.filter(inMonth).length;
+            var name = spec.name_ar || spec.name;
+            if (!count) { showToast('جدول ' + name + ' فارغ في هذا الشهر', 'info', 2500); return; }
+            if (!confirm('مسح جدول ' + name + ' لشهر ' + m.month + '/' + m.year + '؟\n\n'
+                + '• تُحذف ' + count + ' خفارة من هذا الجدول فقط\n\n'
+                + 'يُطبق على الصفحة فقط؛ اضغط "حفظ الجدول" بعدها للحفظ.')) return;
+            for (var i = list.length - 1; i >= 0; i--) if (inMonth(list[i])) list.splice(i, 1);
+            refreshView();
+            showToast('🧹 تم مسح ' + count + ' خفارة. اضغط "حفظ الجدول" للحفظ', 'success', 4000);
         }
 
         function applyTableCsv(spec, text) {

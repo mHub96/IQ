@@ -240,10 +240,11 @@ async function withUniqueNick(sex, lang, attempt) {
 // ---------------------------------------------------------------------------
 
 /** Finds the roster entry for a hospital + name + phone. Never tells which part did not match. */
+const cleanPhone = expr => `replace(replace(replace(COALESCE(${expr}, ''), ' ', ''), '-', ''), '+', '')`;
+
 async function findResident(env, hosp, name, phone) {
   const pk = phoneKey(phone);
   if (!pk || !HOSP_RE.test(hosp) || !name) return { hospOk: false, match: null };
-  const cleanPhone = expr => `replace(replace(replace(COALESCE(${expr}, ''), ' ', ''), '-', ''), '+', '')`;
   const [hospRow, residents, names] = await env.DB.batch([
     env.DB.prepare("SELECT 1 AS ok FROM records WHERE coll = 'hospital' AND id = ?").bind(hosp),
     // The last ten digits of the stored number (the index of migration 0018: the expression must stay
@@ -854,6 +855,30 @@ export async function finishLogin(env, row, body) {
   return json({ success: true, role: row.role, adminHospitals: scopeOf(row), token, exp, account: profile(row, await getStageMonth(env)) });
 }
 
+/**
+ * The account's resident record is gone (deleted and added again under a new id): the account joins
+ * the one record with its phone number and name, unless another account holds that record. Without
+ * this the account has no hospitals or specialties to exchange duties in.
+ */
+async function relinkResident(env, row) {
+  const pk = phoneKey(row.phone), key = nameKey(row.name);
+  if (!pk || !key) return;
+  const { results } = await env.DB.prepare(
+    `SELECT id, json_extract(data, '$.name') AS name, json_extract(data, '$.hospitals') AS hs
+       FROM records WHERE coll = 'resident' AND substr(${cleanPhone("json_extract(data, '$.phone')")}, -10) = ?`
+  ).bind(pk).all();
+  const same = (results || []).filter(r => nameKey(r.name) === key);
+  if (same.length !== 1) return;
+  const { id, hs } = same[0];
+  const done = await env.DB.prepare(
+    `UPDATE accounts SET resident_id = ?1, cover = COALESCE(?2, cover),
+            hosp = CASE WHEN ?2 IS NULL OR json_array_length(?2) = 0 OR hosp IN (SELECT value FROM json_each(?2)) THEN hosp ELSE json_extract(?2, '$[0]') END
+      WHERE id = ?3 AND NOT EXISTS (SELECT 1 FROM accounts o WHERE o.resident_id = ?1 AND o.status IN ('pending', 'active'))
+      RETURNING resident_id, cover, hosp`
+  ).bind(id, hs || null, row.id).first();
+  if (done) Object.assign(row, done);
+}
+
 async function me(env, auth) {
   if (!auth.a) return json({ ok: true, account: null, role: auth.r, adminHospitals: auth.h });
   const row = await env.DB.prepare(
@@ -870,6 +895,7 @@ async function me(env, auth) {
       await env.DB.prepare("UPDATE accounts SET name = ?, name_key = CASE WHEN role = 'rotator' THEN name_key ELSE ? END WHERE id = ?").bind(rec.n, nameKey(rec.n), row.id).run();
       row.name = rec.n;
     }
+    if (!rec) await relinkResident(env, row).catch(err => console.warn('relinkResident failed', err && err.message));
   }
   const account = profile(row, await getStageMonth(env));
   if (account && !NO_PROFILE.includes(account.role)) account.profile_locked = (await hospitalList(env, 'profile_locked')).includes(row.hosp);

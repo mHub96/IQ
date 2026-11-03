@@ -23,18 +23,19 @@ export function isRotatorSpec(specs, code) {
   return ROTATOR_NAME(s) || (!!s && !!s.parentSpec && ROTATOR_NAME(find(s.parentSpec)));
 }
 
-/** Does resident `r` belong in specialty `specId` of a hospital with these specialties? (no fallback) */
+/**
+ * Does resident `r` belong in specialty `specId` of a hospital with these specialties? (no fallback)
+ * A resident on a rotation belongs to both their own specialty and the one they rotate in.
+ */
 export function inSpecialty(specs, specId, r) {
   if (!r || r.active === false || r.spec === 'RESERVE') return false;
   const s = specs.find(x => x && x.id === specId);
   const pool = s && Array.isArray(s.acceptPool) ? s.acceptPool : [];
   if (pool.includes('ALL') || pool.includes('*')) return true;
-  const dept = r.dept || r.department || r.spec || r.tag;
-  if (!dept) return false;
-  if (dept === specId) return true;
-  if (s && s.parentSpec && dept === s.parentSpec) return true;
-  if (specs.some(x => x && x.parentSpec === specId && x.id === dept)) return true;
-  return pool.includes(dept);
+  return [r.dept || r.department, r.spec || r.tag].some(d => !!d && (d === specId
+    || (!!s && d === s.parentSpec)
+    || specs.some(x => x && x.parentSpec === specId && x.id === d)
+    || pool.includes(d)));
 }
 
 const parse = t => { try { return JSON.parse(t); } catch { return null; } };

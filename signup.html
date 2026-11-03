@@ -578,6 +578,14 @@
 
             try {
                 await Hub.loadDatabase();
+                // An account whose resident record was replaced: the server relinks it, this device follows.
+                const acc = Hub.auth.getAccount();
+                if (acc && acc.resident_id && !inDivision && !Hub.getDatabase()?.residents?.some(r => r.id === acc.resident_id)) {
+                    try {
+                        const res = await Hub.api('GET', '/api/accounts/me', undefined, { retries: 1 });
+                        if (res && res.account) Hub.auth.refreshAccount(res.account, res.role, res.adminHospitals);
+                    } catch (e) {}
+                }
                 // Exchanges are made in the doctor's own hospital only.
                 allHospitals = Hub.getHospitals().filter(h => Hub.auth.canExchangeIn(h.id));
                 if (!allHospitals.length) {

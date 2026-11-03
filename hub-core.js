@@ -3055,37 +3055,22 @@
             }
         }
 
-        const acceptPool = Array.isArray(specObj?.acceptPool) ? specObj.acceptPool : [];
-        const parentSpec = specObj?.parentSpec || null;
-        const childSpecIds = allSpecs.filter(s => s.parentSpec === specId).map(s => s.id);
+        return { hospital, list: (hospital.names || []).filter(r => residentFitsSpecialty(r, allSpecs, specId)) };
+    }
 
-        const residents = hospital.names || [];
-
-        if (acceptPool.includes('ALL') || acceptPool.includes('*')) {
-            return { hospital, list: residents.filter(r => r.active !== false && r.spec !== 'RESERVE') };
-        }
-
-        const eligible = residents.filter(r => {
-            if (r.active === false || r.spec === 'RESERVE') return false;
-
-            // Effective duty department (assigned rotation takes precedence for duty schedule)
-            const rDutyDept = r.dept || r.department || r.spec || r.tag;
-
-            // 1. Direct duty department match (e.g. resident assigned to GS rotation has GS duties)
-            if (rDutyDept === specId) return true;
-
-            // 2. Specialty has a parent, and resident's duty belongs to parent
-            if (parentSpec && (rDutyDept === parentSpec)) return true;
-
-            // 3. Resident duty belongs to child/sub-specialty
-            if (childSpecIds.includes(rDutyDept)) return true;
-
-            // 4. Resident duty belongs to a specialty in acceptPool
-            if (acceptPool.length > 0 && acceptPool.includes(rDutyDept)) return true;
-
-            return false;
-        });
-        return { hospital, list: eligible };
+    /**
+     * Can this resident's name go in this specialty's duties? A resident on a rotation belongs to both
+     * their own specialty and the one they rotate in. The API's inSpecialty has the same rule.
+     */
+    function residentFitsSpecialty(r, specs, specId) {
+        if (!r || r.active === false || r.spec === 'RESERVE') return false;
+        const s = specs.find(x => x.id === specId);
+        const pool = Array.isArray(s?.acceptPool) ? s.acceptPool : [];
+        if (pool.includes('ALL') || pool.includes('*')) return true;
+        return [r.dept || r.department, r.spec || r.tag].some(d => !!d && (d === specId
+            || d === s?.parentSpec
+            || specs.some(x => x.parentSpec === specId && x.id === d)
+            || pool.includes(d)));
     }
 
     /**
@@ -3109,21 +3094,12 @@
         const rec = acc.resident_id && Array.isArray(db?.residents) ? db.residents.find(r => r.id === acc.resident_id) : null;
         if (!rec || rec.active === false || rec.spec === 'RESERVE') return runs;
         const inHosp = id => Array.isArray(rec.hospitals) && rec.hospitals.includes(id);
-        const fits = (specs, specId) => {
-            const s = specs.find(x => x.id === specId);
-            const pool = Array.isArray(s?.acceptPool) ? s.acceptPool : [];
-            if (pool.includes('ALL') || pool.includes('*')) return true;
-            const dept = rec.dept || rec.department || rec.spec || rec.tag;
-            if (!dept) return false;
-            return dept === specId || (!!s?.parentSpec && dept === s.parentSpec)
-                || specs.some(x => x.parentSpec === specId && x.id === dept) || pool.includes(dept);
-        };
         return (hospital.specialties || []).filter(s => {
             if (s.isClone && s.clonedFromHospitalId) {
                 const src = getHospital(s.clonedFromHospitalId);
-                return !!src && inHosp(src.id) && fits(src.specialties || [], s.clonedFromSpecId);
+                return !!src && inHosp(src.id) && residentFitsSpecialty(rec, src.specialties || [], s.clonedFromSpecId);
             }
-            return runs.includes(s.id) || (inHosp(hospital.id) && fits(hospital.specialties || [], s.id));
+            return runs.includes(s.id) || (inHosp(hospital.id) && residentFitsSpecialty(rec, hospital.specialties || [], s.id));
         }).map(s => s.id);
     }
 

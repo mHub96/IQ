@@ -695,6 +695,24 @@
                 padding: 1.25rem 1rem !important;
             }
         }
+
+        /* Entry to the Basra clinics guide (hub-guide.js, loaded on first use) */
+        .hgd-entry { width: 100%; display: flex; align-items: center; gap: 14px; text-align: right; cursor: pointer;
+            border: 0; border-radius: 1.25rem; padding: 16px 18px; margin-bottom: 1.5rem; color: #fff; font: inherit;
+            background: linear-gradient(135deg, #1f2f52 0%, #2c4373 60%, #3b5486 100%);
+            box-shadow: 0 10px 28px -12px rgba(31, 47, 82, .65); position: relative; overflow: hidden; }
+        .hgd-entry::after { content: ''; position: absolute; inset: auto -40px -60px auto; width: 180px; height: 180px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(210, 176, 114, .28), transparent 70%); pointer-events: none; }
+        .hgd-entry:active { transform: scale(.99); }
+        .hgd-entry-ic { flex: none; width: 50px; height: 50px; border-radius: 15px; display: grid; place-items: center; font-size: 22px;
+            background: rgba(210, 176, 114, .18); color: #e2c48c; border: 1px solid rgba(210, 176, 114, .35); }
+        .hgd-entry-tx { flex: 1; min-width: 0; }
+        .hgd-entry-tx b { display: block; font-size: 1.02rem; font-weight: 800; }
+        .hgd-entry-tx small { display: block; margin-top: 3px; font-size: .74rem; line-height: 1.7; opacity: .82; }
+        .hgd-entry-tx .n { display: inline-block; margin-top: 6px; padding: 1px 9px; border-radius: 999px; font-size: .7rem; font-weight: 800;
+            background: rgba(210, 176, 114, .2); color: #ecd3a3; }
+        .hgd-entry-tx .n[hidden] { display: none; }
+        .hgd-entry-go { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, .12); }
     </style>
     <link rel="stylesheet" href="./tailwind.css" />
     <link rel="stylesheet" href="./hub-ios.css" />
@@ -753,6 +771,16 @@
             </div>
         </div>
 
+        <!-- Basra clinics guide: private clinics, booking numbers, labs, pharmacies (hub-guide.js) -->
+        <button type="button" id="guide-entry" class="hgd-entry" onclick="openClinicsGuide()">
+            <span class="hgd-entry-ic"><i class="fas fa-book-medical"></i></span>
+            <span class="hgd-entry-tx">
+                <b>دليل العيادات الخاصة في البصرة</b>
+                <small>عيادات أطباء الاختصاص: العنوان، أيام الدوام وأرقام الحجز، مع المختبرات والصيدليات والمراكز الطبية</small>
+                <span class="n" id="guide-entry-count" hidden></span>
+            </span>
+            <span class="hgd-entry-go"><i class="fas fa-chevron-left"></i></span>
+        </button>
         <!-- Filter Bar & Search Controls -->
         <div class="glass-card p-5 mb-6">
             <!-- Hospital Filter Pills -->
@@ -2272,6 +2300,38 @@
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
+
+        // ---- Basra clinics guide (hub-guide.js + .css, loaded on first use) ----
+        let clinicsGuideLoading = null;
+        function loadClinicsGuide() {
+            if (window.HubGuide) return Promise.resolve();
+            const add = (tag, attrs) => new Promise((resolve, reject) => {
+                const el = Object.assign(document.createElement(tag), attrs);
+                el.onload = resolve; el.onerror = reject;
+                document.head.appendChild(el);
+            });
+            return clinicsGuideLoading = clinicsGuideLoading || Promise.all([
+                add('link', { rel: 'stylesheet', href: './hub-guide.css' }),
+                add('script', { src: './hub-guide.js' }),
+            ]).catch(err => { clinicsGuideLoading = null; throw err; });
+        }
+        async function openClinicsGuide(opts) {
+            const btn = document.getElementById('guide-entry');
+            if (btn) btn.style.opacity = '.75';
+            try { await loadClinicsGuide(); window.HubGuide.open(opts); }
+            catch (e) { showToast && showToast('تعذّر فتح الدليل. تحقق من الاتصال.', 'error'); }
+            finally { if (btn) btn.style.opacity = ''; }
+        }
+        function paintGuideCount() {
+            const el = document.getElementById('guide-entry-count');
+            let m = null;
+            try { m = JSON.parse(localStorage.getItem('hub_guide_meta') || 'null'); } catch (e) {}
+            if (el && m && m.n) { el.textContent = Number(m.n).toLocaleString('en-US') + ' طبيب ومركز'; el.hidden = false; }
+        }
+        window.addEventListener('DOMContentLoaded', () => {
+            paintGuideCount();
+            if (/(^#|&)guide/.test(location.hash)) openClinicsGuide();
+        });
 
         // Initialize on DOM load
         window.addEventListener('DOMContentLoaded', initPage);

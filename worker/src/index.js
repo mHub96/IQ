@@ -25,6 +25,7 @@ import { nameKey } from './names.js';
 import { dutyDayNow } from './profile.js';
 import { routeErFonts } from './erfonts.js';
 import { routeSpecialists, residentSpecialistsEditAllowed, isResidentEditor } from './specialists.js';
+import { routeGuide } from './guide.js';
 import { canUseEr, erFieldWrites } from './eraccess.js';
 import { routeUsage } from './usage.js';
 import { routeStats, snapshotStats } from './stats.js';
@@ -141,6 +142,8 @@ async function route(request, env, ctx) {
   if (backupRoute) return backupRoute;
   const specialistsRoute = await routeSpecialists(path, method, request, env, auth);
   if (specialistsRoute) return specialistsRoute;
+  const guideRoute = await routeGuide(path, method, request, env, auth, url);
+  if (guideRoute) return guideRoute;
 
   if (path === '/api/session' && method === 'GET') {
     return auth ? json({ ok: true, role: auth.r, adminHospitals: auth.h, exp: auth.e, account: auth.a || null }) : json({ error: 'unauthorized' }, 401);

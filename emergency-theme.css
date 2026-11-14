@@ -432,3 +432,81 @@ html.dark .erst-btn.primary { color: #1a0605; }
     .erst-note { display: none; }
     .erst-in.sm, .erst-in.xs { flex: 1 1 110px; }
 }
+
+/* PDF download of the printed sheet (emergency-print.js pdf): A4 pages laid out under a cover.
+   They stay inside the viewport: html2canvas misplaces text captured off-screen. */
+.erp-pdf-stage { position: fixed; top: 0; left: 0; z-index: 2147483600; pointer-events: none; }
+.erp-pdf-page {
+    width: 210mm; min-height: 297mm; padding: 4mm 5mm; box-sizing: border-box;
+    background: #fff; color: #000; direction: rtl; overflow: visible;
+    line-height: 1.5;   /* what the printed sheet inherits from the page */
+}
+.erp-pdf-cover {
+    position: fixed; inset: 0; z-index: 2147483647; display: grid; place-items: center;
+    background: var(--ers-surface, #fff); color: var(--ers-text, #111); font-family: var(--ers-font);
+}
+.erp-pdf-cover > div { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.erp-pdf-cover i { font-size: 2.2rem; color: #e11d48; animation: erp-pdf-pulse 0.9s ease-in-out infinite alternate; }
+.erp-pdf-cover b { font-size: 1rem; }
+.erp-pdf-cover span { font-size: 0.78rem; color: var(--ers-text-3, #888); }
+@keyframes erp-pdf-pulse { from { transform: scale(0.92); opacity: 0.7; } to { transform: scale(1.06); opacity: 1; } }
+
+/* Save slots of a table (emergency-slots.js): the CSV menu's look, a list of game-like slots */
+.er-slots-menu { width: 17.5rem; }
+.er-slot-list { display: grid; gap: 0.3rem; max-height: min(60vh, 26rem); overflow-y: auto; padding: 0.1rem; }
+.er-slot-row { display: flex; align-items: stretch; gap: 0.25rem; }
+.er-csv-menu .er-slot {
+    flex: 1; min-width: 0; padding: 0.5rem 0.55rem; border: 1px solid var(--ers-border); background: var(--ers-surface-2);
+    border-radius: 0.7rem; transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.er-csv-menu .er-slot:hover { border-color: var(--ers-accent, #e11d48); transform: translateY(-1px); }
+.er-csv-menu .er-slot.on { border-color: var(--ers-accent, #e11d48); box-shadow: 0 0 0 2px color-mix(in srgb, var(--ers-accent, #e11d48) 25%, transparent); }
+.er-csv-menu .er-slot.empty { border-style: dashed; background: transparent; color: var(--ers-text-3); }
+.er-csv-menu .er-slot.empty:hover { color: var(--ers-text); background: var(--ers-surface-2); }
+.er-slot-ic { flex: none; width: 2rem; height: 2rem; border-radius: 0.55rem; display: grid; place-items: center; background: var(--ers-surface); border: 1px solid var(--ers-border); }
+.er-csv-menu .er-slot .er-slot-ic i { width: auto; color: #0284c7; }
+.er-csv-menu .er-slot.empty .er-slot-ic i { color: var(--ers-text-3); }
+.er-slot-tx { display: grid; min-width: 0; line-height: 1.3; }
+.er-slot-tx b { font-size: 0.82rem; }
+.er-slot-tx small { font-size: 0.68rem; font-weight: 600; color: var(--ers-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.er-csv-menu .er-slot-del { flex: none; width: 1.9rem; justify-content: center; padding: 0; color: var(--ers-text-3); }
+.er-csv-menu .er-slot-del i { color: inherit; }
+.er-csv-menu .er-slot-del:hover { color: #e11d48; }
+.er-slot-new { animation: er-slot-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.25) both; }
+@keyframes er-slot-in { from { opacity: 0; transform: translateY(-6px) scale(0.96); } to { opacity: 1; transform: none; } }
+
+/* Read-only preview over a table: a save slot or a CSV file (emergency-slots.js) */
+.er-pv-bar {
+    position: relative; z-index: 6; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    margin: 0 0 10px; padding: 10px 12px; border-radius: 14px; font-family: var(--ers-font);
+    background: #eff6ff; border: 1px solid #93c5fd; color: #0c4a6e; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.12);
+    animation: er-slot-in 0.25s ease both;
+}
+.er-pv-bar.csv { background: #ecfdf5; border-color: #6ee7b7; color: #064e3b; box-shadow: 0 4px 14px rgba(5, 150, 105, 0.12); }
+html.dark .er-pv-bar { background: #0c2a44; border-color: #1e5a8a; color: #dbeafe; }
+html.dark .er-pv-bar.csv { background: #062e24; border-color: #0f6b52; color: #d1fae5; }
+.er-pv-info { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1 1 16rem; }
+.er-pv-info > div { display: grid; gap: 2px; min-width: 0; }
+.er-pv-info b { font-size: 0.85rem; font-weight: 800; }
+.er-pv-info small { font-size: 0.72rem; font-weight: 600; opacity: 0.85; }
+.er-pv-count { font-weight: 800; color: #b45309; }
+html.dark .er-pv-count { color: #fbbf24; }
+.er-pv-note { color: #b91c1c; }
+html.dark .er-pv-note { color: #fca5a5; }
+.er-pv-ic { flex: none; width: 2.1rem; height: 2.1rem; border-radius: 0.6rem; display: grid; place-items: center; background: rgba(255, 255, 255, 0.7); font-size: 1rem; }
+html.dark .er-pv-ic { background: rgba(255, 255, 255, 0.08); }
+.er-pv-actions { display: flex; gap: 6px; }
+.er-pv-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 10px; font-size: 0.78rem; font-weight: 800;
+    background: #fff; color: #334155; border: 1px solid #cbd5e1; cursor: pointer; }
+html.dark .er-pv-btn { background: #1e293b; color: #e2e8f0; border-color: #334155; }
+.er-pv-btn.primary { background: #0284c7; border-color: #0284c7; color: #fff; }
+.er-pv-bar.csv .er-pv-btn.primary { background: #059669; border-color: #059669; }
+.er-pv-btn:hover { filter: brightness(1.05); }
+/* The table under a preview can be scrolled, not edited. */
+.er-pv-lock table td[data-slot], .er-pv-lock table td[data-slot] * { pointer-events: none !important; cursor: default !important; }
+.er-pv-lock table td[data-slot] { opacity: 0.9; }
+.er-pv-lock table td.er-pv-diff { opacity: 1; background: #fef3c7 !important; box-shadow: inset 0 0 0 2px #f59e0b; }
+html.dark .er-pv-lock table td.er-pv-diff { background: rgba(245, 158, 11, 0.18) !important; }
+.er-pv-was { margin-top: 3px; font-size: 10px; font-weight: 700; color: #92400e; text-decoration: line-through; text-decoration-color: rgba(146, 64, 14, 0.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html.dark .er-pv-was { color: #fcd34d; }
+.er-pv-lock .er-pv-off { opacity: 0.4 !important; pointer-events: none !important; }

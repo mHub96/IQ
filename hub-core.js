@@ -1439,11 +1439,12 @@
     // so every admin device sees the same schedules.
     // ============================================================
     const ER_EXACT_KEYS = new Set(['hosp_hub_emergency_state_v3', 'hosp_hub_emergency_specialty_colors']);
-    const ER_PREFIXES = ['hosp_hub_emergency_sched_', 'hosp_hub_emergency_alloc_'];
+    // slots_: the save slots of an ER table (emergency-slots.js), hosp_hub_emergency_slots_<sheet>_<hosp>_<y>_<m>.
+    const ER_PREFIXES = ['hosp_hub_emergency_sched_', 'hosp_hub_emergency_alloc_', 'hosp_hub_emergency_slots_'];
     const ER_MAX_BYTES = 1800000;
     const isErKey = k => typeof k === 'string' && (ER_EXACT_KEYS.has(k) || ER_PREFIXES.some(p => k.startsWith(p)));
     const erHospitalOf = k => {
-        const m = /^hosp_hub_emergency_(?:sched|alloc)_(.+)_\d{4}_\d{1,2}$/.exec(k);
+        const m = /^hosp_hub_emergency_(?:sched|alloc|slots_(?:er|con|dc))_(.+)_\d{4}_\d{1,2}$/.exec(k);
         return m ? m[1] : null;
     };
 

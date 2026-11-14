@@ -9,8 +9,11 @@
  *   uploaded to the server: shared by everyone who prints here, kept until deleted.
  * - Table themes plus free choice of colours, lines, sizes, spacing, digits and weekend days;
  *   your own styles can be saved as themes.
- * The settings live in the ER state (state.printOptions, state.printThemes) like before, so they
- * follow the schedules to every device. The defaults print the same sheet as before.
+ * The settings live in the ER state, so they follow the schedules to every device. Each hospital
+ * has its own settings (state.printOptionsByHosp[hospitalId]); a hospital that never changed them
+ * prints with the older shared settings (state.printOptions). Saved themes and uploaded fonts are
+ * shared by all hospitals. The defaults print the same sheet as before.
+ * The sheet can also be downloaded straight away as an A4 portrait PDF (pdf()).
  */
 (function (window, document) {
     'use strict';
@@ -185,9 +188,20 @@
         contrast: { name: 'تباين عالٍ', note: 'خطوط سميكة للوضوح', ...base, headerBg: '#000000', headerText: '#ffffff', weekendBg: '#d4d4d4', weekendText: '#000000', borderColor: '#000000', borderWidth: 1.5 },
     };
 
-    function opts() {
+    // This hospital's own settings, else the older settings shared by all hospitals.
+    const hospKey = () => String(S().hospitalId || '_');
+    function storedOpts() {
         const st = S();
-        const o = Object.assign({}, DEFAULTS, st.printOptions || {});
+        const own = st.printOptionsByHosp && st.printOptionsByHosp[hospKey()];
+        return own && typeof own === 'object' ? own : (st.printOptions || {});
+    }
+    function storeOpts(o) {
+        const st = S();
+        if (!st.printOptionsByHosp || typeof st.printOptionsByHosp !== 'object') st.printOptionsByHosp = {};
+        st.printOptionsByHosp[hospKey()] = o;
+    }
+    function opts() {
+        const o = Object.assign({}, DEFAULTS, storedOpts());
         ['headerBg', 'headerText', 'weekendBg', 'weekendText', 'borderColor', 'bodyBg', 'bodyText', 'zebraBg'].forEach(k => { if (!isColor(o[k])) o[k] = DEFAULTS[k]; });
         o.tableSize = Math.min(12, Math.max(5, Number(o.tableSize) || DEFAULTS.tableSize));
         o.docScale = Math.min(1.4, Math.max(0.8, Number(o.docScale) || 1));
@@ -198,9 +212,9 @@
         return o;
     }
     function setOpt(patch, keepTheme) {
-        const st = S();
-        st.printOptions = Object.assign({}, opts(), patch);
-        if (!keepTheme && Object.keys(patch).some(k => STYLE_KEYS.includes(k))) st.printOptions.theme = 'custom';
+        const o = Object.assign({}, opts(), patch);
+        if (!keepTheme && Object.keys(patch).some(k => STYLE_KEYS.includes(k))) o.theme = 'custom';
+        storeOpts(o);
         queueSave();
     }
     let saveTimer = null;
@@ -395,6 +409,129 @@
     }
 
     // ------------------------------------------------------------------------------------------
+    // PDF download: the same sheet, the same settings, A4 portrait, saved without a print dialog
+    // ------------------------------------------------------------------------------------------
+    // Each paper is laid out as an A4 page (210 x 297 mm, the print margins 4 x 5 mm) under a cover,
+    // captured with html2canvas and saved with jsPDF, one PDF page per paper.
+    const PDF_LIBS = {
+        html2canvas: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+        jspdf: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+    };
+    const libLoads = {};
+    function loadLib(src) {
+        return libLoads[src] = libLoads[src] || new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = src; s.async = true; s.crossOrigin = 'anonymous';
+            s.onload = resolve;
+            s.onerror = () => { delete libLoads[src]; reject(new Error('lib')); };
+            document.head.appendChild(s);
+        });
+    }
+    let pdfBusy = false;
+
+    async function pdf(sheet) {
+        if (pdfBusy) return;
+        pdfBusy = true;
+        const o = opts();
+        const stage = document.createElement('div');
+        stage.className = 'erp-pdf-stage';
+        const cover = document.createElement('div');
+        cover.className = 'erp-pdf-cover';
+        cover.innerHTML = '<div><i class="fas fa-file-pdf"></i><b>جاري إنشاء ملف PDF…</b><span>بنفس إعدادات الطباعة المحفوظة</span></div>';
+        document.body.append(stage, cover);
+        // html2canvas finds each font's baseline with a probe in this page's body: a 1 px image after a
+        // line of text. Tailwind's base styles make every image a block, which pushed the probe under
+        // the text, and the body's line height (1.5) is shorter than Cairo's: the words were drawn
+        // several px low. During the capture the probe stays inline and the body's line height is
+        // 'normal'; the sheet keeps its own 1.5 (CSS .erp-pdf-page).
+        const bodyLh = [document.body.style.getPropertyValue('line-height'), document.body.style.getPropertyPriority('line-height')];
+        document.body.style.setProperty('line-height', 'normal', 'important');
+        const probeFix = document.createElement('style');
+        probeFix.textContent = 'body > div > img[width="1"][height="1"] { display: inline !important; vertical-align: baseline !important; }';
+        document.head.appendChild(probeFix);
+        try {
+            const libs = Promise.all([loadLib(PDF_LIBS.html2canvas), loadLib(PDF_LIBS.jspdf)]);
+            if (/ERF_/.test(o.fontFamily + o.tableFont)) await loadUploaded();
+            const fams = [prepareFont(o.fontFamily), prepareFont(o.tableFont || o.fontFamily)];
+            if (o.dateFont !== 'same') fams.push('Arial');
+            const count = sheetPages(sheet).length;
+            for (let i = 0; i < count; i++) {
+                const page = document.createElement('div');
+                page.className = 'erp-pdf-page';
+                page.innerHTML = buildSheet(sheet, o, i);
+                stage.appendChild(page);
+            }
+            await fontsReady(fams);
+            await libs;
+            if (document.fonts && document.fonts.ready) await document.fonts.ready;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+            const pages = [...stage.querySelectorAll('.erp-pdf-page')];
+            for (let i = 0; i < pages.length; i++) {
+                const el = pages[i];
+                const canvas = await window.html2canvas(el, { scale: 3, backgroundColor: '#ffffff', useCORS: true, logging: false, windowWidth: el.scrollWidth });
+                // A paper taller than the page is shrunk to fit it (the print dialog would start a second page).
+                const hmm = 210 * canvas.height / canvas.width;
+                const k = Math.min(1, 297 / hmm);
+                if (i) doc.addPage('a4', 'portrait');
+                doc.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', (210 - 210 * k) / 2, 0, 210 * k, hmm * k);
+            }
+            let name = 'ER';
+            try { name = L().fileName(sheet); } catch (e) {}
+            doc.setProperties({ title: name });
+            doc.save(name + '.pdf');
+            notify('تم تنزيل ملف PDF', 'success');
+        } catch (err) {
+            console.error('ER PDF', err);
+            notify('تعذر إنشاء ملف PDF. تحقق من الاتصال وحاول مجدداً.', 'error');
+        } finally {
+            stage.remove();
+            cover.remove();
+            probeFix.remove();
+            document.body.style.setProperty('line-height', bodyLh[0], bodyLh[1]);
+            if (!bodyLh[0]) document.body.style.removeProperty('line-height');
+            pdfBusy = false;
+        }
+    }
+
+    // The print button's menu: the print dialog as before, or the PDF file straight away.
+    function closeMenu() {
+        const m = document.getElementById('erp-print-menu');
+        if (m) m.remove();
+        document.removeEventListener('pointerdown', menuOutside, true);
+    }
+    function menuOutside(e) {
+        const m = document.getElementById('erp-print-menu');
+        if (m && !m.contains(e.target)) closeMenu();
+    }
+    function openMenu(event, sheet) {
+        event.stopPropagation();
+        closeMenu();
+        try { window.closeTableCsvMenu && window.closeTableCsvMenu(); } catch (e) {}
+        const st = S();
+        sheet = sheet || (st.activeTab === 'rs' ? 'rs_er' : st.activeTab) || 'er';
+        if (!SHEET_SHORT[sheet]) sheet = 'er';
+        const menu = document.createElement('div');
+        menu.id = 'erp-print-menu';
+        menu.className = 'er-csv-menu no-print';
+        menu.innerHTML = `<div class="er-csv-title">${esc(SHEET_SHORT[sheet] || '')} · ${st.month}/${st.year}</div>
+            <button type="button" data-act="print"><i class="fas fa-print"></i> طباعة (نافذة الطباعة)</button>
+            <button type="button" data-act="pdf"><i class="fas fa-file-pdf"></i> تنزيل PDF مباشرة (A4 عمودي)</button>`;
+        menu.addEventListener('click', e => {
+            const b = e.target.closest('button[data-act]');
+            if (!b) return;
+            closeMenu();
+            window.prepareOfficialPrint(sheet, b.dataset.act === 'pdf' ? 'pdf' : undefined);
+        });
+        document.body.appendChild(menu);
+        const r = event.currentTarget.getBoundingClientRect();
+        const w = menu.offsetWidth, h = menu.offsetHeight;
+        menu.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
+        menu.style.top = Math.max(8, Math.min(window.innerHeight - h - 8, r.bottom + 6)) + 'px';
+        setTimeout(() => document.addEventListener('pointerdown', menuOutside, true), 0);
+    }
+
+    // ------------------------------------------------------------------------------------------
     // The settings panel
     // ------------------------------------------------------------------------------------------
     let panelSheet = 'er';
@@ -574,7 +711,7 @@
         modal.innerHTML = `
             <div class="erp-panel" role="dialog" aria-modal="true" aria-label="خيارات الطباعة">
                 <header class="erp-head">
-                    <div class="erp-title"><span class="erp-ic"><i class="fas fa-print"></i></span><div><h3>خيارات الطباعة الرسمية</h3><p>الخط والنمط والجدول · المعاينة مطابقة للورقة المطبوعة</p></div></div>
+                    <div class="erp-title"><span class="erp-ic"><i class="fas fa-print"></i></span><div><h3>خيارات الطباعة الرسمية</h3><p>خاصة بـ${esc(S().hospitalName || 'هذا المستشفى')} · المعاينة مطابقة للورقة المطبوعة</p></div></div>
                     <button type="button" class="erp-x" data-act="close" aria-label="إغلاق"><i class="fas fa-xmark"></i></button>
                 </header>
                 <div class="erp-main">
@@ -592,8 +729,9 @@
                     </section>
                 </div>
                 <footer class="erp-foot">
-                    <span class="erp-foot-note"><i class="fas fa-cloud"></i> تُحفظ الخيارات تلقائياً وتظهر على كل الأجهزة</span>
+                    <span class="erp-foot-note"><i class="fas fa-cloud"></i> تُحفظ الخيارات تلقائياً لهذا المستشفى وتظهر على كل الأجهزة</span>
                     <button type="button" class="erp-btn" data-act="close">إغلاق</button>
+                    <button type="button" class="erp-btn" data-act="pdf"><i class="fas fa-file-pdf"></i> تنزيل PDF</button>
                     <button type="button" class="erp-btn primary" data-act="print"><i class="fas fa-print"></i> طباعة ${esc(SHEET_SHORT[panelSheet])}</button>
                 </footer>
             </div>`;
@@ -732,9 +870,10 @@
             const act = t.dataset.act;
             if (act === 'close') return close();
             if (act === 'print') { const sheet = panelSheet; close(); return window.prepareOfficialPrint(sheet); }
+            if (act === 'pdf') { const sheet = panelSheet; close(); return window.prepareOfficialPrint(sheet, 'pdf'); }
             if (act === 'save-theme') return saveTheme();
             if (act === 'migrate-legacy') { e.stopPropagation(); return migrateLegacy(); }
-            if (act === 'reset') { if (confirm('استعادة إعدادات الطباعة الأصلية؟')) { S().printOptions = Object.assign({}, DEFAULTS); queueSave(); render(); } return; }
+            if (act === 'reset') { if (confirm('استعادة إعدادات الطباعة الأصلية؟')) { storeOpts(Object.assign({}, DEFAULTS)); queueSave(); render(); } return; }
             if (t.dataset.tab) { panelTab = t.dataset.tab; return render(); }
             if (t.dataset.sheet) { panelSheet = t.dataset.sheet; panelPage = 0; return render(); }
             if (t.dataset.page) { panelPage = Number(t.dataset.page) || 0; return render(); }
@@ -789,7 +928,7 @@
         wait();
     }
 
-    window.ERPrint = { open, close, print, buildSheet, opts, THEMES, FONT_LIST, DEFAULTS };
+    window.ERPrint = { open, close, print, pdf, openMenu, buildSheet, opts, THEMES, FONT_LIST, DEFAULTS };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
     else start();
 })(window, document);

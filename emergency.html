@@ -396,7 +396,7 @@
             <div class="ers-nav-label">المقيمون</div>
             <button type="button" class="ers-nav-item" onclick="openResidentsDbModal()"><i class="fas fa-users"></i><span>قاعدة بيانات المقيمين</span></button>
             <div class="ers-nav-label">الطباعة والتصدير</div>
-            <button type="button" class="ers-nav-item" onclick="prepareOfficialPrint()" title="طباعة الجدول المفتوح على ورقة A4 رسمية"><i class="fas fa-print"></i><span>طباعة رسمية A4</span></button>
+            <button type="button" class="ers-nav-item" onclick="openPrintMenu(event)" title="طباعة الجدول المفتوح على ورقة A4 رسمية"><i class="fas fa-print"></i><span>طباعة رسمية A4</span></button>
             <button type="button" class="ers-nav-item" onclick="openPrintOptionsModal(state.activeTab)" title="الخطوط والأنماط وتصميم ورقة الطباعة"><i class="fas fa-palette"></i><span>خيارات الطباعة</span></button>
             <button type="button" class="ers-nav-item" onclick="openErStructureModal()" title="أقسام الطوارئ وشُعبها وعدد المقيمين في كل وجبة، وخفارات الاستشارية وشهادات الوفاة"><i class="fas fa-sitemap"></i><span>هيكلية الخفارات</span></button>
             <button type="button" class="ers-nav-item" onclick="exportFullScheduleToExcel()"><i class="fas fa-file-excel"></i><span>تصدير Excel</span></button>
@@ -427,7 +427,7 @@
         </div>
         <div class="ers-top-actions">
             <button type="button" class="ers-top-btn wide-only" onclick="openPrintOptionsModal(state.activeTab)" title="خيارات الطباعة"><i class="fas fa-palette"></i><span>خيارات الطباعة</span></button>
-            <button type="button" class="ers-top-btn wide-only" onclick="prepareOfficialPrint()" title="طباعة رسمية A4"><i class="fas fa-print"></i><span>طباعة</span></button>
+            <button type="button" class="ers-top-btn wide-only" onclick="openPrintMenu(event)" title="طباعة رسمية A4"><i class="fas fa-print"></i><span>طباعة</span></button>
             <!-- Save to the server now (emergency-save.js) -->
             <button type="button" class="er-save-btn" data-er-save data-state="saved"><i class="fas fa-cloud"></i><span>محفوظ</span></button>
         </div>
@@ -1061,6 +1061,7 @@
     <script src="./hub-prefhistory.js"></script>
     <script src="./emergency-portal.js"></script>
     <script src="./emergency-print.js"></script>
+    <script src="./emergency-slots.js"></script>
     <script src="./emergency-shell.js"></script>
     <script src="./emergency-structure.js"></script>
 

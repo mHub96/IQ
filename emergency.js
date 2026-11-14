@@ -995,6 +995,12 @@
             const dbModal = document.getElementById('residents-db-modal');
             const isDbOpen = dbModal && !dbModal.classList.contains('hidden');
 
+            // A read-only preview over the table (save slot / CSV file): no undo or redo under it.
+            if (!isDbOpen && (e.ctrlKey || e.metaKey) && ['z', 'y'].includes(e.key.toLowerCase()) && window.ERSlots && window.ERSlots.active()) {
+                e.preventDefault();
+                showNotification('أغلق المعاينة أولاً (إغلاق / إلغاء فوق الجدول)', 'info');
+                return;
+            }
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
                 if (e.shiftKey) {
                     e.preventDefault();
@@ -1280,7 +1286,8 @@
                 orderDate: state.orderDate || '',
                 rsEnabled: state.rsEnabled !== false,
                 rsStartDate: state.rsStartDate || '',
-                rsEndDate: state.rsEndDate || ''
+                rsEndDate: state.rsEndDate || '',
+                clearPrintMeta: !!state.clearPrintMeta
             };
         }
     }
@@ -1308,6 +1315,8 @@
             if (sig.rsEnabled !== undefined) state.rsEnabled = !!sig.rsEnabled;
             if (sig.rsStartDate !== undefined) state.rsStartDate = sig.rsStartDate;
             if (sig.rsEndDate !== undefined) state.rsEndDate = sig.rsEndDate;
+            // Print setting of each hospital (older records keep the value shared until now).
+            if (sig.clearPrintMeta !== undefined) state.clearPrintMeta = !!sig.clearPrintMeta;
         } else {
             if (hospId === 'iraqi') {
                 state.headOfResidents = (window.DEFAULT_EMERGENCY_DATA && window.DEFAULT_EMERGENCY_DATA.headOfResidents) || 'د. عادل ناصر';
@@ -1829,7 +1838,7 @@
             input.remove();
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = () => applySheetCsv(sheet, String(reader.result || ''));
+            reader.onload = () => applySheetCsv(sheet, String(reader.result || ''), file.name);
             reader.onerror = () => showNotification('تعذرت قراءة الملف', 'error');
             reader.readAsText(file, 'utf-8');
         };
@@ -1837,7 +1846,7 @@
         input.click();
     }
 
-    function applySheetCsv(sheet, text) {
+    function applySheetCsv(sheet, text, fileName) {
         const rows = parseCsvText(text);
         const title = CSV_SHEETS[sheet];
         if (rows.length < 2) { showNotification('الملف فارغ', 'error'); return; }
@@ -1886,6 +1895,15 @@
             byDay.set(d, vals);
         });
         if (!byDay.size) { showNotification(`لا توجد أيام من شهر ${state.month}/${state.year} في الملف`, 'error'); return; }
+        // Shown over the table first, read-only with the differences marked: "تطبيق" or "إلغاء".
+        if (window.ERSlots) {
+            const note = [
+                unknown.length ? `أسماء غير موجودة في قاعدة بيانات المقيمين (لن تُضاف): ${unknown.slice(0, 8).join('، ')}${unknown.length > 8 ? ' …' : ''}` : '',
+                skipped ? `${skipped} صفاً بلا يوم صالح من هذا الشهر (تُتجاهل)` : '',
+            ].filter(Boolean).join(' · ');
+            window.ERSlots.previewCsv(sheet, byDay, `استيراد CSV${fileName ? ': ' + fileName : ''}`, note);
+            return;
+        }
         const msg = `استيراد جدول ${title} لشهر ${state.month}/${state.year}:\n\n`
             + `• ${byDay.size} يوماً في الملف (تُستبدل خفاراتها في هذا الجدول)\n`
             + `• ${count} خفارة`
@@ -3470,6 +3488,8 @@
             return;
         }
         applyScheduleLiveFilter(state.scheduleSearchQuery || '');
+        // A save slot or a CSV file shown read-only over the table (emergency-slots.js).
+        try { if (window.ERSlots) window.ERSlots.afterRender(container); } catch (e) { console.error('ER preview', e); }
     }
 
     // =========================================================================
@@ -4110,9 +4130,13 @@
                         <i class="fas fa-palette text-rose-500"></i>
                         <span>خيارات الطباعة</span>
                     </button>
-                    <button type="button" onclick="prepareOfficialPrint('er')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
+                    <button type="button" onclick="openPrintMenu(event, 'er')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
                         <i class="fas fa-print"></i>
                         <span>طباعة رسمية (A4)</span>
+                    </button>
+                    <button type="button" onclick="ERSlots.openMenu(event, 'er')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5" title="حفظ الجدول في نسخة، أو عرض نسخة محفوظة">
+                        <i class="fas fa-floppy-disk text-sky-600"></i>
+                        <span>النسخ المحفوظة</span>
                     </button>
                     <button type="button" onclick="openTableCsvMenu(event, 'er')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5" title="تصدير / استيراد الجدول (CSV)">
                         <i class="fas fa-file-csv text-emerald-600"></i>
@@ -4203,9 +4227,13 @@
                         <i class="fas fa-palette text-rose-500"></i>
                         <span>خيارات الطباعة</span>
                     </button>
-                    <button type="button" onclick="prepareOfficialPrint('con')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
+                    <button type="button" onclick="openPrintMenu(event, 'con')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
                         <i class="fas fa-print"></i>
                         <span>طباعة رسمية (A4)</span>
+                    </button>
+                    <button type="button" onclick="ERSlots.openMenu(event, 'con')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5" title="حفظ الجدول في نسخة، أو عرض نسخة محفوظة">
+                        <i class="fas fa-floppy-disk text-sky-600"></i>
+                        <span>النسخ المحفوظة</span>
                     </button>
                     <button type="button" onclick="openTableCsvMenu(event, 'con')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5" title="تصدير / استيراد الجدول (CSV)">
                         <i class="fas fa-file-csv text-emerald-600"></i>
@@ -4288,9 +4316,13 @@
                         <i class="fas fa-palette text-rose-500"></i>
                         <span>خيارات الطباعة</span>
                     </button>
-                    <button type="button" onclick="prepareOfficialPrint('dc')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
+                    <button type="button" onclick="openPrintMenu(event, 'dc')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
                         <i class="fas fa-print"></i>
                         <span>طباعة رسمية (A4)</span>
+                    </button>
+                    <button type="button" onclick="ERSlots.openMenu(event, 'dc')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5" title="حفظ الجدول في نسخة، أو عرض نسخة محفوظة">
+                        <i class="fas fa-floppy-disk text-sky-600"></i>
+                        <span>النسخ المحفوظة</span>
                     </button>
                     <button type="button" onclick="openTableCsvMenu(event, 'dc')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5" title="تصدير / استيراد الجدول، أو نقله إلى جدول المستشفى (CSV)">
                         <i class="fas fa-file-csv text-emerald-600"></i>
@@ -4388,7 +4420,7 @@
                         <i class="fas fa-palette text-rose-500"></i>
                         <span>خيارات الطباعة</span>
                     </button>
-                    <button type="button" onclick="prepareOfficialPrint('rs_er')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
+                    <button type="button" onclick="openPrintMenu(event, 'rs_er')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
                         <i class="fas fa-print"></i>
                         <span>طباعة رسمية (A4)</span>
                     </button>
@@ -4489,7 +4521,7 @@
                         <i class="fas fa-palette text-rose-500"></i>
                         <span>خيارات الطباعة</span>
                     </button>
-                    <button type="button" onclick="prepareOfficialPrint('rs_wards')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
+                    <button type="button" onclick="openPrintMenu(event, 'rs_wards')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
                         <i class="fas fa-print"></i>
                         <span>طباعة رسمية (A4)</span>
                     </button>
@@ -7015,6 +7047,7 @@
                 weekendText: '#000000',
                 borderColor: '#000000'
             },
+            printOptionsByHosp: state.printOptionsByHosp || {},
             specialtyColors: customColors,
             totalResidents: residentsBackupList.length,
             activeResidentsCount: residentsBackupList.filter(r => r.active).length,
@@ -7169,6 +7202,9 @@
                 if (parsed.clearPrintMeta !== undefined) state.clearPrintMeta = !!parsed.clearPrintMeta;
                 if (parsed.printOptions && typeof parsed.printOptions === 'object') {
                     state.printOptions = Object.assign(state.printOptions || {}, parsed.printOptions);
+                }
+                if (parsed.printOptionsByHosp && typeof parsed.printOptionsByHosp === 'object') {
+                    state.printOptionsByHosp = Object.assign(state.printOptionsByHosp || {}, parsed.printOptionsByHosp);
                 }
                 if (parsed.hospitalSignatories && typeof parsed.hospitalSignatories === 'object') {
                     state.hospitalSignatories = Object.assign(state.hospitalSignatories || {}, parsed.hospitalSignatories);
@@ -10684,7 +10720,7 @@
         return { emptyCount, totalSlots };
     }
 
-    function prepareOfficialPrint(targetSheet) {
+    function prepareOfficialPrint(targetSheet, mode) {
         const printContainer = document.getElementById('official-print-area');
         if (!printContainer) return;
 
@@ -10709,7 +10745,7 @@
         }
 
         // The print module (emergency-print.js) builds the sheet with every print option and waits for its fonts.
-        if (window.ERPrint) return window.ERPrint.print(activeSheet);
+        if (window.ERPrint) return mode === 'pdf' ? window.ERPrint.pdf(activeSheet) : window.ERPrint.print(activeSheet);
 
         const opts = state.printOptions || PRINT_THEME_PRESETS.official;
         const thStyle = `background-color: ${opts.headerBg} !important; color: ${opts.headerText} !important; border: 1px solid ${opts.borderColor} !important; font-weight: 900; padding: 2.5px 3.5px !important; text-align: center;`;
@@ -11470,6 +11506,11 @@
     window.clearCurrentSchedule = clearCurrentSchedule;
     window.showPrefViolations = showPrefViolations;
     window.openTableCsvMenu = openTableCsvMenu;
+    window.closeTableCsvMenu = closeTableCsvMenu;
+    window.openPrintMenu = (event, sheet) => {
+        if (window.ERPrint && window.ERPrint.openMenu) return window.ERPrint.openMenu(event, sheet);
+        prepareOfficialPrint(sheet);
+    };
     window.copyAllocationsFromPreviousMonth = copyAllocationsFromPreviousMonth;
     window.updateResidentRowFulfillment = updateResidentRowFulfillment;
     window.updateScheduleUndoRedoUI = updateScheduleUndoRedoUI;
@@ -11492,6 +11533,7 @@
         state: () => state,
         ready: () => appReady,
         saveState, pushDBHistory, refreshDBView, renderActiveTab, showNotification, pushScheduleHistory, ensureScheduleIntegrity,
+        renderShiftCellHTML, updateDutyDashboard,
         updateDBUndoRedoUI: () => { try { updateDBUndoRedoUI(); } catch (e) {} },
         // Residents import / bulk actions (emergency-residents.js).
         bulkDeactivateResidents, bulkReactivateResidents, bulkDeleteResidents, addResidentsToER,

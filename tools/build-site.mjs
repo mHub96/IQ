@@ -19,6 +19,9 @@ for (const name of fs.readdirSync(root)) {
     n++;
   }
 }
+if (fs.existsSync(path.join(root, 'vendor'))) {
+  fs.cpSync(path.join(root, 'vendor'), path.join(dist, 'vendor'), { recursive: true });
+}
 if (fs.existsSync(path.join(root, 'fonts'))) {
   fs.cpSync(path.join(root, 'fonts'), path.join(dist, 'fonts'), { recursive: true });
 }
@@ -34,4 +37,4 @@ fs.writeFileSync(path.join(dist, '_headers'), [
   '  Permissions-Policy: camera=(), microphone=(), geolocation=()',
   '',
 ].join('\n'));
-console.log(`dist/: ${n} files + fonts/ + _headers`);
+console.log(`dist/: ${n} files + vendor/ + fonts/ + _headers`);

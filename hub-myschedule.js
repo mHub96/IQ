@@ -517,19 +517,28 @@
     // ------------------------------------------------------------------
     // PDF (the month drawn as an A4 page, captured with html2canvas, saved with jsPDF)
     // ------------------------------------------------------------------
+    // The libraries are served from the site (vendor/, kept by the service worker after the first
+    // use); the CDN copy of the same version is only a fallback.
     const LIBS = {
-        html2canvas: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
-        jspdf: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+        html2canvas: ['./vendor/html2canvas-1.4.1.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'],
+        jspdf: ['./vendor/jspdf-2.5.1.umd.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'],
     };
     const loaded = {};
-    function loadScript(src) {
-        return loaded[src] = loaded[src] || new Promise((resolve, reject) => {
+    function addScript(src) {
+        return new Promise((resolve, reject) => {
             const s = document.createElement('script');
-            s.src = src; s.async = true; s.crossOrigin = 'anonymous';
+            s.src = src; s.async = true;
+            if (/^https?:/.test(src)) s.crossOrigin = 'anonymous';
             s.onload = resolve;
-            s.onerror = () => { delete loaded[src]; reject(new Error('lib')); };
+            s.onerror = () => { s.remove(); reject(new Error('lib')); };
             document.head.appendChild(s);
         });
+    }
+    function loadScript(srcs) {
+        srcs = [].concat(srcs);
+        const key = srcs[0];
+        return loaded[key] = loaded[key] || srcs.slice(1).reduce((p, src) => p.catch(() => addScript(src)), addScript(srcs[0]))
+            .catch(e => { delete loaded[key]; throw e; });
     }
 
     // Left-to-right override: the PDF capture draws "+$" / "+3" in the right order inside Arabic text.

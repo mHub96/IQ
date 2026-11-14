@@ -2,13 +2,16 @@
 // The app's own files are served straight from the cache (instant, like an installed app) and
 // refreshed in the background; a deploy also bumps CACHE_VERSION, which re-downloads all of them
 // and reloads open pages once. API calls are never cached.
-const CACHE_VERSION = 'v3.59.0';
+const CACHE_VERSION = 'v3.59.1';
 // Next to the live site on the same origin (mhub96.github.io/IQ-new/), the beta's caches carry
 // their own prefix, and only those are ever cleaned up here: the live site's caches are left alone.
 const SCOPE_MATCH = /\/(IQ-[^/]+)\//i.exec(new URL(self.registration.scope).pathname);
 const SCOPE_PREFIX = SCOPE_MATCH ? SCOPE_MATCH[1].toLowerCase() + '-' : '';
 const CACHE_NAME = `${SCOPE_PREFIX}hospital-hub-${CACHE_VERSION}`;
 const CDN_CACHE = 'hospital-hub-cdn-v1';
+// Libraries in vendor/ (the version is in each file name, so a file never changes): kept the first
+// time they are used, across releases, and answered from here without asking the network again.
+const VENDOR_CACHE = `${SCOPE_PREFIX}hospital-hub-vendor-v1`;
 const NETWORK_TIMEOUT_MS = 4000;
 
 // Downloaded for everyone at each release. The ER and hospital-management pages are not: only their
@@ -79,7 +82,7 @@ self.addEventListener('activate', event => {
     // the old GitHub-based code; they get reloaded once below.
     const fromOldGeneration = keys.some(key => key.startsWith(SCOPE_PREFIX + 'hospital-hub-v2.'));
     return Promise.all(
-      keys.filter(key => key.startsWith(SCOPE_PREFIX + 'hospital-hub-') && key !== CACHE_NAME && key !== CDN_CACHE).map(key => caches.delete(key))
+      keys.filter(key => key.startsWith(SCOPE_PREFIX + 'hospital-hub-') && key !== CACHE_NAME && key !== CDN_CACHE && key !== VENDOR_CACHE).map(key => caches.delete(key))
     ).then(() => self.clients.claim())
       .then(() => fromOldGeneration);
   });
@@ -155,6 +158,15 @@ function cacheFirstRevalidate(request, event) {
   );
 }
 
+function cacheForever(request) {
+  return caches.open(VENDOR_CACHE).then(cache =>
+    cache.match(request, { ignoreSearch: true }).then(cached => cached || fetch(request).then(response => {
+      if (response && response.ok && response.type === 'basic') cache.put(request, response.clone()).catch(() => {});
+      return response;
+    }))
+  );
+}
+
 function staleWhileRevalidate(request) {
   return caches.open(CDN_CACHE).then(cache =>
     cache.match(request).then(cached => {
@@ -177,6 +189,10 @@ self.addEventListener('fetch', event => {
   if (url.origin === self.location.origin) {
     // The old shared data file is no longer the source of truth; never serve it from cache.
     if (url.pathname.endsWith('/hub-data.json')) return;
+    if (url.pathname.includes('/vendor/')) {
+      event.respondWith(cacheForever(request));
+      return;
+    }
     event.respondWith(cacheFirstRevalidate(request, event));
     return;
   }

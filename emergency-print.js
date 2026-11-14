@@ -413,19 +413,28 @@
     // ------------------------------------------------------------------------------------------
     // Each paper is laid out as an A4 page (210 x 297 mm, the print margins 4 x 5 mm) under a cover,
     // captured with html2canvas and saved with jsPDF, one PDF page per paper.
+    // The libraries are served from the site (vendor/, kept by the service worker after the first
+    // use); the CDN copy of the same version is only a fallback.
     const PDF_LIBS = {
-        html2canvas: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
-        jspdf: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+        html2canvas: ['./vendor/html2canvas-1.4.1.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'],
+        jspdf: ['./vendor/jspdf-2.5.1.umd.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'],
     };
     const libLoads = {};
-    function loadLib(src) {
-        return libLoads[src] = libLoads[src] || new Promise((resolve, reject) => {
+    function addScript(src) {
+        return new Promise((resolve, reject) => {
             const s = document.createElement('script');
-            s.src = src; s.async = true; s.crossOrigin = 'anonymous';
+            s.src = src; s.async = true;
+            if (/^https?:/.test(src)) s.crossOrigin = 'anonymous';
             s.onload = resolve;
-            s.onerror = () => { delete libLoads[src]; reject(new Error('lib')); };
+            s.onerror = () => { s.remove(); reject(new Error('lib')); };
             document.head.appendChild(s);
         });
+    }
+    function loadLib(srcs) {
+        srcs = [].concat(srcs);
+        const key = srcs[0];
+        return libLoads[key] = libLoads[key] || srcs.slice(1).reduce((p, src) => p.catch(() => addScript(src)), addScript(srcs[0]))
+            .catch(e => { delete libLoads[key]; throw e; });
     }
     let pdfBusy = false;
 

@@ -1579,6 +1579,7 @@
     <link rel="stylesheet" href="./hub-ios.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Readex+Pro:wght@400;500;600;700&display=swap" />
     <link rel="stylesheet" href="./hub-theme.css" />
+    <link rel="stylesheet" href="./hub-v5.css" />
 </head>
 <body class="light" id="app-body">
 
@@ -2802,6 +2803,7 @@
                                     </div>
                                 ` : ''}
                                 <div class="specialty-bubbles">${specialtyBubbles}</div>
+                                <div class="rc-ava" aria-hidden="true" style="--ava-h:${[...String(resident.name)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 360, 7)}">${(String(resident.name).replace(/^د\.?\s*/, '').trim()[0] || '؟')}</div>
                                 <div class="resident-name">${resident.name}</div>
                                 <div class="resident-phone">${resident.phone}</div>
                                 <div class="divider"></div>

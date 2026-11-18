@@ -1,0 +1,340 @@
+/*
+ * Hospital Hub layout layer v5 ("Bento"), loaded after hub-theme.css on every page.
+ * v4 changed the colours and materials; v5 changes the layouts: greetings and large titles,
+ * bento tiles for live numbers, flat list rows instead of floating cards, chips instead of tracks.
+ * Looks only: every element a script uses keeps its id, its place in the page's logic and its handler.
+ */
+
+:root {
+  --v5-ink: #0E1D1B;
+  --v5-ink-2: #15302C;
+  --v5-mint: #5EE0C8;
+  --v5-mint-ink: #052A25;
+  --v5-sand: #F4EBDD;
+  --v5-sand-ink: #5A4316;
+  --v5-tile-r: 26px;
+}
+html.dark, body.dark {
+  --v5-sand: #241F16;
+  --v5-sand-ink: #F0D9A8;
+}
+
+/* ======================================================================
+   Shared: large page titles, section labels, chip filters
+   ====================================================================== */
+.v5-section-label {
+  display: flex; align-items: center; gap: 10px;
+  margin: 22px 4px 10px; font-family: var(--ds-display); font-weight: 600; font-size: 0.82rem;
+  color: var(--ds-ink-2); letter-spacing: 0.02em;
+}
+.v5-section-label::after { content: ""; flex: 1; height: 1px; background: var(--ds-line-2); }
+
+/* Segmented tracks become separate chips */
+.ios-segmented-control {
+  background: transparent !important; border: 0 !important; padding: 4px 4px 10px !important; margin: -4px -4px -10px;
+  gap: 8px !important; justify-content: flex-start !important;
+}
+.ios-segmented-control .ios-segment-btn {
+  flex: 0 0 auto !important; width: auto !important;
+  padding: 0.55rem 1rem !important; border-radius: 999px !important;
+  background: var(--ds-card) !important; border: 1px solid var(--ds-line-2) !important;
+  color: var(--ds-ink-2) !important; box-shadow: none !important;
+}
+.ios-segmented-control .ios-segment-btn.active {
+  background: var(--v5-ink) !important; border-color: var(--v5-ink) !important; color: #fff !important;
+  box-shadow: 0 8px 18px -10px rgba(14, 29, 27, 0.8) !important;
+}
+body.dark .ios-segmented-control .ios-segment-btn.active, html.dark .ios-segmented-control .ios-segment-btn.active {
+  background: var(--v5-mint) !important; border-color: var(--v5-mint) !important; color: var(--v5-mint-ink) !important;
+}
+
+/* ======================================================================
+   Portal (index.html)
+   ====================================================================== */
+.v5-greeting { padding: 6px 4px 18px; animation: ds-rise 0.6s var(--ds-ease) both; }
+.v5-hello { margin: 0; font-family: var(--ds-display); font-weight: 500; font-size: 0.95rem; color: var(--ds-tint); }
+.v5-name {
+  margin: 2px 0 0; font-family: var(--ds-display); font-weight: 700;
+  font-size: clamp(1.9rem, 7vw, 2.6rem); line-height: 1.15; letter-spacing: -0.02em; color: var(--ds-ink);
+}
+.v5-date { margin: 6px 0 0; font-size: 0.86rem; color: var(--ds-ink-2); }
+
+/* The live card is now a bento of three tiles */
+.live-activity-card {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  grid-template-areas: "main icu" "main clock";
+  gap: 10px !important;
+  padding: 0 !important; border: 0 !important; border-radius: 0 !important;
+  background: none !important; box-shadow: none !important; overflow: visible !important;
+  margin-bottom: 18px !important;
+}
+.live-activity-card::after { display: none !important; }
+.live-activity-card > * { margin: 0 !important; }
+.live-activity-card .live-status-left {
+  grid-area: main;
+  display: flex !important; flex-direction: column !important; align-items: flex-start !important; justify-content: space-between;
+  gap: 6px !important; min-height: 196px; padding: 18px;
+  border-radius: var(--v5-tile-r);
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(260px 160px at 100% 0%, rgba(94, 224, 200, 0.28), transparent 65%),
+    linear-gradient(160deg, var(--v5-ink-2), var(--v5-ink)) !important;
+  color: #E8F1EE;
+  box-shadow: 0 22px 44px -24px rgba(6, 30, 27, 0.9);
+}
+.live-activity-card .live-status-left::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1.2px); background-size: 14px 14px;
+  -webkit-mask-image: linear-gradient(210deg, #000, transparent 60%); mask-image: linear-gradient(210deg, #000, transparent 60%);
+}
+.v5-tile-top { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+.live-activity-card .live-pulse-badge { width: 38px !important; height: 38px !important; font-size: 1rem !important; }
+.v5-big {
+  font-family: var(--ds-display); font-weight: 700; font-variant-numeric: tabular-nums;
+  font-size: clamp(3rem, 14vw, 4.2rem); line-height: 1; color: var(--v5-mint); letter-spacing: -0.03em;
+  margin-top: auto;
+}
+.live-activity-card .live-title-wrap h2 { font-size: 0.95rem !important; margin: 0 !important; display: block !important; }
+.live-activity-card .live-title-wrap p { font-size: 0.74rem !important; margin-top: 2px !important; line-height: 1.5; }
+
+.live-activity-card .live-icu-pill {
+  grid-area: icu;
+  display: flex !important; flex-direction: column !important; align-items: flex-start !important; justify-content: space-between !important;
+  gap: 6px !important; padding: 14px !important; min-height: 93px;
+  border-radius: var(--v5-tile-r) !important;
+  background: var(--v5-mint) !important; color: var(--v5-mint-ink) !important; border: 0 !important;
+  box-shadow: 0 16px 30px -18px rgba(46, 196, 172, 0.9) !important;
+  font-size: 0.78rem !important; font-weight: 600 !important; text-decoration: none;
+}
+.live-activity-card .live-icu-pill i { color: var(--v5-mint-ink) !important; font-size: 1.05rem; }
+.live-activity-card .live-icu-pill .live-icu-avail-badge {
+  order: 3; background: none !important; color: var(--v5-mint-ink) !important; padding: 0 !important;
+  font-family: var(--ds-display); font-weight: 700 !important; font-size: 1.35rem !important; line-height: 1;
+}
+.live-activity-card .live-icu-avail-badge.full { color: #8A1F1F !important; font-size: 1rem !important; }
+
+.live-activity-card .live-clock-pill {
+  grid-area: clock;
+  display: flex !important; flex-direction: column !important; align-items: flex-start !important; justify-content: center !important;
+  gap: 4px !important; padding: 14px !important; min-height: 93px;
+  border-radius: var(--v5-tile-r) !important;
+  background: var(--v5-sand) !important; color: var(--v5-sand-ink) !important; border: 0 !important;
+  font-size: 0.8rem !important; line-height: 1.4;
+}
+.live-activity-card .live-clock-pill i { color: var(--v5-sand-ink) !important; opacity: 0.8; }
+.live-activity-card .live-clock-pill span { font-weight: 700; }
+
+/* Search: a big rounded field; then chips */
+.ios-filter-section { display: grid !important; gap: 12px !important; margin-bottom: 4px !important; }
+.ios-search-input { height: 54px !important; border-radius: 18px !important; font-size: 0.95rem !important; }
+
+/* Hospitals: flat rows of a list under a section label */
+.hospitals-grid { gap: 12px !important; }
+.hospitals-grid::before {
+  content: "المستشفيات"; grid-column: 1 / -1;
+  display: flex; align-items: center; gap: 10px;
+  margin: 10px 4px -2px; font-family: var(--ds-display); font-weight: 600; font-size: 0.82rem; color: var(--ds-ink-2);
+}
+.hosp-widget-card { padding: 16px !important; border-radius: 22px !important; box-shadow: none !important; border: 1px solid var(--ds-line-2) !important; }
+.hosp-widget-card .widget-top-banner { display: flex !important; flex-direction: row !important; align-items: center !important; gap: 12px !important; text-align: right !important; }
+.hosp-widget-card .widget-squircle-icon { width: 52px !important; height: 52px !important; min-width: 52px; border-radius: 16px !important; font-size: 1.3rem !important; }
+.hosp-widget-card .widget-title-area { text-align: right !important; align-items: flex-start !important; min-width: 0; }
+.hosp-widget-card .widget-hosp-name { font-size: 1.08rem !important; line-height: 1.35 !important; }
+.hosp-widget-card .widget-meta-row { justify-content: flex-start !important; font-size: 0.72rem !important; }
+/* Metrics: a quiet strip of figures separated by hairlines, not a pile of chips */
+.hosp-widget-card .widget-metrics-wrap {
+  display: grid !important; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 0 !important;
+  margin: 14px 0 !important; border: 1px solid var(--ds-line) !important; border-radius: 16px; overflow: hidden;
+}
+.hosp-widget-card .metric-chip {
+  justify-content: center; border-radius: 0 !important; background: transparent !important;
+  padding: 0.7rem 0.4rem !important; font-size: 0.74rem !important;
+  border-inline-start: 1px solid var(--ds-line) !important; margin: -1px 0 0 -1px;
+}
+.hosp-widget-card .metric-chip.oncall-live { background: var(--ds-brand-soft) !important; }
+.hosp-widget-card .hosp-primary-action-wrap { gap: 8px !important; }
+.hosp-widget-card .hosp-roster-btn { flex: 1 1 auto; max-width: none !important; }
+
+/* Larger screens: greeting and bento side by side, hospitals in two columns */
+@media (min-width: 900px) {
+  #hub-main-content { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); column-gap: 22px; align-items: start; }
+  #hub-main-content > * { grid-column: 1 / -1; }
+  #hub-main-content > .v5-greeting { grid-column: 1; align-self: end; padding-bottom: 22px; }
+  #hub-main-content > .live-activity-card { grid-column: 2; }
+  .v5-name { font-size: 2.8rem; }
+  .ios-filter-section { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+}
+
+/* ======================================================================
+   On-call roster (Home.html)
+   ====================================================================== */
+/* Hospital banner: an ink tile with the mark at the side, the name large, the clock as a chip */
+#main-content > .hospital-header {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "mark content" "meta meta";
+  align-items: center; gap: 4px 14px !important;
+  text-align: right !important;
+  padding: 18px !important; margin: 4px 0 12px !important;
+  border-radius: var(--v5-tile-r);
+  background:
+    radial-gradient(300px 180px at 100% 0%, rgba(94, 224, 200, 0.24), transparent 65%),
+    linear-gradient(160deg, var(--v5-ink-2), var(--v5-ink));
+  color: #E8F1EE;
+  box-shadow: 0 22px 44px -26px rgba(6, 30, 27, 0.9);
+  border: 0 !important;
+}
+#main-content > .hospital-header .hospital-mark { grid-area: mark; margin: 0 !important; width: 3.6rem !important; height: 3.6rem !important; font-size: 1.5rem !important; }
+#main-content > .hospital-header .hospital-header-content { grid-area: content; text-align: right; min-width: 0; }
+#main-content > .hospital-header .hospital-title { color: #fff !important; font-size: clamp(1.35rem, 5.4vw, 1.9rem) !important; line-height: 1.25 !important; text-align: right; }
+#main-content > .hospital-header .hospital-eyebrow { color: var(--v5-mint) !important; text-align: right; }
+#main-content > .hospital-header .hospital-subtitle { color: rgba(232, 241, 238, 0.55) !important; text-align: right; margin-top: 2px !important; }
+#main-content > .hospital-header .hospital-meta { grid-area: meta; justify-content: flex-start !important; max-width: none !important; margin-top: 10px !important; }
+#main-content > .hospital-header .current-time-bubble { transform: none !important; background: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.12) !important; box-shadow: none !important; }
+/* the old separator line under the header */
+#main-content > .hospital-header::after, #main-content > .hospital-header + hr { display: none !important; }
+#main-content > .top-bar { justify-content: flex-start !important; }
+#main-content > .top-bar .spacer { display: none; }
+#main-content > .nav-row { justify-content: flex-start !important; }
+
+/* Duty cards become rows: avatar | name, phone, specialties | counters; actions underneath */
+.roster-card .card-front.card-body {
+  display: grid !important;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto auto auto auto;
+  column-gap: 12px !important; row-gap: 2px !important;
+  align-items: center !important; justify-items: start !important;
+  text-align: right !important;
+  padding: 14px 14px 12px !important;
+}
+.roster-card .card-front > * { grid-column: 2 / -1; }
+.roster-card .card-front > .clone-parent-title { grid-row: 1; grid-column: 1 / -1; justify-content: flex-start !important; margin: 0 0 6px !important; }
+.roster-card .card-front > .rc-ava { grid-row: 2 / span 2; grid-column: 1; align-self: start; }
+.roster-card .card-front > .resident-name {
+  grid-row: 2; grid-column: 2; justify-content: flex-start !important; text-align: right;
+  margin: 0 !important; font-size: 1.08rem !important; line-height: 1.35 !important;
+}
+.roster-card .card-front > .resident-phone { grid-row: 3; grid-column: 2; margin: 0 !important; font-size: 0.8rem !important; }
+.roster-card .card-front > .card-status { grid-row: 2; grid-column: 3; position: static !important; border-radius: 999px !important; justify-self: end; }
+.roster-card .card-front > .card-icu-status { grid-row: 3; grid-column: 3; position: static !important; border-radius: 999px !important; justify-self: end; }
+.roster-card .card-front > .specialty-bubbles { grid-row: 4; grid-column: 1 / -1; justify-content: flex-start !important; max-width: none !important; margin: 10px 0 2px !important; }
+.roster-card .card-front > .card-duty-status { grid-row: 5; grid-column: 1 / -1; margin: 4px 0 0 !important; }
+.roster-card .card-front > .card-actions { grid-row: 6; grid-column: 1 / -1; width: 100%; margin-top: 10px !important; }
+.roster-card .card-front > .divider { display: none !important; }
+
+.rc-ava {
+  width: 52px; height: 52px; border-radius: 17px;
+  display: grid; place-items: center;
+  font-family: var(--ds-display); font-weight: 700; font-size: 1.35rem; line-height: 1;
+  color: hsl(var(--ava-h, 170) 45% 26%);
+  background: linear-gradient(150deg, hsl(var(--ava-h, 170) 70% 90%), hsl(var(--ava-h, 170) 55% 80%));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+body.dark .rc-ava { color: hsl(var(--ava-h, 170) 70% 82%); background: linear-gradient(150deg, hsl(var(--ava-h, 170) 35% 24%), hsl(var(--ava-h, 170) 35% 16%)); box-shadow: none; }
+/* Skinned cards (on-call status skins) keep the avatar readable */
+.roster-card-wrapper[class*="oc-skin-"] .rc-ava { background: rgba(255, 255, 255, 0.18); color: #fff; }
+
+/* Roster list: one column on phones, rows of cards on larger screens */
+@media (min-width: 900px) {
+  #main-content > .hospital-header { max-width: none !important; }
+  #main-content > .top-bar, #main-content > .nav-row, #main-content > #trending-container { max-width: none !important; }
+  #main-content .roster-grid { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)) !important; }
+}
+/* "Resident of the month" badge: its own line above the name instead of over it */
+.roster-card .card-front > .xp-month-badge {
+  grid-row: 1; grid-column: 2 / -1; position: static !important; transform: none !important;
+  justify-self: start; margin: 0 0 6px !important;
+}
+
+/* ======================================================================
+   Page banners (Residents, Specialists, ICU): the header card becomes an ink banner
+   ====================================================================== */
+main > .glass-card:first-child:not(:has(.branch-hide)) {
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(420px 220px at 100% 0%, rgba(94, 224, 200, 0.22), transparent 65%),
+    radial-gradient(360px 200px at 0% 100%, rgba(232, 162, 58, 0.12), transparent 65%),
+    linear-gradient(160deg, var(--v5-ink-2), var(--v5-ink)) !important;
+  border: 0 !important;
+  border-radius: var(--v5-tile-r) !important;
+  box-shadow: 0 24px 50px -28px rgba(6, 30, 27, 0.9) !important;
+  color: #E8F1EE !important;
+}
+main > .glass-card:first-child:not(:has(.branch-hide)) h1,
+main > .glass-card:first-child:not(:has(.branch-hide)) .text-2xl { color: #fff !important; }
+main > .glass-card:first-child:not(:has(.branch-hide)) p,
+main > .glass-card:first-child:not(:has(.branch-hide)) .text-slate-500,
+main > .glass-card:first-child:not(:has(.branch-hide)) .text-slate-400 { color: rgba(232, 241, 238, 0.66) !important; }
+main > .glass-card:first-child:not(:has(.branch-hide)) .font-mono { color: var(--v5-mint) !important; }
+main > .glass-card:first-child:not(:has(.branch-hide)) [id$="indicator-badge"], main > .glass-card:first-child:not(:has(.branch-hide)) [id*="role-indicator"] {
+  background: rgba(255, 255, 255, 0.1) !important; color: #E8F1EE !important; border: 0 !important;
+}
+/* Its counters become figures on the banner */
+main > .glass-card:first-child:not(:has(.branch-hide)) .border-t { border-color: rgba(255, 255, 255, 0.1) !important; }
+main > .glass-card:first-child:not(:has(.branch-hide)) .border-t > span {
+  background: rgba(255, 255, 255, 0.07) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #E8F1EE !important; border-radius: 14px !important; padding: 0.55rem 0.85rem !important;
+  font-family: var(--ds-display); font-weight: 500 !important;
+}
+main > .glass-card:first-child:not(:has(.branch-hide)) .border-t > span i { color: var(--v5-mint) !important; }
+main > .glass-card:first-child:not(:has(.branch-hide)) .btn-ghost {
+  background: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.14) !important; color: #E8F1EE !important;
+}
+main > .glass-card:first-child:not(:has(.branch-hide)) .btn-gradient {
+  background: var(--v5-mint) !important; color: var(--v5-mint-ink) !important; box-shadow: 0 10px 22px -12px rgba(94, 224, 200, 0.9) !important;
+}
+
+/* ======================================================================
+   ICU: the five counters become a bento of coloured tiles
+   ====================================================================== */
+#kpi-container { gap: 10px !important; }
+#kpi-container > .glass-card {
+  border: 0 !important; border-radius: var(--v5-tile-r) !important; box-shadow: none !important;
+  text-align: right !important; padding: 16px !important; min-height: 112px;
+  display: flex; flex-direction: column; justify-content: space-between;
+}
+#kpi-container > .glass-card > div:nth-child(2) { font-size: 2.4rem !important; line-height: 1.05; order: 2; }
+#kpi-container > .glass-card > div:first-child { order: 1; }
+#kpi-container > .glass-card > div:nth-child(3) { order: 3; }
+#kpi-container > .glass-card:nth-child(1) { background: var(--v5-ink) !important; }
+#kpi-container > .glass-card:nth-child(1) * { color: #E8F1EE !important; }
+#kpi-container > .glass-card:nth-child(1) > div:nth-child(2) { color: var(--v5-mint) !important; }
+#kpi-container > .glass-card:nth-child(2) { background: var(--ds-card) !important; border: 1px solid var(--ds-line-2) !important; }
+#kpi-container > .glass-card:nth-child(3) { background: var(--v5-sand) !important; }
+#kpi-container > .glass-card:nth-child(3) * { color: var(--v5-sand-ink) !important; }
+#kpi-container > .glass-card:nth-child(4) { background: var(--v5-mint) !important; }
+#kpi-container > .glass-card:nth-child(4) * { color: var(--v5-mint-ink) !important; }
+#kpi-container > .glass-card:nth-child(5) { background: var(--ds-brand-soft-2) !important; flex-direction: row; align-items: center; min-height: 0; }
+#kpi-container > .glass-card:nth-child(5) > div:nth-child(2) { order: 0; margin-inline-end: auto; }
+
+/* ======================================================================
+   Monthly schedule: the title area becomes an ink banner with the month controls on it
+   ====================================================================== */
+.sch-head {
+  padding: 18px !important; border-radius: var(--v5-tile-r);
+  background:
+    radial-gradient(360px 200px at 100% 0%, rgba(94, 224, 200, 0.22), transparent 65%),
+    linear-gradient(160deg, var(--v5-ink-2), var(--v5-ink));
+  color: #E8F1EE;
+  box-shadow: 0 22px 44px -26px rgba(6, 30, 27, 0.9);
+}
+.sch-head .sch-title { color: #fff !important; font-family: var(--ds-display) !important; }
+.sch-head .sch-hosp { color: rgba(232, 241, 238, 0.62) !important; }
+.sch-head .sch-icon-btn, .sch-head .sch-month-btn {
+  background: rgba(255, 255, 255, 0.08) !important; border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #E8F1EE !important; box-shadow: none !important;
+}
+.sch-head .sch-month-label, .sch-head .sch-month-label * { color: #fff !important; }
+.sch-head .sch-today { background: var(--v5-mint) !important; color: var(--v5-mint-ink) !important; border: 0 !important; }
+.sch-head .sch-seg { background: rgba(255, 255, 255, 0.07) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; }
+.sch-head .sch-seg button { color: rgba(232, 241, 238, 0.72) !important; }
+.sch-head .sch-seg button.active { background: var(--v5-mint) !important; color: var(--v5-mint-ink) !important; box-shadow: none !important; }
+.sch-head .sch-search { background: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.14) !important; }
+.sch-head .sch-search input { color: #fff !important; }
+.sch-head .sch-search input::placeholder { color: rgba(232, 241, 238, 0.5) !important; }
+@media (min-width: 1024px) { #kpi-container > .glass-card:nth-child(5) { flex-direction: column; align-items: stretch; min-height: 112px; } #kpi-container > .glass-card:nth-child(5) > div:nth-child(2) { order: 2; margin: 0; } }
+/* Dark mode: the ink tiles get a faint mint edge so they stand off the near-black page */
+html.dark .live-activity-card .live-status-left, body.dark .live-activity-card .live-status-left,
+body.dark #main-content > .hospital-header, body.dark main > .glass-card:first-child:not(:has(.branch-hide)),
+body.dark .sch-head, html.dark .sch-head, body.dark #kpi-container > .glass-card:nth-child(1) { box-shadow: inset 0 0 0 1px rgba(94, 224, 200, 0.14) !important; }

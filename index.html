@@ -1260,6 +1260,7 @@
     <link rel="stylesheet" href="./hub-ios.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Readex+Pro:wght@400;500;600;700&display=swap" />
     <link rel="stylesheet" href="./hub-theme.css" />
+    <link rel="stylesheet" href="./hub-v5.css" />
 </head>
 <body class="light">
 
@@ -1384,29 +1385,35 @@
     <!-- MAIN APP CONTAINER -->
     <main class="app-container" id="hub-main-content">
 
-        <!-- LIVE SHIFT & MEDICAL ACTIVITY CARD -->
+        <!-- Greeting (display only: filled by updateGreeting) -->
+        <header class="v5-greeting" aria-live="off">
+            <p class="v5-hello" id="v5-hello">أهلاً بك</p>
+            <h1 class="v5-name" id="v5-name">بوابة المستشفيات</h1>
+            <p class="v5-date" id="v5-date"></p>
+        </header>
+
+        <!-- LIVE SHIFT & MEDICAL ACTIVITY: a bento of live tiles -->
         <section class="live-activity-card">
             <div class="live-status-left">
-                <div class="live-pulse-badge">
-                    <i class="fas fa-heart-pulse"></i>
+                <div class="v5-tile-top">
+                    <div class="live-pulse-badge">
+                        <i class="fas fa-heart-pulse"></i>
+                    </div>
+                    <span class="widget-status-badge"><i class="fas fa-circle text-[8px] animate-pulse"></i> مباشر</span>
                 </div>
+                <div class="v5-big" id="live-oncall-count">–</div>
                 <div class="live-title-wrap">
-                    <h2>
-                        <span id="live-title-text">الخفارات الطبية نشطة</span>
-                        <span class="widget-status-badge"><i class="fas fa-circle text-[8px] animate-pulse"></i> مباشر</span>
-                    </h2>
+                    <h2><span id="live-title-text">الخفارات الطبية نشطة</span></h2>
                     <p id="live-oncall-summary">جاري فحص جدول الأطباء الخفراء...</p>
                 </div>
             </div>
-            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                <a href="./icu.html" class="live-icu-pill" id="live-icu-shortcut" title="موقف أسرة العناية المركزة (ICU)">
-                    <i class="fas fa-procedures"></i>
-                    <span>موقف أسرة العناية</span>
-                    <span id="live-icu-avail-counter" class="live-icu-avail-badge">-- شاغر</span>
-                </a>
-                <div class="live-clock-pill" id="live-time-display">
-                    <i class="fas fa-clock"></i> <span>--:-- · --/--/----</span>
-                </div>
+            <a href="./icu.html" class="live-icu-pill" id="live-icu-shortcut" title="موقف أسرة العناية المركزة (ICU)">
+                <i class="fas fa-procedures"></i>
+                <span>موقف أسرة العناية</span>
+                <span id="live-icu-avail-counter" class="live-icu-avail-badge">-- شاغر</span>
+            </a>
+            <div class="live-clock-pill" id="live-time-display">
+                <i class="fas fa-clock"></i> <span>--:-- · --/--/----</span>
             </div>
         </section>
 
@@ -2692,8 +2699,21 @@
             icon.className = theme === 'dark' ? 'fas fa-sun text-amber-400' : 'fas fa-moon';
         }
 
+        /** The greeting at the top of the portal (display only). */
+        function updateGreeting(now) {
+            const h = now.getHours();
+            const hello = h < 12 ? 'صباح الخير' : (h < 18 ? 'نهارك سعيد' : 'مساء الخير');
+            const acc = Hub.auth.getAccount ? Hub.auth.getAccount() : null;
+            const name = acc && acc.name ? 'د. ' + String(acc.name).replace(/^د\.?\s*/, '').split(/\s+/).slice(0, 2).join(' ') : 'بوابة المستشفيات';
+            let date = '';
+            try { date = now.toLocaleDateString('ar-IQ-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) {}
+            const set = (id, v) => { const e = document.getElementById(id); if (e && e.textContent !== v) e.textContent = v; };
+            set('v5-hello', hello + '،'); set('v5-name', name); set('v5-date', date);
+        }
+
         function updateLiveClock() {
             const el = document.getElementById('live-time-display');
+            try { updateGreeting(new Date()); } catch (e) {}
             if (!el) return;
             const now = new Date();
             const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
@@ -2777,6 +2797,8 @@
             // Global Statistics & On-Call Summary
             const today = Hub.getMedicalDate();
             const totalOnCallNow = Hub.getTotalActiveOnCallCount ? Hub.getTotalActiveOnCallCount(today) : 0;
+            const countEl = document.getElementById('live-oncall-count');
+            if (countEl) countEl.textContent = String(totalOnCallNow);
             const summaryEl = document.getElementById('live-oncall-summary');
             if (summaryEl) {
                 summaryEl.textContent = Hub.aa.active

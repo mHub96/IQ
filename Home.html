@@ -2803,7 +2803,6 @@
                                     </div>
                                 ` : ''}
                                 <div class="specialty-bubbles">${specialtyBubbles}</div>
-                                <div class="rc-ava" aria-hidden="true" style="--ava-h:${[...String(resident.name)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 360, 7)}">${(String(resident.name).replace(/^د\.?\s*/, '').trim()[0] || '؟')}</div>
                                 <div class="resident-name">${resident.name}</div>
                                 <div class="resident-phone">${resident.phone}</div>
                                 <div class="divider"></div>

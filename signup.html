@@ -402,11 +402,14 @@
                 </div>
             </div>
 
+            <!-- Progress through the steps (drawn by CSS from which steps are open) -->
+            <div class="xch-progress" aria-hidden="true"><i></i></div>
+
             <!-- STEP 1: Hospital Select -->
             <div class="form-group">
                 <label for="hosp-select">
                     <i class="fas fa-hospital text-teal-600 dark:text-teal-400"></i>
-                    <span>1. اختر المستشفى:</span>
+                    <span>المستشفى</span>
                 </label>
                 <select id="hosp-select" class="form-select" onchange="onHospitalChange()"></select>
             </div>
@@ -415,7 +418,7 @@
             <div class="form-group" id="spec-group">
                 <label for="spec-select">
                     <i class="fas fa-stethoscope text-teal-600 dark:text-teal-400"></i>
-                    <span>2. اختر التخصص الطبي:</span>
+                    <span>التخصص الطبي</span>
                 </label>
                 <select id="spec-select" class="form-select" onchange="onSpecialtyChange()">
                     <option value="">-- اختر التخصص أولاً --</option>
@@ -427,7 +430,7 @@
             <div class="form-group" id="date-group" style="display:none;">
                 <label for="exchange-date-input">
                     <i class="fas fa-calendar-day text-teal-600 dark:text-teal-400"></i>
-                    <span>3. تاريخ تبديل الخفارة (اليوم المحدد):</span>
+                    <span>يوم الخفارة</span>
                 </label>
                 <input type="date" id="exchange-date-input" class="form-select font-mono text-left" dir="ltr" onchange="onDateChange()" />
                 <div class="text-[11px] text-slate-400 mt-1">افتراضياً: تاريخ فتح الرابط (تاريخ اليوم الطبي)</div>
@@ -436,7 +439,7 @@
             <!-- STEP 4: Current Duty Status & Multi-Resident Target Picker -->
             <div id="duty-status-group" style="display:none;">
                 <div class="info-box mb-3" id="current-duty-box">
-                    <span class="label">الخفر المسجل حالياً في هذا اليوم:</span>
+                    <span class="label">الخفر المسجل حالياً</span>
                     <span class="value text-teal-600 dark:text-teal-400" id="current-holder">—</span>
                 </div>
 

@@ -329,3 +329,180 @@ main > .glass-card:first-child:not(:has(.branch-hide)) .btn-gradient {
 html.dark .live-activity-card .live-status-left, body.dark .live-activity-card .live-status-left,
 body.dark #main-content > .hospital-header, body.dark main > .glass-card:first-child:not(:has(.branch-hide)),
 body.dark .sch-head, html.dark .sch-head, body.dark #kpi-container > .glass-card:nth-child(1) { box-shadow: inset 0 0 0 1px rgba(94, 224, 200, 0.14) !important; }
+
+/* ======================================================================
+   Duty exchange (signup.html): an ink banner with a progress line, numbered steps on a
+   timeline, and a "swap ticket" joining the current duty holder and the replacement.
+   Steps glide in as the page opens them; the confirm button comes alive when it is ready.
+   ====================================================================== */
+.main-wrapper:has(> #app-card) { align-items: flex-start !important; padding-top: 18px !important; }
+.main-wrapper > #app-card {
+  max-width: 560px !important;
+  background: none !important; border: 0 !important; box-shadow: none !important;
+  padding: 0 !important; border-radius: 0 !important;
+  counter-reset: xch;
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+/* Banner */
+#app-card > div:first-child {
+  position: relative; overflow: hidden;
+  margin: 0 0 14px !important; padding: 20px 18px 18px !important;
+  border: 0 !important; border-radius: var(--v5-tile-r);
+  background:
+    radial-gradient(320px 180px at 100% 0%, rgba(94, 224, 200, 0.26), transparent 65%),
+    radial-gradient(260px 160px at 0% 100%, rgba(232, 162, 58, 0.14), transparent 65%),
+    linear-gradient(160deg, var(--v5-ink-2), var(--v5-ink));
+  color: #E8F1EE;
+  box-shadow: 0 22px 44px -26px rgba(6, 30, 27, 0.9);
+  animation: ds-rise 0.5s var(--ds-ease) both;
+}
+#app-card > div:first-child h1 { color: #fff !important; font-family: var(--ds-display) !important; font-weight: 700 !important; font-size: 1.45rem !important; }
+#app-card > div:first-child h1 i {
+  width: 40px; height: 40px; border-radius: 13px; display: grid; place-items: center; font-size: 1rem;
+  background: rgba(94, 224, 200, 0.16); color: var(--v5-mint) !important; border: 1px solid rgba(94, 224, 200, 0.28);
+  animation: xch-swing 3.2s var(--ds-ease) infinite;
+}
+#app-card > div:first-child h1 + div { color: rgba(232, 241, 238, 0.55) !important; font-family: var(--ds-display); letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.66rem !important; margin-top: 4px !important; }
+#selected-date-badge {
+  background: var(--v5-mint) !important; color: var(--v5-mint-ink) !important;
+  font-family: var(--ds-display) !important; font-weight: 600 !important; font-size: 0.8rem !important;
+  padding: 0.4rem 0.8rem !important; border-radius: 12px !important;
+}
+@keyframes xch-swing { 0%, 70%, 100% { transform: none; } 80% { transform: scaleX(-1); } 90% { transform: none; } }
+
+/* Progress line: grows as the steps open (read from which steps are on screen) */
+.xch-progress { height: 6px; margin: -4px 6px 16px; border-radius: 99px; background: var(--ds-fill); overflow: hidden; }
+.xch-progress > i {
+  display: block; height: 100%; width: 20%; border-radius: inherit;
+  background: linear-gradient(90deg, var(--v5-mint), var(--ds-brand));
+  transition: width 0.7s var(--ds-spring);
+}
+#app-card:has(#date-group[style*="block"]) .xch-progress > i { width: 45%; }
+#app-card:has(#name-section[style*="block"]) .xch-progress > i { width: 72%; }
+#app-card:has(#update-btn:not(:disabled)) .xch-progress > i { width: 100%; }
+#app-card.card-success .xch-progress > i { width: 100%; background: linear-gradient(90deg, #5EE0A8, #1FA971); }
+
+/* Steps: numbered bubbles on a timeline */
+#app-card > .form-group {
+  position: relative; counter-increment: xch;
+  margin: 0 0 12px !important; padding: 14px 54px 14px 14px;
+  background: var(--ds-card); border: 1px solid var(--ds-line-2); border-radius: 20px;
+  animation: xch-in 0.5s var(--ds-spring) both;
+}
+#app-card > .form-group:nth-of-type(1) { animation-delay: 60ms; }
+#app-card > .form-group:nth-of-type(2) { animation-delay: 120ms; }
+#app-card > .form-group::before {
+  content: counter(xch);
+  position: absolute; right: 12px; top: 14px;
+  width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center;
+  font-family: var(--ds-display); font-weight: 700; font-size: 0.86rem;
+  background: var(--ds-brand-soft); color: var(--ds-tint);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+/* a thread joining the bubbles */
+#app-card > .form-group:not(#date-group)::after,
+#app-card:has(#duty-status-group[style*="block"]) > #date-group::after {
+  content: ""; position: absolute; right: 26px; top: 48px; bottom: -14px; width: 2px;
+  background: linear-gradient(var(--ds-brand-soft-2), transparent); border-radius: 2px;
+}
+/* a step that has its answer turns into a mint tick */
+#app-card > .form-group:has(option:checked:not([value=""]))::before,
+#app-card > #date-group:has(input:valid)::before { content: "\f00c"; font-family: "Font Awesome 6 Free"; font-weight: 900; background: var(--v5-mint); color: var(--v5-mint-ink); }
+#app-card > .form-group > label {
+  margin: 4px 0 10px !important; font-family: var(--ds-display); font-weight: 600 !important; font-size: 0.86rem !important; color: var(--ds-ink) !important;
+}
+#app-card > .form-group > label > i { display: none !important; }
+#app-card .form-select {
+  border-radius: 14px !important; min-height: 50px; font-weight: 600 !important;
+  background-color: var(--ds-card-2) !important; border: 1px solid var(--ds-line-2) !important;
+}
+body.dark #app-card .form-select { background-color: rgba(232, 241, 238, 0.04) !important; }
+#app-card .form-select:focus { border-color: var(--ds-tint) !important; box-shadow: 0 0 0 4px var(--ds-brand-soft) !important; }
+#date-group > div:last-child { color: var(--ds-ink-3) !important; margin-top: 6px !important; }
+#app-card #target-resident-wrap { border-radius: 16px !important; border-width: 1px !important; margin-top: 10px; }
+
+/* The swap ticket: current holder (top half) and the replacement (bottom half) */
+#duty-status-group, #name-section { animation: xch-in 0.55s var(--ds-spring) both; }
+#name-section { animation-delay: 90ms; }
+#current-duty-box.info-box {
+  position: relative; margin: 0 !important;
+  padding: 16px 18px 26px !important; border-radius: 22px 22px 0 0 !important;
+  background: var(--v5-sand) !important; border: 0 !important; color: var(--v5-sand-ink);
+}
+#current-duty-box .label { color: var(--v5-sand-ink) !important; opacity: 0.75; font-family: var(--ds-display); font-size: 0.74rem !important; letter-spacing: 0.02em; }
+#current-duty-box .value { font-family: var(--ds-display); font-size: 1.15rem !important; font-weight: 600 !important; }
+#current-duty-box .value .font-mono { font-size: 0.72rem; opacity: 0.7; }
+#name-section {
+  position: relative;
+  padding: 26px 18px 18px; margin-top: 0;
+  border-radius: 0 0 22px 22px;
+  background-color: var(--ds-card); border: 1px solid var(--ds-line-2); border-top: 0;
+  background-image: linear-gradient(90deg, var(--ds-line-2) 50%, transparent 50%);
+  background-size: 14px 2px; background-repeat: repeat-x; background-position: 0 0;
+}
+#duty-status-group[style*="block"] + #name-section::before {
+  content: "\f362"; font-family: "Font Awesome 6 Free"; font-weight: 900;
+  position: absolute; top: -21px; left: 50%; transform: translateX(-50%);
+  width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; z-index: 2;
+  background: var(--v5-ink); color: var(--v5-mint); font-size: 1rem;
+  box-shadow: 0 0 0 5px var(--ds-bg), 0 10px 20px -8px rgba(6, 30, 27, 0.7);
+  animation: xch-spin 0.8s var(--ds-spring) 0.25s both;
+}
+body.dark #duty-status-group[style*="block"] + #name-section::before { background: var(--v5-mint); color: var(--v5-mint-ink); }
+@keyframes xch-spin { from { transform: translateX(-50%) rotate(-180deg) scale(0.4); opacity: 0; } to { transform: translateX(-50%) rotate(0) scale(1); opacity: 1; } }
+/* the two side notches of the ticket */
+#name-section::after {
+  content: ""; position: absolute; top: -11px; left: -11px; right: -11px; height: 22px; pointer-events: none;
+  background: radial-gradient(circle at 0 50%, var(--ds-bg) 10px, transparent 10.5px), radial-gradient(circle at 100% 50%, var(--ds-bg) 10px, transparent 10.5px);
+}
+#name-section .form-group { margin: 0 !important; }
+#name-section .form-group > label { font-family: var(--ds-display); font-weight: 600 !important; font-size: 0.8rem !important; color: var(--ds-ink-2) !important; margin-bottom: 8px !important; }
+#name-section .form-group > label > i { color: var(--ds-tint) !important; }
+#name-section .input-text {
+  border-radius: 14px !important; border: 1px solid var(--ds-line-2) !important; background: var(--ds-card-2) !important; min-height: 50px;
+}
+body.dark #name-section .input-text { background: rgba(232, 241, 238, 0.04) !important; }
+#name-section .input-text:focus { border-color: var(--ds-tint) !important; box-shadow: 0 0 0 4px var(--ds-brand-soft) !important; }
+#name-section .dropdown-menu {
+  border-radius: 16px !important; border: 1px solid var(--ds-line-2) !important; background: var(--ds-card) !important;
+  box-shadow: var(--ds-shadow-3) !important; transform-origin: top center; animation: xch-pop 0.22s var(--ds-ease) both;
+}
+#name-section .dropdown-menu div { border-radius: 10px; margin: 2px 4px; }
+#name-section .dropdown-menu div:hover, #name-section .dropdown-menu div.selected { background: var(--ds-brand-soft) !important; color: var(--ds-tint) !important; }
+@keyframes xch-pop { from { opacity: 0; transform: translateY(-6px) scale(0.98); } to { opacity: 1; transform: none; } }
+
+/* Confirm: dormant while incomplete, alive (a sheen sweeps across) once ready */
+#update-btn.btn-update {
+  position: relative; overflow: hidden; margin-top: 16px !important;
+  min-height: 54px; border-radius: 16px !important;
+  font-family: var(--ds-display) !important; font-weight: 600 !important;
+  background: linear-gradient(180deg, #14947F 0%, #0B7A6E 55%, #0A6259 100%) !important; color: #fff !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), var(--ds-shadow-brand) !important;
+}
+#update-btn.btn-update:disabled { background: var(--ds-fill) !important; color: var(--ds-ink-3) !important; box-shadow: none !important; opacity: 1 !important; }
+#update-btn.btn-update:not(:disabled)::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.28) 50%, transparent 65%);
+  transform: translateX(-120%); animation: xch-sheen 2.6s ease-in-out 0.4s infinite;
+}
+#update-btn.btn-update:not(:disabled) { animation: xch-ready 0.5s var(--ds-bounce) both; }
+@keyframes xch-sheen { 0% { transform: translateX(120%); } 45%, 100% { transform: translateX(-120%); } }
+@keyframes xch-ready { from { transform: scale(0.96); } to { transform: none; } }
+
+/* Done: the ticket turns green and the tick pops */
+#app-card.card-success #name-section { border-color: rgba(31, 169, 113, 0.5) !important; box-shadow: 0 0 0 4px rgba(31, 169, 113, 0.12); }
+#app-card.card-success #current-duty-box { background: rgba(31, 169, 113, 0.14) !important; color: #12805A; }
+#app-card.card-success #duty-status-group[style*="block"] + #name-section::before { content: "\f00c"; background: #1FA971; color: #fff; animation: xch-spin 0.6s var(--ds-bounce) both; }
+
+#status-msg { font-weight: 600; }
+#approval-note.approval-note, #spec-limit-note.approval-note {
+  border-radius: 16px !important; background: var(--ds-brand-soft) !important; color: var(--ds-ink) !important; border: 0 !important;
+}
+#approval-note i, #spec-limit-note i { color: var(--ds-tint) !important; }
+.my-exchanges-btn { border-radius: 14px !important; background: var(--ds-card) !important; border: 1px solid var(--ds-line-2) !important; color: var(--ds-ink) !important; font-weight: 600 !important; }
+#app-card .footer-credit { border: 0 !important; margin-top: 18px !important; }
+
+@keyframes xch-in { from { opacity: 0; transform: translateY(14px) scale(0.985); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  #app-card > div:first-child h1 i, #update-btn.btn-update:not(:disabled)::after { animation: none !important; }
+}

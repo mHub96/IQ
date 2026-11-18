@@ -594,6 +594,7 @@
     <script src="./hub-core.js"></script>
     <script src="./hub-avatar.js"></script>
     <script src="./hub-accounts.js"></script>
+    <script src="./hub-tour.js" defer></script>
     <script>
     (() => {
         'use strict';
@@ -601,10 +602,10 @@
         const { esc, toast, timeAgo, ROLE_NAMES, errorText } = HubAccounts;
         const USERNAME_RE = /^[a-z0-9][a-z0-9._]{2,23}$/;
         const NICK_RE = /^[\p{L}\p{N}][\p{L}\p{N}._-]{2,23}$/u;
-        const VIEWS = ['signin', 'signup', 'forgot', 'me', 'settings', 'manage', 'schedule', 'comments', 'admin', 'opioids', 'myopioids'];
+        const VIEWS = ['signin', 'signup', 'forgot', 'me', 'settings', 'guide', 'manage', 'schedule', 'comments', 'admin', 'opioids', 'myopioids'];
         // The frame's tabs and their addresses on this page.
-        const FRAME_TAB = { me: 'profile', settings: 'settings', schedule: 'schedule', comments: 'comments', admin: 'admin', opioids: 'opioids', myopioids: 'opioids-mine' };
-        const TAB_HASH = { profile: 'me', settings: 'settings', schedule: 'schedule', comments: 'comments', admin: 'admin', opioids: 'opioids', 'opioids-mine': 'myopioids' };
+        const FRAME_TAB = { me: 'profile', settings: 'settings', guide: 'guide', schedule: 'schedule', comments: 'comments', admin: 'admin', opioids: 'opioids', myopioids: 'opioids-mine' };
+        const TAB_HASH = { profile: 'me', settings: 'settings', guide: 'guide', schedule: 'schedule', comments: 'comments', admin: 'admin', opioids: 'opioids', 'opioids-mine': 'myopioids' };
         let framePortal = false;
         /** Shows the frame on `tab` ({ body: false }: only its header and tabs, for the management lists). */
         function showFrame(tab, opts = {}) {
@@ -686,7 +687,7 @@
                 }
                 lastAuthTab = idx;
             }
-            $('page-title').textContent = { signin: 'تسجيل الدخول', signup: 'حساب جديد', forgot: 'استعادة كلمة المرور', me: 'حسابي', settings: 'الإعدادات', manage: 'الإدارة', schedule: 'جدولي', comments: 'تعليقاتي', admin: 'الإدارة', opioids: 'ذمة المخدرات', myopioids: 'ذمة المخدرات' }[view];
+            $('page-title').textContent = { signin: 'تسجيل الدخول', signup: 'حساب جديد', forgot: 'استعادة كلمة المرور', me: 'حسابي', settings: 'الإعدادات', guide: 'الدليل', manage: 'الإدارة', schedule: 'جدولي', comments: 'تعليقاتي', admin: 'الإدارة', opioids: 'ذمة المخدرات', myopioids: 'ذمة المخدرات' }[view];
             // Signed in: the one frame (its tab), and the management lists under its header.
             // Embedded in the account panel (embed=1): only the section itself, the panel is the frame.
             const framed = signedIn && (FRAME_TAB[view] || view === 'manage') && !EMBEDDED;

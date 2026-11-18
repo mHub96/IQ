@@ -54,7 +54,7 @@
         if (!opts.host && frame && document.contains(frame.el)) { frame.onTab(which === 'portal' ? 'schedule' : which, which === 'portal'); return; }
         portalNext = which === 'portal';
         if (portalNext) which = 'schedule';
-        tab = ['profile', 'schedule', 'comments', 'settings', 'admin', 'opioids', 'opioids-mine'].includes(which) ? which : 'profile';
+        tab = ['profile', 'schedule', 'comments', 'settings', 'guide', 'admin', 'opioids', 'opioids-mine'].includes(which) ? which : 'profile';
         const acc = Hub.auth.getAccount();
         const approver = ['owner', 'admin'].includes(Hub.auth.getRole());
         const inline = !!opts.host;
@@ -71,6 +71,7 @@
                 ${!NO_PROFILE.includes(acc.role) ? '<button type="button" role="tab" data-tab="schedule">جدولي</button>' : ''}
                 ${!OFFICER_ROLES.includes(acc.role) ? '<button type="button" role="tab" data-tab="comments">تعليقاتي</button>' : ''}` : ''}
                 <button type="button" role="tab" data-tab="settings">الإعدادات</button>
+                <button type="button" role="tab" data-tab="guide">الدليل</button>
                 ${Hub.auth.isOwner() ? '<button type="button" role="tab" data-tab="admin">القطاع الإداري</button>' : approver ? '<button type="button" role="tab" data-tab="admin">لوحة الإدارة</button>' : ''}
                 ${approver ? '<button type="button" role="tab" data-tab="opioids">ذمة المخدرات</button>' : ''}
             </div>
@@ -90,7 +91,7 @@
             // Everything opens inside the panel: links to the site's pages show embedded here.
             sheet.addEventListener('click', inPanelLinks);
         }
-        if (!acc && tab !== 'admin') tab = 'settings';
+        if (!acc && tab !== 'admin' && tab !== 'guide') tab = 'settings';
         if (tab === 'admin' && !approver) tab = acc ? 'profile' : 'settings';
         if (tab === 'schedule' && acc && NO_PROFILE.includes(acc.role)) tab = 'profile';
         if (tab === 'comments' && acc && OFFICER_ROLES.includes(acc.role)) tab = 'profile';
@@ -206,8 +207,24 @@
         const portalForm = portalNext && which === 'schedule';
         portalNext = false;
         ({ profile: renderProfile, schedule: renderSchedule, comments: renderComments, settings: renderSettings, admin: renderAdmin,
-            opioids: renderOpioids, 'opioids-mine': renderMyOpioids })[which](body, portalForm);
+            opioids: renderOpioids, 'opioids-mine': renderMyOpioids, guide: renderGuide })[which](body, portalForm);
         if (which === 'profile') addXpCard(body);
+    }
+
+    // Tutorials (hub-tour.js: the guides and the interactive tours).
+    let tourLoading = null;
+    function renderGuide(body) {
+        if (window.HubTour) return window.HubTour.renderTab(body);
+        tourLoading = tourLoading || new Promise((resolve, reject) => {
+            const el = document.createElement('script');
+            const self = document.querySelector('script[src*="hub-panel.js"]');
+            el.src = (self ? self.src.replace(/hub-panel\.js.*$/, '') : './') + 'hub-tour.js';
+            el.onload = resolve;
+            el.onerror = () => { tourLoading = null; reject(new Error('tour')); };
+            document.head.appendChild(el);
+        });
+        tourLoading.then(() => { if (body.isConnected && tab === 'guide') window.HubTour.renderTab(body); })
+            .catch(() => { body.innerHTML = '<div class="hacc-empty">تعذر تحميل الدليل. تحقق من الاتصال.</div>'; });
     }
 
     // The statistics dashboard and the owner's analytics (hub-stats.js, loaded on first use).
@@ -872,27 +889,29 @@
     function renderSettings(body) {
         const a = me || Hub.auth.getAccount();
         if (a && a.role === 'aa_admin') queueMicrotask(() => { const s = body.querySelector('[data-role="staff-auto"]'); if (s) bindStaffAuto(s, a.hosp); });
-        body.innerHTML = `
+        body.innerHTML = `<div class="hp-settings">
             ${a && a.role === 'aa_admin' ? `<section class="hp-section"><h3>طلبات حسابات الموظفين</h3><div class="hp-switch-card" data-role="staff-auto">
                 <span class="hp-switch-main"><b><i class="fas fa-user-check"></i> الموافقة التلقائية</b>
                 <small>من كان اسمه ورقمه في قاعدة الشؤون الإدارية يدخل فور التسجيل. ومن لم يكن فيها ينتظر الموافقة.</small></span>
                 <button type="button" class="hp-toggle" role="switch" aria-checked="false" aria-label="الموافقة التلقائية"><span></span></button>
             </div></section>` : ''}
-            <section class="hp-section" data-role="install-section" hidden>
-                <h3>التطبيق</h3>
-                <div class="hp-line"><span data-role="install-text"></span><button type="button" class="hacc-btn sm primary" data-act="install" hidden>تثبيت</button></div>
-            </section>
+                        <h2 class="hp-set-group"><i class="fas fa-palette"></i> المظهر والتطبيق</h2>
             <section class="hp-section">
-                <h3>المظهر</h3>
+                <h3><i class="fas fa-palette"></i> المظهر</h3>
                 <div class="hp-line"><span>الوضع</span>
                     <div class="hp-seg" data-role="theme">
                         <button type="button" data-theme="light">☀️ فاتح</button>
                         <button type="button" data-theme="dark">🌙 داكن</button>
                     </div></div>
             </section>
-            ${a ? `
+            <section class="hp-section" data-role="install-section" hidden>
+                <h3><i class="fas fa-mobile-screen"></i> التطبيق</h3>
+                <div class="hp-line"><span data-role="install-text"></span><button type="button" class="hacc-btn sm primary" data-act="install" hidden>تثبيت</button></div>
+            </section>
+${a ? `
+            <h2 class="hp-set-group"><i class="fas fa-shield-halved"></i> الأمان والدخول</h2>
             <section class="hp-section" data-role="pk-section">
-                <h3>الدخول بالبصمة / الوجه</h3>
+                <h3><i class="fas fa-fingerprint"></i> الدخول بالبصمة / الوجه</h3>
                 <div class="hp-switch-card hp-pk-card">
                     <span class="hp-switch-main"><b><i class="fas fa-fingerprint"></i> على هذا الجهاز</b>
                     <small data-role="pk-text">جاري الفحص…</small></span>
@@ -900,8 +919,39 @@
                 </div>
                 <ul class="hp-devices" data-role="pk-list"></ul>
             </section>
+            <section class="hp-section">
+                <details><summary><h3 style="display:inline"><i class="fas fa-key"></i> تغيير كلمة المرور</h3></summary>
+                <form class="hp-form" data-role="pw-form" novalidate style="margin-top:10px">
+                    <input type="password" name="old" dir="ltr" autocomplete="current-password" placeholder="كلمة المرور الحالية" />
+                    <input type="password" name="new1" dir="ltr" autocomplete="new-password" placeholder="كلمة المرور الجديدة (٨ أحرف على الأقل)" />
+                    <input type="password" name="new2" dir="ltr" autocomplete="new-password" placeholder="تأكيد كلمة المرور الجديدة" />
+                    <button type="submit" class="hacc-btn primary">حفظ</button>
+                    <div class="hp-hint" data-role="pw-msg"></div>
+                </form></details>
+            </section>
+            <section class="hp-section">
+                <h3><i class="fas fa-laptop-medical"></i> الأجهزة</h3>
+                <p class="hacc-muted" data-role="dev-lead"></p>
+                <ul class="hp-devices" data-role="devices"></ul>
+            </section>
+            <h2 class="hp-set-group"><i class="fas fa-bell"></i> الإشعارات</h2>
+            <section class="hp-section">
+                <div class="hp-line"><span data-role="push-text">جاري الفحص…</span><button type="button" class="hacc-btn sm" data-act="push" disabled>…</button></div>
+                <div class="hp-line" data-role="push-test" hidden><span>إشعار تجريبي</span><button type="button" class="hacc-btn sm" data-act="push-test">إرسال</button></div>
+            </section>
+            <h2 class="hp-set-group"><i class="fas fa-id-badge"></i> الهوية</h2>
+            <section class="hp-section">
+                <h3><i class="fas fa-at"></i> اسم المستخدم</h3>
+                <p class="hacc-muted">الحالي: <b dir="ltr" data-role="uname">@${esc(a.username)}</b></p>
+                <form class="hp-form" data-role="uname-form" novalidate>
+                    <input name="username" dir="ltr" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="24" placeholder="اسم المستخدم الجديد" />
+                    <div class="hp-hint" data-role="uname-hint">٣–٢٤ حرفاً: أحرف إنجليزية صغيرة وأرقام و . و _</div>
+                    <input name="password" type="password" dir="ltr" autocomplete="current-password" placeholder="كلمة المرور الحالية (للتأكيد)" />
+                    <button type="submit" class="hacc-btn primary" disabled>تغيير اسم المستخدم</button>
+                </form>
+            </section>
             <section class="hp-section" id="hp-nick">
-                <h3>اللقب المجهول</h3>
+                <h3><i class="fas fa-user-secret"></i> اللقب المجهول</h3>
                 <p class="hacc-muted">يظهر بدلاً من اسمك عندما تعلّق كمجهول، ويبقى إلى أن تغيّره.</p>
                 <div class="hp-nick">🕶️ <bdi data-role="nick">${esc(a.anon_tag || '—')}</bdi></div>
                 <div class="hp-line"><span>لغة اللقب</span>
@@ -916,36 +966,7 @@
                 </div>
                 <div class="hp-hint" data-role="nick-hint">٣–٢٤ حرفاً وأرقام و - _ . بدون مسافات، وغير مستخدم من شخص آخر.</div>
             </section>
-            <section class="hp-section">
-                <h3>اسم المستخدم</h3>
-                <p class="hacc-muted">الحالي: <b dir="ltr" data-role="uname">@${esc(a.username)}</b></p>
-                <form class="hp-form" data-role="uname-form" novalidate>
-                    <input name="username" dir="ltr" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="24" placeholder="اسم المستخدم الجديد" />
-                    <div class="hp-hint" data-role="uname-hint">٣–٢٤ حرفاً: أحرف إنجليزية صغيرة وأرقام و . و _</div>
-                    <input name="password" type="password" dir="ltr" autocomplete="current-password" placeholder="كلمة المرور الحالية (للتأكيد)" />
-                    <button type="submit" class="hacc-btn primary" disabled>تغيير اسم المستخدم</button>
-                </form>
-            </section>
-            <section class="hp-section">
-                <h3>الإشعارات</h3>
-                <div class="hp-line"><span data-role="push-text">جاري الفحص…</span><button type="button" class="hacc-btn sm" data-act="push" disabled>…</button></div>
-                <div class="hp-line" data-role="push-test" hidden><span>إشعار تجريبي</span><button type="button" class="hacc-btn sm" data-act="push-test">إرسال</button></div>
-            </section>
-            <section class="hp-section">
-                <h3>الأجهزة</h3>
-                <p class="hacc-muted" data-role="dev-lead"></p>
-                <ul class="hp-devices" data-role="devices"></ul>
-            </section>
-            <section class="hp-section">
-                <details><summary><h3 style="display:inline">تغيير كلمة المرور</h3></summary>
-                <form class="hp-form" data-role="pw-form" novalidate style="margin-top:10px">
-                    <input type="password" name="old" dir="ltr" autocomplete="current-password" placeholder="كلمة المرور الحالية" />
-                    <input type="password" name="new1" dir="ltr" autocomplete="new-password" placeholder="كلمة المرور الجديدة (٨ أحرف على الأقل)" />
-                    <input type="password" name="new2" dir="ltr" autocomplete="new-password" placeholder="تأكيد كلمة المرور الجديدة" />
-                    <button type="submit" class="hacc-btn primary">حفظ</button>
-                    <div class="hp-hint" data-role="pw-msg"></div>
-                </form></details>
-            </section>` : ''}`;
+` : ''}</div>`;
 
         // Install the app (Android / desktop: browser prompt; iPhone: Share > Add to Home Screen)
         const P = window.HubPWA;

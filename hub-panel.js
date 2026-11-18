@@ -224,14 +224,41 @@
         });
         return statsLoading;
     }
-    /** The dashboard under the tab's first link (the hospital's admins: their hospital; the owner: any). */
+    // Collapsible groups of the administrative tab. Each group remembers on this device whether it was
+    // left open; all start closed.
+    const ACC_KEY = 'hub_panel_groups';
+    const accOpen = () => { try { return JSON.parse(localStorage.getItem(ACC_KEY) || '{}') || {}; } catch (e) { return {}; } };
+    function accordion(key, icon, title, sub, inner) {
+        return `<details class="hp-acc" data-group="${key}"${accOpen()[key] ? ' open' : ''}>
+            <summary><i class="fas ${icon} hp-acc-ic"></i><span class="hp-acc-t"><b>${title}</b><small>${sub}</small></span><i class="fas fa-chevron-down hp-acc-chev"></i></summary>
+            <div class="hp-acc-body">${inner}</div></details>`;
+    }
+    function bindAccordions(body) {
+        body.querySelectorAll('details.hp-acc').forEach(d => d.addEventListener('toggle', () => {
+            const st = accOpen();
+            if (d.open) st[d.dataset.group] = 1; else delete st[d.dataset.group];
+            try { localStorage.setItem(ACC_KEY, JSON.stringify(st)); } catch (e) {}
+        }));
+    }
+
+    /** The dashboard under the tab's first link (the hospital's admins: their hospital; the owner: any).
+     *  It sits in a collapsed group and is loaded (with its server reads) only when the group is opened. */
     function addStats(body) {
         const lead = body.querySelector('.hp-admin-lead');
         if (!lead) return;
-        lead.insertAdjacentHTML('afterend', '<section data-role="stats"></section>');
-        const box = body.querySelector('[data-role="stats"]');
-        loadStats().then(() => { if (box.isConnected) window.HubStats.dashboard(box, { onAdvanced: () => openView('analytics') }); })
-            .catch(() => { box.innerHTML = '<div class="hacc-empty">تعذر تحميل الإحصائيات.</div>'; });
+        lead.insertAdjacentHTML('afterend', accordion('stats', 'fa-chart-simple', 'الإحصائيات', 'استهلاك قاعدة البيانات والنشاط', '<section data-role="stats"></section>'));
+        const det = body.querySelector('details[data-group="stats"]');
+        const box = det.querySelector('[data-role="stats"]');
+        let loaded = false;
+        const load = () => {
+            if (loaded || !det.open) return;
+            loaded = true;
+            box.innerHTML = '<div class="hacc-empty"><i class="fas fa-spinner fa-spin"></i></div>';
+            loadStats().then(() => { if (box.isConnected) { box.innerHTML = ''; window.HubStats.dashboard(box, { onAdvanced: () => openView('analytics') }); } })
+                .catch(() => { loaded = false; box.innerHTML = '<div class="hacc-empty">تعذر تحميل الإحصائيات.</div>'; });
+        };
+        det.addEventListener('toggle', load);
+        load();
     }
 
     // The opioids responsibility (hub-opioids.js, loaded on first use).
@@ -558,10 +585,12 @@
             ['fa-key', 'طلبات كلمات المرور', 'السماح للأطباء بتغيير كلمات مرورهم', { href: './account.html#manage-resets' }],
             ['fa-comments', 'مراجعة التعليقات', 'تعليقات مستشفاك، مع الاسم الحقيقي للمجهولين', { href: './account.html#manage-comments' }],
         ];
-        body.innerHTML = lead + `<section class="hp-section"><h3>الحسابات والتعليقات</h3><div class="hp-admin-grid">${items.map(tileHtml).join('')}</div></section>
-            <section class="hp-section"><h3>المستشفى</h3><div class="hp-admin-grid">${HOSPITAL_TOOLS.map(tileHtml).join('')}</div></section>`;
+        body.innerHTML = lead
+            + accordion('accounts', 'fa-users', 'الحسابات والتعليقات', `${items.length} أدوات`, `<div class="hp-admin-grid">${items.map(tileHtml).join('')}</div>`)
+            + accordion('hospital', 'fa-hospital', 'المستشفى', `${HOSPITAL_TOOLS.length} أدوات`, `<div class="hp-admin-grid">${HOSPITAL_TOOLS.map(tileHtml).join('')}</div>`);
         bindTiles(body);
         addStats(body);
+        bindAccordions(body);
     }
 
     /**
@@ -726,10 +755,16 @@
                 ['fa-lock', 'كلمات المرور المشتركة', 'كلمات مرور المالك والمدراء والمستخدمين', { fn: 'openAllPasswordsModalNav' }],
             ]],
         ];
-        body.innerHTML = lead + groups.map(([title, items]) => `<section class="hp-section"><h3>${title}</h3><div class="hp-admin-grid">${items.map(tileHtml).join('')}</div></section>`).join('');
+        const GROUP_LOOK = { 'الحسابات': ['accounts', 'fa-users'], 'المستشفيات': ['hospitals', 'fa-hospital'], 'المنظومة': ['system', 'fa-server'], 'الصلاحيات': ['perm', 'fa-shield-halved'] };
+        body.innerHTML = lead + groups.map(([title, items]) => {
+            const [key, icon] = GROUP_LOOK[title];
+            const sub = key === 'perm' ? 'كلمات المرور المشتركة ومفاتيح الصلاحيات' : `${items.length} أدوات`;
+            return accordion(key, icon, title, sub, `<div class="hp-admin-grid">${items.map(tileHtml).join('')}</div>`);
+        }).join('');
         addStats(body);
+        bindAccordions(body);
         // One site-wide switch: anaesthesia residents and the ICUs they may edit.
-        body.querySelector('.hp-section:last-child').insertAdjacentHTML('beforeend', `<div class="hp-switch-card" data-role="icu-all">
+        body.querySelector('details[data-group="perm"] .hp-acc-body').insertAdjacentHTML('beforeend', `<div class="hp-switch-card" data-role="icu-all">
             <span class="hp-switch-main"><b><i class="fas fa-bed-pulse"></i> تعديل العناية المركزة في كل المستشفيات</b>
             <small>عند التفعيل يستطيع أي مقيم تخدير تعديل أسرّة العناية في أي مستشفى، مع بقاء مستشفاه (أو مستشفياته) في المقدمة. عند الإيقاف يعدّل مستشفاه فقط.</small></span>
             <button type="button" class="hp-toggle" role="switch" aria-checked="${Hub.icuAllOn() ? 'true' : 'false'}" aria-label="تعديل العناية المركزة في كل المستشفيات"><span></span></button>
@@ -856,6 +891,15 @@
                     </div></div>
             </section>
             ${a ? `
+            <section class="hp-section" data-role="pk-section">
+                <h3>الدخول بالبصمة / الوجه</h3>
+                <div class="hp-switch-card hp-pk-card">
+                    <span class="hp-switch-main"><b><i class="fas fa-fingerprint"></i> على هذا الجهاز</b>
+                    <small data-role="pk-text">جاري الفحص…</small></span>
+                    <button type="button" class="hp-toggle" role="switch" aria-checked="false" aria-label="الدخول بالبصمة أو الوجه على هذا الجهاز" data-act="pk-toggle" disabled><span></span></button>
+                </div>
+                <ul class="hp-devices" data-role="pk-list"></ul>
+            </section>
             <section class="hp-section" id="hp-nick">
                 <h3>اللقب المجهول</h3>
                 <p class="hacc-muted">يظهر بدلاً من اسمك عندما تعلّق كمجهول، ويبقى إلى أن تغيّره.</p>
@@ -891,11 +935,6 @@
                 <h3>الأجهزة</h3>
                 <p class="hacc-muted" data-role="dev-lead"></p>
                 <ul class="hp-devices" data-role="devices"></ul>
-            </section>
-            <section class="hp-section" data-role="pk-section" hidden>
-                <h3>الدخول بالبصمة / الوجه</h3>
-                <div class="hp-line"><span data-role="pk-text">جاري الفحص…</span><button type="button" class="hacc-btn sm primary" data-act="pk-on" hidden><i class="fas fa-fingerprint"></i> تفعيل</button></div>
-                <ul class="hp-devices" data-role="pk-list"></ul>
             </section>
             <section class="hp-section">
                 <details><summary><h3 style="display:inline">تغيير كلمة المرور</h3></summary>
@@ -1083,21 +1122,27 @@
         };
         paintDevices(a);
 
-        // Fingerprint / face sign-in (passkeys): turn it on for this device, see and remove the devices that have it.
+        // Fingerprint / face sign-in (passkeys): a switch for this device (on = registers a passkey here,
+        // off = removes this device's passkey on the server), and the list of every device that has one.
         const pkSec = body.querySelector('[data-role="pk-section"]');
+        let pkHere = '';
         const paintPasskeys = async () => {
             if (!pkSec) return;
+            const sw = pkSec.querySelector('[data-act="pk-toggle"]');
+            const text = pkSec.querySelector('[data-role="pk-text"]');
             const supported = await Hub.auth.passkeySupported();
             let list = [];
             try { list = (await Hub.api('GET', '/api/passkeys', undefined, { retries: 1 })).passkeys || []; } catch (e) {}
-            if (!supported && !list.length) { pkSec.hidden = true; return; }
-            pkSec.hidden = false;
             const hereId = Hub.auth.passkeyIdHere();
             const here = !!hereId && list.some(p => p.id === hereId);
             if (hereId && !here && list.length) Hub.auth.forgetPasskeyHere(hereId);
-            pkSec.querySelector('[data-role="pk-text"]').textContent = !supported ? 'هذا الجهاز لا يدعم الدخول بالبصمة.'
-                : here ? 'مفعّل على هذا الجهاز ✓ ادخل بلمسة إصبع أو بالوجه.' : 'ادخل على هذا الجهاز ببصمة الإصبع أو الوجه بدل كلمة المرور.';
-            pkSec.querySelector('[data-act="pk-on"]').hidden = !supported || here;
+            pkHere = here ? hereId : '';
+            sw.setAttribute('aria-checked', here ? 'true' : 'false');
+            sw.disabled = !supported && !here;
+            text.textContent = !supported && !here ? 'هذا الجهاز أو المتصفح لا يدعم الدخول بالبصمة أو الوجه.'
+                : here ? 'مفعّل ✓ تدخل على هذا الجهاز بلمسة إصبع أو بالوجه. أوقفه للعودة إلى كلمة المرور فقط.'
+                : 'متوقف. فعّله لتدخل على هذا الجهاز ببصمة الإصبع أو الوجه بدل كلمة المرور.';
+            pkSec.classList.toggle('pk-on', here);
             const ul = pkSec.querySelector('[data-role="pk-list"]');
             ul.innerHTML = list.map(p => `<li data-pk="${esc(p.id)}">
                     <i class="fas fa-fingerprint"></i>
@@ -1115,12 +1160,27 @@
             }));
         };
         if (pkSec) {
-            pkSec.querySelector('[data-act="pk-on"]').addEventListener('click', async e => {
-                const btn = e.currentTarget;
-                btn.disabled = true;
-                const r = await Hub.auth.registerPasskey();
-                btn.disabled = false;
-                toast(r.ok ? 'تم تفعيل الدخول بالبصمة على هذا الجهاز ✓' : r.error, r.ok ? 'success' : 'error');
+            const sw = pkSec.querySelector('[data-act="pk-toggle"]');
+            sw.addEventListener('click', async () => {
+                const turnOn = sw.getAttribute('aria-checked') !== 'true';
+                if (!turnOn && !confirm('إيقاف الدخول بالبصمة / الوجه على هذا الجهاز؟ يبقى الدخول بكلمة المرور، ويمكنك تفعيله مجدداً متى شئت.')) return;
+                sw.disabled = true;
+                if (turnOn) {
+                    const r = await Hub.auth.registerPasskey();
+                    if (!r.ok) {
+                        // "Already on" (it was turned on meanwhile, e.g. from the offer after signing in): show the real state.
+                        await paintPasskeys();
+                        if (sw.getAttribute('aria-checked') === 'true') { toast('الدخول بالبصمة مفعّل على هذا الجهاز ✓', 'success'); return; }
+                    }
+                    toast(r.ok ? 'تم تفعيل الدخول بالبصمة على هذا الجهاز ✓' : r.error, r.ok ? 'success' : 'error');
+                } else {
+                    const id = pkHere || Hub.auth.passkeyIdHere();
+                    try {
+                        if (id) await Hub.api('POST', '/api/passkeys/remove', { id }, { retries: 0 });
+                        if (id) Hub.auth.forgetPasskeyHere(id);
+                        toast('أُوقف الدخول بالبصمة على هذا الجهاز ✓', 'success');
+                    } catch (err) { toast(errorText(err), 'error'); }
+                }
                 paintPasskeys();
             });
             paintPasskeys();

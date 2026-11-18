@@ -506,3 +506,118 @@ body.dark #name-section .input-text { background: rgba(232, 241, 238, 0.04) !imp
 @media (prefers-reduced-motion: reduce) {
   #app-card > div:first-child h1 i, #update-btn.btn-update:not(:disabled)::after { animation: none !important; }
 }
+
+/* ======================================================================
+   Account panel, administrative tab: collapsible groups
+   ====================================================================== */
+.hp-acc {
+  margin: 0 0 10px; border-radius: 20px;
+  background: var(--ds-card); border: 1px solid var(--ds-line-2);
+  overflow: hidden;
+  transition: box-shadow 0.3s var(--ds-ease), border-color 0.3s ease;
+  interpolate-size: allow-keywords;
+}
+.hp-acc[open] { box-shadow: var(--ds-shadow-2); border-color: color-mix(in srgb, var(--ds-tint) 30%, var(--ds-line-2)); }
+.hp-acc > summary {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; cursor: pointer; list-style: none;
+  -webkit-user-select: none; user-select: none;
+  transition: background-color 0.2s ease;
+}
+.hp-acc > summary::-webkit-details-marker { display: none; }
+@media (hover: hover) { .hp-acc > summary:hover { background: var(--ds-fill); } }
+.hp-acc > summary:active { background: var(--ds-fill); }
+.hp-acc-ic {
+  width: 40px; height: 40px; flex: none; border-radius: 13px; display: grid; place-items: center; font-size: 1rem;
+  background: var(--ds-brand-soft); color: var(--ds-tint);
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.45s var(--ds-bounce);
+}
+.hp-acc[open] .hp-acc-ic { background: var(--v5-ink); color: var(--v5-mint); transform: rotate(-8deg) scale(1.04); }
+body.dark .hp-acc[open] .hp-acc-ic, html.dark .hp-acc[open] .hp-acc-ic { background: var(--v5-mint); color: var(--v5-mint-ink); }
+.hp-acc[data-group="stats"] .hp-acc-ic { background: rgba(232, 162, 58, 0.14); color: #B7791F; }
+.hp-acc-t { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.hp-acc-t b { font-family: var(--ds-display); font-weight: 600; font-size: 0.95rem; color: var(--ds-ink); }
+.hp-acc-t small { font-size: 0.72rem; color: var(--ds-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hp-acc-chev {
+  width: 30px; height: 30px; flex: none; border-radius: 10px; display: grid; place-items: center; font-size: 0.75rem;
+  background: var(--ds-fill); color: var(--ds-ink-2);
+  transition: transform 0.4s var(--ds-spring), background-color 0.2s ease, color 0.2s ease;
+}
+.hp-acc[open] .hp-acc-chev { transform: rotate(180deg); background: var(--ds-brand-soft); color: var(--ds-tint); }
+.hp-acc-body { padding: 4px 12px 14px; }
+.hp-acc-body > .hp-admin-grid, .hp-acc-body > [data-role="stats"] { margin-top: 2px; }
+.hp-acc-body .hp-switch-card { margin-top: 10px; }
+/* Opening glides (height where the browser can animate it, a soft rise everywhere) */
+.hp-acc::details-content { height: 0; overflow: clip; transition: height 0.38s var(--ds-spring), content-visibility 0.38s allow-discrete; }
+.hp-acc[open]::details-content { height: auto; }
+.hp-acc[open] .hp-acc-body { animation: hp-acc-in 0.4s var(--ds-ease) both; }
+.hp-acc[open] .hp-admin-tile { animation: hp-acc-in 0.42s var(--ds-ease) both; }
+.hp-acc[open] .hp-admin-tile:nth-child(2) { animation-delay: 35ms; }
+.hp-acc[open] .hp-admin-tile:nth-child(3) { animation-delay: 70ms; }
+.hp-acc[open] .hp-admin-tile:nth-child(4) { animation-delay: 105ms; }
+.hp-acc[open] .hp-admin-tile:nth-child(n+5) { animation-delay: 140ms; }
+@keyframes hp-acc-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+/* The tiles and the lead link in the same language */
+.hp-admin-lead {
+  border-radius: 20px !important; margin-bottom: 12px !important;
+  background:
+    radial-gradient(260px 140px at 100% 0%, rgba(94, 224, 200, 0.24), transparent 65%),
+    linear-gradient(160deg, var(--v5-ink-2), var(--v5-ink)) !important;
+  color: #E8F1EE !important; border: 0 !important;
+  box-shadow: 0 16px 34px -20px rgba(6, 30, 27, 0.85) !important;
+}
+.hp-admin-lead b { color: #fff !important; font-family: var(--ds-display); font-weight: 600; }
+.hp-admin-lead small { color: rgba(232, 241, 238, 0.66) !important; }
+.hp-admin-lead > i:first-child { background: rgba(94, 224, 200, 0.16) !important; color: var(--v5-mint) !important; }
+.hp-admin-lead > i:last-child { color: var(--v5-mint) !important; }
+body.dark .hp-admin-lead { box-shadow: inset 0 0 0 1px rgba(94, 224, 200, 0.14) !important; }
+.hp-admin-tile {
+  border-radius: 16px !important; background: var(--ds-card-2) !important; border: 1px solid var(--ds-line) !important;
+}
+@media (hover: hover) { .hp-admin-tile:hover { border-color: color-mix(in srgb, var(--ds-tint) 40%, transparent) !important; background: var(--ds-card) !important; } }
+.hp-admin-tile i { border-radius: 11px !important; }
+.hp-admin-tile b { font-family: var(--ds-display); font-weight: 600 !important; }
+.hp-switch-card { border-radius: 16px !important; background: var(--ds-card-2) !important; border: 1px solid var(--ds-line) !important; }
+.hp-toggle[aria-checked="true"] { background: var(--ds-brand) !important; }
+@media (prefers-reduced-motion: reduce) { .hp-acc::details-content { transition: none; } }
+
+/* ======================================================================
+   Portal background: a slow living aurora (teal, mint and a warm amber glow) drifting behind
+   the page, with a faint dot grid. Day: soft tints on sage; night: deep teal glows on near-black.
+   Only transforms are animated (cheap for phones); still for anyone who prefers reduced motion.
+   ====================================================================== */
+body:has(#hub-main-content) { --aur-a: rgba(19, 151, 127, 0.20); --aur-b: rgba(94, 224, 200, 0.22); --aur-c: rgba(232, 162, 58, 0.14); --aur-dot: rgba(16, 34, 32, 0.07); }
+body.dark:has(#hub-main-content) { --aur-a: rgba(19, 151, 127, 0.30); --aur-b: rgba(46, 196, 172, 0.16); --aur-c: rgba(232, 162, 58, 0.09); --aur-dot: rgba(232, 241, 238, 0.06); }
+@media screen {
+  body:has(#hub-main-content)::before, body.dark:has(#hub-main-content)::before {
+    content: ""; position: fixed; z-index: 0; pointer-events: none;
+    inset: -30vmax; opacity: 1;
+    background:
+      radial-gradient(38vmax 30vmax at 22% 28%, var(--aur-a), transparent 70%),
+      radial-gradient(34vmax 28vmax at 78% 18%, var(--aur-b), transparent 70%),
+      radial-gradient(30vmax 26vmax at 62% 78%, var(--aur-c), transparent 70%),
+      radial-gradient(26vmax 22vmax at 18% 82%, var(--aur-b), transparent 70%);
+    background-size: auto; background-repeat: no-repeat;
+    will-change: transform;
+    animation: aurora-drift 38s ease-in-out infinite alternate;
+  }
+  body:has(#hub-main-content)::after {
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: radial-gradient(var(--aur-dot) 1px, transparent 1.3px);
+    background-size: 22px 22px;
+    -webkit-mask-image: radial-gradient(120% 70% at 50% 0%, #000 30%, transparent 75%);
+    mask-image: radial-gradient(120% 70% at 50% 0%, #000 30%, transparent 75%);
+    animation: aurora-breathe 9s ease-in-out infinite alternate;
+  }
+}
+@keyframes aurora-drift {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  33%  { transform: translate3d(4vmax, -3vmax, 0) rotate(8deg) scale(1.06); }
+  66%  { transform: translate3d(-3vmax, 3vmax, 0) rotate(-6deg) scale(0.97); }
+  100% { transform: translate3d(2vmax, 2vmax, 0) rotate(4deg) scale(1.04); }
+}
+@keyframes aurora-breathe { from { opacity: 0.55; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  body:has(#hub-main-content)::before, body:has(#hub-main-content)::after { animation: none !important; }
+}

@@ -59,7 +59,7 @@
             margin: -.1rem auto .55rem; padding: .32rem .8rem; border: 1px solid; border-radius: 999px; box-shadow: 0 2px 10px rgba(0,0,0,.1); }
         .roster-card .card-front .card-duty-status > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     }
-    .roster-card .card-duty-status.oc-idle { background: rgba(142,142,147,.12); border-color: rgba(142,142,147,.35); color: #636366; }
+    .roster-card .card-duty-status.oc-idle { background: rgba(142,142,147,.12); border-color: rgba(142,142,147,.35); color: #525E5A; }
     body.dark .roster-card .card-duty-status.oc-idle { color: #C7C7CC; }
     .roster-card .card-duty-status.oc-busy { background: #fff; color: #991b1b; border-color: rgba(255,255,255,.7); animation: ocPulse 2.2s ease-in-out infinite; }
     .roster-card .card-duty-status.oc-mine::after { content: '✎'; font-size: .62rem; opacity: .7; }
@@ -72,20 +72,20 @@
        or layers over the faces would flatten the 3D flip and show the front mirrored). */
     .roster-card-wrapper[class*="oc-skin-"] .roster-card.flipped::before, .roster-card-wrapper[class*="oc-skin-"] .roster-card.flipped::after { opacity: 0 !important; transition: opacity .2s; }
     .roster-card-wrapper[class*="oc-skin-"] .roster-card .card-front { position: relative; z-index: 1; }
-    .roster-card-wrapper.oc-dark-text .roster-card .resident-name { color: #111827 !important; }
+    .roster-card-wrapper.oc-dark-text .roster-card .resident-name { color: #141B1A !important; }
     .roster-card-wrapper.oc-dark-text .roster-card .resident-phone { color: #374151 !important; opacity: 1 !important; }
     .roster-card-wrapper.oc-light-text .roster-card .resident-name { color: #ffffff !important; text-shadow: 0 1px 2px rgba(0,0,0,.45); }
     .roster-card-wrapper.oc-light-text .roster-card .resident-phone { color: rgba(255,255,255,.88) !important; opacity: 1 !important; }
     .roster-card-wrapper.oc-light-text .roster-card .divider { background: rgba(255,255,255,.22) !important; }
     .roster-card-wrapper.oc-dark-text .roster-card .divider { background: rgba(17,24,39,.15) !important; }
     .roster-card-wrapper.oc-light-text .roster-card .specialty-bubble { background: rgba(0,0,0,.28) !important; color: #fff !important; border-color: rgba(255,255,255,.28) !important; }
-    .roster-card-wrapper.oc-dark-text .roster-card .specialty-bubble { background: rgba(255,255,255,.75) !important; color: #111827 !important; border-color: rgba(17,24,39,.18) !important; }
+    .roster-card-wrapper.oc-dark-text .roster-card .specialty-bubble { background: rgba(255,255,255,.75) !important; color: #141B1A !important; border-color: rgba(17,24,39,.18) !important; }
     .roster-card-wrapper[class*="oc-skin-"] .roster-card .action-btn-sm { background: rgba(255,255,255,.94) !important; border-color: rgba(255,255,255,.95) !important; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
     .roster-card-wrapper[class*="oc-skin-"] .roster-card .action-btn-sm.wa { color: #047857 !important; }
     .roster-card-wrapper[class*="oc-skin-"] .roster-card .action-btn-sm.call { color: #1d4ed8 !important; }
     .roster-card-wrapper.oc-light-text .roster-card .card-status { background: rgba(0,0,0,.3) !important; color: #fff !important; border-color: rgba(255,255,255,.3) !important; }
     .roster-card-wrapper.oc-light-text .roster-card .hacc-act { color: #fff !important; background: rgba(0,0,0,.25) !important; border-color: rgba(255,255,255,.25) !important; }
-    .roster-card-wrapper.oc-dark-text .roster-card .hacc-act { color: #111827 !important; background: rgba(255,255,255,.7) !important; }
+    .roster-card-wrapper.oc-dark-text .roster-card .hacc-act { color: #141B1A !important; background: rgba(255,255,255,.7) !important; }
 
     /* 🩸 Operating theatre: a blood skin (dripping top edge, splatter, slow heartbeat glow). */
     .roster-card-wrapper.oc-skin-or .roster-card {
@@ -115,13 +115,13 @@
             linear-gradient(180deg, transparent 0 62%, #dc2626 62% 70%, transparent 70%),
             repeating-linear-gradient(135deg, rgba(220,38,38,.07) 0 10px, transparent 10px 20px),
             linear-gradient(180deg, #ffffff, #f3f4f6) !important;
-        box-shadow: 0 10px 26px rgba(15,23,42,.18), inset 0 0 0 1px rgba(220,38,38,.25) !important;
+        box-shadow: 0 10px 26px rgba(20, 27, 26,.18), inset 0 0 0 1px rgba(220,38,38,.25) !important;
     }
     body.dark .roster-card-wrapper.oc-skin-consult .roster-card {
         background:
             linear-gradient(180deg, transparent 0 62%, #b91c1c 62% 70%, transparent 70%),
             repeating-linear-gradient(135deg, rgba(248,113,113,.08) 0 10px, transparent 10px 20px),
-            linear-gradient(180deg, #111827, #0b1220) !important;
+            linear-gradient(180deg, #141B1A, #0C1211) !important;
         box-shadow: 0 10px 26px rgba(0,0,0,.45), inset 0 0 0 1px rgba(248,113,113,.25) !important;
     }
     .roster-card-wrapper.oc-skin-consult .roster-card::before {
@@ -153,7 +153,7 @@
     .oc-opts { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; }
     .oc-opt { display: flex; align-items: center; gap: .4rem; padding: .5rem .6rem; border-radius: .85rem; border: 1.5px solid rgba(142,142,147,.25); background: rgba(142,142,147,.07); font: 800 .74rem inherit; font-family: inherit; color: inherit; cursor: pointer; text-align: start; transition: transform .15s, border-color .15s, background .15s; }
     .oc-opt:active { transform: scale(.97); }
-    .oc-opt.on { border-color: #0A84FF; background: rgba(10,132,255,.12); }
+    .oc-opt.on { border-color: #13977F; background: rgba(19, 151, 127,.12); }
     .oc-opt .oc-ic { font-size: 1.05rem; }
     .oc-pick[hidden], .oc-custom[hidden] { display: none !important; }
     .oc-custom { display: grid; gap: .45rem; width: 100%; min-width: 0; }
@@ -162,7 +162,7 @@
     .oc-custom input { width: 100%; padding: .45rem .6rem; border-radius: .7rem; border: 1px solid rgba(142,142,147,.35); background: transparent; color: inherit; font: 700 .78rem inherit; font-family: inherit; }
     .oc-swatches { display: flex; gap: .35rem; flex-wrap: wrap; }
     .oc-swatch { width: 28px; height: 28px; border-radius: 9px; border: 2px solid transparent; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
-    .oc-swatch.on { border-color: #0A84FF; transform: scale(1.08); }
+    .oc-swatch.on { border-color: #13977F; transform: scale(1.08); }
     .oc-swatch[data-skin="night"] { background: repeating-linear-gradient(45deg, #111 0 3px, #222 3px 6px); }
     .oc-swatch[data-skin="ocean"] { background: linear-gradient(160deg, #082f49, #0369a1); }
     .oc-swatch[data-skin="emerald"] { background: linear-gradient(160deg, #022c22, #047857); }
@@ -172,15 +172,15 @@
     .oc-swatch[data-skin="or"] { background: linear-gradient(160deg, #3f0a0d, #8f1a1a); }
     .oc-swatch[data-skin="consult"] { background: linear-gradient(180deg, #fff 0 60%, #dc2626 60% 72%, #fff 72%); }
     .oc-note { font-size: .64rem; font-weight: 700; opacity: .65; }
-    .oc-save { padding: .5rem; border-radius: .8rem; border: 0; background: linear-gradient(135deg, #007AFF, #0A84FF); color: #fff; font: 800 .76rem inherit; font-family: inherit; cursor: pointer; }
+    .oc-save { padding: .5rem; border-radius: .8rem; border: 0; background: linear-gradient(135deg, #0B7A6E, #13977F); color: #fff; font: 800 .76rem inherit; font-family: inherit; cursor: pointer; }
 
     /* The warning before contacting a busy resident (an app pop-up, not the browser's). */
-    .hub-pop { position: fixed; inset: 0; z-index: 2147482000; display: flex; align-items: flex-end; justify-content: center; padding: 16px; background: rgba(15,23,42,0); transition: background .25s ease; }
-    .hub-pop.open { background: rgba(15,23,42,.55); backdrop-filter: blur(6px); }
-    .hub-pop .hub-pop-card { width: 100%; max-width: 400px; border-radius: 26px; padding: 22px 20px 16px; text-align: center; background: #fff; color: #111827; box-shadow: 0 24px 60px rgba(0,0,0,.35);
+    .hub-pop { position: fixed; inset: 0; z-index: 2147482000; display: flex; align-items: flex-end; justify-content: center; padding: 16px; background: rgba(20, 27, 26,0); transition: background .25s ease; }
+    .hub-pop.open { background: rgba(20, 27, 26,.55); backdrop-filter: blur(6px); }
+    .hub-pop .hub-pop-card { width: 100%; max-width: 400px; border-radius: 26px; padding: 22px 20px 16px; text-align: center; background: #fff; color: #141B1A; box-shadow: 0 24px 60px rgba(0,0,0,.35);
         transform: translateY(40px) scale(.96); opacity: 0; transition: transform .32s cubic-bezier(.2,.9,.25,1.15), opacity .2s ease; }
     .hub-pop.open .hub-pop-card { transform: none; opacity: 1; }
-    html.dark .hub-pop .hub-pop-card, body.dark .hub-pop .hub-pop-card { background: #1c1c1e; color: #f2f2f7; }
+    html.dark .hub-pop .hub-pop-card, body.dark .hub-pop .hub-pop-card { background: #141B1A; color: #EEF2EF; }
     @media (min-width: 640px) { .hub-pop { align-items: center; } }
     .hub-pop .hub-pop-icon { width: 64px; height: 64px; margin: -54px auto 8px; border-radius: 22px; display: grid; place-items: center; font-size: 2rem; box-shadow: 0 10px 24px rgba(0,0,0,.25); animation: ocIconIn .5s cubic-bezier(.2,.9,.25,1.3) both; }
     .hub-pop .hub-pop-icon.or { background: linear-gradient(160deg, #3f0a0d, #b91c1c); }
@@ -192,7 +192,7 @@
     .hub-pop .hub-pop-acts { display: grid; gap: 8px; }
     .hub-pop button { padding: 12px; border-radius: 14px; border: 0; font: 800 .86rem inherit; font-family: inherit; cursor: pointer; transition: transform .12s; }
     .hub-pop button:active { transform: scale(.98); }
-    .hub-pop .p-primary { background: linear-gradient(135deg, #007AFF, #0A84FF); color: #fff; }
+    .hub-pop .p-primary { background: linear-gradient(135deg, #0B7A6E, #13977F); color: #fff; }
     .hub-pop .p-warn { background: rgba(220,38,38,.1); color: #b91c1c; }
     html.dark .hub-pop .p-warn, body.dark .hub-pop .p-warn { color: #fca5a5; background: rgba(248,113,113,.14); }
     .hub-pop .p-ghost { background: transparent; color: inherit; opacity: .7; }

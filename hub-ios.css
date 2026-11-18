@@ -7,19 +7,19 @@
 
 :root {
   --ios-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Arabic", "IBM Plex Sans Arabic", system-ui, sans-serif;
-  --ios-tint: #007AFF;
-  --ios-tint-soft: rgba(0, 122, 255, 0.12);
+  --ios-tint: #0B7A6E;
+  --ios-tint-soft: rgba(11, 122, 110, 0.12);
   --ios-red: #FF3B30;
   --ios-green: #34C759;
   --ios-orange: #FF9500;
-  --ios-bg: #F2F2F7;
+  --ios-bg: #EEF2EF;
   --ios-card: #FFFFFF;
-  --ios-card2: #F2F2F7;
+  --ios-card2: #EEF2EF;
   --ios-label: #000000;
-  --ios-label2: rgba(60, 60, 67, 0.6);
-  --ios-label3: rgba(60, 60, 67, 0.3);
-  --ios-sep: rgba(60, 60, 67, 0.18);
-  --ios-fill: rgba(118, 118, 128, 0.12);
+  --ios-label2: rgba(32, 46, 43, 0.6);
+  --ios-label3: rgba(32, 46, 43, 0.3);
+  --ios-sep: rgba(32, 46, 43, 0.18);
+  --ios-fill: rgba(104, 124, 118, 0.12);
   --ios-glass: rgba(255, 255, 255, 0.62);
   --ios-glass-strong: rgba(255, 255, 255, 0.78);
   --ios-glass-edge: rgba(255, 255, 255, 0.75);
@@ -43,25 +43,25 @@
   --hacc-shadow: 0 -8px 40px rgba(0, 0, 0, 0.16);
 }
 html.dark, body.dark {
-  --ios-tint: #0A84FF;
-  --ios-tint-soft: rgba(10, 132, 255, 0.18);
+  --ios-tint: #13977F;
+  --ios-tint-soft: rgba(19, 151, 127, 0.18);
   --ios-red: #FF453A;
   --ios-green: #30D158;
   --ios-orange: #FF9F0A;
   --ios-bg: #000000;
-  --ios-card: #1C1C1E;
-  --ios-card2: #2C2C2E;
+  --ios-card: #141B1A;
+  --ios-card2: #202927;
   --ios-label: #FFFFFF;
-  --ios-label2: rgba(235, 235, 245, 0.6);
-  --ios-label3: rgba(235, 235, 245, 0.3);
+  --ios-label2: rgba(228, 240, 236, 0.6);
+  --ios-label3: rgba(228, 240, 236, 0.3);
   --ios-sep: rgba(84, 84, 88, 0.65);
-  --ios-fill: rgba(118, 118, 128, 0.24);
+  --ios-fill: rgba(104, 124, 118, 0.24);
   --ios-glass: rgba(37, 37, 40, 0.58);
   --ios-glass-strong: rgba(44, 44, 46, 0.8);
   --ios-glass-edge: rgba(255, 255, 255, 0.14);
   --ios-glass-shadow: 0 10px 34px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.4);
 
-  --hacc-surface: #2C2C2E;
+  --hacc-surface: #202927;
   --hacc-like: #FF375F;
   --hacc-shadow: 0 -8px 40px rgba(0, 0, 0, 0.6);
 }
@@ -130,7 +130,7 @@ body.dark .hacc-nav-account.has-account { color: #fff; }
   color: var(--ios-label) !important;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04) !important;
 }
-body.dark .ios-segment-btn.active, body.dark .hp-seg button[aria-pressed="true"], body.dark .hp-seg button.active { background: #636366 !important; }
+body.dark .ios-segment-btn.active, body.dark .hp-seg button[aria-pressed="true"], body.dark .hp-seg button.active { background: #525E5A !important; }
 
 /* Sheet tabs (comments / likes) as a segmented control */
 .hacc-tabs { border-bottom: 0 !important; gap: 0 !important; }
@@ -147,7 +147,7 @@ body.dark .ios-segment-btn.active, body.dark .hp-seg button[aria-pressed="true"]
   background: var(--ios-card) !important; color: var(--ios-label) !important;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04);
 }
-body.dark .hacc-tabs button[aria-selected="true"] { background: #636366 !important; }
+body.dark .hacc-tabs button[aria-selected="true"] { background: #525E5A !important; }
 /* Four or five tabs (account panel) stay on one line; they scroll sideways if they do not fit. */
 .hacc-tabs[role="tablist"] { overflow-x: auto; scrollbar-width: none; }
 .hacc-tabs[role="tablist"]::-webkit-scrollbar { display: none; }
@@ -468,7 +468,7 @@ body.dark .hacc-tabs button[aria-selected="true"] { background: #636366 !importa
   body.light .top-action-btn.report { background: var(--ios-tint-soft) !important; color: var(--ios-tint) !important; }
   body.light .top-action-btn.reset { background: rgba(255, 59, 48, 0.12) !important; color: #D70015 !important; }
   body.dark .top-action-btn.leader { background: rgba(255, 159, 10, 0.18) !important; color: #FFB340 !important; }
-  body.dark .top-action-btn.report { background: var(--ios-tint-soft) !important; color: #409CFF !important; }
+  body.dark .top-action-btn.report { background: var(--ios-tint-soft) !important; color: #33B39C !important; }
   body.dark .top-action-btn.reset { background: rgba(255, 69, 58, 0.18) !important; color: #FF6961 !important; }
   .hospital-header { padding-top: 2px !important; padding-bottom: 6px !important; gap: 4px !important; }
   .hospital-title { font-size: 28px !important; font-weight: 800 !important; line-height: 1.25 !important; }

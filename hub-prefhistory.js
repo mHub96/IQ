@@ -104,7 +104,7 @@
 .hph-month span { font-size: 0.66rem; font-weight: 700; color: #8d94a3; }
 .hph-body { min-width: 0; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
 .hph-chips { display: flex; flex-wrap: wrap; gap: 4px; }
-.hph-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 8px; font-size: 0.68rem; font-weight: 700; background: rgba(100, 116, 139, 0.12); color: inherit; line-height: 1.5; }
+.hph-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 8px; font-size: 0.68rem; font-weight: 700; background: rgba(110, 123, 118, 0.12); color: inherit; line-height: 1.5; }
 .hph-chip i { font-size: 0.6rem; opacity: 0.8; }
 .hph-chip.sh { background: rgba(14, 165, 233, 0.12); color: #0369a1; }
 .hph-chip.wd { background: rgba(20, 184, 166, 0.12); color: #0f766e; }
@@ -114,7 +114,7 @@
 .hph-text { margin: 0; font-size: 0.78rem; line-height: 1.65; overflow-wrap: anywhere; }
 .hph-sep { font-style: normal; color: #a1a8b5; margin: 0 5px; font-weight: 800; }
 .hph-text + .hph-text { padding-top: 6px; border-top: 1px dashed var(--hph-line); }
-.hph-text time { display: inline-block; margin-inline-end: 6px; padding: 0 6px; border-radius: 6px; background: rgba(100, 116, 139, 0.14); color: #8d94a3; font-size: 0.64rem; font-weight: 800; line-height: 1.6; vertical-align: 1px; }
+.hph-text time { display: inline-block; margin-inline-end: 6px; padding: 0 6px; border-radius: 6px; background: rgba(110, 123, 118, 0.14); color: #8d94a3; font-size: 0.64rem; font-weight: 800; line-height: 1.6; vertical-align: 1px; }
 .hph-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 2px; }
 .hph-nav span { font-size: 0.72rem; font-weight: 800; color: #8d94a3; }
 .hph-nav button { min-height: 38px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--hph-line); background: transparent; color: inherit; font: 800 0.76rem/1 inherit; font-family: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }

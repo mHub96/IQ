@@ -80,8 +80,8 @@
     .opi-tags span { display: inline-flex; align-items: center; gap: 4px; padding: 4px 6px 4px 10px; border-radius: 999px; background: rgba(124,58,237,.12); font-size: .72rem; font-weight: 800; }
     .opi-tags button { border: 0; background: rgba(0,0,0,.12); color: inherit; width: 18px; height: 18px; border-radius: 50%; cursor: pointer; font-size: .6rem; line-height: 1; }
     .opi-sugg { position: relative; }
-    .opi-sugg-list { position: absolute; inset: 100% 0 auto 0; z-index: 20; margin-top: 4px; border-radius: 12px; overflow: hidden; background: #fff; color: #111827; box-shadow: 0 12px 30px rgba(0,0,0,.2); max-height: 240px; overflow-y: auto; }
-    body.dark .opi-sugg-list { background: #1c1c1e; color: #f2f2f7; }
+    .opi-sugg-list { position: absolute; inset: 100% 0 auto 0; z-index: 20; margin-top: 4px; border-radius: 12px; overflow: hidden; background: #fff; color: #141B1A; box-shadow: 0 12px 30px rgba(0,0,0,.2); max-height: 240px; overflow-y: auto; }
+    body.dark .opi-sugg-list { background: #141B1A; color: #EEF2EF; }
     .opi-sugg-list button { display: block; width: 100%; text-align: start; padding: 9px 12px; border: 0; background: transparent; color: inherit; font: 700 .8rem inherit; font-family: inherit; cursor: pointer; }
     .opi-sugg-list button:hover, .opi-sugg-list button.on { background: rgba(124,58,237,.12); }
     .opi-it-row { display: grid; grid-template-columns: 1fr 70px 64px 30px; gap: 6px; align-items: end; }
@@ -120,7 +120,7 @@
     .opi-h4 { margin: 14px 0 8px; font-size: .84rem; font-weight: 900; }
     .opi-seg { display: inline-grid; grid-auto-flow: column; gap: 4px; padding: 3px; border-radius: 12px; background: rgba(142,142,147,.14); }
     .opi-seg button { border: 0; padding: 7px 14px; border-radius: 9px; background: transparent; color: inherit; font: 800 .78rem inherit; font-family: inherit; cursor: pointer; }
-    .opi-seg button.on { background: #fff; color: #111827; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+    .opi-seg button.on { background: #fff; color: #141B1A; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
     .opi-warn { color: #b45309 !important; font-weight: 800; }
     div.opi-warn { margin: -4px 0 10px; padding: 8px 10px; border-radius: 12px; background: #fef3c7; font-size: .74rem; line-height: 1.6; }
     .opi-noacc { color: #b45309; font-size: .66rem; font-weight: 800; }
@@ -146,7 +146,7 @@
     .opu-who { font-size: .72rem; font-weight: 700; opacity: .92; margin-top: 3px; }
     .opu-x { position: absolute; top: 12px; inset-inline-end: 12px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(255,255,255,.2); color: #fff; font-size: .95rem; cursor: pointer; }
     .opu-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 12px 14px 4px; }
-    .opu-steps span { position: relative; text-align: center; padding: 7px 4px 7px 4px; border-radius: 12px; font-size: .68rem; font-weight: 900; background: rgba(142,142,147,.12); color: #8e8e93; transition: all .25s; }
+    .opu-steps span { position: relative; text-align: center; padding: 7px 4px 7px 4px; border-radius: 12px; font-size: .68rem; font-weight: 900; background: rgba(142,142,147,.12); color: #6E7B76; transition: all .25s; }
     .opu-steps span::before { content: '○ '; }
     .opu-steps span.done { background: rgba(124,58,237,.12); color: var(--o1); }
     .opu-steps span.done::before { content: '✓ '; }

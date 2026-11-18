@@ -258,6 +258,7 @@
         placePill(tab);
         tabbar.classList.toggle('covered', !!active.overlay);
         tabbar.classList.toggle('off', !signedIn());      // the sign-in screen has no tabs
+        document.documentElement.classList.toggle('no-tabs', !signedIn());
         tabbar.classList.toggle('aa', !!aaContext());      // division: roster, schedule and exchange only
         let title = '';
         try { title = active.frame.contentDocument.title; } catch (e) {}
@@ -273,11 +274,15 @@
         }
     }
 
+    // Phones draw the chosen tab's lozenge on the tab itself (it widens with it); the side rail of
+    // larger screens has one lozenge that glides up and down to the chosen tab.
     function placePill(tab) {
         const el = tab && tabbar.querySelector(`.app-tab[data-tab="${tab}"]`);
-        if (!el) { pill.classList.remove('on'); return; }
-        pill.style.width = el.offsetWidth + 'px';
-        pill.style.transform = `translateX(${el.offsetLeft}px)`;
+        const rail = getComputedStyle(tabbar).flexDirection === 'column';
+        if (!el || !rail) { pill.classList.remove('on'); return; }
+        pill.style.width = '';
+        pill.style.height = el.offsetHeight + 'px';
+        pill.style.transform = `translateY(${el.offsetTop}px)`;
         pill.classList.add('on');
     }
     window.addEventListener('resize', () => active && placePill(TAB_OF[active.page]));
@@ -426,7 +431,7 @@
         const dark = read('hospital_hub_theme') === 'dark';
         document.documentElement.classList.toggle('dark', dark);
         const meta = document.querySelector('meta[name="theme-color"]');
-        if (meta) meta.setAttribute('content', dark ? '#000000' : '#F2F2F7');
+        if (meta) meta.setAttribute('content', dark ? '#000000' : '#EEF2EF');
     }
     applyTheme();
 

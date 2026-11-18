@@ -9,7 +9,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="بوابة المستشفيات" />
-    <meta name="theme-color" content="#F2F2F7" />
+    <meta name="theme-color" content="#EEF2EF" />
     <title>بوابة المستشفيات</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" type="image/svg+xml" href="./pwa-icon.svg" />
@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="./app-shell.css" />
     <script src="./pwa.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Readex+Pro:wght@400;500;600;700&display=swap" />
 </head>
 <body>
     <!-- One live view per tab; each page loads once and then stays running. -->
@@ -28,6 +29,7 @@
 
     <!-- The tab bar belongs to the app, not to a page: it never reloads. -->
     <nav id="app-tabbar" aria-label="التنقل الرئيسي">
+        <span class="app-rail-brand" aria-hidden="true"><i class="fas fa-hospital-alt"></i></span>
         <span class="app-tab-pill" aria-hidden="true"></span>
         <a class="app-tab" data-tab="home" href="./index.html?portal=true"><i class="fas fa-hospital-alt"></i><span>الرئيسية</span></a>
         <a class="app-tab" data-tab="schedule" href="./schedule.html"><i class="fas fa-calendar-week"></i><span>الجدول</span></a>

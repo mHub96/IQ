@@ -1,0 +1,947 @@
+/*
+ * Hospital Hub design layer v4 ("Scrubs"), loaded LAST on every page.
+ * Looks only: colours, type, surfaces, controls, motion. No layout a script depends on is changed.
+ *
+ *   Brand ......... surgical teal (#0B7A6E light / #2EC4AC dark tint)
+ *   Neutrals ...... sage (faintly green greys), sage-white page, near-black green in dark mode
+ *   Type .......... Readex Pro for titles and numbers, IBM Plex Sans Arabic for text
+ *   Shape ......... 20px cards, 14px controls, hairline borders, soft long shadows
+ *   Motion ........ one easing family; sheets glide, cards rise, taps press in
+ */
+
+/* ======================================================================
+   1. Tokens
+   ====================================================================== */
+:root {
+  --ds-font: "IBM Plex Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --ds-display: "Readex Pro", "IBM Plex Sans Arabic", system-ui, sans-serif;
+
+  --ds-brand: #0B7A6E;
+  --ds-brand-strong: #0A6259;
+  --ds-brand-ink: #FFFFFF;
+  --ds-brand-soft: rgba(11, 122, 110, 0.10);
+  --ds-brand-soft-2: rgba(11, 122, 110, 0.16);
+  --ds-tint: #0B7A6E;            /* links, active text */
+  --ds-mint: #5EE0C8;
+  --ds-amber: #E8A23A;
+  --ds-coral: #E5484D;
+
+  --ds-bg: #EEF2EF;
+  --ds-bg-glow: radial-gradient(1200px 520px at 85% -120px, rgba(19, 151, 127, 0.13), transparent 70%),
+                radial-gradient(900px 480px at 0% -160px, rgba(232, 162, 58, 0.08), transparent 70%);
+  --ds-card: #FFFFFF;
+  --ds-card-2: #F6F8F6;
+  --ds-ink: #102220;
+  --ds-ink-2: rgba(16, 34, 32, 0.64);
+  --ds-ink-3: rgba(16, 34, 32, 0.38);
+  --ds-line: rgba(16, 34, 32, 0.09);
+  --ds-line-2: rgba(16, 34, 32, 0.14);
+  --ds-fill: rgba(16, 34, 32, 0.055);
+  --ds-glass: rgba(250, 252, 250, 0.74);
+  --ds-glass-edge: rgba(255, 255, 255, 0.85);
+
+  --ds-shadow-1: 0 1px 0 rgba(16, 34, 32, 0.04), 0 1px 2px rgba(16, 34, 32, 0.04);
+  --ds-shadow-2: 0 1px 2px rgba(16, 34, 32, 0.05), 0 10px 30px -12px rgba(16, 34, 32, 0.16);
+  --ds-shadow-3: 0 2px 6px rgba(16, 34, 32, 0.06), 0 24px 60px -20px rgba(16, 34, 32, 0.28);
+  --ds-shadow-brand: 0 8px 22px -8px rgba(11, 122, 110, 0.55);
+
+  --ds-r-card: 20px;
+  --ds-r-ctl: 14px;
+  --ds-r-sheet: 28px;
+
+  --ds-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ds-spring: cubic-bezier(0.32, 0.72, 0, 1);
+  --ds-bounce: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --ds-fast: 160ms;
+  --ds-mid: 260ms;
+  --ds-slow: 460ms;
+
+  /* The older layers read these: point them at the new palette. */
+  --ios-font: var(--ds-font);
+  --ios-tint: var(--ds-tint);
+  --ios-tint-soft: var(--ds-brand-soft);
+  --ios-red: var(--ds-coral);
+  --ios-green: #1FA971;
+  --ios-orange: var(--ds-amber);
+  --ios-bg: var(--ds-bg);
+  --ios-card: var(--ds-card);
+  --ios-card2: var(--ds-card-2);
+  --ios-label: var(--ds-ink);
+  --ios-label2: var(--ds-ink-2);
+  --ios-label3: var(--ds-ink-3);
+  --ios-sep: var(--ds-line-2);
+  --ios-fill: var(--ds-fill);
+  --ios-glass: var(--ds-glass);
+  --ios-glass-strong: rgba(250, 252, 250, 0.86);
+  --ios-glass-edge: var(--ds-glass-edge);
+  --ios-glass-shadow: var(--ds-shadow-3);
+  --ios-spring: var(--ds-spring);
+  --ios-bounce: var(--ds-bounce);
+
+  --hacc-accent: var(--ds-brand);
+  --hacc-accent-soft: var(--ds-brand-soft);
+  --hacc-bg: var(--ds-card);
+  --hacc-surface: var(--ds-card-2);
+  --hacc-border: var(--ds-line-2);
+  --hacc-text: var(--ds-ink);
+  --hacc-muted: var(--ds-ink-2);
+  --hacc-danger: var(--ds-coral);
+  --hacc-shadow: 0 -10px 50px rgba(16, 34, 32, 0.18);
+}
+html.dark, body.dark {
+  --ds-brand: #13977F;
+  --ds-brand-strong: #0F8270;
+  --ds-brand-soft: rgba(46, 196, 172, 0.13);
+  --ds-brand-soft-2: rgba(46, 196, 172, 0.2);
+  --ds-tint: #2EC4AC;
+  --ds-bg: #070B0B;
+  --ds-bg-glow: radial-gradient(1100px 520px at 85% -140px, rgba(46, 196, 172, 0.10), transparent 70%),
+                radial-gradient(800px 420px at 0% -160px, rgba(232, 162, 58, 0.05), transparent 70%);
+  --ds-card: #111818;
+  --ds-card-2: #18211F;
+  --ds-ink: #E8F1EE;
+  --ds-ink-2: rgba(232, 241, 238, 0.64);
+  --ds-ink-3: rgba(232, 241, 238, 0.36);
+  --ds-line: rgba(232, 241, 238, 0.07);
+  --ds-line-2: rgba(232, 241, 238, 0.12);
+  --ds-fill: rgba(232, 241, 238, 0.07);
+  --ds-glass: rgba(20, 28, 27, 0.72);
+  --ds-glass-edge: rgba(255, 255, 255, 0.08);
+  --ds-shadow-1: 0 1px 0 rgba(0, 0, 0, 0.3);
+  --ds-shadow-2: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 12px 30px -14px rgba(0, 0, 0, 0.7);
+  --ds-shadow-3: 0 24px 60px -18px rgba(0, 0, 0, 0.85);
+  --ds-shadow-brand: 0 8px 24px -8px rgba(19, 151, 127, 0.6);
+
+  --ios-glass-strong: rgba(17, 24, 24, 0.86);
+  --hacc-shadow: 0 -10px 50px rgba(0, 0, 0, 0.6);
+}
+
+/* ======================================================================
+   2. Base: page, type, selection, scrollbars
+   ====================================================================== */
+html { background: var(--ds-bg); }
+body { font-family: var(--ds-font); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+/* Screen only: printed sheets keep their own white paper. */
+@media screen {
+  body.light, body.dark, html.dark body, body:not(.light):not(.dark) {
+    background-color: var(--ds-bg) !important;
+    background-image: var(--ds-bg-glow) !important;
+    background-attachment: fixed !important;
+    background-repeat: no-repeat !important;
+  }
+}
+body.dark { color: var(--ds-ink); }
+
+h1, h2, .hospital-title, .hub-display, [class*="text-2xl"], [class*="text-3xl"], [class*="text-4xl"] {
+  font-family: var(--ds-display);
+  letter-spacing: -0.01em;
+}
+h1, .hospital-title { font-weight: 700; }
+h3, .text-xl, .modal-card h3, .hub-modal-card h3 { font-family: var(--ds-display); font-weight: 600; letter-spacing: -0.005em; }
+/* Numbers line up (dates, counters, times). */
+.num, .tabular, [class*="font-mono"], .time-display, .counter-badge, time { font-variant-numeric: tabular-nums; }
+/* English "eyebrow" captions were set in a mono face with wide tracking: calmer now. */
+.font-mono.tracking-widest, .font-mono.uppercase, .tracking-\[0\.2em\], .tracking-\[0\.25em\], .tracking-\[0\.3em\] {
+  font-family: var(--ds-display) !important;
+  letter-spacing: 0.08em !important;
+}
+
+::selection { background: rgba(19, 151, 127, 0.24); }
+:focus-visible { outline: 2.5px solid color-mix(in srgb, var(--ds-tint) 60%, transparent) !important; outline-offset: 2px; }
+input[type="checkbox"], input[type="radio"], input[type="range"], progress { accent-color: var(--ds-brand); }
+
+@media (hover: hover) and (pointer: fine) {
+  * { scrollbar-width: thin; scrollbar-color: var(--ds-line-2) transparent; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--ds-line-2); border-radius: 10px; border: 3px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-thumb:hover { background-color: var(--ds-ink-3); }
+}
+
+/* ======================================================================
+   3. Surfaces: cards and panels
+   ====================================================================== */
+body.light .glass-card, body:not(.dark) .glass-card,
+.ios-card, .hub-card {
+  background: var(--ds-card) !important;
+  border: 1px solid var(--ds-line) !important;
+  box-shadow: var(--ds-shadow-2) !important;
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+body.dark .glass-card, html.dark .glass-card {
+  background: var(--ds-card) !important;
+  border: 1px solid var(--ds-line) !important;
+  box-shadow: var(--ds-shadow-2) !important;
+}
+.glass-card, .ios-card, .hub-card, .hospital-card, .roster-card { border-radius: var(--ds-r-card) !important; }
+.glass-panel { border-radius: var(--ds-r-card); }
+
+/* Pop-up cards */
+.modal-card, .hub-modal-card {
+  background: var(--ds-card) !important;
+  color: var(--ds-ink);
+  border: 1px solid var(--ds-line) !important;
+  box-shadow: var(--ds-shadow-3) !important;
+}
+body.dark .modal-card, body.dark .hub-modal-card, html.dark .modal-card, html.dark .hub-modal-card {
+  background: var(--ds-card-2) !important;
+  border-color: var(--ds-line-2) !important;
+}
+.modal-overlay, .hub-modal-overlay, .hacc-sheet-backdrop.open {
+  background: rgba(6, 14, 13, 0.42) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(120%);
+  backdrop-filter: blur(6px) saturate(120%);
+}
+.fixed.inset-0[id$="-modal"]:not(.hidden) {
+  background-color: rgba(6, 14, 13, 0.42);
+}
+.fixed.inset-0[id$="-modal"] > .glass-panel { background: var(--ds-card) !important; border: 1px solid var(--ds-line) !important; box-shadow: var(--ds-shadow-3) !important; }
+.dark .fixed.inset-0[id$="-modal"] > .glass-panel { background: var(--ds-card-2) !important; }
+
+/* Account sheets */
+.hacc-sheet {
+  background: var(--ds-card) !important;
+  color: var(--ds-ink);
+  border-radius: var(--ds-r-sheet) var(--ds-r-sheet) 0 0 !important;
+  box-shadow: var(--hacc-shadow) !important;
+}
+body.dark .hacc-sheet, html.dark .hacc-sheet { background: var(--ds-card-2) !important; }
+@media (min-width: 769px) {
+  .hacc-sheet { border-radius: var(--ds-r-sheet) !important; }
+  .modal-card, .hub-modal-card { border-radius: 24px !important; }
+}
+
+/* ======================================================================
+   4. Controls
+   ====================================================================== */
+/* Primary buttons: solid teal, a light top edge, a coloured shadow. */
+.hacc-btn.primary, .ios-btn.primary, .btn-gradient, .btn-primary, .hub-btn-primary, .ios-install-cta, .oc-save, .hub-pop .p-primary {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ds-brand) 88%, #fff) 0%, var(--ds-brand) 55%, var(--ds-brand-strong) 100%) !important;
+  color: var(--ds-brand-ink) !important;
+  border: 0 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), var(--ds-shadow-brand) !important;
+  font-weight: 700;
+}
+.hacc-btn, .ios-btn { border-radius: var(--ds-r-ctl) !important; }
+.hacc-btn:not(.primary):not(.danger) {
+  background: var(--ds-fill) !important; border: 0 !important; color: var(--ds-ink) !important;
+}
+.hacc-btn.danger { background: rgba(229, 72, 77, 0.1) !important; color: var(--ds-coral) !important; border: 0 !important; }
+
+/* Tailwind-built primary buttons across pages (bg-teal-600 etc.) get the same depth. */
+button.bg-teal-600, a.bg-teal-600, button.bg-teal-500, a.bg-teal-500, button.bg-blue-600, a.bg-blue-600 {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 60%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 6px 16px -8px rgba(11, 122, 110, 0.6);
+}
+
+/* Fields */
+.input-field, .form-select, .hub-input, .hub-password-input, .hub-role-input, .field input, .field select, .field textarea,
+.hacc-field input, .hacc-field select, .hacc-field textarea {
+  border-radius: var(--ds-r-ctl) !important;
+  border: 1px solid var(--ds-line-2) !important;
+  background-color: var(--ds-card) !important;
+  color: var(--ds-ink) !important;
+  transition: border-color var(--ds-fast) ease, box-shadow var(--ds-mid) var(--ds-ease), background-color var(--ds-fast) ease !important;
+}
+body.dark .input-field, body.dark .form-select, body.dark .hub-input, body.dark .hub-password-input, body.dark .hub-role-input,
+body.dark .field input, body.dark .field select, body.dark .field textarea,
+body.dark .hacc-field input, body.dark .hacc-field select, body.dark .hacc-field textarea {
+  background-color: rgba(232, 241, 238, 0.04) !important;
+}
+.input-field:focus, .form-select:focus, .hub-input:focus, .hub-password-input:focus, .hub-role-input:focus,
+.field input:focus, .field select:focus, .field textarea:focus,
+.hacc-field input:focus, .hacc-field select:focus, .hacc-field textarea:focus {
+  outline: none !important;
+  border-color: var(--ds-tint) !important;
+  box-shadow: 0 0 0 4px var(--ds-brand-soft) !important;
+}
+input::placeholder, textarea::placeholder { color: var(--ds-ink-3); opacity: 1; }
+
+/* Segmented controls: sage track, white thumb with teal text */
+.ios-segmented-control, .hp-seg, .hacc-tabs[role="tablist"] {
+  background: var(--ds-fill) !important;
+  border: 1px solid var(--ds-line) !important;
+  border-radius: 16px !important;
+  padding: 4px !important;
+}
+.ios-segment-btn, .hp-seg button, .hacc-tabs button {
+  border-radius: 12px !important;
+  color: var(--ds-ink-2) !important;
+  font-weight: 600 !important;
+}
+.ios-segment-btn.active, .hp-seg button[aria-pressed="true"], .hp-seg button.active, .hacc-tabs button[aria-selected="true"] {
+  background: var(--ds-card) !important;
+  color: var(--ds-tint) !important;
+  box-shadow: 0 1px 2px rgba(16, 34, 32, 0.08), 0 4px 12px -4px rgba(16, 34, 32, 0.16) !important;
+}
+body.dark .ios-segment-btn.active, body.dark .hp-seg button[aria-pressed="true"], body.dark .hp-seg button.active, body.dark .hacc-tabs button[aria-selected="true"],
+html.dark .ios-segment-btn.active, html.dark .hacc-tabs button[aria-selected="true"] {
+  background: #23302D !important; color: #E8F1EE !important;
+}
+
+/* Toggle switches drawn with Tailwind peers take the brand colour. */
+.peer:checked ~ .peer-checked\:bg-teal-600, .peer:checked ~ .peer-checked\:bg-teal-500 { background-color: var(--ds-brand) !important; }
+
+/* Toasts */
+.hacc-toast {
+  border-radius: 16px !important;
+  background: color-mix(in srgb, var(--ds-card) 88%, transparent) !important;
+  color: var(--ds-ink) !important;
+  border: 1px solid var(--ds-line-2) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%);
+  box-shadow: var(--ds-shadow-3) !important;
+  font-weight: 600;
+}
+.hacc-toast.success { border-color: rgba(31, 169, 113, 0.4) !important; box-shadow: inset 4px 0 0 #1FA971, var(--ds-shadow-3) !important; }
+.hacc-toast.error { border-color: rgba(229, 72, 77, 0.4) !important; box-shadow: inset 4px 0 0 var(--ds-coral), var(--ds-shadow-3) !important; }
+
+/* Profile reminder: a slim card that no longer covers half the screen */
+#hacc-nudge {
+  width: min(calc(100vw - 24px), 460px) !important;
+  padding: 8px 8px 8px 10px !important;
+  gap: 10px !important;
+  border-radius: 18px !important;
+  background: color-mix(in srgb, var(--ds-card) 92%, transparent) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid var(--ds-line-2) !important;
+  box-shadow: var(--ds-shadow-3) !important;
+  bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+}
+#hacc-nudge .hacc-nudge-icon { width: 38px; height: 38px; flex: none; border-radius: 12px; display: grid; place-items: center; background: var(--ds-brand-soft); font-size: 1.1rem !important; }
+#hacc-nudge .hacc-nudge-text {
+  font-size: 0.74rem !important; line-height: 1.45 !important;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+#hacc-nudge .hacc-nudge-text b { font-size: 0.86rem; font-family: var(--ds-display); font-weight: 600; }
+#hacc-nudge .hacc-btn { min-height: 36px !important; padding: 0 14px !important; font-size: 0.82rem !important; }
+#hacc-nudge button:last-child:not(.hacc-btn) { width: 34px; height: 34px; }
+@media (min-width: 769px) { #hacc-nudge { bottom: 24px !important; } }
+
+/* Notification badge */
+.hacc-badge, .hub-badge, .notif-badge {
+  background: var(--ds-coral) !important;
+  box-shadow: 0 0 0 2px var(--ds-card) !important;
+  font-family: var(--ds-display);
+}
+
+/* ======================================================================
+   5. Top bar (desktop) and the in-page tab bars (pages opened on their own)
+   ====================================================================== */
+.hub-nav-bar {
+  background: color-mix(in srgb, var(--ds-bg) 78%, transparent) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(170%) !important; backdrop-filter: blur(22px) saturate(170%) !important;
+  border-bottom: 1px solid var(--ds-line) !important;
+  box-shadow: none !important;
+  font-family: var(--ds-font) !important;
+}
+.hub-nav-brand .brand-icon, .ios-top-bar .brand-icon {
+  background: linear-gradient(145deg, #13977F, #0A6259) !important;
+  color: #fff !important;
+  border-radius: 12px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 6px 14px -6px rgba(11, 122, 110, 0.7) !important;
+}
+.hub-nav-brand .brand-text { font-family: var(--ds-display) !important; font-weight: 600 !important; color: var(--ds-ink) !important; }
+.hub-nav-link {
+  border-radius: 12px !important;
+  color: var(--ds-ink-2) !important;
+  font-weight: 600 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transition: color var(--ds-fast) ease, background-color var(--ds-fast) ease !important;
+}
+.hub-nav-link:hover { background: var(--ds-fill) !important; color: var(--ds-ink) !important; }
+.hub-nav-link.active {
+  background: var(--ds-brand-soft) !important;
+  color: var(--ds-tint) !important;
+}
+.hub-btn-logout {
+  border-radius: 12px !important;
+  background: transparent !important;
+  border: 1px solid var(--ds-line-2) !important;
+  color: var(--ds-ink-2) !important;
+  box-shadow: none !important;
+}
+.hub-btn-logout:hover { color: var(--ds-coral) !important; border-color: rgba(229, 72, 77, 0.35) !important; background: rgba(229, 72, 77, 0.06) !important; }
+.hacc-nav-btn {
+  background: var(--ds-card) !important;
+  border: 1px solid var(--ds-line-2) !important;
+  color: var(--ds-ink) !important;
+  box-shadow: var(--ds-shadow-1) !important;
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+.hacc-nav-account.has-avatar { border: 2px solid var(--ds-card) !important; box-shadow: 0 0 0 1.5px var(--ds-brand), var(--ds-shadow-1) !important; }
+#hub-nav-progress { background: linear-gradient(90deg, var(--ds-brand), var(--ds-mint), var(--ds-brand)) !important; }
+
+/* Pages opened on their own still have their own bottom dock on phones: the same ink capsule as the app. */
+@media (max-width: 768px) {
+  .hub-mobile-bottom-dock, .ios-bottom-dock {
+    background: rgba(13, 24, 23, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    box-shadow: 0 18px 40px -12px rgba(6, 14, 13, 0.55) !important;
+    height: 64px !important;
+    padding: 6px !important;
+  }
+  .hub-mobile-bottom-dock .dock-tab-btn, .ios-bottom-dock .dock-tab-btn { color: rgba(232, 241, 238, 0.62) !important; border-radius: 16px !important; }
+  .hub-mobile-bottom-dock .dock-tab-btn.active, .ios-bottom-dock .dock-tab-btn.active { background: var(--ds-mint) !important; color: #062421 !important; }
+  .hub-nav-right .hub-nav-btn, .hub-nav-right .theme-toggle, .hub-nav-right > button {
+    background: var(--ds-card) !important;
+    border: 1px solid var(--ds-line-2) !important;
+    box-shadow: var(--ds-shadow-1) !important;
+    -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+  }
+  .hub-nav-bar { background: transparent !important; border-bottom-color: transparent !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  body.ios-scrolled .hub-nav-bar {
+    background: color-mix(in srgb, var(--ds-bg) 80%, transparent) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(170%) !important; backdrop-filter: blur(22px) saturate(170%) !important;
+    border-bottom-color: var(--ds-line) !important;
+  }
+  .hub-nav-title { font-family: var(--ds-display) !important; font-weight: 600 !important; }
+  .hub-nav-bar .hub-nav-brand .brand-icon { border-radius: 13px !important; }
+}
+
+/* ======================================================================
+   6. Motion
+   ====================================================================== */
+/* Taps press in; hovers lift (fine pointers only). */
+.ios-btn, .hacc-btn, .action-btn-sm, .hub-nav-btn, .hacc-nav-btn, .ios-icon-btn, .ios-segment-btn, .filter-tab, .top-action-btn,
+.owner-chip-btn, .hp-admin-tile, .hacc-send, .hospital-card, .ios-install-cta, .btn-gradient, .btn-ghost, .glass-card button {
+  transition: transform var(--ds-mid) var(--ds-spring), background-color var(--ds-mid) ease, color var(--ds-fast) ease,
+              box-shadow var(--ds-mid) var(--ds-ease), border-color var(--ds-fast) ease, opacity var(--ds-fast) ease;
+}
+.btn-gradient:active, .btn-ghost:active, .glass-card button:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) {
+  .hospital-card:hover, .hp-admin-tile:hover { transform: translateY(-2px); box-shadow: var(--ds-shadow-3) !important; }
+  .btn-gradient:hover, .hacc-btn.primary:hover, .ios-btn.primary:hover { filter: brightness(1.05); }
+}
+
+/* Pop-ups: a softer glide and a pop with a little give */
+@keyframes ds-pop { from { opacity: 0; transform: translateY(8px) scale(0.965); } to { opacity: 1; transform: none; } }
+@keyframes ds-sheet { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes ds-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (min-width: 769px) {
+  .modal-overlay.active > .modal-card, .hub-modal-overlay.active > .hub-modal-card,
+  .modal-overlay.active > .hub-modal-card, .hub-modal-overlay.active > .modal-card,
+  .fixed.inset-0[id$="-modal"]:not(.hidden) > .glass-panel { animation: ds-pop 0.36s var(--ds-spring) both; }
+}
+.modal-overlay.active, .hub-modal-overlay.active { animation: ds-fade 0.22s ease both; }
+@media (max-width: 768px) {
+  .modal-overlay > .modal-card, .modal-overlay > .hub-modal-card, .hub-modal-overlay > .modal-card, .hub-modal-overlay > .hub-modal-card {
+    border-radius: var(--ds-r-sheet) var(--ds-r-sheet) 0 0 !important;
+    animation-duration: 0.44s !important;
+  }
+  .fixed.inset-0[id$="-modal"] > .glass-panel { border-radius: var(--ds-r-sheet) var(--ds-r-sheet) 0 0 !important; animation-duration: 0.44s !important; }
+  .modal-overlay > .modal-card::before, .modal-overlay > .hub-modal-card::before,
+  .hub-modal-overlay > .modal-card::before, .hub-modal-overlay > .hub-modal-card::before { background: var(--ds-line-2) !important; width: 40px !important; }
+}
+
+/* Page content rises in, one card after another, when a page opens. */
+@keyframes ds-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.ds-enter > * { animation: ds-rise 0.5s var(--ds-ease) both; }
+.ds-enter > *:nth-child(2) { animation-delay: 40ms; }
+.ds-enter > *:nth-child(3) { animation-delay: 80ms; }
+.ds-enter > *:nth-child(4) { animation-delay: 120ms; }
+.ds-enter > *:nth-child(5) { animation-delay: 160ms; }
+.ds-enter > *:nth-child(n+6) { animation-delay: 200ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; animation-delay: 0ms !important; transition-duration: 1ms !important; }
+}
+
+
+/* ======================================================================
+   7. Inside the app on larger screens: the side rail carries the tabs, so the
+      page's top bar keeps only its title, the scheduler link and the account buttons.
+   ====================================================================== */
+@media (min-width: 769px) {
+  html.in-shell .hub-nav-center .hub-nav-link:not([href*="scheduler.html"]),
+  html.in-shell .hub-nav-brand { display: none !important; }
+  html.in-shell .hub-nav-bar { min-height: 60px; }
+  html.in-shell .ios-top-bar .brand-pill-icon { display: none !important; }
+  html.in-shell .hub-nav-title {
+    display: inline-flex !important; align-items: center;
+    font-family: var(--ds-display) !important; font-weight: 600 !important; font-size: 1.12rem !important;
+    color: var(--ds-ink) !important;
+  }
+  /* Pages opened on their own already have the top bar's links: the bottom dock was a second copy. */
+  .hub-mobile-bottom-dock { display: none !important; }
+}
+
+/* ======================================================================
+   8. Portal (index.html): ink hero, calm hospital cards
+   ====================================================================== */
+.ios-top-bar .brand-pill-icon {
+  background: linear-gradient(145deg, #13977F, #0A6259) !important;
+  border-radius: 14px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 8px 18px -8px rgba(11, 122, 110, 0.7) !important;
+  color: #fff !important;
+}
+.ios-top-bar .brand-title { font-family: var(--ds-display) !important; font-weight: 700 !important; color: var(--ds-ink) !important; letter-spacing: -0.01em; }
+.ios-top-bar .brand-sub { font-family: var(--ds-display) !important; color: var(--ds-tint) !important; font-weight: 500 !important; letter-spacing: 0.06em !important; text-transform: uppercase; font-size: 0.62rem !important; }
+/* ICU had three doors on this screen (this button, the hero pill and the tab): the button goes. */
+.ios-top-bar .icu-header-btn { display: none !important; }
+.ios-top-bar .ios-icon-btn, .ios-top-bar .ios-role-pill {
+  background: var(--ds-card) !important; border: 1px solid var(--ds-line-2) !important; box-shadow: var(--ds-shadow-1) !important;
+}
+
+/* Live hero: deep ink with a mint pulse */
+.live-activity-card {
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(600px 220px at 100% 0%, rgba(94, 224, 200, 0.22), transparent 60%),
+    radial-gradient(400px 200px at 0% 100%, rgba(232, 162, 58, 0.16), transparent 60%),
+    linear-gradient(150deg, #0F2A27 0%, #0B1F1D 60%, #0A1716 100%) !important;
+  border: 1px solid rgba(94, 224, 200, 0.16) !important;
+  box-shadow: 0 24px 50px -24px rgba(6, 30, 27, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  border-radius: 24px !important;
+  padding: 20px !important;
+  color: #E8F1EE !important;
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+.live-activity-card::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1.2px);
+  background-size: 16px 16px;
+  -webkit-mask-image: linear-gradient(200deg, #000 0%, transparent 65%); mask-image: linear-gradient(200deg, #000 0%, transparent 65%);
+}
+.live-activity-card > * { position: relative; z-index: 1; }
+.live-activity-card h2, .live-activity-card #live-title-text { color: #fff !important; font-family: var(--ds-display) !important; font-weight: 600 !important; }
+.live-activity-card p, #live-oncall-summary { color: rgba(232, 241, 238, 0.7) !important; }
+.live-pulse-badge {
+  background: rgba(94, 224, 200, 0.14) !important; color: var(--ds-mint) !important;
+  border: 1px solid rgba(94, 224, 200, 0.25) !important; border-radius: 14px !important;
+  box-shadow: 0 0 0 6px rgba(94, 224, 200, 0.06) !important;
+}
+.live-activity-card .widget-status-badge {
+  background: rgba(94, 224, 200, 0.14) !important; color: var(--ds-mint) !important; border: 0 !important;
+}
+.live-icu-pill, .live-clock-pill {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #E8F1EE !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+}
+.live-icu-pill:hover { background: rgba(255, 255, 255, 0.12) !important; }
+.live-icu-pill i, .live-clock-pill i { color: var(--ds-mint) !important; }
+.live-clock-pill { font-family: var(--ds-display) !important; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+.live-clock-pill *:not(i) { font-family: inherit !important; }
+.live-icu-avail-badge { background: var(--ds-mint) !important; color: #062421 !important; font-family: var(--ds-display); }
+
+/* Search + filter */
+.ios-search-input {
+  height: 50px !important; border-radius: 16px !important;
+  background: var(--ds-card) !important; border: 1px solid var(--ds-line-2) !important;
+  color: var(--ds-ink) !important; box-shadow: var(--ds-shadow-1) !important;
+}
+.ios-search-input:focus { border-color: var(--ds-tint) !important; box-shadow: 0 0 0 4px var(--ds-brand-soft) !important; }
+.ios-search-icon { color: var(--ds-tint) !important; }
+
+/* Owner tools: one quiet style instead of a rainbow */
+.owner-chip-btn {
+  background: var(--ds-card) !important;
+  color: var(--ds-ink) !important;
+  border: 1px solid var(--ds-line-2) !important;
+  box-shadow: var(--ds-shadow-1) !important;
+  border-radius: 14px !important;
+  font-weight: 600 !important;
+}
+.owner-chip-btn i { color: var(--ds-tint) !important; }
+.owner-chip-btn[href*="emergency"] i { color: var(--ds-coral) !important; }
+
+/* Hospital cards */
+.hosp-widget-card {
+  background: var(--ds-card) !important;
+  border: 1px solid var(--ds-line) !important;
+  box-shadow: var(--ds-shadow-2) !important;
+  border-radius: 24px !important;
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+@media (hover: hover) and (pointer: fine) {
+  .hosp-widget-card:hover { transform: translateY(-3px); box-shadow: var(--ds-shadow-3) !important; }
+}
+.widget-squircle-icon { border-radius: 18px !important; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 10px 22px -10px rgba(0, 0, 0, 0.45) !important; }
+.widget-hosp-name { font-family: var(--ds-display) !important; font-weight: 700 !important; color: var(--ds-ink) !important; letter-spacing: -0.01em; }
+.widget-meta-row { color: var(--ds-ink-2) !important; }
+.widget-meta-row .font-mono { font-family: var(--ds-font) !important; letter-spacing: 0 !important; }
+.hosp-widget-card .widget-status-badge {
+  background: rgba(31, 169, 113, 0.1) !important; color: #138A5B !important; border: 0 !important;
+}
+body.dark .hosp-widget-card .widget-status-badge { color: #5EE0A8 !important; }
+.metric-chip {
+  background: var(--ds-fill) !important;
+  border: 0 !important;
+  color: var(--ds-ink) !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+}
+.metric-chip i { color: var(--ds-ink-3); }
+.metric-chip.oncall-live { background: var(--ds-brand-soft) !important; color: var(--ds-tint) !important; }
+.metric-chip.oncall-live i { color: var(--ds-tint) !important; }
+.metric-chip[class*="text-rose"] { background: rgba(229, 72, 77, 0.09) !important; color: var(--ds-coral) !important; }
+.metric-chip[class*="text-rose"] i { color: var(--ds-coral) !important; }
+.metric-chip[class*="text-emerald"] { background: rgba(31, 169, 113, 0.1) !important; color: #138A5B !important; }
+body.dark .metric-chip[class*="text-emerald"] { color: #5EE0A8 !important; }
+.metric-chip[class*="text-emerald"] i { color: inherit !important; }
+.hosp-roster-btn { border-radius: 16px !important; min-height: 50px; font-family: var(--ds-display); font-weight: 600 !important; letter-spacing: 0; }
+.hosp-expand-arrow-btn {
+  background: var(--ds-fill) !important; border: 0 !important; border-radius: 16px !important; color: var(--ds-ink-2) !important;
+}
+.hosp-expand-arrow-btn[aria-expanded="true"] { background: var(--ds-brand-soft) !important; color: var(--ds-tint) !important; }
+.hosp-expand-arrow-btn i { transition: transform 0.4s var(--ds-spring); }
+.hosp-expand-arrow-btn[aria-expanded="true"] i { transform: rotate(180deg); }
+.ios-btn.secondary {
+  background: var(--ds-card-2) !important;
+  border: 1px solid var(--ds-line) !important;
+  color: var(--ds-ink) !important;
+  border-radius: 14px !important;
+  font-weight: 600 !important;
+}
+.ios-btn.secondary i { color: var(--ds-tint); }
+.ios-btn.secondary.hosp-er-btn, .ios-btn.secondary.hosp-er-btn i { color: var(--ds-coral) !important; }
+.ios-btn.secondary.hosp-er-btn { background: rgba(229, 72, 77, 0.06) !important; border-color: rgba(229, 72, 77, 0.2) !important; }
+.ios-btn.secondary.hosp-aa-btn { color: var(--ds-ink) !important; border-color: var(--ds-line) !important; }
+.footer-credit { color: var(--ds-ink-3) !important; font-size: 0.72rem !important; letter-spacing: 0.02em; }
+
+/* ======================================================================
+   9. On-call roster (Home.html)
+   ====================================================================== */
+/* Header: tool chips in one quiet style */
+.top-action-btn {
+  background: var(--ds-card) !important;
+  border: 1px solid var(--ds-line-2) !important;
+  color: var(--ds-ink) !important;
+  border-radius: 12px !important;
+  font-size: 0.74rem !important;
+  font-weight: 600 !important;
+  padding: 0.5rem 0.9rem !important;
+  box-shadow: var(--ds-shadow-1) !important;
+}
+.top-action-btn:hover { transform: translateY(-1px); box-shadow: var(--ds-shadow-2) !important; }
+.top-action-btn.leader i { color: var(--ds-amber) !important; }
+.top-action-btn.report i { color: var(--ds-tint) !important; }
+.top-action-btn.reset, .top-action-btn.reset i { color: var(--ds-coral) !important; }
+body.light .top-action-btn.leader, body.light .top-action-btn.report, body.light .top-action-btn.reset,
+body.dark .top-action-btn.leader, body.dark .top-action-btn.report, body.dark .top-action-btn.reset { background: var(--ds-card) !important; }
+body.dark .top-action-btn.leader, body.dark .top-action-btn.report { color: var(--ds-ink) !important; }
+
+.hospital-title { font-family: var(--ds-display) !important; color: var(--ds-ink) !important; letter-spacing: -0.02em !important; }
+.hospital-eyebrow { font-family: var(--ds-display) !important; color: var(--ds-tint) !important; letter-spacing: 0.12em !important; font-weight: 600 !important; }
+.hospital-subtitle { font-family: var(--ds-display) !important; color: var(--ds-ink-3) !important; letter-spacing: 0.14em !important; font-weight: 500 !important; }
+.current-time-bubble {
+  background: #102220 !important; color: #E8F1EE !important;
+  border: 1px solid rgba(94, 224, 200, 0.2) !important;
+  box-shadow: 0 10px 22px -12px rgba(6, 30, 27, 0.8) !important;
+  font-family: var(--ds-display) !important; font-weight: 500 !important;
+}
+.current-time-bubble i { color: var(--ds-mint) !important; }
+.current-time-bubble .font-mono { font-family: var(--ds-display) !important; font-variant-numeric: tabular-nums; font-weight: 700 !important; color: #fff; }
+body.dark .current-time-bubble { background: #142624 !important; }
+.hospital-header + .nav-row, .hospital-header { border-color: var(--ds-line) !important; }
+body.light .nav-btn, body.dark .nav-btn, .nav-btn {
+  background: var(--ds-card) !important; border: 1px solid var(--ds-line-2) !important; color: var(--ds-ink) !important;
+  border-radius: 12px !important; box-shadow: var(--ds-shadow-1) !important;
+}
+
+/* Duty cards: compact, the call one tap away */
+.roster-card, body.light .roster-card, body.dark .roster-card {
+  background: var(--ds-card) !important;
+  border: 1px solid var(--ds-line) !important;
+  box-shadow: var(--ds-shadow-2) !important;
+  border-radius: 22px !important;
+  min-height: 0 !important;
+}
+body.light .roster-card.clone-card, body.dark .roster-card.clone-card {
+  background: linear-gradient(160deg, color-mix(in srgb, #6D5DD3 6%, var(--ds-card)), var(--ds-card)) !important;
+  border-color: color-mix(in srgb, #6D5DD3 26%, transparent) !important;
+}
+.roster-card .card-body { padding: 1rem 1rem 0.9rem !important; gap: 0.2rem !important; }
+.roster-card .resident-name {
+  font-family: var(--ds-display) !important; font-weight: 600 !important;
+  font-size: clamp(1.18rem, 3.8vw, 1.36rem) !important; letter-spacing: -0.01em;
+  margin-top: 0.25rem;
+}
+body.light .roster-card .resident-name { color: var(--ds-ink) !important; font-weight: 600 !important; }
+.roster-card .resident-phone {
+  font-family: var(--ds-display) !important; font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em !important; color: var(--ds-ink-2) !important; font-size: 0.86rem !important; font-weight: 500 !important;
+}
+.roster-card .specialty-bubble {
+  font-size: 0.76rem !important; padding: 0.22rem 0.75rem !important; min-height: 28px !important;
+  border-width: 1px !important; font-weight: 600 !important;
+}
+.roster-card .specialty-bubble:not(.specialty-gold) {
+  background: var(--ds-brand-soft) !important; border-color: transparent !important; color: var(--ds-tint) !important;
+}
+.roster-card .divider { display: none !important; }
+.card-actions { margin-top: 0.7rem !important; }
+.roster-card .action-btn-sm { min-height: 44px !important; border-radius: 14px !important; font-weight: 700 !important; font-size: 0.82rem !important; }
+.roster-card .action-btn-sm.call, body.dark .roster-card .action-btn-sm.call {
+  color: #fff !important; border: 0 !important;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ds-brand) 88%, #fff), var(--ds-brand) 55%, var(--ds-brand-strong)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), var(--ds-shadow-brand) !important;
+}
+.roster-card .action-btn-sm.wa { color: #12805A !important; background: rgba(31, 169, 113, 0.1) !important; border: 0 !important; }
+body.dark .roster-card .action-btn-sm.wa { color: #5EE0A8 !important; background: rgba(94, 224, 168, 0.1) !important; }
+.roster-card .card-status, body.light .roster-card .card-status {
+  top: 0.9rem !important; border: 0 !important; box-shadow: none !important;
+  background: var(--ds-fill) !important; color: var(--ds-ink-2) !important;
+  font-family: var(--ds-display); font-weight: 600 !important;
+}
+.roster-card-wrapper.trending .roster-card .card-status { background: rgba(232, 162, 58, 0.14) !important; color: #B7791F !important; }
+.roster-card-wrapper.crimson .roster-card .card-status { background: rgba(229, 72, 77, 0.12) !important; color: var(--ds-coral) !important; }
+.roster-card .card-icu-status { top: 0.9rem !important; border: 0 !important; box-shadow: none !important; }
+
+/* Larger screens: the roster becomes a grid of cards */
+@media (min-width: 900px) {
+  #main-content.main-content-wrap { max-width: 1120px !important; }
+  #main-content .roster-grid { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px !important; align-items: start; }
+  #main-content .roster-card-wrapper { max-width: none !important; }
+  #main-content > .hospital-header, #main-content > .nav-row, #main-content > #trending-container, #main-content > .top-bar { max-width: 680px; margin-inline: auto; }
+}
+/* The duty-status chip sat in the card's corner on wider screens, over the badges: it stays under the specialties everywhere. */
+.roster-card .card-front .card-duty-status {
+  position: relative !important; top: auto !important; right: auto !important; left: auto !important;
+  display: flex !important; width: max-content; max-width: 92%;
+  margin: 0 auto 0.35rem !important; padding: 0.28rem 0.75rem !important;
+  border-radius: 999px !important; box-shadow: none !important;
+  font-size: 0.72rem !important;
+}
+.roster-card .card-duty-status.oc-idle { background: var(--ds-fill) !important; border: 0 !important; color: var(--ds-ink-2) !important; }
+.roster-card .specialty-bubbles { margin-bottom: 0.4rem !important; }
+
+/* ======================================================================
+   10. Hospital administration (admin.html): a tidy tool grid instead of a rainbow of pills
+   ====================================================================== */
+#app-body main > .glass-card:first-child > .flex > .branch-hide {
+  flex-basis: 100%;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 158px), 1fr));
+  gap: 8px !important;
+  padding-top: 6px;
+}
+#app-body main > .glass-card:first-child .branch-hide > .btn-ghost,
+#app-body main > .glass-card:first-child .branch-hide > .btn-gradient {
+  justify-content: flex-start !important;
+  min-height: 48px;
+  padding: 0.55rem 0.8rem !important;
+  border-radius: 14px !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  line-height: 1.35;
+  text-align: start;
+}
+#app-body main > .glass-card:first-child .branch-hide > .btn-ghost {
+  background: var(--ds-card-2) !important;
+  border: 1px solid var(--ds-line) !important;
+  color: var(--ds-ink) !important;
+}
+#app-body main > .glass-card:first-child .branch-hide > .btn-ghost:hover { background: var(--ds-card) !important; border-color: var(--ds-line-2) !important; box-shadow: var(--ds-shadow-2); }
+#app-body main > .glass-card:first-child .branch-hide > .btn-ghost > i {
+  width: 30px; height: 30px; flex: none; border-radius: 10px;
+  display: grid; place-items: center; font-size: 0.85rem;
+  background: var(--ds-card); box-shadow: var(--ds-shadow-1);
+}
+#app-body main > .glass-card:first-child .branch-hide > .btn-ghost > i:not([class*="text-"]) { color: var(--ds-tint); }
+#app-body main > .glass-card:first-child .branch-hide > #admin-owner-emergency-btn,
+#app-body main > .glass-card:first-child .branch-hide > #admin-owner-emergency-btn > i { color: var(--ds-coral) !important; }
+#app-body main > .glass-card:first-child .branch-hide > #main-save-btn { justify-content: center !important; grid-column: 1 / -1; min-height: 50px; font-size: 0.88rem !important; }
+@media (min-width: 640px) { #app-body main > .glass-card:first-child .branch-hide > #main-save-btn { grid-column: auto / span 2; } }
+
+/* Counters: one quiet chip style with a coloured dot of meaning */
+.counter-badge, body.light .counter-badge, body.dark .counter-badge {
+  background: var(--ds-fill) !important; border: 0 !important; color: var(--ds-ink) !important;
+  border-radius: 10px !important; font-weight: 600 !important; font-family: var(--ds-display);
+  font-variant-numeric: tabular-nums; padding: 0.35rem 0.75rem !important;
+}
+.counter-badge i { color: var(--ds-tint); }
+#badge-active-res i { color: #1FA971; }
+#badge-reserve-res i { color: var(--ds-amber); }
+
+/* The plain outline buttons of the older pages */
+.btn-ghost { border-radius: 12px !important; border-color: var(--ds-line-2) !important; color: var(--ds-ink) !important; font-weight: 600 !important; }
+.btn-ghost:hover { background: var(--ds-fill) !important; }
+.btn-gradient { border-radius: 14px !important; }
+@media (max-width: 640px) {
+  .font-mono.tracking-widest, .font-mono.uppercase { font-size: 0.62rem !important; letter-spacing: 0.06em !important; }
+}
+
+/* Monospace text: the system mono fonts have no Arabic, so Arabic words in them came apart into
+   separate letters (e.g. "خفارة فارغة" on the ER dashboard). Numbers keep fixed widths through tabular figures. */
+.font-mono { font-family: var(--ds-display) !important; font-variant-numeric: tabular-nums; }
+
+/* ======================================================================
+   11. ER page: its own layer reads --ers-* tokens; they follow the new palette.
+       The ER keeps its red accent (its identity, and what people look for).
+   ====================================================================== */
+:root {
+  --ers-font: var(--ds-font);
+  --ers-bg: var(--ds-bg);
+  --ers-surface: var(--ds-card);
+  --ers-surface-2: var(--ds-card-2);
+  --ers-border: var(--ds-line-2);
+  --ers-border-2: rgba(16, 34, 32, 0.2);
+  --ers-text: var(--ds-ink);
+  --ers-text-2: var(--ds-ink-2);
+  --ers-text-3: rgba(16, 34, 32, 0.5);
+  --ers-accent: #C2352B;
+  --ers-accent-2: #9E2A22;
+  --ers-accent-soft: rgba(194, 53, 43, 0.08);
+  --ers-shadow: var(--ds-shadow-1);
+  --ers-shadow-lg: var(--ds-shadow-3);
+}
+html.dark {
+  --ers-bg: var(--ds-bg);
+  --ers-surface: var(--ds-card);
+  --ers-surface-2: var(--ds-card-2);
+  --ers-border: var(--ds-line-2);
+  --ers-border-2: rgba(232, 241, 238, 0.2);
+  --ers-text: var(--ds-ink);
+  --ers-text-2: var(--ds-ink-2);
+  --ers-text-3: rgba(232, 241, 238, 0.45);
+}
+.ers-logo { border-radius: 13px !important; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 8px 18px -8px rgba(194, 53, 43, 0.7); }
+.ers-brand-text b, .ers-top-title h1 { font-family: var(--ds-display) !important; font-weight: 600 !important; }
+.ers-nav-item { border-radius: 12px !important; transition: background-color var(--ds-fast) ease, color var(--ds-fast) ease !important; }
+/* Inside the app on larger screens the ER side bar sits next to the app rail: a hairline between them. */
+@media (min-width: 769px) { html.in-shell .ers-side { border-right: 0; box-shadow: none; } }
+
+/* ======================================================================
+   12. Clinics guide + My Schedule: from navy/ivory to the teal ink of the new palette
+       (the PDF of My Schedule has its own fixed colours and is not affected).
+   ====================================================================== */
+.hgd-entry {
+  background:
+    radial-gradient(420px 180px at 100% 0%, rgba(94, 224, 200, 0.2), transparent 60%),
+    linear-gradient(150deg, #0F2A27 0%, #0B1F1D 70%) !important;
+  border: 1px solid rgba(94, 224, 200, 0.16) !important;
+  box-shadow: 0 20px 44px -22px rgba(6, 30, 27, 0.8) !important;
+  border-radius: 22px !important;
+}
+.hgd-entry-tx b { font-family: var(--ds-display); font-weight: 600 !important; }
+.hgd {
+  --g-ink: #102220; --g-ink2: rgba(16, 34, 32, 0.66); --g-ink3: rgba(16, 34, 32, 0.45);
+  --g-paper: #EEF2EF; --g-card: #FFFFFF; --g-line: rgba(16, 34, 32, 0.11);
+  --g-navy: #0B7A6E; --g-navy-soft: rgba(11, 122, 110, 0.09);
+  font-family: var(--ds-font) !important;
+}
+html.dark .hgd, body.dark .hgd {
+  --g-ink: #E8F1EE; --g-ink2: rgba(232, 241, 238, 0.66); --g-ink3: rgba(232, 241, 238, 0.42);
+  --g-paper: #070B0B; --g-card: #111818; --g-line: rgba(232, 241, 238, 0.1);
+  --g-navy: #5EE0C8; --g-navy-soft: rgba(94, 224, 200, 0.12);
+}
+.ms, .msp {
+  --ms-ink: #102220; --ms-ink2: rgba(16, 34, 32, 0.66); --ms-ink3: rgba(16, 34, 32, 0.45);
+  --ms-paper: #F6F8F6; --ms-card: #FFFFFF; --ms-line: rgba(16, 34, 32, 0.11);
+  --ms-navy: #0B7A6E; --ms-navy-soft: rgba(11, 122, 110, 0.09); --ms-hosp: #0A6259;
+}
+html.dark .ms, body.dark .ms, html.dark .msp, body.dark .msp {
+  --ms-ink: #E8F1EE; --ms-ink2: rgba(232, 241, 238, 0.66); --ms-ink3: rgba(232, 241, 238, 0.42);
+  --ms-paper: #0C1212; --ms-card: #111818; --ms-line: rgba(232, 241, 238, 0.1);
+  --ms-navy: #5EE0C8; --ms-navy-soft: rgba(94, 224, 200, 0.12); --ms-hosp: #5EE0C8;
+}
+
+/* ======================================================================
+   13. Sign-in screen: one calm card on phones; a split screen with a brand panel on larger screens
+   ====================================================================== */
+#lock-screen, body.dark #lock-screen { background: var(--ds-bg) !important; }
+#lock-screen .auth-bg .blob { opacity: 0.55; filter: saturate(0.8); }
+.auth-card, body.dark .auth-card {
+  background: color-mix(in srgb, var(--ds-card) 86%, transparent) !important;
+  border: 1px solid var(--ds-line-2) !important;
+  box-shadow: var(--ds-shadow-3) !important;
+  border-radius: 28px !important;
+}
+.auth-logo { background: linear-gradient(145deg, #13977F, #0A6259) !important; border-radius: 22px !important; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 14px 30px -12px rgba(11, 122, 110, 0.75) !important; }
+.auth-title { font-family: var(--ds-display) !important; font-weight: 700 !important; color: var(--ds-ink) !important; letter-spacing: -0.015em; }
+.auth-sub { color: var(--ds-ink-2) !important; }
+.auth-btn:not(.ghost) {
+  background: linear-gradient(180deg, #14947F 0%, #0B7A6E 55%, #0A6259 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 14px 28px -12px rgba(11, 122, 110, 0.75) !important;
+  font-family: var(--ds-display) !important; font-weight: 600 !important; letter-spacing: 0;
+}
+.auth-btn.ghost {
+  background: var(--ds-card) !important; color: var(--ds-ink) !important;
+  border: 1px solid var(--ds-line-2) !important; box-shadow: none !important; font-weight: 600 !important;
+}
+.auth-btn.ghost i { color: var(--ds-tint); }
+.auth-field input { border-radius: 16px !important; }
+.auth-link { color: var(--ds-tint) !important; }
+
+.auth-hero { display: none; }
+@media (min-width: 1024px) {
+  #lock-screen { display: grid !important; grid-template-columns: minmax(380px, 460px) minmax(0, 1fr); gap: 0; padding: 0 !important; align-items: stretch; }
+  #lock-screen.hidden { display: none !important; }
+  #lock-screen > .auth-card { align-self: center; justify-self: center; margin: 24px; width: calc(100% - 48px); }
+  #lock-screen .auth-bg { display: none; }
+  .auth-hero {
+    display: flex; flex-direction: column; justify-content: center; gap: 22px;
+    position: relative; overflow: hidden;
+    margin: 16px 0 16px 16px; border-radius: 32px;
+    padding: 56px clamp(40px, 6vw, 96px);
+    color: #E8F1EE;
+    background:
+      radial-gradient(700px 360px at 90% 0%, rgba(94, 224, 200, 0.22), transparent 60%),
+      radial-gradient(600px 320px at 0% 100%, rgba(232, 162, 58, 0.16), transparent 60%),
+      linear-gradient(155deg, #0F2A27 0%, #0B1F1D 55%, #081413 100%);
+    box-shadow: 0 30px 70px -30px rgba(6, 30, 27, 0.8);
+  }
+  .auth-hero::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1.2px); background-size: 18px 18px;
+    -webkit-mask-image: linear-gradient(200deg, #000, transparent 70%); mask-image: linear-gradient(200deg, #000, transparent 70%);
+  }
+  .auth-hero > * { position: relative; z-index: 1; animation: ds-rise 0.7s var(--ds-ease) both; }
+  .auth-hero > *:nth-child(2) { animation-delay: 60ms; } .auth-hero > *:nth-child(3) { animation-delay: 120ms; } .auth-hero > *:nth-child(4) { animation-delay: 180ms; }
+  .auth-hero-mark {
+    width: 64px; height: 64px; border-radius: 20px; display: grid; place-items: center; font-size: 28px;
+    background: rgba(94, 224, 200, 0.14); color: #5EE0C8; border: 1px solid rgba(94, 224, 200, 0.28);
+  }
+  .auth-hero-kicker { margin: 0; font-family: var(--ds-display); font-size: 0.8rem; letter-spacing: 0.18em; text-transform: uppercase; color: #5EE0C8; }
+  .auth-hero-title { margin: 0; font-family: var(--ds-display); font-weight: 700; font-size: clamp(2.2rem, 3.6vw, 3.4rem); line-height: 1.2; color: #fff; }
+  .auth-hero-title span { display: block; margin-top: 10px; font-weight: 400; font-size: 0.5em; color: rgba(232, 241, 238, 0.72); }
+  .auth-hero-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 12px; max-width: 520px; }
+  .auth-hero-list li {
+    display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 16px;
+    background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.95rem; color: rgba(232, 241, 238, 0.9);
+  }
+  .auth-hero-list i { width: 36px; height: 36px; flex: none; border-radius: 11px; display: grid; place-items: center; background: rgba(94, 224, 200, 0.12); color: #5EE0C8; }
+}
+
+/* ======================================================================
+   14. Entrances: a page's blocks rise in one after another when it opens
+   ====================================================================== */
+#hub-main-content > section, #hub-main-content > div,
+#main-content > *, body > main > *, .max-w-7xl > .glass-card, .main-wrapper > * {
+  animation: ds-rise 0.55s var(--ds-ease) both;
+}
+#hub-main-content > :nth-child(2), #main-content > :nth-child(2), body > main > :nth-child(2), .max-w-7xl > .glass-card:nth-child(2) { animation-delay: 50ms; }
+#hub-main-content > :nth-child(3), #main-content > :nth-child(3), body > main > :nth-child(3), .max-w-7xl > .glass-card:nth-child(3) { animation-delay: 100ms; }
+#hub-main-content > :nth-child(4), #main-content > :nth-child(4), body > main > :nth-child(4), .max-w-7xl > .glass-card:nth-child(4) { animation-delay: 150ms; }
+#hub-main-content > :nth-child(n+5), #main-content > :nth-child(n+5), body > main > :nth-child(n+5), .max-w-7xl > .glass-card:nth-child(n+5) { animation-delay: 200ms; }
+/* Cards of a list rise in as they are drawn (hospitals, duty cards, residents) */
+.hospitals-grid > *, .roster-grid > .roster-card-wrapper { animation: ds-rise 0.5s var(--ds-ease) both; }
+.hospitals-grid > :nth-child(2), .roster-grid > :nth-child(2) { animation-delay: 40ms; }
+.hospitals-grid > :nth-child(3), .roster-grid > :nth-child(3) { animation-delay: 80ms; }
+.hospitals-grid > :nth-child(4), .roster-grid > :nth-child(4) { animation-delay: 120ms; }
+.hospitals-grid > :nth-child(n+5), .roster-grid > :nth-child(n+5) { animation-delay: 160ms; }
+
+/* Desktop dialogs have no grab handle */
+@media (min-width: 769px) { .hacc-sheet .hacc-sheet-grip { visibility: hidden; height: 10px !important; } }
+
+/* ======================================================================
+   15. Schedulers (scheduler.html, s.html)
+   ====================================================================== */
+.synchronize-button {
+  background: linear-gradient(180deg, #14947F 0%, #0B7A6E 55%, #0A6259 100%) !important;
+  color: #fff !important; border: 0 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), var(--ds-shadow-brand) !important;
+  border-radius: 14px !important; font-family: var(--ds-display); font-weight: 600 !important;
+}
+.ms-pdf .num, .ms-pdf time { font-variant-numeric: normal; }
+
+/* Small phones (320px): two layouts were wider than the screen and the page wobbled sideways. */
+.hospitals-grid { grid-template-columns: repeat(auto-fit, minmax(min(330px, 100%), 1fr)) !important; }
+@media (max-width: 640px) { .sch-head { grid-template-columns: minmax(0, 1fr) !important; } .sch-seg button { min-width: 0; } }
+.navigation-brand { min-width: 0; max-width: 100%; }
+.navigation-brand #hospital-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

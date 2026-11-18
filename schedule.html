@@ -25,16 +25,16 @@
          */
         :root {
             --sab: env(safe-area-inset-bottom, 0px);
-            --s-bg: #F2F2F7;
+            --s-bg: #EEF2EF;
             --s-card: #FFFFFF;
-            --s-card2: #F2F2F7;
+            --s-card2: #EEF2EF;
             --s-text: #000000;
-            --s-text2: rgba(60, 60, 67, 0.62);
-            --s-text3: rgba(60, 60, 67, 0.32);
-            --s-sep: rgba(60, 60, 67, 0.16);
-            --s-fill: rgba(118, 118, 128, 0.12);
-            --s-tint: #007AFF;
-            --s-tint-soft: rgba(0, 122, 255, 0.12);
+            --s-text2: rgba(32, 46, 43, 0.62);
+            --s-text3: rgba(32, 46, 43, 0.32);
+            --s-sep: rgba(32, 46, 43, 0.16);
+            --s-fill: rgba(104, 124, 118, 0.12);
+            --s-tint: #0B7A6E;
+            --s-tint-soft: rgba(11, 122, 110, 0.12);
             --s-gold: #B7791F;
             --s-gold-soft: rgba(214, 158, 46, 0.16);
             --s-fri: #D92D20;
@@ -46,15 +46,15 @@
         }
         body.dark {
             --s-bg: #000000;
-            --s-card: #1C1C1E;
-            --s-card2: #2C2C2E;
+            --s-card: #141B1A;
+            --s-card2: #202927;
             --s-text: #FFFFFF;
-            --s-text2: rgba(235, 235, 245, 0.62);
-            --s-text3: rgba(235, 235, 245, 0.3);
+            --s-text2: rgba(228, 240, 236, 0.62);
+            --s-text3: rgba(228, 240, 236, 0.3);
             --s-sep: rgba(84, 84, 88, 0.6);
-            --s-fill: rgba(118, 118, 128, 0.24);
-            --s-tint: #0A84FF;
-            --s-tint-soft: rgba(10, 132, 255, 0.2);
+            --s-fill: rgba(104, 124, 118, 0.24);
+            --s-tint: #13977F;
+            --s-tint-soft: rgba(19, 151, 127, 0.2);
             --s-gold: #F6C453;
             --s-gold-soft: rgba(246, 196, 83, 0.16);
             --s-fri: #FF6961;
@@ -116,7 +116,7 @@
         }
         .sch-seg button i { font-size: 0.75rem; opacity: 0.75; }
         .sch-seg button.active { background: var(--s-card); box-shadow: 0 1px 3px rgba(0,0,0,.12), 0 1px 1px rgba(0,0,0,.04); font-weight: 800; }
-        body.dark .sch-seg button.active { background: #636366; }
+        body.dark .sch-seg button.active { background: #525E5A; }
 
         /* ---------- Horizontal strips (days, specialties) ---------- */
         .strip {
@@ -135,7 +135,7 @@
         .ds-day.fri .dn, .ds-day.fri .dd { color: var(--s-fri); }
         .ds-day.sat .dn, .ds-day.sat .dd { color: var(--s-sat); }
         .ds-day.today { box-shadow: inset 0 0 0 2px var(--s-gold); }
-        .ds-day.sel { background: var(--s-tint); box-shadow: 0 4px 12px rgba(0, 122, 255, .3); }
+        .ds-day.sel { background: var(--s-tint); box-shadow: 0 4px 12px rgba(11, 122, 110, .3); }
         .ds-day.sel .dn, .ds-day.sel .dd { color: #fff; }
         .ds-day .mine-dot { position: absolute; bottom: 3px; width: 5px; height: 5px; border-radius: 50%; background: var(--s-gold); }
         .ds-day.sel .mine-dot { background: #fff; }
@@ -295,6 +295,8 @@
     </style>
     <link rel="stylesheet" href="./tailwind.css" />
     <link rel="stylesheet" href="./hub-ios.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Readex+Pro:wght@400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="./hub-theme.css" />
 </head>
 <body class="light">
 
@@ -481,33 +483,33 @@
         const PRINT_CSS = `
             @media screen { #hub-print-root { position: fixed; left: -20000px; top: 0; visibility: hidden; pointer-events: none; } }
             #hub-print-root, #hub-print-root * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            #hub-print-root .hpr-page { font-family: 'IBM Plex Sans Arabic', 'Cairo', 'Segoe UI', Tahoma, sans-serif; color: #0f172a; background: #fff; font-size: var(--fs, 9pt); }
+            #hub-print-root .hpr-page { font-family: 'IBM Plex Sans Arabic', 'Cairo', 'Segoe UI', Tahoma, sans-serif; color: #141B1A; background: #fff; font-size: var(--fs, 9pt); }
             #hub-print-root .hpr-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; padding-bottom: 2.2mm; margin-bottom: 2.5mm; border-bottom: 0.6mm solid var(--accent); }
             #hub-print-root .hpr-hosp { font-size: 15pt; font-weight: 800; line-height: 1.2; }
-            #hub-print-root .hpr-title { font-size: 10pt; font-weight: 700; color: #334155; margin-top: 0.6mm; }
+            #hub-print-root .hpr-title { font-size: 10pt; font-weight: 700; color: #3B4542; margin-top: 0.6mm; }
             #hub-print-root .hpr-title span { color: var(--accent); }
-            #hub-print-root .hpr-brand { text-align: left; font-size: 7.5pt; color: #64748b; line-height: 1.35; }
-            #hub-print-root .hpr-brand b { display: block; font-size: 9pt; color: #0f172a; letter-spacing: 0.04em; }
-            #hub-print-root .hpr-table { width: 100%; border-collapse: collapse; table-layout: fixed; border: 0.35mm solid #334155; }
-            #hub-print-root .hpr-table th { background: #1e293b; color: #fff; font-weight: 800; font-size: 0.92em; line-height: 1.2; padding: 1.2mm 0.8mm; border: 0.2mm solid #475569; border-top: 1mm solid var(--c, var(--accent)); vertical-align: middle; text-align: center; word-break: break-word; }
-            #hub-print-root .hpr-table td { border: 0.2mm solid #cbd5e1; padding: 0.5mm 0.8mm; text-align: center; vertical-align: middle; line-height: 1.18; word-break: break-word; }
-            #hub-print-root .hpr-table tbody tr:nth-child(even) td { background: #f8fafc; }
+            #hub-print-root .hpr-brand { text-align: left; font-size: 7.5pt; color: #6E7B76; line-height: 1.35; }
+            #hub-print-root .hpr-brand b { display: block; font-size: 9pt; color: #141B1A; letter-spacing: 0.04em; }
+            #hub-print-root .hpr-table { width: 100%; border-collapse: collapse; table-layout: fixed; border: 0.35mm solid #3B4542; }
+            #hub-print-root .hpr-table th { background: #202927; color: #fff; font-weight: 800; font-size: 0.92em; line-height: 1.2; padding: 1.2mm 0.8mm; border: 0.2mm solid #525E5A; border-top: 1mm solid var(--c, var(--accent)); vertical-align: middle; text-align: center; word-break: break-word; }
+            #hub-print-root .hpr-table td { border: 0.2mm solid #C5CFCA; padding: 0.5mm 0.8mm; text-align: center; vertical-align: middle; line-height: 1.18; word-break: break-word; }
+            #hub-print-root .hpr-table tbody tr:nth-child(even) td { background: #F6F8F6; }
             #hub-print-root .hpr-table tr.fri td { background: #fef2f2; }
             #hub-print-root .hpr-table tr.sat td { background: #fff7ed; }
             #hub-print-root .hpr-table th.day, #hub-print-root .hpr-table td.day { width: 15mm; }
-            #hub-print-root .hpr-table td.day { background: #f1f5f9 !important; white-space: nowrap; }
+            #hub-print-root .hpr-table td.day { background: #EEF2EF !important; white-space: nowrap; }
             #hub-print-root .hpr-table td.day b { font-size: 1.1em; margin-left: 1mm; }
-            #hub-print-root .hpr-table td.day span { font-size: 0.82em; color: #475569; }
+            #hub-print-root .hpr-table td.day span { font-size: 0.82em; color: #525E5A; }
             #hub-print-root .hpr-table tr.fri td.day { background: #fee2e2 !important; color: #b91c1c; }
             #hub-print-root .hpr-table tr.sat td.day { background: #ffedd5 !important; color: #c2410c; }
             #hub-print-root .hpr-table.single th.day, #hub-print-root .hpr-table.single td.day { width: 32mm; }
             #hub-print-root .hpr-table .n { font-weight: 600; }
-            #hub-print-root .hpr-table .n + .n { border-top: 0.15mm dashed #cbd5e1; margin-top: 0.3mm; padding-top: 0.3mm; }
+            #hub-print-root .hpr-table .n + .n { border-top: 0.15mm dashed #C5CFCA; margin-top: 0.3mm; padding-top: 0.3mm; }
             #hub-print-root .hpr-table .n.hit { font-weight: 800; background: #fef3c7; }
-            #hub-print-root .hpr-table .t { font-size: 0.8em; color: #64748b; font-weight: 500; }
-            #hub-print-root .hpr-table .dash { color: #cbd5e1; }
-            #hub-print-root .hpr-foot { display: flex; justify-content: space-between; margin-top: 2mm; font-size: 7.5pt; color: #64748b; }
-            #hub-print-root .sw { display: inline-block; width: 3mm; height: 3mm; border-radius: 0.6mm; vertical-align: -0.4mm; margin: 0 1mm 0 0.5mm; border: 0.2mm solid #cbd5e1; }
+            #hub-print-root .hpr-table .t { font-size: 0.8em; color: #6E7B76; font-weight: 500; }
+            #hub-print-root .hpr-table .dash { color: #C5CFCA; }
+            #hub-print-root .hpr-foot { display: flex; justify-content: space-between; margin-top: 2mm; font-size: 7.5pt; color: #6E7B76; }
+            #hub-print-root .sw { display: inline-block; width: 3mm; height: 3mm; border-radius: 0.6mm; vertical-align: -0.4mm; margin: 0 1mm 0 0.5mm; border: 0.2mm solid #C5CFCA; }
             #hub-print-root .sw.fri { background: #fee2e2; } #hub-print-root .sw.sat { background: #ffedd5; }`;
 
         /** Prints the sheet on one A4 page. Inside the app shell the shell's window prints it (phones print the top page). */

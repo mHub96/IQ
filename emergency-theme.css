@@ -497,8 +497,8 @@ html.dark .er-pv-note { color: #fca5a5; }
 html.dark .er-pv-ic { background: rgba(255, 255, 255, 0.08); }
 .er-pv-actions { display: flex; gap: 6px; }
 .er-pv-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 10px; font-size: 0.78rem; font-weight: 800;
-    background: #fff; color: #334155; border: 1px solid #cbd5e1; cursor: pointer; }
-html.dark .er-pv-btn { background: #1e293b; color: #e2e8f0; border-color: #334155; }
+    background: #fff; color: #3B4542; border: 1px solid #C5CFCA; cursor: pointer; }
+html.dark .er-pv-btn { background: #202927; color: #DEE5E1; border-color: #3B4542; }
 .er-pv-btn.primary { background: #0284c7; border-color: #0284c7; color: #fff; }
 .er-pv-bar.csv .er-pv-btn.primary { background: #059669; border-color: #059669; }
 .er-pv-btn:hover { filter: brightness(1.05); }

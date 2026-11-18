@@ -83,7 +83,7 @@ html.dark .hgd-top, body.dark .hgd-top { background: #1d2a45; }
 }
 .hgd-chip.on { background: var(--g-navy); border-color: var(--g-navy); color: #fff; }
 html.dark .hgd-chip.on, body.dark .hgd-chip.on { color: #12151b; }
-.hgd-chip .n { font-size: 10.5px; opacity: .7; font-family: 'JetBrains Mono', monospace; }
+.hgd-chip .n { font-size: 10.5px; opacity: .7; font-family: 'Readex Pro', 'IBM Plex Sans Arabic', sans-serif; }
 .hgd-chip.back { color: var(--g-navy); border-color: var(--g-navy); }
 
 /* ---------- body ---------- */
@@ -127,7 +127,7 @@ html.dark .hgd-av.f, body.dark .hgd-av.f { background: rgba(224, 140, 182, .13);
 .hgd-note { margin-top: 7px; padding: 7px 10px; border-radius: 11px; background: var(--g-navy-soft); font-size: 12.2px; line-height: 1.85; color: var(--g-ink2); white-space: pre-line; }
 .hgd-note .off { color: #9c3540; font-weight: 800; }
 html.dark .hgd-note .off, body.dark .hgd-note .off { color: #e58c97; }
-.hgd-note a { color: var(--g-navy); font-weight: 800; text-decoration: none; direction: ltr; unicode-bidi: isolate; font-family: 'JetBrains Mono', monospace; font-size: 11.8px; }
+.hgd-note a { color: var(--g-navy); font-weight: 800; text-decoration: none; direction: ltr; unicode-bidi: isolate; font-family: 'Readex Pro', 'IBM Plex Sans Arabic', sans-serif; font-size: 11.8px; }
 .hgd-actions { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 7px 10px; }
 .hgd-ph { display: inline-flex; gap: 5px; }
 .hgd-call, .hgd-wa {
@@ -135,7 +135,7 @@ html.dark .hgd-note .off, body.dark .hgd-note .off { color: #e58c97; }
   font-size: 13px; font-weight: 800;
 }
 .hgd-call { padding: 0 12px; background: var(--g-green-soft); color: var(--g-green); }
-.hgd-call span { direction: ltr; unicode-bidi: isolate; font-family: 'JetBrains Mono', monospace; letter-spacing: .2px; }
+.hgd-call span { direction: ltr; unicode-bidi: isolate; font-family: 'Readex Pro', 'IBM Plex Sans Arabic', sans-serif; letter-spacing: .2px; }
 .hgd-wa { width: 36px; justify-content: center; background: rgba(18, 140, 74, .1); color: var(--g-wa); font-size: 17px; }
 .hgd-nophone { font-size: 11.5px; color: var(--g-ink3); }
 mark.hgd-hl { background: var(--g-gold-soft); color: inherit; border-radius: 4px; padding: 0 1px; }

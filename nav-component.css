@@ -15,7 +15,7 @@
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     background: rgba(255, 255, 255, 0.92);
-    border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+    border-bottom: 1px solid rgba(222, 229, 225, 0.85);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
     transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
@@ -23,8 +23,8 @@
 }
 
 body.dark .hub-nav-bar {
-    background: rgba(14, 20, 32, 0.92);
-    border-bottom: 1px solid rgba(10, 132, 255, 0.15);
+    background: rgba(13, 19, 19, 0.92);
+    border-bottom: 1px solid rgba(19, 151, 127, 0.15);
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
 }
 
@@ -42,12 +42,12 @@ body.dark .hub-nav-bar {
     font-weight: 800;
     font-size: 0.95rem;
     text-decoration: none;
-    color: #2C2C2E;
+    color: #202927;
     transition: opacity 0.2s ease;
 }
 
 body.dark .hub-nav-brand {
-    color: #F2F2F7;
+    color: #EEF2EF;
 }
 
 .hub-nav-brand:hover {
@@ -58,19 +58,19 @@ body.dark .hub-nav-brand {
     width: 32px;
     height: 32px;
     border-radius: 10px;
-    background: linear-gradient(135deg, #007AFF, #0A84FF);
+    background: linear-gradient(135deg, #0B7A6E, #13977F);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-size: 0.95rem;
-    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(11, 122, 110, 0.3);
 }
 
 body.dark .hub-nav-brand .brand-icon {
-    background: linear-gradient(135deg, #0A84FF, #0062CC);
+    background: linear-gradient(135deg, #13977F, #0A6259);
     color: #000000;
-    box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(19, 151, 127, 0.3);
 }
 
 /* Hospital Selector Dropdown */
@@ -84,9 +84,9 @@ body.dark .hub-nav-brand .brand-icon {
     gap: 0.45rem;
     padding: 0.4rem 0.85rem;
     border-radius: 999px;
-    border: 1.5px solid #D1D1D6;
+    border: 1.5px solid #C5CFCA;
     background: rgba(241, 245, 249, 0.7);
-    color: #2C2C2E;
+    color: #202927;
     font-weight: 700;
     font-size: 0.8rem;
     cursor: pointer;
@@ -95,19 +95,19 @@ body.dark .hub-nav-brand .brand-icon {
 }
 
 body.dark .hospital-selector-btn {
-    border-color: rgba(10, 132, 255, 0.25);
+    border-color: rgba(19, 151, 127, 0.25);
     background: rgba(255, 255, 255, 0.04);
-    color: #E5E5EA;
+    color: #DEE5E1;
 }
 
 .hospital-selector-btn:hover {
-    border-color: #007AFF;
-    background: rgba(0, 122, 255, 0.08);
+    border-color: #0B7A6E;
+    background: rgba(11, 122, 110, 0.08);
 }
 
 body.dark .hospital-selector-btn:hover {
-    border-color: #0A84FF;
-    background: rgba(10, 132, 255, 0.1);
+    border-color: #13977F;
+    background: rgba(19, 151, 127, 0.1);
 }
 
 .hospital-selector-btn i.fa-chevron-down {
@@ -126,7 +126,7 @@ body.dark .hospital-selector-btn:hover {
     right: 0;
     min-width: 250px;
     background: #ffffff;
-    border: 1px solid #E5E5EA;
+    border: 1px solid #DEE5E1;
     border-radius: 1.2rem;
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
     padding: 0.5rem;
@@ -137,7 +137,7 @@ body.dark .hospital-selector-btn:hover {
 
 body.dark .hospital-dropdown-menu {
     background: #141c2a;
-    border-color: rgba(10, 132, 255, 0.2);
+    border-color: rgba(19, 151, 127, 0.2);
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
 }
 
@@ -158,31 +158,31 @@ body.dark .hospital-dropdown-menu {
     border-radius: 0.8rem;
     cursor: pointer;
     transition: background 0.15s ease;
-    color: #2C2C2E;
+    color: #202927;
     font-weight: 600;
     font-size: 0.82rem;
     text-decoration: none;
 }
 
 body.dark .hospital-dropdown-item {
-    color: #E5E5EA;
+    color: #DEE5E1;
 }
 
 .hospital-dropdown-item:hover {
-    background: rgba(0, 122, 255, 0.08);
+    background: rgba(11, 122, 110, 0.08);
 }
 
 body.dark .hospital-dropdown-item:hover {
-    background: rgba(10, 132, 255, 0.1);
+    background: rgba(19, 151, 127, 0.1);
 }
 
 .hospital-dropdown-item.active {
-    background: #007AFF;
+    background: #0B7A6E;
     color: #ffffff;
 }
 
 body.dark .hospital-dropdown-item.active {
-    background: linear-gradient(135deg, #0A84FF, #0062CC);
+    background: linear-gradient(135deg, #13977F, #0A6259);
     color: #000000;
 }
 
@@ -217,35 +217,35 @@ body.dark .hospital-dropdown-item.active {
     font-size: 0.78rem;
     font-weight: 700;
     text-decoration: none;
-    color: #8A8A8E;
+    color: #6E7B76;
     transition: all 0.2s ease;
     border: 1px solid transparent;
 }
 
 body.dark .hub-nav-link {
-    color: #AEAEB2;
+    color: #98A49F;
 }
 
 .hub-nav-link:hover {
-    color: #2C2C2E;
+    color: #202927;
     background: rgba(0, 0, 0, 0.04);
 }
 
 body.dark .hub-nav-link:hover {
-    color: #F2F2F7;
+    color: #EEF2EF;
     background: rgba(255, 255, 255, 0.05);
 }
 
 .hub-nav-link.active {
-    background: #007AFF;
+    background: #0B7A6E;
     color: #ffffff;
-    box-shadow: 0 4px 14px rgba(0, 122, 255, 0.25);
+    box-shadow: 0 4px 14px rgba(11, 122, 110, 0.25);
 }
 
 body.dark .hub-nav-link.active {
-    background: linear-gradient(135deg, #0A84FF, #0062CC);
+    background: linear-gradient(135deg, #13977F, #0A6259);
     color: #000000;
-    box-shadow: 0 4px 14px rgba(10, 132, 255, 0.25);
+    box-shadow: 0 4px 14px rgba(19, 151, 127, 0.25);
 }
 
 .hub-nav-link .lock-icon {
@@ -274,24 +274,24 @@ body.dark .hub-nav-link.active {
 }
 
 .role-badge.owner {
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(10, 132, 255, 0.25));
-    border-color: rgba(10, 132, 255, 0.6);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(19, 151, 127, 0.25));
+    border-color: rgba(19, 151, 127, 0.6);
     color: #92400e;
-    box-shadow: 0 0 10px rgba(10, 132, 255, 0.2);
+    box-shadow: 0 0 10px rgba(19, 151, 127, 0.2);
     font-weight: 800;
 }
 
 body.dark .role-badge.owner {
-    background: linear-gradient(135deg, rgba(10, 132, 255, 0.3), rgba(245, 158, 11, 0.22));
-    border-color: rgba(10, 132, 255, 0.75);
+    background: linear-gradient(135deg, rgba(19, 151, 127, 0.3), rgba(245, 158, 11, 0.22));
+    border-color: rgba(19, 151, 127, 0.75);
     color: #fef08a;
-    box-shadow: 0 0 14px rgba(10, 132, 255, 0.35);
+    box-shadow: 0 0 14px rgba(19, 151, 127, 0.35);
 }
 
 .role-badge.admin {
-    background: rgba(0, 122, 255, 0.12);
-    border-color: rgba(0, 122, 255, 0.35);
-    color: #007AFF;
+    background: rgba(11, 122, 110, 0.12);
+    border-color: rgba(11, 122, 110, 0.35);
+    color: #0B7A6E;
     font-weight: 800;
 }
 
@@ -302,9 +302,9 @@ body.dark .role-badge.admin {
 }
 
 .role-badge.anaesthesia {
-    background: rgba(10, 132, 255, 0.12);
-    border-color: rgba(10, 132, 255, 0.4);
-    color: #0A84FF;
+    background: rgba(19, 151, 127, 0.12);
+    border-color: rgba(19, 151, 127, 0.4);
+    color: #13977F;
     font-weight: 800;
 }
 
@@ -327,22 +327,22 @@ body.dark .role-badge.user {
 .role-badge.guest {
     background: rgba(138, 138, 142, 0.08);
     border-color: rgba(138, 138, 142, 0.25);
-    color: #636366;
+    color: #525E5A;
 }
 
 body.dark .role-badge.guest {
     background: rgba(142, 142, 147, 0.1);
     border-color: rgba(142, 142, 147, 0.25);
-    color: #AEAEB2;
+    color: #98A49F;
 }
 
 .hub-nav-btn {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    border: 1px solid #D1D1D6;
+    border: 1px solid #C5CFCA;
     background: rgba(241, 245, 249, 0.6);
-    color: #636366;
+    color: #525E5A;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -352,20 +352,20 @@ body.dark .role-badge.guest {
 }
 
 body.dark .hub-nav-btn {
-    border-color: rgba(10, 132, 255, 0.2);
+    border-color: rgba(19, 151, 127, 0.2);
     background: rgba(255, 255, 255, 0.04);
-    color: #AEAEB2;
+    color: #98A49F;
 }
 
 .hub-nav-btn:hover {
-    border-color: #007AFF;
-    color: #007AFF;
+    border-color: #0B7A6E;
+    color: #0B7A6E;
     transform: scale(1.05);
 }
 
 body.dark .hub-nav-btn:hover {
-    border-color: #0A84FF;
-    color: #0A84FF;
+    border-color: #13977F;
+    color: #13977F;
 }
 
 .hub-nav-btn.owner-key-btn {
@@ -380,15 +380,15 @@ body.dark .hub-nav-btn:hover {
     box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
 }
 body.dark .hub-nav-btn.owner-key-btn {
-    border-color: rgba(10, 132, 255, 0.4);
-    background: rgba(10, 132, 255, 0.12);
-    color: #0A84FF;
+    border-color: rgba(19, 151, 127, 0.4);
+    background: rgba(19, 151, 127, 0.12);
+    color: #13977F;
 }
 body.dark .hub-nav-btn.owner-key-btn:hover {
-    border-color: #0A84FF;
-    background: linear-gradient(135deg, #0A84FF, #0062CC);
+    border-color: #13977F;
+    background: linear-gradient(135deg, #13977F, #0A6259);
     color: #000000;
-    box-shadow: 0 4px 12px rgba(10, 132, 255, 0.4);
+    box-shadow: 0 4px 12px rgba(19, 151, 127, 0.4);
 }
 
 .hub-btn-logout {
@@ -418,18 +418,18 @@ body.dark .hub-nav-btn.owner-key-btn:hover {
     width: 36px;
     height: 36px;
     border-radius: 10px;
-    border: 1px solid #D1D1D6;
+    border: 1px solid #C5CFCA;
     background: transparent;
     cursor: pointer;
     align-items: center;
     justify-content: center;
     font-size: 1.1rem;
-    color: #2C2C2E;
+    color: #202927;
 }
 
 body.dark .hub-mobile-toggle {
     border-color: rgba(255, 255, 255, 0.1);
-    color: #E5E5EA;
+    color: #DEE5E1;
 }
 
 /* Upgrade & Role Switcher Modal */
@@ -463,7 +463,7 @@ body.dark .hub-mobile-toggle {
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
-    border: 1px solid #E5E5EA;
+    border: 1px solid #DEE5E1;
     text-align: right;
     animation: hubModalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     direction: rtl;
@@ -473,9 +473,9 @@ body.dark .hub-mobile-toggle {
 body.dark .hub-modal-card,
 body.dark .modal-card {
     background: #141c2a;
-    border-color: rgba(10, 132, 255, 0.2);
+    border-color: rgba(19, 151, 127, 0.2);
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
-    color: #F9F9FB;
+    color: #F6F8F6;
 }
 
 @keyframes hubModalIn {
@@ -487,7 +487,7 @@ body.dark .modal-card {
     width: 100%;
     padding: 0.75rem 1rem;
     border-radius: 12px;
-    border: 1.5px solid #D1D1D6;
+    border: 1.5px solid #C5CFCA;
     background: rgba(248, 250, 252, 0.9);
     font-size: 0.9rem;
     font-weight: 600;
@@ -499,15 +499,15 @@ body.dark .modal-card {
 }
 body.dark .hub-input {
     background: #0f1520;
-    border-color: #1f2937;
-    color: #F2F2F7;
+    border-color: #202927;
+    color: #EEF2EF;
 }
 .hub-input:focus {
-    border-color: #007AFF;
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+    border-color: #0B7A6E;
+    box-shadow: 0 0 0 3px rgba(11, 122, 110, 0.15);
 }
 body.dark .hub-input:focus {
-    border-color: #409CFF;
+    border-color: #33B39C;
     box-shadow: 0 0 0 3px rgba(64, 156, 255, 0.2);
 }
 
@@ -522,13 +522,13 @@ body.dark .hub-input:focus {
     width: 100%;
     padding: 12px 46px 12px 16px;
     border-radius: 12px;
-    border: 2px solid #D1D1D6;
+    border: 2px solid #C5CFCA;
     background: #ffffff;
-    color: #1C1C1E !important;
-    -webkit-text-fill-color: #1C1C1E !important;
+    color: #141B1A !important;
+    -webkit-text-fill-color: #141B1A !important;
     font-size: 1.05rem;
     font-weight: 700;
-    font-family: 'JetBrains Mono', monospace, -apple-system, sans-serif;
+    font-family: 'Readex Pro', 'IBM Plex Sans Arabic', sans-serif;
     outline: none;
     text-align: center;
     direction: ltr;
@@ -537,32 +537,32 @@ body.dark .hub-input:focus {
 }
 
 .hub-password-input::placeholder {
-    color: #8A8A8E;
+    color: #6E7B76;
     font-weight: 500;
     font-size: 0.88rem;
 }
 
 .hub-password-input:focus {
-    border-color: #007AFF;
+    border-color: #0B7A6E;
     background: #ffffff;
-    box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
+    box-shadow: 0 0 0 4px rgba(11, 122, 110, 0.15);
 }
 
 body.dark .hub-password-input {
-    border-color: rgba(10, 132, 255, 0.35);
-    background: #2C2C2E;
-    color: #F9F9FB !important;
-    -webkit-text-fill-color: #F9F9FB !important;
+    border-color: rgba(19, 151, 127, 0.35);
+    background: #202927;
+    color: #F6F8F6 !important;
+    -webkit-text-fill-color: #F6F8F6 !important;
 }
 
 body.dark .hub-password-input::placeholder {
-    color: #AEAEB2;
+    color: #98A49F;
 }
 
 body.dark .hub-password-input:focus {
-    border-color: #0A84FF;
-    background: #1C1C1E;
-    box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.25);
+    border-color: #13977F;
+    background: #141B1A;
+    box-shadow: 0 0 0 4px rgba(19, 151, 127, 0.25);
 }
 
 .hub-password-eye-btn {
@@ -575,7 +575,7 @@ body.dark .hub-password-input:focus {
     border-radius: 8px;
     background: transparent;
     border: none;
-    color: #8A8A8E;
+    color: #6E7B76;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -587,17 +587,17 @@ body.dark .hub-password-input:focus {
 }
 
 .hub-password-eye-btn:hover {
-    color: #007AFF;
-    background: rgba(0, 122, 255, 0.1);
+    color: #0B7A6E;
+    background: rgba(11, 122, 110, 0.1);
 }
 
 body.dark .hub-password-eye-btn {
-    color: #AEAEB2;
+    color: #98A49F;
 }
 
 body.dark .hub-password-eye-btn:hover {
-    color: #0A84FF;
-    background: rgba(10, 132, 255, 0.15);
+    color: #13977F;
+    background: rgba(19, 151, 127, 0.15);
 }
 
 @keyframes shakeError {
@@ -621,7 +621,7 @@ body.dark .hub-password-eye-btn:hover {
         background: #ffffff;
         flex-direction: column;
         padding: 0.8rem 1rem;
-        border-bottom: 1px solid #E5E5EA;
+        border-bottom: 1px solid #DEE5E1;
         border-radius: 0 0 1.25rem 1.25rem;
         box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
         gap: 0.45rem;
@@ -635,7 +635,7 @@ body.dark .hub-password-eye-btn:hover {
 
     body.dark .hub-nav-center {
         background: #101622;
-        border-color: rgba(10, 132, 255, 0.18);
+        border-color: rgba(19, 151, 127, 0.18);
         box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
     }
 
@@ -675,7 +675,7 @@ body.dark .hub-password-eye-btn:hover {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     background: rgba(255, 255, 255, 0.92);
-    border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+    border-bottom: 1px solid rgba(222, 229, 225, 0.85);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
     transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
@@ -734,7 +734,7 @@ body.dark .hub-password-eye-btn:hover {
     backdrop-filter: blur(24px) saturate(190%);
     -webkit-backdrop-filter: blur(24px) saturate(190%);
     border-radius: 999px;
-    border: 1px solid rgba(226, 232, 240, 0.85);
+    border: 1px solid rgba(222, 229, 225, 0.85);
     box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
     display: flex;
     align-items: center;
@@ -745,9 +745,9 @@ body.dark .hub-password-eye-btn:hover {
 }
 
 body.dark .hub-mobile-bottom-dock, body.dark .ios-bottom-dock {
-    background: rgba(14, 20, 32, 0.94);
-    border: 1px solid rgba(10, 132, 255, 0.18);
-    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(10, 132, 255, 0.08);
+    background: rgba(13, 19, 19, 0.94);
+    border: 1px solid rgba(19, 151, 127, 0.18);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(19, 151, 127, 0.08);
 }
 
 .hub-mobile-bottom-dock .dock-tab-btn, .ios-bottom-dock .dock-tab-btn {
@@ -758,7 +758,7 @@ body.dark .hub-mobile-bottom-dock, body.dark .ios-bottom-dock {
     gap: 2px;
     padding: 4px 4px;
     border-radius: 999px;
-    color: #8A8A8E;
+    color: #6E7B76;
     text-decoration: none;
     background: transparent;
     border: none;
@@ -771,17 +771,17 @@ body.dark .hub-mobile-bottom-dock, body.dark .ios-bottom-dock {
 }
 
 body.dark .hub-mobile-bottom-dock .dock-tab-btn, body.dark .ios-bottom-dock .dock-tab-btn {
-    color: #AEAEB2;
+    color: #98A49F;
 }
 
 .hub-mobile-bottom-dock .dock-tab-btn:hover, .ios-bottom-dock .dock-tab-btn:hover {
-    color: #007AFF;
-    background: rgba(0, 122, 255, 0.06);
+    color: #0B7A6E;
+    background: rgba(11, 122, 110, 0.06);
 }
 
 body.dark .hub-mobile-bottom-dock .dock-tab-btn:hover, body.dark .ios-bottom-dock .dock-tab-btn:hover {
-    color: #0A84FF;
-    background: rgba(10, 132, 255, 0.08);
+    color: #13977F;
+    background: rgba(19, 151, 127, 0.08);
 }
 
 .hub-mobile-bottom-dock .dock-tab-btn i, .ios-bottom-dock .dock-tab-btn i {
@@ -796,13 +796,13 @@ body.dark .hub-mobile-bottom-dock .dock-tab-btn:hover, body.dark .ios-bottom-doc
 }
 
 .hub-mobile-bottom-dock .dock-tab-btn.active, .ios-bottom-dock .dock-tab-btn.active {
-    color: #007AFF;
-    background: rgba(0, 122, 255, 0.12);
+    color: #0B7A6E;
+    background: rgba(11, 122, 110, 0.12);
 }
 
 body.dark .hub-mobile-bottom-dock .dock-tab-btn.active, body.dark .ios-bottom-dock .dock-tab-btn.active {
-    color: #0A84FF;
-    background: rgba(10, 132, 255, 0.15);
+    color: #13977F;
+    background: rgba(19, 151, 127, 0.15);
 }
 
 .hub-mobile-bottom-dock .dock-tab-btn:active, .ios-bottom-dock .dock-tab-btn:active {
@@ -899,7 +899,7 @@ body {
     width: 100%;
     height: 3px;
     z-index: 999999;
-    background: linear-gradient(90deg, #0A84FF, #409CFF, #0A84FF);
+    background: linear-gradient(90deg, #13977F, #33B39C, #13977F);
     transform: scaleX(0);
     transform-origin: 100% 50%; /* RTL orientation */
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
@@ -939,10 +939,10 @@ body {
 
 .hub-modal-card {
     background: #ffffff !important;
-    border: 1.5px solid #D1D1D6 !important;
+    border: 1.5px solid #C5CFCA !important;
     border-radius: 20px !important;
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.18) !important;
-    color: #1C1C1E !important;
+    color: #141B1A !important;
     max-width: 440px;
     width: 100%;
     text-align: right;
@@ -950,25 +950,25 @@ body {
 body.dark .hub-modal-card,
 html.dark .hub-modal-card {
     background: #131c2e !important;
-    border-color: rgba(10, 132, 255, 0.25) !important;
+    border-color: rgba(19, 151, 127, 0.25) !important;
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75) !important;
-    color: #F9F9FB !important;
+    color: #F6F8F6 !important;
 }
 
 .hub-role-current-banner {
-    background: #F2F2F7 !important;
-    border: 1px solid #E5E5EA !important;
+    background: #EEF2EF !important;
+    border: 1px solid #DEE5E1 !important;
     border-radius: 14px !important;
     padding: 10px 14px !important;
 }
 body.dark .hub-role-current-banner,
 html.dark .hub-role-current-banner {
-    background: #2C2C2E !important;
-    border-color: #48484A !important;
+    background: #202927 !important;
+    border-color: #3B4542 !important;
 }
 
 .switcher-role-card {
-    border: 1.5px solid #D1D1D6 !important;
+    border: 1.5px solid #C5CFCA !important;
     border-radius: 16px !important;
     padding: 12px 14px !important;
     background: #ffffff !important;
@@ -977,27 +977,27 @@ html.dark .hub-role-current-banner {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
 }
 .switcher-role-card:hover {
-    border-color: #AEAEB2 !important;
-    background: #F9F9FB !important;
+    border-color: #98A49F !important;
+    background: #F6F8F6 !important;
     transform: translateY(-1px);
 }
 body.dark .switcher-role-card,
 html.dark .switcher-role-card {
-    background: #2C2C2E !important;
-    border: 1.5px solid #48484A !important;
+    background: #202927 !important;
+    border: 1.5px solid #3B4542 !important;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
 }
 body.dark .switcher-role-card:hover,
 html.dark .switcher-role-card:hover {
     background: #243046 !important;
-    border-color: #636366 !important;
+    border-color: #525E5A !important;
 }
 
 .switcher-role-card .role-title {
     font-size: 0.88rem !important;
     font-weight: 800 !important;
     margin: 0 !important;
-    color: #1C1C1E !important;
+    color: #141B1A !important;
 }
 body.dark .switcher-role-card .role-title,
 html.dark .switcher-role-card .role-title {
@@ -1009,11 +1009,11 @@ html.dark .switcher-role-card .role-title {
     font-weight: 500 !important;
     line-height: 1.4 !important;
     margin: 3px 0 0 !important;
-    color: #636366 !important;
+    color: #525E5A !important;
 }
 body.dark .switcher-role-card .role-desc,
 html.dark .switcher-role-card .role-desc {
-    color: #D1D1D6 !important;
+    color: #C5CFCA !important;
 }
 
 #card-role-owner,
@@ -1026,12 +1026,12 @@ html.dark .switcher-role-card .role-desc {
     box-shadow: 0 0 0 2px #d97706, 0 4px 14px rgba(217, 119, 6, 0.25) !important;
 }
 .switcher-role-card.role-card-admin.is-active-role {
-    border-color: #007AFF !important;
-    box-shadow: 0 0 0 2px #007AFF, 0 4px 14px rgba(0, 122, 255, 0.25) !important;
+    border-color: #0B7A6E !important;
+    box-shadow: 0 0 0 2px #0B7A6E, 0 4px 14px rgba(11, 122, 110, 0.25) !important;
 }
 .switcher-role-card.role-card-anaesthesia.is-active-role {
-    border-color: #0A84FF !important;
-    box-shadow: 0 0 0 2px #0A84FF, 0 4px 14px rgba(10, 132, 255, 0.25) !important;
+    border-color: #13977F !important;
+    box-shadow: 0 0 0 2px #13977F, 0 4px 14px rgba(19, 151, 127, 0.25) !important;
 }
 .switcher-role-card.role-card-user.is-active-role {
     border-color: #3b82f6 !important;
@@ -1043,28 +1043,28 @@ html.dark .switcher-role-card .role-desc {
     width: 100% !important;
     padding: 9px 12px !important;
     border-radius: 10px !important;
-    border: 1.5px solid #D1D1D6 !important;
+    border: 1.5px solid #C5CFCA !important;
     background: #ffffff !important;
-    color: #1C1C1E !important;
+    color: #141B1A !important;
     font-size: 0.82rem !important;
     font-weight: 600 !important;
     outline: none !important;
     transition: all 0.2s ease !important;
 }
 .hub-role-input:focus {
-    border-color: #007AFF !important;
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15) !important;
+    border-color: #0B7A6E !important;
+    box-shadow: 0 0 0 3px rgba(11, 122, 110, 0.15) !important;
 }
 body.dark .hub-role-input,
 html.dark .hub-role-input {
-    background: #1C1C1E !important;
-    border-color: #48484A !important;
-    color: #F9F9FB !important;
+    background: #141B1A !important;
+    border-color: #3B4542 !important;
+    color: #F6F8F6 !important;
 }
 body.dark .hub-role-input:focus,
 html.dark .hub-role-input:focus {
-    border-color: #0A84FF !important;
-    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2) !important;
+    border-color: #13977F !important;
+    box-shadow: 0 0 0 3px rgba(19, 151, 127, 0.2) !important;
 }
 
 /* Password Modal Pulse Animation & Scope Badge */

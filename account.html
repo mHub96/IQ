@@ -6,7 +6,7 @@
     <script src="./app-view.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#007AFF" />
+    <meta name="theme-color" content="#0B7A6E" />
     <title>حسابي · Hosp Hub</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -22,11 +22,11 @@
             margin: 0;
             min-height: 100vh; min-height: 100dvh;
             font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif;
-            background: radial-gradient(1200px 600px at 100% -10%, rgba(0, 122, 255, 0.12), transparent 60%), #F9F9FB;
+            background: radial-gradient(1200px 600px at 100% -10%, rgba(11, 122, 110, 0.12), transparent 60%), #F6F8F6;
             color: var(--hacc-text);
             -webkit-font-smoothing: antialiased;
         }
-        body.dark { background: radial-gradient(1200px 600px at 100% -10%, rgba(10, 132, 255, 0.08), transparent 60%), #000000; }
+        body.dark { background: radial-gradient(1200px 600px at 100% -10%, rgba(19, 151, 127, 0.08), transparent 60%), #000000; }
         .top {
             position: sticky; top: 0; z-index: 50;
             display: flex; align-items: center; gap: 10px;
@@ -114,7 +114,7 @@
         .tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; scrollbar-width: none; }
         .tabs button { flex: none; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--hacc-border); background: var(--hacc-bg); color: var(--hacc-muted); font: 800 0.8rem inherit; font-family: inherit; cursor: pointer; }
         .tabs button[aria-selected="true"] { background: var(--hacc-accent); border-color: var(--hacc-accent); color: #fff; }
-        body.dark .tabs button[aria-selected="true"] { color: #1C1C1E; }
+        body.dark .tabs button[aria-selected="true"] { color: #141B1A; }
         .tabs .n { display: inline-block; min-width: 18px; padding: 0 5px; margin-right: 4px; border-radius: 9px; background: var(--hacc-like); color: #fff; font-size: 0.68rem; line-height: 18px; text-align: center; }
         .search { margin-bottom: 12px; }
         .mg-group { margin-bottom: 14px; }
@@ -135,7 +135,7 @@
         .badge.active { background: rgba(5, 150, 105, 0.12); color: #047857; }
         .badge.disabled, .badge.rejected { background: rgba(220, 38, 38, 0.1); color: var(--hacc-danger); }
         .badge.role { background: var(--hacc-accent-soft); color: var(--hacc-accent); }
-        .badge.dev { background: rgba(10,132,255,.1); color: #0a6cd6; font-variant-numeric: tabular-nums; }
+        .badge.dev { background: rgba(19, 151, 127,.1); color: #0a6cd6; font-variant-numeric: tabular-nums; }
         .badge.dev.none { background: rgba(142,142,147,.14); color: var(--hacc-muted); }
         .badge.dev.full { background: rgba(255,149,0,.16); color: #b45309; }
         .acc-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
@@ -148,13 +148,13 @@
         .acc-aurora { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity .5s ease; }
         body.auth-mode .acc-aurora { opacity: 1; }
         .acc-aurora span { position: absolute; width: 60vmax; height: 60vmax; border-radius: 50%; filter: blur(70px); opacity: .45; animation: accFloat 18s ease-in-out infinite; }
-        .acc-aurora .a1 { background: radial-gradient(circle, #0A84FF, transparent 62%); top: -26vmax; right: -20vmax; }
+        .acc-aurora .a1 { background: radial-gradient(circle, #13977F, transparent 62%); top: -26vmax; right: -20vmax; }
         .acc-aurora .a2 { background: radial-gradient(circle, #14b8a6, transparent 62%); bottom: -30vmax; left: -22vmax; animation-delay: -6s; }
         .acc-aurora .a3 { background: radial-gradient(circle, #a855f7, transparent 62%); top: 35%; left: 30%; width: 40vmax; height: 40vmax; opacity: .28; animation-delay: -12s; }
         body.dark .acc-aurora span { opacity: .3; }
         @keyframes accFloat { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(4vmax,3vmax) scale(1.08); } 66% { transform: translate(-3vmax,2vmax) scale(.95); } }
         body.auth-mode .card { background: rgba(255,255,255,.8); backdrop-filter: blur(22px) saturate(1.4); -webkit-backdrop-filter: blur(22px) saturate(1.4);
-            border-color: rgba(255,255,255,.9); box-shadow: 0 24px 60px rgba(15,23,42,.12), inset 0 1px 0 rgba(255,255,255,.8); }
+            border-color: rgba(255,255,255,.9); box-shadow: 0 24px 60px rgba(20, 27, 26,.12), inset 0 1px 0 rgba(255,255,255,.8); }
         body.dark.auth-mode .card { background: rgba(22,28,40,.72); border-color: rgba(255,255,255,.08); box-shadow: 0 24px 60px rgba(0,0,0,.5); }
         body.auth-mode main > section:not([hidden]) > * { animation: accEnter .45s cubic-bezier(.2,.9,.25,1.05) both; }
         body.auth-mode main > section:not([hidden]) > *:nth-child(2) { animation-delay: .05s; }
@@ -172,7 +172,7 @@
         body.auth-mode input:focus, body.auth-mode select:focus { box-shadow: 0 0 0 4px var(--hacc-accent-soft); }
         body.auth-mode .field label { font-size: .78rem; letter-spacing: .1px; }
         body.auth-mode .hacc-btn.primary { position: relative; min-height: 52px; border-radius: 16px; font-weight: 900; border: 0; color: #fff;
-            background: linear-gradient(135deg, #0A84FF, #3b82f6 55%, #14b8a6); background-size: 180% 100%; box-shadow: 0 12px 26px rgba(10,132,255,.3); transition: background-position .5s, transform .15s, opacity .2s; }
+            background: linear-gradient(135deg, #13977F, #3b82f6 55%, #14b8a6); background-size: 180% 100%; box-shadow: 0 12px 26px rgba(19, 151, 127,.3); transition: background-position .5s, transform .15s, opacity .2s; }
         body.auth-mode .hacc-btn.primary:hover:not(:disabled) { background-position: 100% 0; }
         body.auth-mode .hacc-btn.primary:active:not(:disabled) { transform: scale(.98); }
         body.auth-mode .hacc-btn.primary:disabled { opacity: .55; box-shadow: none; }
@@ -184,7 +184,7 @@
         .card.shake { animation: accShake .45s cubic-bezier(.36,.07,.19,.97) both !important; }
         @keyframes accShake { 15%,45%,75% { transform: translateX(-9px); } 30%,60%,90% { transform: translateX(9px); } }
         .steps span { position: relative; overflow: hidden; transition: background .3s; }
-        .steps span.on { background: linear-gradient(90deg, #0A84FF, #14b8a6); }
+        .steps span.on { background: linear-gradient(90deg, #13977F, #14b8a6); }
         .verify-box { animation: accEnter .3s ease both; }
         .done .big { display: inline-block; animation: accPop .6s cubic-bezier(.2,1.4,.4,1) both; }
         @keyframes accPop { from { transform: scale(.3) rotate(-15deg); opacity: 0; } }
@@ -272,6 +272,8 @@
         [hidden] { display: none !important; }
     </style>
     <link rel="stylesheet" href="./hub-ios.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Readex+Pro:wght@400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="./hub-theme.css" />
 </head>
 <body class="light">
     <div class="acc-aurora" aria-hidden="true"><span class="a1"></span><span class="a2"></span><span class="a3"></span></div>

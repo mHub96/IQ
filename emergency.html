@@ -74,11 +74,11 @@
             background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(226, 232, 240, 0.85);
+            border: 1px solid rgba(222, 229, 225, 0.85);
         }
         .dark .glass-panel {
             background: rgba(0, 0, 0, 0.92);
-            border: 1px solid rgba(51, 65, 85, 0.85);
+            border: 1px solid rgba(59, 69, 66, 0.85);
         }
         .tab-btn {
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -107,7 +107,7 @@
             box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.15);
         }
         .dark .db-cell-input:focus {
-            background: #1C1C1E;
+            background: #141B1A;
             border-color: #f43f5e;
             box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.2);
         }
@@ -262,11 +262,11 @@
            light box: the month / year pickers, the "previous month" picker, the link panel's lists). */
         html.dark select, html.dark input[type="text"], html.dark input[type="number"], html.dark input[type="date"],
         html.dark input[type="month"], html.dark input[type="tel"], html.dark input[type="search"], html.dark textarea {
-            background-color: #1e293b; color: #f1f5f9; border-color: #475569; color-scheme: dark;
+            background-color: #202927; color: #EEF2EF; border-color: #525E5A; color-scheme: dark;
         }
-        html.dark select option, html.dark select optgroup { background-color: #1e293b; color: #f1f5f9; }
-        html.dark select:disabled, html.dark input:disabled { background-color: #0f172a; color: #94a3b8; }
-        html.dark ::placeholder { color: #94a3b8; opacity: 1; }
+        html.dark select option, html.dark select optgroup { background-color: #202927; color: #EEF2EF; }
+        html.dark select:disabled, html.dark input:disabled { background-color: #141B1A; color: #98A49F; }
+        html.dark ::placeholder { color: #98A49F; opacity: 1; }
         html.dark .db-cell-input { background-color: transparent; }
         /* Save button (emergency-save.js): saved / dirty (pulses) / saving / done (pops) / error. */
         .er-save-btn { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 12px; font: 800 12px inherit; font-family: inherit; cursor: pointer;
@@ -285,6 +285,8 @@
     </style>
     <link rel="stylesheet" href="./hub-ios.css" />
     <link rel="stylesheet" href="./emergency-theme.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Readex+Pro:wght@400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="./hub-theme.css" />
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-full transition-colors duration-200 er-locked">
 

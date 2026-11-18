@@ -19,7 +19,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
-            background: #d1d9e6;
+            background: #EEF2EF;
             color: #1a2332;
             min-height: 100vh;
             display: flex;
@@ -92,15 +92,15 @@
             background: white;
             border-radius: 28px;
             padding: 28px;
-            border: 1px solid #E5E5EA;
+            border: 1px solid #DEE5E1;
             box-shadow: 0 12px 36px rgba(0,0,0,0.06);
             transition: all 0.3s ease;
             width: 100%;
             max-width: 500px;
         }
         body.dark .app-card {
-            background: rgba(16, 22, 34, 0.84);
-            border-color: rgba(10, 132, 255, 0.16);
+            background: rgba(17, 24, 24, 0.84);
+            border-color: rgba(19, 151, 127, 0.16);
             box-shadow: 0 16px 45px rgba(0,0,0,0.6);
             backdrop-filter: blur(14px);
         }
@@ -119,18 +119,18 @@
             gap: 6px;
             font-weight: 700;
             font-size: 0.85rem;
-            color: #1C1C1E;
+            color: #141B1A;
             margin-bottom: 8px;
         }
         body.dark .form-group label {
-            color: #E5E5EA;
+            color: #DEE5E1;
         }
 
         .form-select {
             width: 100%;
             padding: 13px 16px;
             border-radius: 14px;
-            border: 1.5px solid #D1D1D6;
+            border: 1.5px solid #C5CFCA;
             background: #ffffff;
             font-size: 0.95rem;
             font-weight: 600;
@@ -142,7 +142,7 @@
             background-repeat: no-repeat;
             background-position: left 16px center;
             cursor: pointer;
-            color: #1C1C1E;
+            color: #141B1A;
         }
         body.dark .form-select {
             background: #0f151e;
@@ -150,12 +150,12 @@
             color: #e8edf5;
         }
         .form-select:focus {
-            border-color: #007AFF;
-            box-shadow: 0 0 0 4px rgba(0, 122, 255,0.15);
+            border-color: #0B7A6E;
+            box-shadow: 0 0 0 4px rgba(11, 122, 110,0.15);
         }
         body.dark .form-select:focus {
-            border-color: #0A84FF;
-            box-shadow: 0 0 0 4px rgba(10, 132, 255,0.15);
+            border-color: #13977F;
+            box-shadow: 0 0 0 4px rgba(19, 151, 127,0.15);
         }
 
         .input-wrap {
@@ -181,14 +181,14 @@
             white-space: nowrap;
         }
         .ghost-text .offset { color: transparent; }
-        .ghost-text .suggestion-bright { color: #8A8A8E; font-weight: 500; }
+        .ghost-text .suggestion-bright { color: #6E7B76; font-weight: 500; }
         body.dark .ghost-text .suggestion-bright { color: rgba(255, 255, 255, 0.45); }
 
         .input-text {
             width: 100%;
             padding: 13px 16px;
             border-radius: 14px;
-            border: 1.5px solid #D1D1D6;
+            border: 1.5px solid #C5CFCA;
             background: #ffffff;
             font-size: 0.95rem;
             font-weight: 600;
@@ -198,7 +198,7 @@
             position: relative;
             z-index: 10;
             direction: rtl;
-            color: #1C1C1E;
+            color: #141B1A;
         }
         body.dark .input-text {
             background: #0f151e;
@@ -206,12 +206,12 @@
             color: #e8edf5;
         }
         .input-text:focus {
-            border-color: #007AFF;
-            box-shadow: 0 0 0 4px rgba(0, 122, 255,0.15);
+            border-color: #0B7A6E;
+            box-shadow: 0 0 0 4px rgba(11, 122, 110,0.15);
         }
         body.dark .input-text:focus {
-            border-color: #0A84FF;
-            box-shadow: 0 0 0 4px rgba(10, 132, 255,0.15);
+            border-color: #13977F;
+            box-shadow: 0 0 0 4px rgba(19, 151, 127,0.15);
         }
 
         .dropdown-arrow {
@@ -220,7 +220,7 @@
             top: 50%;
             transform: translateY(-50%);
             z-index: 20;
-            color: #AEAEB2;
+            color: #98A49F;
             cursor: pointer;
             padding: 6px 10px;
             border-radius: 10px;
@@ -230,7 +230,7 @@
         }
         .dropdown-arrow:hover {
             background: rgba(0,0,0,0.08);
-            color: #636366;
+            color: #525E5A;
         }
 
         .dropdown-menu {
@@ -241,7 +241,7 @@
             max-height: 220px;
             overflow-y: auto;
             background: white;
-            border: 2px solid #007AFF;
+            border: 2px solid #0B7A6E;
             border-radius: 14px;
             z-index: 100;
             display: none;
@@ -250,7 +250,7 @@
         }
         body.dark .dropdown-menu {
             background: #141a24;
-            border-color: #0A84FF;
+            border-color: #13977F;
             box-shadow: 0 16px 40px rgba(0,0,0,0.6);
         }
         .dropdown-menu div {
@@ -259,7 +259,7 @@
             color: #1a2332;
             font-weight: 600;
             transition: 0.15s;
-            border-bottom: 1px solid #F2F2F7;
+            border-bottom: 1px solid #EEF2EF;
             font-size: 0.9rem;
         }
         body.dark .dropdown-menu div {
@@ -267,19 +267,19 @@
             border-color: #1e2632;
         }
         .dropdown-menu div:hover, .dropdown-menu div.selected {
-            background: #007AFF;
+            background: #0B7A6E;
             color: white;
         }
         body.dark .dropdown-menu div:hover, body.dark .dropdown-menu div.selected {
-            background: #0A84FF;
+            background: #13977F;
             color: #000000;
         }
 
         .info-box {
-            background: #F9F9FB;
+            background: #F6F8F6;
             border-radius: 14px;
             padding: 12px 16px;
-            border: 1px solid #E5E5EA;
+            border: 1px solid #DEE5E1;
             font-size: 0.85rem;
             margin-top: 6px;
         }
@@ -287,7 +287,7 @@
             background: #0f151e;
             border-color: #2a3346;
         }
-        .info-box .label { color: #AEAEB2; font-weight: 600; display: block; margin-bottom: 4px; }
+        .info-box .label { color: #98A49F; font-weight: 600; display: block; margin-bottom: 4px; }
         .info-box .value { font-weight: 800; font-size: 0.92rem; }
 
         .btn-update {
@@ -295,7 +295,7 @@
             padding: 15px;
             border: none;
             border-radius: 14px;
-            background: linear-gradient(135deg, #007AFF, #0A84FF);
+            background: linear-gradient(135deg, #0B7A6E, #13977F);
             color: white;
             font-weight: 800;
             font-size: 1rem;
@@ -303,15 +303,15 @@
             transition: all 0.2s ease;
             margin-top: 14px;
             font-family: inherit;
-            box-shadow: 0 8px 24px rgba(0, 122, 255,0.25);
+            box-shadow: 0 8px 24px rgba(11, 122, 110,0.25);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
         }
         body.dark .btn-update {
-            background: linear-gradient(135deg, #0A84FF, #0062CC);
-            box-shadow: 0 8px 24px rgba(10, 132, 255,0.25);
+            background: linear-gradient(135deg, #13977F, #0A6259);
+            box-shadow: 0 8px 24px rgba(19, 151, 127,0.25);
             color: #000000;
         }
         .btn-update:hover:not(:disabled) { transform: translateY(-2px); }
@@ -345,32 +345,34 @@
         .footer-credit {
             text-align: center;
             font-size: 0.68rem;
-            color: #AEAEB2;
+            color: #98A49F;
             margin-top: 20px;
             padding-top: 14px;
-            border-top: 1px solid #E5E5EA;
+            border-top: 1px solid #DEE5E1;
             opacity: 0.6;
         }
         body.dark .footer-credit { border-color: #2a3346; }
-        .approval-note { display: flex; gap: 10px; align-items: flex-start; margin-top: 10px; padding: 10px 12px; border-radius: 14px; background: rgba(10, 132, 255, 0.08); border: 1px solid rgba(10, 132, 255, 0.3); color: #0a5fbf; font-size: 0.78rem; }
+        .approval-note { display: flex; gap: 10px; align-items: flex-start; margin-top: 10px; padding: 10px 12px; border-radius: 14px; background: rgba(19, 151, 127, 0.08); border: 1px solid rgba(19, 151, 127, 0.3); color: #0a5fbf; font-size: 0.78rem; }
         .approval-note span { display: grid; gap: 2px; }
         .approval-note small { opacity: 0.85; line-height: 1.6; }
         body.dark .approval-note { color: #6cb4ff; }
-        .my-exchanges-btn { width: 100%; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px; border-radius: 14px; border: 1px solid rgba(10, 132, 255, 0.35); background: transparent; color: #0a84ff; font: inherit; font-weight: 800; font-size: 0.85rem; cursor: pointer; }
+        .my-exchanges-btn { width: 100%; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px; border-radius: 14px; border: 1px solid rgba(19, 151, 127, 0.35); background: transparent; color: #13977F; font: inherit; font-weight: 800; font-size: 0.85rem; cursor: pointer; }
     
         button:active, .btn:active, .tab-btn:active {
             transform: scale(0.97);
             transition: transform 0.15s ease;
         }
         body.dark .btn-submit, body.dark .submit-btn, body.dark button[type="submit"] {
-            background: linear-gradient(135deg, #0A84FF, #0062CC) !important;
+            background: linear-gradient(135deg, #13977F, #0A6259) !important;
             color: #000000 !important;
             font-weight: 800 !important;
-            box-shadow: 0 4px 16px rgba(10, 132, 255, 0.25) !important;
+            box-shadow: 0 4px 16px rgba(19, 151, 127, 0.25) !important;
         }
     </style>
     <link rel="stylesheet" href="./tailwind.css" />
     <link rel="stylesheet" href="./hub-ios.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Readex+Pro:wght@400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="./hub-theme.css" />
 </head>
 <body>
 
@@ -777,7 +779,7 @@
             if (matchingDuties.length === 0) {
                 // No resident on duty yet
                 holder.textContent = 'لا يوجد خفر مسجل في هذا اليوم لهذا التخصص';
-                holder.style.color = '#AEAEB2';
+                holder.style.color = '#98A49F';
                 targetWrap.style.display = 'none';
                 selectedOldResidentName = null;
                 const labelEl = document.getElementById('name-input-label');
@@ -789,7 +791,7 @@
                 // Exactly one resident on duty
                 const resident = matchingDuties[0];
                 holder.innerHTML = `<span class="font-bold">${resident.name}</span> <span class="text-xs opacity-75 font-mono">(${resident.timestamp || 'خفارة مسجلة'})</span>`;
-                holder.style.color = '#007AFF';
+                holder.style.color = '#0B7A6E';
                 targetWrap.style.display = 'none';
                 selectedOldResidentName = resident.name;
                 const labelEl = document.getElementById('name-input-label');
@@ -930,7 +932,7 @@
             }
 
             if (currentResidents.length === 0) {
-                menu.innerHTML = '<div style="color:#AEAEB2;font-size:0.8rem;text-align:center;padding:12px;">لا يوجد مقيمين</div>';
+                menu.innerHTML = '<div style="color:#98A49F;font-size:0.8rem;text-align:center;padding:12px;">لا يوجد مقيمين</div>';
             } else {
                 menu.innerHTML = currentResidents.slice(0, 20).map(n =>
                     `<div onclick="selectName('${n.name.replace(/'/g, "\'")}')">${n.name}</div>`
@@ -1012,7 +1014,7 @@
             try {
                 const res = await Hub.api('POST', '/api/exchange/request', { h: hospId, date: medDate, spec: specId, oldName: selectedOldResidentName, newName }, { retries: 0 });
                 const to = res.status === 'owner_pending' ? `${selectedOldResidentName} ليوافق أولاً، ثم إلى الإدارة` : 'إدارة المستشفى للموافقة';
-                result = `<span style="color:#0a84ff;font-weight:700;">📨 أُرسل طلب التبديل إلى ${to}. سيصلك إشعار بالنتيجة.</span>`;
+                result = `<span style="color:#13977F;font-weight:700;">📨 أُرسل طلب التبديل إلى ${to}. سيصلك إشعار بالنتيجة.</span>`;
                 showToast('تم إرسال طلب التبديل ✓', 'success');
                 document.getElementById('name-input').value = '';
             } catch (err) {

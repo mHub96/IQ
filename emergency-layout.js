@@ -12,9 +12,12 @@
  * No sectors = one resident per shift; one (or no) con / dc duty = one resident a day: the classic
  * layout every hospital had before structures existed.
  *
- * Each month keeps the layout it was built with (state.schedules.layout, a flat list of positions),
- * so changing a structure never reshapes a month that has duties in it. A month without a layout is
- * classic. A position's key is the shift itself for the first resident of a shift ('morning'; the
+ * The structure belongs to the month: each month keeps the layout it was built with
+ * (state.schedules.layout, a flat list of positions), set the first time the month is opened (from
+ * the hospital's latest structure) or when its structure is edited. Editing one month's structure
+ * never reshapes another month, and the editor opens on the month's own structure. A month with
+ * duties but no layout (made before structures existed) is classic. The hospital's structure
+ * (state.erStructures) is only the starting point of months not opened yet. A position's key is the shift itself for the first resident of a shift ('morning'; the
  * classic key) and 'morning.1', 'morning.2'… for the others; 'doctor', 'doctor.1'… for con / dc.
  * The strike's ER sheet uses the ER positions with 'er_' in front of the key.
  */
@@ -153,7 +156,8 @@
         return SHIFTS.includes(k) ? k : null;
     }
     const positionsOfShift = (type, shift, layout) => positions(type, layout).filter(p => shiftOf(p.key) === shift);
-    const perDay = (type, layout) => positions(type, layout).length;
+    // The rotators' ER has ER duties only (no consultation clinic, death certificates or strike).
+    const perDay = (type, layout) => (core() && core().rot && type !== 'er') ? 0 : positions(type, layout).length;
 
     /** "طوارئ النساء · الخضراء 2" (the place within the shift; '' in the classic layout). */
     function placeLabel(p) {
@@ -180,28 +184,64 @@
     // ------------------------------------------------------------------------------------------
     // Month set-up
     // ------------------------------------------------------------------------------------------
+    const monthHasDuties = sch => ['er', 'con', 'dc', 'rs'].some(t => (sch[t] || []).some(d => d && Object.keys(d).some(k => !['dayNumber', 'date', 'dayName', 'notes'].includes(k) && d[k] && String(d[k]).trim())));
+    const hasLayout = sch => !!(sch && sch.layout && Array.isArray(sch.layout.er) && sch.layout.er.length);
+
     /**
-     * Called whenever a month is (re)built: a month without duties takes the hospital's current
-     * structure; a month with duties keeps the layout it has (none = classic).
+     * Called whenever a month is (re)built: a month opened for the first time (no layout, no duties)
+     * takes the hospital's latest structure and keeps it from then on (a classic one too), so editing
+     * another month's structure later never changes it. A month with duties keeps the layout it has
+     * (none = classic).
      */
     function ensureMonthLayout() {
         const st = S();
         const sch = st.schedules || (st.schedules = {});
-        if (sch.layout && Array.isArray(sch.layout.er) && sch.layout.er.length) return;
-        const filled = ['er', 'con', 'dc', 'rs'].some(t => (sch[t] || []).some(d => d && Object.keys(d).some(k => !['dayNumber', 'date', 'dayName', 'notes'].includes(k) && d[k] && String(d[k]).trim())));
-        if (filled) return;
-        const layout = layoutFrom(structureOf());
-        if (!isClassic(layout)) sch.layout = layout;
+        if (hasLayout(sch) || monthHasDuties(sch)) return;
+        sch.layout = layoutFrom(structureOf());
+    }
+
+    /** A month's layout back as a structure (what the editor shows): sectors, divisions per shift, hours. */
+    function structureFromLayout(layout, base) {
+        const out = { sectors: [], shifts: {}, con: [], dc: [] };
+        SHIFTS.forEach(sh => { out.shifts[sh] = []; });
+        (layout.er || []).forEach(p => {
+            if (!p || (!p.sector && !p.sectorId)) return;
+            const shift = p.shift || shiftOf(p.key);
+            if (!shift) return;
+            const id = p.sectorId || ('s_' + p.sector);
+            if (!out.sectors.some(s => s.id === id)) out.sectors.push({ id, name: p.sector || 'قسم' });
+            let entry = out.shifts[shift].find(e => e.sector === id);
+            if (!entry) out.shifts[shift].push(entry = { sector: id, divisions: [] });
+            if (Number(p.n) === 1 || !entry.divisions.length) entry.divisions.push({ name: p.division || '', branch: p.branch || '', count: Math.max(1, Number(p.of) || 1) });
+        });
+        const timed = list => (Array.isArray(list) ? list : []).filter(p => p && toMin(p.start) !== null && toMin(p.end) !== null).map(p => ({ start: p.start, end: p.end }));
+        out.con = timed(layout.con);
+        out.dc = timed(layout.dc);
+        const code = base && base.code;
+        if (code) out.code = code;
+        return out;
     }
 
     /**
-     * Gives the month on screen the hospital's current structure. Names stay where the same key still
-     * exists; returns the names that had to go (for the confirmation).
+     * The structure of the month on screen: its own layout; for a month with duties and no layout the
+     * classic one; for a month never set up the hospital's latest structure.
      */
-    function applyToMonth(dryRun) {
+    function monthStructure() {
+        const sch = S().schedules || {};
+        const base = structureOf();
+        if (hasLayout(sch)) return structureFromLayout(sch.layout, base);
+        if (monthHasDuties(sch)) return Object.assign(clone(CLASSIC), base.code ? { code: base.code } : {});
+        return clone(base);
+    }
+
+    /**
+     * Gives the month on screen a structure (default: the hospital's latest). Names stay where the same
+     * key still exists; returns the names that had to go (for the confirmation).
+     */
+    function applyToMonth(dryRun, struct) {
         const st = S();
         const sch = st.schedules || {};
-        const next = layoutFrom(structureOf());
+        const next = layoutFrom(struct || structureOf());
         const keep = {
             er: new Set(keys('er', next)), con: new Set(keys('con', next)), dc: new Set(keys('dc', next)),
             rs: new Set(allKeys('rs', next)),
@@ -215,7 +255,7 @@
             });
         }));
         if (!dryRun) {
-            if (isClassic(next)) delete sch.layout; else sch.layout = next;
+            sch.layout = next; // a classic one too: the month keeps it whatever the hospital's structure becomes
             if (st.prefOverrides) Object.keys(st.prefOverrides).forEach(id => { const k = id.split('_').slice(2).join('_'); if (k && !keep.er.has(k) && !keep.rs.has(k)) delete st.prefOverrides[id]; });
         }
         return lost;
@@ -265,6 +305,6 @@
         toMin, timeAr, rangeAr, spanMin, checkTimes,
         structureOf, setStructure, layoutFrom, isClassic, monthLayout,
         positions, keys, allKeys, position, shiftOf, positionsOfShift, perDay, placeLabel, label,
-        ensureMonthLayout, applyToMonth, hospitalCode, hospitalFileName, fileName, residentBranch,
+        ensureMonthLayout, applyToMonth, monthStructure, structureFromLayout, hospitalCode, hospitalFileName, fileName, residentBranch,
     };
 })(window);

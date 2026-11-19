@@ -129,7 +129,7 @@
         const hosp = window.Hub && window.Hub.getHospital ? window.Hub.getHospital(st.hospitalId) : null;
         modal.innerHTML = `<div class="erst-panel" role="dialog" aria-modal="true" aria-label="هيكلية الطوارئ">
             <header class="erst-head">
-                <div><h3><i class="fas fa-sitemap"></i> هيكلية الخفارات</h3><p>${esc((hosp && (hosp.name_ar || hosp.hospitalName)) || st.hospitalName || '')} · لكل مستشفى هيكليته</p></div>
+                <div><h3><i class="fas fa-sitemap"></i> هيكلية خفارات ${esc(st.monthYear || '')}</h3><p>${esc((hosp && (hosp.name_ar || hosp.hospitalName)) || st.hospitalName || '')} · لكل شهر هيكليته</p></div>
                 <button type="button" class="erst-x big" data-act="close" aria-label="إغلاق"><i class="fas fa-xmark"></i></button>
             </header>
             <div class="erst-body">
@@ -140,8 +140,8 @@
                 ${sectorsHtml()}
                 <h3 class="erst-group">وجبات الطوارئ</h3>
                 <div class="erst-shifts">${L().SHIFTS.map(shiftHtml).join('')}</div>
-                <h3 class="erst-group">الاستشارية وشهادات الوفاة</h3>
-                <div class="erst-shifts">${timesHtml('con')}${timesHtml('dc')}</div>
+                ${core().rot ? '' : `<h3 class="erst-group">الاستشارية وشهادات الوفاة</h3>
+                <div class="erst-shifts">${timesHtml('con')}${timesHtml('dc')}</div>`}
                 <section class="erst-sec">
                     <h4><i class="fas fa-file-pdf"></i> اسم ملف الطباعة</h4>
                     <div class="erst-row"><span class="erst-hint" dir="ltr">${esc(L().fileName('dc'))}</span></div>
@@ -150,7 +150,7 @@
                 <datalist id="erst-div-names">${DIVISION_PRESETS.map(([n]) => `<option value="${esc(n)}"></option>`).join('')}</datalist>
             </div>
             <footer class="erst-foot">
-                <span class="erst-note"><i class="fas fa-circle-info"></i> تُطبّق على الأشهر الجديدة، ويمكنك تطبيقها على الشهر الحالي عند الحفظ.</span>
+                <span class="erst-note"><i class="fas fa-circle-info"></i> تُحفظ لشهر ${esc(st.monthYear || 'المعروض')} وللأشهر التي لم تُفتح بعد، وتبقى الأشهر الأخرى على هيكليتها.</span>
                 <button type="button" class="erst-btn" data-act="close">إلغاء</button>
                 <button type="button" class="erst-btn primary" data-act="save"><i class="fas fa-check"></i> حفظ</button>
             </footer>
@@ -252,27 +252,24 @@
             if (problems.length) { notify(`${title}: ${problems[0]}`, 'error'); return; }
         }
         const st = S();
+        // The structure is the month's: only the month on screen changes (names stay where their position
+        // still exists). Other months keep theirs; months not opened yet start from this one.
+        const lost = L().applyToMonth(true, next);
+        if (lost.length && !confirm(`سيُحذف ${lost.length} اسماً من جدول ${st.monthYear || 'هذا الشهر'} من خانات لم تعد موجودة في الهيكلية الجديدة، وتبقى بقية الأسماء في أماكنها.\n\nمتابعة؟`)) return;
         core().pushScheduleHistory('تعديل هيكلية الخفارات');
+        L().applyToMonth(false, next);
         L().setStructure(st.hospitalId, next);
-        // The month on screen: an empty one takes the structure at once; one with duties only if confirmed.
-        const lost = L().applyToMonth(true);
-        const hasDuties = ['er', 'con', 'dc', 'rs'].some(t => (st.schedules[t] || []).some(d => Object.keys(d).some(k => !['dayNumber', 'date', 'dayName', 'notes'].includes(k) && d[k] && String(d[k]).trim())));
-        let applied = false;
-        if (!hasDuties) { L().applyToMonth(false); applied = true; }
-        else if (confirm(`تطبيق الهيكلية الجديدة على جدول ${st.monthYear || 'هذا الشهر'} أيضاً؟\n\n${lost.length ? `سيُحذف ${lost.length} اسماً من خانات لم تعد موجودة، وتبقى بقية الأسماء في أماكنها.` : 'تبقى كل الأسماء الحالية في أماكنها.'}\n\nإلغاء = يبقى هذا الشهر على هيكليته، وتُطبّق الجديدة على الأشهر القادمة.`)) {
-            L().applyToMonth(false); applied = true;
-        }
         core().ensureScheduleIntegrity();
         core().saveState();
         core().renderActiveTab();
         close();
-        notify(applied ? 'تم حفظ هيكلية الخفارات وتطبيقها على هذا الشهر ✓' : 'تم حفظ الهيكلية، وستُطبّق على الأشهر الجديدة ✓', 'success');
+        notify(`تم حفظ هيكلية خفارات ${st.monthYear || 'هذا الشهر'} ✓ (الأشهر الأخرى باقية على هيكليتها)`, 'success');
     }
 
     function open() {
         const modal = document.getElementById('er-structure-modal');
         if (!modal || !core() || !core().ready()) return;
-        draft = normalize(L().structureOf());
+        draft = normalize(L().monthStructure());
         modal.classList.remove('hidden');
         document.documentElement.classList.add('erst-open');
         render();

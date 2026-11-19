@@ -2690,6 +2690,29 @@
                 || (window.Hub && Hub.getResidents ? Hub.getResidents().find(r => r.name === name || clean(r.name) === clean(name)) : null);
             return hit && hit.phone ? String(hit.phone) : '';
         }
+        /** The specialty (own, not the rotation) of an ER doctor in the hospital's database: { code, name, icon }. */
+        function erDoctorSpec(name) {
+            const clean = n => String(n || '').replace(/^(د\.|د|dr\.|dr)[\s:/]+/gi, '').trim();
+            const toks = n => clean(n).split(/\s+/).filter(Boolean);
+            const find = pool => {
+                const exact = pool.find(n => n && (n.name === name || clean(n.name) === clean(name)));
+                if (exact) return exact;
+                const t = toks(name);
+                if (t.length < 3) return null;
+                const near = pool.filter(n => { const s = toks(n && n.name); return s.length >= 3 && s[0] === t[0] && s[1] === t[1] && s[2] === t[2]; });
+                return near.length === 1 ? near[0] : null;
+            };
+            const all = window.Hub && Hub.getResidents ? Hub.getResidents() : [];
+            const hit = find(currentHospital.names || []) || find(all.filter(r => Array.isArray(r.hospitals) && r.hospitals.includes(currentHospital.id))) || find(all);
+            if (!hit) return null;
+            const code = [hit.spec, hit.tag, hit.dept, hit.department].find(c => c && c !== 'RESERVE');
+            if (!code) return null;
+            const global = window.Hub && Hub.getGlobalSpecialties ? Hub.getGlobalSpecialties() : [];
+            const sp = (currentHospital.specialties || []).find(s => s.id === code) || global.find(s => s.id === code);
+            const resolved = window.Hub && Hub.getSpecialtyName ? Hub.getSpecialtyName(code, currentHospital.id) : '';
+            const label = (sp && sp.name_ar === 'الاطفال') || code === 'Pe' ? 'طب الأطفال' : ((sp && sp.name_ar) || resolved || code);
+            return { code, name: label, icon: (sp && sp.icon) || '🩺' };
+        }
         function erEsc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
         function renderErView() {
             const container = document.getElementById('roster-container');
@@ -2712,9 +2735,12 @@
             const asResident = (d, sh) => {
                 const { start, end } = shiftMinutes(sh);
                 const phone = erPhone(d.name) || 'رقم غير متوفر';
-                const label = sh.name + (d.place ? ' · ' + d.place : '') + (d.sys === 'rot' ? ' · دوري' : '');
-                const specs = [{ code: 'ER_' + sh.key, name: label, icon: d.sys === 'rot' ? '🔄' : '🚑', endMin: end, remainingMinutes: Math.max(0, end - currentMin) }];
-                return { name: d.name, phone, specs, dutyTime: null, startMin: start, endMin: end,
+                // Title bubble: the resident's own specialty; a rotator's is «مقيم دوري». (The code keeps an
+                // ER_ prefix so the card never takes the ICU bed status of an anaesthesia duty.)
+                const own = d.sys === 'rot' ? null : erDoctorSpec(d.name);
+                const bubble = d.sys === 'rot' ? { name: 'مقيم دوري', icon: '🔄' } : (own || { name: 'مقيم أقدم', icon: '🚑' });
+                const specs = [{ code: 'ER_' + (own ? own.code : sh.key), name: bubble.name, icon: bubble.icon, endMin: end, remainingMinutes: Math.max(0, end - currentMin) }];
+                return { name: d.name, phone, specs, dutyTime: null, startMin: start, endMin: end, placeTag: d.place || '',
                     remainingMinutes: Math.max(0, Math.min(TOTAL_MINUTES, end - currentMin)), criticalSpecCode: 'ER_' + sh.key,
                     visitCount: d.visits || 0, isClone: false, parentHospitalName: null, parentHospitalId: null, clonedFromSpecId: null };
             };
@@ -2730,9 +2756,11 @@
                 // The busiest card of the running shift glows like the roster's trending card.
                 const top = live ? list.reduce((a, b) => (b.visitCount > (a ? a.visitCount : 0) ? b : a), null) : null;
                 return `<details class="er-shift${live ? ' live' : ''}" data-shift="${sh.key}" ${open ? 'open' : ''}>
-                    <summary><i class="fas ${ER_ICONS[sh.key] || 'fa-clock'} er-shift-ic"></i>
-                        <span class="er-shift-t"><b>${erEsc(sh.name)}</b><small>${t(sh.start)} - ${t(end)} · ${list.length} ${list.length === 1 ? 'طبيب' : 'أطباء'}</small></span>
+                    <summary><span class="er-shift-ic"><i class="fas ${ER_ICONS[sh.key] || 'fa-clock'}"></i></span>
+                        <span class="er-shift-t"><b>${erEsc(sh.name)}</b><small>${t(sh.start)} - ${t(end)}</small></span>
+                        <span class="er-shift-n" title="${list.length} ${list.length === 1 ? 'طبيب' : 'أطباء'}"><i class="fas fa-user-doctor"></i> ${list.length}</span>
                         ${live ? '<span class="er-live"><i></i> LIVE</span>' : ''}
+                        <span class="er-shift-line" aria-hidden="true"></span>
                         <i class="fas fa-chevron-down er-shift-chev"></i></summary>
                     <div class="roster-grid er-shift-body">${list.length ? list.map(r => rosterCardHtml(r, currentMin, top, { track })).join('') : '<div class="text-center text-slate-400 text-sm py-4">لا يوجد خفراء مسجلون لهذه الوجبة</div>'}</div>
                 </details>`;
@@ -2901,6 +2929,11 @@
                                         <i class="fas fa-hospital-user"></i>
                                         <span>${resident.parentHospitalName}</span>
                                     </span>
+                                </div>
+                            ` : ''}
+                            ${resident.placeTag ? `
+                                <div class="clone-parent-title">
+                                    <span class="clone-parent-badge er-place-badge"><i class="fas fa-location-dot"></i><span>${resident.placeTag}</span></span>
                                 </div>
                             ` : ''}
                             <div class="specialty-bubbles">${specialtyBubbles}</div>

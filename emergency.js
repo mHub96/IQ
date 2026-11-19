@@ -1059,6 +1059,7 @@
     }
 
     function ensureScheduleIntegrity() {
+        if (ROT_SYS) state.rsEnabled = false; // the rotators' ER: ER duties only
         const daysCount = getDaysInMonth(state.year, state.month);
         if (window.ERLayout) L().ensureMonthLayout();
         const emptyOf = keys => Object.fromEntries(keys.map(k => [k, '']));
@@ -1208,9 +1209,9 @@
                 if (loadedMap[r.id]) {
                     r.active = loadedMap[r.id].active !== undefined ? Boolean(loadedMap[r.id].active) : getBaselineResidentActive(r.id);
                     r.er_target = Number(loadedMap[r.id].er_target) || 0;
-                    r.con_target = Number(loadedMap[r.id].con_target) || 0;
-                    r.dc_target = Number(loadedMap[r.id].dc_target) || 0;
-                    r.rs_target = Number(loadedMap[r.id].rs_target) || 0;
+                    r.con_target = ROT_SYS ? 0 : Number(loadedMap[r.id].con_target) || 0;
+                    r.dc_target = ROT_SYS ? 0 : Number(loadedMap[r.id].dc_target) || 0;
+                    r.rs_target = ROT_SYS ? 0 : Number(loadedMap[r.id].rs_target) || 0;
                 } else {
                     r.active = getBaselineResidentActive(r.id);
                     r.er_target = 0;
@@ -1291,9 +1292,9 @@
                     r.active = Boolean(prevMap[r.id].active);
                 }
                 r.er_target = Number(prevMap[r.id].er_target) || 0;
-                r.con_target = Number(prevMap[r.id].con_target) || 0;
-                r.dc_target = Number(prevMap[r.id].dc_target) || 0;
-                r.rs_target = Number(prevMap[r.id].rs_target) || 0;
+                r.con_target = ROT_SYS ? 0 : Number(prevMap[r.id].con_target) || 0;
+                r.dc_target = ROT_SYS ? 0 : Number(prevMap[r.id].dc_target) || 0;
+                r.rs_target = ROT_SYS ? 0 : Number(prevMap[r.id].rs_target) || 0;
                 copiedCount++;
             }
         });
@@ -2557,6 +2558,7 @@
     }
 
     function toggleRotatorsStrike() {
+        if (ROT_SYS) { state.rsEnabled = false; return; }
         state.rsEnabled = !state.rsEnabled;
         if (!state.hospitalSignatories) state.hospitalSignatories = {};
         if (state.hospitalId) {
@@ -4876,10 +4878,10 @@
                     </div>
                     <span class="text-[11px] text-slate-500">الأخضر يعني مطابقة تامة · الأحمر يعني عدم مطابقة (يُمنع تجاوز المطلوب)</span>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:${state.rsEnabled ? 'grid-cols-4' : 'grid-cols-3'} gap-3">
+                <div class="grid grid-cols-1 ${ROT_SYS ? '' : `sm:grid-cols-2 lg:${state.rsEnabled ? 'grid-cols-4' : 'grid-cols-3'}`} gap-3">
                     ${makeCard(summary.er, 'bg-rose-600', 'fa-truck-medical')}
-                    ${makeCard(summary.con, 'bg-sky-600', 'fa-stethoscope')}
-                    ${makeCard(summary.dc, 'bg-emerald-600', 'fa-file-lines')}
+                    ${ROT_SYS ? '' : makeCard(summary.con, 'bg-sky-600', 'fa-stethoscope')}
+                    ${ROT_SYS ? '' : makeCard(summary.dc, 'bg-emerald-600', 'fa-file-lines')}
                     ${state.rsEnabled ? makeCard(summary.rs, 'bg-amber-600', 'fa-triangle-exclamation') : ''}
                 </div>
             </div>
@@ -5694,9 +5696,9 @@
             if (srcMap[r.id]) {
                 r.active = srcMap[r.id].active !== undefined ? Boolean(srcMap[r.id].active) : true;
                 r.er_target = Number(srcMap[r.id].er_target) || 0;
-                r.con_target = Number(srcMap[r.id].con_target) || 0;
-                r.dc_target = Number(srcMap[r.id].dc_target) || 0;
-                r.rs_target = Number(srcMap[r.id].rs_target) || 0;
+                r.con_target = ROT_SYS ? 0 : Number(srcMap[r.id].con_target) || 0;
+                r.dc_target = ROT_SYS ? 0 : Number(srcMap[r.id].dc_target) || 0;
+                r.rs_target = ROT_SYS ? 0 : Number(srcMap[r.id].rs_target) || 0;
                 importedCount++;
             }
         });
@@ -5924,8 +5926,8 @@
                                     ${getSortHeaderHTML('board', 'البورد', 'w-24', 'text-center font-bold')}
                                     ${getSortHeaderHTML('stage', 'المرحلة', 'w-20', 'text-center font-bold')}
                                     ${getSortHeaderHTML('er_target', 'نصاب ER', 'w-16', 'text-center font-bold text-rose-600')}
-                                    ${getSortHeaderHTML('con_target', 'نصاب Con', 'w-16', 'text-center font-bold text-sky-600')}
-                                    ${getSortHeaderHTML('dc_target', 'نصاب DC', 'w-16', 'text-center font-bold text-emerald-600')}
+                                    ${ROT_SYS ? '' : getSortHeaderHTML('con_target', 'نصاب Con', 'w-16', 'text-center font-bold text-sky-600')}
+                                    ${ROT_SYS ? '' : getSortHeaderHTML('dc_target', 'نصاب DC', 'w-16', 'text-center font-bold text-emerald-600')}
                                     ${state.rsEnabled ? getSortHeaderHTML('rs_target', 'نصاب RS', 'w-16', 'text-center font-bold text-amber-600') : ''}
                                     ${getSortHeaderHTML('quota', 'حالة النصاب', 'w-32', 'font-bold text-center')}
                                     ${getSortHeaderHTML('expiryMonth', 'شهر الانتهاء', 'w-28', 'font-bold text-center')}
@@ -5960,8 +5962,8 @@
                                     ${getSortHeaderHTML('board', 'البورد', 'w-24', 'text-center font-bold')}
                                     ${getSortHeaderHTML('stage', 'المرحلة', 'w-20', 'text-center font-bold')}
                                     ${getSortHeaderHTML('er_target', 'نصاب ER', 'w-16', 'text-center font-bold')}
-                                    ${getSortHeaderHTML('con_target', 'نصاب Con', 'w-16', 'text-center font-bold')}
-                                    ${getSortHeaderHTML('dc_target', 'نصاب DC', 'w-16', 'text-center font-bold')}
+                                    ${ROT_SYS ? '' : getSortHeaderHTML('con_target', 'نصاب Con', 'w-16', 'text-center font-bold')}
+                                    ${ROT_SYS ? '' : getSortHeaderHTML('dc_target', 'نصاب DC', 'w-16', 'text-center font-bold')}
                                     ${state.rsEnabled ? getSortHeaderHTML('rs_target', 'نصاب RS', 'w-16', 'text-center font-bold') : ''}
                                     ${getSortHeaderHTML('quota', 'الحالة', 'w-32', 'font-bold text-center')}
                                     ${getSortHeaderHTML('expiryMonth', 'شهر الانتهاء', 'w-28', 'font-bold text-center')}
@@ -5972,7 +5974,7 @@
                             <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60">
                                 ${inactiveList.length > 0 
                                     ? inactiveList.map((r, idx) => renderResidentRowHTML(r, idx + 1, scheduledCounts, true)).join('')
-                                    : `<tr><td colspan="${state.rsEnabled ? 14 : 13}" class="py-4 text-center text-slate-400 font-bold">لا يوجد أطباء غير نشطين في هذا الشهر</td></tr>`
+                                    : `<tr><td colspan="${(state.rsEnabled ? 14 : 13) - (ROT_SYS ? 2 : 0)}" class="py-4 text-center text-slate-400 font-bold">لا يوجد أطباء غير نشطين في هذا الشهر</td></tr>`
                                 }
                             </tbody>
                         </table>
@@ -6563,6 +6565,7 @@
                     <input type="number" min="0" data-target-field="er_target" value="${r.er_target || 0}" oninput="onResidentTargetChange('${r.id}', 'er_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'er_target', this.value)" class="db-cell-input text-center font-mono font-black text-rose-600 ${isOverER ? 'ring-2 ring-amber-500 rounded-md' : ''}" title="مجدول في الطوارئ: ${stats.erFilled} / النصاب: ${erTarget}">
                 </td>
 
+                ${ROT_SYS ? '' : `
                 <!-- Con Target (Direct number input with live update) -->
                 <td class="py-1 px-2 text-center">
                     <input type="number" min="0" data-target-field="con_target" value="${r.con_target || 0}" oninput="onResidentTargetChange('${r.id}', 'con_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'con_target', this.value)" class="db-cell-input text-center font-mono font-black text-sky-600 ${isOverCon ? 'ring-2 ring-amber-500 rounded-md' : ''}" title="مجدول في الاستشارية: ${stats.conFilled} / النصاب: ${conTarget}">
@@ -6572,6 +6575,7 @@
                 <td class="py-1 px-2 text-center">
                     <input type="number" min="0" data-target-field="dc_target" value="${r.dc_target || 0}" oninput="onResidentTargetChange('${r.id}', 'dc_target', this.value)" onblur="onResidentTargetChange('${r.id}', 'dc_target', this.value)" class="db-cell-input text-center font-mono font-black text-emerald-600 ${isOverDC ? 'ring-2 ring-amber-500 rounded-md' : ''}" title="مجدول في شهادات الوفاة: ${stats.dcFilled} / النصاب: ${dcTarget}">
                 </td>
+                `}
 
                 ${state.rsEnabled ? `
                 <!-- RS Target (Direct number input with live update) -->
@@ -8689,16 +8693,16 @@
                         </div>
                     </div>
 
-                    <div class="grid ${state.rsEnabled ? 'grid-cols-4' : 'grid-cols-3'} gap-2 pt-1">
+                    <div class="grid ${ROT_SYS ? 'grid-cols-1' : (state.rsEnabled ? 'grid-cols-4' : 'grid-cols-3')} gap-2 pt-1">
                         <div>
                             <label class="block text-[11px] font-bold text-rose-600 mb-1">نصاب ER:</label>
                             <input type="number" id="new-res-er" value="2" min="0" class="w-full px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-mono font-bold">
                         </div>
-                        <div>
+                        <div class="${ROT_SYS ? 'hidden' : ''}">
                             <label class="block text-[11px] font-bold text-sky-600 mb-1">نصاب Con:</label>
                             <input type="number" id="new-res-con" value="0" min="0" class="w-full px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-mono font-bold">
                         </div>
-                        <div>
+                        <div class="${ROT_SYS ? 'hidden' : ''}">
                             <label class="block text-[11px] font-bold text-emerald-600 mb-1">نصاب DC:</label>
                             <input type="number" id="new-res-dc" value="0" min="0" class="w-full px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-mono font-bold">
                         </div>
@@ -9162,16 +9166,16 @@
                         </div>
                     </div>
 
-                    <div class="grid ${state.rsEnabled ? 'grid-cols-4' : 'grid-cols-3'} gap-2 pt-1">
+                    <div class="grid ${ROT_SYS ? 'grid-cols-1' : (state.rsEnabled ? 'grid-cols-4' : 'grid-cols-3')} gap-2 pt-1">
                         <div>
                             <label class="block text-[11px] font-bold text-rose-600 mb-1">نصاب ER:</label>
                             <input type="number" id="import-res-er" value="2" min="0" class="w-full px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-mono font-bold">
                         </div>
-                        <div>
+                        <div class="${ROT_SYS ? 'hidden' : ''}">
                             <label class="block text-[11px] font-bold text-sky-600 mb-1">نصاب Con:</label>
                             <input type="number" id="import-res-con" value="0" min="0" class="w-full px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-mono font-bold">
                         </div>
-                        <div>
+                        <div class="${ROT_SYS ? 'hidden' : ''}">
                             <label class="block text-[11px] font-bold text-emerald-600 mb-1">نصاب DC:</label>
                             <input type="number" id="import-res-dc" value="0" min="0" class="w-full px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-mono font-bold">
                         </div>

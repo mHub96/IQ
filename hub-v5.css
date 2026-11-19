@@ -883,37 +883,58 @@ html.in-shell #toast-container { top: calc(var(--hub-sat, 0px) + 12px) !importan
    ====================================================================== */
 body.roster-view-er #trending-container, body.roster-view-er #main-content > .top-bar { display: none !important; }
 .nav-btn.nav-er i { color: var(--ds-coral) !important; }
-.er-groups { display: grid; gap: 12px; }
-.er-shift {
-  border-radius: 22px; background: var(--ds-card); border: 1px solid var(--ds-line-2);
-  overflow: hidden; interpolate-size: allow-keywords;
-  animation: ds-rise 0.45s var(--ds-ease) both;
-}
+/* The shifts: collapsible separators (a hairline with the shift's chip, times and count); the cards
+   sit straight on the page under them, as on the roster. */
+.er-groups { display: grid; gap: 4px; }
+.er-shift { interpolate-size: allow-keywords; animation: ds-rise 0.45s var(--ds-ease) both; }
 .er-shift:nth-child(2) { animation-delay: 40ms; } .er-shift:nth-child(3) { animation-delay: 80ms; } .er-shift:nth-child(4) { animation-delay: 120ms; }
-.er-shift.live { border-color: rgba(229, 72, 77, 0.45); box-shadow: 0 0 0 4px rgba(229, 72, 77, 0.08), var(--ds-shadow-2); }
 .er-shift > summary {
-  display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; list-style: none;
-  -webkit-user-select: none; user-select: none;
+  display: flex; align-items: center; gap: 10px; padding: 12px 2px; cursor: pointer; list-style: none;
+  -webkit-user-select: none; user-select: none; border-radius: 14px; -webkit-tap-highlight-color: transparent;
 }
 .er-shift > summary::-webkit-details-marker { display: none; }
-.er-shift-ic { width: 42px; height: 42px; flex: none; border-radius: 14px; display: grid; place-items: center; background: var(--ds-fill); color: var(--ds-ink-2); font-size: 1rem; }
-.er-shift.live .er-shift-ic { background: rgba(229, 72, 77, 0.12); color: var(--ds-coral); }
-.er-shift-t { flex: 1; min-width: 0; display: grid; gap: 2px; }
-.er-shift-t b { font-family: var(--ds-display); font-weight: 600; font-size: 1rem; color: var(--ds-ink); }
-.er-shift-t small { font-size: 0.74rem; color: var(--ds-ink-2); }
-.er-shift-chev { width: 30px; height: 30px; flex: none; border-radius: 10px; display: grid; place-items: center; background: var(--ds-fill); color: var(--ds-ink-2); font-size: 0.72rem; transition: transform 0.35s var(--ds-spring); }
-.er-shift[open] .er-shift-chev { transform: rotate(180deg); }
-.er-live {
-  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
-  background: rgba(229, 72, 77, 0.12); color: var(--ds-coral);
-  font-family: var(--ds-display); font-weight: 700; font-size: 0.7rem; letter-spacing: 0.08em;
+.er-shift > summary:focus-visible { outline: 2px solid var(--ds-teal, #0B7A6E); outline-offset: 2px; }
+.er-shift-ic {
+  width: 34px; height: 34px; flex: none; border-radius: 11px; display: grid; place-items: center;
+  background: var(--ds-fill); color: var(--ds-ink-2); font-size: 0.88rem;
+  transition: background 0.3s var(--ds-ease), color 0.3s var(--ds-ease), transform 0.35s var(--ds-spring);
 }
-.er-live i { width: 8px; height: 8px; border-radius: 50%; background: var(--ds-coral); animation: er-breathe 1.6s ease-in-out infinite; }
+.er-shift > summary:hover .er-shift-ic { transform: scale(1.06); }
+.er-shift.live .er-shift-ic { background: rgba(229, 72, 77, 0.12); color: var(--ds-coral); }
+.er-shift-t { flex: none; display: flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+.er-shift-t b { font-family: var(--ds-display); font-weight: 600; font-size: 0.98rem; color: var(--ds-ink); }
+.er-shift-t small { font-size: 0.72rem; color: var(--ds-ink-3, var(--ds-ink-2)); font-variant-numeric: tabular-nums; }
+.er-shift-n {
+  flex: none; display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px;
+  background: var(--ds-fill); color: var(--ds-ink-2); font-size: 0.7rem; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.er-shift-n i { font-size: 0.66rem; opacity: 0.75; }
+.er-shift-line {
+  flex: 1; min-width: 16px; height: 1px; border-radius: 1px;
+  background: linear-gradient(to left, var(--ds-line-2), transparent);
+}
+.er-shift.live .er-shift-line { background: linear-gradient(to left, rgba(229, 72, 77, 0.55), transparent); }
+.er-shift-chev {
+  width: 26px; height: 26px; flex: none; border-radius: 50%; display: grid; place-items: center;
+  color: var(--ds-ink-2); font-size: 0.66rem; border: 1px solid var(--ds-line-2);
+  transition: transform 0.35s var(--ds-spring), background 0.3s var(--ds-ease);
+}
+.er-shift > summary:hover .er-shift-chev { background: var(--ds-fill); }
+.er-shift[open] .er-shift-chev { transform: rotate(180deg); }
+.er-shift:not([open]) .er-shift-t b { color: var(--ds-ink-2); }
+.er-live {
+  flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px;
+  background: rgba(229, 72, 77, 0.12); color: var(--ds-coral);
+  font-family: var(--ds-display); font-weight: 700; font-size: 0.66rem; letter-spacing: 0.08em;
+}
+.er-live i { width: 7px; height: 7px; border-radius: 50%; background: var(--ds-coral); animation: er-breathe 1.6s ease-in-out infinite; }
 @keyframes er-breathe { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(229, 72, 77, 0.55); } 50% { opacity: 0.55; box-shadow: 0 0 0 7px rgba(229, 72, 77, 0); } }
-.er-shift-body { padding: 0 12px 14px; }
+.er-shift-body { padding: 4px 0 18px; }
 .er-shift[open] .er-shift-body { animation: hp-acc-in 0.4s var(--ds-ease) both; }
 .er-shift::details-content { height: 0; overflow: clip; transition: height 0.38s var(--ds-spring), content-visibility 0.38s allow-discrete; }
-.er-shift[open]::details-content { height: auto; }
+.er-shift[open]::details-content { height: auto; overflow: visible; }
+.er-place-badge i { color: var(--ds-coral); }
+@media (max-width: 380px) { .er-shift-t small { display: none; } }
 @media (prefers-reduced-motion: reduce) { .er-live i { animation: none; } .er-shift::details-content { transition: none; } }
 
 /* ======================================================================

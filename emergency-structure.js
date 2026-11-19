@@ -28,8 +28,21 @@
         L().SHIFTS.forEach(sh => { if (!Array.isArray(d.shifts[sh])) d.shifts[sh] = []; });
         d.con = Array.isArray(d.con) ? d.con : [];
         d.dc = Array.isArray(d.dc) ? d.dc : [];
+        d.counts = d.counts && typeof d.counts === 'object' ? d.counts : {};
         return d;
     }
+    const countOf = shift => Math.max(1, Math.min(6, Number(draft.counts[shift]) || 1));
+    /** A shift with no sector in it: its number of residents, with − / + (no title on them). */
+    const countHtml = shift => {
+        const c = countOf(shift);
+        return `<div class="erst-count">
+            <span>${c === 1 ? 'مقيم واحد' : `${c} مقيمين`} <small>بلا أقسام</small></span>
+            <span class="erst-step">
+                <button type="button" class="erst-x" data-act="count-dec" data-shift="${shift}" ${c <= 1 ? 'disabled' : ''} title="إزالة مقيم"><i class="fas fa-minus"></i></button>
+                <button type="button" class="erst-chip" data-act="count-inc" data-shift="${shift}" ${c >= 6 ? 'disabled' : ''}><i class="fas fa-user-plus"></i> إضافة مقيم</button>
+            </span>
+        </div>`;
+    };
 
     /** Basra Teaching Hospital's layout: men / women, Green and Yellow in the two middle shifts. */
     function basraPreset() {
@@ -57,7 +70,7 @@
     function sectorsHtml() {
         return `<section class="erst-sec">
             <h4><i class="fas fa-hospital"></i> أقسام الطوارئ</h4>
-            <p class="erst-hint">بدون أقسام: مقيم واحد في كل وجبة (النظام الحالي). أضف الأقسام ثم حدّد لكل وجبة شُعب كل قسم وعدد مقيميها.</p>
+            <p class="erst-hint">بدون أقسام: مقيم واحد في كل وجبة، ويمكنك إضافة مقيمين آخرين لأي وجبة من بطاقتها. أو أضف الأقسام ثم حدّد لكل وجبة شُعب كل قسم وعدد مقيميها.</p>
             <div class="erst-list">${draft.sectors.map((sec, i) => `
                 <div class="erst-row">
                     <input class="erst-in" data-sector-name="${i}" value="${esc(sec.name)}" placeholder="اسم القسم" maxlength="40">
@@ -93,7 +106,7 @@
                         <button type="button" class="erst-chip" data-act="add-div" data-shift="${shift}" data-sector="${sec.id}" data-name="" data-branch=""><i class="fas fa-plus"></i> شعبة أخرى</button>
                     </div></div>` : ''}
             </div>`;
-        }).join('') : '<div class="erst-empty">مقيم واحد (لا توجد أقسام)</div>';
+        }).join('') + (draft.shifts[shift].length ? '' : countHtml(shift)) : countHtml(shift);
         return `<section class="erst-sec erst-shift">
             <h4><i class="fas ${info.icon}"></i> ${info.name} <small>${info.time}</small><span class="erst-n">${n} ${n === 1 ? 'مقيم' : 'مقيمين'}</span></h4>
             ${body}
@@ -197,9 +210,11 @@
             const ent = entryOf(shift, sector);
             ent.divisions.splice(j, 1);
             if (!ent.divisions.length) ent.divisions.push({ name: '', branch: '', count: 1 });
+        } else if (a === 'count-inc' || a === 'count-dec') {
+            draft.counts[shift] = Math.max(1, Math.min(6, countOf(shift) + (a === 'count-inc' ? 1 : -1)));
         } else if (a === 'copy-shift') {
             if (!confirm(`نسخ توزيع «${L().SHIFT_INFO[shift].name}» إلى الوجبات الثلاث الأخرى؟`)) return;
-            L().SHIFTS.forEach(sh => { if (sh !== shift) draft.shifts[sh] = clone(draft.shifts[shift]); });
+            L().SHIFTS.forEach(sh => { if (sh !== shift) { draft.shifts[sh] = clone(draft.shifts[shift]); draft.counts[sh] = draft.counts[shift]; } });
         } else if (a === 'add-time') {
             const list = draft[b.dataset.kind];
             const last = list[list.length - 1];
@@ -241,6 +256,9 @@
             }));
         });
         ['con', 'dc'].forEach(k => { out[k] = out[k].filter(p => p.start && p.end).map(p => ({ start: p.start, end: p.end })); });
+        const counts = {};
+        L().SHIFTS.forEach(sh => { const c = Math.max(1, Math.min(6, Number(out.counts[sh]) || 1)); if (c > 1) counts[sh] = c; });
+        out.counts = counts;
         out.code = String(out.code || '').trim();
         return out;
     }

@@ -57,8 +57,14 @@ export function monthPositions(month) {
   if (!l || !Array.isArray(l.er) || !l.er.length) {
     return Object.fromEntries(Object.entries(ER_SLOTS).map(([t, keys]) => [t, keys.map(key => ({ key }))]));
   }
-  const place = p => [p.sector, p.division, p.of > 1 ? String(p.n) : ''].filter(x => x).map(x => String(x).slice(0, 40)).join(' · ');
-  const er = l.er.filter(p => p && typeof p.key === 'string').map(p => ({ key: p.key, place: place(p) }));
+  // A shift's untitled extra residents (no sector, no division) have no place.
+  const place = p => (p.sector || p.division ? [p.sector, p.division, p.of > 1 ? String(p.n) : ''] : []).filter(x => x).map(x => String(x).slice(0, 40)).join(' · ');
+  const er = l.er.filter(p => p && typeof p.key === 'string').map(p => {
+    const out = { key: p.key, place: place(p) };
+    if (p.sector) out.sector = String(p.sector).slice(0, 40);
+    if (p.division) out.division = String(p.division).slice(0, 40);
+    return out;
+  });
   const con = (Array.isArray(l.con) && l.con.length ? l.con : [{ key: 'doctor' }]).filter(p => p && typeof p.key === 'string')
     .map(p => (HHMM.test(p.start || '') && HHMM.test(p.end || '') && l.con.length > 1 ? { key: p.key, start: p.start, end: p.end } : { key: p.key }));
   return { er, con, rs: er.map(p => ({ ...p, key: 'er_' + p.key })).concat(WARDS.map(key => ({ key }))) };

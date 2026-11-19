@@ -6,6 +6,7 @@
  *   shifts:  { morning|afternoon|preNight|lateNight: [{ sector, divisions: [{ name, branch, count }] }] }
  *            a division without a name is the sector itself; branch '' | 'surgical' | 'medical'
  *            (who the generator prefers there); count = residents in it at the same time
+ *   counts:  { morning|…: n }  residents of a shift that has no sectors (default 1; untitled positions)
  *   con:     [{ start, end }]  the consultation clinic's duties of a day ('HH:MM'; gaps allowed)
  *   dc:      [{ start, end }]  the death-certificate duties of a day (together exactly 24 hours)
  *   code:    the hospital's short name on file names (BTH, ITH…); default: its English initials
@@ -115,7 +116,11 @@
                     }
                 });
             });
-            if (!list.length) list.push({ shift, sector: '', sectorId: '', division: '', branch: '', n: 1, of: 1 });
+            if (!list.length) {
+                // A shift without sectors: its residents (one unless more were added), with no title.
+                const count = Math.max(1, Math.min(6, Number((struct.counts || {})[shift]) || 1));
+                for (let n = 1; n <= count; n++) list.push({ shift, sector: '', sectorId: '', division: '', branch: '', n, of: count });
+            }
             list.forEach((p, i) => er.push({ key: i === 0 ? shift : `${shift}.${i}`, ...p }));
         });
         const timed = list => {
@@ -202,12 +207,12 @@
 
     /** A month's layout back as a structure (what the editor shows): sectors, divisions per shift, hours. */
     function structureFromLayout(layout, base) {
-        const out = { sectors: [], shifts: {}, con: [], dc: [] };
+        const out = { sectors: [], shifts: {}, counts: {}, con: [], dc: [] };
         SHIFTS.forEach(sh => { out.shifts[sh] = []; });
         (layout.er || []).forEach(p => {
-            if (!p || (!p.sector && !p.sectorId)) return;
-            const shift = p.shift || shiftOf(p.key);
+            const shift = p && (p.shift || shiftOf(p.key));
             if (!shift) return;
+            if (!p.sector && !p.sectorId) { out.counts[shift] = (out.counts[shift] || 0) + 1; return; }
             const id = p.sectorId || ('s_' + p.sector);
             if (!out.sectors.some(s => s.id === id)) out.sectors.push({ id, name: p.sector || 'قسم' });
             let entry = out.shifts[shift].find(e => e.sector === id);

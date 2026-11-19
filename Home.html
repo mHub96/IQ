@@ -2735,52 +2735,124 @@
             const asResident = (d, sh) => {
                 const { start, end } = shiftMinutes(sh);
                 const phone = erPhone(d.name) || 'رقم غير متوفر';
-                // Title bubble: the resident's own specialty; a rotator's is «مقيم دوري». (The code keeps an
-                // ER_ prefix so the card never takes the ICU bed status of an anaesthesia duty.)
+                // One title bubble: the doctor's role in the ER (own specialty, or «مقيم دوري»). The place is
+                // the division frame's. (The code keeps an ER_ prefix so the card never takes the ICU status.)
                 const own = d.sys === 'rot' ? null : erDoctorSpec(d.name);
                 const bubble = d.sys === 'rot' ? { name: 'مقيم دوري', icon: '🔄' } : (own || { name: 'مقيم أقدم', icon: '🚑' });
                 const specs = [{ code: 'ER_' + (own ? own.code : sh.key), name: bubble.name, icon: bubble.icon, endMin: end, remainingMinutes: Math.max(0, end - currentMin) }];
-                return { name: d.name, phone, specs, dutyTime: null, startMin: start, endMin: end, placeTag: d.place || '',
+                return { name: d.name, phone, specs, dutyTime: null, startMin: start, endMin: end,
                     remainingMinutes: Math.max(0, Math.min(TOTAL_MINUTES, end - currentMin)), criticalSpecCode: 'ER_' + sh.key,
                     visitCount: d.visits || 0, isClone: false, parentHospitalName: null, parentHospitalId: null, clonedFromSpecId: null };
             };
             const track = r => `trackErContact('${r.name.replace(/'/g, "\\'")}');`;
-            const all = [];
-            const groups = (erToday.shifts || []).map(sh => {
-                const list = (erToday.doctors || []).filter(d => d.shift === sh.key).map(d => asResident(d, sh));
-                all.push(...list);
-                const end = (sh.start + sh.hours) % 24;
-                const t = h => `${((h + 11) % 12) + 1}${h < 12 ? 'ص' : 'م'}`;
-                const live = sh.key === now;
-                const open = live || erOpen.has(sh.key);
+            const all = [];   // the cards in page order (decorateRosterCards matches them by position)
+            const t = h => `${((h + 11) % 12) + 1}${h < 12 ? 'ص' : 'م'}`;
+            const shifts = erToday.shifts || [];
+            const docsOf = sh => (erToday.doctors || []).filter(d => d.shift === sh.key);
+            const cardsHtml = (items, top) => items.map(({ r }) => { all.push(r); return rosterCardHtml(r, currentMin, top, { track }); }).join('');
+
+            // A shift's doctors: untitled ones as plain cards, the others in a frame per sector / division.
+            const bodyOf = (sh, live) => {
+                const items = docsOf(sh).map(d => ({ d, r: asResident(d, sh) }));
+                if (!items.length) return '<div class="text-center text-slate-400 text-sm py-4">لا يوجد خفراء مسجلون لهذه الوجبة</div>';
                 // The busiest card of the running shift glows like the roster's trending card.
-                const top = live ? list.reduce((a, b) => (b.visitCount > (a ? a.visitCount : 0) ? b : a), null) : null;
-                return `<details class="er-shift${live ? ' live' : ''}" data-shift="${sh.key}" ${open ? 'open' : ''}>
+                const top = live ? items.reduce((a, b) => (b.r.visitCount > (a ? a.visitCount : 0) ? b.r : a), null) : null;
+                const groups = [];
+                items.forEach(it => {
+                    const key = it.d.sector || it.d.division ? `${it.d.sector || ''}|${it.d.division || ''}` : '';
+                    let g = groups.find(x => x.key === key);
+                    if (!g) groups.push(g = { key, sector: it.d.sector || '', division: it.d.division || '', items: [] });
+                    g.items.push(it);
+                });
+                const sectors = [...new Set(groups.filter(g => g.sector).map(g => g.sector))];
+                return groups.map(g => {
+                    if (!g.key) return `<div class="roster-grid er-plain">${cardsHtml(g.items, top)}</div>`;
+                    const kind = erSectorKind(g.sector);
+                    const tint = erDivisionTint(g.division, kind, sectors.indexOf(g.sector));
+                    return `<section class="er-div" style="--div:${tint.light};--div-d:${tint.dark}">
+                        <header class="er-div-head">
+                            ${g.sector ? `<span class="er-sex ${kind.cls}"><i class="fas ${kind.icon}"></i>${erEsc(g.sector)}</span>` : ''}
+                            ${g.division ? `<b class="er-div-name"><i></i>${erEsc(g.division)}</b>` : ''}
+                            <span class="er-div-n">${g.items.length}</span>
+                        </header>
+                        <div class="roster-grid">${cardsHtml(g.items, top)}</div>
+                    </section>`;
+                }).join('');
+            };
+            const shiftHtml = (sh, live) => {
+                const n = docsOf(sh).length, end = (sh.start + sh.hours) % 24;
+                const open = live || erOpen.has(sh.key);
+                return `<details class="er-shift${live ? ' live' : ''}" data-k="${sh.key}" ${open ? 'open' : ''}>
                     <summary><span class="er-shift-ic"><i class="fas ${ER_ICONS[sh.key] || 'fa-clock'}"></i></span>
                         <span class="er-shift-t"><b>${erEsc(sh.name)}</b><small>${t(sh.start)} - ${t(end)}</small></span>
-                        <span class="er-shift-n" title="${list.length} ${list.length === 1 ? 'طبيب' : 'أطباء'}"><i class="fas fa-user-doctor"></i> ${list.length}</span>
+                        <span class="er-shift-n" title="${n} ${n === 1 ? 'طبيب' : 'أطباء'}"><i class="fas fa-user-doctor"></i> ${n}</span>
                         ${live ? '<span class="er-live"><i></i> LIVE</span>' : ''}
                         <span class="er-shift-line" aria-hidden="true"></span>
                         <i class="fas fa-chevron-down er-shift-chev"></i></summary>
-                    <div class="roster-grid er-shift-body">${list.length ? list.map(r => rosterCardHtml(r, currentMin, top, { track })).join('') : '<div class="text-center text-slate-400 text-sm py-4">لا يوجد خفراء مسجلون لهذه الوجبة</div>'}</div>
+                    <div class="er-shift-body">${open ? bodyOf(sh, live) : ''}</div>
                 </details>`;
-            }).join('');
-            const html = all.length ? `<div class="er-groups">${groups}</div>`
+            };
+            // The running shift first, open; the earlier and later shifts of the duty day folded into two
+            // categories (closed by default), so the doctors on duty now are the first thing on the page.
+            const at = Math.max(0, shifts.findIndex(sh => sh.key === now));
+            const category = (key, title, icon, list) => {
+                if (!list.length) return '';
+                const n = list.reduce((sum, sh) => sum + docsOf(sh).length, 0);
+                const open = erOpen.has(key);
+                return `<details class="er-cat" data-k="${key}" ${open ? 'open' : ''}>
+                    <summary><i class="fas ${icon} er-cat-ic"></i><b>${title}</b>
+                        <small>${list.map(sh => erEsc(sh.name)).join(' · ')}</small>
+                        <span class="er-shift-n"><i class="fas fa-user-doctor"></i> ${n}</span>
+                        <i class="fas fa-chevron-down er-shift-chev"></i></summary>
+                    <div class="er-cat-body">${open ? list.map(sh => shiftHtml(sh, false)).join('') : ''}</div>
+                </details>`;
+            };
+            const total = (erToday.doctors || []).length;
+            const html = total ? `<div class="er-groups">${shifts[at] ? shiftHtml(shifts[at], true) : ''}
+                    ${category('prev', 'الخفارات السابقة', 'fa-clock-rotate-left', shifts.slice(0, at))}
+                    ${category('next', 'الخفارات القادمة', 'fa-forward', shifts.slice(at + 1))}</div>`
                 : '<div class="glass-card p-8 text-center text-slate-400"><i class="fas fa-truck-medical text-4xl mb-3 text-slate-300 dark:text-slate-600"></i><div class="font-bold text-base">لا يوجد جدول طوارئ لهذا المستشفى اليوم.</div></div>';
             const countTag = document.getElementById('count-tag');
-            if (countTag) countTag.innerHTML = `<i class="fas fa-users mr-1"></i> ${all.length} خفر طوارئ اليوم`;
+            if (countTag) countTag.innerHTML = `<i class="fas fa-users mr-1"></i> ${total} خفر طوارئ اليوم`;
             // Redrawn only when something changed (the timers update in place), so open threads and the
             // flip state of the bubbles survive the 30 s refresh, as on the roster.
-            const sameKey = html.replace(/(<span class="countdown-timer[^>]*>)[^<]*/g, '$1').replace(/<details class="er-shift[^>]*>/g, '<details>');
+            const sameKey = html.replace(/(<span class="countdown-timer[^>]*>)[^<]*/g, '$1');
             if (container._rosterHtml !== sameKey || !container.querySelector('.er-groups, .glass-card')) {
                 container._rosterHtml = sameKey;
                 container.innerHTML = html;
-                container.querySelectorAll('details.er-shift').forEach(d => d.addEventListener('toggle', () => {
-                    if (d.classList.contains('live')) return;
-                    if (d.open) erOpen.add(d.dataset.shift); else erOpen.delete(d.dataset.shift);
+                container.querySelectorAll('details[data-k]').forEach(d => d.addEventListener('toggle', () => {
+                    if (d.classList.contains('live')) { if (!d.open) d.open = true; return; }
+                    if (d.open === erOpen.has(d.dataset.k)) return;
+                    if (d.open) erOpen.add(d.dataset.k); else erOpen.delete(d.dataset.k);
+                    renderErView(); // a closed group is drawn empty: its cards are made when it opens
                 }));
             }
             decorateRosterCards(container, all, erDay);
+        }
+
+        /** The 3D badge of an ER sector: men (navy), women (royal pink), children (amber), others (slate). */
+        function erSectorKind(name) {
+            const n = String(name || '');
+            if (/رجال|men\b/i.test(n)) return { cls: 'sx-men', icon: 'fa-person' };
+            if (/نساء|نسائ|women/i.test(n)) return { cls: 'sx-women', icon: 'fa-person-dress' };
+            if (/أطفال|اطفال|طفل|child|paed|ped/i.test(n)) return { cls: 'sx-kids', icon: 'fa-child' };
+            return { cls: 'sx-other', icon: 'fa-hospital' };
+        }
+        /** A division's tint (light / dark theme): its colour's name when it has one, else one per sector. */
+        function erDivisionTint(division, kind, i) {
+            const n = String(division || '');
+            const named = [
+                [/خضر|green/i, '#178A4C', '#3DD68C'], [/صفر|yellow/i, '#B7860B', '#F5C542'], [/حمر|red/i, '#C62F3A', '#FF6B74'],
+                [/زرق|blue/i, '#2463C9', '#6EA8FF'], [/برتقال|orange/i, '#C8641A', '#FF9D4D'], [/بنفسج|purple|violet/i, '#7A4BC9', '#B08CFF'],
+            ].find(([re]) => re.test(n));
+            if (named) return { light: named[1], dark: named[2] };
+            if (!n) {
+                const bySector = { 'sx-men': ['#1F3B73', '#7FA6FF'], 'sx-women': ['#B0306E', '#FF7DB8'], 'sx-kids': ['#B7700B', '#FFB547'] }[kind.cls];
+                if (bySector) return { light: bySector[0], dark: bySector[1] };
+            }
+            const pal = [['#0B7A6E', '#4FD6C2'], ['#5B4BC4', '#A99BFF'], ['#1D6FA3', '#6CC4FF'], ['#8A5A12', '#E0B26A']];
+            const c = pal[Math.abs(i) % pal.length];
+            return { light: c[0], dark: c[1] };
         }
 
         /** «👁», WhatsApp and Call on an ER card: the ER's own views counter (kept by the server). */
@@ -2929,11 +3001,6 @@
                                         <i class="fas fa-hospital-user"></i>
                                         <span>${resident.parentHospitalName}</span>
                                     </span>
-                                </div>
-                            ` : ''}
-                            ${resident.placeTag ? `
-                                <div class="clone-parent-title">
-                                    <span class="clone-parent-badge er-place-badge"><i class="fas fa-location-dot"></i><span>${resident.placeTag}</span></span>
                                 </div>
                             ` : ''}
                             <div class="specialty-bubbles">${specialtyBubbles}</div>

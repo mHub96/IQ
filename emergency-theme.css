@@ -510,3 +510,9 @@ html.dark .er-pv-lock table td.er-pv-diff { background: rgba(245, 158, 11, 0.18)
 .er-pv-was { margin-top: 3px; font-size: 10px; font-weight: 700; color: #92400e; text-decoration: line-through; text-decoration-color: rgba(146, 64, 14, 0.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 html.dark .er-pv-was { color: #fcd34d; }
 .er-pv-lock .er-pv-off { opacity: 0.4 !important; pointer-events: none !important; }
+/* A shift without sectors: its number of residents (− / إضافة مقيم) */
+.erst-count { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 4px 0; font-size: 12.5px; font-weight: 700; color: var(--ers-text-2); }
+.erst-count small { font-weight: 600; color: var(--ers-text-3); margin-inline-start: 4px; }
+.erst-step { display: inline-flex; align-items: center; gap: 6px; }
+.erst-step .erst-chip { border-style: solid; background: var(--ers-accent-soft); color: var(--ers-accent); border-color: transparent; }
+.erst-step button:disabled { opacity: .4; cursor: not-allowed; }

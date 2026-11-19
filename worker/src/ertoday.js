@@ -36,6 +36,8 @@ export function dayDoctors(month, day, sys) {
     if (!SHIFTS.some(s => s.key === shift)) continue;
     const d = { shift, name, sys };
     if (p.place) d.place = p.place;
+    if (p.sector) d.sector = p.sector;
+    if (p.division) d.division = p.division;
     out.push(d);
   }
   return out;

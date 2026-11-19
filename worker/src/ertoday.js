@@ -8,8 +8,8 @@
  * the death certificates). Built once per change of the ER data (revcache), so a visit costs no reads.
  */
 
-import { json } from './lib.js';
-import { isoDate } from './names.js';
+import { json, readJson, overLimit, plainText } from './lib.js';
+import { isoDate, nameKey } from './names.js';
 import { monthPositions } from './duties.js';
 import { revision, cachedValue } from './revcache.js';
 import { dutyDayNow } from './profile.js';
@@ -41,7 +41,26 @@ export function dayDoctors(month, day, sys) {
   return out;
 }
 
-export async function routeErToday(path, method, env, auth, url) {
+// The ER cards' views (the roster cards' «👁» counter, which lives on roster entries): one kv row per
+// hospital and duty day, { nameKey: count }, raised in one statement.
+const visitKey = (hosp, day) => `ervisit:${hosp}:${day}`;
+
+async function erVisit(request, env, auth) {
+  const b = await readJson(request) || {};
+  const hosp = String(b.h || ''), key = nameKey(plainText(b.n, 120) || '');
+  if (!HOSP_RE.test(hosp) || !key) return json({ error: 'bad_request' }, 400);
+  if (await overLimit(env, 'erv:' + (auth.a || auth.r), 60)) return json({ error: 'rate_limited' }, 429);
+  const k = visitKey(hosp, dutyDayNow()), path = `$."${key.replace(/"/g, '')}"`;
+  const row = await env.DB.prepare(
+    `INSERT INTO kv (k, v) VALUES (?1, json_object(?3, 1))
+     ON CONFLICT (k) DO UPDATE SET v = json_set(v, ?2, COALESCE(json_extract(v, ?2), 0) + 1)
+     RETURNING json_extract(v, ?2) AS n`
+  ).bind(k, path, key.replace(/"/g, '')).first();
+  return json({ ok: true, visits: row ? row.n : 1 });
+}
+
+export async function routeErToday(path, method, request, env, auth, url) {
+  if (path === '/api/er-today/visit' && method === 'POST') return auth ? erVisit(request, env, auth) : json({ error: 'unauthorized' }, 401);
   if (path !== '/api/er-today') return null;
   if (method !== 'GET') return json({ error: 'not_found' }, 404);
   if (!auth) return json({ error: 'unauthorized' }, 401);
@@ -62,5 +81,7 @@ export async function routeErToday(path, method, env, auth, url) {
     const mainMonth = byId.get(main) || parse((kept.results[0] || {}).v);
     return [...dayDoctors(mainMonth, day, 'res'), ...dayDoctors(byId.get(rot), day, 'rot')];
   });
-  return json({ ok: true, day, shifts: SHIFTS, doctors });
+  let visits = {};
+  try { visits = JSON.parse(((await env.DB.prepare('SELECT v FROM kv WHERE k = ?').bind(visitKey(hosp, day)).first()) || {}).v || '{}') || {}; } catch {}
+  return json({ ok: true, day, shifts: SHIFTS, doctors: doctors.map(d => ({ ...d, visits: Number(visits[nameKey(d.name)]) || 0 })) });
 }

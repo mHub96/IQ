@@ -168,7 +168,7 @@ async function route(request, env, ctx) {
   if (usageRoute) return usageRoute;
   const remindersRoute = await routeReminders(path, method, request, env, auth);
   if (remindersRoute) return remindersRoute;
-  const erTodayRoute = await routeErToday(path, method, env, auth, url);
+  const erTodayRoute = await routeErToday(path, method, request, env, auth, url);
   if (erTodayRoute) return erTodayRoute;
   const dutiesRoute = await routeDuties(path, method, request, env, auth, url, ctx);
   if (dutiesRoute) return dutiesRoute;

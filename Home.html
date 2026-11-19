@@ -2703,41 +2703,258 @@
                 if (!erToday) return;
             }
             const now = currentErShift();
-            const cards = d => {
-                const phone = erPhone(d.name);
-                const digits = phone.replace(/\D/g, '');
-                const intl = digits.startsWith('964') ? digits : digits.startsWith('0') ? '964' + digits.slice(1) : digits;
-                const ok = digits.length >= 10;
-                return `<div class="roster-card-wrapper er-card-wrap"><div class="roster-card"><div class="card-face card-front card-body">
-                    <div class="specialty-bubbles">${d.place ? `<span class="specialty-bubble">${erEsc(d.place)}</span>` : ''}${d.sys === 'rot' ? '<span class="specialty-bubble er-rot-badge">دوري</span>' : ''}</div>
-                    <div class="resident-name">${erEsc(d.name)}</div>
-                    <div class="resident-phone">${ok ? erEsc(phone) : 'رقم غير متوفر'}</div>
-                    <div class="card-actions">
-                        <a href="${ok ? 'whatsapp://send?phone=' + intl : '#'}" class="action-btn-sm wa ${ok ? '' : 'opacity-40'}"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                        <a href="${ok ? 'tel:+' + intl : '#'}" class="action-btn-sm call ${ok ? '' : 'opacity-40'}"><i class="fas fa-phone"></i> Call</a>
-                    </div></div></div></div>`;
+            const currentMin = getCurrentMinutes();
+            // ER duty day (YYYY-MM-DD from the server) as the roster writes dates (DD/MM/YYYY): the cards'
+            // likes and comments are those of the doctor's duty day at this hospital, as on the roster.
+            const [ey, em, ed] = String(erToday.day || '').split('-');
+            const erDay = ed ? `${ed}/${em}/${ey}` : Hub.getMedicalDate();
+            const shiftMinutes = sh => { const start = ((sh.start - DAY_START + 24) % 24) * 60; return { start, end: start + sh.hours * 60 }; };
+            const asResident = (d, sh) => {
+                const { start, end } = shiftMinutes(sh);
+                const phone = erPhone(d.name) || 'رقم غير متوفر';
+                const label = sh.name + (d.place ? ' · ' + d.place : '') + (d.sys === 'rot' ? ' · دوري' : '');
+                const specs = [{ code: 'ER_' + sh.key, name: label, icon: d.sys === 'rot' ? '🔄' : '🚑', endMin: end, remainingMinutes: Math.max(0, end - currentMin) }];
+                return { name: d.name, phone, specs, dutyTime: null, startMin: start, endMin: end,
+                    remainingMinutes: Math.max(0, Math.min(TOTAL_MINUTES, end - currentMin)), criticalSpecCode: 'ER_' + sh.key,
+                    visitCount: d.visits || 0, isClone: false, parentHospitalName: null, parentHospitalId: null, clonedFromSpecId: null };
             };
+            const track = r => `trackErContact('${r.name.replace(/'/g, "\\'")}');`;
+            const all = [];
             const groups = (erToday.shifts || []).map(sh => {
-                const list = (erToday.doctors || []).filter(d => d.shift === sh.key);
+                const list = (erToday.doctors || []).filter(d => d.shift === sh.key).map(d => asResident(d, sh));
+                all.push(...list);
                 const end = (sh.start + sh.hours) % 24;
                 const t = h => `${((h + 11) % 12) + 1}${h < 12 ? 'ص' : 'م'}`;
                 const live = sh.key === now;
                 const open = live || erOpen.has(sh.key);
+                // The busiest card of the running shift glows like the roster's trending card.
+                const top = live ? list.reduce((a, b) => (b.visitCount > (a ? a.visitCount : 0) ? b : a), null) : null;
                 return `<details class="er-shift${live ? ' live' : ''}" data-shift="${sh.key}" ${open ? 'open' : ''}>
                     <summary><i class="fas ${ER_ICONS[sh.key] || 'fa-clock'} er-shift-ic"></i>
                         <span class="er-shift-t"><b>${erEsc(sh.name)}</b><small>${t(sh.start)} - ${t(end)} · ${list.length} ${list.length === 1 ? 'طبيب' : 'أطباء'}</small></span>
                         ${live ? '<span class="er-live"><i></i> LIVE</span>' : ''}
                         <i class="fas fa-chevron-down er-shift-chev"></i></summary>
-                    <div class="roster-grid er-shift-body">${list.length ? list.map(cards).join('') : '<div class="text-center text-slate-400 text-sm py-4">لا يوجد خفراء مسجلون لهذه الوجبة</div>'}</div>
+                    <div class="roster-grid er-shift-body">${list.length ? list.map(r => rosterCardHtml(r, currentMin, top, { track })).join('') : '<div class="text-center text-slate-400 text-sm py-4">لا يوجد خفراء مسجلون لهذه الوجبة</div>'}</div>
                 </details>`;
             }).join('');
-            const total = (erToday.doctors || []).length;
-            container.innerHTML = total ? `<div class="er-groups">${groups}</div>`
+            const html = all.length ? `<div class="er-groups">${groups}</div>`
                 : '<div class="glass-card p-8 text-center text-slate-400"><i class="fas fa-truck-medical text-4xl mb-3 text-slate-300 dark:text-slate-600"></i><div class="font-bold text-base">لا يوجد جدول طوارئ لهذا المستشفى اليوم.</div></div>';
-            container.querySelectorAll('details.er-shift').forEach(d => d.addEventListener('toggle', () => {
-                if (d.classList.contains('live')) return;
-                if (d.open) erOpen.add(d.dataset.shift); else erOpen.delete(d.dataset.shift);
-            }));
+            const countTag = document.getElementById('count-tag');
+            if (countTag) countTag.innerHTML = `<i class="fas fa-users mr-1"></i> ${all.length} خفر طوارئ اليوم`;
+            // Redrawn only when something changed (the timers update in place), so open threads and the
+            // flip state of the bubbles survive the 30 s refresh, as on the roster.
+            const sameKey = html.replace(/(<span class="countdown-timer[^>]*>)[^<]*/g, '$1').replace(/<details class="er-shift[^>]*>/g, '<details>');
+            if (container._rosterHtml !== sameKey || !container.querySelector('.er-groups, .glass-card')) {
+                container._rosterHtml = sameKey;
+                container.innerHTML = html;
+                container.querySelectorAll('details.er-shift').forEach(d => d.addEventListener('toggle', () => {
+                    if (d.classList.contains('live')) return;
+                    if (d.open) erOpen.add(d.dataset.shift); else erOpen.delete(d.dataset.shift);
+                }));
+            }
+            decorateRosterCards(container, all, erDay);
+        }
+
+        /** «👁», WhatsApp and Call on an ER card: the ER's own views counter (kept by the server). */
+        async function trackErContact(name) {
+            const key = `contact_er_${name}`, now = Date.now();
+            if (clickCooldown[key] && (now - clickCooldown[key]) < COOLDOWN_TIME) {
+                showToast('⏳ تم تسجيل تفاعل مؤخراً، يرجى الانتظار قليلاً', 'info', 2000);
+                return;
+            }
+            clickCooldown[key] = now;
+            if (!currentHospital) return;
+            try {
+                const res = await Hub.api('POST', '/api/er-today/visit', { h: currentHospital.id, n: name }, { retries: 1 });
+                (erToday && erToday.doctors || []).forEach(d => { if (d.name === name) d.visits = res.visits; });
+                showToast(`✅ تم تسجيل تفاعل مع ${name}`, 'success', 2200);
+                renderErView();
+                fireConfettiFromPosition(window.innerWidth / 2, window.innerHeight * 0.7);
+            } catch (err) {
+                console.error('Tracking Error:', err);
+            }
+        }
+
+        /**
+         * One duty card, as on the main roster (also the rotators' roster and the ER duties view).
+         * opts.track: the JS run on «👁», WhatsApp and Call (default: the roster's contact tracking).
+         */
+        function rosterCardHtml(resident, currentMin, trending, opts = {}) {
+            const trackJs = opts.track ? opts.track(resident)
+                : `trackResidentContact('${resident.name.replace(/'/g, "\\'")}', '${(resident.criticalSpecCode || '').replace(/'/g, "\\'")}', '${(resident.parentHospitalId || '').replace(/'/g, "\\'")}');`;
+            const isTrending = trending && trending.name === resident.name;
+            const isCrimson = resident.remainingMinutes < 60 && resident.remainingMinutes > 0;
+            const isPhoneValid = resident.phone && resident.phone.replace(/[^0-9]/g, '').length >= 10;
+            const phoneClean = resident.phone.replace(/[^0-9]/g, '');
+
+            const isMultiSpec = Array.isArray(resident.specs) && resident.specs.length > 1;
+            // ICU bed status belongs to the doctors' anaesthesia duty (not to division job titles or their mirrors).
+            const isIcuResident = !Hub.aa.active && !Hub.aa.isMirrorId(resident.parentHospitalId)
+                && Array.isArray(resident.specs) && resident.specs.some(s => s.code === 'ICU' || s.code === 'A');
+
+            let icuCounterHtml = '';
+            let icuBackFaceHtml = '';
+            let cardFlipClass = '';
+
+            if (isIcuResident && currentHospital) {
+                cardFlipClass = 'icu-flip-card';
+                const icuStats = (window.Hub && Hub.getICUStats) ? Hub.getICUStats(currentHospital.id) : (currentHospital.icu || { totalBeds: 12, functionalBeds: 10, occupiedBeds: 7, availableBeds: 3 });
+                const availableBeds = icuStats ? (icuStats.availableBeds !== undefined ? icuStats.availableBeds : Math.max(0, (icuStats.functionalBeds || 0) - (icuStats.occupiedBeds || 0))) : 0;
+                const isFull = (availableBeds <= 0);
+                const canEditICU = window.Hub && Hub.canEditICU ? Hub.canEditICU(currentHospital.id) : false;
+
+                icuCounterHtml = `
+                    <button type="button" class="card-icu-status ${isFull ? 'status-icu-full' : 'status-icu-avail'}"
+                            onclick="toggleIcuCardFlip(event, this)"
+                            title="اضغط لمعاينة تفاصيل موقف أسرة العناية المركزة">
+                        ${isFull ? `<span class="icu-alarm-indicator" title="العناية ممتلئة بالكامل!"><i class="fas fa-bell"></i></span>` : ''}
+                        <i class="fas fa-bed"></i>
+                        <span>${isFull ? 'ممتلئ' : `${availableBeds} شاغر`}</span>
+                    </button>
+                `;
+
+                icuBackFaceHtml = `
+                    <div class="card-face card-back" onclick="event.stopPropagation()">
+                        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:0.35rem;">
+                            <div style="display:flex; align-items:center; gap:0.4rem;">
+                                <span style="font-size:1rem; color:#0B7A6E;" class="dark:text-amber-400"><i class="fas fa-procedures"></i></span>
+                                <span style="font-size:0.85rem; font-weight:800; color:#141B1A;" class="dark:text-white">موقف أسرة العناية المركزة</span>
+                            </div>
+                            <button type="button" class="icu-back-close-btn" onclick="toggleIcuCardFlip(event, this)" title="إغلاق والعودة للخفارات">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="icu-back-stats-grid">
+                            <div class="icu-back-stat-item">
+                                <div class="icu-back-stat-num">${icuStats.totalBeds}</div>
+                                <div class="icu-back-stat-label">الأسرة الفعلية</div>
+                            </div>
+                            <div class="icu-back-stat-item">
+                                <div class="icu-back-stat-num">${icuStats.functionalBeds}</div>
+                                <div class="icu-back-stat-label">الصالح منها</div>
+                            </div>
+                            <div class="icu-back-stat-item">
+                                <div class="icu-back-stat-num">${icuStats.occupiedBeds}</div>
+                                <div class="icu-back-stat-label">المشغولة</div>
+                            </div>
+                            <div class="icu-back-stat-item ${isFull ? 'full' : 'avail'}">
+                                <div class="icu-back-stat-num">${availableBeds}</div>
+                                <div class="icu-back-stat-label">${isFull ? 'ممتلئة' : 'الشاغرة المتاحة'}</div>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:0.45rem; width:100%; margin-top:0.45rem;">
+                            <a href="./icu.html?hospital=${encodeURIComponent(currentHospital.id)}" class="icu-back-hub-btn" onclick="event.stopPropagation()">
+                                <i class="fas fa-chart-pie ml-1"></i> صفحة موقف العناية
+                            </a>
+                            ${canEditICU ? `
+                            <button type="button" onclick="event.stopPropagation(); openQuickIcuEdit('${currentHospital.id}')" class="icu-back-edit-btn" title="تعديل أعداد الأسرة">
+                                <i class="fas fa-edit"></i> تعديل
+                            </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            const specialtyBubbles = resident.specs.map(spec => {
+                let rem = spec.endMin - currentMin;
+                if (rem < 0) rem = 0;
+                if (rem > TOTAL_MINUTES) rem = TOTAL_MINUTES;
+                const hours = Math.floor(rem / 60);
+                const minutes = Math.floor(rem % 60);
+                const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+
+                return `
+                    <button type="button" class="specialty-flip ${isMultiSpec ? 'multiple' : ''}" data-end-min="${spec.endMin}" onclick="toggleSpecialtyTimer(this)" aria-label="Show remaining time for ${spec.name}">
+                        <span class="specialty-bubble specialty-front ${isMultiSpec ? 'specialty-gold' : ''}">${spec.name} ${spec.icon || ''}</span>
+                        <span class="specialty-bubble specialty-back ${isMultiSpec ? 'specialty-gold' : ''}">
+                            <span class="specialty-timer-label">المتبقي</span>
+                            <span class="countdown-timer font-mono font-bold" data-end-min="${spec.endMin}">${timeStr}</span>
+                        </span>
+                    </button>
+                `;
+            }).join('');
+
+            let wrapperClasses = 'roster-card-wrapper';
+            if (isTrending) wrapperClasses += ' trending';
+            if (isCrimson) wrapperClasses += ' crimson';
+            if (resident.isClone) wrapperClasses += ' clone-wrapper';
+
+            const cloneCardClass = resident.isClone ? 'clone-card' : '';
+
+            return `
+                <div class="${wrapperClasses}">
+                    <div class="roster-card ${cardFlipClass} ${cloneCardClass}" data-end-min="${resident.endMin}"
+                         onmousemove="handleCardTilt(event, this)"
+                         onmouseleave="resetCardTilt(this)">
+                        <div class="card-face card-front card-body">
+                            <span class="card-status ${isTrending ? 'status-trending' : ''}"
+                                  onclick="event.stopPropagation(); ${trackJs}"
+                                  title="عدد التفاعلات والزيارات - اضغط لتسجيل تفاعل"
+                                  style="cursor: pointer;">
+                                <i class="fas fa-eye"></i> ${resident.visitCount}
+                            </span>
+                            ${icuCounterHtml}
+                            ${resident.isClone && resident.parentHospitalName ? `
+                                <div class="clone-parent-title">
+                                    <span class="clone-parent-badge" title="جدول هذا الطبيب مستنسخ كمرآة حية من ${resident.parentHospitalName}">
+                                        <i class="fas fa-hospital-user"></i>
+                                        <span>${resident.parentHospitalName}</span>
+                                    </span>
+                                </div>
+                            ` : ''}
+                            <div class="specialty-bubbles">${specialtyBubbles}</div>
+                            <div class="resident-name">${resident.name}</div>
+                            <div class="resident-phone">${resident.phone}</div>
+                            <div class="divider"></div>
+                            <div class="card-actions">
+                                <a href="${isPhoneValid ? 'whatsapp://send?phone=' + phoneClean : '#'}" 
+                                   class="action-btn-sm wa ${!isPhoneValid ? 'opacity-40' : ''}"
+                                   onclick="${isPhoneValid ? `${trackJs}` : 'event.preventDefault();'}">
+                                    <i class="fab fa-whatsapp"></i> WhatsApp
+                                </a>
+                                <a href="${isPhoneValid ? 'tel:' + (phoneClean.startsWith('964') ? '+' + phoneClean : phoneClean) : '#'}" 
+                                   class="action-btn-sm call ${!isPhoneValid ? 'opacity-40' : ''}"
+                                   onclick="${isPhoneValid ? `${trackJs}` : 'event.preventDefault();'}">
+                                    <i class="fas fa-phone"></i> Call
+                                </a>
+                            </div>
+                        </div>
+                        ${icuBackFaceHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        /** Likes and comments, on-call statuses and the crown on rendered cards (cards[i] = residents[i]). */
+        function decorateRosterCards(container, residents, day) {
+            if (!window.HubAccounts || Hub.aa.active) return;
+            const wrappers = container.querySelectorAll('.roster-card-wrapper');
+            HubAccounts.decorate(residents.map((resident, i) => ({
+                el: wrappers[i] && wrappers[i].querySelector('.card-front .card-actions'),
+                h: resident.parentHospitalId || currentHospital.id,
+                d: day,
+                n: resident.name
+            })).filter(c => c.el && !Hub.aa.isMirrorId(c.h)));
+            // On-call status of surgical residents (their own card: the status button; everyone: the skin).
+            if (window.HubOnCall) {
+                const acc = Hub.auth.getAccount();
+                const myKey = acc ? Hub.nameKey(acc.name) : null;
+                HubOnCall.decorate(residents.map((resident, i) => ({
+                    wrapper: wrappers[i],
+                    h: resident.parentHospitalId || currentHospital.id,
+                    d: day,
+                    n: resident.name,
+                    surgical: (resident.specs || []).some(s => Hub.isSurgicalSpecialty && Hub.isSurgicalSpecialty(s.code)),
+                    mine: !!myKey && Hub.nameKey(resident.name) === myKey && (!acc.hosp || acc.hosp === (resident.parentHospitalId || currentHospital.id)),
+                })).filter(c => c.wrapper && !Hub.aa.isMirrorId(c.h)));
+            }
+            // Last month's most points: a crown on their card (hub-xp.js).
+            if (window.HubXP && HubXP.markStar && Hub.auth.isLoggedIn()) {
+                HubXP.markStar(residents.map((resident, i) => ({
+                    wrapper: wrappers[i], h: resident.parentHospitalId || currentHospital.id, n: resident.name,
+                })).filter(c => c.wrapper && !Hub.aa.isMirrorId(c.h)));
+            }
         }
 
         function renderRoster() {
@@ -2777,150 +2994,7 @@
 
             const currentMin = getCurrentMinutes();
 
-            const html = currentResidents.map(resident => {
-                const isTrending = trending && trending.name === resident.name;
-                const isCrimson = resident.remainingMinutes < 60 && resident.remainingMinutes > 0;
-                const isPhoneValid = resident.phone && resident.phone.replace(/[^0-9]/g, '').length >= 10;
-                const phoneClean = resident.phone.replace(/[^0-9]/g, '');
-
-                const isMultiSpec = Array.isArray(resident.specs) && resident.specs.length > 1;
-                // ICU bed status belongs to the doctors' anaesthesia duty (not to division job titles or their mirrors).
-                const isIcuResident = !Hub.aa.active && !Hub.aa.isMirrorId(resident.parentHospitalId)
-                    && Array.isArray(resident.specs) && resident.specs.some(s => s.code === 'ICU' || s.code === 'A');
-
-                let icuCounterHtml = '';
-                let icuBackFaceHtml = '';
-                let cardFlipClass = '';
-
-                if (isIcuResident && currentHospital) {
-                    cardFlipClass = 'icu-flip-card';
-                    const icuStats = (window.Hub && Hub.getICUStats) ? Hub.getICUStats(currentHospital.id) : (currentHospital.icu || { totalBeds: 12, functionalBeds: 10, occupiedBeds: 7, availableBeds: 3 });
-                    const availableBeds = icuStats ? (icuStats.availableBeds !== undefined ? icuStats.availableBeds : Math.max(0, (icuStats.functionalBeds || 0) - (icuStats.occupiedBeds || 0))) : 0;
-                    const isFull = (availableBeds <= 0);
-                    const canEditICU = window.Hub && Hub.canEditICU ? Hub.canEditICU(currentHospital.id) : false;
-
-                    icuCounterHtml = `
-                        <button type="button" class="card-icu-status ${isFull ? 'status-icu-full' : 'status-icu-avail'}"
-                                onclick="toggleIcuCardFlip(event, this)"
-                                title="اضغط لمعاينة تفاصيل موقف أسرة العناية المركزة">
-                            ${isFull ? `<span class="icu-alarm-indicator" title="العناية ممتلئة بالكامل!"><i class="fas fa-bell"></i></span>` : ''}
-                            <i class="fas fa-bed"></i>
-                            <span>${isFull ? 'ممتلئ' : `${availableBeds} شاغر`}</span>
-                        </button>
-                    `;
-
-                    icuBackFaceHtml = `
-                        <div class="card-face card-back" onclick="event.stopPropagation()">
-                            <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:0.35rem;">
-                                <div style="display:flex; align-items:center; gap:0.4rem;">
-                                    <span style="font-size:1rem; color:#0B7A6E;" class="dark:text-amber-400"><i class="fas fa-procedures"></i></span>
-                                    <span style="font-size:0.85rem; font-weight:800; color:#141B1A;" class="dark:text-white">موقف أسرة العناية المركزة</span>
-                                </div>
-                                <button type="button" class="icu-back-close-btn" onclick="toggleIcuCardFlip(event, this)" title="إغلاق والعودة للخفارات">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                            <div class="icu-back-stats-grid">
-                                <div class="icu-back-stat-item">
-                                    <div class="icu-back-stat-num">${icuStats.totalBeds}</div>
-                                    <div class="icu-back-stat-label">الأسرة الفعلية</div>
-                                </div>
-                                <div class="icu-back-stat-item">
-                                    <div class="icu-back-stat-num">${icuStats.functionalBeds}</div>
-                                    <div class="icu-back-stat-label">الصالح منها</div>
-                                </div>
-                                <div class="icu-back-stat-item">
-                                    <div class="icu-back-stat-num">${icuStats.occupiedBeds}</div>
-                                    <div class="icu-back-stat-label">المشغولة</div>
-                                </div>
-                                <div class="icu-back-stat-item ${isFull ? 'full' : 'avail'}">
-                                    <div class="icu-back-stat-num">${availableBeds}</div>
-                                    <div class="icu-back-stat-label">${isFull ? 'ممتلئة' : 'الشاغرة المتاحة'}</div>
-                                </div>
-                            </div>
-                            <div style="display:flex; gap:0.45rem; width:100%; margin-top:0.45rem;">
-                                <a href="./icu.html?hospital=${encodeURIComponent(currentHospital.id)}" class="icu-back-hub-btn" onclick="event.stopPropagation()">
-                                    <i class="fas fa-chart-pie ml-1"></i> صفحة موقف العناية
-                                </a>
-                                ${canEditICU ? `
-                                <button type="button" onclick="event.stopPropagation(); openQuickIcuEdit('${currentHospital.id}')" class="icu-back-edit-btn" title="تعديل أعداد الأسرة">
-                                    <i class="fas fa-edit"></i> تعديل
-                                </button>
-                                ` : ''}
-                            </div>
-                        </div>
-                    `;
-                }
-
-                const specialtyBubbles = resident.specs.map(spec => {
-                    let rem = spec.endMin - currentMin;
-                    if (rem < 0) rem = 0;
-                    if (rem > TOTAL_MINUTES) rem = TOTAL_MINUTES;
-                    const hours = Math.floor(rem / 60);
-                    const minutes = Math.floor(rem % 60);
-                    const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-
-                    return `
-                        <button type="button" class="specialty-flip ${isMultiSpec ? 'multiple' : ''}" data-end-min="${spec.endMin}" onclick="toggleSpecialtyTimer(this)" aria-label="Show remaining time for ${spec.name}">
-                            <span class="specialty-bubble specialty-front ${isMultiSpec ? 'specialty-gold' : ''}">${spec.name} ${spec.icon || ''}</span>
-                            <span class="specialty-bubble specialty-back ${isMultiSpec ? 'specialty-gold' : ''}">
-                                <span class="specialty-timer-label">المتبقي</span>
-                                <span class="countdown-timer font-mono font-bold" data-end-min="${spec.endMin}">${timeStr}</span>
-                            </span>
-                        </button>
-                    `;
-                }).join('');
-
-                let wrapperClasses = 'roster-card-wrapper';
-                if (isTrending) wrapperClasses += ' trending';
-                if (isCrimson) wrapperClasses += ' crimson';
-                if (resident.isClone) wrapperClasses += ' clone-wrapper';
-
-                const cloneCardClass = resident.isClone ? 'clone-card' : '';
-
-                return `
-                    <div class="${wrapperClasses}">
-                        <div class="roster-card ${cardFlipClass} ${cloneCardClass}" data-end-min="${resident.endMin}"
-                             onmousemove="handleCardTilt(event, this)"
-                             onmouseleave="resetCardTilt(this)">
-                            <div class="card-face card-front card-body">
-                                <span class="card-status ${isTrending ? 'status-trending' : ''}"
-                                      onclick="event.stopPropagation(); trackResidentContact('${resident.name.replace(/'/g, "\\'")}', '${(resident.criticalSpecCode || '').replace(/'/g, "\\'")}', '${(resident.parentHospitalId || '').replace(/'/g, "\\'")}');"
-                                      title="عدد التفاعلات والزيارات - اضغط لتسجيل تفاعل"
-                                      style="cursor: pointer;">
-                                    <i class="fas fa-eye"></i> ${resident.visitCount}
-                                </span>
-                                ${icuCounterHtml}
-                                ${resident.isClone && resident.parentHospitalName ? `
-                                    <div class="clone-parent-title">
-                                        <span class="clone-parent-badge" title="جدول هذا الطبيب مستنسخ كمرآة حية من ${resident.parentHospitalName}">
-                                            <i class="fas fa-hospital-user"></i>
-                                            <span>${resident.parentHospitalName}</span>
-                                        </span>
-                                    </div>
-                                ` : ''}
-                                <div class="specialty-bubbles">${specialtyBubbles}</div>
-                                <div class="resident-name">${resident.name}</div>
-                                <div class="resident-phone">${resident.phone}</div>
-                                <div class="divider"></div>
-                                <div class="card-actions">
-                                    <a href="${isPhoneValid ? 'whatsapp://send?phone=' + phoneClean : '#'}" 
-                                       class="action-btn-sm wa ${!isPhoneValid ? 'opacity-40' : ''}"
-                                       onclick="${isPhoneValid ? `trackResidentContact('${resident.name.replace(/'/g, "\\'")}', '${(resident.criticalSpecCode || '').replace(/'/g, "\\'")}', '${(resident.parentHospitalId || '').replace(/'/g, "\\'")}');` : 'event.preventDefault();'}">
-                                        <i class="fab fa-whatsapp"></i> WhatsApp
-                                    </a>
-                                    <a href="${isPhoneValid ? 'tel:' + (phoneClean.startsWith('964') ? '+' + phoneClean : phoneClean) : '#'}" 
-                                       class="action-btn-sm call ${!isPhoneValid ? 'opacity-40' : ''}"
-                                       onclick="${isPhoneValid ? `trackResidentContact('${resident.name.replace(/'/g, "\\'")}', '${(resident.criticalSpecCode || '').replace(/'/g, "\\'")}', '${(resident.parentHospitalId || '').replace(/'/g, "\\'")}');` : 'event.preventDefault();'}">
-                                        <i class="fas fa-phone"></i> Call
-                                    </a>
-                                </div>
-                            </div>
-                            ${icuBackFaceHtml}
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            const html = currentResidents.map(resident => rosterCardHtml(resident, currentMin, trending)).join('');
             // The roster is redrawn every 30 s and on every data sync: when nothing changed, the cards stay
             // as they are (open options included) and only their likes and statuses are refreshed in place.
             // (The remaining-time text changes every minute; updateCountdowns keeps it current in place.)
@@ -2932,35 +3006,7 @@
 
             // Likes and comments (one request for the whole roster; see hub-accounts.js). They are for the
             // doctors' duty cards only: not in the Administrative Affairs division or on its mirrored cards.
-            if (window.HubAccounts && !Hub.aa.active) {
-                const today = Hub.getMedicalDate();
-                const wrappers = container.querySelectorAll('.roster-card-wrapper');
-                HubAccounts.decorate(currentResidents.map((resident, i) => ({
-                    el: wrappers[i] && wrappers[i].querySelector('.card-front .card-actions'),
-                    h: resident.parentHospitalId || currentHospital.id,
-                    d: today,
-                    n: resident.name
-                })).filter(c => c.el && !Hub.aa.isMirrorId(c.h)));
-                // On-call status of surgical residents (their own card: the status button; everyone: the skin).
-                if (window.HubOnCall) {
-                    const acc = Hub.auth.getAccount();
-                    const myKey = acc && acc.role !== 'rotator' ? Hub.nameKey(acc.name) : null;
-                    HubOnCall.decorate(currentResidents.map((resident, i) => ({
-                        wrapper: wrappers[i],
-                        h: resident.parentHospitalId || currentHospital.id,
-                        d: today,
-                        n: resident.name,
-                        surgical: (resident.specs || []).some(s => Hub.isSurgicalSpecialty && Hub.isSurgicalSpecialty(s.code)),
-                        mine: !!myKey && Hub.nameKey(resident.name) === myKey && (!acc.hosp || acc.hosp === (resident.parentHospitalId || currentHospital.id)),
-                    })).filter(c => c.wrapper && !Hub.aa.isMirrorId(c.h)));
-                }
-                // Last month's most points: a crown on their card (hub-xp.js).
-                if (window.HubXP && HubXP.markStar && Hub.auth.isLoggedIn()) {
-                    HubXP.markStar(currentResidents.map((resident, i) => ({
-                        wrapper: wrappers[i], h: resident.parentHospitalId || currentHospital.id, n: resident.name,
-                    })).filter(c => c.wrapper && !Hub.aa.isMirrorId(c.h)));
-                }
-            }
+            decorateRosterCards(container, currentResidents, Hub.getMedicalDate());
         }
 
         function updateCountdowns() {

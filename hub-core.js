@@ -1936,6 +1936,9 @@
         if (updates.rotationHeroesUrl !== undefined && !auth.isOwner()) {
             delete updates.rotationHeroesUrl;
         }
+        if (updates.rotationHeroesMode !== undefined && !auth.isOwner()) {
+            delete updates.rotationHeroesMode;
+        }
 
         // Only OWNER can toggle erEnabled or pick the admins who use the ER page!
         if (updates.erEnabled !== undefined && !auth.isOwner()) {
@@ -2837,8 +2840,13 @@
         if (!auth.isAdmin(targetHospitalId)) {
             throw new Error('غير مصرح لك بإضافة تخصص لهذا المستشفى. يتطلب صلاحيات مدير.');
         }
+        // The same hospital: only its rotators' branches (a branch shown in the main roster as well).
         if (targetHospitalId === sourceHospitalId) {
-            throw new Error('لا يمكن استنساخ تخصص من نفس المستشفى.');
+            const own = (getHospital(sourceHospitalId) || {}).specialties || [];
+            const src = own.find(x => x.id === sourceSpecId);
+            if (!src || src.isClone || !isRotatorSpecialty(sourceSpecId, sourceHospitalId)) {
+                throw new Error('من نفس المستشفى يمكن استنساخ فروع المقيمين الدوريين فقط.');
+            }
         }
         const fromDivision = sourceHospitalId.startsWith(AA_MIRROR_PREFIX);
         if (fromDivision && sourceHospitalId !== aaMirrorId(targetHospitalId)) {
@@ -4795,6 +4803,8 @@
         getEligibleResidentsForSpecialty,
         exchangeSpecialtiesFor,
         isStoreSpecialty,
+        /** The rotators' specialty or one of its branches (by name in the store, then the hospital's own). */
+        isRotatorSpecialty,
         residentIdFor,
         setHospitalSpecialtiesEnabled,
         syncHospitalSpecialtiesWithGlobal,

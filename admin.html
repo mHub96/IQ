@@ -1294,6 +1294,10 @@
                         <span><i class="fas fa-user-md text-sky-600 dark:text-sky-400 ml-1"></i> رابط منصة Rotation Heroes</span>
                         <span id="hosp-heroes-badge" class="text-[10px] text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/40 px-2 py-0.5 rounded-full font-semibold">صلاحية المالك 👑</span>
                     </label>
+                    <select id="hosp-setting-heroes-mode" class="input-field text-xs mb-2" onchange="syncHeroesModeUi()">
+                        <option value="custom">🔗 رابط مخصص</option>
+                        <option value="system">🏥 بيانات النظام (جدول الخفراء الدوريين في الموقع)</option>
+                    </select>
                     <input type="url" id="hosp-setting-heroes-url" class="input-field font-mono text-xs" placeholder="https://... (اتركه فارغاً لإظهار شارة SOON)" dir="ltr" />
                     <p class="text-[11px] text-slate-400 mt-1">إذا تُرك فارغاً، سيظهر زر Rotation Heroes في جدول الخفارات مع شارة "SOON" ويكون معطلاً.</p>
                 </div>
@@ -3208,13 +3212,16 @@
             const division = Hub.auth.canAccessDivision(currentHospital.id)
                 ? `<option value="${Hub.aa.mirrorId(currentHospital.id)}">🏢 الشؤون الإدارية لهذا المستشفى</option>` : '';
 
-            if (otherHospitals.length === 0 && !division) {
+            // This hospital's rotators: a branch of the Rotator specialty can be shown in the main roster too.
+            const ownRotators = (currentHospital.specialties || []).some(sp => !sp.isClone && sp.enabled !== false && Hub.isRotatorSpecialty && Hub.isRotatorSpecialty(sp.id, currentHospital.id))
+                ? `<option value="${currentHospital.id}">🔄 فروع المقيمين الدوريين في هذا المستشفى</option>` : '';
+            if (otherHospitals.length === 0 && !division && !ownRotators) {
                 hospSelect.innerHTML = '<option value="">-- لا توجد مستشفيات أخرى متاحة --</option>';
                 onCloneSourceHospitalChanged();
                 return;
             }
 
-            hospSelect.innerHTML = division + otherHospitals.map(h => `
+            hospSelect.innerHTML = ownRotators + division + otherHospitals.map(h => `
                 <option value="${h.id}">${h.name_ar || h.hospitalName || h.id}</option>
             `).join('');
 
@@ -3252,7 +3259,9 @@
             const existingClones = (currentHospital.specialties || []).filter(s => s && s.isClone && s.clonedFromHospitalId === sourceHospitalId);
             const alreadyClonedSpecIds = new Set(existingClones.map(s => s.clonedFromSpecId));
 
-            const availableSpecs = (sourceHosp.specialties || []).filter(s => s.enabled !== false && !alreadyClonedSpecIds.has(s.id));
+            const sameHospital = sourceHospitalId === currentHospital.id;
+            const availableSpecs = (sourceHosp.specialties || []).filter(s => s.enabled !== false && !alreadyClonedSpecIds.has(s.id)
+                && (!sameHospital || (!s.isClone && Hub.isRotatorSpecialty && Hub.isRotatorSpecialty(s.id, currentHospital.id))));
             if (availableSpecs.length === 0) {
                 specSelect.innerHTML = isDivision ? '<option value="">-- كل العناوين الوظيفية معروضة مسبقاً --</option>' : '<option value="">-- جميع تخصصات هذا المستشفى مضافة مسبقاً --</option>';
                 onCloneSourceSpecChanged();
@@ -3818,6 +3827,11 @@
             const clicksInput = document.getElementById('hosp-setting-heroes-clicks');
             const clicksBadge = document.getElementById('hosp-heroes-clicks-badge');
 
+            const heroesMode = document.getElementById('hosp-setting-heroes-mode');
+            if (heroesMode) {
+                heroesMode.value = currentHospital.rotationHeroesMode === 'system' ? 'system' : 'custom';
+                heroesMode.disabled = !isOwner;
+            }
             if (heroesInput) {
                 heroesInput.value = currentHospital.rotationHeroesUrl || '';
                 if (isOwner) {
@@ -3892,6 +3906,10 @@
             if (Hub.auth.isOwner()) {
                 const heroesUrl = (document.getElementById('hosp-setting-heroes-url')?.value || '').trim();
                 currentHospital.rotationHeroesUrl = heroesUrl;
+                // A new field: the live site keeps reading rotationHeroesUrl as it is.
+                const mode = document.getElementById('hosp-setting-heroes-mode')?.value;
+                if (mode === 'system') currentHospital.rotationHeroesMode = 'system';
+                else delete currentHospital.rotationHeroesMode;
                 const rawClicks = document.getElementById('hosp-setting-heroes-clicks')?.value;
                 const clicksVal = rawClicks !== undefined && rawClicks !== '' ? Math.max(0, parseInt(rawClicks, 10)) : 5;
                 currentHospital.heroesUnlockClicks = isNaN(clicksVal) ? 5 : clicksVal;
@@ -3940,7 +3958,7 @@
             const hospitals = Hub.getHospitals();
             listEl.innerHTML = hospitals.map(h => {
                 const currentUrl = (h.rotationHeroesUrl || '').trim();
-                const hasUrl = Boolean(currentUrl);
+                const hasUrl = Boolean(currentUrl) || h.rotationHeroesMode === 'system';
                 return `
                     <div class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex flex-col gap-2">
                         <div class="flex justify-between items-center">
@@ -3954,6 +3972,10 @@
                             </span>
                         </div>
                         <div class="flex items-center gap-2">
+                            <select data-hosp-id="${h.id}" class="input-field text-xs all-heroes-mode" style="max-width:150px">
+                                <option value="custom" ${h.rotationHeroesMode === 'system' ? '' : 'selected'}>🔗 رابط مخصص</option>
+                                <option value="system" ${h.rotationHeroesMode === 'system' ? 'selected' : ''}>🏥 بيانات النظام</option>
+                            </select>
                             <input type="url" data-hosp-id="${h.id}" class="input-field font-mono text-xs flex-1 all-heroes-input" 
                                 placeholder="https://... (اتركه فارغاً لإظهار شارة SOON)" value="${currentUrl}" dir="ltr" />
                             ${hasUrl ? `<a href="${currentUrl}" target="_blank" rel="noopener noreferrer" class="btn-ghost text-xs px-2.5 py-1.5" title="تجربة الرابط"><i class="fas fa-external-link-alt"></i></a>` : ''}
@@ -3963,6 +3985,12 @@
             }).join('');
 
             document.getElementById('all-heroes-modal').classList.add('active');
+        }
+
+        function syncHeroesModeUi() {
+            const mode = document.getElementById('hosp-setting-heroes-mode');
+            const url = document.getElementById('hosp-setting-heroes-url');
+            if (mode && url) url.style.opacity = mode.value === 'system' ? '0.5' : '';
         }
 
         function closeAllRotationHeroesModal() {
@@ -3982,6 +4010,9 @@
                 const hosp = Hub.getHospital(hid);
                 if (hosp) {
                     hosp.rotationHeroesUrl = val;
+                    const modeSel = document.querySelector(`.all-heroes-mode[data-hosp-id="${hid}"]`);
+                    if (modeSel && modeSel.value === 'system') hosp.rotationHeroesMode = 'system';
+                    else delete hosp.rotationHeroesMode;
                     updatedCount++;
                 }
             });

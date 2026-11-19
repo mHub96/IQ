@@ -2204,6 +2204,8 @@
                         e.preventDefault();
                         return;
                     }
+                    // The system link opens the rotators' roster as a page of the site (not a frame).
+                    if (btnRotation.dataset.system === '1') return;
                     if (btnRotation.classList.contains('disabled') || !btnRotation.getAttribute('href')) {
                         e.preventDefault();
                         showToast('⏳ ميزة Rotation Heroes غير متوفرة لهذا المستشفى حالياً - قريباً!', 'info', 3500);
@@ -2507,8 +2509,24 @@
             return null;
         }
 
+        // Which roster this page shows: the hospital's main roster ("الأقدمون") or its rotators' roster
+        // (?view=rotators: only the branches of the Rotator specialty, for the hospital's own users).
+        const ROSTER_VIEW = new URLSearchParams(location.search).get('view') === 'rotators' ? 'rotators' : 'main';
+        /** A duty in the rotators' specialty or one of its branches (a clone shown in the main roster is not). */
+        function isRotatorSpec(specCode) {
+            if (!currentHospital || !window.Hub || !Hub.isRotatorSpecialty) return false;
+            const sp = (currentHospital.specialties || []).find(s => s.id === specCode);
+            if (sp && sp.isClone) return false;
+            return Hub.isRotatorSpecialty(specCode, currentHospital.id);
+        }
+        /** The rotators' roster is for the hospital's own users (and the owner). */
+        function canSeeRotatorRoster() {
+            return !!(currentHospital && window.Hub && Hub.auth && Hub.auth.roleAt(currentHospital.id));
+        }
+
         function getAllCurrentResidents() {
             if (!currentHospital) return [];
+            if (ROSTER_VIEW === 'rotators' && !canSeeRotatorRoster()) return [];
             const resultMap = {};
             const allSpecs = new Set();
             const today = Hub.getMedicalDate();
@@ -2530,6 +2548,7 @@
             });
 
             for (const specCode of allSpecs) {
+                if ((ROSTER_VIEW === 'rotators') !== isRotatorSpec(specCode)) continue;
                 const resident = getCurrentResidentForSpecialty(specCode);
                 if (resident) {
                     const key = resident.name;
@@ -2661,6 +2680,14 @@
                 return;
             }
 
+            if (ROSTER_VIEW === 'rotators' && !canSeeRotatorRoster()) {
+                container.innerHTML = `
+                    <div class="glass-card p-8 text-center text-slate-400">
+                        <i class="fas fa-lock text-4xl mb-3 text-slate-300 dark:text-slate-600"></i>
+                        <div class="font-bold text-base">جدول الخفراء الدوريين لمستخدمي هذا المستشفى فقط.</div>
+                    </div>`;
+                return;
+            }
             const currentResidents = getAllCurrentResidents();
             const trending = getTrendingResidentForToday();
 
@@ -3360,8 +3387,38 @@
             // The opioids responsibility: recording a used ampoule (the hospital's rotators, the holder, the owner).
             if (window.HubOpioids) HubOpioids.homeButton(document.getElementById('btn-opioids'), currentHospital.id);
 
-            // Update Rotation Heroes button according to hospital configuration
-            if (btnRotation) {
+            // The rotators' roster: its title, and the way back to the main roster.
+            if (ROSTER_VIEW === 'rotators') {
+                document.title = `${hospName} · الخفراء الدوريون 🇮🇶`;
+                const sub = document.querySelector('.hospital-subtitle');
+                if (sub) sub.textContent = 'الخفراء الدوريون · Rotators On-Call';
+                const row = document.querySelector('.nav-row');
+                if (row && !row.querySelector('.nav-btn-main-roster')) {
+                    const back = document.createElement('a');
+                    back.className = 'nav-btn nav-btn-main-roster';
+                    back.innerHTML = '<i class="fas fa-user-doctor"></i><span>الخفراء الأقدمون</span>';
+                    row.prepend(back);
+                }
+                const back = row && row.querySelector('.nav-btn-main-roster');
+                if (back) back.href = `./Home.html?hospital=${encodeURIComponent(currentHospital.id)}`;
+            }
+
+            // Rotation Heroes: the owner points it at the site's own rotators' roster ("بيانات النظام",
+            // rotationHeroesMode = 'system'), shown only to the hospital's own users, or at a custom link.
+            if (btnRotation && currentHospital.rotationHeroesMode === 'system') {
+                const existingBadge = btnRotation.querySelector('.badge-soon');
+                if (existingBadge) existingBadge.remove();
+                btnRotation.dataset.system = '1';
+                btnRotation.href = `./Home.html?hospital=${encodeURIComponent(currentHospital.id)}&view=rotators`;
+                btnRotation.removeAttribute('target');
+                btnRotation.removeAttribute('rel');
+                btnRotation.classList.remove('disabled');
+                btnRotation.removeAttribute('aria-disabled');
+                btnRotation.title = 'جدول الخفراء الدوريين';
+                btnRotation.style.display = canSeeRotatorRoster() && ROSTER_VIEW !== 'rotators' ? '' : 'none';
+            } else if (btnRotation) {
+                delete btnRotation.dataset.system;
+                btnRotation.style.display = ROSTER_VIEW === 'rotators' ? 'none' : '';
                 const heroesUrl = (currentHospital.rotationHeroesUrl || '').trim();
                 const existingBadge = btnRotation.querySelector('.badge-soon');
                 if (heroesUrl) {

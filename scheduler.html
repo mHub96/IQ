@@ -1401,11 +1401,14 @@
             <div class="navigation-actions">
                 <!-- Scheduler Role Mode Selector (Residents vs Specialists) -->
                 <div class="view-selector" id="scheduler-mode-selector">
-                    <button type="button" class="view-button active" id="mode-residents-btn" onclick="switchSchedulerMode('residents')" title="جدول خفارات الأطباء المقيمين">
-                        <i class="fas fa-user-doctor"></i> المقيمين
-                    </button>
                     <button type="button" class="view-button" id="mode-specialists-btn" onclick="switchSchedulerMode('specialists')" title="جدول خفارات الأطباء الاختصاصيين">
                         <i class="fas fa-user-tie"></i> الاختصاصيين
+                    </button>
+                    <button type="button" class="view-button active" id="mode-residents-btn" onclick="switchSchedulerMode('residents')" title="جدول خفارات المقيمين الأقدمين">
+                        <i class="fas fa-user-doctor"></i> الأقدمين
+                    </button>
+                    <button type="button" class="view-button" id="mode-rotators-btn" onclick="switchSchedulerMode('rotators')" title="جدول خفارات المقيمين الدوريين">
+                        <i class="fas fa-rotate"></i> الدوريين
                     </button>
                 </div>
 
@@ -1476,6 +1479,8 @@
             var urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('type') === 'specialists' || urlParams.get('role') === 'specialists' || urlParams.get('mode') === 'specialists') {
                 schedulerMode = 'specialists';
+            } else if (urlParams.get('type') === 'rotators') {
+                schedulerMode = 'rotators';
             }
         } catch (e) {}
 
@@ -1494,7 +1499,7 @@
         }
 
         function switchSchedulerMode(mode) {
-            if (mode !== 'residents' && mode !== 'specialists') mode = 'residents';
+            if (mode !== 'residents' && mode !== 'specialists' && mode !== 'rotators') mode = 'residents';
             if (schedulerMode === mode) return;
             schedulerMode = mode;
 
@@ -1507,23 +1512,17 @@
             updateSchedulerModeButtons();
             applyHospitalName();
             updateNameLookup();
+            buildSpecialtyList();
             refreshView();
 
-            showToast(schedulerMode === 'specialists' ? '👔 تم الانتقال لجدول خفارات الاختصاصيين' : '🩺 تم الانتقال لجدول خفارات المقيمين', 'info', 1800);
+            showToast(schedulerMode === 'specialists' ? '👔 تم الانتقال لجدول خفارات الاختصاصيين' : schedulerMode === 'rotators' ? '🔄 تم الانتقال لجدول خفارات المقيمين الدوريين' : '🩺 تم الانتقال لجدول خفارات المقيمين الأقدمين', 'info', 1800);
         }
 
         function updateSchedulerModeButtons() {
-            var resBtn = document.getElementById('mode-residents-btn');
-            var specBtn = document.getElementById('mode-specialists-btn');
-            if (resBtn && specBtn) {
-                if (schedulerMode === 'specialists') {
-                    specBtn.classList.add('active');
-                    resBtn.classList.remove('active');
-                } else {
-                    resBtn.classList.add('active');
-                    specBtn.classList.remove('active');
-                }
-            }
+            ['residents', 'specialists', 'rotators'].forEach(function(m) {
+                var b = document.getElementById('mode-' + m + '-btn');
+                if (b) b.classList.toggle('active', schedulerMode === m);
+            });
             var saveText = document.getElementById('save-btn-text');
             if (saveText) {
                 saveText.textContent = schedulerMode === 'specialists' ? 'حفظ جدول الاختصاص' : 'حفظ الجدول';
@@ -1555,9 +1554,9 @@
         function applyHospitalName() {
             var rawName = String(database.name_ar || database.hospitalName || 'Teaching Hosp.').trim() || 'Teaching Hosp.';
             var hospitalNameElement = document.getElementById('hospital-name');
-            var modeBadge = schedulerMode === 'specialists' ? ' (خفارات الاختصاصيين)' : ' (خفارات المقيمين)';
+            var modeBadge = schedulerMode === 'specialists' ? ' (خفارات الاختصاصيين)' : schedulerMode === 'rotators' ? ' (خفارات الدوريين)' : ' (خفارات الأقدمين)';
             if (hospitalNameElement) hospitalNameElement.textContent = rawName + modeBadge;
-            document.title = rawName + (schedulerMode === 'specialists' ? ' · خفارات الاختصاصيين 🇮🇶' : ' · خفارات المقيمين 🇮🇶');
+            document.title = rawName + (schedulerMode === 'specialists' ? ' · خفارات الاختصاصيين 🇮🇶' : schedulerMode === 'rotators' ? ' · خفارات الدوريين 🇮🇶' : ' · خفارات الأقدمين 🇮🇶');
         }
 
         function getDayTimeKey(date, specialtyCode) {
@@ -1860,10 +1859,19 @@
             document.body.classList.toggle('branch-lock-one', !!branchSpecs && branchSpecs.length < 2);
         }
 
+        /** The rotators' section lists the branches of the Rotator specialty; the seniors' section the rest. */
+        function isRotatorSpecialtyHere(specialty) {
+            var hid = database.id || (window.Hub ? window.Hub.getActiveHospitalId() : null);
+            return !specialty.isClone && !!(window.Hub && Hub.isRotatorSpecialty && Hub.isRotatorSpecialty(specialty.id, hid));
+        }
+        function inSchedulerMode(specialty) {
+            return (schedulerMode === 'rotators') === isRotatorSpecialtyHere(specialty);
+        }
+
         function buildSpecialtyList() {
             specialtyColorMap = {};
             var enabledSpecialties = (database.specialties || []).filter(function(specialty) {
-                return specialty.enabled !== false && (!branchSpecs || (branchSpecs.indexOf(specialty.id) !== -1 && !specialty.isClone));
+                return specialty.enabled !== false && (!branchSpecs || (branchSpecs.indexOf(specialty.id) !== -1 && !specialty.isClone)) && inSchedulerMode(specialty);
             });
             
             if (enabledSpecialties.length > 0) {

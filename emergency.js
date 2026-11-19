@@ -970,7 +970,7 @@
             if (resp.ok) {
                 const dbJson = await resp.json();
                 if (dbJson && Array.isArray(dbJson.residents) && dbJson.residents.length > 0) {
-                    if (!saved && state.hospitalId === 'iraqi') {
+                    if (!saved && state.hospitalId === 'iraqi' && !ROT_SYS) {
                         state.residents = dbJson.residents;
                         state.headOfResidents = dbJson.headOfResidents || state.headOfResidents;
                         state.headOfHospital = dbJson.headOfHospital || state.headOfHospital;
@@ -1402,13 +1402,14 @@
                 if (hubResidents.length === 0 && window.Hub && typeof window.Hub.getResidents === 'function') {
                     hubResidents = window.Hub.getResidents(hospId) || [];
                 }
-                if (ROT_SYS) hubResidents = hubResidents.filter(isRotatorResident);
                 if (hubResidents.length === 0 && window.Hub && typeof window.Hub.getDatabase === 'function') {
                     const db = window.Hub.getDatabase();
                     if (db && Array.isArray(db.residents)) {
                         hubResidents = db.residents.filter(r => Array.isArray(r.hospitals) && r.hospitals.includes(hospId));
                     }
                 }
+                // The rotators' ER: the hospital's rotators only (after every fallback, so none refills it).
+                if (ROT_SYS) hubResidents = hubResidents.filter(isRotatorResident);
 
                 const femaleNames = ['فاطمة', 'زينب', 'زهراء', 'مريم', 'نور', 'سارة', 'هدى', 'شهد', 'آية', 'اية', 'رشا', 'دعاء', 'رنا', 'منى', 'اسراء', 'إسراء', 'أمل', 'امل', 'ريم', 'حوراء', 'تبارك', 'ضحى', 'بنين', 'تقى', 'فرح'];
 
@@ -2163,6 +2164,8 @@
                 hubResidents = db.residents.filter(r => Array.isArray(r.hospitals) && r.hospitals.includes(hospId));
             }
         }
+        // The rotators' ER imports the hospital's rotators only.
+        if (ROT_SYS) hubResidents = hubResidents.filter(isRotatorResident);
 
         if (hubResidents.length === 0) {
             showNotification(`لم يتم العثور على أطباء مسجلين لمستشفى "${state.hospitalName}" في HOSP HUB`, 'warning');

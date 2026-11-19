@@ -800,3 +800,6 @@ body.dark #hub-tour .ht-card, html.dark #hub-tour .ht-card { background: var(--d
   #hub-tour .ht-spot, #hub-tour .ht-card { transition: opacity 0.2s ease; }
   #hub-tour .ht-spot::after { animation: none; }
 }
+
+/* Inside the app the pages reach the top edge: page toasts sit below the status bar / Dynamic Island. */
+html.in-shell #toast-container { top: calc(var(--hub-sat, 0px) + 12px) !important; }

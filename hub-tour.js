@@ -398,14 +398,14 @@
         // The card: under the element when there is room, otherwise above; on phones it docks at the
         // bottom (or the top when the element is low on the screen), clear of the app's tab bar.
         const narrow = vw < 640;
-        const shellBar = document.documentElement.classList.contains('in-shell') && narrow ? 88 : 0;
+        const shellBar = document.documentElement.classList.contains('in-shell') && narrow ? 88 + (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hub-sab')) || 0) * 0.5 : 0;
         const ch = card.offsetHeight || 190, cw = narrow ? vw - 24 : Math.min(380, vw - 24);
         card.style.width = cw + 'px';
         let ct, cl;
         if (narrow) {
             cl = 12;
             const lowEl = r.top + r.height / 2 > vh / 2;
-            ct = lowEl ? 12 + (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat')) || 0) : vh - ch - 16 - shellBar;
+            ct = lowEl ? 12 + (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hub-sat')) || 0) : vh - ch - 16 - shellBar;
         } else {
             const below = r.bottom + 14 + ch < vh - 12;
             ct = below ? r.bottom + 14 : Math.max(12, r.top - ch - 14);

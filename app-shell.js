@@ -353,7 +353,21 @@
     // ------------------------------------------------------------------
     // Messages from the views (window.HubView in app-view.js)
     // ------------------------------------------------------------------
+    // The screen's safe areas (notch / Dynamic Island, home indicator), measured here: pages in frames
+    // get none or unreliable ones from the browser, so each page takes them from the shell
+    // (app-view.js sets --hub-sat / --hub-sab) and pads its own bars exactly once.
+    const insetProbe = document.createElement('div');
+    insetProbe.setAttribute('aria-hidden', 'true');
+    insetProbe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;visibility:hidden;pointer-events:none;'
+        + 'padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)';
+    document.body.appendChild(insetProbe);
+    function insets() {
+        const cs = getComputedStyle(insetProbe);
+        return { top: parseFloat(cs.paddingTop) || 0, bottom: parseFloat(cs.paddingBottom) || 0 };
+    }
+
     window.HubShell = {
+        insets,
         go: (href, how) => { if (how !== 'replace') arm(); go(href, how === 'replace' ? 'none' : 'push'); },
         /** The user touched the page (the first touch lays the base history entries). */
         _interact() { arm(); },

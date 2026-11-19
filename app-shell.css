@@ -54,9 +54,11 @@ html, body {
 }
 body { font-family: "IBM Plex Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
 
+/* The views fill the screen top to bottom: each page pads its own bars by the safe areas the shell
+   hands it (no plain strips above and below the page, no padding counted twice). */
 #app-views {
   position: fixed;
-  top: var(--sat); bottom: var(--sab); left: var(--sal); right: var(--sar);
+  top: 0; bottom: 0; left: var(--sal); right: var(--sar);
 }
 .app-view {
   position: absolute; inset: 0;
@@ -75,7 +77,8 @@ body { font-family: "IBM Plex Sans Arabic", -apple-system, BlinkMacSystemFont, "
 #app-tabbar {
   position: fixed; z-index: 10;
   left: calc(14px + var(--sal)); right: calc(14px + var(--sar));
-  bottom: calc(var(--sab) + var(--app-tabbar-gap));
+  /* hugs the home indicator (native floating bars sit just above it), never closer than the gap */
+  bottom: max(calc(var(--sab) - 12px), var(--app-tabbar-gap));
   height: var(--app-tabbar);
   padding: 6px; box-sizing: border-box;
   display: flex; align-items: stretch; justify-content: space-between; gap: 2px;

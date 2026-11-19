@@ -24,7 +24,7 @@
          * collapsed borders jitter in Safari).
          */
         :root {
-            --sab: env(safe-area-inset-bottom, 0px);
+            --sab: var(--hub-sab, env(safe-area-inset-bottom, 0px));
             --s-bg: #EEF2EF;
             --s-card: #FFFFFF;
             --s-card2: #EEF2EF;

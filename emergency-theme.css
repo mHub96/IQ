@@ -24,7 +24,7 @@
     --ers-shadow-lg: 0 24px 48px -12px rgba(16, 24, 40, 0.25);
     --ers-side-w: 268px;
     --ers-top-h: 64px;
-    --ers-sat: env(safe-area-inset-top, 0px);
+    --ers-sat: var(--hub-sat, env(safe-area-inset-top, 0px));
 }
 html.dark {
     --ers-bg: #0b0c0e;
@@ -125,7 +125,7 @@ html.ers-rs-on .ers-rs { display: flex !important; }
     html.ers-drawer-open .ers-scrim { opacity: 1; pointer-events: auto; }
     html.ers-drawer-open, html.ers-drawer-open body { overflow: hidden; }
     .ers-drawer-x { display: inline-flex; }
-    .ers-side-foot { padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+    .ers-side-foot { padding-bottom: calc(16px + var(--hub-sab, env(safe-area-inset-bottom, 0px))); }
 
     .ers-top { height: calc(var(--ers-top-h) + var(--ers-sat)); padding: var(--ers-sat) 12px 0; gap: 10px; }
     .ers-menu-btn { display: inline-flex; }
@@ -149,7 +149,7 @@ html.ers-rs-on .ers-rs { display: flex !important; }
     .ers-tabs button.on { background: var(--ers-accent); border-color: var(--ers-accent); color: #fff; }
     html.dark .ers-tabs button.on { color: #1a0605; }
     .ers-tabs button.on i { color: inherit; }
-    .ers-main { padding: 14px 12px calc(120px + env(safe-area-inset-bottom, 0px)) !important; }
+    .ers-main { padding: 14px 12px calc(120px + var(--hub-sab, env(safe-area-inset-bottom, 0px))) !important; }
 }
 
 /* ---------------------------------------------------------------- Cards & controls */
@@ -350,14 +350,14 @@ html.dark .erp-preview { background: #0e1013; }
 
 @media (max-width: 900px) {
     .erp-overlay { padding: 0; align-items: flex-end !important; }
-    .erp-panel { width: 100%; height: calc(100dvh - 10px - env(safe-area-inset-top, 0px)); border-radius: 24px 24px 0 0; }
+    .erp-panel { width: 100%; height: calc(100dvh - 10px - var(--hub-sat, env(safe-area-inset-top, 0px))); border-radius: 24px 24px 0 0; }
     .erp-main { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
     .erp-preview { order: -1; max-height: 36vh; border-bottom: 1px solid var(--ers-border); }
     .erp-preview-bar { padding: 8px 12px; }
     .erp-controls { border-left: 0; }
     .erp-tabs button span { font-size: 11px; }
     .erp-controls-body { padding: 4px 14px 16px; }
-    .erp-foot { padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px)); }
+    .erp-foot { padding: 10px 14px calc(10px + var(--hub-sab, env(safe-area-inset-bottom, 0px))); }
     .erp-foot-note { display: none; }
     .erp-foot .erp-btn { flex: 1; }
     .erp-head { padding: 12px 14px; }
@@ -426,7 +426,7 @@ html.erst-open, html.erst-open body { overflow: hidden; }
 html.dark .erst-btn.primary { color: #1a0605; }
 @media (max-width: 760px) {
     .erst-overlay { padding: 0; align-items: flex-end !important; }
-    .erst-panel { width: 100%; height: calc(100dvh - 10px - env(safe-area-inset-top, 0px)); border-radius: 24px 24px 0 0; }
+    .erst-panel { width: 100%; height: calc(100dvh - 10px - var(--hub-sat, env(safe-area-inset-top, 0px))); border-radius: 24px 24px 0 0; }
     .erst-body { padding: 10px 14px 20px; }
     .erst-shifts { grid-template-columns: 1fr; }
     .erst-note { display: none; }

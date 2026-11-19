@@ -74,6 +74,18 @@
 
     var html = document.documentElement;
     html.classList.add('in-shell');
+    // The page fills the whole screen inside the app; the shell measures the safe areas and the page's
+    // bars and sheets pad by them (var(--hub-sat) / var(--hub-sab) in the stylesheets).
+    function applyInsets() {
+        try {
+            var i = shell.insets && shell.insets();
+            if (!i) return;
+            html.style.setProperty('--hub-sat', i.top + 'px');
+            html.style.setProperty('--hub-sab', i.bottom + 'px');
+        } catch (e) {}
+    }
+    applyInsets();
+    try { window.parent.addEventListener('resize', applyInsets); window.parent.addEventListener('orientationchange', applyInsets); } catch (e) {}
     var style = document.createElement('style');
     style.textContent = 'html.in-shell .hub-mobile-bottom-dock,html.in-shell .ios-bottom-dock,html.in-shell #pwa-install-button{display:none!important}';
     (document.head || html).appendChild(style);

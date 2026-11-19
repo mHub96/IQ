@@ -499,7 +499,7 @@
         .err-from-account::after { content: '\\1F512'; position: absolute; top: 1px; left: 2px; font-size: 8px; opacity: .7; }
         @media (max-width: 640px) {
             .err-modal { padding: 0; align-items: flex-end; }
-            .err-card { max-height: 94vh; border-radius: 22px 22px 0 0; padding-bottom: env(safe-area-inset-bottom, 0px); }
+            .err-card { max-height: 94vh; border-radius: 22px 22px 0 0; padding-bottom: var(--hub-sab, env(safe-area-inset-bottom, 0px)); }
             .err-card header, .err-tools, .err-body, .err-card footer { padding-left: 12px; padding-right: 12px; }
             .err-actions .err-btn:not(.sm) { flex: 1 1 auto; }
         }

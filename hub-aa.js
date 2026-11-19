@@ -24,11 +24,11 @@
         'html.aa-mode #hosp-owner-heroes-container, html.aa-mode #hosp-owner-heroes-clicks-container, html.aa-mode #hosp-owner-passwords-container',
         'html.aa-mode .hosp-icu-btn, html.aa-mode .hosp-er-btn, html.aa-mode [data-doctors-only]',
     ].join(',\n') + ' { display: none !important; }\n' +
-        '.aa-pill { position: fixed; z-index: 9000; left: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 88px); display: inline-flex; align-items: center; gap: 8px;' +
+        '.aa-pill { position: fixed; z-index: 9000; left: 12px; bottom: calc(var(--hub-sab, env(safe-area-inset-bottom, 0px)) + 88px); display: inline-flex; align-items: center; gap: 8px;' +
         ' padding: 7px 8px 7px 12px; border-radius: 999px; font: 700 12px/1.2 inherit; color: #fff; background: rgba(59, 69, 66, 0.92);' +
         ' box-shadow: 0 6px 20px rgba(20, 27, 26, 0.28); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); direction: rtl; }\n' +
         '.aa-pill a { color: #141B1A; background: #fff; border-radius: 999px; padding: 4px 10px; text-decoration: none; font-weight: 800; }\n' +
-        'html:not(.in-shell) .aa-pill { bottom: calc(env(safe-area-inset-bottom, 0px) + 100px); }';
+        'html:not(.in-shell) .aa-pill { bottom: calc(var(--hub-sab, env(safe-area-inset-bottom, 0px)) + 100px); }';
     (document.head || document.documentElement).appendChild(style);
 
     // ------------------------------------------------------------------

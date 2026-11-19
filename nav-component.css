@@ -11,7 +11,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: calc(0.55rem + env(safe-area-inset-top, 0px)) 1.25rem 0.55rem;
+    padding: calc(0.55rem + var(--hub-sat, env(safe-area-inset-top, 0px))) 1.25rem 0.55rem;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     background: rgba(255, 255, 255, 0.92);
@@ -671,7 +671,7 @@ body.dark .hub-password-eye-btn:hover {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: calc(0.55rem + env(safe-area-inset-top, 0px)) 1.25rem 0.55rem;
+    padding: calc(0.55rem + var(--hub-sat, env(safe-area-inset-top, 0px))) 1.25rem 0.55rem;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     background: rgba(255, 255, 255, 0.92);
@@ -723,7 +723,7 @@ body.dark .hub-password-eye-btn:hover {
 /* Universal Floating Bottom Navigation Dock (Standard across ALL pages and screen sizes) */
 .hub-mobile-bottom-dock, .ios-bottom-dock {
     position: fixed;
-    bottom: max(10px, env(safe-area-inset-bottom, 0px));
+    bottom: max(10px, var(--hub-sab, env(safe-area-inset-bottom, 0px)));
     left: 50%;
     transform: translateX(-50%);
     z-index: 9998;
@@ -811,7 +811,7 @@ body.dark .hub-mobile-bottom-dock .dock-tab-btn.active, body.dark .ios-bottom-do
 
 /* Ensure body has comfortable bottom clearance across all devices */
 body {
-    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: calc(80px + var(--hub-sab, env(safe-area-inset-bottom, 0px))) !important;
 }
 
 /* 3D Tactile Sub-Page Flip Animation for Cards & Grids */

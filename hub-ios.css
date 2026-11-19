@@ -246,8 +246,8 @@ body.dark .hacc-tabs button[aria-selected="true"] { background: #525E5A !importa
 @media (max-width: 768px) {
   /* ---------- Navigation bar: clear at the top, glass once content scrolls under it ---------- */
   .hub-nav-bar {
-    min-height: calc(52px + env(safe-area-inset-top, 0px));
-    padding: env(safe-area-inset-top, 0px) 12px 0 !important;
+    min-height: calc(52px + var(--hub-sat, env(safe-area-inset-top, 0px)));
+    padding: var(--hub-sat, env(safe-area-inset-top, 0px)) 12px 0 !important;
     background: transparent !important;
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
@@ -309,7 +309,7 @@ body.dark .hacc-tabs button[aria-selected="true"] { background: #525E5A !importa
   .hub-mobile-bottom-dock, .ios-bottom-dock {
     position: fixed !important;
     left: 12px !important; right: 12px !important;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + var(--ios-tabbar-gap)) !important;
+    bottom: calc(var(--hub-sab, env(safe-area-inset-bottom, 0px)) + var(--ios-tabbar-gap)) !important;
     top: auto !important;
     transform: none !important;
     width: auto !important; max-width: none !important;
@@ -354,7 +354,7 @@ body.dark .hacc-tabs button[aria-selected="true"] { background: #525E5A !importa
   .hub-mobile-bottom-dock .dock-tab-btn::before, .ios-bottom-dock .dock-tab-btn::before,
   .hub-mobile-bottom-dock .dock-tab-btn::after, .ios-bottom-dock .dock-tab-btn::after { display: none !important; }
   /* Room for the floating bar at the end of every page */
-  body { padding-bottom: calc(var(--ios-tabbar) + var(--ios-tabbar-gap) + env(safe-area-inset-bottom, 0px) + 18px) !important; }
+  body { padding-bottom: calc(var(--ios-tabbar) + var(--ios-tabbar-gap) + var(--hub-sab, env(safe-area-inset-bottom, 0px)) + 18px) !important; }
 
   /* ---------- Inputs: 16px so iOS does not zoom in on focus ---------- */
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not(td *):not(th *),
@@ -364,7 +364,7 @@ body.dark .hacc-tabs button[aria-selected="true"] { background: #525E5A !importa
   .modal-overlay, .hub-modal-overlay {
     align-items: flex-end !important;
     justify-content: center !important;
-    padding: calc(10px + env(safe-area-inset-top, 0px)) 0 0 !important;
+    padding: calc(10px + var(--hub-sat, env(safe-area-inset-top, 0px))) 0 0 !important;
   }
   .modal-overlay > .modal-card, .modal-overlay > .hub-modal-card,
   .hub-modal-overlay > .modal-card, .hub-modal-overlay > .hub-modal-card {
@@ -372,8 +372,8 @@ body.dark .hacc-tabs button[aria-selected="true"] { background: #525E5A !importa
     max-width: none !important;
     margin: 0 !important;
     border-radius: 34px 34px 0 0 !important;
-    padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px)) !important;
-    max-height: calc(100dvh - 10px - env(safe-area-inset-top, 0px)) !important;
+    padding-bottom: calc(18px + var(--hub-sab, env(safe-area-inset-bottom, 0px))) !important;
+    max-height: calc(100dvh - 10px - var(--hub-sat, env(safe-area-inset-top, 0px))) !important;
     animation: ios-sheet-up 0.5s var(--ios-spring) both;
   }
   /* Pages that open pop-ups by adding .active (the card stays in the DOM): replay the slide-up. */
@@ -427,21 +427,21 @@ body.dark .hacc-tabs button[aria-selected="true"] { background: #525E5A !importa
     z-index: 100000 !important;
     align-items: flex-end !important;
     justify-content: center !important;
-    padding: calc(10px + env(safe-area-inset-top, 0px)) 0 0 !important;
+    padding: calc(10px + var(--hub-sat, env(safe-area-inset-top, 0px))) 0 0 !important;
   }
   .fixed.inset-0[id$="-modal"] > .glass-panel {
     width: 100% !important;
     max-width: none !important;
     border-radius: 34px 34px 0 0 !important;
     border-bottom: 0 !important;
-    max-height: calc(100dvh - 10px - env(safe-area-inset-top, 0px)) !important;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    max-height: calc(100dvh - 10px - var(--hub-sat, env(safe-area-inset-top, 0px))) !important;
+    padding-bottom: var(--hub-sab, env(safe-area-inset-bottom, 0px));
     animation: ios-sheet-up 0.5s var(--ios-spring) both !important;
   }
   /* Cards whose header and footer stay put keep scrolling their middle part; the others scroll whole. */
   .fixed.inset-0[id$="-modal"] > .glass-panel:not(.flex-col) { overflow-y: auto !important; overflow-x: hidden !important; overscroll-behavior: contain; }
   .fixed.inset-0[id$="-modal"] > .glass-panel:not(.flex-col) [class*="max-h-"][class*="overflow-y-auto"] { max-height: none !important; overflow-y: visible !important; }
-  .fixed.inset-0[id$="-modal"] > .glass-panel[class*="h-[92vh]"] { height: calc(100dvh - 10px - env(safe-area-inset-top, 0px)) !important; }
+  .fixed.inset-0[id$="-modal"] > .glass-panel[class*="h-[92vh]"] { height: calc(100dvh - 10px - var(--hub-sat, env(safe-area-inset-top, 0px))) !important; }
 }
 
 @keyframes ios-sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }

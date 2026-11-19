@@ -305,7 +305,7 @@ html.dark .ios-segment-btn.active, html.dark .hacc-tabs button[aria-selected="tr
   -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%);
   border: 1px solid var(--ds-line-2) !important;
   box-shadow: var(--ds-shadow-3) !important;
-  bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+  bottom: calc(92px + var(--hub-sab, env(safe-area-inset-bottom))) !important;
 }
 #hacc-nudge .hacc-nudge-icon { width: 38px; height: 38px; flex: none; border-radius: 12px; display: grid; place-items: center; background: var(--ds-brand-soft); font-size: 1.1rem !important; }
 #hacc-nudge .hacc-nudge-text {

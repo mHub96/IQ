@@ -183,7 +183,7 @@
     body.dark .opu-chips button.on { color: #c4b5fd; }
     .opu-date { display: grid; grid-template-columns: 1fr 80px; gap: 6px; }
     .opu-sep { height: 1px; margin: 16px 0 4px; background: linear-gradient(90deg, transparent, rgba(142,142,147,.35), transparent); }
-    .opu-foot { position: sticky; bottom: 0; display: flex; gap: 10px; align-items: center; padding: 12px 14px calc(12px + env(safe-area-inset-bottom)); background: inherit;
+    .opu-foot { position: sticky; bottom: 0; display: flex; gap: 10px; align-items: center; padding: 12px 14px calc(12px + var(--hub-sab, env(safe-area-inset-bottom))); background: inherit;
         backdrop-filter: blur(10px); border-top: 1px solid rgba(142,142,147,.2); z-index: 2; }
     .opu-sum { flex: 1; font-size: .72rem; font-weight: 800; opacity: .85; line-height: 1.5; }
     .opu-sum .ok { color: #16a34a; } .opu-sum .low { color: #d97706; } .opu-sum .out { color: #dc2626; }

@@ -477,7 +477,7 @@
             main {
                 padding-left: 10px !important;
                 padding-right: 10px !important;
-                padding-bottom: calc(2rem + env(safe-area-inset-bottom, 16px)) !important;
+                padding-bottom: calc(2rem + var(--hub-sab, env(safe-area-inset-bottom, 16px))) !important;
             }
             .filter-pills-bar {
                 gap: 0.4rem;
@@ -528,8 +528,8 @@
             transition: transform 0.15s ease;
         }
         body {
-            padding-top: env(safe-area-inset-top, 0px);
-            padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 30px);
+            padding-top: var(--hub-sat, env(safe-area-inset-top, 0px));
+            padding-bottom: calc(var(--hub-sab, env(safe-area-inset-bottom, 0px)) + 30px);
             -webkit-overflow-scrolling: touch;
         }
     </style>

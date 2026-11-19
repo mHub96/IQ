@@ -26,7 +26,7 @@
             color: #141B1A;
             transition: background 0.3s ease, color 0.3s ease;
             overflow-x: hidden;
-            padding-bottom: calc(env(safe-area-inset-bottom, 16px) + 75px);
+            padding-bottom: calc(var(--hub-sab, env(safe-area-inset-bottom, 16px)) + 75px);
         }
 
         body.dark {

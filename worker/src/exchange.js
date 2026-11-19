@@ -16,6 +16,9 @@ import { nameKey } from './names.js';
 import { notifyOne, notifyApprovers, dispatchPush } from './accounts.js';
 import { limitedExchanger, exchangeSpecialties, branchSpecialties } from './exchspecs.js';
 import { roleAt, branchSpecAt } from './access.js';
+import { isRotatorSpec } from './exchspecs.js';
+import { rotChiefHospitals } from './eraccess.js';
+import { ER_SPEC, erDutyLabel, erModerates, applyErExchange, notifyErApprovers } from './erexchange.js';
 
 const HOSP_RE = /^[\w-]{1,48}$/;
 const DATE_RE = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
@@ -31,6 +34,25 @@ const isOwner = a => a.r === 'owner';
 const seesAll = a => isOwner(a) || (a.h || []).includes('*');
 const moderates = (a, hosp) => isOwner(a) || (a.r === 'admin' && (seesAll(a) || (a.h || []).includes(hosp)));
 const byOf = a => (a.a ? `${a.r}:${a.name || a.a}` : a.r);
+// An ER duty's request (erexchange.js): spec '@er:<res|rot>:<slot>'.
+const erSys = spec => { const m = ER_SPEC.exec(String(spec || '')); return m ? m[1] : null; };
+
+/** The active chiefs of rotators of `hosp` (branch representatives of its Rotator specialty): account ids. */
+export async function rotChiefIds(env, hosp) {
+  const [cands, meta, own] = await env.DB.batch([
+    env.DB.prepare(
+      `SELECT id, json_extract(hosp_roles, '$."' || ?1 || '".s') AS s FROM accounts
+        WHERE status = 'active' AND json_extract(hosp_roles, '$."' || ?1 || '".r') = 'branch'`
+    ).bind(hosp),
+    env.DB.prepare("SELECT data FROM records WHERE coll = 'meta' AND id = 'globalSpecialties'"),
+    env.DB.prepare("SELECT json_extract(data, '$.specialties') AS specs FROM records WHERE coll = 'hospital' AND id = ?").bind(hosp),
+  ]);
+  if (!(cands.results || []).length) return [];
+  let store = [], specs = [];
+  try { store = (JSON.parse((meta.results[0] && meta.results[0].data) || '{}').value) || []; } catch {}
+  try { specs = JSON.parse((own.results[0] && own.results[0].specs) || '[]') || []; } catch {}
+  return cands.results.filter(c => c.s && isRotatorSpec([...store, ...specs], c.s)).map(c => c.id);
+}
 
 export async function routeExchange(path, method, request, env, auth, url, ctx) {
   if (!/^\/api\/exchange(\/|$)/.test(path)) return null;
@@ -61,15 +83,16 @@ async function setApproval(request, env, auth) {
   return json({ ok: true, on: [...on] });
 }
 
-function view(r, auth) {
+function view(r, auth, chiefOf = []) {
   return {
     id: r.id, hosp: r.hosp, date: r.date, spec: r.spec, oldName: r.old_name, newName: r.new_name,
+    erLabel: erDutyLabel(r.spec),
     requester: r.requester_name, status: r.status, note: r.note || '', ownerNote: r.owner_note || '',
     created: r.created_at, updated: r.updated_at,
     mine: !!auth.a && r.requester_id === auth.a,
     // What this person may do now.
     canOwnerDecide: r.status === 'owner_pending' && !!auth.a && r.owner_id === auth.a,
-    canAdminDecide: r.status === 'admin_pending' && moderates(auth, r.hosp),
+    canAdminDecide: r.status === 'admin_pending' && (moderates(auth, r.hosp) || (erSys(r.spec) === 'rot' && chiefOf.includes(r.hosp))),
     canCancel: OPEN.includes(r.status) && !!auth.a && r.requester_id === auth.a,
   };
 }
@@ -79,13 +102,16 @@ async function list(env, auth) {
   const since = Date.now() - 45 * 24 * 3600 * 1000;
   const admin = auth.r === 'owner' || auth.r === 'admin';
   const scope = seesAll(auth) ? null : JSON.stringify(auth.h || []);
+  const chiefOf = admin ? [] : await rotChiefHospitals(env, auth);
+  const chiefClause = chiefOf.length
+    ? `OR (status NOT IN ('owner_pending', 'cancelled') AND spec LIKE '@er:rot:%' AND hosp IN (SELECT value FROM json_each(?3)))` : ''; // a chief is not an admin: ?3 is theirs
   const { results } = await env.DB.prepare(
     `SELECT * FROM exchange_requests
-      WHERE (requester_id = ?1 OR owner_id = ?1 ${admin ? `OR (status NOT IN ('owner_pending', 'cancelled') ${scope ? 'AND hosp IN (SELECT value FROM json_each(?3))' : ''})` : ''})
+      WHERE (requester_id = ?1 OR owner_id = ?1 ${admin ? `OR (status NOT IN ('owner_pending', 'cancelled') ${scope ? 'AND hosp IN (SELECT value FROM json_each(?3))' : ''})` : ''} ${chiefClause})
         AND (status IN ('owner_pending', 'admin_pending') OR updated_at > ?2)
       ORDER BY id DESC LIMIT 100`
-  ).bind(auth.a || '', since, ...(scope && admin ? [scope] : [])).all();
-  return json({ ok: true, requests: results.map(r => view(r, auth)) });
+  ).bind(auth.a || '', since, ...(scope && admin ? [scope] : []), ...(chiefOf.length ? [JSON.stringify(chiefOf)] : [])).all();
+  return json({ ok: true, requests: results.map(r => view(r, auth, chiefOf)) });
 }
 
 /** The active rotator account of this hospital linked to the database record named `name`, or null. */
@@ -169,15 +195,39 @@ async function decide(request, env, auth, ctx) {
       env.DB.prepare('DELETE FROM notifications WHERE gkey = ?').bind('xreq:' + r.id),
       notifyOne(env, r.requester_id, 'xres:' + r.id, 'exchange_result', data({ step: approve ? 'owner_approved' : 'owner_rejected' }), now),
     ];
-    if (approve) stmts.push(notifyApprovers(env, r.hosp, 'xadm:' + r.id, 'exchange_admin', data({ ownerApproved: true }), now));
+    if (approve && !erSys(r.spec)) stmts.push(notifyApprovers(env, r.hosp, 'xadm:' + r.id, 'exchange_admin', data({ ownerApproved: true }), now));
     const res = await env.DB.batch(stmts);
     dispatchPush(env, ctx, res[1], res[2]);
+    if (approve && erSys(r.spec)) dispatchPush(env, ctx, ...(await notifyErApprovers(env, r.hosp, erSys(r.spec), 'xadm:' + r.id, data({ ownerApproved: true, er: erDutyLabel(r.spec) }), now)));
     return json({ ok: true, status: next });
   }
 
   if (r.status === 'admin_pending') {
-    if (!moderates(auth, r.hosp)) return json({ error: 'forbidden' }, 403);
+    const sys = erSys(r.spec);
+    if (!moderates(auth, r.hosp) && !(sys && (await erModerates(env, auth, r.hosp, sys)))) return json({ error: 'forbidden' }, 403);
     const by = byOf(auth);
+    if (approve && sys) {
+      const [d, m, y] = r.date.split('/');
+      const err = await applyErExchange(env, {
+        recId: r.sched_id, day: `${y}-${m}-${d}`, slot: ER_SPEC.exec(r.spec)[2], oldName: r.old_name, newName: r.new_name, by,
+        msg: `ER Duty Exchange (approved): ${erDutyLabel(r.spec)} on ${r.date}: ${r.old_name} → ${r.new_name}`,
+      });
+      if (err) {
+        await env.DB.prepare("UPDATE exchange_requests SET status = 'rejected', note = ?, admin_by = ?, admin_at = ?, updated_at = ? WHERE id = ?")
+          .bind('تغيّرت هذه الخفارة في جدول الطوارئ قبل الموافقة', by, now, now, r.id).run();
+        return json({ error: 'duty_changed' }, 409);
+      }
+      const res = await env.DB.batch([
+        env.DB.prepare("UPDATE exchange_requests SET status = 'approved', note = ?1, admin_by = ?2, admin_at = ?3, updated_at = ?3 WHERE id = ?4 AND status = 'admin_pending'")
+          .bind(note, by, now, r.id),
+        env.DB.prepare('DELETE FROM notifications WHERE gkey = ?').bind('xadm:' + r.id),
+        notifyOne(env, r.requester_id, 'xres:' + r.id, 'exchange_result', data({ step: 'approved', er: erDutyLabel(r.spec) }), now),
+      ]);
+      pushes.push(res[2]);
+      if (r.owner_id) pushes.push(await notifyOne(env, r.owner_id, 'xres:' + r.id, 'exchange_result', data({ step: 'approved', holder: true, er: erDutyLabel(r.spec) }), now).all());
+      dispatchPush(env, ctx, ...pushes);
+      return json({ ok: true, status: 'approved' });
+    }
     if (approve) {
       // The roster entry changes now, if it is still the duty that was asked for.
       const cur = await env.DB.prepare("SELECT v, data FROM records WHERE coll = 'sched' AND id = ?").bind(r.sched_id).first();

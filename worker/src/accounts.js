@@ -533,11 +533,10 @@ export function notifyApprovers(env, hosp, gkey, type, data, now) {
 }
 
 /** Notification for every active resident account registered at `hosp` (e.g. the ER preferences portal opened). */
-export function notifyHospitalResidents(env, hosp, gkey, type, data, now, rotators = false) {
-  // rotators: the hospital's rotators (the portal of its rotators' ER) instead of its residents.
+export function notifyHospitalResidents(env, hosp, gkey, type, data, now) {
   return env.DB.prepare(
     `INSERT INTO notifications (account_id, gkey, type, data, ts, seen)
-     SELECT id, ?1, ?2, ?3, ?4, 0 FROM accounts WHERE status = 'active' AND hosp = ?5 AND role IN ${rotators ? "('rotator')" : "('user', 'anaesthesia', 'branch', 'admin')"}
+     SELECT id, ?1, ?2, ?3, ?4, 0 FROM accounts WHERE status = 'active' AND hosp = ?5 AND role IN ('user', 'anaesthesia', 'branch', 'admin')
      ON CONFLICT (account_id, gkey) DO UPDATE SET data = excluded.data, ts = excluded.ts, seen = 0
      ${RETURNING}`
   ).bind(gkey, type, data, now, hosp);

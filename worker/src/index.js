@@ -21,6 +21,7 @@ import { routePrefHistory } from './prefhistory.js';
 import { routeReminders, runReminders } from './reminders.js';
 import { linkRotators } from './rotators.js';
 import { routeExchange, approvalHospitals } from './exchange.js';
+import { routeErExchange } from './erexchange.js';
 import { routeAA, isOfficer, AA_ROLES } from './aa.js';
 import { nameKey } from './names.js';
 import { dutyDayNow } from './profile.js';
@@ -157,6 +158,8 @@ async function route(request, env, ctx) {
   }
   const aaRoute = await routeAA(path, method, request, env, auth, url);
   if (aaRoute) return aaRoute;
+  const erExchangeRoute = await routeErExchange(path, method, request, env, auth, url, ctx);
+  if (erExchangeRoute) return erExchangeRoute;
   const exchangeRoute = await routeExchange(path, method, request, env, auth, url, ctx);
   if (exchangeRoute) return exchangeRoute;
   const statsRoute = await routeStats(path, method, env, auth, url);

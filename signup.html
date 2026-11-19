@@ -513,12 +513,25 @@
         let currentResidents = [];
         let matchingDuties = [];
         let selectedOldResidentName = null;
+        // ER duties («الطوارئ» / «طوارئ الدوريين» in the specialty list): the day's ER duties from the server.
+        let erDay = null;          // GET /api/er-exchange/day answer for the date on screen
+        let selectedErSlot = null; // the ER duty picked (its position key)
+        let erToken = 0;
+        const erSysOf = v => (/^@er:(res|rot)$/.exec(v || '') || [])[1] || null;
         // Hospitals where exchanges need approval (residents send a request; admins still change directly).
         let approvalOn = new Set();
         const inDivision = new URLSearchParams(location.search).has('aa');
         const needsApproval = hosp => !inDivision && approvalOn.has(hosp) && !['owner', 'admin'].includes(Hub.auth.getRole());
         function applyApprovalMode() {
             const hosp = document.getElementById('hosp-select').value;
+            if (erSysOf(document.getElementById('spec-select').value)) {
+                const on = !!(erDay && erDay.approval);
+                document.getElementById('approval-note').style.display = on ? 'flex' : 'none';
+                document.getElementById('my-exchanges-btn').style.display = on || approvalOn.has(hosp) ? 'flex' : 'none';
+                const btnText = document.getElementById('update-btn-text');
+                if (btnText && selectedOldResidentName) btnText.textContent = on ? `إرسال طلب التبديل مع ${selectedOldResidentName}` : `تأكيد التبديل مع ${selectedOldResidentName}`;
+                return;
+            }
             const on = needsApproval(hosp);
             document.getElementById('approval-note').style.display = on ? 'flex' : 'none';
             document.getElementById('my-exchanges-btn').style.display = on || (!inDivision && approvalOn.size && ['owner', 'admin'].includes(Hub.auth.getRole())) ? 'flex' : 'none';
@@ -697,6 +710,28 @@
                 opt.textContent = `${spec.icon || '🏥'} ${spec.name_ar}`;
                 select.appendChild(opt);
             });
+            addErOptions(select);
+        }
+
+        /** «الطوارئ» (the residents' ER) and «طوارئ المقيمين الدوريين» (the rotators' ER) of the hospital. */
+        function addErOptions(select) {
+            if (inDivision || !currentHospital) return;
+            const hid = currentHospital.id;
+            const role = Hub.auth.getRole();
+            const boss = ['owner', 'admin'].includes(role);
+            const acc = Hub.auth.getAccount && Hub.auth.getAccount();
+            const own = acc && acc.resident_id ? (Hub.getDatabase()?.residents || []).find(r => r.id === acc.resident_id) : null;
+            const ownSpec = own ? (((currentHospital.names || []).find(n => n.id === own.id || n.resId === own.id) || {}).spec || own.spec) : null;
+            // A rotator exchanges in the rotators' ER; a chief of rotators also sees it (besides their own ER).
+            const rotator = (Hub.auth.isRotator && Hub.auth.isRotator())
+                || (!!ownSpec && Hub.isRotatorSpecialty && Hub.isRotatorSpecialty(ownSpec, hid));
+            const chief = !!(Hub.auth.isRotatorChiefAt && Hub.auth.isRotatorChiefAt(hid));
+            const hasRot = !!(Hub.rotatorRootSpec && Hub.rotatorRootSpec(hid));
+            const group = document.createElement('optgroup');
+            group.label = 'خفارات الطوارئ';
+            if (boss || !rotator) group.appendChild(new Option('🚑 الطوارئ', '@er:res'));
+            if (hasRot && (boss || rotator || chief)) group.appendChild(new Option('🚑 طوارئ المقيمين الدوريين', '@er:rot'));
+            if (group.children.length) select.insertBefore(group, select.children[1] || null);
         }
 
         function onSpecialtyChange() {
@@ -725,6 +760,8 @@
 
         function inspectDutyAndRender() {
             const specId = document.getElementById('spec-select').value;
+            setPickerLabel(!!erSysOf(specId));
+            if (erSysOf(specId)) return inspectErDay();
             const isoDate = document.getElementById('exchange-date-input').value;
             const medDate = isoToMedicalDate(isoDate);
 
@@ -825,7 +862,85 @@
             nameInput.focus();
         }
 
+        function setPickerLabel(er) {
+            const span = document.querySelector('#target-resident-wrap label span');
+            if (!span) return;
+            if (!span.dataset.base) span.dataset.base = span.textContent;
+            span.textContent = er ? 'اختر خفارة الطوارئ المراد تبديلها:' : span.dataset.base;
+        }
+
+        async function inspectErDay() {
+            const sys = erSysOf(document.getElementById('spec-select').value);
+            const isoDate = document.getElementById('exchange-date-input').value;
+            const hosp = document.getElementById('hosp-select').value;
+            const dutyGroup = document.getElementById('duty-status-group');
+            const targetWrap = document.getElementById('target-resident-wrap');
+            const targetSelect = document.getElementById('target-resident-select');
+            const holder = document.getElementById('current-holder');
+            const nameSection = document.getElementById('name-section');
+            const btn = document.getElementById('update-btn');
+            const msg = document.getElementById('status-msg');
+            msg.textContent = '';
+            document.getElementById('name-input').value = '';
+            document.getElementById('ghost-text').innerHTML = '';
+            btn.disabled = true;
+            closeMenu();
+            erDay = null; selectedErSlot = null; selectedOldResidentName = null; currentResidents = [];
+            if (!isoDate) { dutyGroup.style.display = 'none'; nameSection.style.display = 'none'; return; }
+            dutyGroup.style.display = 'block';
+            nameSection.style.display = 'block';
+            targetWrap.style.display = 'none';
+            holder.textContent = 'جاري تحميل خفارات الطوارئ…';
+            holder.style.color = '#98A49F';
+            const token = ++erToken;
+            let res;
+            try {
+                res = await Hub.api('GET', `/api/er-exchange/day?h=${encodeURIComponent(hosp)}&sys=${sys}&date=${isoDate}`, undefined, { retries: 1 });
+            } catch (err) {
+                if (token !== erToken) return;
+                const code = err && err.data && err.data.error;
+                holder.textContent = code === 'not_your_hospital' ? 'تبديل خفارات الطوارئ لأطباء هذا المستشفى فقط' : 'تعذر تحميل خفارات الطوارئ';
+                holder.style.color = '#ef4444';
+                return;
+            }
+            if (token !== erToken) return;
+            erDay = res;
+            currentResidents = (res.residents || []).map(name => ({ name }));
+            const filled = (res.duties || []).filter(d => d.name);
+            const label = document.getElementById('name-input-label');
+            if (!filled.length) {
+                holder.textContent = 'لا توجد خفارات طوارئ مسجلة في هذا اليوم';
+                applyApprovalMode();
+                return;
+            }
+            if (!res.editable) {
+                holder.textContent = 'جدول طوارئ هذا الشهر لم يُحفظ بعد بصيغته الجديدة؛ يُبدَّل من صفحة الطوارئ';
+                holder.style.color = '#b45309';
+                return;
+            }
+            targetWrap.style.display = 'block';
+            targetSelect.innerHTML = filled.map(d =>
+                `<option value="${d.key}">${d.shiftName}${d.place ? ' · ' + d.place : ''} — ${d.name}</option>`).join('');
+            onTargetResidentChange();
+            if (label) label.textContent = `اسم الطبيب البديل (من أطباء ${sys === 'rot' ? 'طوارئ الدوريين' : 'الطوارئ'}):`;
+            document.getElementById('name-input').focus();
+        }
+
         function onTargetResidentChange() {
+            if (erSysOf(document.getElementById('spec-select').value)) {
+                selectedErSlot = document.getElementById('target-resident-select').value;
+                const d = ((erDay && erDay.duties) || []).find(x => x.key === selectedErSlot);
+                selectedOldResidentName = d ? d.name : null;
+                const holder = document.getElementById('current-holder');
+                if (d) {
+                    holder.innerHTML = `<span class="font-bold"></span> <span class="text-xs opacity-75"></span>`;
+                    holder.children[0].textContent = d.name;
+                    holder.children[1].textContent = `(${d.shiftName}${d.place ? ' · ' + d.place : ''})`;
+                    holder.style.color = '#0B7A6E';
+                }
+                applyApprovalMode();
+                return;
+            }
             selectedOldResidentName = document.getElementById('target-resident-select').value;
             document.getElementById('name-input-label').textContent = `اسم المقيم البديل (ليحل محل ${selectedOldResidentName}):`;
             document.getElementById('update-btn-text').textContent = `تأكيد التبديل مع ${selectedOldResidentName}`;
@@ -977,6 +1092,7 @@
 
             const formattedName = (name.startsWith('د.') || name.startsWith('د ')) ? name : `د. ${name}`;
 
+            if (erSysOf(specId)) return submitErExchange(hospId, erSysOf(specId), isoDate, formattedName);
             if (needsApproval(hospId)) return sendExchangeRequest(hospId, specId, medDate, formattedName);
 
             btn.disabled = true;
@@ -1031,6 +1147,50 @@
             btn.innerHTML = '<i class="fas fa-check-circle ml-1"></i> <span id="update-btn-text"></span>';
             btn.disabled = false;
             inspectDutyAndRender();
+            msg.innerHTML = result;
+        }
+
+        /** An ER duty: changed now (approval off, or an ER moderator), else a request like a roster exchange. */
+        async function submitErExchange(hospId, sys, isoDate, newName) {
+            const btn = document.getElementById('update-btn');
+            const msg = document.getElementById('status-msg');
+            const card = document.getElementById('app-card');
+            if (!Hub.auth.getAccount()) { showToast('تبديل خفارات الطوارئ يحتاج حساباً شخصياً. سجّل الدخول بحسابك.', 'error'); return; }
+            if (!selectedErSlot || !selectedOldResidentName) { showToast('اختر خفارة الطوارئ أولاً', 'error'); return; }
+            const oldName = selectedOldResidentName;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> <span id="update-btn-text">جاري الحفظ...</span>';
+            let result = '';
+            try {
+                const res = await Hub.api('POST', '/api/er-exchange', { h: hospId, sys, date: isoDate, slot: selectedErSlot, oldName, newName }, { retries: 0 });
+                if (res.status === 'applied') {
+                    card.classList.add('card-success');
+                    result = `<span style="color:#10b981;font-weight:700;">✅ تم تبديل خفارة الطوارئ يوم ${isoToMedicalDate(isoDate)}: ${oldName} ← ${res.newName}</span>`;
+                    showToast('تم تبديل خفارة الطوارئ ✓', 'success');
+                } else {
+                    const to = res.status === 'owner_pending' ? `${oldName} ليوافق أولاً، ثم إلى الإدارة` : 'الإدارة للموافقة';
+                    result = `<span style="color:#13977F;font-weight:700;">📨 أُرسل طلب تبديل خفارة الطوارئ إلى ${to}. سيصلك إشعار بالنتيجة.</span>`;
+                    showToast('تم إرسال طلب التبديل ✓', 'success');
+                }
+            } catch (err) {
+                const code = err && err.data && err.data.error;
+                const text = ({
+                    not_in_er: 'البديل ليس ضمن قائمة أطباء هذه الطوارئ.',
+                    not_your_er: 'تبدّل خفارات الطوارئ التي أنت ضمن قائمة أطبائها فقط.',
+                    duty_not_found: 'تغيّرت هذه الخفارة في جدول الطوارئ؛ حدّث الصفحة.',
+                    duty_changed: 'تغيّرت هذه الخفارة في جدول الطوارئ؛ حدّث الصفحة.',
+                    month_missing: 'جدول طوارئ هذا الشهر غير محفوظ بعد.',
+                    already_requested: 'يوجد طلب تبديل مفتوح لهذه الخفارة.',
+                    same_person: 'البديل هو صاحب الخفارة نفسه.',
+                    not_your_hospital: 'تبديل خفارات الطوارئ لأطباء هذا المستشفى فقط.',
+                    account_required: 'تبديل خفارات الطوارئ يحتاج حساباً شخصياً.',
+                    rate_limited: 'طلبات كثيرة، انتظر قليلاً.',
+                })[code] || err.message || 'تعذر حفظ التبديل';
+                result = `<span style="color:#ef4444;font-weight:700;">❌ ${text}</span>`;
+                showToast(text, 'error');
+            }
+            btn.innerHTML = '<i class="fas fa-check-circle ml-1"></i> <span id="update-btn-text"></span>';
+            await inspectErDay();
             msg.innerHTML = result;
         }
 

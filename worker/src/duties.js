@@ -16,7 +16,7 @@
 
 import { DAY, json, readJson, overLimit, plainText, signToken, verifyToken } from './lib.js';
 import { nameKey, nameTokens, namesMatch, phoneKey, isoDate } from './names.js';
-import { notifyHospitalResidents, dispatchPush } from './accounts.js';
+import { dispatchPush } from './accounts.js';
 import { inSpecialty } from './exchspecs.js';
 import { refreshFromMyDuties } from './reminders.js';
 import { canUseEr, canUseRotEr } from './eraccess.js';
@@ -101,18 +101,20 @@ async function erResidentRows(env, hosp) {
   if (!HOSP_RE.test(hosp || '')) return { path: '', rows: [] };
   // The ER database's residents are read again only after the ER scheduler's data changed.
   const rev = await revision(env, 'er');
-  const list = path => cachedValue(`er-residents/${path}`, rev, async () => (await env.DB.prepare(
+  const list = path => cachedValue(`er-residents2/${path}`, rev, async () => (await env.DB.prepare(
     `SELECT json_extract(j.value, '$.id') AS id, json_extract(j.value, '$.name') AS name,
-            json_extract(j.value, '$.sex') AS sex, json_extract(j.value, '$.phone') AS phone
+            json_extract(j.value, '$.sex') AS sex, json_extract(j.value, '$.phone') AS phone,
+            json_extract(j.value, '$.active') AS active, json_extract(j.value, '$.expiryMonth') AS exp
        FROM records r, json_each(r.data, ?1) j
       WHERE r.coll = 'er' AND r.id = ?2`
   ).bind(path, ER_STATE_ID).all()).results || []);
   const base = rotBase(hosp);
   if (base) {
     const path = erPath(base);
-    const rows = await cachedValue(`er-residents/rot/${base}`, rev, async () => (await env.DB.prepare(
+    const rows = await cachedValue(`er-residents2/rot/${base}`, rev, async () => (await env.DB.prepare(
       `SELECT json_extract(j.value, '$.id') AS id, json_extract(j.value, '$.name') AS name,
-              json_extract(j.value, '$.sex') AS sex, json_extract(j.value, '$.phone') AS phone
+              json_extract(j.value, '$.sex') AS sex, json_extract(j.value, '$.phone') AS phone,
+            json_extract(j.value, '$.active') AS active, json_extract(j.value, '$.expiryMonth') AS exp
          FROM records r, json_each(r.data, ?1) j
         WHERE r.coll = 'er' AND r.id = ?2`
     ).bind(path, stateIdOf(hosp)).all()).results || []);
@@ -145,7 +147,40 @@ export async function findErResident(env, account, erHosp) {
   let res = {};
   try { res = JSON.parse(full ? full.v : '{}'); } catch {}
   return { id: match.id, name: match.name, sex: match.sex === 'F' ? 'f' : match.sex === 'M' ? 'm' : null, prefs: cleanPrefs(res, null, true),
-    prefsYm: typeof res.prefsYm === 'string' ? res.prefsYm : null };
+    prefsYm: typeof res.prefsYm === 'string' ? res.prefsYm : null, active: match.active, exp: match.exp };
+}
+
+/**
+ * Is this ER list entry in the ER's residents panel for month `ym` (YYYY-MM)? Active, and not past its
+ * expiry month (the ER page's isResidentExpired: gone from the expiry month on).
+ */
+export const inErFor = (row, ym) => !!row && row.active !== 0 && row.active !== false
+  && !(typeof row.exp === 'string' && /^\d{4}-\d{2}$/.test(row.exp) && ym >= row.exp);
+
+/**
+ * The ER preferences portal of `erHosp` ('<hospital>' or '<hospital>-rot') opened for `ym`: a notification
+ * for each active account of the hospital that is in that ER's residents panel for that month (matched to
+ * the ER list as the portal itself matches them). Returns the .all() result (for dispatchPush).
+ */
+export async function notifyErPortal(env, erHosp, gkey, data, now, ym) {
+  const base = rotBase(erHosp) || erHosp;
+  const [{ rows }, accs] = await Promise.all([
+    erResidentRows(env, erHosp),
+    env.DB.prepare(
+      `SELECT id, name, phone FROM accounts WHERE status = 'active' AND role IN ('user', 'anaesthesia', 'branch', 'admin', 'rotator')
+        AND (hosp = ?1 OR EXISTS (SELECT 1 FROM json_each(accounts.hospitals) WHERE value = ?1)
+             OR EXISTS (SELECT 1 FROM json_each(COALESCE(accounts.cover, '[]')) WHERE value = ?1))`
+    ).bind(base).all(),
+  ]);
+  const panel = rows.filter(r => inErFor(r, ym));
+  const ids = (accs.results || []).filter(a => { const m = pickResident(rows, a); return m && panel.includes(m); }).map(a => a.id);
+  if (!ids.length) return { results: [] };
+  return env.DB.prepare(
+    `INSERT INTO notifications (account_id, gkey, type, data, ts, seen)
+     SELECT value, ?1, 'er_portal', ?2, ?3, 0 FROM json_each(?4) WHERE true
+     ON CONFLICT (account_id, gkey) DO UPDATE SET data = excluded.data, ts = excluded.ts, seen = 0
+     RETURNING account_id, type, data, gkey, ts`
+  ).bind(gkey, data, now, JSON.stringify(ids)).all();
 }
 
 export function pickResident(rows, account) {
@@ -675,9 +710,9 @@ async function portalMine(env, auth) {
   let portal = null, erFound = null;
   for (const pick of [...(open || [])].sort((a, b) => (a.hosp === acc.hosp ? -1 : 1) - (b.hosp === acc.hosp ? -1 : 1))) {
     const er = await findErResident(env, acc, pick.hosp);
-    if (er) { portal = pick; erFound = er; break; }
+    if (er && inErFor(er, pick.ym)) { portal = pick; erFound = er; break; }
   }
-  if (!portal && open && open.length) portal = open.find(p => p.hosp === acc.hosp) || null;
+  // Not in that ER's residents panel for the portal's month: no portal for them.
   if (!portal) return json({ ok: true, portal: null });
   const [er, req] = await Promise.all([
     Promise.resolve(erFound),
@@ -705,7 +740,7 @@ async function savePortalRequest(request, env, auth) {
   const portal = await env.DB.prepare('SELECT * FROM er_portals WHERE hosp = ? AND ym = ?').bind(which, String(b.ym || '')).first();
   if (!isOpen(portal)) return json({ error: 'portal_closed' }, 409);
   const er = await findErResident(env, acc, which);
-  if (!er) return json({ error: 'not_in_er' }, 404);
+  if (!er || !inErFor(er, portal.ym)) return json({ error: 'not_in_er' }, 404);
   const prefs = cleanPrefs(b.prefs, portal.ym);
   const now = Date.now();
   await env.DB.batch([
@@ -783,7 +818,7 @@ async function openPortal(request, env, auth, ctx) {
   // Residents hear about it when it opens, and again when the admin asks (e.g. a new deadline).
   let notified = 0;
   if (!wasOpen || b.notify) {
-    const res = await notifyHospitalResidents(env, rotBase(hosp) || hosp, `erportal:${hosp}:${ym}`, 'er_portal', JSON.stringify({ hosp, ym, closes: closesAt, extended: wasOpen }), now, !!rotBase(hosp)).run();
+    const res = await notifyErPortal(env, hosp, `erportal:${hosp}:${ym}`, JSON.stringify({ hosp, ym, closes: closesAt, extended: wasOpen }), now, ym);
     notified = (res.results || []).length;
     dispatchPush(env, ctx, res);
   }

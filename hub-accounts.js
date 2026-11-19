@@ -459,9 +459,9 @@
             case 'warning':
                 return { icon: '⚠️', text: `تحذير من ${d.role === 'owner' ? 'المالك' : 'إدارة المستشفى'} بسبب تعليقك على بطاقة ${d.name || ''}${when}: «${d.text || ''}»${d.note ? ' – ' + d.note : ''}`, open: () => openThread({ h: d.h, d: isoToLocal(d.d), n: d.name }, 'comments') };
             case 'exchange_request':
-                return { icon: '🔁', text: `${d.by || 'أحد الزملاء'} يطلب تبديل خفارتك يوم ${d.date || ''} (${hospitalName(d.h)}) إلى ${d.newName || ''}. اضغط للموافقة أو الرفض.`, open: () => openExchanges() };
+                return { icon: '🔁', text: `${d.by || 'أحد الزملاء'} يطلب تبديل خفارتك${d.er ? ' (' + d.er + ')' : ''} يوم ${d.date || ''} (${hospitalName(d.h)}) إلى ${d.newName || ''}. اضغط للموافقة أو الرفض.`, open: () => openExchanges() };
             case 'exchange_admin':
-                return { icon: '🔁', text: `طلب تبديل بانتظار موافقتك: ${d.date || ''} · ${d.oldName || ''} ← ${d.newName || ''}${d.ownerApproved ? ' (وافق صاحب الخفارة)' : ''}`, open: () => openExchanges() };
+                return { icon: '🔁', text: `طلب تبديل بانتظار موافقتك: ${d.er ? d.er + ' · ' : ''}${d.date || ''} · ${d.oldName || ''} ← ${d.newName || ''}${d.ownerApproved ? ' (وافق صاحب الخفارة)' : ''}`, open: () => openExchanges() };
             case 'exchange_result': {
                 const head = { approved: d.holder ? 'تم تبديل خفارتك' : 'تمت الموافقة وتبديل الخفارة', owner_approved: 'وافق صاحب الخفارة، والطلب بانتظار الإدارة', owner_rejected: 'رفض صاحب الخفارة طلب التبديل', admin_rejected: 'رفضت الإدارة طلب التبديل' }[d.step] || 'طلب التبديل';
                 return { icon: d.step === 'approved' ? '✅' : d.step === 'owner_approved' ? '👍' : '❌', text: `${head}: ${d.date || ''} · ${d.oldName || ''} ← ${d.newName || ''}${d.note ? ' · «' + d.note + '»' : ''}`, open: () => openExchanges() };
@@ -623,7 +623,7 @@
         let items = [];
         const card = (r, acts) => {
             const [icon, label] = XSTATUS[r.status] || ['🔁', r.status];
-            const spec = (Hub.getSpecialtyName && Hub.getSpecialtyName(r.spec, r.hosp)) || r.spec;
+            const spec = r.erLabel || (Hub.getSpecialtyName && Hub.getSpecialtyName(r.spec, r.hosp)) || r.spec;
             return `<article class="hx-card st-${esc(r.status)}" data-id="${r.id}">
                 <div class="hx-top"><b>${esc(r.date)}</b> · ${esc(spec)} · <span class="hacc-muted">${esc(hospitalName(r.hosp))}</span></div>
                 <div class="hx-swap"><span>${esc(r.oldName)}</span><i class="fas fa-arrow-left"></i><span>${esc(r.newName)}</span></div>

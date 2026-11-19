@@ -28,7 +28,8 @@
     const norm = s => { const v = String(s || '').trim(); try { return core().normalizeArabic(v); } catch (e) { return v; } };
 
     const SHEETS = { er: 'الطوارئ', con: 'الاستشارية', dc: 'شهادات الوفاة' };
-    const PREFIX = 'hosp_hub_emergency_slots_';
+    // The rotators' ER keeps its save slots apart from the residents' ER.
+    const PREFIX = (window.EmergencyCore && window.EmergencyCore.rot) ? 'hosp_hub_emergency_rslots_' : 'hosp_hub_emergency_slots_';
     const keyOf = (sheet, st) => `${PREFIX}${sheet}_${st.hospitalId}_${st.year}_${st.month}`;
 
     // ------------------------------------------------------------------------------------------

@@ -233,7 +233,8 @@
     function importGroups(hosp) {
         const c = core();
         const st = c.state();
-        const docs = c.getHospitalDoctorsList(hosp).filter(d => d && d.name);
+        // The rotators' ER imports the hospital's rotators only.
+        const docs = c.getHospitalDoctorsList(hosp).filter(d => d && d.name && (!c.rot || c.isRotatorResident(d)));
         const specs = c.getHospitalSpecificSpecialties(hosp);
         const er = st.residents || [];
         const linked = new Set(er.map(r => r.hubId).filter(Boolean));

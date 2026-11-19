@@ -917,3 +917,25 @@ body.roster-view-er #trending-container, body.roster-view-er #main-content > .to
 .er-rot-badge { background: rgba(232, 162, 58, 0.16) !important; color: #B7791F !important; }
 .er-card-wrap .roster-card { min-height: 0 !important; }
 @media (prefers-reduced-motion: reduce) { .er-live i { animation: none; } .er-shift::details-content { transition: none; } }
+
+/* ======================================================================
+   Rotators' ER (emergency.html?sys=rot): no strike, consultation clinic or death certificates
+   ====================================================================== */
+html.er-rot [data-ers-tab="con"], html.er-rot [data-ers-tab="dc"],
+html.er-rot [data-ers-tab="rs_er"], html.er-rot [data-ers-tab="rs_wards"],
+html.er-rot .duty-card[onclick="switchTab('con')"], html.er-rot .duty-card[onclick="switchTab('dc')"],
+html.er-rot .duty-card[onclick="switchTab('rs_er')"] { display: none !important; }
+.ers-system {
+  display: flex; gap: 4px; margin: 4px 14px 10px; padding: 4px; border-radius: 14px;
+  background: var(--ds-fill); border: 1px solid var(--ds-line);
+}
+.ers-top-title .ers-system { margin: 6px 0 0; display: inline-flex; }
+.ers-system a, .ers-system span {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 6px 10px; border-radius: 10px; font-size: 0.78rem; font-weight: 600; white-space: nowrap;
+  color: var(--ds-ink-2); text-decoration: none;
+}
+.ers-system .on { background: var(--ds-card); color: var(--ds-tint); box-shadow: var(--ds-shadow-1); }
+html.er-rot .ers-system .on { color: #B7791F; }
+html.er-rot .ers-logo { background: linear-gradient(145deg, #E8A23A, #B7791F) !important; }
+@media (min-width: 1024px) { .ers-top-title .ers-system { display: none; } }

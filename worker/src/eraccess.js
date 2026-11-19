@@ -54,3 +54,42 @@ export async function erFieldWrites(env, ops) {
   }));
   return new Set(ops.filter(op => current.get(op.id) !== erFields(op.d)));
 }
+
+// ---------------------------------------------------------------------------
+// The rotators' ER of a hospital (emergency.html?sys=rot): its own records, used by the hospital's ER
+// admins and the owner, and by its chief of rotators (a branch representative of the Rotator
+// specialty), who reaches those records and nothing else of the ER.
+// ---------------------------------------------------------------------------
+import { branchSpecAt, hospitalsWithRole } from './access.js';
+import { isRotatorSpec } from './exchspecs.js';
+
+const ROT_RECORD = /^hosp_hub_emergency_(?:rstate_([\w-]{1,48})|(?:rsched|ralloc|rslots_(?:er|con|dc))_([\w-]{1,48})_\d{4}_\d{1,2})$/;
+/** The hospital of a rotators' ER record id, or null when the id is not one. */
+export function rotErHospital(id) {
+  const m = ROT_RECORD.exec(String(id || ''));
+  return m ? (m[1] || m[2]) : null;
+}
+
+/** The hospitals where this account is the chief of rotators. */
+export async function rotChiefHospitals(env, auth) {
+  if (!auth || !auth.a) return [];
+  const hosps = hospitalsWithRole(auth, 'branch').filter(h => branchSpecAt(auth, h));
+  if (!hosps.length) return [];
+  const [meta, ...rows] = await env.DB.batch([
+    env.DB.prepare("SELECT data FROM records WHERE coll = 'meta' AND id = 'globalSpecialties'"),
+    ...hosps.map(h => env.DB.prepare("SELECT json_extract(data, '$.specialties') AS specs FROM records WHERE coll = 'hospital' AND id = ?").bind(h)),
+  ]);
+  let store = [];
+  try { store = (JSON.parse((meta.results[0] && meta.results[0].data) || '{}').value) || []; } catch {}
+  return hosps.filter((h, i) => {
+    let own = [];
+    try { own = JSON.parse((rows[i].results[0] && rows[i].results[0].specs) || '[]') || []; } catch {}
+    return isRotatorSpec([...store, ...own], branchSpecAt(auth, h));
+  });
+}
+
+/** May this session use the rotators' ER of `hosp`? */
+export async function canUseRotEr(env, auth, hosp) {
+  if (await canUseEr(env, auth, hosp)) return true;
+  return (await rotChiefHospitals(env, auth)).includes(hosp);
+}

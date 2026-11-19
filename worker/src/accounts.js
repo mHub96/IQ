@@ -16,7 +16,7 @@ import { cardStatuses } from './oncall.js';
 import { durationText } from './reminders.js';
 import { BOARDS, dutyDayNow, getStageMonth, setStageMonth, currentStage, profileComplete, suggestProfile } from './profile.js';
 import { AA_ROLES, findOfficer, officerLink, divisionJob, addOfficer } from './aa.js';
-import { canUseEr } from './eraccess.js';
+import { canUseEr, canUseRotEr } from './eraccess.js';
 import { ensureRotatorRecord, rotatorCheckHospitals, setRotatorCheck } from './rotators.js';
 import { residentsOf, residentList } from './revcache.js';
 import { HOSPITAL_ROLES, accessOf, accountHospitals, collapseAccess, parseCover, parseHospRoles } from './access.js';
@@ -1405,7 +1405,7 @@ async function saveAvatar(request, env, auth) {
 async function erProfiles(env, auth, url) {
   const hosp = String(url.searchParams.get('h') || '');
   if (!HOSP_RE.test(hosp)) return json({ error: 'bad_request' }, 400);
-  if (!(await canUseEr(env, auth, hosp))) return json({ error: 'forbidden' }, 403);
+  if (!(await canUseRotEr(env, auth, hosp))) return json({ error: 'forbidden' }, 403);
   const { results } = await env.DB.prepare(
     `SELECT id, resident_id, phone, sex, board, specialty, stage, stage_ref, board_years FROM accounts
       WHERE hosp = ? AND status = 'active' AND role IN ('user', 'anaesthesia', 'branch', 'admin')`

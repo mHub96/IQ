@@ -22,9 +22,17 @@
 (function(window) {
     'use strict';
 
-    const STATE_KEY = 'hosp_hub_emergency_state_v3';
+    // The rotators' ER (?sys=rot&hospital=<id>): the same page for one hospital's rotators, kept under its
+    // own records (state, months, allocations, save slots), without the strike, the consultation clinic
+    // and the death certificates. Its chief of rotators uses it (and nothing else); ER admins switch to it.
+    const ER_URL = new URLSearchParams(window.location.search);
+    const ROT_SYS = ER_URL.get('sys') === 'rot';
+    const ROT_HOSP = ROT_SYS ? (ER_URL.get('hospital') || (window.Hub && window.Hub.getActiveHospitalId ? window.Hub.getActiveHospitalId() : '') || '') : '';
+    const STATE_KEY = ROT_SYS ? 'hosp_hub_emergency_rstate_' + ROT_HOSP : 'hosp_hub_emergency_state_v3';
     const DB_FILE = './emergency-db.json';
-    const MONTH_STORAGE_PREFIX = 'hosp_hub_emergency_sched_';
+    const MONTH_STORAGE_PREFIX = ROT_SYS ? 'hosp_hub_emergency_rsched_' : 'hosp_hub_emergency_sched_';
+    const ROT_HIDDEN_TABS = ['con', 'dc', 'rs', 'rs_er', 'rs_wards'];
+    if (ROT_SYS) document.documentElement.classList.add('er-rot');
 
     const PRINT_THEME_PRESETS = {
         official: {
@@ -603,6 +611,21 @@
     // =========================================================================
 
     function checkOwnerAccessOnLaunch() {
+        if (ROT_SYS) {
+            const ok = !!ROT_HOSP && window.Hub && window.Hub.auth && window.Hub.auth.canUseRotEr && window.Hub.auth.canUseRotEr(ROT_HOSP);
+            if (ok) { document.documentElement.classList.add('er-owner-authenticated'); unlockOwnerAuthGate(); return true; }
+            document.documentElement.classList.remove('er-owner-authenticated');
+            showOwnerAuthGate('هذه الصفحة لمسؤولي الطوارئ ورئيس المقيمين الدوريين في هذا المستشفى فقط.');
+            return false;
+        }
+        // A chief of rotators uses only their hospital's rotators' ER.
+        if (window.Hub && window.Hub.auth && window.Hub.auth.rotatorChiefHospitals && !window.Hub.auth.isAdmin()) {
+            const chiefOf = window.Hub.auth.rotatorChiefHospitals();
+            if (chiefOf.length) {
+                location.replace(`./emergency.html?sys=rot&hospital=${encodeURIComponent(chiefOf[0])}`);
+                return false;
+            }
+        }
         const isOwnerHub = window.Hub && window.Hub.auth && typeof window.Hub.auth.isOwner === 'function' && window.Hub.auth.isOwner();
         const role = localStorage.getItem('hospital_hub_session_role');
         const erSessionLocal = localStorage.getItem('hosp_hub_er_owner_session') === 'true';
@@ -844,6 +867,13 @@
                 console.warn('Failed to parse saved emergency state, falling back to defaults', e);
             }
         }
+        // A rotators' ER never saved yet starts empty (the page's built-in data is the residents' ER's).
+        if (ROT_SYS && !saved) {
+            state.hospitalResidents = {};
+            state.residents = [];
+            state.monthlySchedules = {};
+            state.monthlyAllocations = {};
+        }
         // The table filters are for the moment only: a reload starts with every day shown (a filter
         // left ticked, e.g. "empty slots only", would otherwise hide every day of a full month).
         clearScheduleFilterState();
@@ -872,7 +902,9 @@
         const urlHosp = urlParams.get('hospital');
 
         let effectiveHospId = state.hospitalId || 'iraqi';
-        if (isScopedAdmin) {
+        if (ROT_SYS) {
+            effectiveHospId = ROT_HOSP;
+        } else if (isScopedAdmin) {
             effectiveHospId = (urlHosp && adminHospIds.includes(urlHosp)) ? urlHosp : (adminHospIds[0] || 'iraqi');
         } else if (urlHosp) {
             effectiveHospId = urlHosp;
@@ -892,8 +924,8 @@
         // 4. Load hospital residents (strictly scoped to effective hospital)
         loadHospitalResidents(effectiveHospId);
 
-        // Baseline activation healing strictly for default Iraqi hospital
-        if (effectiveHospId === 'iraqi') {
+        // Baseline activation healing strictly for default Iraqi hospital (not its rotators' ER)
+        if (effectiveHospId === 'iraqi' && !ROT_SYS) {
             const baselineMap = {};
             if (window.DEFAULT_EMERGENCY_DATA && Array.isArray(window.DEFAULT_EMERGENCY_DATA.residents)) {
                 window.DEFAULT_EMERGENCY_DATA.residents.forEach(r => {
@@ -1063,7 +1095,7 @@
         });
     }
 
-    const MONTH_ALLOC_PREFIX = 'hosp_hub_emergency_alloc_';
+    const MONTH_ALLOC_PREFIX = ROT_SYS ? 'hosp_hub_emergency_ralloc_' : 'hosp_hub_emergency_alloc_';
 
     function saveCurrentMonthScheduleToStore(hospIdOverride) {
         if (!state.monthlySchedules) state.monthlySchedules = {};
@@ -1352,7 +1384,7 @@
         }
 
         if (!residents || residents.length === 0 || isContaminated) {
-            if (hospId === 'iraqi') {
+            if (hospId === 'iraqi' && !ROT_SYS) {
                 if (window.DEFAULT_EMERGENCY_DATA && Array.isArray(window.DEFAULT_EMERGENCY_DATA.residents)) {
                     residents = JSON.parse(JSON.stringify(window.DEFAULT_EMERGENCY_DATA.residents));
                 } else {
@@ -1370,6 +1402,7 @@
                 if (hubResidents.length === 0 && window.Hub && typeof window.Hub.getResidents === 'function') {
                     hubResidents = window.Hub.getResidents(hospId) || [];
                 }
+                if (ROT_SYS) hubResidents = hubResidents.filter(isRotatorResident);
                 if (hubResidents.length === 0 && window.Hub && typeof window.Hub.getDatabase === 'function') {
                     const db = window.Hub.getDatabase();
                     if (db && Array.isArray(db.residents)) {
@@ -3422,7 +3455,15 @@
         renderActiveTab();
     }
 
+    /** A resident of the hospital database filed under the Rotator specialty or one of its branches. */
+    function isRotatorResident(r) {
+        const hid = ROT_HOSP || state.hospitalId;
+        const codes = [r && r.spec, r && r.tag, r && r.dept].filter(Boolean);
+        return !!(window.Hub && window.Hub.isRotatorSpecialty) && codes.some(c => window.Hub.isRotatorSpecialty(c, hid));
+    }
+
     function switchTab(tabId) {
+        if (ROT_SYS && ROT_HIDDEN_TABS.includes(tabId)) tabId = 'er';
         if (tabId === 'db') {
             openResidentsDbModal();
             return;
@@ -11530,6 +11571,8 @@
     window.triggerScheduleAutoGenerate = triggerScheduleAutoGenerate;
     // For add-ons on this page (emergency-portal.js): live state and the save / redraw helpers.
     window.EmergencyCore = {
+        /** The rotators' ER (?sys=rot): its hospital and the prefix of its month records. */
+        rot: ROT_SYS, rotHospital: ROT_HOSP, monthPrefix: MONTH_STORAGE_PREFIX, isRotatorResident,
         state: () => state,
         ready: () => appReady,
         saveState, pushDBHistory, refreshDBView, renderActiveTab, showNotification, pushScheduleHistory, ensureScheduleIntegrity,
@@ -11541,6 +11584,33 @@
         getHospitalDoctorsList, getHospitalSpecificSpecialties, isDoctorInHospitalSpecialty,
         canonicalizeSpecialtyName, formatDoctorName, formatIraqiPhoneNumber, getSpecialtyColor, normalizeArabic,
     };
+
+    // The two ER systems of a hospital: the residents' ER and the rotators' ER. Its ER admins and the
+    // owner switch between them here; a chief of rotators sees only the rotators' ER (a label, no switch).
+    function mountSystemSwitch() {
+        const hid = ROT_SYS ? ROT_HOSP : state.hospitalId;
+        if (!hid || document.querySelector('.ers-system')) return;
+        const both = !!(window.Hub && window.Hub.auth && window.Hub.auth.canUseEr(hid));
+        const hasRot = !!(window.Hub && window.Hub.rotatorRootSpec && window.Hub.rotatorRootSpec(hid));
+        const box = document.createElement('div');
+        box.className = 'ers-system';
+        const url = rot => `./emergency.html?hospital=${encodeURIComponent(hid)}${rot ? '&sys=rot' : ''}`;
+        box.innerHTML = both && (hasRot || ROT_SYS)
+            ? `<a href="${url(false)}" class="${ROT_SYS ? '' : 'on'}" aria-current="${ROT_SYS ? 'false' : 'page'}"><i class="fas fa-user-doctor"></i> المقيمون</a>`
+              + `<a href="${url(true)}" class="${ROT_SYS ? 'on' : ''}" aria-current="${ROT_SYS ? 'page' : 'false'}"><i class="fas fa-rotate"></i> الدوريون</a>`
+            : (ROT_SYS ? '<span class="on"><i class="fas fa-rotate"></i> طوارئ المقيمين الدوريين</span>' : '');
+        if (!box.innerHTML) return;
+        const side = document.querySelector('.ers-side .ers-brand');
+        if (side) side.insertAdjacentElement('afterend', box);
+        const top = document.querySelector('.ers-top-title');
+        if (top) top.insertAdjacentElement('beforeend', box.cloneNode(true));
+        if (ROT_SYS) {
+            const t = document.querySelector('[data-ers-title]');
+            document.title = 'طوارئ المقيمين الدوريين · HOSP HUB';
+            if (t && !/الدوريين/.test(t.textContent)) t.dataset.rot = '1';
+        }
+    }
+    (function waitReady() { if (appReady) { try { mountSystemSwitch(); } catch (e) {} } else setTimeout(waitReady, 400); })();
     window.closeAutoGenerateModal = closeAutoGenerateModal;
     window.onScheduleSearchInput = onScheduleSearchInput;
     window.onScheduleShiftFilterChange = onScheduleShiftFilterChange;

@@ -1443,12 +1443,16 @@
     // so every admin device sees the same schedules.
     // ============================================================
     const ER_EXACT_KEYS = new Set(['hosp_hub_emergency_state_v3', 'hosp_hub_emergency_specialty_colors']);
+    // The rotators' ER of each hospital keeps its own records: its state (one per hospital) and months.
+    const ER_ROT_STATE = 'hosp_hub_emergency_rstate_';
     // slots_: the save slots of an ER table (emergency-slots.js), hosp_hub_emergency_slots_<sheet>_<hosp>_<y>_<m>.
-    const ER_PREFIXES = ['hosp_hub_emergency_sched_', 'hosp_hub_emergency_alloc_', 'hosp_hub_emergency_slots_'];
+    const ER_PREFIXES = ['hosp_hub_emergency_sched_', 'hosp_hub_emergency_alloc_', 'hosp_hub_emergency_slots_',
+        'hosp_hub_emergency_rsched_', 'hosp_hub_emergency_ralloc_', 'hosp_hub_emergency_rslots_', ER_ROT_STATE];
     const ER_MAX_BYTES = 1800000;
     const isErKey = k => typeof k === 'string' && (ER_EXACT_KEYS.has(k) || ER_PREFIXES.some(p => k.startsWith(p)));
     const erHospitalOf = k => {
-        const m = /^hosp_hub_emergency_(?:sched|alloc|slots_(?:er|con|dc))_(.+)_\d{4}_\d{1,2}$/.exec(k);
+        if (typeof k === 'string' && k.startsWith(ER_ROT_STATE)) return k.slice(ER_ROT_STATE.length) || null;
+        const m = /^hosp_hub_emergency_(?:r?sched|r?alloc|r?slots_(?:er|con|dc))_(.+)_\d{4}_\d{1,2}$/.exec(k);
         return m ? m[1] : null;
     };
 
@@ -1479,7 +1483,8 @@
     function canSyncEr() {
         if (AA) return false;
         const role = auth.getRole();
-        return (role === 'owner' || role === 'admin') && !!readApiToken();
+        // A chief of rotators syncs their hospital's rotators' ER (the API serves and takes only those).
+        return (role === 'owner' || role === 'admin' || auth.rotatorChiefHospitals().length > 0) && !!readApiToken();
     }
 
     function readErState() {
@@ -4494,6 +4499,8 @@
          * the owner picked them (hospital.erAdmins: account ids, 'shared' = the shared admin password;
          * no list = every admin, as before the list existed). The API applies the same rule.
          */
+        /** The rotators' ER of a hospital: its ER admins and the owner, and its chief of rotators. */
+        canUseRotEr(hospId) { return this.canUseEr(hospId) || this.isRotatorChiefAt(hospId); },
         canUseEr(hospId) {
             if (this.isOwner()) return true;
             if (!hospId || this.getRole() !== 'admin') return false;

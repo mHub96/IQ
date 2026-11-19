@@ -27,7 +27,7 @@ import { dutyDayNow } from './profile.js';
 import { routeErFonts } from './erfonts.js';
 import { routeSpecialists, residentSpecialistsEditAllowed, isResidentEditor } from './specialists.js';
 import { routeGuide } from './guide.js';
-import { canUseEr, erFieldWrites } from './eraccess.js';
+import { canUseEr, erFieldWrites, rotChiefHospitals, rotErHospital } from './eraccess.js';
 import { routeUsage } from './usage.js';
 import { routeStats, snapshotStats } from './stats.js';
 import { routeBackup } from './backup.js';
@@ -177,7 +177,12 @@ async function route(request, env, ctx) {
   if (accountRoute) return accountRoute;
 
   if (path === '/api/er' && method === 'GET') {
-    if (!(await canUseEr(env, auth))) return json({ error: 'forbidden' }, auth ? 403 : 401);
+    if (!(await canUseEr(env, auth))) {
+      // A chief of rotators: the records of their hospitals' rotators' ER only.
+      const chiefOf = auth ? await rotChiefHospitals(env, auth) : [];
+      if (!chiefOf.length) return json({ error: 'forbidden' }, auth ? 403 : 401);
+      return readRotEr(env, auth, chiefOf);
+    }
     return readRecords(env, auth, url, true);
   }
 
@@ -532,6 +537,26 @@ function allowed(a, op) {
 // Reads
 // ---------------------------------------------------------------------------
 
+/** The rotators' ER records of some hospitals (one page; key ranges, so only those rows are read). */
+async function readRotEr(env, auth, hosps) {
+  const ranges = hosps.flatMap(h => [
+    [`hosp_hub_emergency_rstate_${h}`, `hosp_hub_emergency_rstate_${h}`],
+    [`hosp_hub_emergency_rsched_${h}_`, `hosp_hub_emergency_rsched_${h}_~`],
+    [`hosp_hub_emergency_ralloc_${h}_`, `hosp_hub_emergency_ralloc_${h}_~`],
+  ]);
+  const stmts = ranges.map(([a, b]) => env.DB.prepare(
+    `SELECT json_group_array(json_array(coll, id, hosp, ord, v, json(data), updated_at)) AS rows
+       FROM records WHERE coll = 'er' AND id >= ?1 AND id <= ?2`).bind(a, b));
+  // Save slots: hosp_hub_emergency_rslots_<sheet>_<hospital>_<y>_<m>
+  stmts.push(env.DB.prepare(
+    `SELECT json_group_array(json_array(coll, id, hosp, ord, v, json(data), updated_at)) AS rows
+       FROM records WHERE coll = 'er' AND id >= 'hosp_hub_emergency_rslots_' AND id < 'hosp_hub_emergency_rslots_~'`));
+  const res = await env.DB.batch(stmts);
+  const rows = res.flatMap(r => { try { return JSON.parse((r.results[0] && r.results[0].rows) || '[]'); } catch { return []; } })
+    .filter(row => hosps.includes(rotErHospital(row[1])));
+  return json({ role: auth.r, time: Date.now(), rev: null, rows, last: 0, more: false, full: true });
+}
+
 async function readRecords(env, auth, url, er) {
   const cursor = String(url.searchParams.get('after') || '');
   const after = Math.max(0, Number(cursor) || 0);
@@ -713,6 +738,10 @@ async function sync(request, env, auth) {
   // ER data: only the admins the owner picked for a hospital with the ER page switched on; and only
   // the owner switches a hospital's ER page or picks its admins (eraccess.js).
   const erOk = auth.r === 'admin' && ops.some(op => op && (op.c === 'er' || op.c === 'er_conflict')) ? await canUseEr(env, auth) : true;
+  // A chief of rotators writes their hospitals' rotators' ER records (and no other ER record).
+  const rotErOps = auth.r !== 'owner' && auth.r !== 'admin' ? ops.filter(op => op && op.c === 'er' && rotErHospital(op.id)) : [];
+  const chiefEr = rotErOps.length ? await rotChiefHospitals(env, auth) : [];
+  const rotErOk = new Set(rotErOps.filter(op => chiefEr.includes(rotErHospital(op.id))));
   const erLocked = auth.r === 'admin' ? await erFieldWrites(env, ops.filter(op => op && op.c === 'hospital' && typeof op.id === 'string' && !op.del && !op.ordOnly)) : new Set();
   // The general store of specialties is the owner's: admins neither write it nor change what their
   // hospitals' copies of its specialties take from it (specguard.js).
@@ -722,7 +751,7 @@ async function sync(request, env, auth) {
   const puts = [], dels = [], ords = [], rejected = [], checks = [];
   ops.forEach((op, i) => {
     if (!op || typeof op.c !== 'string' || typeof op.id !== 'string' || !op.id) { rejected.push(i); return; }
-    if (!allowed(auth, op) && !(icuAll && op.c === 'icu') && !(resSpecOk && op === resSpecOp) && !branchOk.has(op)) { rejected.push(i); return; }
+    if (!allowed(auth, op) && !(icuAll && op.c === 'icu') && !(resSpecOk && op === resSpecOp) && !branchOk.has(op) && !rotErOk.has(op)) { rejected.push(i); return; }
     if (!specOk && op === specOp) { rejected.push(i); return; }
     if ((!erOk && (op.c === 'er' || op.c === 'er_conflict')) || erLocked.has(op)) { rejected.push(i); return; }
     if (storeLocked.has(op) || (auth.r === 'admin' && op.c === 'meta' && op.id === 'globalSpecialties' && !op.ordOnly)) { rejected.push(i); return; }

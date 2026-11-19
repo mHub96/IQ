@@ -17,7 +17,8 @@
 (function (window, document) {
     'use strict';
 
-    const MONTH_PREFIX = 'hosp_hub_emergency_sched_';
+    // The rotators' ER (emergency.js ROT_SYS) renames in its own month records.
+    const MONTH_PREFIX = (window.EmergencyCore && window.EmergencyCore.monthPrefix) || 'hosp_hub_emergency_sched_';
     const NOT_NAMES = new Set(['date', 'dayName', 'notes', 'dayNumber']);
     const core = () => window.EmergencyCore;
     const Hub = () => window.Hub;

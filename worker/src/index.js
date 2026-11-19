@@ -33,7 +33,7 @@ import { routeBackup } from './backup.js';
 import { routeOnCall } from './oncall.js';
 import { routeXp } from './xp.js';
 import { routeOpioids } from './opioids.js';
-import { limitedExchanger, foreignScheduleOps, branchOf } from './exchspecs.js';
+import { limitedExchanger, foreignScheduleOps, branchOf, isRotatorSpec } from './exchspecs.js';
 import { roleAt, branchSpecAt, hospitalsWithRole } from './access.js';
 import { storeSpecWrites, renameSpecialtyCode } from './specguard.js';
 import { revision, revToken, blockRevisions, cachedBytes, cachedValue } from './revcache.js';
@@ -375,15 +375,56 @@ async function branchWrites(env, auth, ops) {
   const ok = new Set();
   const hosps = auth.a ? hospitalsWithRole(auth, 'branch') : [];
   if (!hosps.length) return ok;
+  // Chiefs of rotators: branch representatives of the Rotator specialty. In those hospitals they manage
+  // the rotators (any of them, nobody else) and the Rotator specialty's branches. Read only when needed.
+  let chief = null;
+  const chiefOf = async () => {
+    if (chief) return chief;
+    chief = new Map();   // hospital -> { specs: store + hospital specialties, spec: their specialty }
+    const asks = hosps.map(h => [h, branchSpecAt(auth, h)]).filter(([, sp]) => sp);
+    if (!asks.length) return chief;
+    const [meta, ...rows] = await env.DB.batch([
+      env.DB.prepare("SELECT data FROM records WHERE coll = 'meta' AND id = 'globalSpecialties'"),
+      ...asks.map(([h]) => env.DB.prepare("SELECT json_extract(data, '$.specialties') AS specs FROM records WHERE coll = 'hospital' AND id = ?").bind(h)),
+    ]);
+    let store = [];
+    try { store = (JSON.parse((meta.results[0] && meta.results[0].data) || '{}').value) || []; } catch {}
+    asks.forEach(([h, sp], i) => {
+      let own = [];
+      try { own = JSON.parse((rows[i].results[0] && rows[i].results[0].specs) || '[]') || []; } catch {}
+      const specs = [...store, ...own];
+      if (isRotatorSpec(specs, sp)) chief.set(h, { specs, spec: sp });
+    });
+    return chief;
+  };
   const resOps = auth.r === 'admin' ? [] : ops.filter(op => op && op.c === 'resident' && typeof op.id === 'string' && !op.ordOnly);
   if (resOps.length) {
+    const chiefs = await chiefOf();
+    const isRot = (h, code) => !!code && chiefs.has(h) && isRotatorSpec(chiefs.get(h).specs, code);
+    const specOf = r => (r && (r.spec || r.tag)) || null;
     const { results } = await env.DB.prepare("SELECT id, data FROM records WHERE coll = 'resident' AND id IN (SELECT value FROM json_each(?))")
       .bind(JSON.stringify(resOps.map(op => op.id))).all();
     const before = new Map((results || []).map(r => [r.id, JSON.parse(r.data)]));
     for (const op of resOps) {
       const prior = before.get(op.id);
-      const theirs = !!prior && prior.addedBy === auth.a;
       const had = (prior || {}).hospitals || [];
+      // A chief of rotators: rotators of their hospitals only, whoever added them.
+      const chiefHosps = [...new Set([...had, ...((op.d && op.d.hospitals) || [])])].filter(h => chiefs.has(h));
+      if (chiefHosps.length) {
+        const rotNow = !op.del && op.d && Array.isArray(op.d.hospitals) && chiefHosps.some(h => isRot(h, specOf(op.d)));
+        const rotBefore = !prior || chiefHosps.some(h => isRot(h, specOf(prior)));
+        if (op.del ? (prior && rotBefore && had.some(h => chiefs.has(h))) : (rotNow && rotBefore
+            && op.d.hospitals.filter(h => !had.includes(h)).every(h => chiefs.has(h))
+            && had.every(h => op.d.hospitals.includes(h) || chiefs.has(h)))) {
+          if (op.d) {
+            const { addedBy, ...rest } = op.d;
+            op.d = prior ? (prior.addedBy ? { ...rest, addedBy: prior.addedBy } : rest) : { ...rest, addedBy: auth.a };
+          }
+          ok.add(op);
+        }
+        continue;
+      }
+      const theirs = !!prior && prior.addedBy === auth.a;
       if (op.del) {
         if (theirs && had.some(h => hosps.includes(h))) ok.add(op);
         continue;
@@ -409,11 +450,51 @@ async function branchWrites(env, auth, ops) {
     const stored = JSON.parse(row.data);
     const mine = branchOf(stored.specialties || [], spec);
     const listOf = v => (Array.isArray(v) ? v : []);
+    // A chief of rotators also edits the Rotator specialty's branches (add, rename, remove); the
+    // specialty itself and every other one stay as stored, in the order the client sends.
+    if ((await chiefOf()).has(op.id)) {
+      const isMine = s => s && !s.isClone && s.parentSpec === spec;
+      const storedById = new Map(listOf(stored.specialties).filter(s => s && s.id).map(s => [s.id, s]));
+      const sent = listOf(op.d.specialties).filter(s => s && s.id);
+      const out = [];
+      const seen = new Set();
+      for (const s of sent) {
+        if (seen.has(s.id)) continue;
+        if (isMine(s) && (!storedById.has(s.id) || isMine(storedById.get(s.id)))) { out.push(s); seen.add(s.id); }
+        else if (storedById.has(s.id)) { out.push(storedById.get(s.id)); seen.add(s.id); }
+      }
+      // Nothing outside their branches is removed by leaving it out.
+      for (const s of listOf(stored.specialties)) if (s && s.id && !seen.has(s.id) && !isMine(s)) out.push(s);
+      stored.specialties = out;
+    }
     stored.specialistSchedule = [
       ...listOf(stored.specialistSchedule).filter(e => !e || !mine.has(e.specCode)),
       ...listOf(op.d.specialistSchedule).filter(e => e && mine.has(e.specCode)),
     ];
     op.d = stored;
+    ok.add(op);
+  }
+  // The store: a chief of rotators adds, renames and removes only the Rotator specialty's branches.
+  for (const op of ops) {
+    if (!op || op.c !== 'meta' || op.id !== 'globalSpecialties' || op.del || op.ordOnly || !op.d || !Array.isArray(op.d.value)) continue;
+    const chiefs = await chiefOf();
+    if (!chiefs.size) continue;
+    const roots = new Set([...chiefs.values()].map(c => c.spec));
+    const row = await env.DB.prepare("SELECT data FROM records WHERE coll = 'meta' AND id = 'globalSpecialties'").first();
+    if (!row) continue;
+    const stored = JSON.parse(row.data);
+    const listOf = v => (Array.isArray(v) ? v : []);
+    const isMine = g => g && g.id && roots.has(g.parentSpec) && !roots.has(g.id);
+    const storedById = new Map(listOf(stored.value).filter(g => g && g.id).map(g => [g.id, g]));
+    const out = [];
+    const seen = new Set();
+    for (const g of op.d.value) {
+      if (!g || !g.id || seen.has(g.id)) continue;
+      if (isMine(g) && (!storedById.has(g.id) || isMine(storedById.get(g.id)))) { out.push(g); seen.add(g.id); }
+      else if (storedById.has(g.id)) { out.push(storedById.get(g.id)); seen.add(g.id); }
+    }
+    for (const g of listOf(stored.value)) if (g && g.id && !seen.has(g.id) && !isMine(g)) out.push(g);
+    op.d = { ...stored, value: out };
     ok.add(op);
   }
   return ok;

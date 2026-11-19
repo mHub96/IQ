@@ -876,3 +876,4 @@ html.in-shell #toast-container { top: calc(var(--hub-sat, 0px) + 12px) !importan
 .xpc-full { margin-top: 12px; animation: hp-acc-in 0.4s var(--ds-ease) both; }
 .xpc-full .xp-card { margin-bottom: 12px; }
 @media (prefers-reduced-motion: reduce) { .xpc-bar i, .xpc-b { animation: none; } }
+#scheduler-mode-selector [hidden] { display: none !important; }

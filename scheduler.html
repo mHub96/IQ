@@ -1857,6 +1857,16 @@
             branchSpecs = auth && !auth.isAdmin(hospitalId) && auth.isBranchAt(hospitalId) ? auth.branchSpecialties(hospitalId) : null;
             document.body.classList.toggle('branch-lock', !!branchSpecs);
             document.body.classList.toggle('branch-lock-one', !!branchSpecs && branchSpecs.length < 2);
+            // A chief of rotators works in the rotators' section only; other branch representatives never see it.
+            if (branchSpecs) {
+                var chief = !!(auth.isRotatorChiefAt && auth.isRotatorChiefAt(hospitalId));
+                if (chief && schedulerMode !== 'rotators') { schedulerMode = 'rotators'; applyHospitalName(); }
+                if (!chief && schedulerMode === 'rotators') { schedulerMode = 'residents'; applyHospitalName(); }
+                ['residents', 'specialists'].forEach(function(m) { var b = document.getElementById('mode-' + m + '-btn'); if (b) b.hidden = chief; });
+                var rb = document.getElementById('mode-rotators-btn');
+                if (rb) rb.hidden = !chief;
+                updateSchedulerModeButtons();
+            }
         }
 
         /** The rotators' section lists the branches of the Rotator specialty; the seniors' section the rest. */

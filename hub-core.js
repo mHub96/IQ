@@ -1319,12 +1319,16 @@
         const branchHospitalOp = o => {
             if (!auth.isBranchAt(o.id) || o.del || o.ordOnly || !o.d) return false;
             const base = syncBase.get(o.k);
-            const before = base ? JSON.parse(base.s).specialistSchedule : null;
-            return JSON.stringify(o.d.specialistSchedule || []) !== JSON.stringify(before || []);
+            const was = base ? JSON.parse(base.s) : {};
+            if (JSON.stringify(o.d.specialistSchedule || []) !== JSON.stringify(was.specialistSchedule || [])) return true;
+            // A chief of rotators also edits the Rotator specialty's branches (the API keeps everything else).
+            return auth.isRotatorChiefAt(o.id) && JSON.stringify(o.d.specialties || []) !== JSON.stringify(was.specialties || []);
         };
+        // The store: the owner; a chief of rotators for the Rotator specialty's branches only (API-checked).
+        const storeWriter = () => auth.isOwner() || auth.rotatorChiefHospitals().length > 0;
         let ops = HubSync.diff(syncBase, records).filter(o =>
             !(o.c === 'hospital' && !auth.isAdmin(o.id) && !branchHospitalOp(o)) &&
-            !(!AA && o.c === 'meta' && o.id === 'globalSpecialties' && !auth.isOwner()));
+            !(!AA && o.c === 'meta' && o.id === 'globalSpecialties' && !storeWriter()));
         saveLocalSafetySnapshot(db, message);
         writeCache();
         dispatchDataChanged();
@@ -4455,6 +4459,16 @@
             const h = db?.hospitals?.[hospId];
             return [spec, ...((h && h.specialties) || []).filter(s => s.parentSpec === spec).map(s => s.id)];
         },
+        /**
+         * Chief of rotators ("رئيس المقيمين الدوريين"): a branch representative of the Rotator specialty.
+         * They run the rotators of that hospital (roster, residents, its branches, the rotators' ER).
+         */
+        isRotatorChiefAt(hospId) {
+            const spec = this.branchSpecAt(hospId);
+            return !!spec && isRotatorSpecialty(spec, hospId);
+        },
+        /** Any hospital where this account is a chief of rotators. */
+        rotatorChiefHospitals() { return this.branchHospitals().filter(h => this.isRotatorChiefAt(h)); },
         /** The scheduler of a hospital: its admins and the owner, and a branch representative for their specialty. */
         canUseScheduler(hospId) { return this.isAdmin(hospId) || this.isBranchAt(hospId); },
 
@@ -4805,6 +4819,13 @@
         isStoreSpecialty,
         /** The rotators' specialty or one of its branches (by name in the store, then the hospital's own). */
         isRotatorSpecialty,
+        /** The hospital's Rotator specialty itself (the parent of its branches), or null. */
+        rotatorRootSpec(hospId) {
+            const h = getHospital(hospId);
+            const list = ((h && h.specialties) || []).filter(x => !x.isClone && isRotatorSpecialty(x.id, hospId));
+            const root = list.find(x => !x.parentSpec || !list.some(y => y.id === x.parentSpec));
+            return root ? root.id : null;
+        },
         residentIdFor,
         setHospitalSpecialtiesEnabled,
         syncHospitalSpecialtiesWithGlobal,

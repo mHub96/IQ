@@ -595,6 +595,20 @@
             </div>
         </div>
 
+        <!-- Chief of rotators: the Rotator specialty's branches (shown in chief mode only) -->
+        <section id="chief-branches" class="glass-card p-5 mb-6" hidden>
+            <div class="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                <h2 class="text-lg font-black flex items-center gap-2"><i class="fas fa-rotate text-teal-600"></i> فروع المقيمين الدوريين</h2>
+                <span class="text-xs text-slate-500">تظهر هذه الفروع في جدول الخفراء الدوريين والمجدول</span>
+            </div>
+            <div id="chief-branches-list" class="grid gap-2 mb-3"></div>
+            <div class="flex gap-2 flex-wrap items-center">
+                <input id="chief-branch-icon" class="input-field" style="width:64px;text-align:center" maxlength="4" value="🔄" aria-label="أيقونة الفرع" />
+                <input id="chief-branch-name" class="input-field flex-1" style="min-width:160px" maxlength="40" placeholder="اسم فرع جديد، مثلاً: دوري - الباطنية" />
+                <button type="button" class="btn-gradient text-xs" onclick="chiefAddBranch()"><i class="fas fa-plus"></i> إضافة فرع</button>
+            </div>
+        </section>
+
         <!-- Add Resident Action Button -->
         <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
             <h2 class="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2">
@@ -1493,6 +1507,9 @@
 
         // A branch representative: adds and edits this hospital's residents, nothing else (the API enforces it).
         let branchMode = false;
+        // A chief of rotators: a branch representative of the Rotator specialty (rotators only).
+        let chiefMode = false;
+        let chiefRoot = null;
 
         async function initAdmin() {
             // Strict role guard: the owner and admins, and branch representatives for their hospital's residents
@@ -1507,7 +1524,10 @@
                 await Hub.loadDatabase();
                 const targetHid = Hub.getActiveHospitalId();
                 branchMode = !Hub.auth.isAdmin(targetHid) && Hub.auth.isBranchAt(targetHid);
+                chiefMode = branchMode && Hub.auth.isRotatorChiefAt(targetHid);
+                chiefRoot = chiefMode ? Hub.auth.branchSpecAt(targetHid) : null;
                 document.body.classList.toggle('branch-mode', branchMode);
+                document.body.classList.toggle('chief-mode', chiefMode);
                 if (!Hub.auth.isAdmin(targetHid) && !branchMode) {
                     alert('عذراً، لا تملك صلاحيات إدارة هذا المستشفى.');
                     window.location.replace(`./Home.html?hospital=${encodeURIComponent(targetHid)}`);
@@ -1529,6 +1549,9 @@
                     if (Hub.auth.isOwner()) {
                         roleInd.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-300 dark:border-amber-700';
                         roleInd.innerHTML = '<i class="fas fa-crown ml-1 text-amber-500"></i> وضع المالك (صلاحيات كاملة)';
+                    } else if (chiefMode) {
+                        roleInd.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300';
+                        roleInd.innerHTML = '<i class="fas fa-rotate ml-1 text-teal-600"></i> رئيس المقيمين الدوريين: الدوريون وفروعهم';
                     } else if (branchMode) {
                         roleInd.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300';
                         roleInd.innerHTML = '<i class="fas fa-users ml-1 text-teal-600"></i> مدير فرع: إضافة المقيمين وتعديلهم';
@@ -1588,6 +1611,7 @@
                 const clearBtn = document.getElementById('admin-clear-resident-search');
                 if (clearBtn) clearBtn.classList.add('hidden');
 
+                renderChiefBranches();
                 populateSpecialtyDropdowns();
                 populateHospitalDropdowns();
                 renderResidentsAccordion();
@@ -1628,20 +1652,85 @@
             toggleShowEmptySpecs(checked);
         }
 
+        // -------------------- Chief of rotators: the Rotator specialty's branches --------------------
+        // A branch is a store specialty under the Rotator specialty, added to this hospital too. Renaming
+        // changes the store (every hospital's copy follows); removing takes it off this hospital only.
+        function chiefEsc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
+        function renderChiefBranches() {
+            const box = document.getElementById('chief-branches');
+            if (!box) return;
+            box.hidden = !chiefMode;
+            if (!chiefMode) return;
+            const list = (currentHospital.specialties || []).filter(sp => !sp.isClone && sp.parentSpec === chiefRoot);
+            document.getElementById('chief-branches-list').innerHTML = list.length ? list.map(sp => `
+                <div class="flex items-center gap-2 p-2 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <input class="input-field" style="width:56px;text-align:center" maxlength="4" value="${chiefEsc(sp.icon || '🏥')}" data-branch-icon="${chiefEsc(sp.id)}" aria-label="الأيقونة" />
+                    <input class="input-field flex-1" maxlength="40" value="${chiefEsc(sp.name_ar || sp.id)}" data-branch-name="${chiefEsc(sp.id)}" aria-label="اسم الفرع" />
+                    <button type="button" class="btn-ghost text-xs" data-branch-save="${chiefEsc(sp.id)}"><i class="fas fa-check"></i> حفظ</button>
+                    <button type="button" class="btn-ghost text-xs" style="color:#e5484d" data-branch-remove="${chiefEsc(sp.id)}" aria-label="إزالة الفرع"><i class="fas fa-trash"></i></button>
+                </div>`).join('') : '<div class="text-xs text-slate-500">لا توجد فروع بعد. أضف أول فرع أدناه.</div>';
+            box.querySelectorAll('[data-branch-save]').forEach(b => b.addEventListener('click', () => chiefRenameBranch(b.dataset.branchSave)));
+            box.querySelectorAll('[data-branch-remove]').forEach(b => b.addEventListener('click', () => chiefRemoveBranch(b.dataset.branchRemove)));
+        }
+        async function chiefSave(msg) {
+            try { await Hub.saveDatabase(msg); }
+            catch (err) { showToast('تعذر الحفظ: ' + (err.message || ''), 'error'); }
+            currentHospital = Hub.getActiveHospital();
+            renderChiefBranches(); populateSpecialtyDropdowns(); renderResidentsAccordion({ preserveScroll: true }); updateStatsBadges();
+        }
+        async function chiefAddBranch() {
+            if (!chiefMode || !chiefRoot) return;
+            const name = (document.getElementById('chief-branch-name').value || '').trim();
+            const icon = (document.getElementById('chief-branch-icon').value || '').trim() || '🔄';
+            if (name.length < 2) { showToast('اكتب اسم الفرع', 'error'); return; }
+            const db = Hub.getDatabase();
+            if (!Array.isArray(db.globalSpecialties)) db.globalSpecialties = Hub.getGlobalSpecialties().slice();
+            let id;
+            do { id = (chiefRoot.slice(0, 5) + '_' + Math.random().toString(36).slice(2, 6)).replace(/[^A-Za-z0-9_]/g, 'R'); }
+            while (db.globalSpecialties.some(g => g.id === id) || (currentHospital.specialties || []).some(sp => sp.id === id));
+            const rootSpec = (currentHospital.specialties || []).find(sp => sp.id === chiefRoot) || {};
+            db.globalSpecialties.push({ id, name_ar: name, name_en: '', icon, parentSpec: chiefRoot });
+            currentHospital.specialties.push({ id, name_ar: name, name_en: '', icon, parentSpec: chiefRoot, color: rootSpec.color || '#0891b2', enabled: true });
+            document.getElementById('chief-branch-name').value = '';
+            await chiefSave(`Chief of rotators: branch ${id} added`);
+            showToast('أُضيف الفرع ✓', 'success');
+        }
+        async function chiefRenameBranch(id) {
+            const name = (document.querySelector(`[data-branch-name="${id}"]`)?.value || '').trim();
+            const icon = (document.querySelector(`[data-branch-icon="${id}"]`)?.value || '').trim() || '🔄';
+            if (name.length < 2) { showToast('اكتب اسم الفرع', 'error'); return; }
+            const db = Hub.getDatabase();
+            const g = (db.globalSpecialties || []).find(x => x.id === id);
+            if (g) { g.name_ar = name; g.icon = icon; }
+            const sp = (currentHospital.specialties || []).find(x => x.id === id);
+            if (sp) { sp.name_ar = name; sp.icon = icon; }
+            await chiefSave(`Chief of rotators: branch ${id} renamed`);
+            showToast('حُفظ الفرع ✓', 'success');
+        }
+        async function chiefRemoveBranch(id) {
+            const used = (currentHospital.names || []).some(n => n.spec === id || n.tag === id || n.dept === id);
+            if (!confirm(used ? 'في هذا الفرع مقيمون. إزالة الفرع من هذا المستشفى؟ (تبقى خفاراته السابقة في السجل)' : 'إزالة هذا الفرع من هذا المستشفى؟')) return;
+            currentHospital.specialties = (currentHospital.specialties || []).filter(sp => sp.id !== id);
+            await chiefSave(`Chief of rotators: branch ${id} removed`);
+            showToast('أُزيل الفرع ✓', 'success');
+        }
+
         function populateSpecialtyDropdowns() {
             // Main Specialty Store: Central canonical specialties catalog
-            const globalSpecs = (typeof Hub !== 'undefined' && Hub.getGlobalSpecialties) ? Hub.getGlobalSpecialties() : [];
+            // A chief of rotators files people under the Rotator specialty and its branches only.
+            const globalSpecs = ((typeof Hub !== 'undefined' && Hub.getGlobalSpecialties) ? Hub.getGlobalSpecialties() : [])
+                .filter(g => !chiefMode || Hub.isRotatorSpecialty(g.id, currentHospital.id));
             const globalHtml = globalSpecs.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar}</option>`).join('');
 
             // For departments: current hospital active specialties first, plus other global specialties
-            const hospSpecs = (currentHospital?.specialties || []).filter(s => s.enabled !== false);
+            const hospSpecs = (currentHospital?.specialties || []).filter(s => s.enabled !== false && (!chiefMode || (!s.isClone && Hub.isRotatorSpecialty(s.id, currentHospital.id))));
             let deptHtml = '';
             if (hospSpecs.length > 0) {
                 deptHtml += `<optgroup label="أقسام المستشفى (${currentHospital.name_ar || currentHospital.hospitalName})">` +
                     hospSpecs.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar}</option>`).join('') +
                     `</optgroup>`;
                 const hospSpecIds = new Set(hospSpecs.map(s => s.id));
-                const otherGlobal = globalSpecs.filter(s => !hospSpecIds.has(s.id));
+                const otherGlobal = chiefMode ? [] : globalSpecs.filter(s => !hospSpecIds.has(s.id));
                 if (otherGlobal.length > 0) {
                     deptHtml += `<optgroup label="باقي التخصصات الطبية (المستودع العام)">` +
                         otherGlobal.map(s => `<option value="${s.id}">${s.icon || '🏥'} ${s.name_ar}</option>`).join('') +
@@ -1840,7 +1929,7 @@
                 window.openSpecBoxIds.add(`spec-box-${options.forceOpenSpecId}`);
             }
 
-            const specs = currentHospital.specialties || [];
+            const specs = (currentHospital.specialties || []).filter(sp => !chiefMode || (!sp.isClone && Hub.isRotatorSpecialty(sp.id, currentHospital.id)));
             const names = currentHospital.names || [];
             const showEmpty = window.showEmptySpecialties === true;
             const isResidentActive = (n) => n.active !== false && n.spec !== 'RESERVE';

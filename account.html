@@ -1805,7 +1805,10 @@
         // they cover is in their record in the hospital database (db.residents[].hospitals: each hospital's
         // residents list is built from it). The owner adds and removes hospitals, an admin only sets the role
         // in their own (the API checks).
-        const ACCESS_ROLES = [['user', 'مقيم'], ['anaesthesia', 'مقيم تخدير'], ['branch', 'مدير فرع'], ['admin', 'مدير مستشفى'], ['rotator', 'روتيتر']];
+        const ACCESS_ROLES = [['user', 'مقيم'], ['anaesthesia', 'مقيم تخدير'], ['branch', 'مدير فرع'], ['rchief', 'رئيس المقيمين الدوريين'], ['admin', 'مدير مستشفى'], ['rotator', 'روتيتر']];
+        // A chief of rotators is stored as a branch representative of the hospital's Rotator specialty.
+        const rotRoot = h => (Hub.rotatorRootSpec ? Hub.rotatorRootSpec(h) : null);
+        const shownRole = (h, v) => (v.r === 'branch' && v.s && v.s === rotRoot(h) ? 'rchief' : v.r);
         const accessEditable = a => !OFFICER_ROLES.includes(a.role) && a.role !== 'owner' && a.status !== 'pending' && a.status !== 'rejected';
         const myAccessHospitals = a => {
             const scope = Hub.auth.getAdminHospitalIds();
@@ -1814,7 +1817,7 @@
         const accessLine = a => {
             const entries = Object.entries(Hub.auth.accessOf(a));
             if (entries.length < 2 && !(a.hosp_roles && Object.keys(a.hosp_roles).length)) return '';
-            return `<div class="acc-sub">🏥 ${entries.map(([h, v]) => `${esc(hospitalName(h))}: ${esc(ROLE_NAMES[v.r] || v.r)}${v.s ? ' (' + esc(specName(v.s, h)) + ')' : ''}`).join(' · ')}</div>`;
+            return `<div class="acc-sub">🏥 ${entries.map(([h, v]) => `${esc(hospitalName(h))}: ${shownRole(h, v) === 'rchief' ? 'رئيس المقيمين الدوريين' : `${esc(ROLE_NAMES[v.r] || v.r)}${v.s ? ' (' + esc(specName(v.s, h)) + ')' : ''}`}`).join(' · ')}</div>`;
         };
         const pendingRecord = a => { const db = Hub.getDatabase() || {}; return (Array.isArray(db.residents) ? db.residents : []).find(r => r.id === a.resident_id) || null; };
         const specName = (id, h) => { try { return Hub.getSpecialtyName(id, h) || id; } catch (e) { return id; } };
@@ -1831,12 +1834,13 @@
             return list.map(s => `<option value="${esc(s.id)}" ${s.id === want ? 'selected' : ''}>${esc(specName(s.id, h))}</option>`).join('');
         }
         function accessRowHtml(a, h, v, rec, isOwner, fixedRotator, isNew) {
-            const roles = ACCESS_ROLES.filter(([r]) => r && (!fixedRotator || r === 'rotator'));
+            const roles = ACCESS_ROLES.filter(([r]) => r && (!fixedRotator || r === 'rotator') && (r !== 'rchief' || rotRoot(h)));
+            const sel = shownRole(h, v);
             const removable = isOwner && !fixedRotator && (rec || h !== a.hosp);
             return `<div class="access-row" data-h="${esc(h)}" ${isNew ? 'data-new="1"' : ''}>
                 <span class="access-name">${esc(hospitalName(h))}</span>
-                <select data-f="role" aria-label="الصلاحية في ${esc(hospitalName(h))}">${roles.map(([r, label]) => `<option value="${r}" ${r === (v.r || '') ? 'selected' : ''}>${label}</option>`).join('')}</select>
-                <select data-f="spec" aria-label="اختصاص مدير الفرع" ${v.r === 'branch' ? '' : 'hidden'}>${specOptions(h, v.s, rec)}</select>
+                <select data-f="role" aria-label="الصلاحية في ${esc(hospitalName(h))}">${roles.map(([r, label]) => `<option value="${r}" ${r === (sel || '') ? 'selected' : ''}>${label}</option>`).join('')}</select>
+                <select data-f="spec" aria-label="اختصاص مدير الفرع" ${sel === 'branch' ? '' : 'hidden'}>${specOptions(h, v.s, rec)}</select>
                 ${removable ? `<button type="button" class="access-x" data-f="remove" aria-label="إزالة ${esc(hospitalName(h))}">✕</button>` : ''}
             </div>`;
         }
@@ -1894,6 +1898,7 @@
             const added = next.filter(h => !before.includes(h)), removed = before.filter(h => !next.includes(h));
             const changes = {};
             rows.forEach(x => {
+                if (x.r === 'rchief') { x.r = 'branch'; x.s = rotRoot(x.h) || x.s; }
                 const was = current[x.h] || {};
                 if (x.r === (was.r || '') && (x.r !== 'branch' || x.s === was.s)) return;
                 changes[x.h] = { r: x.r, s: x.r === 'branch' ? x.s : undefined };

@@ -208,7 +208,6 @@
         portalNext = false;
         ({ profile: renderProfile, schedule: renderSchedule, comments: renderComments, settings: renderSettings, admin: renderAdmin,
             opioids: renderOpioids, 'opioids-mine': renderMyOpioids, guide: renderGuide })[which](body, portalForm);
-        if (which === 'profile') addXpCard(body);
     }
 
     // Tutorials (hub-tour.js: the guides and the interactive tours).
@@ -318,9 +317,11 @@
     function addXpCard(body) {
         const a = me || Hub.auth.getAccount();
         if (!a || NO_PROFILE.includes(a.role)) return;
-        const host = document.createElement('div');
-        body.prepend(host);
-        loadXp().then(() => { if (host.isConnected) window.HubXP.profileCard(host); }).catch(() => host.remove());
+        // Under the picture: the level, a progress bar and the trophies earned (details open on demand).
+        const slot = body.querySelector('[data-role="xp-slot"]');
+        const host = slot || document.createElement('div');
+        if (!slot) body.prepend(host);
+        loadXp().then(() => { if (host.isConnected) window.HubXP.profileCard(host, { compact: !!slot }); }).catch(() => { host.innerHTML = ''; });
     }
 
     // ------------------------------------------------------------------
@@ -377,11 +378,15 @@
     function renderBasicProfile(body, a) {
         const officer = OFFICER_ROLES.includes(a.role);
         body.innerHTML = `
-            <div class="hp-avatar-card">
-                ${A.avatarHtml(a, 96, 'hp-avatar-big')}
-                <div><b>صورتك الرمزية</b><div class="hacc-muted">رسم كرتوني بدلاً من الصورة الشخصية</div>
-                <button type="button" class="hacc-btn sm primary" data-act="edit-avatar" style="margin-top:8px">🎨 تعديل الصورة الرمزية</button></div>
-            </div>
+            <section class="hp-me">
+                <div class="hp-me-pic">
+                    ${A.avatarHtml(a, 104, 'hp-avatar-big')}
+                    <button type="button" class="hp-me-edit" data-act="edit-avatar" aria-label="تعديل الصورة الرمزية" title="تعديل الصورة الرمزية"><i class="fas fa-pen"></i></button>
+                </div>
+                <h3 class="hp-me-name">${esc(a.name)}</h3>
+                <div class="hp-me-sub">${esc(hospitalName(a.hosp))}${a.specialty ? ' · ' + esc(a.specialty) : ''}</div>
+                <div class="hp-me-xp" data-role="xp-slot"></div>
+            </section>
             <dl class="hp-kv">
                 <dt>الاسم</dt><dd>${esc(a.name)}</dd>
                 <dt>${officer ? 'المستشفى' : 'مستشفى الروتيشن'}</dt><dd>${esc(hospitalName(a.hosp))}</dd>
@@ -394,6 +399,7 @@
             <p class="hacc-muted">${officer
                 ? 'الاسم والهاتف والعنوان الوظيفي مرتبطة بقاعدة بيانات الشؤون الإدارية؛ لتغييرها راجع مدير الشؤون الإدارية أو مدير المستشفى.'
                 : 'حساب الروتيتر لتصفح الموقع والتواصل مع المقيمين. لتغيير الاسم أو المستشفى راجع مالك المنظومة.'}</p>`;
+        addXpCard(body);
         body.querySelector('[data-act="edit-avatar"]').addEventListener('click', () => avatarEditor(body));
     }
 
@@ -407,11 +413,15 @@
         // The hospital's admins may keep the board information to themselves.
         const locked = !!a.profile_locked;
         body.innerHTML = `
-            <div class="hp-avatar-card">
-                ${A.avatarHtml(a, 96, 'hp-avatar-big')}
-                <div><b>صورتك الرمزية</b><div class="hacc-muted">رسم كرتوني بدلاً من الصورة الشخصية</div>
-                <button type="button" class="hacc-btn sm primary" data-act="edit-avatar" style="margin-top:8px">🎨 تعديل الصورة الرمزية</button></div>
-            </div>
+            <section class="hp-me">
+                <div class="hp-me-pic">
+                    ${A.avatarHtml(a, 104, 'hp-avatar-big')}
+                    <button type="button" class="hp-me-edit" data-act="edit-avatar" aria-label="تعديل الصورة الرمزية" title="تعديل الصورة الرمزية"><i class="fas fa-pen"></i></button>
+                </div>
+                <h3 class="hp-me-name">${esc(a.name)}</h3>
+                <div class="hp-me-sub">${esc(hospitalName(a.hosp))}${a.specialty ? ' · ' + esc(a.specialty) : ''}</div>
+                <div class="hp-me-xp" data-role="xp-slot"></div>
+            </section>
             ${locked ? `<div class="hp-banner">🔒 <b>معلومات البورد يحددها مدير المستشفى</b><br>${a.profile_complete ? 'لتعديل نوع البورد أو الاختصاص أو المرحلة راجع مدير مستشفاك.' : 'ملفك غير مكتمل: راجع مدير مستشفاك ليكمل معلومات البورد.'}</div>`
             : a.profile_complete ? '' : `<div class="hp-banner">📝 <b>أكمل ملفك الشخصي</b><br>${a.profile_src === 'auto'
                 ? 'عبّأنا بعض المعلومات تلقائياً من بيانات المستشفى والطوارئ. راجعها وأكمل الناقص ثم احفظ.'
@@ -447,6 +457,7 @@
             </dl>
             <p class="hacc-muted">الاسم والهاتف والمستشفى مرتبطة بجدول الخفارات؛ لتغييرها راجع مالك المنظومة.</p>`;
 
+        addXpCard(body);
         body.querySelector('[data-act="edit-avatar"]').addEventListener('click', () => avatarEditor(body));
         const form = body.querySelector('[data-role="profile-form"]');
         const syncBoard = () => {

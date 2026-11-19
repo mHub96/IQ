@@ -265,12 +265,48 @@
     // ------------------------------------------------------------------
     // The profile: XP card and trophies
     // ------------------------------------------------------------------
-    async function profileCard(host) {
+    /**
+     * The profile tab: opts.compact draws a slim summary (level, progress bar, the trophies earned as
+     * badges) with a button that opens the full card below it; the full card always starts closed.
+     */
+    async function profileCard(host, opts = {}) {
         host.innerHTML = '<div class="xp-empty">جاري تحميل نقاطك…</div>';
         let me;
         try { me = await Hub.api('GET', '/api/xp/me', undefined, { retries: 1 }); }
         catch (e) { host.innerHTML = ''; return; }
         if (!me || me.none) { host.innerHTML = ''; return; }
+        if (opts.compact) return compactCard(host, me);
+        fullCard(host, me);
+    }
+    const TIER_RING = ['', 'bronze', 'silver', 'gold'];
+    function compactCard(host, me) {
+        const pct = Math.min(100, Math.round((me.xp - me.levelStart) / Math.max(1, me.levelNext - me.levelStart) * 100));
+        const got = me.trophies.map((t, i) => [t, i]).filter(([t]) => t.tier);
+        host.innerHTML = `<div class="xpc" style="${tierVars(me.tier.id)}">
+                <div class="xpc-row">
+                    <span class="xpc-lv" title="${esc(me.tier.name)}"><b>${me.level}</b><small>المستوى</small></span>
+                    <div class="xpc-mid">
+                        <div class="xpc-top"><span><b>${esc(me.tier.name)}</b> · ${xpText(me.xp)}</span><bdi dir="ltr">${fmt(me.xp - me.levelStart)} / ${fmt(me.levelNext - me.levelStart)}</bdi></div>
+                        <div class="xpc-bar"><i style="width:${pct}%"></i></div>
+                    </div>
+                </div>
+                <div class="xpc-badges">${got.length ? got.map(([t, i], k) => `<span class="xpc-b ${TIER_RING[t.tier] || ''}" style="animation-delay:${k * 35}ms" title="${esc(t.name)} · ${esc(t.tierName || '')}" aria-label="${esc(t.name)} · ${esc(t.tierName || '')}">${t.icon}</span>`).join('')
+                    : '<span class="xpc-none">لا كؤوس بعد. اضغط التفاصيل لتعرف كيف تحصل عليها.</span>'}</div>
+                <button type="button" class="xpc-more" aria-expanded="false"><span>تفاصيل المستوى والكؤوس</span><i class="fas fa-chevron-down"></i></button>
+                <div class="xpc-full" hidden></div>
+            </div>`;
+        const more = host.querySelector('.xpc-more');
+        const full = host.querySelector('.xpc-full');
+        more.addEventListener('click', () => {
+            const open = more.getAttribute('aria-expanded') !== 'true';
+            more.setAttribute('aria-expanded', String(open));
+            more.querySelector('span').textContent = open ? 'إخفاء التفاصيل' : 'تفاصيل المستوى والكؤوس';
+            if (open && !full.childElementCount) fullCard(full, me);
+            full.hidden = !open;
+            if (open) full.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        });
+    }
+    function fullCard(host, me) {
         const pct = Math.min(100, Math.round((me.xp - me.levelStart) / Math.max(1, me.levelNext - me.levelStart) * 100));
         const earned = me.trophies.filter(t => t.tier).length;
         host.innerHTML = `<div class="xp-card" style="${tierVars(me.tier.id)}">

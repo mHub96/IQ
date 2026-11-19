@@ -803,3 +803,76 @@ body.dark #hub-tour .ht-card, html.dark #hub-tour .ht-card { background: var(--d
 
 /* Inside the app the pages reach the top edge: page toasts sit below the status bar / Dynamic Island. */
 html.in-shell #toast-container { top: calc(var(--hub-sat, 0px) + 12px) !important; }
+
+/* ======================================================================
+   Profile tab: the picture first, then a compact level bar and the trophies earned as badges;
+   the full level and trophy card opens on demand (and starts closed every time the tab is drawn).
+   ====================================================================== */
+.hp-me {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  padding: 18px 14px 14px; margin-bottom: 14px; border-radius: 24px;
+  background:
+    radial-gradient(260px 140px at 50% 0%, rgba(94, 224, 200, 0.18), transparent 70%),
+    var(--ds-card);
+  border: 1px solid var(--ds-line-2);
+  animation: hp-acc-in 0.45s var(--ds-ease) both;
+}
+.hp-me-pic { position: relative; }
+.hp-me-pic .hp-avatar-big, .hp-me-pic > :first-child {
+  border-radius: 50%; box-shadow: 0 0 0 4px var(--ds-card), 0 0 0 6px color-mix(in srgb, var(--ds-tint) 45%, transparent), 0 16px 30px -14px rgba(6, 30, 27, 0.6);
+}
+.hp-me-edit {
+  position: absolute; bottom: 2px; left: 2px;
+  width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--ds-card);
+  display: grid; place-items: center; font-size: 0.78rem; cursor: pointer;
+  background: var(--ds-brand); color: #fff; box-shadow: var(--ds-shadow-brand);
+  transition: transform 0.25s var(--ds-spring);
+}
+.hp-me-edit:active { transform: scale(0.9); }
+.hp-me-name { margin: 12px 0 0; font-family: var(--ds-display); font-weight: 700; font-size: 1.12rem; color: var(--ds-ink); }
+.hp-me-sub { margin-top: 2px; font-size: 0.76rem; color: var(--ds-ink-2); }
+.hp-me-xp { width: 100%; margin-top: 14px; }
+.hp-me-xp:empty { display: none; }
+.hp-me-xp .xp-empty { font-size: 0.74rem; color: var(--ds-ink-3); }
+
+.xpc { width: 100%; text-align: right; }
+.xpc-row { display: flex; align-items: center; gap: 10px; }
+.xpc-lv {
+  flex: none; width: 46px; height: 46px; border-radius: 15px; display: grid; place-items: center; align-content: center; line-height: 1;
+  background: linear-gradient(135deg, var(--k1, #0A6259), var(--k2, #13977F)); color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 8px 18px -10px rgba(0, 0, 0, 0.5);
+}
+.xpc-lv b { font-family: var(--ds-display); font-weight: 700; font-size: 1.15rem; }
+.xpc-lv small { font-size: 0.52rem; font-weight: 700; opacity: 0.9; margin-top: 2px; }
+.xpc-mid { flex: 1; min-width: 0; }
+.xpc-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.74rem; color: var(--ds-ink-2); }
+.xpc-top b { color: var(--ds-ink); font-family: var(--ds-display); font-weight: 600; }
+.xpc-top bdi { font-family: var(--ds-display); font-variant-numeric: tabular-nums; font-size: 0.7rem; }
+.xpc-bar { margin-top: 6px; height: 7px; border-radius: 99px; background: var(--ds-fill); overflow: hidden; }
+.xpc-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--k2, #13977F), var(--k1, #0A6259)); animation: xpc-grow 0.9s var(--ds-ease) both; transform-origin: right; }
+@keyframes xpc-grow { from { transform: scaleX(0); } to { transform: none; } }
+
+.xpc-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.xpc-b {
+  width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 1rem; line-height: 1;
+  background: var(--ds-card-2); border: 2px solid var(--ring, #C5CFCA);
+  box-shadow: 0 0 0 2px var(--ds-card), 0 4px 10px -6px var(--ring, rgba(0, 0, 0, 0.4));
+  animation: xpc-pop 0.4s var(--ds-bounce) both;
+}
+.xpc-b.bronze { --ring: #C27C45; background: color-mix(in srgb, #C27C45 14%, var(--ds-card)); }
+.xpc-b.silver { --ring: #9AA6B2; background: color-mix(in srgb, #9AA6B2 16%, var(--ds-card)); }
+.xpc-b.gold { --ring: #E3A425; background: color-mix(in srgb, #E3A425 16%, var(--ds-card)); }
+@keyframes xpc-pop { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: none; } }
+.xpc-none { font-size: 0.72rem; color: var(--ds-ink-3); }
+
+.xpc-more {
+  width: 100%; margin-top: 10px; min-height: 36px; border: 0; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--ds-fill); color: var(--ds-ink-2); font: inherit; font-size: 0.76rem; font-weight: 600; cursor: pointer;
+}
+.xpc-more i { font-size: 0.65rem; transition: transform 0.35s var(--ds-spring); }
+.xpc-more[aria-expanded="true"] { background: var(--ds-brand-soft); color: var(--ds-tint); }
+.xpc-more[aria-expanded="true"] i { transform: rotate(180deg); }
+.xpc-full { margin-top: 12px; animation: hp-acc-in 0.4s var(--ds-ease) both; }
+.xpc-full .xp-card { margin-bottom: 12px; }
+@media (prefers-reduced-motion: reduce) { .xpc-bar i, .xpc-b { animation: none; } }

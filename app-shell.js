@@ -465,8 +465,16 @@
             const id = s => { try { return (JSON.parse(s || 'null') || {}).id || null; } catch (x) { return null; } };
             if (id(e.oldValue) !== id(e.newValue)) markOthersStale();
         } else if (k === 'hospital_hub_theme') {
+            // The open views switch theme in place right now (hub-core.js follows the change in each
+            // of them); only a view that is still loading is refreshed when it is shown.
             applyTheme();
-            markOthersStale();
+            const theme = read('hospital_hub_theme') || 'light';
+            for (const v of views.values()) {
+                let w = null;
+                try { w = v.frame.contentWindow; } catch (x) {}
+                if (w && w.Hub && w.Hub.setTheme) { try { w.Hub.setTheme(theme); } catch (x) { v.stale = true; } }
+                else if (v !== active) v.stale = true;
+            }
         }
     });
     function applyTheme() {

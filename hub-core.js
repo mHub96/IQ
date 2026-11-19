@@ -4612,11 +4612,28 @@
         }
     }
 
-    function setTheme(theme) {
-        localStorage.setItem(THEME_KEY, theme);
+    // A theme change lands in one step: colour transitions are off for that moment, so nothing fades
+    // from the old theme into the new one.
+    function switchTheme(theme) {
+        const root = document.documentElement;
+        root.classList.add('hub-theme-swap');
         applyThemeToDOM(theme);
         window.dispatchEvent(new CustomEvent('hub:theme-changed', { detail: { theme } }));
+        void root.offsetWidth;
+        requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('hub-theme-swap')));
     }
+
+    function setTheme(theme) {
+        localStorage.setItem(THEME_KEY, theme);
+        switchTheme(theme);
+    }
+    // Every other open page and frame (the app's other tabs, the account panel's pages) follows at once.
+    window.addEventListener('storage', e => {
+        if (!e.key || !(e.key === THEME_KEY || e.key.endsWith(':' + THEME_KEY))) return;
+        const theme = getTheme();
+        const isDark = document.documentElement.classList.contains('dark');
+        if ((theme === 'dark') !== isDark || !document.documentElement.classList.contains(theme)) switchTheme(theme);
+    });
 
     function toggleTheme() {
         const next = getTheme() === 'dark' ? 'light' : 'dark';

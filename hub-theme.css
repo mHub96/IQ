@@ -945,3 +945,6 @@ html.dark .ms, body.dark .ms, html.dark .msp, body.dark .msp {
 @media (max-width: 640px) { .sch-head { grid-template-columns: minmax(0, 1fr) !important; } .sch-seg button { min-width: 0; } }
 .navigation-brand { min-width: 0; max-width: 100%; }
 .navigation-brand #hospital-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* A theme change lands in one step (hub-core.js switchTheme): no colour fades from the old theme. */
+html.hub-theme-swap, html.hub-theme-swap *, html.hub-theme-swap *::before, html.hub-theme-swap *::after { transition: none !important; }

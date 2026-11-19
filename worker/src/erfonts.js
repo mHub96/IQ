@@ -12,7 +12,7 @@
  *                                      id is random; fonts are not private)
  */
 import { json } from './lib.js';
-import { canUseEr } from './eraccess.js';
+import { canUseEr, rotChiefHospitals } from './eraccess.js';
 
 const MAX_BYTES = 1400 * 1024;                  // base64 of it stays under D1's 2 MB per value
 const MAX_FONTS = 60;
@@ -43,7 +43,9 @@ export async function routeErFonts(path, method, request, env, auth) {
   }
   if (file) return json({ error: 'not_found' }, 404);
 
-  if (!auth || !(await canUseEr(env, auth))) return json({ error: 'forbidden' }, auth ? 403 : 401);
+  // A chief of rotators reads the list (to print their rotators' ER); uploading and deleting stay with the ER admins.
+  const listOnly = path === '/api/er-fonts' && method === 'GET';
+  if (!auth || !((await canUseEr(env, auth)) || (listOnly && (await rotChiefHospitals(env, auth)).length))) return json({ error: 'forbidden' }, auth ? 403 : 401);
 
   if (path === '/api/er-fonts' && method === 'GET') {
     const { results } = await env.DB.prepare(

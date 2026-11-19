@@ -25,9 +25,14 @@
     function period() {
         const st = core() && core().state();
         if (!st) return null;
-        return { hosp: st.hospitalId, ym: `${st.year}-${pad2(st.month)}`, month: Number(st.month) };
+        // The rotators' ER has its own portal: '<hospital>-rot'.
+        return { hosp: st.hospitalId + (core().rot ? '-rot' : ''), ym: `${st.year}-${pad2(st.month)}`, month: Number(st.month) };
     }
-    const hospitalName = id => { const h = Hub() && Hub().getHospital && Hub().getHospital(id); return h ? (h.name_ar || h.hospitalName) : id; };
+    const hospitalName = id => {
+        const rot = /-rot$/.test(id), base = rot ? id.slice(0, -4) : id;
+        const h = Hub() && Hub().getHospital && Hub().getHospital(base);
+        return (h ? (h.name_ar || h.hospitalName) : base) + (rot ? ' · المقيمون الدوريون' : '');
+    };
     function nextMonthYm() {
         const d = new Date();
         const n = new Date(d.getFullYear(), d.getMonth() + 1, 1);

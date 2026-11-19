@@ -831,7 +831,14 @@
         console.log('Initializing Emergency System V2...');
 
         // STRICT OWNER ACCESS GUARD: Immediate synchronous check before awaiting network!
-        if (!checkOwnerAccessOnLaunch()) {
+        let allowed = checkOwnerAccessOnLaunch();
+        // A chief of rotators is told apart by the hospital's specialties: on a device that has not
+        // loaded them yet, load them and look again.
+        if (!allowed && window.Hub && window.Hub.auth && window.Hub.auth.branchHospitals && window.Hub.auth.branchHospitals().length) {
+            try { await ensureHubDatabaseLoaded(); } catch (e) {}
+            allowed = checkOwnerAccessOnLaunch();
+        }
+        if (!allowed) {
             console.warn('ER Website Access Restricted: Owner authentication required.');
             return; // Halt completely until owner signs in!
         }
@@ -2376,6 +2383,7 @@
     }
 
     function onHospitalChange(hospId) {
+        if (ROT_SYS) return; // a rotators' ER belongs to one hospital
         const isOwner = window.Hub && window.Hub.auth && typeof window.Hub.auth.isOwner === 'function' && window.Hub.auth.isOwner();
         const adminHospIds = (window.Hub && window.Hub.auth && typeof window.Hub.auth.getAdminHospitalIds === 'function') ? window.Hub.auth.getAdminHospitalIds() : [];
         const isScopedAdmin = !isOwner && adminHospIds.length > 0 && !adminHospIds.includes('*');

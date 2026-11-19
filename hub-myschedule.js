@@ -96,7 +96,7 @@
         // a timed consultation-clinic duty has its own hours.
         const l = (ER_LABELS[d.type] || {})[String(d.slot).split('.')[0]] || [d.type, ''];
         const range = d.start && d.end ? `${hm(d.start)} – ${hm(d.end)}` : '';
-        return { title: l[0] + (d.place ? ' · ' + d.place : ''), time: range || l[1] || FULL_DAY, er: true };
+        return { title: l[0] + (d.place ? ' · ' + d.place : '') + (d.sys === 'rot' ? ' · الدوريون' : ''), time: range || l[1] || FULL_DAY, er: true };
     }
     /** The next duty (today's or the first one after it), shown only in the month it falls in. */
     function nextDuty(duties) {
@@ -942,7 +942,7 @@
             };
             btn.disabled = true;
             try {
-                const res = await Hub.api('POST', '/api/er-portal/mine', { ym: p.ym, prefs: out }, { retries: 0 });
+                const res = await Hub.api('POST', '/api/er-portal/mine', { ym: p.ym, hosp: p.hosp, prefs: out }, { retries: 0 });
                 portal.prefs = res.prefs;
                 portal.request = res.request;
                 toast('تم إرسال رغباتك ✓ يمكنك تعديلها حتى إغلاق البوابة', 'success');

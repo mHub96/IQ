@@ -16,6 +16,7 @@
     // Accounts without a resident profile or "My Schedule": rotators and Administrative Affairs officers.
     const OFFICER_ROLES = ['aa_user', 'aa_admin'];
     const NO_PROFILE = ['rotator', ...OFFICER_ROLES];
+    const NO_SCHEDULE = OFFICER_ROLES; // rotators have a roster and an ER of their own: My Schedule is theirs too
     const NICK_RE = /^[\p{L}\p{N}][\p{L}\p{N}._-]{2,23}$/u;
     const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
     const hospitalName = id => { const h = Hub.getHospital && Hub.getHospital(id); return h ? (h.name_ar || h.hospitalName) : (id || ''); };
@@ -68,7 +69,7 @@
             </header>
             <div class="hacc-tabs" role="tablist">
                 ${acc ? `<button type="button" role="tab" data-tab="profile">الملف الشخصي</button>
-                ${!NO_PROFILE.includes(acc.role) ? '<button type="button" role="tab" data-tab="schedule">جدولي</button>' : ''}
+                ${!NO_SCHEDULE.includes(acc.role) ? '<button type="button" role="tab" data-tab="schedule">جدولي</button>' : ''}
                 ${!OFFICER_ROLES.includes(acc.role) ? '<button type="button" role="tab" data-tab="comments">تعليقاتي</button>' : ''}` : ''}
                 <button type="button" role="tab" data-tab="settings">الإعدادات</button>
                 <button type="button" role="tab" data-tab="guide">الدليل</button>
@@ -95,7 +96,7 @@
         }
         if (!acc && tab !== 'admin' && tab !== 'guide') tab = 'settings';
         if (tab === 'admin' && !approver) tab = acc ? 'profile' : 'settings';
-        if (tab === 'schedule' && acc && NO_PROFILE.includes(acc.role)) tab = 'profile';
+        if (tab === 'schedule' && acc && NO_SCHEDULE.includes(acc.role)) tab = 'profile';
         if (tab === 'comments' && acc && OFFICER_ROLES.includes(acc.role)) tab = 'profile';
         if (!inline) sheet.querySelector('[data-act="close"]').addEventListener('click', A.closeSheet);
         sheet.querySelector('[data-act="logout"]').addEventListener('click', logout);

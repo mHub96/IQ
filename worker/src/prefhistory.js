@@ -9,8 +9,7 @@
  */
 
 import { json, readJson, overLimit, plainText } from './lib.js';
-import { canUseEr } from './eraccess.js';
-import { cleanPrefs, findErResident, erResidents, pickResident } from './duties.js';
+import { cleanPrefs, findErResident, erResidents, pickResident, canAdmin } from './duties.js';
 
 const HOSP_RE = /^[\w-]{1,48}$/;
 const YM_RE = /^(20\d\d)-(0[1-9]|1[0-2])$/;
@@ -48,18 +47,20 @@ async function page(env, hosp, erId, before) {
 
 async function mine(env, auth, url) {
   if (!auth.a) return json({ error: 'account_required' }, 403);
-  if (NOT_RESIDENT.includes(auth.r)) return json({ error: 'residents_only' }, 403);
+  if (NOT_RESIDENT.includes(auth.r) && auth.r !== 'rotator') return json({ error: 'residents_only' }, 403);
   const acc = await env.DB.prepare('SELECT id, name, hosp, phone FROM accounts WHERE id = ?').bind(auth.a).first();
   if (!acc) return json({ error: 'account_required' }, 403);
-  const er = await findErResident(env, acc);
+  // Their hospital's residents' ER, else its rotators' ER ('<hospital>-rot', its own history).
+  let erHosp = acc.hosp, er = auth.r === 'rotator' ? null : await findErResident(env, acc);
+  if (!er) { erHosp = acc.hosp + '-rot'; er = await findErResident(env, acc, erHosp); }
   if (!er) return json({ ok: true, er: null, entries: [], more: false });
-  return json({ ok: true, er: { id: er.id, name: er.name }, ...(await page(env, acc.hosp, er.id, url.searchParams.get('before'))) });
+  return json({ ok: true, er: { id: er.id, name: er.name }, ...(await page(env, erHosp, er.id, url.searchParams.get('before'))) });
 }
 
 async function ofResident(env, auth, url) {
   const hosp = String(url.searchParams.get('hosp') || ''), erId = String(url.searchParams.get('er') || '');
   if (!HOSP_RE.test(hosp) || !ID_RE.test(erId)) return json({ error: 'bad_request' }, 400);
-  if (!(await canUseEr(env, auth, hosp))) return json({ error: 'forbidden' }, 403);
+  if (!(await canAdmin(env, auth, hosp))) return json({ error: 'forbidden' }, 403);
   return json({ ok: true, ...(await page(env, hosp, erId, url.searchParams.get('before'))) });
 }
 
@@ -79,7 +80,7 @@ async function saveFromEr(request, env, auth) {
   const b = await readJson(request) || {};
   const hosp = String(b.hosp || ''), ym = String(b.ym || ''), erId = String(b.erId || '');
   if (!HOSP_RE.test(hosp) || !YM_RE.test(ym) || !ID_RE.test(erId)) return json({ error: 'bad_request' }, 400);
-  if (!(await canUseEr(env, auth, hosp))) return json({ error: 'forbidden' }, 403);
+  if (!(await canAdmin(env, auth, hosp))) return json({ error: 'forbidden' }, 403);
   if (await overLimit(env, 'prefhist:' + (auth.a || auth.r), 300)) return json({ error: 'rate_limited' }, 429);
   await historyStatement(env, { hosp, erId, erName: b.erName, ym, prefs: cleanPrefs(b.prefs, ym), source: 'er' }).run();
   return json({ ok: true });
@@ -94,7 +95,7 @@ async function importEntries(request, env, auth) {
   const b = await readJson(request) || {};
   const hosp = String(b.hosp || '');
   if (!HOSP_RE.test(hosp)) return json({ error: 'bad_request' }, 400);
-  if (!(await canUseEr(env, auth, hosp))) return json({ error: 'forbidden' }, 403);
+  if (!(await canAdmin(env, auth, hosp))) return json({ error: 'forbidden' }, 403);
   const entries = (Array.isArray(b.entries) ? b.entries : []).slice(0, MAX_IMPORT);
   const rows = await erResidents(env, hosp);
   if (!rows.length) return json({ error: 'no_er_residents' }, 409);

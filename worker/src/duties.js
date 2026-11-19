@@ -19,7 +19,7 @@ import { nameKey, nameTokens, namesMatch, phoneKey, isoDate } from './names.js';
 import { notifyHospitalResidents, dispatchPush } from './accounts.js';
 import { inSpecialty } from './exchspecs.js';
 import { refreshFromMyDuties } from './reminders.js';
-import { canUseEr } from './eraccess.js';
+import { canUseEr, canUseRotEr } from './eraccess.js';
 import { residentList, revision, cachedValue } from './revcache.js';
 import { historyStatement } from './prefhistory.js';
 
@@ -70,8 +70,8 @@ export async function routeDuties(path, method, request, env, auth, url, ctx) {
   if (path === '/api/cal' && method === 'GET') return dutyCalendar(env, url);
   if (!/^\/api\/(accounts\/(my-duties|duty-mark|custom-duty)|er-portal)(\/|$)/.test(path)) return null;
   if (!auth) return json({ error: 'unauthorized' }, 401);
-  // My Schedule and the preferences portal are for the hospital's residents (not rotators or division officers).
-  if (NOT_RESIDENT.includes(auth.r) && /^\/api\/(accounts\/|er-portal\/mine$)/.test(path)) return json({ error: 'residents_only' }, 403);
+  // My Schedule and the preferences portal are for the hospital's residents and rotators (not division officers).
+  if (NOT_RESIDENT.includes(auth.r) && auth.r !== 'rotator' && /^\/api\/(accounts\/|er-portal\/mine$)/.test(path)) return json({ error: 'residents_only' }, 403);
   switch (`${method} ${path}`) {
     case 'GET /api/accounts/my-duties': return myDuties(env, auth, url);
     case 'POST /api/accounts/duty-mark': return saveMark(request, env, auth);
@@ -91,6 +91,10 @@ export async function routeDuties(path, method, request, env, auth, url, ctx) {
 // ---------------------------------------------------------------------------
 
 const erPath = hosp => `$.hospitalResidents."${hosp}"`;
+// The rotators' ER of a hospital is addressed as '<hospital>-rot': its own state record, its own portals.
+export const ROT_SUFFIX = '-rot';
+export const rotBase = hosp => (String(hosp || '').endsWith(ROT_SUFFIX) ? String(hosp).slice(0, -ROT_SUFFIX.length) : null);
+const stateIdOf = hosp => (rotBase(hosp) ? `hosp_hub_emergency_rstate_${rotBase(hosp)}` : ER_STATE_ID);
 
 /** The residents (id, name, sex, phone) of a hospital's ER residents database, and where they are in the ER record. */
 async function erResidentRows(env, hosp) {
@@ -103,6 +107,17 @@ async function erResidentRows(env, hosp) {
        FROM records r, json_each(r.data, ?1) j
       WHERE r.coll = 'er' AND r.id = ?2`
   ).bind(path, ER_STATE_ID).all()).results || []);
+  const base = rotBase(hosp);
+  if (base) {
+    const path = erPath(base);
+    const rows = await cachedValue(`er-residents/rot/${base}`, rev, async () => (await env.DB.prepare(
+      `SELECT json_extract(j.value, '$.id') AS id, json_extract(j.value, '$.name') AS name,
+              json_extract(j.value, '$.sex') AS sex, json_extract(j.value, '$.phone') AS phone
+         FROM records r, json_each(r.data, ?1) j
+        WHERE r.coll = 'er' AND r.id = ?2`
+    ).bind(path, stateIdOf(hosp)).all()).results || []);
+    return { path, rows, stateId: stateIdOf(hosp) };
+  }
   let path = erPath(hosp);
   let rows = await list(path);
   if (!rows.length) {
@@ -110,7 +125,7 @@ async function erResidentRows(env, hosp) {
     const cur = await env.DB.prepare("SELECT json_extract(data, '$.hospitalId') AS h FROM records WHERE coll = 'er' AND id = ?").bind(ER_STATE_ID).first();
     if (cur && cur.h === hosp) { path = '$.residents'; rows = await list(path); }
   }
-  return { path, rows };
+  return { path, rows, stateId: ER_STATE_ID };
 }
 
 export async function erResidents(env, hosp) {
@@ -118,15 +133,15 @@ export async function erResidents(env, hosp) {
 }
 
 /** The account's entry in the ER residents database of its hospital: by phone, then by name. */
-export async function findErResident(env, account) {
-  const { path, rows } = await erResidentRows(env, account.hosp);
+export async function findErResident(env, account, erHosp) {
+  const { path, rows, stateId } = await erResidentRows(env, erHosp || account.hosp);
   if (!rows.length) return null;
   const match = pickResident(rows, account);
   if (!match) return null;
   const full = await env.DB.prepare(
     `SELECT j.value AS v FROM records r, json_each(r.data, ?1) j
       WHERE r.coll = 'er' AND r.id = ?2 AND json_extract(j.value, '$.id') = ?3`
-  ).bind(path, ER_STATE_ID, match.id).first();
+  ).bind(path, stateId, match.id).first();
   let res = {};
   try { res = JSON.parse(full ? full.v : '{}'); } catch {}
   return { id: match.id, name: match.name, sex: match.sex === 'F' ? 'f' : match.sex === 'M' ? 'm' : null, prefs: cleanPrefs(res, null, true),
@@ -296,6 +311,35 @@ export async function collectDuties(env, acc, ym) {
         }
       }
     }
+  }
+  // The rotators' ER of the resident's own hospitals: its month and its list (its own records).
+  const homeList = [...home].filter(h => hospitals.has(h));
+  if (homeList.length) {
+    const rot = await env.DB.batch(homeList.flatMap(h => [
+      env.DB.prepare("SELECT data FROM records WHERE coll = 'er' AND id = ?").bind(`hosp_hub_emergency_rsched_${h}_${year}_${month}`),
+      env.DB.prepare(
+        `SELECT json_extract(j.value, '$.name') AS n FROM records r, json_each(r.data, ?1) j WHERE r.coll = 'er' AND r.id = ?2`
+      ).bind(`$.hospitalResidents."${h}"`, `hosp_hub_emergency_rstate_${h}`),
+    ]));
+    homeList.forEach((hosp, i) => {
+      if (!(rot[i * 2 + 1].results || []).some(r => matches(r.n))) return;
+      let erMonth = null;
+      try { erMonth = JSON.parse(((rot[i * 2].results || [])[0] || {}).data || 'null'); } catch {}
+      if (!erMonth || typeof erMonth !== 'object') return;
+      for (const [type, fields] of Object.entries(monthPositions(erMonth))) {
+        for (const day of Array.isArray(erMonth[type]) ? erMonth[type] : []) {
+          const date = isoDate(day && day.date);
+          if (!date || !date.startsWith(ym)) continue;
+          for (const f of fields) {
+            if (!day[f.key] || !matches(day[f.key])) continue;
+            const duty = { key: `${date}|${type}|${f.key}|rot`, date, src: 'er', sys: 'rot', hosp, type, slot: f.key };
+            if (f.place) duty.place = f.place;
+            if (f.start) { duty.start = f.start; duty.end = f.end; }
+            duties.push(duty);
+          }
+        }
+      }
+    });
   }
   const marks = {};
   for (const k of marksRes.results || []) {
@@ -616,20 +660,27 @@ export function cleanPrefs(p, ym, loose = false) {
 // ---------------------------------------------------------------------------
 
 // The owner, or an admin the owner picked for this hospital's ER page (eraccess.js).
-const canAdmin = async (env, auth, hosp) => !!auth && canUseEr(env, auth, hosp);
+export const canAdmin = async (env, auth, hosp) => !!auth && (rotBase(hosp) ? canUseRotEr(env, auth, rotBase(hosp)) : canUseEr(env, auth, hosp));
 const isOpen = (p, now = Date.now()) => p && !p.closed_at && p.opens_at <= now && p.closes_at > now;
 
 async function portalMine(env, auth) {
   if (!auth.a) return json({ error: 'account_required' }, 403);
   const acc = await env.DB.prepare('SELECT id, name, hosp, phone FROM accounts WHERE id = ?').bind(auth.a).first();
   const now = Date.now();
-  const portal = await env.DB.prepare(
+  // The open portal of their hospital's residents' ER, or of its rotators' ER (where they are in that ER).
+  const { results: open } = await env.DB.prepare(
     `SELECT hosp, ym, opens_at, closes_at, closed_at FROM er_portals
-      WHERE hosp = ?1 AND closed_at IS NULL AND opens_at <= ?2 AND closes_at > ?2 ORDER BY ym DESC LIMIT 1`
-  ).bind(acc.hosp, now).first();
+      WHERE hosp IN (?1, ?3) AND closed_at IS NULL AND opens_at <= ?2 AND closes_at > ?2 ORDER BY ym DESC`
+  ).bind(acc.hosp, now, acc.hosp + ROT_SUFFIX).all();
+  let portal = null, erFound = null;
+  for (const pick of [...(open || [])].sort((a, b) => (a.hosp === acc.hosp ? -1 : 1) - (b.hosp === acc.hosp ? -1 : 1))) {
+    const er = await findErResident(env, acc, pick.hosp);
+    if (er) { portal = pick; erFound = er; break; }
+  }
+  if (!portal && open && open.length) portal = open.find(p => p.hosp === acc.hosp) || null;
   if (!portal) return json({ ok: true, portal: null });
   const [er, req] = await Promise.all([
-    findErResident(env, acc),
+    Promise.resolve(erFound),
     env.DB.prepare('SELECT prefs, updated_at, applied_at FROM er_pref_requests WHERE hosp = ? AND ym = ? AND account_id = ?').bind(portal.hosp, portal.ym, auth.a).first(),
   ]);
   let prefs = null;
@@ -649,9 +700,11 @@ async function savePortalRequest(request, env, auth) {
   if (await overLimit(env, 'erpref:' + auth.a, 60)) return json({ error: 'rate_limited' }, 429);
   const b = await readJson(request) || {};
   const acc = await env.DB.prepare('SELECT id, name, hosp, phone FROM accounts WHERE id = ?').bind(auth.a).first();
-  const portal = await env.DB.prepare('SELECT * FROM er_portals WHERE hosp = ? AND ym = ?').bind(acc.hosp, String(b.ym || '')).first();
+  const which = String(b.hosp || acc.hosp);
+  if (which !== acc.hosp && which !== acc.hosp + ROT_SUFFIX) return json({ error: 'forbidden' }, 403);
+  const portal = await env.DB.prepare('SELECT * FROM er_portals WHERE hosp = ? AND ym = ?').bind(which, String(b.ym || '')).first();
   if (!isOpen(portal)) return json({ error: 'portal_closed' }, 409);
-  const er = await findErResident(env, acc);
+  const er = await findErResident(env, acc, which);
   if (!er) return json({ error: 'not_in_er' }, 404);
   const prefs = cleanPrefs(b.prefs, portal.ym);
   const now = Date.now();
@@ -730,7 +783,7 @@ async function openPortal(request, env, auth, ctx) {
   // Residents hear about it when it opens, and again when the admin asks (e.g. a new deadline).
   let notified = 0;
   if (!wasOpen || b.notify) {
-    const res = await notifyHospitalResidents(env, hosp, `erportal:${hosp}:${ym}`, 'er_portal', JSON.stringify({ hosp, ym, closes: closesAt, extended: wasOpen }), now).run();
+    const res = await notifyHospitalResidents(env, rotBase(hosp) || hosp, `erportal:${hosp}:${ym}`, 'er_portal', JSON.stringify({ hosp, ym, closes: closesAt, extended: wasOpen }), now, !!rotBase(hosp)).run();
     notified = (res.results || []).length;
     dispatchPush(env, ctx, res);
   }

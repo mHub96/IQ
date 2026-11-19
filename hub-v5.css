@@ -939,3 +939,4 @@ html.er-rot .duty-card[onclick="switchTab('rs_er')"] { display: none !important;
 html.er-rot .ers-system .on { color: #B7791F; }
 html.er-rot .ers-logo { background: linear-gradient(145deg, #E8A23A, #B7791F) !important; }
 @media (min-width: 1024px) { .ers-top-title .ers-system { display: none; } }
+html.er-rot #meta-hosp-select { pointer-events: none; opacity: .7; }

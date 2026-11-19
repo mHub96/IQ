@@ -1483,8 +1483,10 @@
     function canSyncEr() {
         if (AA) return false;
         const role = auth.getRole();
-        // A chief of rotators syncs their hospital's rotators' ER (the API serves and takes only those).
-        return (role === 'owner' || role === 'admin' || auth.rotatorChiefHospitals().length > 0) && !!readApiToken();
+        // A chief of rotators syncs their hospital's rotators' ER (the API serves and takes only those). Any
+        // branch representative may ask (only the ER page does): the hospital's specialties, which tell a chief
+        // apart, may not be on this device yet, and the server decides anyway.
+        return (role === 'owner' || role === 'admin' || auth.rotatorChiefHospitals().length > 0 || auth.branchHospitals().length > 0) && !!readApiToken();
     }
 
     function readErState() {

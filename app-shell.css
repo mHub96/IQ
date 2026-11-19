@@ -52,6 +52,12 @@ html, body {
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
 }
+/* iOS 26 installed app (WebKit bug 301108): a page no taller than the screen gets a viewport that is
+   short by the status bar, leaving a blank band at the top and a black bar under the app. Asking for
+   the full screen height (plus the top inset) keeps the viewport whole, so the views reach both edges. */
+@media all and (display-mode: standalone) {
+  html, body { min-height: min(100lvh, calc(100% + env(safe-area-inset-top, 0px))); }
+}
 body { font-family: "IBM Plex Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
 
 /* The views fill the screen top to bottom: each page pads its own bars by the safe areas the shell

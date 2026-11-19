@@ -1628,6 +1628,7 @@
         <!-- Nav Row with Rotation Heroes (Initially Locked) -->
         <div class="nav-row">
             <a href="https://khafarat-alsadr.netlify.app/" class="nav-btn locked" id="btn-rotation-heroes"><i class="fas fa-user-md"></i><span>Rotation Heroes</span></a>
+            <a href="#" class="nav-btn nav-er" id="btn-er-duties"><i class="fas fa-truck-medical"></i><span>خفراء الطوارئ · ER</span></a>
             <a href="#" class="nav-btn nav-opi" id="btn-opioids" hidden role="button"></a>
         </div>
 
@@ -2511,7 +2512,7 @@
 
         // Which roster this page shows: the hospital's main roster ("الأقدمون") or its rotators' roster
         // (?view=rotators: only the branches of the Rotator specialty, for the hospital's own users).
-        const ROSTER_VIEW = new URLSearchParams(location.search).get('view') === 'rotators' ? 'rotators' : 'main';
+        const ROSTER_VIEW = ({ rotators: 'rotators', er: 'er' })[new URLSearchParams(location.search).get('view')] || 'main';
         /** A duty in the rotators' specialty or one of its branches (a clone shown in the main roster is not). */
         function isRotatorSpec(specCode) {
             if (!currentHospital || !window.Hub || !Hub.isRotatorSpecialty) return false;
@@ -2672,7 +2673,75 @@
             return residentsArray;
         }
 
+        // ------------------------------------------------------------------
+        // "ER duties" (?view=er): today's ER schedule of the hospital (its residents' and its rotators'
+        // ER), for every user of any hospital. Grouped by shift: the running shift open with a live dot.
+        // ------------------------------------------------------------------
+        let erToday = null, erTodayAt = 0, erLoading = null;
+        const ER_ICONS = { morning: 'fa-sun', afternoon: 'fa-cloud-sun', preNight: 'fa-moon', lateNight: 'fa-star-and-crescent' };
+        const erOpen = new Set();   // shifts the user opened (kept across redraws)
+        function currentErShift() {
+            const h = new Date(Date.now() + (new Date().getTimezoneOffset() + 180) * 60000).getHours();
+            return h >= 8 && h < 14 ? 'morning' : h >= 14 && h < 20 ? 'afternoon' : (h >= 20 || h < 2) ? 'preNight' : 'lateNight';
+        }
+        function erPhone(name) {
+            const clean = n => String(n || '').replace(/^(د\.|د|dr\.|dr)[\s:/]+/gi, '').trim();
+            const hit = (currentHospital.names || []).find(n => n.name === name || clean(n.name) === clean(name))
+                || (window.Hub && Hub.getResidents ? Hub.getResidents().find(r => r.name === name || clean(r.name) === clean(name)) : null);
+            return hit && hit.phone ? String(hit.phone) : '';
+        }
+        function erEsc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
+        function renderErView() {
+            const container = document.getElementById('roster-container');
+            if (!currentHospital) return;
+            if (!erToday || Date.now() - erTodayAt > 60000) {
+                if (!erToday) container.innerHTML = '<div class="glass-card p-8 text-center text-slate-400"><i class="fas fa-spinner fa-spin text-2xl"></i></div>';
+                if (!erLoading) erLoading = Hub.api('GET', '/api/er-today?h=' + encodeURIComponent(currentHospital.id), undefined, { retries: 1 })
+                    .then(r => { erToday = r; erTodayAt = Date.now(); })
+                    .catch(() => { if (!erToday) container.innerHTML = '<div class="glass-card p-8 text-center text-slate-400">تعذر تحميل جدول الطوارئ. تحقق من الاتصال.</div>'; })
+                    .finally(() => { erLoading = null; if (erToday) renderErView(); });
+                if (!erToday) return;
+            }
+            const now = currentErShift();
+            const cards = d => {
+                const phone = erPhone(d.name);
+                const digits = phone.replace(/\D/g, '');
+                const intl = digits.startsWith('964') ? digits : digits.startsWith('0') ? '964' + digits.slice(1) : digits;
+                const ok = digits.length >= 10;
+                return `<div class="roster-card-wrapper er-card-wrap"><div class="roster-card"><div class="card-face card-front card-body">
+                    <div class="specialty-bubbles">${d.place ? `<span class="specialty-bubble">${erEsc(d.place)}</span>` : ''}${d.sys === 'rot' ? '<span class="specialty-bubble er-rot-badge">دوري</span>' : ''}</div>
+                    <div class="resident-name">${erEsc(d.name)}</div>
+                    <div class="resident-phone">${ok ? erEsc(phone) : 'رقم غير متوفر'}</div>
+                    <div class="card-actions">
+                        <a href="${ok ? 'whatsapp://send?phone=' + intl : '#'}" class="action-btn-sm wa ${ok ? '' : 'opacity-40'}"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                        <a href="${ok ? 'tel:+' + intl : '#'}" class="action-btn-sm call ${ok ? '' : 'opacity-40'}"><i class="fas fa-phone"></i> Call</a>
+                    </div></div></div></div>`;
+            };
+            const groups = (erToday.shifts || []).map(sh => {
+                const list = (erToday.doctors || []).filter(d => d.shift === sh.key);
+                const end = (sh.start + sh.hours) % 24;
+                const t = h => `${((h + 11) % 12) + 1}${h < 12 ? 'ص' : 'م'}`;
+                const live = sh.key === now;
+                const open = live || erOpen.has(sh.key);
+                return `<details class="er-shift${live ? ' live' : ''}" data-shift="${sh.key}" ${open ? 'open' : ''}>
+                    <summary><i class="fas ${ER_ICONS[sh.key] || 'fa-clock'} er-shift-ic"></i>
+                        <span class="er-shift-t"><b>${erEsc(sh.name)}</b><small>${t(sh.start)} - ${t(end)} · ${list.length} ${list.length === 1 ? 'طبيب' : 'أطباء'}</small></span>
+                        ${live ? '<span class="er-live"><i></i> LIVE</span>' : ''}
+                        <i class="fas fa-chevron-down er-shift-chev"></i></summary>
+                    <div class="roster-grid er-shift-body">${list.length ? list.map(cards).join('') : '<div class="text-center text-slate-400 text-sm py-4">لا يوجد خفراء مسجلون لهذه الوجبة</div>'}</div>
+                </details>`;
+            }).join('');
+            const total = (erToday.doctors || []).length;
+            container.innerHTML = total ? `<div class="er-groups">${groups}</div>`
+                : '<div class="glass-card p-8 text-center text-slate-400"><i class="fas fa-truck-medical text-4xl mb-3 text-slate-300 dark:text-slate-600"></i><div class="font-bold text-base">لا يوجد جدول طوارئ لهذا المستشفى اليوم.</div></div>';
+            container.querySelectorAll('details.er-shift').forEach(d => d.addEventListener('toggle', () => {
+                if (d.classList.contains('live')) return;
+                if (d.open) erOpen.add(d.dataset.shift); else erOpen.delete(d.dataset.shift);
+            }));
+        }
+
         function renderRoster() {
+            if (ROSTER_VIEW === 'er') return renderErView();
             const container = document.getElementById('roster-container');
             const countTag = document.getElementById('count-tag');
             if (!currentHospital) {
@@ -3387,7 +3456,30 @@
             // The opioids responsibility: recording a used ampoule (the hospital's rotators, the holder, the owner).
             if (window.HubOpioids) HubOpioids.homeButton(document.getElementById('btn-opioids'), currentHospital.id);
 
+            // "ER duties": for everyone (a page of the site, any hospital).
+            const btnEr = document.getElementById('btn-er-duties');
+            if (btnEr) {
+                btnEr.href = `./Home.html?hospital=${encodeURIComponent(currentHospital.id)}&view=er`;
+                btnEr.style.display = ROSTER_VIEW === 'er' ? 'none' : '';
+            }
+            if (ROSTER_VIEW === 'er') {
+                document.title = `${hospName} · خفراء الطوارئ 🇮🇶`;
+                const sub = document.querySelector('.hospital-subtitle');
+                if (sub) sub.textContent = 'خفراء الطوارئ · ER On-Call';
+                document.body.classList.add('roster-view-er');
+            }
             // The rotators' roster: its title, and the way back to the main roster.
+            if (ROSTER_VIEW !== 'main') {
+                const row = document.querySelector('.nav-row');
+                if (row && !row.querySelector('.nav-btn-main-roster')) {
+                    const back = document.createElement('a');
+                    back.className = 'nav-btn nav-btn-main-roster';
+                    back.innerHTML = '<i class="fas fa-user-doctor"></i><span>الخفراء الأقدمون</span>';
+                    row.prepend(back);
+                }
+                const back = row && row.querySelector('.nav-btn-main-roster');
+                if (back) back.href = `./Home.html?hospital=${encodeURIComponent(currentHospital.id)}`;
+            }
             if (ROSTER_VIEW === 'rotators') {
                 document.title = `${hospName} · الخفراء الدوريون 🇮🇶`;
                 const sub = document.querySelector('.hospital-subtitle');
@@ -3415,10 +3507,10 @@
                 btnRotation.classList.remove('disabled');
                 btnRotation.removeAttribute('aria-disabled');
                 btnRotation.title = 'جدول الخفراء الدوريين';
-                btnRotation.style.display = canSeeRotatorRoster() && ROSTER_VIEW !== 'rotators' ? '' : 'none';
+                btnRotation.style.display = canSeeRotatorRoster() && ROSTER_VIEW === 'main' ? '' : 'none';
             } else if (btnRotation) {
                 delete btnRotation.dataset.system;
-                btnRotation.style.display = ROSTER_VIEW === 'rotators' ? 'none' : '';
+                btnRotation.style.display = ROSTER_VIEW === 'main' ? '' : 'none';
                 const heroesUrl = (currentHospital.rotationHeroesUrl || '').trim();
                 const existingBadge = btnRotation.querySelector('.badge-soon');
                 if (heroesUrl) {

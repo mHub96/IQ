@@ -16,6 +16,7 @@ import { DAY, json, signToken, verifyToken, encrypt, decrypt, bucketOf, neutrali
 import { routeAccounts, resolveAccountAuth, mirrorResident, finishLogin } from './accounts.js';
 import { routePasskeys } from './passkeys.js';
 import { routeDuties } from './duties.js';
+import { routeErToday } from './ertoday.js';
 import { routePrefHistory } from './prefhistory.js';
 import { routeReminders, runReminders } from './reminders.js';
 import { linkRotators } from './rotators.js';
@@ -164,6 +165,8 @@ async function route(request, env, ctx) {
   if (usageRoute) return usageRoute;
   const remindersRoute = await routeReminders(path, method, request, env, auth);
   if (remindersRoute) return remindersRoute;
+  const erTodayRoute = await routeErToday(path, method, env, auth, url);
+  if (erTodayRoute) return erTodayRoute;
   const dutiesRoute = await routeDuties(path, method, request, env, auth, url, ctx);
   if (dutiesRoute) return dutiesRoute;
   const prefHistoryRoute = await routePrefHistory(path, method, request, env, auth, url);

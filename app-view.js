@@ -127,6 +127,8 @@
     }
     window.addEventListener('pointerdown', interact, true);
     window.addEventListener('keydown', interact, true);
+    // A tap anywhere in the page lets the shell go (back) to fullscreen when the user chose it.
+    window.addEventListener('pointerup', function () { try { shell.fullscreen && shell.fullscreen._tap(); } catch (e) {} }, true);
 
     // Links to other pages open their live view (instant) instead of loading the page in this one.
     document.addEventListener('click', function (e) {

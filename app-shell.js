@@ -366,8 +366,36 @@
         return { top: parseFloat(cs.paddingTop) || 0, bottom: parseFloat(cs.paddingBottom) || 0 };
     }
 
+    // Fullscreen (the user's choice in Settings, kept on this device): hides the status bar and the
+    // system's navigation bar where the browser allows it (Android, desktop). Browsers only enter
+    // fullscreen on a tap, so with the choice on the app goes fullscreen at the first tap after it opens
+    // (and again after the system takes it out of fullscreen). iPhone Safari has no fullscreen for pages.
+    const FS_KEY = 'hub_fullscreen';
+    const fsRoot = document.documentElement;
+    const fsSupported = () => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled) && !!(fsRoot.requestFullscreen || fsRoot.webkitRequestFullscreen);
+    const fsActive = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+    function fsEnter() {
+        try {
+            const r = (fsRoot.requestFullscreen || fsRoot.webkitRequestFullscreen).call(fsRoot, { navigationUI: 'hide' });
+            if (r && r.catch) r.catch(() => {});
+        } catch (e) {}
+    }
+    function fsExit() {
+        try { if (fsActive()) { const r = (document.exitFullscreen || document.webkitExitFullscreen).call(document); if (r && r.catch) r.catch(() => {}); } } catch (e) {}
+    }
+    function fsTap() { if (read(FS_KEY) === '1' && fsSupported() && !fsActive()) fsEnter(); }
+    window.addEventListener('pointerup', fsTap, true);
+    const fullscreen = {
+        supported: fsSupported,
+        on: () => read(FS_KEY) === '1',
+        active: fsActive,
+        set(on) { write(FS_KEY, on ? '1' : '0'); if (on) fsEnter(); else fsExit(); },
+        _tap: fsTap,
+    };
+
     window.HubShell = {
         insets,
+        fullscreen,
         go: (href, how) => { if (how !== 'replace') arm(); go(href, how === 'replace' ? 'none' : 'push'); },
         /** The user touched the page (the first touch lays the base history entries). */
         _interact() { arm(); },

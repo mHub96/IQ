@@ -904,6 +904,14 @@
                         <button type="button" data-theme="dark">🌙 داكن</button>
                     </div></div>
             </section>
+            <section class="hp-section" data-role="fs-section">
+                <h3><i class="fas fa-expand"></i> ملء الشاشة</h3>
+                <div class="hp-switch-card">
+                    <span class="hp-switch-main"><b><i class="fas fa-mobile-screen-button"></i> إخفاء شريط الحالة وأزرار النظام</b>
+                    <small data-role="fs-text"></small></span>
+                    <button type="button" class="hp-toggle" role="switch" aria-checked="false" aria-label="ملء الشاشة" data-act="fs-toggle"><span></span></button>
+                </div>
+            </section>
             <section class="hp-section" data-role="install-section" hidden>
                 <h3><i class="fas fa-mobile-screen"></i> التطبيق</h3>
                 <div class="hp-line"><span data-role="install-text"></span><button type="button" class="hacc-btn sm primary" data-act="install" hidden>تثبيت</button></div>
@@ -967,6 +975,52 @@ ${a ? `
                 <div class="hp-hint" data-role="nick-hint">٣–٢٤ حرفاً وأرقام و - _ . بدون مسافات، وغير مستخدم من شخص آخر.</div>
             </section>
 ` : ''}</div>`;
+
+        // Fullscreen: the app shell owns it (it re-enters at the first tap after the app opens); a page
+        // opened on its own in a browser tab uses its own document.
+        const fsSec = body.querySelector('[data-role="fs-section"]');
+        if (fsSec) {
+            let fs = null;
+            try { if (window.HubView && HubView.inShell && window.parent.HubShell) fs = window.parent.HubShell.fullscreen; } catch (e) {}
+            if (!fs) {
+                const root = document.documentElement;
+                const active = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+                fs = {
+                    supported: () => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled) && !!(root.requestFullscreen || root.webkitRequestFullscreen),
+                    on: () => { try { return localStorage.getItem('hub_fullscreen') === '1'; } catch (e) { return false; } },
+                    active,
+                    set(on) {
+                        try { localStorage.setItem('hub_fullscreen', on ? '1' : '0'); } catch (e) {}
+                        try {
+                            const r = on ? (root.requestFullscreen || root.webkitRequestFullscreen).call(root, { navigationUI: 'hide' })
+                                : (active() ? (document.exitFullscreen || document.webkitExitFullscreen).call(document) : null);
+                            if (r && r.catch) r.catch(() => {});
+                        } catch (e) {}
+                    },
+                };
+            }
+            const sw = fsSec.querySelector('[data-act="fs-toggle"]');
+            const text = fsSec.querySelector('[data-role="fs-text"]');
+            const iphone = /iPhone|iPod/.test(navigator.userAgent);
+            const paintFs = () => {
+                const ok = fs.supported();
+                sw.disabled = !ok;
+                sw.setAttribute('aria-checked', ok && fs.on() ? 'true' : 'false');
+                text.textContent = !ok
+                    ? (iphone ? 'على الآيفون لا تسمح Apple للمواقع والتطبيقات المثبتة منها بإخفاء شريط الحالة أو شريط الإشارة السفلي.' : 'هذا المتصفح لا يدعم ملء الشاشة.')
+                    : fs.on() ? 'مفعّل ✓ يعمل التطبيق بكامل الشاشة، ويعود إليها تلقائياً عند أول لمسة بعد فتحه.'
+                    : 'يخفي شريط الحالة في الأعلى وشريط أزرار النظام في الأسفل. يُحفظ اختيارك على هذا الجهاز.';
+            };
+            sw.addEventListener('click', () => {
+                const on = sw.getAttribute('aria-checked') !== 'true';
+                fs.set(on);
+                paintFs();
+                setTimeout(paintFs, 400);
+            });
+            const onFsChange = () => { if (fsSec.isConnected) paintFs(); else { document.removeEventListener('fullscreenchange', onFsChange); } };
+            document.addEventListener('fullscreenchange', onFsChange);
+            paintFs();
+        }
 
         // Install the app (Android / desktop: browser prompt; iPhone: Share > Add to Home Screen)
         const P = window.HubPWA;

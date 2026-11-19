@@ -7,8 +7,8 @@
   "scope": "./",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone"],
-  "background_color": "#0b0e12",
-  "theme_color": "#007AFF",
+  "background_color": "#070B0B",
+  "theme_color": "#000000",
   "icons": [
     {
       "src": "pwa-icon.svg",

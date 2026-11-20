@@ -586,7 +586,7 @@
         .hth-fold-t{flex:1;min-width:0;display:grid;gap:2px}.hth-fold-t b{font-size:.86rem}.hth-fold-t small{font-size:.72rem;color:var(--hacc-muted)}
         .hth-fold-chev{color:var(--hacc-muted);transition:transform .25s}.hth-fold[open] .hth-fold-chev{transform:rotate(180deg)}
         .hth-fold-body{display:grid;gap:8px;padding:0 10px 10px}
-        .hth-fold .hth-list{max-height:min(55vh,460px);overflow-y:auto;overscroll-behavior:contain;padding:2px}
+        .hth-fold .hth-list{max-height:min(55vh,460px);overflow-y:auto;overscroll-behavior-y:auto;padding:2px}
         .hth-search{display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:12px;border:1px solid var(--hacc-border);background:var(--hacc-surface);color:var(--hacc-muted)}
         .hth-search input{flex:1;min-width:0;border:0;background:transparent;color:var(--hacc-text);font:inherit;font-size:.84rem;padding:10px 0;outline:none}
         .hth-item[hidden],.hth-card[hidden]{display:none}

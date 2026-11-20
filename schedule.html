@@ -208,7 +208,8 @@
         .grid-bar label { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-weight: 700; color: var(--s-text); }
         .grid-wrap { background: var(--s-card); border-radius: 16px; box-shadow: var(--s-shadow); overflow: hidden; }
         .grid-scroll {
-            overflow: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+            /* at its top or bottom the page scrolls on (sideways it stays: no browser back-swipe) */
+            overflow: auto; overscroll-behavior-x: contain; overscroll-behavior-y: auto; -webkit-overflow-scrolling: touch;
             max-height: calc(100dvh - 190px);
             contain: paint;
         }

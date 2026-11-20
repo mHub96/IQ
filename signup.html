@@ -517,6 +517,21 @@
         let erDay = null;          // GET /api/er-exchange/day answer for the date on screen
         let selectedErSlot = null; // the ER duty picked (its position key)
         let erToken = 0;
+        let erPreferShift = null;   // the shift to pick first when the ER day loads (the next duty)
+        /**
+         * The ER duty after the one running now (Iraq time; the duty day starts at 8 AM): morning → post
+         * morning → pre-night → night of the same duty day, then the next day's morning.
+         */
+        function nextErDuty() {
+            const now = new Date(Date.now() + 3 * 3600000);      // Iraq clock in UTC fields
+            const h = now.getUTCHours();
+            const day = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+            if (h < 8) day.setUTCDate(day.getUTCDate() - 1);        // 0-8 AM belongs to yesterday's duty day
+            const current = h >= 8 && h < 14 ? 'morning' : h >= 14 && h < 20 ? 'afternoon' : (h >= 20 || h < 2) ? 'preNight' : 'lateNight';
+            const next = { morning: 'afternoon', afternoon: 'preNight', preNight: 'lateNight', lateNight: 'morning' }[current];
+            if (current === 'lateNight') day.setUTCDate(day.getUTCDate() + 1);
+            return { iso: day.toISOString().slice(0, 10), shift: next };
+        }
         const erSysOf = v => (/^@er:(res|rot)$/.exec(v || '') || [])[1] || null;
         // Hospitals where exchanges need approval (residents send a request; admins still change directly).
         let approvalOn = new Set();
@@ -749,10 +764,19 @@
 
             // Step 3: Show Date Selector (Default is the date of opening the link)
             dateGroup.style.display = 'block';
+            // An ER option opens on the next duty after the running one (its date and its shift).
+            if (erSysOf(specId)) {
+                const next = nextErDuty();
+                const dateInput = document.getElementById('exchange-date-input');
+                dateInput.value = next.iso;
+                document.getElementById('selected-date-badge').textContent = isoToMedicalDate(next.iso);
+                erPreferShift = next.shift;
+            }
             inspectDutyAndRender();
         }
 
         function onDateChange() {
+            erPreferShift = null; // a date picked by hand: no preselected duty
             const isoDate = document.getElementById('exchange-date-input').value;
             document.getElementById('selected-date-badge').textContent = isoToMedicalDate(isoDate);
             inspectDutyAndRender();
@@ -921,6 +945,12 @@
             targetWrap.style.display = 'block';
             targetSelect.innerHTML = filled.map(d =>
                 `<option value="${d.key}">${d.shiftName}${d.place ? ' · ' + d.place : ''} — ${d.name}</option>`).join('');
+            // Opened from the ER option: the next duty is picked first (when it has someone on it).
+            if (erPreferShift) {
+                const first = filled.find(d => String(d.key).split('.')[0] === erPreferShift);
+                if (first) targetSelect.value = first.key;
+                erPreferShift = null;
+            }
             onTargetResidentChange();
             if (label) label.textContent = `اسم الطبيب البديل (من أطباء ${sys === 'rot' ? 'طوارئ الدوريين' : 'الطوارئ'}):`;
             document.getElementById('name-input').focus();

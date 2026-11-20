@@ -2927,7 +2927,7 @@
         if (isStoreSpecialty(hospitalId, specId)) {
             const storeBranch = cleanBranch((db.globalSpecialties.find(g => g.id === specId) || {}).branch);
             // (and its branch, while the store leaves it automatic)
-            updates = { color: updates.color, enabled: updates.enabled, acceptPool: updates.acceptPool, ...(storeBranch ? {} : { branch: updates.branch }) };
+            updates = { color: updates.color, enabled: updates.enabled, acceptPool: updates.acceptPool, drawFrom: updates.drawFrom, ...(storeBranch ? {} : { branch: updates.branch }) };
         }
 
         if (updates.name_ar) s.name_ar = updates.name_ar.trim();
@@ -2936,6 +2936,8 @@
         if (updates.color) s.color = updates.color;
         if (updates.enabled !== undefined) s.enabled = Boolean(updates.enabled);
         if (updates.acceptPool !== undefined) s.acceptPool = Array.isArray(updates.acceptPool) ? updates.acceptPool : [];
+        // A branch draws everyone of its main specialty (default) or only the residents rotating in it.
+        if (updates.drawFrom !== undefined) { if (updates.drawFrom === 'rotation' && s.parentSpec) s.drawFrom = 'rotation'; else delete s.drawFrom; }
         if (updates.branch !== undefined) { const b = cleanBranch(updates.branch); if (b) s.branch = b; else delete s.branch; }
 
         if (updates.prefix !== undefined) {
@@ -3053,11 +3055,20 @@
         };
     }
 
+    /** A branch that draws only the residents rotating in it (the hospital's choice in its options). */
+    function isRotationOnly(s) {
+        return !!(s && s.parentSpec && s.drawFrom === 'rotation');
+    }
+
     function getEligibleResidentsForSpecialty(hospitalOrId, specId) {
         const hospital = (typeof hospitalOrId === 'string') ? getHospital(hospitalOrId) : hospitalOrId;
         if (!hospital || !Array.isArray(hospital.names)) return [];
         const eligible = residentsOfSpecialty(hospital, specId);
         const residents = eligible.hospital.names || [];
+        // A rotation-only branch never falls back to everyone: no rotators in it = an empty list.
+        const own = (hospital.specialties || []).find(s => s.id === specId);
+        const src = own && own.isClone ? ((eligible.hospital.specialties || []).find(s => s.id === own.clonedFromSpecId)) : own;
+        if (isRotationOnly(src)) return eligible.list;
         // Fallback: If no eligible residents found, return all active non-reserve residents
         return eligible.list.length > 0 ? eligible.list : residents.filter(r => r.active !== false && r.spec !== 'RESERVE');
     }
@@ -3085,6 +3096,11 @@
     function residentFitsSpecialty(r, specs, specId) {
         if (!r || r.active === false || r.spec === 'RESERVE') return false;
         const s = specs.find(x => x.id === specId);
+        // A branch set to «المتناوبون فقط» (drawFrom 'rotation'): only the residents whose record puts
+        // their rotation (or specialty) in it, not everyone of its main specialty or its draw sources.
+        if (isRotationOnly(s)) {
+            return [r.dept || r.department, r.spec || r.tag].some(d => !!d && (d === specId || specs.some(x => x.parentSpec === specId && x.id === d)));
+        }
         const pool = Array.isArray(s?.acceptPool) ? s.acceptPool : [];
         if (pool.includes('ALL') || pool.includes('*')) return true;
         return [r.dept || r.department, r.spec || r.tag].some(d => !!d && (d === specId

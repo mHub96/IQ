@@ -1113,8 +1113,27 @@
                     <input type="color" id="edit-hosp-spec-color" value="#0f766e" class="h-9 w-16 p-1 rounded-lg border border-slate-300 dark:border-slate-700 cursor-pointer" />
                 </div>
 
+                <!-- A branch: everyone of its main specialty, or only the residents rotating in it -->
+                <div id="edit-hosp-spec-draw-wrap" class="hidden p-2.5 rounded-xl bg-purple-50/60 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800">
+                    <label class="block text-xs font-bold text-purple-700 dark:text-purple-300 mb-1.5 flex items-center gap-1">
+                        <i class="fas fa-diagram-project"></i> أطباء هذا الفرع:
+                    </label>
+                    <div class="grid gap-1.5">
+                        <label class="flex items-start gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer has-[:checked]:border-purple-500 has-[:checked]:ring-2 has-[:checked]:ring-purple-500/20">
+                            <input type="radio" name="edit-hosp-spec-draw" value="all" class="mt-0.5 accent-purple-600" onchange="onSpecDrawChange()">
+                            <span class="text-xs"><b class="block text-slate-800 dark:text-slate-100">كل أطباء التخصص الرئيسي</b>
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400" id="edit-hosp-spec-draw-all-hint">قائمة الأسماء في جدول الفرع = كل أطباء التخصص الرئيسي (ومصادر السحب أدناه).</span></span>
+                        </label>
+                        <label class="flex items-start gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer has-[:checked]:border-purple-500 has-[:checked]:ring-2 has-[:checked]:ring-purple-500/20">
+                            <input type="radio" name="edit-hosp-spec-draw" value="rotation" class="mt-0.5 accent-purple-600" onchange="onSpecDrawChange()">
+                            <span class="text-xs"><b class="block text-slate-800 dark:text-slate-100">المتناوبون في هذا الفرع فقط</b>
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400">فقط من اختير هذا الفرع في سجله كـ«القسم المكلف به (Rotation)» في قاعدة بيانات هذا المستشفى.</span></span>
+                        </label>
+                    </div>
+                </div>
+
                 <!-- Hospital-Specific Accept Pool (Drawing Selector) -->
-                <div class="p-2.5 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+                <div id="edit-hosp-spec-pool-wrap" class="p-2.5 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
                     <div class="flex justify-between items-center mb-1">
                         <label class="block text-xs font-bold text-blue-700 dark:text-blue-300 flex items-center gap-1">
                             <i class="fas fa-users-viewfinder"></i> مصادر سحب واستعارة الأطباء (Accept Pool):
@@ -3038,7 +3057,7 @@
                                     <div class="text-xs font-bold text-purple-700 dark:text-purple-300 mb-1.5"><i class="fas fa-diagram-project"></i> الفروع (تسحب أطباءها من هذا التخصص)</div>
                                     ${ownBranches.map(b => `
                                         <div class="flex items-center justify-between gap-2 py-1.5 border-t border-slate-200/70 dark:border-slate-700/60 first:border-t-0 ${b.enabled === false ? 'opacity-60' : ''}">
-                                            <span class="text-xs font-bold truncate">${b.icon || '↳'} ${escapeHtmlText(b.name_ar || b.id)}${b.enabled === false ? ' <span class="text-[10px] text-slate-400">(مخفي)</span>' : ''}</span>
+                                            <span class="text-xs font-bold truncate">${b.icon || '↳'} ${escapeHtmlText(b.name_ar || b.id)}${b.enabled === false ? ' <span class="text-[10px] text-slate-400">(مخفي)</span>' : ''}${b.drawFrom === 'rotation' ? ' <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300" title="يسحب فقط المتناوبين في هذا الفرع"><i class="fas fa-rotate"></i> المتناوبون فقط</span>' : ''}</span>
                                             <span class="flex items-center gap-1.5 flex-shrink-0">
                                                 <label class="toggle-switch-compact" title="${b.enabled === false ? 'مخفي من الجدول' : 'ظاهر في الجدول'}">
                                                     <input type="checkbox" ${b.enabled === false ? '' : 'checked'} onchange="toggleSpecEnabled('${b.id}', this.checked)" />
@@ -3569,10 +3588,26 @@
             storeBtn.classList.toggle('hidden', !(locked && Hub.auth.isOwner()));
             storeBtn.onclick = () => { closeEditHospitalSpecModal(); openGlobalSpecEditModal(spec.id); };
             document.getElementById('edit-hosp-spec-enabled').checked = spec.enabled !== false;
+            // A branch: draw everyone of the main specialty, or only those rotating in the branch.
+            const isBranch = isBranchSpec(spec, currentHospital.specialties || []);
+            document.getElementById('edit-hosp-spec-draw-wrap').classList.toggle('hidden', !isBranch);
+            if (isBranch) {
+                const parent = (currentHospital.specialties || []).find(p => p.id === spec.parentSpec);
+                document.getElementById('edit-hosp-spec-draw-all-hint').textContent = `قائمة الأسماء في جدول الفرع = كل أطباء «${parent ? parent.name_ar : spec.parentSpec}» (ومصادر السحب أدناه).`;
+            }
+            document.querySelectorAll('input[name="edit-hosp-spec-draw"]').forEach(r => { r.checked = r.value === (isBranch && spec.drawFrom === 'rotation' ? 'rotation' : 'all'); });
+            onSpecDrawChange();
             if (titleEl) titleEl.innerHTML = `<i class="fas fa-pen-to-square text-teal-600 dark:text-teal-400"></i> ${locked ? 'خيارات' : 'تعديل'} تخصص: ${escapeHtmlText(spec.name_ar)}${isBranchSpec(spec, currentHospital.specialties || []) ? ' <span class="text-xs font-bold text-purple-600">(فرع)</span>' : ''}`;
 
             const modal = document.getElementById('edit-hospital-spec-modal');
             if (modal) modal.classList.add('active');
+        }
+
+        /** «المتناوبون فقط» makes the draw sources meaningless: they are hidden while it is chosen. */
+        function onSpecDrawChange() {
+            const rot = !document.getElementById('edit-hosp-spec-draw-wrap').classList.contains('hidden')
+                && (document.querySelector('input[name="edit-hosp-spec-draw"]:checked') || {}).value === 'rotation';
+            document.getElementById('edit-hosp-spec-pool-wrap').classList.toggle('hidden', rot);
         }
 
         function closeEditHospitalSpecModal() {
@@ -3614,6 +3649,8 @@
                     color: color,
                     prefix: prefix,
                     acceptPool: acceptPool,
+                    drawFrom: document.getElementById('edit-hosp-spec-draw-wrap').classList.contains('hidden') ? undefined
+                        : ((document.querySelector('input[name="edit-hosp-spec-draw"]:checked') || {}).value === 'rotation' ? 'rotation' : 'all'),
                     enabled: document.getElementById('edit-hosp-spec-enabled')?.checked !== false,
                     updateExistingResidents: updateResidents,
                     branch: document.getElementById('edit-hosp-spec-branch')?.value || ''

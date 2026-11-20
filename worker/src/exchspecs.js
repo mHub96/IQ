@@ -30,6 +30,10 @@ export function isRotatorSpec(specs, code) {
 export function inSpecialty(specs, specId, r) {
   if (!r || r.active === false || r.spec === 'RESERVE') return false;
   const s = specs.find(x => x && x.id === specId);
+  // A branch set to draw only the residents rotating in it (hub-core.js residentFitsSpecialty).
+  if (s && s.parentSpec && s.drawFrom === 'rotation') {
+    return [r.dept || r.department, r.spec || r.tag].some(d => !!d && (d === specId || specs.some(x => x && x.parentSpec === specId && x.id === d)));
+  }
   const pool = s && Array.isArray(s.acceptPool) ? s.acceptPool : [];
   if (pool.includes('ALL') || pool.includes('*')) return true;
   return [r.dept || r.department, r.spec || r.tag].some(d => !!d && (d === specId

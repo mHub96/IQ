@@ -132,6 +132,8 @@ async function route(request, env, ctx) {
   if (path.startsWith('/api/er-fonts/file/')) return routeErFonts(path, method, request, env, null);
 
   const auth = await authenticate(request, env);
+  // The owner viewing the site as another account: reading only, nothing is changed in their name.
+  if (auth && auth.vo && !['GET', 'HEAD'].includes(method)) return json({ error: 'view_as_read_only' }, 403);
   const erFontsRoute = await routeErFonts(path, method, request, env, auth);
   if (erFontsRoute) return erFontsRoute;
   const onCallRoute = await routeOnCall(path, method, request, env, auth, url, ctx);

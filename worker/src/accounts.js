@@ -70,6 +70,7 @@ export async function routeAccounts(path, method, request, env, auth, url, ctx) 
   if (!auth) return json({ error: 'unauthorized' }, 401);
   switch (`${method} ${path}`) {
     case 'GET /api/accounts/me': return me(env, auth);
+    case 'POST /api/accounts/view-as': return viewAs(request, env, auth);
     case 'POST /api/accounts/password': return changePassword(request, env, auth);
     case 'POST /api/accounts/rename': return renameAccount(request, env, auth);
     case 'GET /api/accounts/anon-check': return anonCheck(env, auth, url);
@@ -121,6 +122,35 @@ export function scopeOf(row) {
   try { return JSON.parse(row.hospitals || '[]'); } catch { return []; }
 }
 
+// ---------------------------------------------------------------------------
+// The owner views the site as another account ("عرض الموقع كـ"): a read-only session
+// ---------------------------------------------------------------------------
+
+export const VIEW_AS_MS = 2 * 60 * 60 * 1000;
+
+/**
+ * POST /api/accounts/view-as { id }: the owner gets a session of that account for two hours, marked with
+ * the owner's account (vo) and session (vs). It reads as that account; every change is refused
+ * (index.js), and it ends when the owner signs out, changes password or is no longer the owner.
+ */
+async function viewAs(request, env, auth) {
+  if (auth.r !== 'owner' || !auth.a || auth.vo) return json({ error: 'forbidden' }, 403);
+  const body = await readJson(request) || {};
+  const id = String(body.id || '');
+  if (!id || id === auth.a) return json({ error: 'bad_request' }, 400);
+  const [row, me] = await env.DB.batch([
+    env.DB.prepare('SELECT * FROM accounts WHERE id = ?').bind(id),
+    env.DB.prepare('SELECT sess FROM accounts WHERE id = ?').bind(auth.a),
+  ]).then(r => [r[0].results[0], r[1].results[0]]);
+  if (!row) return json({ error: 'not_found' }, 404);
+  if (row.status !== 'active') return json({ error: 'not_active' }, 409);
+  if (row.role === 'owner') return json({ error: 'owner' }, 409);
+  const exp = Date.now() + VIEW_AS_MS;
+  const token = await signToken(env, { r: row.role, h: scopeOf(row), e: exp, a: row.id, s: row.sess, vo: auth.a, vs: me && me.sess, dv: auth.dv });
+  await env.DB.prepare('INSERT INTO audit (ts, role, msg, n) VALUES (?, ?, ?, 1)').bind(Date.now(), 'owner', `View as ${plainText(row.name, 80) || row.id}`).run();
+  return json({ success: true, viewAs: true, role: row.role, adminHospitals: scopeOf(row), token, exp, account: profile(row, await getStageMonth(env)) });
+}
+
 async function issueAccountToken(env, row, deviceId, remember) {
   const exp = Date.now() + (remember === false ? DAY : 30 * DAY);
   const payload = { r: row.role, h: scopeOf(row), e: exp, a: row.id, s: row.sess, dv: deviceId };
@@ -132,6 +162,19 @@ async function issueAccountToken(env, row, deviceId, remember) {
  * from the database, so approvals, promotions, bans and removed devices take effect immediately.
  */
 export async function resolveAccountAuth(env, payload) {
+  if (payload.vo) {
+    // A view-as session: the owner (still the owner, same session, this device) reads as the account.
+    const [owner, row] = await env.DB.batch([
+      env.DB.prepare(
+        `SELECT a.role, a.status, a.sess, d.device_id AS dev FROM accounts a
+           LEFT JOIN account_devices d ON d.account_id = a.id AND d.device_id = ?2 WHERE a.id = ?1`
+      ).bind(payload.vo, payload.dv || ''),
+      env.DB.prepare('SELECT id, role, hospitals, hosp_roles, cover, status, sess, name, hosp, anon_tag, sex, avatar FROM accounts WHERE id = ?').bind(payload.a),
+    ]).then(r => [r[0].results[0], r[1].results[0]]);
+    if (!owner || owner.role !== 'owner' || owner.status !== 'active' || owner.sess !== payload.vs || !owner.dev) return null;
+    if (!row || row.status !== 'active' || row.role === 'owner') return null;
+    return { r: row.role, h: scopeOf(row), x: parseHospRoles(row.hosp_roles), cov: parseCover(row.cover), e: payload.e, a: row.id, name: row.name, hosp: row.hosp, anon: row.anon_tag, sex: row.sex, avatar: row.avatar, dv: payload.dv, vo: payload.vo };
+  }
   const row = await env.DB.prepare(
     `SELECT a.id, a.role, a.hospitals, a.hosp_roles, a.cover, a.status, a.sess, a.name, a.hosp, a.anon_tag, a.sex, a.avatar, d.device_id AS dev
        FROM accounts a LEFT JOIN account_devices d ON d.account_id = a.id AND d.device_id = ?2
@@ -1538,7 +1581,7 @@ async function listNotifications(env, auth, url) {
               (SELECT COUNT(*) FROM exchange_requests WHERE status = 'admin_pending'${scope}) AS exchanges`
     ).bind(...(seesAll(auth) ? [] : [JSON.stringify(auth.h || [])])));
   }
-  if (auth.a) {
+  if (auth.a && !auth.vo) {
     // Writes only when the stored value is over an hour old (keeps D1 writes low).
     stmts.push(env.DB.prepare('UPDATE accounts SET last_seen = ?1 WHERE id = ?2 AND COALESCE(last_seen, 0) < ?3').bind(now, auth.a, now - ACTIVE_WRITE_MS));
     stmts.push(env.DB.prepare('UPDATE account_devices SET last_seen = ?1 WHERE account_id = ?2 AND device_id = ?3 AND last_seen < ?4').bind(now, auth.a, auth.dv || '', now - ACTIVE_WRITE_MS));

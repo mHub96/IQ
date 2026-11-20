@@ -39,6 +39,15 @@
     const API_TOKEN_KEY = 'hospital_hub_api_token';
     const ACCOUNT_KEY = 'hospital_hub_account';
     const ER_SYNC_KEY = 'hospital_hub_er_synced';
+    // The owner viewing the site as another account (read-only): who, and the owner's own session kept aside.
+    const VIEW_AS_KEY = 'hub_view_as';
+    const VIEW_AS_BACKUP_KEY = 'hub_view_as_owner';
+    function viewAsState() {
+        try {
+            const v = JSON.parse(localStorage.getItem(VIEW_AS_KEY) || 'null');
+            return v && v.id ? v : null;
+        } catch (e) { return null; }
+    }
     const THEME_KEY = 'hospital_hub_theme';
 
     // ============================================================
@@ -736,6 +745,10 @@
         if (body !== undefined) headers['Content-Type'] = 'application/json';
         const tok = useToken ? readApiToken() : null;
         if (tok) headers['Authorization'] = 'Bearer ' + tok.token;
+        // Viewing as another account: nothing is changed in their name (the server refuses it too).
+        if (tok && method !== 'GET' && viewAsState()) {
+            throw new ApiError('أنت تعرض الموقع كمستخدم آخر (قراءة فقط): لا يمكن إجراء أي تغيير.', 403, { error: 'view_as_read_only' });
+        }
 
         let lastErr;
         for (let attempt = 0; attempt <= retries; attempt++) {
@@ -750,6 +763,8 @@
                 let data = null;
                 try { data = text ? JSON.parse(text) : null; } catch (e) { data = text; }
                 if (res.status === 401 && tok) {
+                    // A view-as session that ended (two hours, or the owner signed out elsewhere): back to the owner.
+                    if (viewAsState()) { auth.endViewAs(); throw new ApiError('انتهى عرض الموقع كمستخدم آخر', 401, data); }
                     // Session expired or revoked on the server: sign out locally too.
                     storeApiToken(null);
                     auth.logout();
@@ -4608,6 +4623,8 @@
          * reloaded: no page that was open while signed in (or its account panel) can come back.
          */
         signOut() {
+            // Signing out while viewing as someone ends the view (the owner stays signed in).
+            if (viewAsState()) return this.endViewAs();
             try {
                 sessionStorage.removeItem('hub_cached_owner_pwd');
                 sessionStorage.removeItem('hub_cached_admin_pwd');
@@ -4623,6 +4640,44 @@
                 try { top.history.replaceState(null, '', dir + 'app.html#index.html?portal=true'); } catch (e) {}
                 top.location.reload();
             } else location.replace(dir + 'index.html?portal=true');
+        },
+
+        // ---------------- The owner views the site as another account (read-only) ----------------
+        /** { id, name, role, exp } while the owner views the site as that account, else null. */
+        viewingAs() { return viewAsState(); },
+        /**
+         * Owner: switches this device to a read-only session of account `id` (two hours at most). The
+         * owner's own session is kept aside and comes back with endViewAs() (the bar's «إنهاء»).
+         */
+        async startViewAs(id) {
+            if (!this.isOwner() || viewAsState()) throw new Error('غير متاح');
+            const res = await api('POST', '/api/accounts/view-as', { id }, { retries: 0 });
+            const backup = {};
+            VIEW_AS_SESSION_KEYS.forEach(k => { backup[k] = localStorage.getItem(k); });
+            localStorage.setItem(VIEW_AS_BACKUP_KEY, JSON.stringify(backup));
+            localStorage.setItem(VIEW_AS_KEY, JSON.stringify({ id, name: (res.account && res.account.name) || '', role: res.role, exp: res.exp, at: Date.now() }));
+            detachSecrets();
+            clearLocalData();
+            pendingToken = { token: res.token, exp: res.exp };
+            storeAccount(res.account);
+            if (res.account && res.account.hosp) localStorage.setItem(ACTIVE_HOSP_KEY, res.account.hosp);
+            this.saveSession(res.role, '', true, res.adminHospitals || []);
+            restartApp('index.html');
+        },
+        /** Back to the owner's own session (the data loads again as the owner). */
+        endViewAs() {
+            let backup = null;
+            try { backup = JSON.parse(localStorage.getItem(VIEW_AS_BACKUP_KEY) || 'null'); } catch (e) {}
+            localStorage.removeItem(VIEW_AS_KEY);
+            localStorage.removeItem(VIEW_AS_BACKUP_KEY);
+            clearLocalData();
+            if (backup) {
+                Object.entries(backup).forEach(([k, v]) => { if (v === null || v === undefined) localStorage.removeItem(k); else localStorage.setItem(k, v); });
+                restartApp('account.html#manage');
+            } else {
+                this.logout();
+                restartApp('index.html?portal=true');
+            }
         },
 
         /** Raise the current session to owner / admin / anaesthesia. Returns a Promise. */
@@ -4641,6 +4696,63 @@
             return this.upgradeRole(password);
         }
     };
+
+    // The keys of a session (kept aside while the owner views the site as someone else).
+    const VIEW_AS_SESSION_KEYS = [API_TOKEN_KEY, ACCOUNT_KEY, SESSION_ROLE_KEY, SESSION_TIMESTAMP_KEY, SESSION_REMEMBER_KEY, SESSION_ADMIN_HOSPITALS_KEY, SESSION_TOKEN_KEY, ACTIVE_HOSP_KEY];
+
+    /** Reloads the whole app (the shell and every page in it) at `page`. */
+    function restartApp(page) {
+        try { localStorage.removeItem('app_last_route'); } catch (e) {}
+        const dir = location.href.replace(/[?#].*$/, '').replace(/[^/]*$/, '');
+        let top = null;
+        try { if (window.top !== window && window.top.HubShell) top = window.top; } catch (e) {}
+        if (top) {
+            try { top.history.replaceState(null, '', dir + 'app.html#' + page); } catch (e) {}
+            top.location.reload();
+        } else location.replace(dir + page);
+    }
+
+    /**
+     * While the owner views the site as someone: a bar on every page with who it is and «إنهاء». A view
+     * past its two hours ends by itself.
+     */
+    function paintViewAsBar() {
+        const v = viewAsState();
+        if (!v || !document.body) return;
+        if (v.exp && v.exp < Date.now()) { auth.endViewAs(); return; }
+        if (document.getElementById('hub-view-as-bar')) return;
+        const roleNames = { admin: 'مدير مستشفى', branch: 'مدير فرع', anaesthesia: 'مقيم تخدير', user: 'مقيم', rotator: 'روتيتر', aa_user: 'موظف الشؤون الإدارية', aa_admin: 'مدير الشؤون الإدارية' };
+        const bar = document.createElement('div');
+        bar.id = 'hub-view-as-bar';
+        bar.setAttribute('role', 'status');
+        bar.innerHTML = `<style>
+            #hub-view-as-bar { position: fixed; z-index: 2147482000; top: calc(var(--hub-sat, env(safe-area-inset-top, 0px)) + 72px); left: 50%; transform: translateX(-50%);
+                display: flex; align-items: center; gap: 10px; max-width: calc(100vw - 24px); padding: 7px 7px 7px 14px; border-radius: 999px;
+                background: linear-gradient(135deg, #B7791F, #8A5A12); color: #fff; box-shadow: 0 10px 30px rgba(138, 90, 18, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+                font: 700 12.5px/1.3 'IBM Plex Sans Arabic', -apple-system, system-ui, sans-serif; direction: rtl; animation: hvaIn .3s ease-out both; }
+            @keyframes hvaIn { from { opacity: 0; transform: translate(-50%, -10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+            #hub-view-as-bar .hva-ic { width: 26px; height: 26px; flex: none; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, 0.18); font-size: 13px; }
+            #hub-view-as-bar .hva-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            #hub-view-as-bar .hva-t small { display: block; font-weight: 600; opacity: .8; font-size: 10.5px; }
+            #hub-view-as-bar button { flex: none; border: 0; cursor: pointer; padding: 7px 14px; border-radius: 999px; background: #fff; color: #8A5A12; font: inherit; font-weight: 900; }
+            #hub-view-as-bar button:active { transform: scale(.95); }
+        </style><span class="hva-ic">👁</span><span class="hva-t"></span><button type="button">إنهاء</button>`;
+        const t = bar.querySelector('.hva-t');
+        t.textContent = `تعرض الموقع كـ ${v.name || 'مستخدم'}`;
+        const sub = document.createElement('small');
+        // The role as the site names it (a chief of rotators, …): once the hospitals' data is here.
+        const label = () => {
+            const acc = auth.getAccount();
+            const roleLabel = window.HubAccounts && HubAccounts.roleName && acc ? HubAccounts.roleName(acc) : (roleNames[v.role] || v.role || '');
+            sub.textContent = `${roleLabel} · قراءة فقط`;
+        };
+        label();
+        window.addEventListener('hub:data-changed', label);
+        t.appendChild(sub);
+        bar.querySelector('button').addEventListener('click', () => auth.endViewAs());
+        document.body.appendChild(bar);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paintViewAsBar); else setTimeout(paintViewAsBar, 0);
 
     // ============================================================
     // THEME MANAGEMENT

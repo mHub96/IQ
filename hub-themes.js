@@ -32,12 +32,40 @@
     // Building a theme's stylesheet
     // -------------------------------------------------------------------------------------------
     const decl = obj => Object.entries(obj || {}).map(([k, v]) => `${k}:${v};`).join('');
+    // The bottom bar in the pages (outside the app): the theme's deep hero colour for the capsule, its
+    // bright accent for the chosen tab (each theme pairs them for strong contrast).
+    const DOCK_CSS = `html.hub-themed :is(.hub-mobile-bottom-dock,.ios-bottom-dock){background:color-mix(in srgb,var(--v5-ink) 93%,transparent)!important;border-color:rgba(255,255,255,.1)!important}`
+        + `html.hub-themed :is(.hub-mobile-bottom-dock,.ios-bottom-dock) .dock-tab-btn{color:rgba(255,255,255,.7)!important}`
+        + `html.hub-themed :is(.hub-mobile-bottom-dock,.ios-bottom-dock) .dock-tab-btn.active{background:var(--v5-mint)!important;color:var(--v5-mint-ink)!important}`;
     function compile(theme) {
         const light = theme.tokens && (theme.tokens.light || theme.tokens.dark);
         const dark = theme.tokens && (theme.tokens.dark || theme.tokens.light);
         return `html.hub-themed,html.hub-themed body{${decl(light)}}`
             + `html.hub-themed.dark,html.hub-themed body.dark,html.hub-themed.dark body{${decl(dark)}}`
-            + String(theme.css || '');
+            + DOCK_CSS + String(theme.css || '');
+    }
+    /**
+     * The app's own frame (app.html: its tab bar, side rail and background) has no page styles: its
+     * colours, from the theme's. Capsule = the deep hero colour, labels light; the chosen tab = the
+     * bright accent with its dark ink; the side rail (wide screens) = cards and the brand colour.
+     */
+    function compileShell(theme) {
+        const one = (t, dark) => {
+            if (!t) return '';
+            const g = k => t[k];
+            const v = {
+                '--app-bg': g('--ds-bg'),
+                '--app-ink': g('--v5-ink') && `color-mix(in srgb, ${g('--v5-ink')} 94%, transparent)`,
+                '--app-ink-label': 'rgba(255, 255, 255, 0.7)',
+                '--app-mint': g('--v5-mint'), '--app-mint-ink': g('--v5-mint-ink'),
+                '--app-tint': g('--ds-brand'), '--app-label': g('--ds-ink'), '--app-line': g('--ds-line'),
+                '--app-rail-bg': g('--ds-card'), '--app-rail-label': g('--ds-ink-2'),
+                '--app-rail-active': dark ? g('--v5-mint') : (g('--ds-brand-strong') || g('--ds-brand')), '--app-rail-pill': g('--ds-brand-soft'),
+            };
+            return Object.entries(v).filter(([, x]) => x).map(([k, x]) => `${k}:${x};`).join('');
+        };
+        const tk = theme.tokens || {};
+        return `html.hub-themed{${one(tk.light || tk.dark, false)}}html.hub-themed.dark{${one(tk.dark || tk.light, true)}}`;
     }
 
     // -------------------------------------------------------------------------------------------
@@ -114,7 +142,7 @@
         if (act) {
             try {
                 const theme = await loadTheme(act.meta);
-                if (theme) live = { id: theme.id, v: act.meta.v, name: theme.name, css: compile(theme), forced: act.forced, scheme: theme.mode === 'light' ? 'light' : 'dark', effects: theme.effects || [], start: act.meta.start || null, end: act.meta.end || null };
+                if (theme) live = { id: theme.id, v: act.meta.v, name: theme.name, css: compile(theme), shellCss: compileShell(theme), forced: act.forced, scheme: theme.mode === 'light' ? 'light' : 'dark', effects: theme.effects || [], start: act.meta.start || null, end: act.meta.end || null };
             } catch (e) { live = read(LIVE_KEY, null); }
         }
         write(LIVE_KEY, live);
@@ -333,7 +361,7 @@
                 try {
                     const meta = themes.find(t => t.id === id);
                     const theme = await loadTheme(meta);
-                    const live = { id, v: meta.v, name: theme.name, css: compile(theme), forced: false, scheme: theme.mode, effects: theme.effects || [] };
+                    const live = { id, v: meta.v, name: theme.name, css: compile(theme), shellCss: compileShell(theme), forced: false, scheme: theme.mode, effects: theme.effects || [] };
                     write(LIVE_KEY, live); applyLive(live);
                     toast(`معاينة «${theme.name}» ✓ (للعودة: الإعدادات › المظهر › المظهر الأساسي)`, 'success');
                 } catch (err) { toast(errText(err), 'error'); }

@@ -484,6 +484,18 @@
         let forced = null;
         try { const v = JSON.parse(read('hub_theme_live') || 'null'); const now = Date.now(); if (v && v.forced && (!v.start || v.start <= now) && (!v.end || now < v.end)) forced = v.scheme; } catch (x) {}
         const dark = forced ? forced === 'dark' : read('hospital_hub_theme') === 'dark';
+        // The site theme in force: the tab bar, side rail and background take its colours.
+        let live = null;
+        try { const v = JSON.parse(read('hub_theme_live') || 'null'); const now = Date.now(); if (v && v.shellCss && (!v.start || v.start <= now) && (!v.end || now < v.end)) live = v; } catch (x) {}
+        let st = document.getElementById('hub-theme-shell');
+        if (live) {
+            if (!st) { st = document.createElement('style'); st.id = 'hub-theme-shell'; document.head.appendChild(st); }
+            if (st.textContent !== live.shellCss) st.textContent = live.shellCss;
+            document.documentElement.classList.add('hub-themed');
+        } else {
+            if (st) st.remove();
+            document.documentElement.classList.remove('hub-themed');
+        }
         document.documentElement.classList.toggle('dark', dark);
         const meta = document.querySelector('meta[name="theme-color"]');
         if (meta) meta.setAttribute('content', dark ? '#000000' : '#EEF2EF');

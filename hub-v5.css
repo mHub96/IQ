@@ -885,7 +885,14 @@ body.roster-view-er #trending-container, body.roster-view-er #main-content > .to
 .nav-btn.nav-er i { color: var(--ds-coral) !important; }
 /* The shifts: collapsible separators (a hairline with the shift's chip, times and count); the cards
    sit straight on the page under them, as on the roster. */
-.er-groups { display: grid; gap: 4px; }
+.er-groups { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; min-width: 0; max-width: 100%; }
+/* Never wider than the screen: every level may shrink below its content's width (as the roster). */
+.er-shift, .er-cat, .er-div, .er-shift-body, .er-cat-body, .er-shift .roster-grid, .er-div .roster-grid { min-width: 0; max-width: 100%; }
+.er-shift > summary, .er-cat > summary { min-width: 0; }
+.er-shift-t { min-width: 0; flex: 0 1 auto; overflow: hidden; }
+.er-shift-t b, .er-shift-t small { overflow: hidden; text-overflow: ellipsis; }
+.er-div-head { min-width: 0; }
+.er-sex, .er-div-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .er-shift { interpolate-size: allow-keywords; animation: ds-rise 0.45s var(--ds-ease) both; }
 .er-shift:nth-child(2) { animation-delay: 40ms; } .er-shift:nth-child(3) { animation-delay: 80ms; } .er-shift:nth-child(4) { animation-delay: 120ms; }
 .er-shift > summary {
@@ -992,7 +999,16 @@ body.dark .er-sex, html.dark .er-sex { box-shadow: inset 0 1px 0 rgba(255, 255, 
   color: var(--ds-ink-2); font-size: 0.7rem; font-weight: 800; font-variant-numeric: tabular-nums;
 }
 .er-plain { margin: 4px 0 10px; }
-@media (max-width: 380px) { .er-shift-t small { display: none; } }
+@media (max-width: 380px) {
+  .er-shift-t small { display: none; }
+  .er-shift > summary, .er-cat > summary { gap: 7px; }
+  .er-shift-n { padding: 3px 7px; }
+  .er-live { padding: 3px 7px; letter-spacing: 0.04em; }
+  .er-cat > summary small { display: none; }
+  .er-div { padding-inline: 8px; }
+  .er-div-head { inset-inline: 10px; gap: 6px; }
+  .er-sex, .er-div-name { font-size: 0.68rem; padding-inline: 9px; }
+}
 @media (prefers-reduced-motion: reduce) { .er-live i { animation: none; } .er-shift::details-content { transition: none; } }
 
 /* ======================================================================

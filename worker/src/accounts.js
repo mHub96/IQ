@@ -645,6 +645,7 @@ function pushMessage(n) {
     case 'duty_reminder': return { title: `⏰ خفارتك بعد ${durationText(d.in || d.lead || 60)}`, body: `${d.title || ''} · ${startText(d.start)}${d.hospName ? ' · ' + d.hospName : ''}`, url: './index.html?portal=true#panel=duties' };
     case 'opioid_assigned': return { title: '💊 ذمة المخدرات', body: `أُسندت إليك ذمة المخدرات: ${d.place || ''}${d.hospName ? ' · ' + d.hospName : ''}.`, url: './index.html?portal=true#panel=opioids' };
     case 'opioid_used': return { title: `💉 استُخدم ${d.item || 'مخدر'}`, body: `${d.qty || 1} أمبولة · ${d.ward || ''} · سجّلها ${d.by || ''}. المتبقي: ${d.left}`, url: './index.html?portal=true#panel=opioids' };
+    case 'theme_new': return { title: `🎨 ثيم جديد: ${d.name || ''}`, body: 'متاح الآن في الإعدادات › المظهر.', url: './index.html?portal=true#panel=settings' };
     case 'opioid_low': return { title: `⚠️ ${d.item || 'مخدر'} قارب على النفاد`, body: `بقي ${d.left} فقط في ${d.place || ''}.`, url: './index.html?portal=true#panel=opioids' };
     case 'opioid_empty': return { title: `⛔ نفد ${d.item || 'مخدر'}`, body: `لم يبقَ شيء في ${d.place || ''}. اطلب التعويض من الإدارة.`, url: './index.html?portal=true#panel=opioids' };
     case 'opioid_handed_off': return { title: '💊 تسليم ذمة المخدرات', body: `سُلّمت ذمة ${d.place || ''} إلى ${d.to || 'مقيم آخر'}.`, url: './index.html?portal=true' };

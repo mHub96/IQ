@@ -194,6 +194,7 @@
         exchanges: ['طلبات تبديل الخفارات', host => A.openExchanges(host)],
         requests: ['طلبات التواصل', host => A.openRequests(host)],
         'duty-status': ['حالات الخفارة', host => A.loadOnCall().then(m => m.editor(host))],
+        themes: ['ثيمات الموقع', host => (window.HubThemes ? HubThemes.renderManager(host) : (host.innerHTML = '<div class="hacc-empty">تعذر تحميل مدير الثيمات. حدّث الصفحة.</div>'))],
         analytics: ['التحليلات المتقدمة', host => loadStats().then(() => window.HubStats.advanced(host)).catch(() => { host.innerHTML = '<div class="hacc-empty">تعذر التحميل. تحقق من الاتصال.</div>'; })],
     };
     function openView(key) {
@@ -611,6 +612,7 @@
         }));
         body.querySelectorAll('[data-view="hospital-settings"]').forEach(b => b.addEventListener('click', () => renderHospitalSettings(body)));
         body.querySelectorAll('[data-view="duty-status"]').forEach(b => b.addEventListener('click', () => openView('duty-status')));
+        body.querySelectorAll('[data-view="themes"]').forEach(b => b.addEventListener('click', () => openView('themes')));
         body.querySelectorAll('[data-open="exchanges"]').forEach(b => b.addEventListener('click', () => openView('exchanges')));
     }
 
@@ -784,6 +786,7 @@
                 ['fa-truck-medical', 'نظام خفارات الطوارئ (ER)', 'جداول وتوزيع خفارات الطوارئ', { href: './emergency.html' }],
                 ['fa-chart-simple', 'الإحصائيات', 'استهلاك قاعدة البيانات اليوم والمتبقي من الحد المجاني', { href: './account.html#manage-stats' }],
                 ['fa-user-doctor', 'حالات الخفارة', 'خيارات حالة المقيم أثناء الخفارة ومظاهرها ووقت إزالتها التلقائية', { view: 'duty-status' }],
+                ['fa-wand-magic-sparkles', 'ثيمات الموقع', 'رفع ثيمات المناسبات وفرضها أو إتاحتها للمستخدمين في فترات محددة', { view: 'themes' }],
                 ['fa-plus-circle', 'إضافة مستشفى جديد', 'مستشفى جديد بكامل هيكليته', { fn: 'openAddHospitalModal' }],
                 ['fa-crown', 'مستودع التخصصات العام', 'التخصصات المشتركة لكل المستشفيات', { fn: 'openGlobalSpecialtiesModal' }],
                 ['fa-database', 'النسخ الاحتياطي الشامل', 'تنزيل واستعادة نسخة كاملة', { fn: 'openFullSystemBackupModal' }],
@@ -923,6 +926,8 @@
                         <button type="button" data-theme="light">☀️ فاتح</button>
                         <button type="button" data-theme="dark">🌙 داكن</button>
                     </div></div>
+                <h3 style="margin-top:14px"><i class="fas fa-wand-magic-sparkles"></i> ثيمات المناسبات</h3>
+                <div data-role="site-themes"><div class="hacc-empty" style="padding:10px">جاري التحميل…</div></div>
             </section>
             <section class="hp-section" data-role="fs-section">
                 <h3><i class="fas fa-expand"></i> ملء الشاشة</h3>
@@ -1058,7 +1063,16 @@ ${a ? `
         }
 
         // Theme
-        const paintTheme = () => body.querySelectorAll('[data-role="theme"] button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.theme === Hub.getTheme())));
+        // A theme forced by the owner decides day / night: the switch is greyed out until it ends.
+        const paintTheme = () => body.querySelectorAll('[data-role="theme"] button').forEach(b => {
+            b.setAttribute('aria-pressed', String(b.dataset.theme === Hub.getTheme()));
+            b.disabled = !!(Hub.themeLocked && Hub.themeLocked());
+            b.style.opacity = b.disabled ? '.5' : '';
+        });
+        window.addEventListener('hub:theme-lock', paintTheme);
+        const siteThemes = body.querySelector('[data-role="site-themes"]');
+        const drawSiteThemes = () => { if (window.HubThemes) HubThemes.renderUserSection(siteThemes); else siteThemes.innerHTML = '<p class="hacc-muted" style="font-size:.78rem">لا توجد ثيمات مناسبات متاحة الآن.</p>'; };
+        if (siteThemes) { if (window.HubThemes) drawSiteThemes(); else setTimeout(drawSiteThemes, 1200); }
         body.querySelectorAll('[data-role="theme"] button').forEach(b => b.addEventListener('click', () => { Hub.setTheme(b.dataset.theme); paintTheme(); }));
         paintTheme();
         if (!a) return;

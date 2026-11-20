@@ -464,6 +464,8 @@
         } else if (k === 'hospital_hub_account') {
             const id = s => { try { return (JSON.parse(s || 'null') || {}).id || null; } catch (x) { return null; } };
             if (id(e.oldValue) !== id(e.newValue)) markOthersStale();
+        } else if (k === 'hub_theme_live') {
+            applyTheme();
         } else if (k === 'hospital_hub_theme') {
             // The open views switch theme in place right now (hub-core.js follows the change in each
             // of them); only a view that is still loading is refreshed when it is shown.
@@ -478,7 +480,10 @@
         }
     });
     function applyTheme() {
-        const dark = read('hospital_hub_theme') === 'dark';
+        // A site theme forced by the owner decides day / night (hub-themes.js keeps it in hub_theme_live).
+        let forced = null;
+        try { const v = JSON.parse(read('hub_theme_live') || 'null'); const now = Date.now(); if (v && v.forced && (!v.start || v.start <= now) && (!v.end || now < v.end)) forced = v.scheme; } catch (x) {}
+        const dark = forced ? forced === 'dark' : read('hospital_hub_theme') === 'dark';
         document.documentElement.classList.toggle('dark', dark);
         const meta = document.querySelector('meta[name="theme-color"]');
         if (meta) meta.setAttribute('content', dark ? '#000000' : '#EEF2EF');

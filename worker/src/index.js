@@ -14,6 +14,7 @@
 
 import { DAY, json, signToken, verifyToken, encrypt, decrypt, bucketOf, neutralize } from './lib.js';
 import { routeAccounts, resolveAccountAuth, mirrorResident, finishLogin } from './accounts.js';
+import { routeThemes, themesTick } from './themes.js';
 import { routePasskeys } from './passkeys.js';
 import { routeDuties } from './duties.js';
 import { routeErToday } from './ertoday.js';
@@ -73,6 +74,8 @@ export default {
     // Every 10 minutes: duty reminders, then rotators still without a database entry. Once a night: clean-up.
     if (event.cron !== '17 1 * * *') {
       await runReminders(env, ctx);
+      // An optional theme whose period has just started: everyone is told (themes.js).
+      await themesTick(env).catch(err => console.error('themes', err && err.message));
       return linkRotators(env).catch(err => console.error('rotators', err && err.message));
     }
     const now = Date.now();
@@ -134,6 +137,8 @@ async function route(request, env, ctx) {
   const auth = await authenticate(request, env);
   // The owner viewing the site as another account: reading only, nothing is changed in their name.
   if (auth && auth.vo && !['GET', 'HEAD'].includes(method)) return json({ error: 'view_as_read_only' }, 403);
+  const themesRoute = await routeThemes(path, method, request, env, auth, url, ctx);
+  if (themesRoute) return themesRoute;
   const erFontsRoute = await routeErFonts(path, method, request, env, auth);
   if (erFontsRoute) return erFontsRoute;
   const onCallRoute = await routeOnCall(path, method, request, env, auth, url, ctx);

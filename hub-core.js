@@ -4730,8 +4730,40 @@
     // ============================================================
     // THEME MANAGEMENT
     // ============================================================
+    // ---- The owner's site themes (hub-themes.js): the last theme in force on this device is applied
+    // before the page draws; a forced theme imposes its day / night mode (the switch is locked).
+    const SITE_LIVE_KEY = 'hub_theme_live';
+    function siteLive() {
+        try {
+            const v = JSON.parse(localStorage.getItem(SITE_LIVE_KEY) || 'null');
+            const now = Date.now();
+            return v && v.css && (!v.start || v.start <= now) && (!v.end || now < v.end) ? v : null;
+        } catch (e) { return null; }
+    }
+    let themeLock = (() => { const v = siteLive(); return v && v.forced ? { scheme: v.scheme, name: v.name } : null; })();
+    (() => {
+        const v = siteLive();
+        if (!v) return;
+        try {
+            const st = document.createElement('style');
+            st.id = 'hub-theme-css';
+            st.textContent = v.css;
+            (document.head || document.documentElement).appendChild(st);
+            document.documentElement.classList.add('hub-themed', 'hub-th-' + v.id);
+        } catch (e) {}
+    })();
+
     function getTheme() {
+        if (themeLock) return themeLock.scheme === 'light' ? 'light' : 'dark';
         return localStorage.getItem(THEME_KEY) || 'light';
+    }
+    /** hub-themes.js: a forced theme's day / night ({ scheme, name }), or null (the user's own choice again). */
+    function applyThemeLock(lock) {
+        const before = JSON.stringify(themeLock);
+        themeLock = lock && (lock.scheme === 'light' || lock.scheme === 'dark') ? lock : null;
+        if (JSON.stringify(themeLock) === before) return;
+        switchTheme(getTheme());
+        window.dispatchEvent(new CustomEvent('hub:theme-lock', { detail: { lock: themeLock } }));
     }
 
     function applyThemeToDOM(theme) {
@@ -4756,6 +4788,12 @@
     }
 
     function setTheme(theme) {
+        // A theme forced by the owner keeps its day / night mode until it ends.
+        if (themeLock) {
+            try { if (window.HubAccounts && HubAccounts.toast) HubAccounts.toast(`الوضع يتبع ثيم «${themeLock.name || ''}» المفعّل للجميع حتى انتهائه`, 'info'); } catch (e) {}
+            switchTheme(getTheme());
+            return;
+        }
         localStorage.setItem(THEME_KEY, theme);
         switchTheme(theme);
     }
@@ -4775,6 +4813,20 @@
 
     // Auto apply theme on script load and ensure body is updated when ready
     applyThemeToDOM(getTheme());
+    // The site themes' script (every page, signed-in users): what is in force, the effects, the manager.
+    (() => {
+        const self = document.currentScript || document.querySelector('script[src*="hub-core.js"]');
+        const base = self && self.src ? self.src.replace(/hub-core\.js.*$/, '') : './';
+        const load = () => {
+            if (window.HubThemes || document.querySelector('script[src*="hub-themes.js"]')) return;
+            try { if (!localStorage.getItem('hospital_hub_session_role') && !siteLive()) return; } catch (e) { return; }
+            const s = document.createElement('script');
+            s.src = base + 'hub-themes.js';
+            s.defer = true;
+            document.head.appendChild(s);
+        };
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load); else setTimeout(load, 0);
+    })();
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => applyThemeToDOM(getTheme()));
     }
@@ -4962,6 +5014,8 @@
         getTheme,
         setTheme,
         toggleTheme,
+        applyThemeLock,
+        themeLocked: () => themeLock,
         getSpecialtyPrefix,
         formatMemberName,
         formatPhoneNumber: formatIraqiPhoneNumber,

@@ -230,7 +230,7 @@ body.dark .ios-segmented-control .ios-segment-btn.active, html.dark .ios-segment
 #main-content > .hospital-header::after, #main-content > .hospital-header + hr { display: none !important; }
 #main-content > .top-bar { justify-content: flex-start !important; }
 #main-content > .top-bar .spacer { display: none; }
-#main-content > .nav-row { justify-content: flex-start !important; }
+#main-content > .nav-row { justify-content: center !important; }
 
 /* Roster list: one column on phones, rows of cards on larger screens */
 @media (min-width: 900px) {

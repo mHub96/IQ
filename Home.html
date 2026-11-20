@@ -2109,6 +2109,41 @@
         let clickResetTimer = null;
         let activationConfirmationTimer = null;
 
+        let secretAutoUnlocked = false;   // unlocked because the hospital needs 0 presses (not by the user)
+
+        /** The presses on the hospital logo a hospital asks for (its admin panel setting; default 5, 0 = none). */
+        function heroesClicksOf(h) {
+            const raw = h ? h.heroesUnlockClicks : undefined;
+            if (raw === undefined || raw === null || raw === '') return 5;
+            const n = parseInt(raw, 10);
+            return isNaN(n) ? 5 : Math.max(0, n);
+        }
+
+        /**
+         * On every load of a hospital: one set to 0 presses has Rotation Heroes and Duty Exchange open at
+         * once (always, not only after a first tap); moving on to a hospital that asks for presses locks
+         * them again if they were opened that way.
+         */
+        function applySecretUnlockSetting() {
+            if (!currentHospital) return;
+            if (heroesClicksOf(currentHospital) === 0) {
+                if (!symbolUnlocked) { activateSecretButtons(true); secretAutoUnlocked = true; }
+                return;
+            }
+            if (!secretAutoUnlocked) return;
+            secretAutoUnlocked = false;
+            symbolUnlocked = false;
+            resetSecretClickCounter();
+            ['btn-rotation-heroes', 'btn-duty-exchange'].forEach(id => { const b = document.getElementById(id); if (b) b.classList.add('locked'); });
+            const sym = document.getElementById('hospital-symbol');
+            if (sym) {
+                sym.style.background = '';
+                sym.style.boxShadow = '';
+                const icon = sym.querySelector('i');
+                if (icon) icon.style.color = '';
+            }
+        }
+
         function resetSecretClickCounter() {
             symbolClickCount = 0;
             if (clickResetTimer) { clearTimeout(clickResetTimer); clickResetTimer = null; }
@@ -2243,8 +2278,7 @@
                 if (clickResetTimer) { clearTimeout(clickResetTimer); clickResetTimer = null; }
                 if (activationConfirmationTimer) { clearTimeout(activationConfirmationTimer); activationConfirmationTimer = null; }
                 
-                const rawClicks = currentHospital?.heroesUnlockClicks;
-                const reqClicks = (rawClicks !== undefined && rawClicks !== null && rawClicks !== '') ? Math.max(0, parseInt(rawClicks, 10)) : 5;
+                const reqClicks = heroesClicksOf(currentHospital);
 
                 if (reqClicks <= 0) {
                     activateSecretButtons(true);
@@ -3681,6 +3715,9 @@
                     }
                 }
             }
+
+            // A hospital set to 0 secret presses: Rotation Heroes and Duty Exchange always open.
+            applySecretUnlockSetting();
 
             // Admin Reset Button visibility based on dual password role
             const adminResetBtn = document.getElementById('admin-reset-btn');

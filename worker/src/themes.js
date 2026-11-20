@@ -194,39 +194,50 @@ async function notifyAll(env, t, now) {
   ).bind('theme:' + t.id + ':' + (t.start || t.v), data, now).run();
 }
 
-/** Owner: a theme's mode and period. Body: { id, mode, start?, end? } (ms or null). */
+/**
+ * Owner: the modes and periods of one or more themes, saved at once (one write).
+ * Body: { items: [{ id, mode, start?, end? }] } (ms or null), or a single { id, mode, start?, end? }.
+ */
 async function settings(request, env, ctx) {
   const body = await readJson(request) || {};
-  const id = String(body.id || '');
-  if (!ID_RE.test(id) || !MODES.includes(body.mode)) return json({ error: 'bad_request' }, 400);
+  const items = Array.isArray(body.items) ? body.items : [body];
+  if (!items.length || items.length > MAX_THEMES) return json({ error: 'bad_request' }, 400);
   const num = v => (v === null || v === undefined || v === '' ? null : Number(v));
-  const start = num(body.start), end = num(body.end);
-  if ((start !== null && !Number.isFinite(start)) || (end !== null && !Number.isFinite(end)) || (start && end && end <= start)) return json({ error: 'bad_period' }, 400);
-  const meta = await readMeta(env);
-  const t = meta.themes.find(x => x.id === id);
-  if (!t) return json({ error: 'not_found' }, 404);
-  // A forced theme is one at a time: another forced theme whose period overlaps goes back to optional.
-  if (body.mode === 'forced') {
-    meta.themes.forEach(o => {
-      if (o.id === id || o.mode !== 'forced') return;
-      const overlap = (!o.end || !start || start < o.end) && (!end || !o.start || o.start < end);
-      if (overlap) o.mode = 'off';
-    });
+  const asked = [];
+  for (const it of items) {
+    const id = String((it && it.id) || '');
+    if (!ID_RE.test(id) || !MODES.includes(it.mode)) return json({ error: 'bad_request' }, 400);
+    const start = num(it.start), end = num(it.end);
+    if ((start !== null && !Number.isFinite(start)) || (end !== null && !Number.isFinite(end)) || (start && end && end <= start)) return json({ error: 'bad_period', id }, 400);
+    asked.push({ id, mode: it.mode, start, end });
   }
-  const periodChanged = t.start !== start || t.end !== end;
-  t.mode = body.mode; t.start = start; t.end = end;
-  if (periodChanged || body.mode !== 'optional') t.notified = null;
+  const meta = await readMeta(env);
+  if (asked.some(a => !meta.themes.find(x => x.id === a.id))) return json({ error: 'not_found' }, 404);
   const now = Date.now();
-  // Optional now: everyone is told at once (a later start is told by the 10-minute job).
-  const tell = t.mode === 'optional' && !t.notified && inPeriod(t, now);
-  if (tell) t.notified = now;
+  const tellList = [];
+  for (const a of asked) {
+    const t = meta.themes.find(x => x.id === a.id);
+    // A forced theme is one at a time: another forced theme whose period overlaps is switched off.
+    if (a.mode === 'forced') {
+      meta.themes.forEach(o => {
+        if (o.id === a.id || o.mode !== 'forced' || asked.some(x => x.id === o.id && x.mode === 'forced' && x !== a && asked.indexOf(x) > asked.indexOf(a))) return;
+        const overlap = (!o.end || !a.start || a.start < o.end) && (!a.end || !o.start || o.start < a.end);
+        if (overlap) o.mode = 'off';
+      });
+    }
+    const periodChanged = t.start !== a.start || t.end !== a.end;
+    t.mode = a.mode; t.start = a.start; t.end = a.end;
+    if (periodChanged || a.mode !== 'optional') t.notified = null;
+    // Optional now: everyone is told at once (a later start is told by the 10-minute job).
+    if (t.mode === 'optional' && !t.notified && inPeriod(t, now)) { t.notified = now; tellList.push(t); }
+  }
   await writeMeta(env, meta).run();
   await keepMeta(meta);
-  if (tell) {
-    const job = notifyAll(env, t, now).catch(err => console.error('theme notify', err && err.message));
+  if (tellList.length) {
+    const job = Promise.all(tellList.map(t => notifyAll(env, t, now))).catch(err => console.error('theme notify', err && err.message));
     if (ctx && ctx.waitUntil) ctx.waitUntil(job); else await job;
   }
-  return json({ ok: true, themes: meta.themes.map(summary), notified: tell });
+  return json({ ok: true, themes: meta.themes.map(summary), notified: tellList.map(t => t.name) });
 }
 
 /** Owner: delete a theme (its file and its settings). */

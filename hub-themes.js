@@ -163,7 +163,7 @@
                 <small>إيقاف الثلج والمطر والألعاب النارية وغيرها (تبقى ألوان الثيم).</small></span>
                 <button type="button" class="hp-toggle" role="switch" aria-checked="${fxOff}" aria-label="تقليل المؤثرات" data-act="fx-off"><span></span></button>
             </div>`;
-        host.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', async () => {
+        host.querySelectorAll('[data-pick]').forEach(b => { b._bound = true; }), host.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', async () => {
             write(choiceKey(), b.dataset.pick || null);
             host.querySelectorAll('[data-pick]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
             await evaluate(false);
@@ -175,11 +175,32 @@
             const box = host.querySelector('[data-role="manage-host"]');
             box.hidden = !box.hidden;
             manage.innerHTML = box.hidden ? '<i class="fas fa-swatchbook"></i> إدارة الثيمات (رفع، تفعيل، جدولة، حذف)' : '<i class="fas fa-chevron-up"></i> إخفاء إدارة الثيمات';
-            if (!box.hidden) renderManager(box).then(() => {
-                // A change there (mode, preview, upload) shows here too.
-                box.querySelectorAll('[data-act="save"], [data-act="delete"]').forEach(b => b.addEventListener('click', () => setTimeout(() => renderUserSection(host), 1500)));
-            });
+            if (!box.hidden) renderManager(box);
         });
+        // After a save in the manager: the themes list above follows, in place (the manager stays open where it is).
+        if (!host._themesSaved) {
+            host._themesSaved = true;
+            window.addEventListener('hub:themes-saved', () => {
+                const list = host.querySelector('.hth-list');
+                if (!list || !document.contains(host)) return;
+                refreshState(true).then(st => {
+                    if (!document.contains(host)) return;
+                    const now = Date.now();
+                    const avail = ((st && st.themes) || []).filter(t => inPeriod(t, now) && (t.mode === 'optional' || (t.mode === 'owner' && isOwner())));
+                    const chosen = read(choiceKey(), null);
+                    const box = host.querySelector('[data-role="manage-host"]');
+                    keepScroll(host, () => {
+                        list.querySelectorAll('[data-pick]:not([data-pick=""])').forEach(x => x.remove());
+                        list.insertAdjacentHTML('beforeend', avail.map(t => `<button type="button" class="hth-item" data-pick="${esc(t.id)}" aria-pressed="${chosen === t.id}">${swatch(t.preview)}<span class="hth-name"><b>${esc(t.icon || '🎨')} ${esc(t.name)}</b><small>${t.mode === 'owner' ? 'لك فقط (معاينة المالك)' : 'متاح للجميع'}</small></span></button>`).join(''));
+                        list.querySelectorAll('[data-pick]').forEach(b => {
+                            if (b._bound) return;
+                            b._bound = true;
+                            b.addEventListener('click', async () => { write(choiceKey(), b.dataset.pick || null); list.querySelectorAll('[data-pick]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); await evaluate(false); });
+                        });
+                    }, box && !box.hidden ? box : null);
+                });
+            });
+        }
         const fx = host.querySelector('[data-act="fx-off"]');
         fx.addEventListener('click', () => {
             const off = fx.getAttribute('aria-checked') !== 'true';
@@ -199,14 +220,38 @@
         too_big: 'حجم الثيم أكبر من المسموح (450 KB).', too_many: 'وصلت للحد الأقصى من الثيمات (60).', bad_period: 'الفترة غير صحيحة: النهاية قبل البداية.' };
     const errText = e => ERRORS[e && e.data && e.data.error] || (e && e.message) || 'تعذر الحفظ';
 
+    /** The scrolling box around an element (the panel's body, or the page). */
+    function scrollerOf(el) {
+        for (let x = el && el.parentElement; x; x = x.parentElement) {
+            const o = getComputedStyle(x).overflowY;
+            if ((o === 'auto' || o === 'scroll') && x.scrollHeight > x.clientHeight) return x;
+        }
+        return document.scrollingElement || document.documentElement;
+    }
+    /**
+     * Redraws without moving what is on screen: `anchor` (default: the redrawn box) stays exactly where it
+     * was, even when something above it grows or shrinks.
+     */
+    function keepScroll(host, redraw, anchor) {
+        const el = anchor && document.contains(anchor) ? anchor : host;
+        const sc = scrollerOf(el), top = sc.scrollTop, y0 = el.getBoundingClientRect().top;
+        redraw();
+        sc.scrollTop = top;
+        const d = el.getBoundingClientRect().top - y0;
+        if (Math.abs(d) > 0.5) sc.scrollTop += d;
+    }
+
     async function renderManager(host) {
         if (!host) return;
         if (!isOwner()) { host.innerHTML = '<div class="hacc-empty">للمالك فقط.</div>'; return; }
-        host.innerHTML = '<div class="hacc-empty">جاري التحميل…</div>';
+        if (!host.querySelector('.hth-mgr')) host.innerHTML = '<div class="hacc-empty">جاري التحميل…</div>';
         let res;
         try { res = await Hub().api('GET', '/api/themes', undefined, { retries: 1 }); }
         catch (e) { host.innerHTML = '<div class="hacc-empty">تعذر التحميل. تحقق من الاتصال.</div>'; return; }
-        const themes = res.themes || [];
+        keepScroll(host, () => drawManager(host, res.themes || []));
+    }
+
+    function drawManager(host, themes) {
         const now = Date.now();
         const status = t => {
             if (t.mode === 'off') return '<span class="hth-badge off">متوقف</span>';
@@ -218,11 +263,11 @@
             <div class="hth-mgr">
                 <div class="hth-top">
                     <label class="hacc-btn primary hth-upload"><i class="fas fa-upload"></i> رفع ثيم (.hubtheme)<input type="file" accept=".hubtheme,.json,application/json" hidden data-role="upload"></label>
-                    <p class="hth-note">الثيمات ألوان وأنماط ومؤثرات جاهزة فقط (بلا أوامر برمجية). «إجباري للجميع» يفرض الثيم ووضعه الفاتح/الداكن على كل المستخدمين؛ «اختياري» يرسل إشعاراً ويضيفه لإعدادات المظهر؛ «لي فقط» لمعاينتك. تصل التغييرات للمستخدمين خلال ربع ساعة تقريباً.</p>
+                    <p class="hth-note">الثيمات ألوان وأنماط ومؤثرات جاهزة فقط (بلا أوامر برمجية). «إجباري للجميع» يفرض الثيم ووضعه الفاتح/الداكن على كل المستخدمين؛ «اختياري» يرسل إشعاراً ويضيفه لإعدادات المظهر؛ «لي فقط» لمعاينتك. عدّل ما تشاء من الثيمات ثم احفظها كلها بزر «حفظ التغييرات» أسفل القائمة. تصل التغييرات للمستخدمين خلال ربع ساعة تقريباً.</p>
                 </div>
                 ${themes.length ? '' : '<div class="hacc-empty">لا توجد ثيمات بعد. ارفع ملف ثيم للبدء.</div>'}
                 ${themes.map(t => `
-                <article class="hth-card" data-id="${esc(t.id)}">
+                <article class="hth-card" data-id="${esc(t.id)}" data-mode0="${esc(t.mode)}" data-start0="${toLocalInput(t.start)}" data-end0="${toLocalInput(t.end)}">
                     <header>${swatch(t.preview)}<div class="hth-title"><b>${esc(t.icon || '🎨')} ${esc(t.name)}</b><small dir="ltr">${esc(t.id)} · ${Math.round((t.size || 0) / 1024)} KB · ${t.scheme === 'light' ? 'فاتح' : 'داكن'}</small></div>${status(t)}</header>
                     <div class="hth-modes" role="radiogroup" aria-label="وضع الثيم">${Object.entries(MODE_NAMES).map(([m, n]) => `<button type="button" data-mode="${m}" aria-pressed="${t.mode === m}">${n}</button>`).join('')}</div>
                     <div class="hth-period">
@@ -230,13 +275,39 @@
                         <label>إلى<input type="datetime-local" data-f="end" value="${toLocalInput(t.end)}"></label>
                     </div>
                     <div class="hth-actions">
-                        <button type="button" class="hacc-btn sm primary" data-act="save"><i class="fas fa-check"></i> حفظ</button>
+                        <span class="hth-edited" aria-hidden="true">● معدّل</span>
                         <button type="button" class="hacc-btn sm" data-act="preview"><i class="fas fa-eye"></i> معاينة عندي</button>
                         <button type="button" class="hacc-btn sm" data-act="download"><i class="fas fa-download"></i> تنزيل</button>
-                        <button type="button" class="hacc-btn sm danger" data-act="delete"><i class="fas fa-trash-can"></i></button>
+                        <button type="button" class="hacc-btn sm danger" data-act="delete" aria-label="حذف"><i class="fas fa-trash-can"></i></button>
                     </div>
                 </article>`).join('')}
+                ${themes.length ? `<div class="hth-savebar" data-role="savebar">
+                    <span data-role="dirty-count">لا تغييرات</span>
+                    <button type="button" class="hacc-btn sm" data-act="undo" disabled><i class="fas fa-rotate-left"></i> تراجع</button>
+                    <button type="button" class="hacc-btn primary" data-act="save-all" disabled><i class="fas fa-check"></i> حفظ التغييرات</button>
+                </div>` : ''}
             </div>`;
+
+        const cards = [...host.querySelectorAll('.hth-card')];
+        const current = card => ({
+            id: card.dataset.id,
+            mode: (card.querySelector('[data-mode][aria-pressed="true"]') || {}).dataset.mode || 'off',
+            start: card.querySelector('[data-f="start"]').value,
+            end: card.querySelector('[data-f="end"]').value,
+        });
+        const isDirty = card => { const c = current(card); return c.mode !== card.dataset.mode0 || c.start !== card.dataset.start0 || c.end !== card.dataset.end0; };
+        const paintDirty = () => {
+            const dirty = cards.filter(isDirty);
+            cards.forEach(c => c.classList.toggle('dirty', dirty.includes(c)));
+            const count = host.querySelector('[data-role="dirty-count"]');
+            if (count) count.textContent = dirty.length ? `${dirty.length} ${dirty.length === 1 ? 'ثيم معدّل' : dirty.length === 2 ? 'ثيمان معدّلان' : 'ثيمات معدّلة'}` : 'لا تغييرات';
+            const save = host.querySelector('[data-act="save-all"]'), undo = host.querySelector('[data-act="undo"]');
+            if (save) save.disabled = !dirty.length;
+            if (undo) undo.disabled = !dirty.length;
+            const mgr = host.querySelector('.hth-mgr');
+            if (mgr) mgr.classList.toggle('has-dirty', dirty.length > 0);
+        };
+
         host.querySelector('[data-role="upload"]').addEventListener('change', async e => {
             const f = e.target.files && e.target.files[0];
             if (!f) return;
@@ -248,20 +319,14 @@
                 renderManager(host);
             } catch (err) { toast(errText(err), 'error'); }
         });
-        host.querySelectorAll('.hth-card').forEach(card => {
+
+        cards.forEach(card => {
             const id = card.dataset.id;
-            card.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => card.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', String(x === b)))));
-            card.querySelector('[data-act="save"]').addEventListener('click', async () => {
-                const mode = (card.querySelector('[data-mode][aria-pressed="true"]') || {}).dataset.mode || 'off';
-                const start = fromLocalInput(card.querySelector('[data-f="start"]').value), end = fromLocalInput(card.querySelector('[data-f="end"]').value);
-                if (mode === 'forced' && !confirm('فرض هذا الثيم على كل المستخدمين؟ (يُلغى فرض أي ثيم آخر في نفس الفترة)')) return;
-                try {
-                    const r = await Hub().api('POST', '/api/themes/settings', { id, mode, start, end }, { retries: 0 });
-                    toast(r.notified ? 'تم الحفظ ✓ وأُرسل إشعار الثيم الجديد للمستخدمين' : 'تم الحفظ ✓', 'success');
-                    await evaluate(true);
-                    renderManager(host);
-                } catch (err) { toast(errText(err), 'error'); }
-            });
+            card.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => {
+                card.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+                paintDirty();
+            }));
+            card.querySelectorAll('input[data-f]').forEach(i => { i.addEventListener('input', paintDirty); i.addEventListener('change', paintDirty); });
             card.querySelector('[data-act="preview"]').addEventListener('click', async () => {
                 // The owner sees it at once (their own choice); the mode decides what the others see.
                 write(choiceKey(), id);
@@ -286,10 +351,47 @@
             card.querySelector('[data-act="delete"]').addEventListener('click', async () => {
                 const t = themes.find(x => x.id === id);
                 if (!confirm(`حذف الثيم «${t ? t.name : id}» نهائياً؟ (احتفظ بنسخة من ملفه إن أردت إعادته لاحقاً)`)) return;
-                try { await Hub().api('POST', '/api/themes/delete', { id }, { retries: 0 }); toast('تم حذف الثيم', 'success'); await evaluate(true); renderManager(host); }
-                catch (err) { toast(errText(err), 'error'); }
+                try {
+                    await Hub().api('POST', '/api/themes/delete', { id }, { retries: 0 });
+                    toast('تم حذف الثيم', 'success');
+                    // The other cards keep their unsaved edits: only this one goes.
+                    keepScroll(host, () => { card.remove(); themes.splice(themes.findIndex(x => x.id === id), 1); cards.splice(cards.indexOf(card), 1); paintDirty(); });
+                    await evaluate(true);
+                    window.dispatchEvent(new CustomEvent('hub:themes-saved'));
+                } catch (err) { toast(errText(err), 'error'); }
             });
         });
+
+        const undoBtn = host.querySelector('[data-act="undo"]');
+        if (undoBtn) undoBtn.addEventListener('click', () => keepScroll(host, () => drawManager(host, themes)));
+
+        const saveAll = host.querySelector('[data-act="save-all"]');
+        if (saveAll) saveAll.addEventListener('click', async () => {
+            const dirty = cards.filter(isDirty);
+            if (!dirty.length) return;
+            const items = dirty.map(c => { const x = current(c); return { id: x.id, mode: x.mode, start: fromLocalInput(x.start), end: fromLocalInput(x.end) }; });
+            const bad = items.find(x => x.start && x.end && x.end <= x.start);
+            if (bad) { toast(`«${(themes.find(t => t.id === bad.id) || {}).name || bad.id}»: النهاية قبل البداية.`, 'error'); return; }
+            const forced = items.filter(x => x.mode === 'forced');
+            if (forced.length && !confirm(`فرض ${forced.map(x => '«' + ((themes.find(t => t.id === x.id) || {}).name || x.id) + '»').join(' و')} على كل المستخدمين؟ (يتوقف أي ثيم إجباري آخر في نفس الفترة)`)) return;
+            saveAll.disabled = true;
+            saveAll.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ…';
+            try {
+                const r = await Hub().api('POST', '/api/themes/settings', { items }, { retries: 0 });
+                const told = r.notified || [];
+                toast(`تم حفظ ${items.length === 1 ? 'الثيم' : items.length + ' ثيمات'} ✓${told.length ? ' وأُرسل إشعار ثيم جديد للمستخدمين' : ''}`, 'success');
+                // Redrawn from the saved settings, in place (the screen does not move).
+                const fresh = (r.themes || []).map(t => ({ ...(themes.find(o => o.id === t.id) || {}), ...t }));
+                keepScroll(host, () => drawManager(host, fresh.length ? fresh : themes));
+                await evaluate(true);
+                window.dispatchEvent(new CustomEvent('hub:themes-saved'));
+            } catch (err) {
+                toast(errText(err), 'error');
+                saveAll.disabled = false;
+                saveAll.innerHTML = '<i class="fas fa-check"></i> حفظ التغييرات';
+            }
+        });
+        paintDirty();
     }
 
     // Styles of the manager and of the Settings section.
@@ -316,7 +418,14 @@
         .hth-modes button[data-mode="forced"][aria-pressed="true"]{color:#B7791F}
         .hth-period{display:grid;grid-template-columns:1fr 1fr;gap:8px}.hth-period label{display:grid;gap:4px;font-size:.72rem;font-weight:700;color:var(--hacc-muted)}
         .hth-period input{font:inherit;font-size:.76rem;padding:8px;border-radius:10px;border:1px solid var(--hacc-border);background:var(--hacc-surface);color:var(--hacc-text);min-width:0}
-        .hth-actions{display:flex;flex-wrap:wrap;gap:6px}
+        .hth-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+        .hth-edited{display:none;margin-inline-end:auto;font-size:.7rem;font-weight:800;color:#B7791F}
+        .hth-card.dirty{border-color:rgba(183,121,31,.6);box-shadow:0 0 0 3px rgba(183,121,31,.12)}
+        .hth-card.dirty .hth-edited{display:inline}
+        .hth-savebar{position:sticky;bottom:0;z-index:2;display:flex;align-items:center;gap:8px;padding:10px 12px;margin-top:4px;border-radius:16px;background:var(--hacc-bg);border:1px solid var(--hacc-border);box-shadow:0 -6px 24px rgba(0,0,0,.12)}
+        .hth-savebar [data-role="dirty-count"]{flex:1;font-size:.78rem;font-weight:800;color:var(--hacc-muted)}
+        .hth-mgr.has-dirty .hth-savebar{border-color:rgba(183,121,31,.6)}
+        .hth-mgr.has-dirty .hth-savebar [data-role="dirty-count"]{color:#B7791F}
         .hth-manage{width:100%;margin-top:10px;justify-content:center;display:inline-flex;align-items:center;gap:8px}
         .hth-manage-host{margin-top:12px}
         @media (max-width:380px){.hth-modes{grid-template-columns:1fr 1fr}.hth-period{grid-template-columns:1fr}}`;

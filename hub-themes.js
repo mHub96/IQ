@@ -574,7 +574,11 @@
         .hth-savebar [data-role="dirty-count"]{flex:1;font-size:.78rem;font-weight:800;color:var(--hacc-muted)}
         .hth-mgr.has-dirty .hth-savebar{border-color:rgba(183,121,31,.6)}
         .hth-mgr.has-dirty .hth-savebar [data-role="dirty-count"]{color:#B7791F}
-        .hth-fold{border:1px solid var(--hacc-border);border-radius:16px;background:var(--hacc-bg);overflow:hidden}
+        .hth-fold{border:1px solid var(--hacc-border);border-radius:16px;background:var(--hacc-bg);overflow:hidden;min-width:0;max-width:100%}
+        [data-role="site-themes"],.hth-fold-body,.hth-list,.hth-item,.hth-search,.hth-mgr,.hth-card{min-width:0;max-width:100%;box-sizing:border-box}
+        .hth-item{width:100%}
+        .hth-name b,.hth-name small,.hth-fold-t b,.hth-fold-t small{overflow-wrap:anywhere}
+        .hp-settings>.hp-section{min-width:0}
         .hth-fold>summary{display:flex;align-items:center;gap:12px;padding:10px 12px;cursor:pointer;list-style:none}
         .hth-fold>summary::-webkit-details-marker{display:none}
         .hp-settings>.hp-section .hth-fold>summary::after{content:none!important;display:none!important}

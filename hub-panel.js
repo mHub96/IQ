@@ -67,6 +67,11 @@
                 </div>
                 ${inline ? '' : '<button type="button" class="hacc-icon-btn" data-act="close" aria-label="إغلاق">✕</button>'}
             </header>
+            ${Hub.auth.viewingAs && Hub.auth.viewingAs() ? `<div class="hp-viewas" role="status">
+                <span class="hp-viewas-ic"><i class="fas fa-eye"></i></span>
+                <span class="hp-viewas-t"><b>وضع العرض كمستخدم</b><small>تشاهد الموقع كما يراه هذا الحساب · قراءة فقط</small></span>
+                <button type="button" class="hacc-btn sm" data-act="end-view-as"><i class="fas fa-right-from-bracket"></i> إنهاء العرض</button>
+            </div>` : ''}
             <div class="hacc-tabs" role="tablist">
                 ${acc ? `<button type="button" role="tab" data-tab="profile">الملف الشخصي</button>
                 ${!NO_SCHEDULE.includes(acc.role) ? '<button type="button" role="tab" data-tab="schedule">جدولي</button>' : ''}
@@ -80,7 +85,7 @@
             <footer class="hp-foot">
                 ${/* Pages of a hospital (scheduler, residents, ER) open from its card in the hub, not from here. */ ''}
                 ${!acc ? '<a class="hacc-btn sm primary" href="./account.html#signup">إنشاء حساب شخصي</a>' : ''}
-                <button type="button" class="hacc-btn sm danger" data-act="logout"><i class="fas fa-sign-out-alt"></i> خروج</button>
+                ${Hub.auth.viewingAs && Hub.auth.viewingAs() ? '' : '<button type="button" class="hacc-btn sm danger" data-act="logout"><i class="fas fa-sign-out-alt"></i> خروج</button>'}
             </footer>`;
         if (inline) {
             opts.host.innerHTML = `<section class="hp-frame" aria-label="لوحة الحساب">${markup}</section>`;
@@ -96,7 +101,11 @@
         if (tab === 'schedule' && acc && NO_SCHEDULE.includes(acc.role)) tab = 'profile';
         if (tab === 'comments' && acc && OFFICER_ROLES.includes(acc.role)) tab = 'profile';
         if (!inline) sheet.querySelector('[data-act="close"]').addEventListener('click', A.closeSheet);
-        sheet.querySelector('[data-act="logout"]').addEventListener('click', logout);
+        const logoutBtn = sheet.querySelector('[data-act="logout"]');
+        if (logoutBtn) logoutBtn.addEventListener('click', logout);
+        // Viewing the site as another account (the owner): back to the owner's own session.
+        const endView = sheet.querySelector('[data-act="end-view-as"]');
+        if (endView) endView.addEventListener('click', () => Hub.auth.endViewAs());
         // In the frame a tab is an address of the account page (the back button steps through them).
         sheet.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => (inline ? frame.onTab(b.dataset.tab) : show(b.dataset.tab))));
         if (acc) await loadMe();

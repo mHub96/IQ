@@ -4718,46 +4718,14 @@
     }
 
     /**
-     * While the owner views the site as someone: a bar on every page with who it is and «إنهاء». A view
-     * past its two hours ends by itself.
+     * While the owner views the site as someone: no bar over the pages («إنهاء العرض» is in that account's
+     * panel); a view past its two hours ends by itself when a page opens.
      */
-    function paintViewAsBar() {
+    function checkViewAsExpiry() {
         const v = viewAsState();
-        if (!v || !document.body) return;
-        if (v.exp && v.exp < Date.now()) { auth.endViewAs(); return; }
-        if (document.getElementById('hub-view-as-bar')) return;
-        const roleNames = { admin: 'مدير مستشفى', branch: 'مدير فرع', anaesthesia: 'مقيم تخدير', user: 'مقيم', rotator: 'روتيتر', aa_user: 'موظف الشؤون الإدارية', aa_admin: 'مدير الشؤون الإدارية' };
-        const bar = document.createElement('div');
-        bar.id = 'hub-view-as-bar';
-        bar.setAttribute('role', 'status');
-        bar.innerHTML = `<style>
-            #hub-view-as-bar { position: fixed; z-index: 2147482000; top: calc(var(--hub-sat, env(safe-area-inset-top, 0px)) + 72px); left: 50%; transform: translateX(-50%);
-                display: flex; align-items: center; gap: 10px; max-width: calc(100vw - 24px); padding: 7px 7px 7px 14px; border-radius: 999px;
-                background: linear-gradient(135deg, #B7791F, #8A5A12); color: #fff; box-shadow: 0 10px 30px rgba(138, 90, 18, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-                font: 700 12.5px/1.3 'IBM Plex Sans Arabic', -apple-system, system-ui, sans-serif; direction: rtl; animation: hvaIn .3s ease-out both; }
-            @keyframes hvaIn { from { opacity: 0; transform: translate(-50%, -10px); } to { opacity: 1; transform: translate(-50%, 0); } }
-            #hub-view-as-bar .hva-ic { width: 26px; height: 26px; flex: none; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, 0.18); font-size: 13px; }
-            #hub-view-as-bar .hva-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-            #hub-view-as-bar .hva-t small { display: block; font-weight: 600; opacity: .8; font-size: 10.5px; }
-            #hub-view-as-bar button { flex: none; border: 0; cursor: pointer; padding: 7px 14px; border-radius: 999px; background: #fff; color: #8A5A12; font: inherit; font-weight: 900; }
-            #hub-view-as-bar button:active { transform: scale(.95); }
-        </style><span class="hva-ic">👁</span><span class="hva-t"></span><button type="button">إنهاء</button>`;
-        const t = bar.querySelector('.hva-t');
-        t.textContent = `تعرض الموقع كـ ${v.name || 'مستخدم'}`;
-        const sub = document.createElement('small');
-        // The role as the site names it (a chief of rotators, …): once the hospitals' data is here.
-        const label = () => {
-            const acc = auth.getAccount();
-            const roleLabel = window.HubAccounts && HubAccounts.roleName && acc ? HubAccounts.roleName(acc) : (roleNames[v.role] || v.role || '');
-            sub.textContent = `${roleLabel} · قراءة فقط`;
-        };
-        label();
-        window.addEventListener('hub:data-changed', label);
-        t.appendChild(sub);
-        bar.querySelector('button').addEventListener('click', () => auth.endViewAs());
-        document.body.appendChild(bar);
+        if (v && v.exp && v.exp < Date.now()) auth.endViewAs();
     }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paintViewAsBar); else setTimeout(paintViewAsBar, 0);
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', checkViewAsExpiry); else setTimeout(checkViewAsExpiry, 0);
 
     // ============================================================
     // THEME MANAGEMENT

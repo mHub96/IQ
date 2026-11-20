@@ -270,6 +270,15 @@ html.dark .ae-cats button[aria-selected="true"], body.dark .ae-cats button[aria-
 .hacc-sheet.tall { height: min(92vh, 92dvh); max-height: none; }
 .hp-head .hp-who { display: flex; gap: 12px; align-items: center; min-width: 0; }
 .hp-head h2 { font-size: 1rem; }
+/* The owner viewing the site as this account: the way back, in the account's own panel */
+.hp-viewas { display: flex; align-items: center; gap: 10px; margin: 0 16px 10px; padding: 10px 12px; border-radius: 16px;
+  background: linear-gradient(135deg, rgba(183, 121, 31, 0.12), rgba(183, 121, 31, 0.05)); border: 1px solid rgba(183, 121, 31, 0.35); }
+.hp-viewas-ic { width: 34px; height: 34px; flex: none; border-radius: 50%; display: grid; place-items: center; background: #B7791F; color: #fff; font-size: 0.85rem; }
+.hp-viewas-t { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.hp-viewas-t b { font-size: 0.84rem; color: #8A5A12; }
+.hp-viewas-t small { font-size: 0.72rem; color: var(--hacc-muted); }
+.hp-viewas .hacc-btn { flex: none; background: #B7791F !important; border-color: #B7791F !important; color: #fff !important; font-weight: 800; }
+body.dark .hp-viewas-t b, html.dark .hp-viewas-t b { color: #F2C779; }
 .hp-body { padding: 14px 16px 18px; }
 .hp-foot { display: flex; gap: 8px; justify-content: space-between; padding: 10px 14px; border-top: 1px solid var(--hacc-border); }
 .hp-foot .hacc-btn { flex: 1; }

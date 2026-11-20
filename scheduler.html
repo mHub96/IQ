@@ -1404,7 +1404,7 @@
                     <button type="button" class="view-button" id="mode-specialists-btn" onclick="switchSchedulerMode('specialists')" title="جدول خفارات الأطباء الاختصاصيين">
                         <i class="fas fa-user-tie"></i> الاختصاصيين
                     </button>
-                    <button type="button" class="view-button active" id="mode-residents-btn" onclick="switchSchedulerMode('residents')" title="جدول خفارات المقيمين الأقدمين">
+                    <button type="button" class="view-button active" id="mode-residents-btn" onclick="switchSchedulerMode('residents')" title="جدول خفارات الأقدمين">
                         <i class="fas fa-user-doctor"></i> الأقدمين
                     </button>
                     <button type="button" class="view-button" id="mode-rotators-btn" onclick="switchSchedulerMode('rotators')" title="جدول خفارات المقيمين الدوريين">
@@ -1515,7 +1515,7 @@
             buildSpecialtyList();
             refreshView();
 
-            showToast(schedulerMode === 'specialists' ? '👔 تم الانتقال لجدول خفارات الاختصاصيين' : schedulerMode === 'rotators' ? '🔄 تم الانتقال لجدول خفارات المقيمين الدوريين' : '🩺 تم الانتقال لجدول خفارات المقيمين الأقدمين', 'info', 1800);
+            showToast(schedulerMode === 'specialists' ? '👔 تم الانتقال لجدول خفارات الاختصاصيين' : schedulerMode === 'rotators' ? '🔄 تم الانتقال لجدول خفارات المقيمين الدوريين' : '🩺 تم الانتقال لجدول خفارات الأقدمين', 'info', 1800);
         }
 
         function updateSchedulerModeButtons() {
@@ -2326,7 +2326,7 @@
             var ordered = slots.slice();
 
             var roleSingular = schedulerMode === 'specialists' ? 'طبيب اختصاص' : 'طبيب مقيم';
-            var rolePlural = schedulerMode === 'specialists' ? 'أطباء الاختصاص' : 'الأطباء المقيمين';
+            var rolePlural = schedulerMode === 'specialists' ? 'أطباء الاختصاص' : 'الأطباء الأقدمين';
 
             if (ordered[0].start > TOLERANCE) {
                 gaps.push({ start: 0, end: ordered[0].start });
@@ -3744,7 +3744,7 @@
                             activeHosp.schedule = database.schedule || [];
                             await window.Hub.saveDatabase("Sync Schedule for " + (activeHosp.name_ar || activeHosp.hospitalName));
                             if (button) button.innerHTML = '<i class="fas fa-check"></i> <span>تم الحفظ!</span>';
-                            showToast('✅ تم حفظ جدول خفارات المقيمين بنجاح في السيرفر', 'success');
+                            showToast('✅ تم حفظ جدول خفارات الأقدمين بنجاح في السيرفر', 'success');
                         }
                     }
                 }

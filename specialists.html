@@ -749,9 +749,9 @@
 
                 <!-- Admin / Owner Actions (Hidden for regular users) -->
                 <div id="admin-actions-wrap" class="flex flex-wrap items-center gap-2 hidden">
-                    <button type="button" id="spec-edit-switch-btn" onclick="openSpecEditSwitchModal()" class="btn-ghost hidden" title="السماح للمقيمين بإضافة وتعديل أطباء اختصاصهم">
+                    <button type="button" id="spec-edit-switch-btn" onclick="openSpecEditSwitchModal()" class="btn-ghost hidden" title="السماح للأقدمين بإضافة وتعديل أطباء اختصاصهم">
                         <i class="fas fa-user-shield"></i>
-                        <span>صلاحية المقيمين</span>
+                        <span>صلاحية الأقدمين</span>
                     </button>
                     <button type="button" id="add-specialist-btn" onclick="openAddSpecialistModal()" class="btn-gradient">
                         <i class="fas fa-user-plus"></i>
@@ -884,7 +884,7 @@
             <div class="flex justify-between items-center mb-3">
                 <h3 class="text-lg font-black flex items-center gap-2">
                     <i class="fas fa-user-shield text-teal-600 dark:text-teal-400"></i>
-                    <span>صلاحية المقيمين على أطباء الاختصاص</span>
+                    <span>صلاحية الأقدمين على أطباء الاختصاص</span>
                 </h3>
                 <button type="button" onclick="closeSpecEditSwitchModal()" class="text-slate-400 hover:text-slate-600 text-xl" aria-label="إغلاق">
                     <i class="fas fa-times"></i>
@@ -1177,7 +1177,7 @@
                 return `<li class="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60" data-h="${h.id}">
                     <span class="min-w-0">
                         <span class="block text-sm font-black truncate">${h.name_ar || h.hospitalName || h.id}</span>
-                        <span class="text-[11px] font-bold ${isOn ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}">${isOn ? 'مفعّل: المقيمون يضيفون ويعدّلون أطباء اختصاصهم' : 'متوقف: المدير والمالك فقط'}</span>
+                        <span class="text-[11px] font-bold ${isOn ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}">${isOn ? 'مفعّل: الأقدمون يضيفون ويعدّلون أطباء اختصاصهم' : 'متوقف: المدير والمالك فقط'}</span>
                     </span>
                     <button type="button" class="${isOn ? 'btn-ghost text-rose-600' : 'btn-gradient'} text-xs py-2 px-3.5 shrink-0" data-act="spec-edit-toggle" onclick="toggleSpecEditSwitch('${h.id}', ${!isOn}, this)">${isOn ? 'إيقاف' : 'تفعيل'}</button>
                 </li>`;
@@ -1188,11 +1188,11 @@
             const name = (h && (h.name_ar || h.hospitalName)) || hospitalId;
             if (!confirm(on
                 ? `السماح لمقيمي ${name} بإضافة وتعديل بطاقات أطباء اختصاصهم (أو اختصاص دورتهم)؟`
-                : `إيقاف صلاحية المقيمين في ${name}؟ تعود الإضافة والتعديل للمدير والمالك فقط.`)) return;
+                : `إيقاف صلاحية الأقدمين في ${name}؟ تعود الإضافة والتعديل للمدير والمالك فقط.`)) return;
             btn.disabled = true;
             try {
                 await Hub.specialists.setEditSwitch(hospitalId, on);
-                showToast(on ? 'تم تفعيل صلاحية المقيمين ✓' : 'تم إيقاف صلاحية المقيمين', 'success');
+                showToast(on ? 'تم تفعيل صلاحية الأقدمين ✓' : 'تم إيقاف صلاحية الأقدمين', 'success');
                 paintSpecEditSwitches();
             } catch (err) {
                 btn.disabled = false;
@@ -1925,7 +1925,7 @@
 
         function residentsBtn(doc, small) {
             const n = Array.isArray(doc.residents) ? Hub.specialists.getResidents(doc.id).length : 0;
-            return `<button type="button" onclick="openSpecialistResidentsModal('${doc.id}')" class="schedule-btn res-btn${small ? ' mt-1 text-[10px] py-0.5 px-2 self-start' : ''}" title="المقيمون المرافقون للطبيب">
+            return `<button type="button" onclick="openSpecialistResidentsModal('${doc.id}')" class="schedule-btn res-btn${small ? ' mt-1 text-[10px] py-0.5 px-2 self-start' : ''}" title="الأقدمون المرافقون للطبيب">
                 <i class="fas fa-user-group"></i><span>مقيميه</span>${n ? `<span class="res-count">${n}</span>` : ''}
             </button>`;
         }
@@ -1992,11 +1992,11 @@
                     <div class="p-6 text-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
                         <div class="text-2xl text-slate-300 dark:text-slate-600 mb-2"><i class="fas fa-user-group"></i></div>
                         <div class="text-xs font-black text-slate-600 dark:text-slate-300">لم يُحدَّد مقيمون مرافقون لهذا الطبيب بعد</div>
-                        ${canManage ? '<div class="text-[11px] text-slate-400 mt-1">اضغط «تعديل المقيمين» لإضافتهم</div>' : ''}
+                        ${canManage ? '<div class="text-[11px] text-slate-400 mt-1">اضغط «تعديل الأقدمين» لإضافتهم</div>' : ''}
                     </div>`;
                 body += `
                     <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
-                        ${canManage ? `<button type="button" onclick="editSpecialistResidents()" class="btn-gradient text-xs py-2 px-3.5"><i class="fas fa-user-pen"></i> تعديل المقيمين</button>` : '<div></div>'}
+                        ${canManage ? `<button type="button" onclick="editSpecialistResidents()" class="btn-gradient text-xs py-2 px-3.5"><i class="fas fa-user-pen"></i> تعديل الأقدمين</button>` : '<div></div>'}
                         <button type="button" onclick="closeSpecialistScheduleModal()" class="btn-ghost text-xs py-2 px-4">إغلاق</button>
                     </div>`;
             } else {

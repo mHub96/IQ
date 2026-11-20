@@ -6,7 +6,7 @@
     <script src="./app-view.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>إدارة المستشفى والمقيمين · Hospital Main Hub</title>
+    <title>إدارة المستشفى والأقدمين · Hospital Main Hub</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <script src="./pwa.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -556,11 +556,11 @@
                     <button type="button" onclick="HubChiefs.openEditor(currentHospital && currentHospital.id)" class="btn-ghost text-xs text-amber-800 dark:text-amber-200 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100" title="تعيين رئيس الأطباء ورديفه (يظهر للتواصل على بطاقة المستشفى)">
                         <i class="fas fa-user-tie text-amber-600 dark:text-amber-400"></i> رئيس الأطباء ورديفه
                     </button>
-                    <button type="button" onclick="HubCensus.print(currentHospital && currentHospital.id, showToast)" class="btn-ghost text-xs text-sky-800 dark:text-sky-200 border-sky-300 dark:border-sky-700 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100" title="إحصائية رسمية بالأطباء المقيمين (PDF): حسب الاختصاص، ثم المرحلة، ثم نوع البورد، ثم الاسم">
-                        <i class="fas fa-file-pdf text-sky-700 dark:text-sky-300"></i> إحصائية المقيمين (PDF)
+                    <button type="button" onclick="HubCensus.print(currentHospital && currentHospital.id, showToast)" class="btn-ghost text-xs text-sky-800 dark:text-sky-200 border-sky-300 dark:border-sky-700 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100" title="إحصائية رسمية بالأطباء الأقدمين (PDF): حسب الاختصاص، ثم المرحلة، ثم نوع البورد، ثم الاسم">
+                        <i class="fas fa-file-pdf text-sky-700 dark:text-sky-300"></i> إحصائية الأقدمين (PDF)
                     </button>
                     <!-- Hospital Backup & Restore Buttons -->
-                    <button type="button" onclick="exportHospitalBackupFile()" class="btn-ghost text-xs text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100" title="تنزيل نسخة احتياطية كاملة للمستشفى الحالي (كافة التخصصات، المقيمين، وهيكلية المستشفى)">
+                    <button type="button" onclick="exportHospitalBackupFile()" class="btn-ghost text-xs text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100" title="تنزيل نسخة احتياطية كاملة للمستشفى الحالي (كافة التخصصات، الأقدمين، وهيكلية المستشفى)">
                         <i class="fas fa-download text-emerald-600 dark:text-emerald-400"></i> نسخ احتياطي للمستشفى
                     </button>
                     <button type="button" onclick="triggerRestoreHospitalFilePicker()" class="btn-ghost text-xs text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100" title="استعادة بيانات وهيكلية وتخصصات ومقيمي المستشفى من ملف نسخة احتياطية">
@@ -569,7 +569,7 @@
                     <input type="file" id="hosp-restore-file-input" accept=".json,application/json" onchange="handleHospitalBackupFileInput(event)" class="hidden" style="display:none;" />
 
                     <!-- Full System Backup & Restore Buttons (Owner) -->
-                    <button type="button" id="admin-owner-full-backup-btn" onclick="exportFullSystemBackupFile()" class="btn-ghost text-xs text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100" style="display:none;" title="تنزيل نسخة احتياطية شاملة لكامل الموقع (كافة المستشفيات، المقيمين، الجداول، موقع الطوارئ، والإعدادات)">
+                    <button type="button" id="admin-owner-full-backup-btn" onclick="exportFullSystemBackupFile()" class="btn-ghost text-xs text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100" style="display:none;" title="تنزيل نسخة احتياطية شاملة لكامل الموقع (كافة المستشفيات، الأقدمين، الجداول، موقع الطوارئ، والإعدادات)">
                         <i class="fas fa-cloud-arrow-down text-purple-600 dark:text-purple-400"></i> نسخ شامل للموقع 👑
                     </button>
                     <button type="button" id="admin-owner-full-restore-btn" onclick="triggerRestoreFullSystemFilePicker()" class="btn-ghost text-xs text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100" style="display:none;" title="استعادة شاملة لكامل بيانات وإعدادات ومستشفيات الموقع من ملف نسخة احتياطية">
@@ -612,7 +612,7 @@
         <!-- Add Resident Action Button -->
         <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
             <h2 class="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2">
-                <i class="fas fa-user-doctor text-teal-600 dark:text-teal-400"></i> قائمة المقيمين حسب الاختصاص
+                <i class="fas fa-user-doctor text-teal-600 dark:text-teal-400"></i> قائمة الأقدمين حسب الاختصاص
             </h2>
             <div class="flex items-center gap-2">
                 <button type="button" onclick="openAddResidentWithContacts()" class="btn-ghost text-xs text-teal-700 dark:text-teal-400 border-teal-300 dark:border-teal-600 hover:bg-teal-50 dark:hover:bg-teal-950/30" title="إضافة مقيم جديد مباشرة من جهات اتصال الهاتف أو ملف vCard">
@@ -1208,7 +1208,7 @@
             <div class="mb-3">
                 <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">رمز التخصص (ID)</label>
                 <input type="text" id="global-spec-id" class="input-field font-mono text-left" dir="ltr" maxlength="12" placeholder="e.g. GS" autocomplete="off" spellcheck="false" />
-                <p class="text-[10.5px] text-slate-500 dark:text-slate-400 mt-1">أحرف إنجليزية وأرقام. تغيير الرمز يُطبَّق على كل بيانات الموقع: المستشفيات والمقيمين والخفارات والأخصائيين وطلبات التبديل.</p>
+                <p class="text-[10.5px] text-slate-500 dark:text-slate-400 mt-1">أحرف إنجليزية وأرقام. تغيير الرمز يُطبَّق على كل بيانات الموقع: المستشفيات والأقدمين والخفارات والأخصائيين وطلبات التبديل.</p>
             </div>
 
             <div class="space-y-3">
@@ -1376,7 +1376,7 @@
                 </button>
             </div>
             <p class="text-xs text-slate-500 mb-4">
-                تنزيل واستعادة النسخ الاحتياطية لكافة التخصصات الطبية، فئاتها وألوانها، والمقيمين بكافة بياناتهم، وهيكلية المستشفى.
+                تنزيل واستعادة النسخ الاحتياطية لكافة التخصصات الطبية، فئاتها وألوانها، والأقدمين بكافة بياناتهم، وهيكلية المستشفى.
             </p>
 
             <!-- Export Options -->
@@ -1389,7 +1389,7 @@
                     <button type="button" onclick="exportHospitalBackupFile()" class="p-3 rounded-xl border border-emerald-200 dark:border-emerald-800/80 bg-white dark:bg-slate-800 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/40 text-right transition flex items-center justify-between group shadow-xs">
                         <div>
                             <div class="text-xs font-black text-emerald-800 dark:text-emerald-300">نسخة المستشفى الحالي</div>
-                            <div class="text-[10px] text-slate-500 mt-0.5">التخصصات، المقيمين، وهيكلية المستشفى الحالي</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">التخصصات، الأقدمين، وهيكلية المستشفى الحالي</div>
                         </div>
                         <i class="fas fa-hospital text-emerald-600 text-lg group-hover:scale-110 transition-transform"></i>
                     </button>
@@ -1438,7 +1438,7 @@
                             <i class="fas fa-arrows-rotate ml-1"></i> استبدال كامل بالكود الملصق
                         </button>
                         <button type="button" onclick="executeImport('merge')" class="btn-ghost text-xs text-teal-700 border-teal-300 dark:border-teal-800 hover:bg-teal-50 flex-1">
-                            <i class="fas fa-code-merge ml-1"></i> دمج المقيمين الجدد
+                            <i class="fas fa-code-merge ml-1"></i> دمج الأقدمين الجدد
                         </button>
                     </div>
                 </div>
@@ -1554,7 +1554,7 @@
                         roleInd.innerHTML = '<i class="fas fa-rotate ml-1 text-teal-600"></i> رئيس المقيمين الدوريين: الدوريون وفروعهم';
                     } else if (branchMode) {
                         roleInd.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300';
-                        roleInd.innerHTML = '<i class="fas fa-users ml-1 text-teal-600"></i> مدير فرع: إضافة المقيمين وتعديلهم';
+                        roleInd.innerHTML = '<i class="fas fa-users ml-1 text-teal-600"></i> مدير فرع: إضافة الأقدمين وتعديلهم';
                     } else {
                         roleInd.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300 border border-teal-300 dark:border-teal-700';
                         roleInd.innerHTML = '<i class="fas fa-shield-halved ml-1 text-teal-600"></i> وضع المدير';
@@ -2755,7 +2755,7 @@
                 }
             } else {
                 // Single-hospital resident: warn user before permanent directory deletion
-                const msg = `تنبيه:\nالمقيم "${name}" مسجل في هذا المستشفى فقط.\n\nأنت على وشك حذف هذا المقيم نهائياً من قاعدة بيانات المقيمين.\n(ملاحظة: لن يتم حذف اسمه من جداول وسجلات الخفارات السابقة، وسيتم حذفه كطبيب مقيم فقط).\n\nهل ترغب بالاستمرار في الحذف؟`;
+                const msg = `تنبيه:\nالمقيم "${name}" مسجل في هذا المستشفى فقط.\n\nأنت على وشك حذف هذا المقيم نهائياً من قاعدة بيانات الأقدمين.\n(ملاحظة: لن يتم حذف اسمه من جداول وسجلات الخفارات السابقة، وسيتم حذفه كطبيب مقيم فقط).\n\nهل ترغب بالاستمرار في الحذف؟`;
                 if (!confirm(msg)) return;
 
                 try {
@@ -2774,7 +2774,7 @@
                         forceOpenSpecId: specId
                     });
                     updateStatsBadges();
-                    showToast(`تم حذف ${name} نهائياً من دليل المقيمين`, 'info');
+                    showToast(`تم حذف ${name} نهائياً من دليل الأقدمين`, 'info');
                 } catch (err) {
                     console.error('Error deleting resident:', err);
                     showToast(err.message || 'خطأ أثناء حذف المقيم', 'error');
@@ -3209,7 +3209,7 @@
 
             let confirmMsg = `هل أنت متأكد من إزالة تخصص "${name}" من هذا المستشفى؟\n(سيبقى التخصص محفوظاً في المستودع العام ويمكنك إعادته لاحقاً).`;
             if (affectedResidents.length > 0) {
-                confirmMsg = `تنبيه هام:\nيوجد (${affectedResidents.length}) طبيب مقيم مسجل على تخصص "${name}" في هذا المستشفى.\n\nعند إزالة التخصص، لن يتم حذف الأطباء نهائياً، بل سيتم نقلهم تلقائياً إلى فئة "غير منسوبين لمستشفى" في قاعدة بيانات المقيمين للحفاظ على سجلاتهم وتوزيعهم لاحقاً.\n\nهل تريد المتابعة وتأكيد الإزالة؟`;
+                confirmMsg = `تنبيه هام:\nيوجد (${affectedResidents.length}) طبيب مقيم مسجل على تخصص "${name}" في هذا المستشفى.\n\nعند إزالة التخصص، لن يتم حذف الأطباء نهائياً، بل سيتم نقلهم تلقائياً إلى فئة "غير منسوبين لمستشفى" في قاعدة بيانات الأقدمين للحفاظ على سجلاتهم وتوزيعهم لاحقاً.\n\nهل تريد المتابعة وتأكيد الإزالة؟`;
             }
 
             if (!confirm(confirmMsg)) return;
@@ -3835,7 +3835,7 @@
             }
 
             // A new code is carried through all the site's data: say so first. Then close the modal.
-            if (origId && id !== origId && !confirm(`تغيير رمز التخصص من «${origId}» إلى «${id}»؟\n\nسيُغيَّر الرمز في كل المستشفيات وسجلات المقيمين وجداول الخفارات ودليل الأخصائيين وطلبات التبديل المفتوحة.`)) return;
+            if (origId && id !== origId && !confirm(`تغيير رمز التخصص من «${origId}» إلى «${id}»؟\n\nسيُغيَّر الرمز في كل المستشفيات وسجلات الأقدمين وجداول الخفارات ودليل الأخصائيين وطلبات التبديل المفتوحة.`)) return;
             closeGlobalSpecEditModal();
 
             try {
@@ -4141,7 +4141,7 @@
             const ago = Math.max(0, Math.round((Date.now() - meta.at) / 60000));
             box.innerHTML = `<div class="flex items-center justify-between gap-2 flex-wrap">
                 <div><div class="font-black">${new Date(meta.at).toLocaleString('ar-IQ', { timeZone: 'Asia/Baghdad' })}</div>
-                <div class="text-[10px] text-slate-500 mt-0.5">${ago < 60 ? `قبل ${ago} دقيقة` : `قبل ${Math.round(ago / 60)} ساعة`} · التخصصات والمقيمون والجداول</div></div>
+                <div class="text-[10px] text-slate-500 mt-0.5">${ago < 60 ? `قبل ${ago} دقيقة` : `قبل ${Math.round(ago / 60)} ساعة`} · التخصصات والأقدمون والجداول</div></div>
                 <button type="button" id="auto-backup-hosp-btn" class="btn-ghost text-xs text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700">
                     <i class="fas fa-rotate-left ml-1"></i> استعادة هذه النسخة</button></div>`;
             document.getElementById('auto-backup-hosp-btn').addEventListener('click', async (e) => {
@@ -4482,14 +4482,14 @@
                 (backupHospName ? `• مصدر النسخة: ${backupHospName}\n` : '') +
                 `• تاريخ النسخة: ${backupDate}\n` +
                 `• عدد التخصصات الطبية: ${specsCount} تخصص\n` +
-                `• عدد الأطباء المقيمين: ${resCount} طبيب\n` +
+                `• عدد الأطباء الأقدمين: ${resCount} طبيب\n` +
                 (targetStructure ? `• جداول وهيكلية المستشفى: متوفرة للاستعادة ✓\n` : '') +
                 `\nاضغط [موافق / OK] للمتابعة واختيار نمط الاستعادة.`;
 
             if (!confirm(msg)) return;
 
             // Ask if replace or merge
-            const replaceMode = confirm(`هل ترغب بـ (استبدال شامل لكافة التخصصات والمقيمين)؟\n\nاضغط [موافق] للاستبدال الشامل وإعادة الهيكلية بالكامل كما كانت في النسخة الاحتياطية.\nاضغط [إلغاء] لدمج التخصصات والمقيمين الجدد مع الإبقاء على البيانات الحالية.`);
+            const replaceMode = confirm(`هل ترغب بـ (استبدال شامل لكافة التخصصات والأقدمين)؟\n\nاضغط [موافق] للاستبدال الشامل وإعادة الهيكلية بالكامل كما كانت في النسخة الاحتياطية.\nاضغط [إلغاء] لدمج التخصصات والأقدمين الجدد مع الإبقاء على البيانات الحالية.`);
 
             const mode = replaceMode ? 'replace' : 'merge';
             await executeRestoreHospital({

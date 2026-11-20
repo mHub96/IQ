@@ -240,7 +240,7 @@
                 if (!cell || !input) return;
                 const linked = !!r.hubId;
                 if (input.readOnly !== linked) input.readOnly = linked;
-                input.title = linked ? 'الاسم من قاعدة مقيمي المستشفى (يُعدّل من صفحة المقيمين)' : 'غير مرتبط بقاعدة المستشفى';
+                input.title = linked ? 'الاسم من قاعدة مقيمي المستشفى (يُعدّل من صفحة الأقدمين)' : 'غير مرتبط بقاعدة المستشفى';
                 let badge = cell.querySelector('[data-erl-badge]');
                 const want = linked ? 'linked' : 'unlinked';
                 if (!badge || badge.dataset.erlBadge !== want) {
@@ -359,7 +359,7 @@
             const [resId, field] = args;
             const r = erResident(resId);
             if (r && r.hubId && (field === 'name' || field === 'phone')) {
-                notify('الاسم والهاتف من قاعدة مقيمي المستشفى؛ عدّلهما من صفحة المقيمين وسيتحدثان هنا تلقائياً', 'warning');
+                notify('الاسم والهاتف من قاعدة مقيمي المستشفى؛ عدّلهما من صفحة الأقدمين وسيتحدثان هنا تلقائياً', 'warning');
                 try { core().refreshDBView(); } catch (e) {}
                 decorate();
                 return;

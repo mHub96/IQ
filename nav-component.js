@@ -90,7 +90,7 @@
                     </a>
                 </div>
                 <!-- Page title (shown in the middle of the bar on phones, iOS style) -->
-                <span class="hub-nav-title">${({ roster: 'الخفراء الآن', schedule: 'جدول الخفارات', icu: 'موقف العناية', specialists: 'أطباء الاختصاص', residents: 'دليل المقيمين', signup: 'تبديل الخفارات', scheduler: 'المجدول', admin: 'لوحة الإدارة' })[activePageId] || 'بوابة المستشفيات'}</span>
+                <span class="hub-nav-title">${({ roster: 'الخفراء الآن', schedule: 'جدول الخفارات', icu: 'موقف العناية', specialists: 'أطباء الاختصاص', residents: 'دليل الأقدمين', signup: 'تبديل الخفارات', scheduler: 'المجدول', admin: 'لوحة الإدارة' })[activePageId] || 'بوابة المستشفيات'}</span>
 
                 <!-- Center: Universal Webpage Links -->
                 <div class="hub-nav-center">
@@ -106,8 +106,8 @@
                     <a href="./specialists.html${queryParam}" class="hub-nav-link ${activePageId === 'specialists' ? 'active' : ''}" title="أطباء الاختصاص">
                         <i class="fas fa-user-tie"></i> <span>أطباء الاختصاص</span>
                     </a>
-                    <a href="./residents.html${queryParam}" class="hub-nav-link ${activePageId === 'residents' ? 'active' : ''}" title="دليل المقيمين">
-                        <i class="fas fa-address-book"></i> <span>دليل المقيمين</span>
+                    <a href="./residents.html${queryParam}" class="hub-nav-link ${activePageId === 'residents' ? 'active' : ''}" title="دليل الأقدمين">
+                        <i class="fas fa-address-book"></i> <span>دليل الأقدمين</span>
                     </a>
                     <a href="./signup.html${queryParam}" class="hub-nav-link ${activePageId === 'signup' ? 'active' : ''}" title="تبديل الخفارات">
                         <i class="fas fa-exchange-alt"></i> <span>تبديل الخفارات</span>
@@ -217,7 +217,7 @@
                                             <h4 class="role-title">مدير مستشفى (Admin)</h4>
                                             <span id="tag-active-admin" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-bold" style="font-size:0.68rem; padding:2px 8px; border-radius:999px; background:rgba(11, 122, 110,0.15); color:#0B7A6E; font-weight:800;">نشط حالياً ✓</span>
                                         </div>
-                                        <p class="role-desc">إدارة وتعديل جداول الخفارات للمقيمين والاختصاصيين وتعديل الأطباء</p>
+                                        <p class="role-desc">إدارة وتعديل جداول الخفارات للأقدمين والاختصاصيين وتعديل الأطباء</p>
                                     </div>
                                 </div>
                             </div>
@@ -380,9 +380,9 @@
                     <i class="fas fa-user-tie"></i>
                     <span>الاختصاص</span>
                 </a>
-                <a href="./residents.html${queryParam}" class="dock-tab-btn ${activePageId === 'residents' ? 'active' : ''}" title="دليل المقيمين">
+                <a href="./residents.html${queryParam}" class="dock-tab-btn ${activePageId === 'residents' ? 'active' : ''}" title="دليل الأقدمين">
                     <i class="fas fa-address-book"></i>
-                    <span>المقيمين</span>
+                    <span>الأقدمين</span>
                 </a>
                 <a href="./signup.html${queryParam}" class="dock-tab-btn ${activePageId === 'signup' ? 'active' : ''}" title="تبديل الخفارات">
                     <i class="fas fa-calendar-check"></i>
@@ -432,7 +432,7 @@
                         <div>
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                                 <label id="hub-pwd-user-label" style="font-size:0.78rem; font-weight:700; color:#3B4542;">كلمة مرور المستخدم العادي</label>
-                                <span id="hub-pwd-user-hint" style="font-size:0.68rem; color:#6E7B76;">(تصفح، تبديل، دليل المقيمين)</span>
+                                <span id="hub-pwd-user-hint" style="font-size:0.68rem; color:#6E7B76;">(تصفح، تبديل، دليل الأقدمين)</span>
                             </div>
                             <div style="position:relative;">
                                 <input type="text" id="hub-pwd-user" placeholder="كلمة المرور" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #C5CFCA; font-family:monospace; font-size:0.95rem; text-align:center; color:#202927; background:#ffffff;" />
@@ -456,7 +456,7 @@
                         <div>
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                                 <label id="hub-pwd-admin-label" style="font-size:0.78rem; font-weight:700; color:#3B4542;">كلمة مرور المدير / المشرف</label>
-                                <span id="hub-pwd-admin-hint" style="font-size:0.68rem; color:#6E7B76;">(إدارة المقيمين، المجدول)</span>
+                                <span id="hub-pwd-admin-hint" style="font-size:0.68rem; color:#6E7B76;">(إدارة الأقدمين، المجدول)</span>
                             </div>
                             <div style="position:relative;">
                                 <input type="text" id="hub-pwd-admin" placeholder="كلمة المرور" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #C5CFCA; font-family:monospace; font-size:0.95rem; text-align:center; color:#202927; background:#ffffff;" />
@@ -978,7 +978,7 @@
                     <div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                             <label id="hub-pwd-user-label" style="font-size:0.78rem; font-weight:700; color:#3B4542;">كلمة مرور المستخدم العادي</label>
-                            <span id="hub-pwd-user-hint" style="font-size:0.68rem; color:#6E7B76;">(تصفح، تبديل، دليل المقيمين)</span>
+                            <span id="hub-pwd-user-hint" style="font-size:0.68rem; color:#6E7B76;">(تصفح، تبديل، دليل الأقدمين)</span>
                         </div>
                         <div style="position:relative;">
                             <input type="text" id="hub-pwd-user" placeholder="كلمة المرور" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #C5CFCA; font-family:monospace; font-size:0.95rem; text-align:center; color:#202927; background:#ffffff;" />
@@ -990,7 +990,7 @@
                     <div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                             <label id="hub-pwd-admin-label" style="font-size:0.78rem; font-weight:700; color:#3B4542;">كلمة مرور المدير / المشرف</label>
-                            <span id="hub-pwd-admin-hint" style="font-size:0.68rem; color:#6E7B76;">(إدارة المقيمين، المجدول)</span>
+                            <span id="hub-pwd-admin-hint" style="font-size:0.68rem; color:#6E7B76;">(إدارة الأقدمين، المجدول)</span>
                         </div>
                         <div style="position:relative;">
                             <input type="text" id="hub-pwd-admin" placeholder="كلمة المرور" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #C5CFCA; font-family:monospace; font-size:0.95rem; text-align:center; color:#202927; background:#ffffff;" />

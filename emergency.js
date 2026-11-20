@@ -33,6 +33,13 @@
     const MONTH_STORAGE_PREFIX = ROT_SYS ? 'hosp_hub_emergency_rsched_' : 'hosp_hub_emergency_sched_';
     const ROT_HIDDEN_TABS = ['con', 'dc', 'rs', 'rs_er', 'rs_wards'];
     if (ROT_SYS) document.documentElement.classList.add('er-rot');
+    // Who the page's list is: the specialty residents («الأقدمون») or, in the rotators' ER, the rotators.
+    const WHO = ROT_SYS ? 'الدوريين' : 'الأقدمين';
+    if (ROT_SYS) {
+        // The page's fixed labels ([data-rot] in emergency.html) say «الدوريون» here.
+        const swapRotLabels = () => document.querySelectorAll('[data-rot]').forEach(e => { e.textContent = e.dataset.rot; });
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', swapRotLabels); else swapRotLabels();
+    }
 
     const PRINT_THEME_PRESETS = {
         official: {
@@ -1671,7 +1678,7 @@
             monthlyAllocations: JSON.parse(JSON.stringify(state.monthlyAllocations || {})),
             specialtyColors: JSON.parse(JSON.stringify(state.specialtyColors || {})),
             schedules: JSON.parse(JSON.stringify(state.schedules || {})),
-            desc: desc || 'تعديل في قاعدة المقيمين'
+            desc: desc || ('تعديل في قاعدة ' + WHO)
         };
     }
 
@@ -1711,7 +1718,7 @@
             dbHistoryIndex--;
             const snap = dbHistoryStack[dbHistoryIndex];
             applyDBSnapshot(snap);
-            showNotification(`تم التراجع عن: ${snap.desc || 'آخر تعديل في قاعدة المقيمين'}`, 'info');
+            showNotification(`تم التراجع عن: ${snap.desc || ('آخر تعديل في قاعدة ' + WHO)}`, 'info');
         } else {
             showNotification('لا توجد عمليات سابقة للتراجع عنها في اللوحة', 'warning');
         }
@@ -1940,7 +1947,7 @@
         // Shown over the table first, read-only with the differences marked: "تطبيق" or "إلغاء".
         if (window.ERSlots) {
             const note = [
-                unknown.length ? `أسماء غير موجودة في قاعدة بيانات المقيمين (لن تُضاف): ${unknown.slice(0, 8).join('، ')}${unknown.length > 8 ? ' …' : ''}` : '',
+                unknown.length ? `أسماء غير موجودة في قاعدة بيانات ${WHO} (لن تُضاف): ${unknown.slice(0, 8).join('، ')}${unknown.length > 8 ? ' …' : ''}` : '',
                 skipped ? `${skipped} صفاً بلا يوم صالح من هذا الشهر (تُتجاهل)` : '',
             ].filter(Boolean).join(' · ');
             window.ERSlots.previewCsv(sheet, byDay, `استيراد CSV${fileName ? ': ' + fileName : ''}`, note);
@@ -1949,7 +1956,7 @@
         const msg = `استيراد جدول ${title} لشهر ${state.month}/${state.year}:\n\n`
             + `• ${byDay.size} يوماً في الملف (تُستبدل خفاراتها في هذا الجدول)\n`
             + `• ${count} خفارة`
-            + (unknown.length ? `\n• أسماء غير موجودة في قاعدة بيانات المقيمين (لن تُضاف): ${unknown.slice(0, 8).join('، ')}${unknown.length > 8 ? ' …' : ''}` : '')
+            + (unknown.length ? `\n• أسماء غير موجودة في قاعدة بيانات ${WHO} (لن تُضاف): ${unknown.slice(0, 8).join('، ')}${unknown.length > 8 ? ' …' : ''}` : '')
             + (skipped ? `\n• ${skipped} صفاً بلا يوم صالح من هذا الشهر (تُتجاهل)` : '')
             + '\n\n(يمكنك التراجع بزر "تراجع" أو Ctrl+Z)';
         if (!confirm(msg)) return;
@@ -2471,7 +2478,7 @@
             const prevAlloc = getPreviousMonthAllocations(state.hospitalId, state.year, state.month);
             if (prevAlloc && Object.keys(prevAlloc).length > 0) {
                 const prev = getPreviousMonth(state.year, state.month);
-                const shouldCopy = confirm(`شهر (${state.monthYear}) لا يحتوي على أنصبة خفارات محددة للأطباء المقيمين.\n\nهل ترغب بنسخ ونقل أنصبة الأطباء من الشهر السابق (${prev.month}/${prev.year}) تلقائياً؟`);
+                const shouldCopy = confirm(`شهر (${state.monthYear}) لا يحتوي على أنصبة خفارات محددة للأطباء ${WHO}.\n\nهل ترغب بنسخ ونقل أنصبة الأطباء من الشهر السابق (${prev.month}/${prev.year}) تلقائياً؟`);
                 if (shouldCopy) {
                     copyAllocationsFromPreviousMonth();
                 }
@@ -2572,7 +2579,7 @@
         } else {
             renderActiveTab();
         }
-        showNotification(state.rsEnabled ? 'تم تفعيل حالة إضراب المقيمين الدوريين (RS)' : 'تم إخفاء وتعطيل إضراب المقيمين (RS)', 'info');
+        showNotification(state.rsEnabled ? 'تم تفعيل حالة إضراب المقيمين الدوريين (RS)' : 'تم إخفاء وتعطيل إضراب الدوريين (RS)', 'info');
     }
 
     function updateRsVisibilityUI() {
@@ -3081,7 +3088,7 @@
                                         <span class="text-slate-300 dark:text-slate-700">•</span>
                                         <span class="text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
                                             <i class="fas fa-triangle-exclamation text-[10px]"></i>
-                                            <span>إضراب المقيمين مفعل (${rsDaysCount} يوم)</span>
+                                            <span>إضراب الدوريين مفعل (${rsDaysCount} يوم)</span>
                                         </span>
                                     ` : ''}
                                 </p>
@@ -3143,7 +3150,7 @@
                         </div>
 
                         <!-- 3. Medical Staff Pool (Distinct Executive Style) -->
-                        <div onclick="switchTab('db')" class="relative overflow-hidden p-3 rounded-2xl bg-gradient-to-br from-indigo-50/95 via-purple-50/60 to-slate-50/80 dark:from-indigo-950/40 dark:via-purple-950/20 dark:to-slate-900/60 border-2 border-indigo-300/80 dark:border-indigo-700/60 hover:border-indigo-500 dark:hover:border-indigo-400 hover:shadow-md hover:shadow-indigo-500/10 cursor-pointer transition-all duration-200 group active:scale-[0.98]" title="انقر لفتح وإدارة قاعدة بيانات الأطباء المقيمين">
+                        <div onclick="switchTab('db')" class="relative overflow-hidden p-3 rounded-2xl bg-gradient-to-br from-indigo-50/95 via-purple-50/60 to-slate-50/80 dark:from-indigo-950/40 dark:via-purple-950/20 dark:to-slate-900/60 border-2 border-indigo-300/80 dark:border-indigo-700/60 hover:border-indigo-500 dark:hover:border-indigo-400 hover:shadow-md hover:shadow-indigo-500/10 cursor-pointer transition-all duration-200 group active:scale-[0.98]" title="انقر لفتح وإدارة قاعدة بيانات الأطباء ${WHO}">
                             <div class="pointer-events-none absolute -top-6 -right-6 w-20 h-20 bg-indigo-500/10 rounded-full blur-xl"></div>
                             <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
                                 <span class="font-bold text-[11px] text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5 group-hover:text-indigo-600 transition">
@@ -3356,8 +3363,8 @@
                     </div>
                 </div>
 
-                <!-- 4. RS Card (Rotators Strike - Active or Quick Enable) -->
-                ${state.rsEnabled ? `
+                <!-- 4. RS Card (Rotators Strike - Active or Quick Enable); never in the rotators' ER -->
+                ${ROT_SYS ? '' : state.rsEnabled ? `
                 <div onclick="switchTab('rs_er')" class="duty-card group relative overflow-hidden rounded-2xl p-4 glass-panel border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer ${(state.activeTab === 'rs_er' || state.activeTab === 'rs_wards') ? 'ring-2 ring-amber-500/70 dark:ring-amber-500/80 shadow-md shadow-amber-500/10 border-amber-400 dark:border-amber-700 bg-amber-50/30 dark:bg-amber-950/20' : 'border-slate-200/80 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-800'}">
                     <!-- Accent top border stripe -->
                     <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-600"></div>
@@ -3368,7 +3375,7 @@
                                 <i class="fas fa-shield-virus"></i>
                             </div>
                             <div>
-                                <h3 class="text-xs font-black text-slate-900 dark:text-slate-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition">إضراب المقيمين (RS)</h3>
+                                <h3 class="text-xs font-black text-slate-900 dark:text-slate-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition">إضراب الدوريين (RS)</h3>
                                 <span class="text-[10px] text-amber-600 dark:text-amber-400 font-bold">${rsDaysCount} يوم إضراب</span>
                             </div>
                         </div>
@@ -3422,7 +3429,7 @@
                                     <i class="fas fa-bed-pulse"></i>
                                 </div>
                                 <div>
-                                    <h3 class="text-xs font-black text-slate-500 dark:text-slate-400">إضراب المقيمين (RS)</h3>
+                                    <h3 class="text-xs font-black text-slate-500 dark:text-slate-400">إضراب الدوريين (RS)</h3>
                                     <span class="text-[10px] text-slate-400 font-bold">إسناد إضافي</span>
                                 </div>
                             </div>
@@ -4168,7 +4175,7 @@
                         <i class="fas fa-truck-medical text-rose-600"></i>
                         <span>جدول خفارات قسم الطوارئ (ER)</span>
                     </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">4 وجبات خفارة يومياً${perDay > 4 ? ` · ${perDay} خفارة في اليوم` : ''} · المقيمين الأقدمين</p>
+                    <p class="text-xs text-slate-500 mt-0.5">4 وجبات خفارة يومياً${perDay > 4 ? ` · ${perDay} خفارة في اليوم` : ''} · ${ROT_SYS ? 'المقيمين الدوريين' : 'الأقدمين'}</p>
                 </div>
                 <div class="flex items-center gap-2">
                     ${renderScheduleUndoRedoButtons()}
@@ -5747,7 +5754,7 @@
                         <div class="flex items-center gap-2">
                             <h2 class="text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
                                 <i class="fas fa-users-gear text-rose-600"></i>
-                                <span>قاعدة المقيمين الأقدمين والأنصبة (DB)</span>
+                                <span>قاعدة ${WHO} والأنصبة (DB)</span>
                             </h2>
                             <!-- Live Month Selector in DB Header -->
                             <div class="flex items-center gap-1.5 p-1 px-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs">
@@ -5786,12 +5793,12 @@
                         </button>
 
                         <!-- Residents' ER preferences portal (emergency-portal.js) -->
-                        <button type="button" onclick="ErPortal.openControl()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 transition flex items-center gap-1.5 shadow-xs" title="فتح بوابة ليحدد المقيمون رغباتهم لشهر قادم">
+                        <button type="button" onclick="ErPortal.openControl()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 transition flex items-center gap-1.5 shadow-xs" title="فتح بوابة ليحدد ${ROT_SYS ? 'الدوريون' : 'الأقدمون'} رغباتهم لشهر قادم">
                             <i class="fas fa-door-open"></i>
-                            <span>بوابة رغبات المقيمين</span>
+                            <span>بوابة رغبات ${WHO}</span>
                             <span class="er-portal-pill hidden px-1.5 rounded-full bg-emerald-600 text-white text-[10px]"></span>
                         </button>
-                        <button type="button" onclick="ErPortal.openSummary()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-50 transition flex items-center gap-1.5 shadow-xs" title="ملخص حي لطلبات رغبات المقيمين">
+                        <button type="button" onclick="ErPortal.openSummary()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-50 transition flex items-center gap-1.5 shadow-xs" title="ملخص حي لطلبات رغبات ${WHO}">
                             <i class="fas fa-list-check"></i>
                             <span>ملخص الرغبات</span>
                         </button>
@@ -5894,7 +5901,7 @@
                             <option value="fulfilled">مكتمل النصاب</option>
                             <option value="unfulfilled">غير مكتمل النصاب</option>
                             <option value="exceeded">⚠️ متجاوز النصاب / فائض</option>
-                            <option value="extra">لديه إسناد إضافي (RS)</option>
+                            ${ROT_SYS ? '' : '<option value="extra">لديه إسناد إضافي (RS)</option>'}
                         </select>
 
                         <button type="button" onclick="resetDBFilters()" class="text-xs text-rose-600 hover:text-rose-800 font-bold px-2 py-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition">
@@ -8154,7 +8161,7 @@
                 <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <div>
                         <h3 class="font-black text-sm text-slate-800 dark:text-slate-100">مطابقة ومزامنة الأسماء مع ${state.hospitalName}</h3>
-                        <p class="text-[11px] text-slate-500">مطابقة أطباء الطوارئ مع قاعدة المقيمين في المستشفى</p>
+                        <p class="text-[11px] text-slate-500">مطابقة أطباء الطوارئ مع قاعدة ${WHO} في المستشفى</p>
                     </div>
                     <button type="button" onclick="closeHospitalSyncModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
                         <i class="fas fa-times text-sm"></i>
@@ -10996,7 +11003,7 @@
                 <div style="text-align: center; margin-bottom: 5px;">
                     <div style="font-size: 11.5pt; font-weight: 900; margin-bottom: 2px;">امر اداري</div>
                     <div style="font-size: 9pt; font-weight: bold;">
-                        تقرر ان يكون جدول خفارات المقيمين الاقدمين ${targetTitle} لشهر <u>${state.monthYear}</u> كما مبين ادناه: -
+                        تقرر ان يكون جدول خفارات ${ROT_SYS ? 'المقيمين الدوريين' : 'الأقدمين'} ${targetTitle} لشهر <u>${state.monthYear}</u> كما مبين ادناه: -
                     </div>
                 </div>
 
@@ -11611,7 +11618,7 @@
         box.className = 'ers-system';
         const url = rot => `./emergency.html?hospital=${encodeURIComponent(hid)}${rot ? '&sys=rot' : ''}`;
         box.innerHTML = both && (hasRot || ROT_SYS)
-            ? `<a href="${url(false)}" class="${ROT_SYS ? '' : 'on'}" aria-current="${ROT_SYS ? 'false' : 'page'}"><i class="fas fa-user-doctor"></i> المقيمون</a>`
+            ? `<a href="${url(false)}" class="${ROT_SYS ? '' : 'on'}" aria-current="${ROT_SYS ? 'false' : 'page'}"><i class="fas fa-user-doctor"></i> الأقدمون</a>`
               + `<a href="${url(true)}" class="${ROT_SYS ? 'on' : ''}" aria-current="${ROT_SYS ? 'page' : 'false'}"><i class="fas fa-rotate"></i> الدوريون</a>`
             : (ROT_SYS ? '<span class="on"><i class="fas fa-rotate"></i> طوارئ المقيمين الدوريين</span>' : '');
         if (!box.innerHTML) return;

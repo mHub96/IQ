@@ -348,7 +348,7 @@
                 </div>
                 <div style="text-align: center; margin-bottom: 5px;">
                     <div style="font-size: ${fs(11.5)}; font-weight: 900; margin-bottom: 2px;">امر اداري</div>
-                    <div style="font-size: ${fs(9)}; font-weight: bold;">تقرر ان يكون جدول خفارات المقيمين الاقدمين ${esc(title)}${spec.subtitle ? ' ' + esc(spec.subtitle) : ''} لشهر <u>${esc(digitsOf(o, st.monthYear || ''))}</u> كما مبين ادناه: -</div>
+                    <div style="font-size: ${fs(9)}; font-weight: bold;">تقرر ان يكون جدول خفارات ${core() && core().rot ? 'المقيمين الدوريين' : 'الأقدمين'} ${esc(title)}${spec.subtitle ? ' ' + esc(spec.subtitle) : ''} لشهر <u>${esc(digitsOf(o, st.monthYear || ''))}</u> كما مبين ادناه: -</div>
                 </div>
                 <table class="erp-table"><thead>${headOf(spec)}</thead><tbody>${rowsOf(spec)}</tbody></table>
                 <div style="margin-top: 5px; font-size: ${fs(7.5)}; font-weight: bold; line-height: 1.35; text-align: right;">
@@ -615,7 +615,7 @@
     function tabFonts(o) {
         const q = fontQuery.trim().toLowerCase();
         const match = (a, b) => !q || String(a).toLowerCase().includes(q) || String(b).toLowerCase().includes(q);
-        const sample = 'جدول خفارات المقيمين ١٢٣';
+        const sample = 'جدول خفارات الأقدمين ١٢٣';
         let list = '';
         if (fontTarget === 'tableFont') list += `<button type="button" class="erp-font${!o.tableFont ? ' on' : ''}" data-font=""><span class="erp-font-sample">مثل خط الورقة</span><span class="erp-font-meta"><b>نفس خط الورقة</b><small>${esc(fontLabel(o.fontFamily))}</small></span>${!o.tableFont ? '<i class="fas fa-circle-check erp-font-check"></i>' : ''}</button>`;
         const ups = uploaded.filter(f => match(f.name, f.file_name));

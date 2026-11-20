@@ -396,12 +396,12 @@
             <button type="button" class="ers-nav-item" data-ers-tab="dc"><i class="fas fa-file-medical"></i><span>شهادات الوفاة</span><em data-ers-count="dc"></em></button>
             <button type="button" class="ers-nav-item ers-rs" data-ers-tab="rs_er"><i class="fas fa-hand-holding-medical"></i><span>إسناد الطوارئ</span><em data-ers-count="rs_er"></em></button>
             <button type="button" class="ers-nav-item ers-rs" data-ers-tab="rs_wards"><i class="fas fa-bed-pulse"></i><span>إسناد الردهات</span><em data-ers-count="rs_wards"></em></button>
-            <div class="ers-nav-label">المقيمون</div>
-            <button type="button" class="ers-nav-item" onclick="openResidentsDbModal()"><i class="fas fa-users"></i><span>قاعدة بيانات المقيمين</span></button>
+            <div class="ers-nav-label" data-rot="الدوريون">الأقدمون</div>
+            <button type="button" class="ers-nav-item" onclick="openResidentsDbModal()"><i class="fas fa-users"></i><span data-rot="قاعدة بيانات الدوريين">قاعدة بيانات الأقدمين</span></button>
             <div class="ers-nav-label">الطباعة والتصدير</div>
             <button type="button" class="ers-nav-item" onclick="openPrintMenu(event)" title="طباعة الجدول المفتوح على ورقة A4 رسمية"><i class="fas fa-print"></i><span>طباعة رسمية A4</span></button>
             <button type="button" class="ers-nav-item" onclick="openPrintOptionsModal(state.activeTab)" title="الخطوط والأنماط وتصميم ورقة الطباعة"><i class="fas fa-palette"></i><span>خيارات الطباعة</span></button>
-            <button type="button" class="ers-nav-item" onclick="openErStructureModal()" title="أقسام الطوارئ وشُعبها وعدد المقيمين في كل وجبة، وخفارات الاستشارية وشهادات الوفاة"><i class="fas fa-sitemap"></i><span>هيكلية الخفارات</span></button>
+            <button type="button" class="ers-nav-item" onclick="openErStructureModal()" title="أقسام الطوارئ وشُعبها وعدد الأطباء في كل وجبة، وخفارات الاستشارية وشهادات الوفاة"><i class="fas fa-sitemap"></i><span>هيكلية الخفارات</span></button>
             <button type="button" class="ers-nav-item" onclick="exportFullScheduleToExcel()"><i class="fas fa-file-excel"></i><span>تصدير Excel</span></button>
             <div class="ers-nav-label">البيانات</div>
             <button type="button" class="ers-nav-item" onclick="openHospitalSyncModal()" title="مزامنة وتطابق أسماء الأطباء مع سجلات المستشفى"><i class="fas fa-arrows-rotate"></i><span>مزامنة المستشفى</span></button>
@@ -441,7 +441,7 @@
         <button type="button" data-ers-tab="dc"><i class="fas fa-file-medical"></i>الوفيات</button>
         <button type="button" class="ers-rs" data-ers-tab="rs_er"><i class="fas fa-hand-holding-medical"></i>إسناد الطوارئ</button>
         <button type="button" class="ers-rs" data-ers-tab="rs_wards"><i class="fas fa-bed-pulse"></i>إسناد الردهات</button>
-        <button type="button" onclick="openResidentsDbModal()"><i class="fas fa-users"></i>المقيمين</button>
+        <button type="button" onclick="openResidentsDbModal()"><i class="fas fa-users"></i><span data-rot="الدوريين">الأقدمين</span></button>
     </nav>
 
     <!-- Main Container (Widescreen 16:9 Frame) -->
@@ -529,7 +529,7 @@
                 <div class="flex items-center justify-between sm:justify-end gap-2 pt-4 sm:pt-0">
                     <button type="button" onclick="toggleRotatorsStrike()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition flex items-center gap-2">
                         <i class="fas fa-triangle-exclamation text-amber-500"></i>
-                        <span>حالة إضراب المقيمين (RS)</span>
+                        <span>حالة إضراب الدوريين (RS)</span>
                         <span id="rs-toggle-badge" class="text-[10px] bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400 px-2 py-0.5 rounded-full font-bold">معطّل</span>
                     </button>
                 </div>
@@ -540,7 +540,7 @@
                 <div class="flex items-center gap-2">
                     <i class="fas fa-bullhorn text-amber-600 dark:text-amber-400"></i>
                     <span class="font-bold text-amber-900 dark:text-amber-200">فترة إضراب المقيمين الدوريين (RS):</span>
-                    <span class="text-[11px] text-amber-700 dark:text-amber-300">يتم إسناد خفارات إضافية للمقيمين الأقدمين في الطوارئ والردهات خلال هذه الفترة.</span>
+                    <span class="text-[11px] text-amber-700 dark:text-amber-300">يتم إسناد خفارات إضافية للأقدمين في الطوارئ والردهات خلال هذه الفترة.</span>
                 </div>
                 <div class="flex items-center gap-3">
                     <div class="flex items-center gap-1.5">
@@ -931,7 +931,7 @@
                     </div>
                     <div>
                         <div class="flex flex-wrap items-center gap-2">
-                            <h2 class="text-sm sm:text-base font-black text-slate-800 dark:text-slate-100">قاعدة بيانات الأطباء المقيمين والأنصبة الرسمية</h2>
+                            <h2 class="text-sm sm:text-base font-black text-slate-800 dark:text-slate-100" data-rot="قاعدة بيانات المقيمين الدوريين والأنصبة الرسمية">قاعدة بيانات الأطباء الأقدمين والأنصبة الرسمية</h2>
                             <span id="residents-db-modal-hosp" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300"></span>
                         </div>
                         <p class="text-xs text-slate-500 mt-0.5">لوحة مستقلة لإدارة الأطباء، الأنصبة، الاختصاصات، المراحل، وحالات النشاط دون التأثير على الجداول</p>

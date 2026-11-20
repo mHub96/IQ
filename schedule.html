@@ -329,7 +329,7 @@
 
             <div class="sch-segs">
                 <div class="sch-seg" id="schedule-role-selector" role="tablist">
-                    <button type="button" id="btn-role-residents" class="active" onclick="setScheduleRole('residents')"><i class="fas fa-user-doctor"></i> المقيمين</button>
+                    <button type="button" id="btn-role-residents" class="active" onclick="setScheduleRole('residents')"><i class="fas fa-user-doctor"></i> الأقدمين</button>
                     <button type="button" id="btn-role-specialists" onclick="setScheduleRole('specialists')"><i class="fas fa-user-tie"></i> الاختصاصيين</button>
                 </div>
                 <div class="sch-seg" id="view-mode-selector" role="tablist">
@@ -429,7 +429,7 @@
             let specs = (currentHospital.specialties || []).filter(s => s.enabled !== false);
             if (currentViewMode === 'single' && selectedSpecialtyId) specs = specs.filter(s => s.id === selectedSpecialtyId);
             // (every specialty that is not switched off has its column, with or without duties this month)
-            const roleLabel = currentScheduleRole === 'specialists' ? 'خفارات الاختصاصيين' : 'خفارات المقيمين';
+            const roleLabel = currentScheduleRole === 'specialists' ? 'خفارات الاختصاصيين' : 'خفارات الأقدمين';
             const monthLabel = `${MONTH_NAMES_AR[currentMonth - 1]} ${currentYear}`;
             const hospName = currentHospital.name_ar || currentHospital.hospitalName || '';
             const accent = /^#[0-9a-f]{3,8}$/i.test(currentHospital.color || '') ? currentHospital.color : '#0f766e';
@@ -741,7 +741,7 @@
         function renderHospitalInfo() {
             if (!currentHospital) return;
             const hospName = currentHospital.name_ar || currentHospital.hospitalName || '';
-            const roleLabel = currentScheduleRole === 'specialists' ? 'خفارات الاختصاصيين' : 'خفارات المقيمين';
+            const roleLabel = currentScheduleRole === 'specialists' ? 'خفارات الاختصاصيين' : 'خفارات الأقدمين';
             document.getElementById('hosp-display-name').textContent = 'جدول الخفارات';
             document.getElementById('hosp-location-text').textContent = `${hospName} · ${roleLabel}`;
             document.title = `${hospName} · جدول ${roleLabel}`;

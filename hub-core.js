@@ -3671,7 +3671,7 @@
         }
         if (idx === -1) throw new Error('المقيم غير موجود');
         if (!auth.isAdmin() && !auth.addedByMe(db.residents[idx])) {
-            throw new Error('يمكنك حذف المقيمين الذين أضفتهم أنت فقط.');
+            throw new Error('يمكنك حذف الأقدمين الذين أضفتهم أنت فقط.');
         }
 
         const name = db.residents[idx].name;

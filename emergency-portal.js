@@ -19,6 +19,8 @@
     const monthTitle = ym => `${MONTHS[Number(ym.slice(5, 7))]} ${ym.slice(0, 4)}`;
     const when = ms => new Date(ms).toLocaleString('ar-IQ-u-nu-latn', { weekday: 'short', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' });
     const core = () => window.EmergencyCore;
+    const rotEr = () => !!(window.EmergencyCore && window.EmergencyCore.rot);
+    const who = () => (rotEr() ? 'الدوريين' : 'الأقدمين');
     const Hub = () => window.Hub;
     const notify = (msg, type) => { try { core().showNotification(msg, type); } catch (e) {} };
 
@@ -215,9 +217,9 @@
                 <label class="block"><span class="block font-black text-slate-700 dark:text-slate-300 mb-1.5">${open ? 'موعد الإغلاق الجديد' : 'تبقى مفتوحة حتى'}</span>
                     <input type="datetime-local" data-role="close" value="${toLocalInput(open ? new Date(open.closesAt) : defClose)}" min="${toLocalInput(new Date(Date.now() + 15 * 60000))}" max="${toLocalInput(maxClose)}" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-slate-800 dark:text-slate-100" dir="ltr"></label>
             </div>
-            ${open ? `<label class="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-300"><input type="checkbox" data-role="renotify" class="w-4 h-4 accent-indigo-600"> إشعار المقيمين بالموعد الجديد</label>` : ''}
+            ${open ? `<label class="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-300"><input type="checkbox" data-role="renotify" class="w-4 h-4 accent-indigo-600"> إشعار ${who()} بالموعد الجديد</label>` : ''}
             <div class="flex flex-wrap gap-2">
-                <button type="button" data-act="open" class="flex-1 px-4 py-2.5 rounded-xl text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition flex items-center justify-center gap-1.5"><i class="fas ${open ? 'fa-clock-rotate-left' : 'fa-paper-plane'}"></i> ${open ? 'حفظ الموعد الجديد' : 'تفعيل البوابة وإشعار المقيمين'}</button>
+                <button type="button" data-act="open" class="flex-1 px-4 py-2.5 rounded-xl text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition flex items-center justify-center gap-1.5"><i class="fas ${open ? 'fa-clock-rotate-left' : 'fa-paper-plane'}"></i> ${open ? 'حفظ الموعد الجديد' : 'تفعيل البوابة وإشعار ' + who()}</button>
                 ${open ? '<button type="button" data-act="close-now" class="px-4 py-2.5 rounded-xl text-xs font-black text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition flex items-center gap-1.5"><i class="fas fa-lock"></i> إغلاق الآن</button>' : ''}
                 <button type="button" data-act="summary" class="px-4 py-2.5 rounded-xl text-xs font-black text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-50 transition flex items-center gap-1.5"><i class="fas fa-list-check"></i> ملخص الطلبات</button>
             </div>
@@ -251,7 +253,7 @@
         });
         const closeNow = card.querySelector('[data-act="close-now"]');
         if (closeNow) closeNow.addEventListener('click', async () => {
-            if (!confirm('إغلاق البوابة الآن؟ لن يتمكن المقيمون من إرسال أو تعديل رغباتهم بعد ذلك.')) return;
+            if (!confirm('إغلاق البوابة الآن؟ لن يتمكن ' + (rotEr() ? 'الدوريون' : 'الأقدمون') + ' من إرسال أو تعديل رغباتهم بعد ذلك.')) return;
             closeNow.disabled = true;
             try {
                 await Hub().api('POST', '/api/er-portal/close', { hosp: per.hosp, ym: open.ym }, { retries: 0 });
@@ -290,7 +292,7 @@
         let ym = ymWanted;
         const load = async (quiet) => {
             if (!quiet) {
-                card.innerHTML = head('fa-list-check', 'ملخص طلبات رغبات المقيمين', esc(hospitalName(per.hosp)), 'er-portal-summary-modal') + '<div class="p-5 text-xs text-slate-500">جاري التحميل…</div>';
+                card.innerHTML = head('fa-list-check', 'ملخص طلبات رغبات ' + who(), esc(hospitalName(per.hosp)), 'er-portal-summary-modal') + '<div class="p-5 text-xs text-slate-500">جاري التحميل…</div>';
                 bindClose(card);
             }
             let res;
@@ -302,7 +304,7 @@
                 return;
             }
             if (!res || !res.ym) {
-                card.innerHTML = head('fa-list-check', 'ملخص طلبات رغبات المقيمين', esc(hospitalName(per.hosp)), 'er-portal-summary-modal')
+                card.innerHTML = head('fa-list-check', 'ملخص طلبات رغبات ' + who(), esc(hospitalName(per.hosp)), 'er-portal-summary-modal')
                     + `<div class="p-6 text-center text-xs text-slate-500">لم تُفتح أي بوابة لهذا المستشفى بعد.<br><button type="button" data-act="ctl" class="mt-3 px-4 py-2 rounded-xl text-xs font-black text-white bg-indigo-600">فتح البوابة</button></div>`;
                 bindClose(card);
                 card.querySelector('[data-act="ctl"]').addEventListener('click', () => { close('er-portal-summary-modal'); openControl(); });
@@ -317,7 +319,7 @@
             const isIn = r => sameMonth ? inDatabase(r, st.residents) : !!(r.appliedAt && r.appliedAt >= r.at);
             const applied = res.requests.filter(isIn).length;
             const scrollY = card.lastElementChild ? card.lastElementChild.scrollTop : 0;
-            card.innerHTML = head('fa-list-check', 'ملخص طلبات رغبات المقيمين', `${esc(hospitalName(per.hosp))} · ${esc(monthTitle(res.ym))}`, 'er-portal-summary-modal') + `
+            card.innerHTML = head('fa-list-check', 'ملخص طلبات رغبات ' + who(), `${esc(hospitalName(per.hosp))} · ${esc(monthTitle(res.ym))}`, 'er-portal-summary-modal') + `
                 <div class="p-4 sm:p-5 space-y-4 text-xs overflow-y-auto flex-1">
                     <div class="flex flex-wrap items-center gap-2 justify-between">
                         <div class="flex items-center gap-2">

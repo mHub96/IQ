@@ -269,7 +269,7 @@
                 <div class="hst-grid four" style="margin-top:6px">
                     <div class="hst-kpi"><small>الحسابات الفعّالة</small><b>${fmt(a.active)}</b><span>${plus(a.new7)} هذا الأسبوع · ${plus(a.new30)} هذا الشهر</span></div>
                     <div class="hst-kpi"><small>النشطون</small><b>${fmt(a.dau)}</b><span>اليوم · ${fmt(a.wau)} الأسبوع · ${fmt(a.mau)} الشهر</span></div>
-                    <div class="hst-kpi"><small>المقيمون لديهم حسابات</small><b>${cov}%</b><span>${fmt(r.linked)} من ${fmt(r.active)} مقيماً في القاعدة</span><div class="hst-bar"><i style="width:${cov}%"></i></div></div>
+                    <div class="hst-kpi"><small>الأقدمون لديهم حسابات</small><b>${cov}%</b><span>${fmt(r.linked)} من ${fmt(r.active)} مقيماً في القاعدة</span><div class="hst-bar"><i style="width:${cov}%"></i></div></div>
                     <a class="hst-kpi link ${a.pending ? 'warn' : ''}" href="./account.html#manage"><small>بانتظار الموافقة</small><b>${fmt(a.pending)}</b><span>${a.pending ? 'افتح طلبات الحسابات ←' : 'لا طلبات معلقة ✓'}</span></a>
                 </div>
                 <div class="hst-sec">التفاعل خلال 30 يوماً <small>مقارنة بالثلاثين يوماً التي قبلها</small></div>
@@ -331,8 +331,8 @@
         if (a.pending) out.push(['warn', '⏳', `${a.pending} طلب حساب بانتظار الموافقة. الرد السريع يرفع نسبة التسجيل.`]);
         if (cov < 60) {
             const low = (g.hospitals || []).filter(h => h.residents >= 10).sort((p, q) => pct(p.linked, p.residents) - pct(q.linked, q.residents))[0];
-            out.push(['idea', '👥', `${cov}% فقط من المقيمين في القاعدة لديهم حسابات${low ? `؛ أقلّها ${esc(low.name)} (${pct(low.linked, low.residents)}%)` : ''}. حملة تسجيل هناك (رسالة في مجموعة المستشفى مع رابط التسجيل) هي أسرع طريق للنمو.`]);
-        } else out.push(['good', '✅', `${cov}% من المقيمين في القاعدة لديهم حسابات.`]);
+            out.push(['idea', '👥', `${cov}% فقط من الأقدمين في القاعدة لديهم حسابات${low ? `؛ أقلّها ${esc(low.name)} (${pct(low.linked, low.residents)}%)` : ''}. حملة تسجيل هناك (رسالة في مجموعة المستشفى مع رابط التسجيل) هي أسرع طريق للنمو.`]);
+        } else out.push(['good', '✅', `${cov}% من الأقدمين في القاعدة لديهم حسابات.`]);
         const dormant = b.recency.older || 0;
         if (dormant) out.push(['idea', '💤', `${dormant} حساباً لم يُفتح منذ أكثر من 90 يوماً. تذكير أو إشعار بميزة جديدة قد يعيدهم.`]);
         if (a.mau) {
@@ -359,7 +359,7 @@
         }
         const stages = Object.entries(b.stages).filter(([k]) => k !== 'n/a');
         const unset = (b.stages.unset || 0), resTotal = stages.reduce((x, [, v]) => x + v, 0);
-        if (resTotal && pct(unset, resTotal) > 30) out.push(['idea', '🎓', `${pct(unset, resTotal)}% من حسابات المقيمين بلا مرحلة بورد؛ إحصائية المقيمين تحتاجها. تذكير بإكمال الملف الشخصي يحسّنها.`]);
+        if (resTotal && pct(unset, resTotal) > 30) out.push(['idea', '🎓', `${pct(unset, resTotal)}% من حسابات الأقدمين بلا مرحلة بورد؛ إحصائية الأقدمين تحتاجها. تذكير بإكمال الملف الشخصي يحسّنها.`]);
         const inter = ['comments', 'likes', 'contacts', 'statuses'].reduce((x, k) => x + s.activity[k].now, 0);
         const interPrev = ['comments', 'likes', 'contacts', 'statuses'].reduce((x, k) => x + s.activity[k].prev, 0);
         if (interPrev) {
@@ -399,7 +399,7 @@
                     <div class="hst-kpi"><small>الحسابات الفعّالة</small><b>${fmt(a.active)}</b><span>${plus(signupsTotal)} خلال المدة</span></div>
                     <div class="hst-kpi"><small>نشطون هذا الشهر</small><b>${fmt(a.mau)}</b><span>${pct(a.mau, a.active)}% من الحسابات</span></div>
                     <div class="hst-kpi"><small>نشطون هذا الأسبوع</small><b>${fmt(a.wau)}</b><span>${fmt(a.dau)} اليوم</span></div>
-                    <div class="hst-kpi"><small>المقيمون لديهم حسابات</small><b>${pct(s.residents.linked, s.residents.active)}%</b><span>${fmt(s.residents.linked)} من ${fmt(s.residents.active)}</span></div>
+                    <div class="hst-kpi"><small>الأقدمون لديهم حسابات</small><b>${pct(s.residents.linked, s.residents.active)}%</b><span>${fmt(s.residents.linked)} من ${fmt(s.residents.active)}</span></div>
                 </div>
                 <div class="hst-sec">💡 ملاحظات للتطوير</div><ul class="hst-notes" data-role="notes"></ul>
                 <div class="hst-sec">النمو</div>
@@ -417,7 +417,7 @@
                 <div class="hst-grid"><div class="hst-card"><h4>المراحل</h4><div data-role="stages"></div></div><div class="hst-card"><h4>آخر ظهور</h4><div data-role="recency"></div></div></div>
                 <div class="hst-grid"><div class="hst-card"><h4>الجنس</h4><div data-role="sex"></div></div><div class="hst-card"><h4>لغة الاسم المستعار</h4><div data-role="lang"></div></div></div>
                 <div class="hst-sec">المستشفيات</div>
-                <div class="hst-card"><div class="hst-scroll" data-role="hosp"></div><div class="hst-note">التغطية: نسبة المقيمين الفعّالين في قاعدة المستشفى الذين لديهم حسابات. النشاط: نشطو الشهر من حسابات المستشفى.</div></div>
+                <div class="hst-card"><div class="hst-scroll" data-role="hosp"></div><div class="hst-note">التغطية: نسبة الأقدمين الفعّالين في قاعدة المستشفى الذين لديهم حسابات. النشاط: نشطو الشهر من حسابات المستشفى.</div></div>
                 <div class="hst-card"><h4>الإشعارات المرسلة <small>آخر 30 يوماً، حسب النوع</small></h4><div data-role="notifs"></div></div>
                 <a class="hst-more" href="./account.html#manage-stats" style="background:linear-gradient(135deg,#30b158,#2bb3c0);box-shadow:0 6px 18px rgba(48,177,88,.25);text-decoration:none"><i class="fas fa-database"></i><span><b>استهلاك قاعدة البيانات اليوم</b><small>القراءات والكتابات والطلبات مقابل الحد المجاني اليومي</small></span><i class="fas fa-chevron-left"></i></a>`;
             root.querySelectorAll('[data-d]').forEach(b2 => b2.addEventListener('click', () => { days = Number(b2.dataset.d); paint(); }));

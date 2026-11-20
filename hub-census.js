@@ -103,12 +103,12 @@
         const count = (rows, board) => rows.filter(r => board === null ? !r.board : r.board === board).length;
         const allRows = list.flatMap(g => g.rows);
         const stages = [...new Set(allRows.map(r => r.stage).filter(s => s != null))].sort((a, b) => b - a);
-        return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>إحصائية الأطباء المقيمين · ${esc(hospName)}</title>
+        return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>إحصائية الأطباء الأقدمين · ${esc(hospName)}</title>
 <style>
 @font-face { font-family: 'Amiri'; src: url('${font('Amiri-Regular.ttf')}') format('truetype'); font-weight: 400; }
 @font-face { font-family: 'Amiri'; src: url('${font('Amiri-Bold.ttf')}') format('truetype'); font-weight: 700; }
 @page { size: A4 ${lay.orient}; margin: 12mm 12mm 16mm;
-  @bottom-right { content: ${cssText('إحصائية الأطباء المقيمين · ' + hospName)}; font-family: 'Amiri', serif; font-size: 8.5pt; color: #666; vertical-align: top; padding-top: 3mm; }
+  @bottom-right { content: ${cssText('إحصائية الأطباء الأقدمين · ' + hospName)}; font-family: 'Amiri', serif; font-size: 8.5pt; color: #666; vertical-align: top; padding-top: 3mm; }
   @bottom-center { content: ${cssText('طُبعت في ' + dateText)}; font-family: 'Amiri', serif; font-size: 8.5pt; color: #666; vertical-align: top; padding-top: 3mm; }
   @bottom-left { content: "صفحة " counter(page) " من " counter(pages); font-family: 'Amiri', serif; font-size: 8.5pt; color: #666; vertical-align: top; padding-top: 3mm; }
 }
@@ -148,7 +148,7 @@ tbody tr:nth-child(even) td { background: #f7f9fb; }
 </style></head><body>
 <div class="head">
     <div class="gov"><span>جمهورية العراق</span>وزارة الصحة<br>${esc(hospName)}</div>
-    <div class="title"><h1>إحصائية الأطباء المقيمين</h1><div>حسب الاختصاص · المرحلة · نوع البورد</div></div>
+    <div class="title"><h1>إحصائية الأطباء الأقدمين</h1><div>حسب الاختصاص · المرحلة · نوع البورد</div></div>
     <div class="ref"><b>التاريخ:</b> ${esc(dateText)}<br><b>العدد الكلي:</b> ${total} طبيباً مقيماً<br><b>عدد الاختصاصات:</b> ${list.length}${printedBy ? `<br><b>أعدّها:</b> ${esc(printedBy)}` : ''}</div>
 </div>
 
@@ -157,10 +157,10 @@ ${o.summary ? `<h2>أولاً: الخلاصة</h2>
 <tbody>${list.map(g => `<tr><td>${esc(g.name)}</td><td>${g.rows.length}</td>${o.board ? `<td>${count(g.rows, 'iraqi') || '—'}</td><td>${count(g.rows, 'arab') || '—'}</td><td>${count(g.rows, 'other') || '—'}</td><td>${count(g.rows, 'none') || '—'}</td><td>${count(g.rows, null) || '—'}</td>` : ''}</tr>`).join('')}</tbody>
 <tfoot><tr><td>المجموع</td><td>${total}</td>${o.board ? `<td>${count(allRows, 'iraqi')}</td><td>${count(allRows, 'arab')}</td><td>${count(allRows, 'other')}</td><td>${count(allRows, 'none')}</td><td>${count(allRows, null)}</td>` : ''}</tr></tfoot></table>
 ${o.stage && stages.length ? `<table class="summary" style="margin-top:6pt"><thead><tr><th>المرحلة</th>${stages.map(s => `<th>${esc(STAGES[s] || s)}</th>`).join('')}<th>غير محددة</th></tr></thead>
-<tbody><tr><td>عدد المقيمين</td>${stages.map(s => `<td>${allRows.filter(r => r.stage === s).length}</td>`).join('')}<td>${allRows.filter(r => r.stage == null).length}</td></tr></tbody></table>` : ''}
-<p class="note">الترتيب داخل كل اختصاص: المرحلة (الأعلى أولاً)، ثم نوع البورد (العراقي، العربي، الآخر)، ثم الاسم أبجدياً. نوع البورد والمرحلة من الملفات الشخصية لحسابات المقيمين في الموقع؛ ويظهر «غير محدد» لمن لا يملك حساباً أو لم يُكمل ملفه.${inactive ? ` لا تشمل الإحصائية ${inactive} من المقيمين غير الفعّالين.` : ''}</p>
+<tbody><tr><td>عدد الأقدمين</td>${stages.map(s => `<td>${allRows.filter(r => r.stage === s).length}</td>`).join('')}<td>${allRows.filter(r => r.stage == null).length}</td></tr></tbody></table>` : ''}
+<p class="note">الترتيب داخل كل اختصاص: المرحلة (الأعلى أولاً)، ثم نوع البورد (العراقي، العربي، الآخر)، ثم الاسم أبجدياً. نوع البورد والمرحلة من الملفات الشخصية لحسابات الأقدمين في الموقع؛ ويظهر «غير محدد» لمن لا يملك حساباً أو لم يُكمل ملفه.${inactive ? ` لا تشمل الإحصائية ${inactive} من الأقدمين غير الفعّالين.` : ''}</p>
 ` : ''}
-<h2>${o.summary ? 'ثانياً: ' : ''}قوائم المقيمين حسب الاختصاص</h2>
+<h2>${o.summary ? 'ثانياً: ' : ''}قوائم الأقدمين حسب الاختصاص</h2>
 ${list.map(g => `
 <h2 class="spec">${g.icon ? esc(g.icon) + ' ' : ''}${esc(g.name)}<small>${g.rows.length} ${g.rows.length === 1 ? 'مقيم' : 'مقيمين'}</small></h2>
 <table class="list">${lay.colgroup}<thead><tr><th>ت</th><th>الاسم</th>${o.board ? '<th>نوع البورد</th>' : ''}${o.stage ? '<th>المرحلة</th>' : ''}${o.specialty ? '<th>اختصاص البورد</th>' : ''}${o.phone ? '<th>رقم الهاتف</th>' : ''}${o.notes ? '<th class="blank">ملاحظات</th>' : ''}${o.signCol ? '<th class="blank">التوقيع</th>' : ''}</tr></thead>
@@ -217,8 +217,8 @@ ${o.sign ? '<div class="sign"><div>مسؤول الأطباء المقيمين<sm
         const item = o => `<label class="hcen-opt ${opts[o.key] ? 'on' : ''}"><input type="checkbox" data-k="${o.key}" ${opts[o.key] ? 'checked' : ''}><span>${esc(o.label)}${o.hint ? `<small>${esc(o.hint)}</small>` : ''}</span></label>`;
         const back = document.createElement('div');
         back.className = 'hcen-back';
-        back.innerHTML = `<div class="hcen" role="dialog" aria-modal="true" aria-label="خيارات إحصائية المقيمين">
-            <div class="hcen-head"><i class="fas fa-file-pdf"></i><div><b>إحصائية المقيمين (PDF)</b><small>اختر البيانات التي تظهر في الإحصائية</small></div></div>
+        back.innerHTML = `<div class="hcen" role="dialog" aria-modal="true" aria-label="خيارات إحصائية الأقدمين">
+            <div class="hcen-head"><i class="fas fa-file-pdf"></i><div><b>إحصائية الأقدمين (PDF)</b><small>اختر البيانات التي تظهر في الإحصائية</small></div></div>
             <div class="hcen-sec">الأعمدة</div>
             <div class="hcen-fixed">التسلسل واسم المقيم يظهران دائماً.</div>
             <div class="hcen-list">${OPTIONS.filter(o => !o.section).map(item).join('')}</div>
@@ -245,7 +245,7 @@ ${o.sign ? '<div class="sign"><div>مسؤول الأطباء المقيمين<sm
     /** Builds and prints the census of `hospId` with the chosen columns (the print dialog saves it as PDF). */
     async function make(hospId, toast = () => {}, opts = DEFAULTS) {
         if (!hospId) return;
-        toast('جاري تجهيز إحصائية المقيمين…', 'info');
+        toast('جاري تجهيز إحصائية الأقدمين…', 'info');
         let profiles = [];
         try { profiles = (await Hub.api('GET', '/api/accounts/census?h=' + encodeURIComponent(hospId), undefined, { retries: 1 })).profiles || []; }
         catch (e) { toast('تعذر جلب معلومات البورد من الخادم: تُطبع الإحصائية بدونها.', 'error'); }

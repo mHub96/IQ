@@ -1481,9 +1481,9 @@
             <i class="fas fa-user-tie"></i>
             <span>الاختصاص</span>
         </a>
-        <a href="./residents.html" class="dock-tab-btn" id="dock-link-residents" title="دليل المقيمين">
+        <a href="./residents.html" class="dock-tab-btn" id="dock-link-residents" title="دليل الأقدمين">
             <i class="fas fa-address-book"></i>
-            <span>المقيمين</span>
+            <span>الأقدمين</span>
         </a>
         <a href="./signup.html" class="dock-tab-btn" id="dock-link-signup" title="تبديل الخفارات">
             <i class="fas fa-calendar-check"></i>
@@ -1639,7 +1639,7 @@
             <div class="mb-3">
                 <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">رمز التخصص (ID)</label>
                 <input type="text" id="global-spec-id" class="hub-input font-mono text-left" dir="ltr" maxlength="12" placeholder="e.g. GS" autocomplete="off" spellcheck="false" />
-                <p class="text-[10.5px] text-slate-500 dark:text-slate-400 mt-1">أحرف إنجليزية وأرقام. تغيير الرمز يُطبَّق على كل بيانات الموقع: المستشفيات والمقيمين والخفارات والأخصائيين وطلبات التبديل.</p>
+                <p class="text-[10.5px] text-slate-500 dark:text-slate-400 mt-1">أحرف إنجليزية وأرقام. تغيير الرمز يُطبَّق على كل بيانات الموقع: المستشفيات والأقدمين والخفارات والأخصائيين وطلبات التبديل.</p>
             </div>
 
             <div class="space-y-3">
@@ -1741,7 +1741,7 @@
                 <div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                         <label id="hub-pwd-user-label" style="font-size:0.78rem; font-weight:700; color:#3B4542;">كلمة مرور المستخدم العادي</label>
-                        <span id="hub-pwd-user-hint" style="font-size:0.68rem; color:#6E7B76;">(تصفح، تبديل، دليل المقيمين)</span>
+                        <span id="hub-pwd-user-hint" style="font-size:0.68rem; color:#6E7B76;">(تصفح، تبديل، دليل الأقدمين)</span>
                     </div>
                     <div style="position:relative;">
                         <input type="text" id="hub-pwd-user" placeholder="كلمة المرور" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #C5CFCA; font-family:monospace; font-size:0.95rem; text-align:center; color:#202927; background:#ffffff;" />
@@ -1765,7 +1765,7 @@
                 <div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                         <label id="hub-pwd-admin-label" style="font-size:0.78rem; font-weight:700; color:#3B4542;">كلمة مرور المدير / المشرف</label>
-                        <span id="hub-pwd-admin-hint" style="font-size:0.68rem; color:#6E7B76;">(إدارة المقيمين، المجدول)</span>
+                        <span id="hub-pwd-admin-hint" style="font-size:0.68rem; color:#6E7B76;">(إدارة الأقدمين، المجدول)</span>
                     </div>
                     <div style="position:relative;">
                         <input type="text" id="hub-pwd-admin" placeholder="كلمة المرور" style="width:100%; padding:9px 36px 9px 12px; border-radius:10px; border:1px solid #C5CFCA; font-family:monospace; font-size:0.95rem; text-align:center; color:#202927; background:#ffffff;" />
@@ -1873,7 +1873,7 @@
                                     <h4 class="role-title">مدير مستشفى (Admin)</h4>
                                     <span id="tag-active-admin" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-bold" style="font-size:0.68rem; padding:2px 8px; border-radius:999px; background:rgba(11, 122, 110,0.15); color:#0B7A6E; font-weight:800;">نشط حالياً ✓</span>
                                 </div>
-                                <p class="role-desc">إدارة وتعديل جداول الخفارات للمقيمين والاختصاصيين وتعديل الأطباء</p>
+                                <p class="role-desc">إدارة وتعديل جداول الخفارات للأقدمين والاختصاصيين وتعديل الأطباء</p>
                             </div>
                         </div>
                     </div>
@@ -3751,7 +3751,7 @@
             });
 
             // A new code is carried through all the site's data: say so first.
-            if (origId && id !== origId && !confirm(`تغيير رمز التخصص من «${origId}» إلى «${id}»؟\n\nسيُغيَّر الرمز في كل المستشفيات وسجلات المقيمين وجداول الخفارات ودليل الأخصائيين وطلبات التبديل المفتوحة.`)) return;
+            if (origId && id !== origId && !confirm(`تغيير رمز التخصص من «${origId}» إلى «${id}»؟\n\nسيُغيَّر الرمز في كل المستشفيات وسجلات الأقدمين وجداول الخفارات ودليل الأخصائيين وطلبات التبديل المفتوحة.`)) return;
             closeGlobalSpecEditModal();
 
             try {

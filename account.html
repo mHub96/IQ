@@ -653,7 +653,7 @@
             { id: 'admins', title: 'المدراء', icon: 'fa-user-shield', has: r => r === 'owner' || r === 'admin' },
             { id: 'branch', title: 'مدراء الفروع', icon: 'fa-users-gear', has: r => r === 'branch' },
             { id: 'anaesthesia', title: 'مقيمو التخدير', icon: 'fa-syringe', has: r => r === 'anaesthesia' },
-            { id: 'user', title: 'المقيمون', icon: 'fa-user-doctor', has: r => r === 'user' },
+            { id: 'user', title: 'الأقدمون', icon: 'fa-user-doctor', has: r => r === 'user' },
             { id: 'rotator', title: 'الروتيترز', icon: 'fa-rotate', has: r => r === 'rotator' },
             { id: 'officers', title: 'الشؤون الإدارية', icon: 'fa-building', has: r => OFFICER_ROLES.includes(r) },
         ];
@@ -1447,7 +1447,7 @@
                 const sheet = HubAccounts.openSheet(`<div class="hacc-center move-dlg">
                         <div class="hacc-big-icon">🏥</div>
                         <h2>${esc(a.name)} غير موجود في قاعدة ${esc(hospitalName(to))}</h2>
-                        <p class="hacc-muted">لم نجد اسمه بين مقيمي ${esc(hospitalName(to))}. ${rec ? `سجلّه الآن في: ${esc((rec.hospitals || []).map(hospitalName).join('، ') || '—')}.` : 'حسابه غير مرتبط بسجل في قاعدة المقيمين.'}</p>
+                        <p class="hacc-muted">لم نجد اسمه بين مقيمي ${esc(hospitalName(to))}. ${rec ? `سجلّه الآن في: ${esc((rec.hospitals || []).map(hospitalName).join('، ') || '—')}.` : 'حسابه غير مرتبط بسجل في قاعدة الأقدمين.'}</p>
                         <div class="move-acts">
                             ${rec ? `<button type="button" class="hacc-btn primary btn-block" data-move="record"><i class="fas fa-right-left"></i> نقل سجله إلى ${esc(hospitalName(to))} أيضاً</button>` : ''}
                             <button type="button" class="hacc-btn btn-block" data-move="account">تغيير مستشفى الحساب فقط</button>
@@ -1632,7 +1632,7 @@
             try { month = (await Hub.api('GET', '/api/accounts/stage-month', undefined, { retries: 1 })).month; } catch (e) {}
             $('mg-list').innerHTML = `<div class="card">
                 <h2>ترقية المراحل السنوية</h2>
-                <p class="lead">في اليوم الأول من هذا الشهر من كل عام ترتفع مرحلة كل المقيمين في كل المستشفيات مرحلةً واحدة، حتى السنة الأخيرة من البورد. يمكنك دائماً تعديل مرحلة أي مقيم يدوياً من بطاقته.</p>
+                <p class="lead">في اليوم الأول من هذا الشهر من كل عام ترتفع مرحلة كل الأقدمين في كل المستشفيات مرحلةً واحدة، حتى السنة الأخيرة من البورد. يمكنك دائماً تعديل مرحلة أي مقيم يدوياً من بطاقته.</p>
                 <div class="limit-row">
                     <select id="sys-month">${MONTHS.slice(1).map((m, i) => `<option value="${i + 1}" ${i + 1 === month ? 'selected' : ''}>${m}</option>`).join('')}</select>
                     <button class="hacc-btn primary" id="sys-month-save">حفظ</button>
@@ -1714,7 +1714,7 @@
                     ${adminProfile ? `<div data-role="profile"><h4>معلومات البورد</h4>
                         <div class="pf-grid">${boardFields}</div>
                         <button class="hacc-btn primary sm" data-act="set_profile" style="margin-top:8px">حفظ معلومات البورد</button></div>` : ''}
-                    ${isOwner && a.status !== 'pending' && a.role === 'rotator' && roleChoices.length < 2 ? '<div><h4>الصلاحية</h4><p class="hacc-muted" style="margin:6px 0 0;font-size:.78rem">🔄 سجّل روتيتر من البداية (غير مرتبط بقاعدة المقيمين): لا يمكن تغيير نوع حسابه.</p></div>' : ''}
+                    ${isOwner && a.status !== 'pending' && a.role === 'rotator' && roleChoices.length < 2 ? '<div><h4>الصلاحية</h4><p class="hacc-muted" style="margin:6px 0 0;font-size:.78rem">🔄 سجّل روتيتر من البداية (غير مرتبط بقاعدة الأقدمين): لا يمكن تغيير نوع حسابه.</p></div>' : ''}
                     ${isOwner && a.status !== 'pending' && roleChoices.length > 1 && !accessEditable(a) ? `<div><h4>الصلاحية</h4>
                         <select data-role="role" style="margin-top:6px">${roleChoices.map(r => `<option value="${r}" ${a.role === r ? 'selected' : ''}>${esc(ROLE_NAMES[r])}</option>`).join('')}</select>
                         <div class="hosp-pick" data-role="hosps" style="margin-top:8px" ${['admin', 'anaesthesia'].includes(a.role) ? '' : 'hidden'}>
@@ -1765,7 +1765,7 @@
                     <div style="min-width:0;flex:1"><div class="acc-name">${esc(a.name)}
                         <span class="badge ${esc(a.status)}">${esc(statusText)}</span>${devBadge(a)}${a.role !== 'user' ? `<span class="badge role">${esc(ROLE_NAMES[a.role] || a.role)}</span>` : ''}${a.reset === 'requested' ? '<span class="badge pending">طلب كلمة مرور</span>' : ''}${a.max_devices ? `<span class="badge role">🔒 ${esc(limitText(a.max_devices))}</span>` : ''}${a.no_comment ? '<span class="badge disabled">🚫 ممنوع من التعليق</span>' : ''}${a.warnings ? `<span class="badge pending">⚠️ ${a.warnings === 1 ? 'تحذير واحد' : a.warnings === 2 ? 'تحذيران' : a.warnings + ' تحذيرات'}</span>` : ''}</div>
                     <div class="acc-sub"><span dir="ltr">@${esc(a.username)}</span> · ${esc(SEX[a.sex] || '')} · ${esc(hospitalName(a.hosp))}${a.phone ? ` · <a href="tel:${esc(localPhone(a.phone))}" dir="ltr">${esc(localPhone(a.phone))}</a>` : ''}</div>
-                    ${a.role === 'rotator' ? '<div class="acc-sub">🔄 روتيتر: تصفح الموقع والتواصل مع المقيمين، وتبديل خفارات الروتيشن في مستشفاه فقط.</div>'
+                    ${a.role === 'rotator' ? '<div class="acc-sub">🔄 روتيتر: تصفح الموقع والتواصل مع الأقدمين، وتبديل خفارات الروتيشن في مستشفاه فقط.</div>'
                         : officer ? `<div class="acc-sub">🏢 الشؤون الإدارية · ${esc(a.aa_job_name || '')}${a.resident_id ? ' · ✓ موجود في قاعدة البيانات' : ''}</div>${a.status === 'pending' && !a.resident_id ? '<div class="acc-sub" style="color:#b45309">⚠️ غير موجود في قاعدة بيانات الشؤون الإدارية: عند الموافقة يُضاف تحت العنوان الوظيفي الذي اختاره.</div>' : ''}`
                         : `<div class="acc-sub">${profileLine(a)}</div>`}
                     ${accessLine(a)}
@@ -1931,7 +1931,7 @@
                 loadPendingCounts();
             } catch (err) {
                 btn.disabled = false;
-                toast(({ no_specialty: 'اختر اختصاص مدير الفرع.', rotator_fixed: 'سجّل روتيتر من البداية (غير مرتبط بقاعدة المقيمين): لا يمكن تغيير نوع حسابه.' })[err && err.data && err.data.error] || errorText(err), 'error');
+                toast(({ no_specialty: 'اختر اختصاص مدير الفرع.', rotator_fixed: 'سجّل روتيتر من البداية (غير مرتبط بقاعدة الأقدمين): لا يمكن تغيير نوع حسابه.' })[err && err.data && err.data.error] || errorText(err), 'error');
                 fillAccess(card);
             }
         }
@@ -1995,7 +1995,7 @@
                 mute: `منع ${a.name} من التعليق؟ سيبقى قادراً على تصفح الموقع والإعجاب.`,
                 remove_device: 'إلغاء ربط هذا الجهاز؟ سيتم تسجيل خروجه فوراً.',
                 reset_devices: `إلغاء ربط كل أجهزة ${a.name}؟ سيتم تسجيل خروجه منها.`,
-                set_role: body.role !== a.role ? `تغيير صلاحية ${a.name} إلى «${ROLE_NAMES[body.role]}»؟${body.role === 'admin' && !Hub.auth.isOwner() ? '\n\nسيدير حسابات مستشفاه مثلك.' : ''}${body.role === 'rotator' ? '\n\nسيتصفح الموقع ويتواصل مع المقيمين، ويبدّل خفارات الروتيشن (تخصص المقيم الدوري وفروعه) في مستشفاه فقط، ولا تُنسب إليه بطاقات الخفارات وتعليقاتها، ولا جدولي ولا معلومات بورد. يمكن إعادته مقيماً لاحقاً.' : ''}` : null,
+                set_role: body.role !== a.role ? `تغيير صلاحية ${a.name} إلى «${ROLE_NAMES[body.role]}»؟${body.role === 'admin' && !Hub.auth.isOwner() ? '\n\nسيدير حسابات مستشفاه مثلك.' : ''}${body.role === 'rotator' ? '\n\nسيتصفح الموقع ويتواصل مع الأقدمين، ويبدّل خفارات الروتيشن (تخصص المقيم الدوري وفروعه) في مستشفاه فقط، ولا تُنسب إليه بطاقات الخفارات وتعليقاتها، ولا جدولي ولا معلومات بورد. يمكن إعادته مقيماً لاحقاً.' : ''}` : null,
                 set_profile: !Hub.auth.isOwner() ? `حفظ معلومات البورد لـ ${a.name}؟ ستظهر في ملفه وفي خفارات الطوارئ.` : null,
                 approve: body.role && body.role !== 'user' && body.role !== a.role ? `الموافقة على ${a.name} بصلاحية «${ROLE_NAMES[body.role]}»؟` : null,
             }[action];

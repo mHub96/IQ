@@ -99,7 +99,7 @@
         let query = '';
         const sheet = HubAccounts.openSheet(`<header class="hacc-sheet-head"><h2>رئيس الأطباء ورديفه</h2></header>
             <div class="hacc-sheet-body hch-edit">
-                <p class="hacc-muted">يظهر زر «رئيس الأطباء» على بطاقة المستشفى في الصفحة الرئيسية ليتواصل معهم الجميع. الأسماء والأرقام من قائمة المقيمين.</p>
+                <p class="hacc-muted">يظهر زر «رئيس الأطباء» على بطاقة المستشفى في الصفحة الرئيسية ليتواصل معهم الجميع. الأسماء والأرقام من قائمة الأقدمين.</p>
                 <div data-role="current"></div>
                 <label class="hch-search"><i class="fas fa-magnifying-glass"></i><input type="search" data-role="q" placeholder="ابحث عن مقيم بالاسم…" autocomplete="off"></label>
                 <ul class="hch-pick" data-role="pick"></ul>

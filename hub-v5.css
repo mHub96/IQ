@@ -1002,6 +1002,7 @@ html.er-rot [data-ers-tab="con"], html.er-rot [data-ers-tab="dc"],
 html.er-rot [data-ers-tab="rs_er"], html.er-rot [data-ers-tab="rs_wards"],
 html.er-rot .duty-card[onclick="switchTab('con')"], html.er-rot .duty-card[onclick="switchTab('dc')"],
 html.er-rot .duty-card[onclick="switchTab('rs_er')"] { display: none !important; }
+html.er-rot button[onclick="toggleRotatorsStrike()"], html.er-rot #rs-settings-bar, html.er-rot .rs-dot-badge { display: none !important; }
 .ers-system {
   display: flex; gap: 4px; margin: 4px 14px 10px; padding: 4px; border-radius: 14px;
   background: var(--ds-fill); border: 1px solid var(--ds-line);

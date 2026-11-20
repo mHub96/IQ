@@ -96,7 +96,7 @@
                             <option value="surgical" ${dv.branch === 'surgical' ? 'selected' : ''}>الفروع الجراحية</option>
                             <option value="medical" ${dv.branch === 'medical' ? 'selected' : ''}>الفروع الباطنية</option>
                         </select>
-                        <select class="erst-in xs" data-div="count" data-shift="${shift}" data-sector="${sec.id}" data-j="${j}" title="عدد المقيمين">
+                        <select class="erst-in xs" data-div="count" data-shift="${shift}" data-sector="${sec.id}" data-j="${j}" title="عدد الأطباء">
                             ${[1, 2, 3, 4].map(c => `<option value="${c}" ${Number(dv.count) === c ? 'selected' : ''}>${c} ${c === 1 ? 'مقيم' : 'مقيمين'}</option>`).join('')}
                         </select>
                         ${e.divisions.length > 1 ? `<button type="button" class="erst-x" data-act="del-div" data-shift="${shift}" data-sector="${sec.id}" data-j="${j}" title="حذف الشعبة"><i class="fas fa-xmark"></i></button>` : ''}

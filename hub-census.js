@@ -205,6 +205,8 @@ ${o.sign ? '<div class="sign"><div>مسؤول الأطباء المقيمين<sm
     /** The options pop-up: which columns and sections the census carries (remembered on this device). */
     function print(hospId, toast = () => {}) {
         if (!hospId) return;
+        // The hospital's admins and the owner only.
+        if (!(window.Hub && Hub.auth && Hub.auth.isAdmin(hospId))) { toast('هذه الصلاحية لمدراء المستشفى فقط.', 'error'); return; }
         if (!document.getElementById('hcen-css')) {
             const st = document.createElement('style');
             st.id = 'hcen-css';

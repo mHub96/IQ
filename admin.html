@@ -556,23 +556,23 @@
                     <button type="button" id="admin-owner-heroes-btn" onclick="openAllRotationHeroesModal()" class="btn-ghost text-xs" style="display:none; color:#0284c7; border-color:rgba(2,132,199,0.4); background:rgba(2,132,199,0.08);">
                         <i class="fas fa-user-md text-sky-500"></i> روابط Rotation Heroes 👑
                     </button>
-                    <button type="button" onclick="openHospitalSettingsModal()" class="btn-ghost text-xs">
+                    <button type="button" onclick="openHospitalSettingsModal()" class="btn-ghost text-xs branch-hide">
                         <i class="fas fa-sliders"></i> إعدادات المستشفى
                     </button>
-                    <button type="button" onclick="openSpecialtiesModal()" class="btn-ghost text-xs">
+                    <button type="button" onclick="openSpecialtiesModal()" class="btn-ghost text-xs branch-hide">
                         <i class="fas fa-tags"></i> إدارة التخصصات
                     </button>
-                    <button type="button" onclick="HubChiefs.openEditor(currentHospital && currentHospital.id)" class="btn-ghost text-xs text-amber-800 dark:text-amber-200 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100" title="تعيين رئيس الأطباء ورديفه (يظهر للتواصل على بطاقة المستشفى)">
+                    <button type="button" onclick="HubChiefs.openEditor(currentHospital && currentHospital.id)" class="branch-hide btn-ghost text-xs text-amber-800 dark:text-amber-200 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100" title="تعيين رئيس الأطباء ورديفه (يظهر للتواصل على بطاقة المستشفى)">
                         <i class="fas fa-user-tie text-amber-600 dark:text-amber-400"></i> رئيس الأطباء ورديفه
                     </button>
-                    <button type="button" onclick="HubCensus.print(currentHospital && currentHospital.id, showToast)" class="btn-ghost text-xs text-sky-800 dark:text-sky-200 border-sky-300 dark:border-sky-700 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100" title="إحصائية رسمية بالأطباء الأقدمين (PDF): حسب الاختصاص، ثم المرحلة، ثم نوع البورد، ثم الاسم">
+                    <button type="button" onclick="HubCensus.print(currentHospital && currentHospital.id, showToast)" class="branch-hide btn-ghost text-xs text-sky-800 dark:text-sky-200 border-sky-300 dark:border-sky-700 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100" title="إحصائية رسمية بالأطباء الأقدمين (PDF): حسب الاختصاص، ثم المرحلة، ثم نوع البورد، ثم الاسم">
                         <i class="fas fa-file-pdf text-sky-700 dark:text-sky-300"></i> إحصائية الأقدمين (PDF)
                     </button>
                     <!-- Hospital Backup & Restore Buttons -->
-                    <button type="button" onclick="exportHospitalBackupFile()" class="btn-ghost text-xs text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100" title="تنزيل نسخة احتياطية كاملة للمستشفى الحالي (كافة التخصصات، الأقدمين، وهيكلية المستشفى)">
+                    <button type="button" onclick="exportHospitalBackupFile()" class="branch-hide btn-ghost text-xs text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100" title="تنزيل نسخة احتياطية كاملة للمستشفى الحالي (كافة التخصصات، الأقدمين، وهيكلية المستشفى)">
                         <i class="fas fa-download text-emerald-600 dark:text-emerald-400"></i> نسخ احتياطي للمستشفى
                     </button>
-                    <button type="button" onclick="triggerRestoreHospitalFilePicker()" class="btn-ghost text-xs text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100" title="استعادة بيانات وهيكلية وتخصصات ومقيمي المستشفى من ملف نسخة احتياطية">
+                    <button type="button" onclick="triggerRestoreHospitalFilePicker()" class="branch-hide btn-ghost text-xs text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100" title="استعادة بيانات وهيكلية وتخصصات ومقيمي المستشفى من ملف نسخة احتياطية">
                         <i class="fas fa-upload text-blue-600 dark:text-blue-400"></i> استعادة المستشفى
                     </button>
                     <input type="file" id="hosp-restore-file-input" accept=".json,application/json" onchange="handleHospitalBackupFileInput(event)" class="hidden" style="display:none;" />
@@ -586,10 +586,10 @@
                     </button>
                     <input type="file" id="full-system-restore-file-input" accept=".json,application/json" onchange="handleFullSystemBackupFileInput(event)" class="hidden" style="display:none;" />
 
-                    <button type="button" onclick="openImportModal()" class="btn-ghost text-xs" title="مركز خيارات النسخ الاحتياطي والاستيراد المتقدم">
+                    <button type="button" onclick="openImportModal()" class="btn-ghost text-xs branch-hide" title="مركز خيارات النسخ الاحتياطي والاستيراد المتقدم">
                         <i class="fas fa-file-import"></i> خيارات النسخ
                     </button>
-                    <button type="button" id="main-save-btn" onclick="saveToGitHub()" class="btn-gradient text-xs">
+                    <button type="button" id="main-save-btn" onclick="saveToGitHub()" class="btn-gradient text-xs branch-hide">
                         <i class="fas fa-cloud-upload-alt"></i> حفظ في السيرفر
                     </button>
                 </div>
@@ -2870,6 +2870,7 @@
         // SPECIALTIES MANAGEMENT (HOSPITAL & OWNER STORE)
         // ============================================================
         function openSpecialtiesModal() {
+            if (branchMode) return; // the hospital's admins and the owner only (not branch managers or the chief of rotators)
             renderSpecialtiesList();
             const hospOwnerStoreBtn = document.getElementById('hosp-modal-owner-store-btn');
             if (hospOwnerStoreBtn) {
@@ -4003,6 +4004,7 @@
         // HOSPITAL SETTINGS MODAL
         // ============================================================
         function openHospitalSettingsModal() {
+            if (branchMode) return; // the hospital's admins and the owner only (not branch managers or the chief of rotators)
             document.getElementById('hosp-setting-name-ar').value = currentHospital.name_ar || currentHospital.hospitalName;
             document.getElementById('hosp-setting-name-en').value = currentHospital.hospitalName;
             document.getElementById('hosp-setting-location').value = currentHospital.location || 'Basra · Iraq';
@@ -4219,6 +4221,7 @@
         // HOSPITAL BACKUP & RESTORE SYSTEM
         // ============================================================
         function openImportModal() {
+            if (branchMode) return; // the hospital's admins and the owner only (not branch managers or the chief of rotators)
             document.getElementById('import-json-area').value = '';
             document.getElementById('import-modal').classList.add('active');
             renderAutoBackupHospital();
@@ -4262,6 +4265,8 @@
         }
 
         function exportHospitalBackupFile() {
+
+            if (branchMode) return; // the hospital's admins and the owner only (not branch managers or the chief of rotators)
             if (!currentHospital) {
                 showToast('لا يوجد مستشفى محدد للنسخ الاحتياطي', 'error');
                 return;
@@ -4488,6 +4493,8 @@
         }
 
         function triggerRestoreHospitalFilePicker() {
+
+            if (branchMode) return; // the hospital's admins and the owner only (not branch managers or the chief of rotators)
             let input = document.getElementById('hosp-restore-file-input');
             if (!input) {
                 input = document.createElement('input');
@@ -4786,6 +4793,8 @@
         }
 
         async function saveToGitHub() {
+
+            if (branchMode) return; // the hospital's admins and the owner only (not branch managers or the chief of rotators)
             const btn = document.getElementById('main-save-btn');
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري الحفظ...';

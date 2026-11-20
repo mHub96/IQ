@@ -2077,7 +2077,7 @@
                                 <span class="text-xl">${spec.icon || '🏥'}</span>
                                 <span class="font-bold">${(window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(spec.id) : (spec.name_ar || spec.id)}</span>
                                 ${!isEnabled ? '<span class="text-xs px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold">مخفي</span>' : ''}
-                                ${branches.length ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold" title="${escapeHtmlText(branches.map(b => b.name_ar || b.id).join('، '))}"><i class="fas fa-diagram-project ml-1"></i> ${branches.length} ${branches.length === 1 ? 'فرع' : 'فروع'}</span>` : ''}
+                                ${branchBadges(branches)}
                                 ${rotatingResidents.length > 0 ? `
                                     <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold" title="${rotatingResidents.length} أطباء متناوبون مكلفون بدوام هذا القسم">
                                         <i class="fas fa-rotate ml-1"></i> ${rotatingResidents.length} متناوب

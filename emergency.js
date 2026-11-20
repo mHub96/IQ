@@ -4217,7 +4217,7 @@
                         <td class="py-2.5 px-3 whitespace-nowrap border-l border-slate-200 dark:border-slate-800">
                             <div class="flex items-center gap-1.5 font-bold ${isWeekend ? 'text-[#2e5d42] dark:text-[#88d4aa]' : 'text-slate-800 dark:text-slate-100'}">
                                 <span>${day.dayName}</span>
-                                ${isWeekend ? '<span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#5ea37d] text-white">عطلة</span>' : ''}
+                                ${isWeekend ? '<span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#3f8a62] text-white">عطلة</span>' : ''}
                             </div>
                             <div class="text-[11px] font-mono font-bold ${isWeekend ? 'text-[#3b7353] dark:text-[#72c798]' : 'text-slate-500 dark:text-slate-400'}">${formatArabicDateNumbers(day.date)}</div>
                         </td>
@@ -4326,7 +4326,7 @@
                     <td class="py-2.5 px-3 whitespace-nowrap border-l border-slate-200 dark:border-slate-800">
                         <div class="flex items-center gap-1.5 font-bold ${isWeekend ? 'text-[#2e5d42] dark:text-[#88d4aa]' : 'text-slate-800 dark:text-slate-100'}">
                             <span>${day.dayName}</span>
-                            ${isWeekend ? '<span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#5ea37d] text-white">عطلة</span>' : ''}
+                            ${isWeekend ? '<span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#3f8a62] text-white">عطلة</span>' : ''}
                         </div>
                         <div class="text-[11px] font-mono font-bold ${isWeekend ? 'text-[#3b7353] dark:text-[#72c798]' : 'text-slate-500 dark:text-slate-400'}">${formatArabicDateNumbers(day.date)}</div>
                     </td>
@@ -4419,7 +4419,7 @@
                     <td class="py-2.5 px-3 whitespace-nowrap border-l border-slate-200 dark:border-slate-800">
                         <div class="flex items-center gap-1.5 font-bold ${isWeekend ? 'text-[#2e5d42] dark:text-[#88d4aa]' : 'text-slate-800 dark:text-slate-100'}">
                             <span>${day.dayName}</span>
-                            ${isWeekend ? '<span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#5ea37d] text-white">عطلة</span>' : ''}
+                            ${isWeekend ? '<span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#3f8a62] text-white">عطلة</span>' : ''}
                         </div>
                         <div class="text-[11px] font-mono font-bold ${isWeekend ? 'text-[#3b7353] dark:text-[#72c798]' : 'text-slate-500 dark:text-slate-400'}">${formatArabicDateNumbers(day.date)}</div>
                     </td>
@@ -4520,7 +4520,7 @@
                     <td class="py-2.5 px-3 whitespace-nowrap border-l border-slate-200 dark:border-slate-800">
                         <div class="flex items-center gap-1.5 font-bold ${isWeekend ? 'text-[#2e5d42] dark:text-[#88d4aa]' : 'text-slate-800 dark:text-slate-100'}">
                             <span>${day.dayName}</span>
-                            ${isWeekend ? '<span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#5ea37d] text-white">عطلة</span>' : ''}
+                            ${isWeekend ? '<span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#3f8a62] text-white">عطلة</span>' : ''}
                         </div>
                         <div class="text-[11px] font-mono font-bold ${isWeekend ? 'text-[#3b7353] dark:text-[#72c798]' : 'text-slate-500 dark:text-slate-400'}">${formatArabicDateNumbers(day.date)}</div>
                     </td>
@@ -4632,7 +4632,7 @@
                     <td class="py-2.5 px-3 whitespace-nowrap border-l border-slate-200 dark:border-slate-800">
                         <div class="flex items-center gap-1.5 font-bold ${isWeekend ? 'text-[#2e5d42] dark:text-[#88d4aa]' : 'text-slate-800 dark:text-slate-100'}">
                             <span>${day.dayName}</span>
-                            ${isWeekend ? '<span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#5ea37d] text-white">عطلة</span>' : ''}
+                            ${isWeekend ? '<span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#3f8a62] text-white">عطلة</span>' : ''}
                         </div>
                         <div class="text-[11px] font-mono font-bold ${isWeekend ? 'text-[#3b7353] dark:text-[#72c798]' : 'text-slate-500 dark:text-slate-400'}">${formatArabicDateNumbers(day.date)}</div>
                     </td>

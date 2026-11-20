@@ -1034,3 +1034,37 @@ html.er-rot .ers-system .on { color: #B7791F; }
 html.er-rot .ers-logo { background: linear-gradient(145deg, #E8A23A, #B7791F) !important; }
 @media (min-width: 1024px) { .ers-top-title .ers-system { display: none; } }
 html.er-rot #meta-hosp-select { pointer-events: none; opacity: .7; }
+
+/* ======================================================================
+   Dark mode: native controls (drop-down lists, date pickers, scrollbars) drawn dark, so an open
+   <select> never shows light text on a white list.
+   ====================================================================== */
+html.dark, body.dark { color-scheme: dark; }
+html:not(.dark) body:not(.dark) { color-scheme: light; }
+html.dark select option, body.dark select option, html.dark select optgroup, body.dark select optgroup {
+  background-color: #1B2422 !important; color: #EEF2EF !important;
+}
+html.dark select option:checked, body.dark select option:checked { background-color: #0B7A6E !important; color: #fff !important; }
+html.dark select option:disabled, body.dark select option:disabled { color: #8C9994 !important; }
+
+/* ======================================================================
+   Dark mode: text that kept its light-mode colour (no dark: variant) is lifted to a readable tone.
+   Only on elements without a light background of their own (or with a dark one).
+   ====================================================================== */
+:is(html.dark, body.dark) :is(.text-slate-500, .text-slate-600, .text-slate-700):not([class*="dark:text-"]):is(:not([class*="bg-"]), [class*="dark:bg-"]) { color: #A7B3AE !important; }
+:is(html.dark, body.dark) :is(.text-blue-600, .text-blue-700, .text-blue-800):not([class*="dark:text-"]):is(:not([class*="bg-"]), [class*="dark:bg-"]) { color: #93C5FD !important; }
+:is(html.dark, body.dark) :is(.text-teal-600, .text-teal-700, .text-teal-800):not([class*="dark:text-"]):is(:not([class*="bg-"]), [class*="dark:bg-"]) { color: #5EEAD4 !important; }
+:is(html.dark, body.dark) :is(.text-emerald-600, .text-emerald-700, .text-emerald-800):not([class*="dark:text-"]):is(:not([class*="bg-"]), [class*="dark:bg-"]) { color: #6EE7B7 !important; }
+:is(html.dark, body.dark) :is(.text-amber-600, .text-amber-700, .text-amber-800, .text-orange-700):not([class*="dark:text-"]):is(:not([class*="bg-"]), [class*="dark:bg-"]) { color: #FCD34D !important; }
+:is(html.dark, body.dark) :is(.text-rose-600, .text-rose-700, .text-rose-800, .text-red-700):not([class*="dark:text-"]):is(:not([class*="bg-"]), [class*="dark:bg-"]) { color: #FDA4AF !important; }
+:is(html.dark, body.dark) :is(.text-sky-600, .text-sky-700, .text-sky-800, .text-cyan-700, .text-cyan-800):not([class*="dark:text-"]):is(:not([class*="bg-"]), [class*="dark:bg-"]) { color: #7DD3FC !important; }
+:is(html.dark, body.dark) :is(.text-purple-700, .text-violet-700, .text-indigo-700):not([class*="dark:text-"]):is(:not([class*="bg-"]), [class*="dark:bg-"]) { color: #C4B5FD !important; }
+/* the branch badges of the admin page (their colour is the branch's) */
+:is(html.dark, body.dark) [data-branch-badge] { color: color-mix(in srgb, var(--bc) 45%, #ffffff) !important; }
+/* page-size buttons, the residents' kind switch, account badges, the ER table's undo/redo */
+:is(html.dark, body.dark) .page-size-btn:not(.active) { color: #A7B3AE !important; }
+:is(html.dark, body.dark) .res-kind button[aria-selected="false"] { color: #A7B3AE; }
+:is(html.dark, body.dark) .badge.pending { color: #F5B567 !important; }
+:is(html.dark, body.dark) .footer-credit { color: rgba(232, 241, 238, 0.6) !important; }
+/* a hospital's own colour on its tags (directory): lightened to read on dark */
+:is(html.dark, body.dark) [data-hosp-tag] { color: color-mix(in srgb, var(--hc) 45%, #ffffff) !important; }

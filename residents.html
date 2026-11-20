@@ -1341,7 +1341,7 @@
                             <!-- Hospital Badges (Tagging) -->
                             <div class="flex flex-wrap items-center gap-1.5 my-2.5">
                                 ${doctorHospitals.map(h => `
-                                    <span class="hosp-tag-badge border font-bold" style="background: ${h.color ? h.color + '15' : 'rgba(11, 122, 110,0.1)'}; color: ${h.color || '#0B7A6E'}; border-color: ${h.color ? h.color + '40' : 'rgba(11, 122, 110,0.3)'};">
+                                    <span class="hosp-tag-badge border font-bold" data-hosp-tag style="--hc:${h.color || '#0B7A6E'}; background: ${h.color ? h.color + '15' : 'rgba(11, 122, 110,0.1)'}; color: ${h.color || '#0B7A6E'}; border-color: ${h.color ? h.color + '40' : 'rgba(11, 122, 110,0.3)'};">
                                         <i class="fas ${h.icon || 'fa-hospital'}"></i>
                                         <span>${h.name_ar || h.hospitalName}</span>
                                     </span>

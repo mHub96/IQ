@@ -1931,7 +1931,7 @@
         /** Badges for a specialty's branches; `editable` opens each branch's options (drawing sources). */
         function branchBadges(branches, editable = false) {
             return branches.map(b => `<span class="text-[10px] px-2 py-0.5 rounded-full font-bold border ${b.enabled === false ? 'opacity-50 line-through' : ''}"
-                style="background:${(b.color || '#7c3aed')}18;border-color:${(b.color || '#7c3aed')}55;color:${b.color || '#7c3aed'}"
+                style="--bc:${b.color || '#7c3aed'};background:${(b.color || '#7c3aed')}18;border-color:${(b.color || '#7c3aed')}55;color:${b.color || '#7c3aed'}" data-branch-badge
                 title="فرع يسحب أطباءه من هذا التخصص${editable ? ' – انقر لتعديل مصادر السحب' : ''}"
                 ${editable ? `role="button" tabindex="0" onclick="event.stopPropagation(); openEditHospitalSpecModal('${b.id}')"` : ''}>${b.icon || '↳'} ${escapeHtmlText(b.name_ar || b.id)}</span>`).join('');
         }

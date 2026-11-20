@@ -166,6 +166,7 @@
         }
         .spec-content.active { display: block; }
         /* A branch inside its main specialty: a nested, collapsible subgroup */
+        .spec-sub-none { border-style: dashed; }
         .spec-subs { display: grid; gap: 8px; margin-top: 10px; padding-inline-start: 14px; border-inline-start: 2px dashed color-mix(in srgb, #7c3aed 28%, transparent); }
         .spec-sub { border-radius: 16px; background: color-mix(in srgb, var(--sub) 5%, transparent); border: 1px solid color-mix(in srgb, var(--sub) 26%, transparent); }
         .spec-sub > .spec-sub-head { margin: 0 !important; padding: 10px 12px !important; border-radius: 15px !important; background: transparent !important; border: 0 !important; box-shadow: none !important; }
@@ -2046,6 +2047,28 @@
                         </div>`;
                 }).join('');
                 const directCount = primaryResidents.length + rotatingResidents.length;
+                // With branches: the branches first, then the residents assigned to none of them, as the
+                // last subgroup («بلا فرع»), shown only when there are any.
+                const noBranchHtml = () => {
+                    const subId = `spec-box-${spec.id}__nobranch`;
+                    const subOpen = isSearching || window.openSpecBoxIds.has(subId);
+                    return `
+                        <div class="spec-sub spec-sub-none" style="--sub:#6E7B76">
+                            <div class="spec-header spec-sub-head" onclick="event.stopPropagation(); toggleAccordion('${subId}')">
+                                <div class="flex items-center gap-2 flex-wrap min-w-0">
+                                    <i class="fas fa-turn-up fa-rotate-90 spec-sub-elbow"></i>
+                                    <span class="text-lg"><i class="fas fa-layer-group text-slate-400"></i></span>
+                                    <span class="font-bold text-sm">بلا فرع</span>
+                                    ${rotatingResidents.length ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold"><i class="fas fa-rotate ml-1"></i> ${rotatingResidents.length} متناوب</span>` : ''}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">${directCount} مقيم</span>
+                                    <i class="fas ${subOpen ? 'fa-chevron-up' : 'fa-chevron-down'} text-xs text-slate-400"></i>
+                                </div>
+                            </div>
+                            <div id="${subId}" class="spec-content spec-sub-body ${subOpen ? 'active' : ''}">${ownList(primaryResidents, rotatingResidents, 'هذا القسم')}</div>
+                        </div>`;
+                };
 
                 return `
                     <div class="mb-2">
@@ -2075,11 +2098,10 @@
                         </div>
 
                         <div id="${boxId}" class="spec-content ${isOpen ? 'active' : ''}">
-                            ${branches.length && (directCount || !isSearching) ? `<div class="spec-sub-label"><i class="fas fa-user-doctor"></i> ${escapeHtmlText(spec.name_ar || spec.id)} (بلا فرع) · ${directCount}</div>` : ''}
-                            ${directCount === 0 ? (branches.length ? '' : `
+                            ${branches.length ? `<div class="spec-subs">${subsHtml}${directCount ? noBranchHtml() : ''}</div>`
+                                : directCount === 0 ? `
                                 <div class="text-center py-4 text-xs text-slate-400">لا يوجد مقيمين مسجلين في هذا التخصص حالياً (0 مقيم)</div>
-                            `) : ownList(primaryResidents, rotatingResidents, 'هذا القسم')}
-                            ${subsHtml ? `<div class="spec-subs">${subsHtml}</div>` : ''}
+                            ` : ownList(primaryResidents, rotatingResidents, 'هذا القسم')}
                         </div>
                     </div>
                 `;

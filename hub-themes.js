@@ -134,15 +134,84 @@
         if (live.effects && live.effects.length) loadFx(() => HubFX.set(live.effects)); else if (window.HubFX) HubFX.set([]);
     }
 
+    // -------------------------------------------------------------------------------------------
+    // The live-weather theme: the weather where the user is (Open-Meteo, free, no key), asked by the
+    // phone itself every 30 minutes at most (no database reads). The location is rounded to ~1 km and
+    // only used after the user allows it; otherwise the hospital's city (Basra).
+    // -------------------------------------------------------------------------------------------
+    const WX_KEY = 'hub_wx', LOC_KEY = 'hub_wx_loc', ASKED_KEY = 'hub_wx_asked';
+    const WX_TTL = 30 * 60 * 1000;
+    const FALLBACK = { lat: 30.51, lon: 47.81, real: false };      // Basra
+    async function locationOf(ask) {
+        const saved = read(LOC_KEY, null);
+        if (saved && Date.now() - saved.at < 6 * 3600 * 1000) return saved;
+        if (!navigator.geolocation) return saved || FALLBACK;
+        let state = 'prompt';
+        try { state = (await navigator.permissions.query({ name: 'geolocation' })).state; } catch (e) {}
+        if (state === 'denied') return saved || FALLBACK;
+        // The browser asks once (when the user picks the theme, or the first time a forced one needs it).
+        if (state === 'prompt' && !ask && read(ASKED_KEY, false)) return saved || FALLBACK;
+        write(ASKED_KEY, true);
+        return new Promise(res => navigator.geolocation.getCurrentPosition(pos => {
+            const loc = { lat: Math.round(pos.coords.latitude * 100) / 100, lon: Math.round(pos.coords.longitude * 100) / 100, real: true, at: Date.now() };
+            write(LOC_KEY, loc);
+            res(loc);
+        }, () => res(saved || FALLBACK), { maximumAge: 3600 * 1000, timeout: 12000, enableHighAccuracy: false }));
+    }
+    async function weatherNow(ask) {
+        const cached = read(WX_KEY, null);
+        if (cached && Date.now() - cached.at < WX_TTL && (!ask || cached.real)) return cached;
+        const loc = await locationOf(ask);
+        try {
+            const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=weather_code,is_day,wind_speed_10m,temperature_2m&timezone=auto`, { cache: 'no-store' });
+            const j = await r.json();
+            const c = j && j.current;
+            if (!c) return cached;
+            const wx = { at: Date.now(), code: Number(c.weather_code), isDay: c.is_day === 1, wind: Number(c.wind_speed_10m) || 0, temp: Math.round(Number(c.temperature_2m)), real: !!loc.real };
+            write(WX_KEY, wx);
+            return wx;
+        } catch (e) { return cached; }
+    }
+    /** WMO weather code (+ wind, day / night) -> the theme's look. */
+    function weatherKey(wx) {
+        if (!wx) { const h = new Date().getHours(); return h >= 6 && h < 18 ? 'clear_day' : 'clear_night'; }
+        const c = wx.code;
+        if (c >= 95) return 'thunder';
+        if ((c >= 71 && c <= 77) || c === 85 || c === 86) return 'snow';
+        if ((c >= 61 && c <= 67) || (c >= 80 && c <= 82)) return 'rain';
+        if (c >= 51 && c <= 57) return 'drizzle';
+        if (c === 45 || c === 48) return 'fog';
+        if (wx.wind >= 40 && c <= 3) return 'dust';
+        if (wx.wind >= 28) return 'wind';
+        if (c >= 2) return 'cloudy';
+        return wx.isDay ? 'clear_day' : 'clear_night';
+    }
+    /** The theme as it looks now (a weather theme becomes its current variant). */
+    async function resolveTheme(theme, ask) {
+        if (!theme || !theme.weather || !theme.weather.variants) return { theme, wx: null };
+        const wx = await weatherNow(ask);
+        const key = weatherKey(wx);
+        const vs = theme.weather.variants;
+        const v = vs[key] || vs[wx && !wx.isDay ? 'clear_night' : 'clear_day'] || vs[Object.keys(vs)[0]];
+        const has = o => o && Object.keys(o).length;
+        return {
+            theme: { ...theme, tokens: has(v.tokens) ? v.tokens : theme.tokens, css: String(theme.css || '') + String(v.css || ''), effects: v.effects || [] },
+            wx: wx ? { key, label: v.label || '', icon: v.icon || '', temp: wx.temp, real: wx.real } : { key, label: v.label || '', icon: v.icon || '' },
+        };
+    }
+
     let timer = null;
+    let askNext = false;   // the next look may ask for the location (the user just picked the weather theme)
     async function evaluate(forceRefresh) {
         const state = await refreshState(forceRefresh);
         const act = pickActive(state);
         let live = null;
         if (act) {
             try {
-                const theme = await loadTheme(act.meta);
-                if (theme) live = { id: theme.id, v: act.meta.v, name: theme.name, css: compile(theme), shellCss: compileShell(theme), forced: act.forced, scheme: theme.mode === 'light' ? 'light' : 'dark', effects: theme.effects || [], start: act.meta.start || null, end: act.meta.end || null };
+                const file = await loadTheme(act.meta);
+                const ask = askNext; askNext = false;
+                const { theme, wx } = await resolveTheme(file, ask);
+                if (theme) live = { id: theme.id, v: act.meta.v, name: theme.name, css: compile(theme), shellCss: compileShell(theme), forced: act.forced, scheme: theme.mode === 'light' ? 'light' : 'dark', effects: theme.effects || [], start: act.meta.start || null, end: act.meta.end || null, wx };
             } catch (e) { live = read(LIVE_KEY, null); }
         }
         write(LIVE_KEY, live);
@@ -151,7 +220,8 @@
         clearTimeout(timer);
         const now = Date.now();
         const edges = ((state && state.themes) || []).flatMap(t => [t.start, t.end]).filter(x => x && x > now);
-        const next = Math.min(now + STATE_TTL, ...edges);
+        // A weather theme looks at the weather again every 30 minutes.
+        const next = Math.min(now + (live && live.wx ? WX_TTL : STATE_TTL), ...edges);
         timer = setTimeout(() => evaluate(false), Math.max(5000, next - now + 500));
         window.dispatchEvent(new CustomEvent('hub:site-theme', { detail: { live, state } }));
         return { live, state };
@@ -164,6 +234,10 @@
         const c = [p && p.bg, p && p.accent, p && p.card, p && p.ink].filter(Boolean);
         return `<span class="hth-swatch" style="background:${esc(p && p.gradient ? p.gradient : `linear-gradient(135deg, ${(c[0] || '#0B7A6E')}, ${(c[1] || '#5EE0C8')})`)}"></span>`;
     };
+    /** Arabic-tolerant text for searching (no diacritics; أ/إ/آ=ا, ة=ه, ى=ي). */
+    const norm = t => String(t || '').toLowerCase().replace(/[ً-ْـ]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').trim();
+    const wxLine = wx => wx ? `${wx.icon || ''} ${wx.label || ''}${wx.temp != null && !isNaN(wx.temp) ? ` · ${wx.temp}°` : ''} · ${wx.real ? 'موقعك' : 'البصرة (بلا إذن الموقع)'}` : '';
+
     async function renderUserSection(host) {
         if (!host) return;
         host.innerHTML = '<div class="hacc-empty" style="padding:10px">جاري تحميل الثيمات…</div>';
@@ -172,17 +246,32 @@
         const list = ((state && state.themes) || []).filter(t => inPeriod(t, now) && (t.mode === 'optional' || t.mode === 'forced' || (t.mode === 'owner' && isOwner())));
         const forced = list.find(t => t.mode === 'forced');
         const chosen = read(choiceKey(), null);
+        const live = read(LIVE_KEY, null);
         const fxOff = (() => { try { return localStorage.getItem('hub_fx_off') === '1'; } catch (e) { return false; } })();
         const until = t => t.end ? ` · حتى ${new Date(t.end).toLocaleDateString('ar-IQ', { day: 'numeric', month: 'long' })}` : '';
+        const items = list.filter(t => t.mode !== 'forced');
+        const current = forced || items.find(t => t.id === chosen);
+        const sub = t => (t.weather && live && live.id === t.id && live.wx ? wxLine(live.wx) : t.weather ? 'يتغير مع الطقس الحقيقي في موقعك' : (t.mode === 'owner' ? 'لك فقط (معاينة المالك)' : 'متاح للجميع')) + until(t);
         host.innerHTML = `
-            ${forced ? `<div class="hth-forced"><span>${esc(forced.icon || '🎨')}</span><div><b>ثيم «${esc(forced.name)}» مفعّل للجميع${esc(until(forced))}</b><small>الوضع الفاتح والداكن يتبعان الثيم حتى انتهائه.</small></div></div>` : ''}
-            <div class="hth-list">
-                <button type="button" class="hth-item" data-pick="" aria-pressed="${!chosen || forced ? 'true' : 'false'}" ${forced ? 'disabled' : ''}>
-                    <span class="hth-swatch hth-default"></span><span class="hth-name"><b>المظهر الأساسي</b><small>ألوان الموقع المعتادة</small></span></button>
-                ${list.filter(t => t.mode !== 'forced').map(t => `
-                <button type="button" class="hth-item" data-pick="${esc(t.id)}" aria-pressed="${!forced && chosen === t.id ? 'true' : 'false'}" ${forced ? 'disabled' : ''}>
-                    ${swatch(t.preview)}<span class="hth-name"><b>${esc(t.icon || '🎨')} ${esc(t.name)}</b><small>${t.mode === 'owner' ? 'لك فقط (معاينة المالك)' : 'متاح للجميع'}${esc(until(t))}</small></span></button>`).join('')}
-            </div>
+            ${forced ? `<div class="hth-forced"><span>${esc(forced.icon || '🎨')}</span><div><b>ثيم «${esc(forced.name)}» مفعّل للجميع${esc(until(forced))}</b><small>${forced.weather && live && live.wx ? esc(wxLine(live.wx)) + ' · ' : ''}الوضع الفاتح والداكن يتبعان الثيم حتى انتهائه.</small></div></div>` : ''}
+            <details class="hth-fold">
+                <summary>
+                    <span class="hth-fold-cur">${current ? swatch(current.preview) : '<span class="hth-swatch hth-default"></span>'}</span>
+                    <span class="hth-fold-t"><b>${current ? esc(current.icon || '🎨') + ' ' + esc(current.name) : 'المظهر الأساسي'}</b><small>${items.length ? `${items.length} ${items.length === 1 ? 'ثيم متاح' : 'ثيمات متاحة'} · اضغط للاختيار` : 'لا توجد ثيمات متاحة الآن'}</small></span>
+                    <i class="fas fa-chevron-down hth-fold-chev"></i>
+                </summary>
+                <div class="hth-fold-body">
+                    ${items.length > 4 ? '<label class="hth-search"><i class="fas fa-magnifying-glass"></i><input type="search" data-role="theme-search" placeholder="ابحث عن ثيم…" aria-label="ابحث عن ثيم"></label>' : ''}
+                    <div class="hth-list">
+                        <button type="button" class="hth-item" data-pick="" data-name="المظهر الاساسي" aria-pressed="${!chosen || forced ? 'true' : 'false'}" ${forced ? 'disabled' : ''}>
+                            <span class="hth-swatch hth-default"></span><span class="hth-name"><b>المظهر الأساسي</b><small>ألوان الموقع المعتادة</small></span></button>
+                        ${items.map(t => `
+                        <button type="button" class="hth-item" data-pick="${esc(t.id)}" data-name="${esc(norm(t.name + ' ' + t.id))}" aria-pressed="${!forced && chosen === t.id ? 'true' : 'false'}" ${forced ? 'disabled' : ''}>
+                            ${swatch(t.preview)}<span class="hth-name"><b>${esc(t.icon || '🎨')} ${esc(t.name)}</b><small>${esc(sub(t))}</small></span></button>`).join('')}
+                    </div>
+                    <p class="hth-note hth-nohit" hidden>لا يوجد ثيم بهذا الاسم.</p>
+                </div>
+            </details>
             ${list.length ? '' : `<p class="hth-note">${isOwner() ? 'لا يوجد ثيم مفعّل لك الآن. الثيمات المرفوعة كلها متوقفة: فعّلها من «إدارة الثيمات» أدناه.' : 'لا توجد ثيمات مناسبات متاحة الآن. ستصلك إشعارات عند إضافة ثيم جديد.'}</p>`}
             ${isOwner() ? `<button type="button" class="hacc-btn primary hth-manage" data-act="manage"><i class="fas fa-swatchbook"></i> إدارة الثيمات (رفع، تفعيل، جدولة، حذف)</button>
             <div class="hth-manage-host" data-role="manage-host" hidden></div>` : ''}
@@ -191,12 +280,37 @@
                 <small>إيقاف الثلج والمطر والألعاب النارية وغيرها (تبقى ألوان الثيم).</small></span>
                 <button type="button" class="hp-toggle" role="switch" aria-checked="${fxOff}" aria-label="تقليل المؤثرات" data-act="fx-off"><span></span></button>
             </div>`;
-        host.querySelectorAll('[data-pick]').forEach(b => { b._bound = true; }), host.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', async () => {
-            write(choiceKey(), b.dataset.pick || null);
-            host.querySelectorAll('[data-pick]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
-            await evaluate(false);
-            toast(b.dataset.pick ? 'تم تطبيق الثيم ✓' : 'عاد المظهر الأساسي ✓', 'success');
-        }));
+        const pickAll = () => host.querySelectorAll('[data-pick]');
+        const bindPick = b => {
+            if (b._bound) return;
+            b._bound = true;
+            b.addEventListener('click', async () => {
+                const id = b.dataset.pick || null;
+                write(choiceKey(), id);
+                pickAll().forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+                const meta = items.find(t => t.id === id);
+                if (meta && meta.weather) askNext = true;   // picking the weather theme may ask for the location
+                const r = await evaluate(false);
+                toast(id ? 'تم تطبيق الثيم ✓' : 'عاد المظهر الأساسي ✓', 'success');
+                // The fold shows the choice (and the weather) without closing.
+                const cur = host.querySelector('.hth-fold-t b'), sw = host.querySelector('.hth-fold-cur');
+                if (cur) cur.textContent = meta ? `${meta.icon || '🎨'} ${meta.name}` : 'المظهر الأساسي';
+                if (sw) sw.innerHTML = meta ? swatch(meta.preview) : '<span class="hth-swatch hth-default"></span>';
+                if (meta && meta.weather && r && r.live && r.live.wx) { const small = b.querySelector('small'); if (small) small.textContent = wxLine(r.live.wx); }
+            });
+        };
+        pickAll().forEach(bindPick);
+        const search = host.querySelector('[data-role="theme-search"]');
+        if (search) search.addEventListener('input', () => {
+            const q = norm(search.value);
+            let shown = 0;
+            host.querySelectorAll('.hth-list [data-pick]').forEach(b => {
+                const hit = !q || norm(b.dataset.name).includes(q) || norm(b.textContent).includes(q);
+                b.hidden = !hit;
+                if (hit && b.dataset.pick) shown++;
+            });
+            host.querySelector('.hth-nohit').hidden = !q || shown > 0;
+        });
         // The owner: the whole manager right here (also in القطاع الإداري › المنظومة › ثيمات الموقع).
         const manage = host.querySelector('[data-act="manage"]');
         if (manage) manage.addEventListener('click', () => {
@@ -205,26 +319,25 @@
             manage.innerHTML = box.hidden ? '<i class="fas fa-swatchbook"></i> إدارة الثيمات (رفع، تفعيل، جدولة، حذف)' : '<i class="fas fa-chevron-up"></i> إخفاء إدارة الثيمات';
             if (!box.hidden) renderManager(box);
         });
-        // After a save in the manager: the themes list above follows, in place (the manager stays open where it is).
+        // After a save in the manager: the list follows, in place (nothing on screen moves).
         if (!host._themesSaved) {
             host._themesSaved = true;
             window.addEventListener('hub:themes-saved', () => {
-                const list = host.querySelector('.hth-list');
-                if (!list || !document.contains(host)) return;
+                if (!document.contains(host)) return;
                 refreshState(true).then(st => {
-                    if (!document.contains(host)) return;
-                    const now = Date.now();
-                    const avail = ((st && st.themes) || []).filter(t => inPeriod(t, now) && (t.mode === 'optional' || (t.mode === 'owner' && isOwner())));
-                    const chosen = read(choiceKey(), null);
+                    const list2 = host.querySelector('.hth-list');
+                    if (!list2 || !document.contains(host)) return;
+                    const now2 = Date.now();
+                    const avail = ((st && st.themes) || []).filter(t => inPeriod(t, now2) && (t.mode === 'optional' || (t.mode === 'owner' && isOwner())));
+                    const ch = read(choiceKey(), null);
                     const box = host.querySelector('[data-role="manage-host"]');
                     keepScroll(host, () => {
-                        list.querySelectorAll('[data-pick]:not([data-pick=""])').forEach(x => x.remove());
-                        list.insertAdjacentHTML('beforeend', avail.map(t => `<button type="button" class="hth-item" data-pick="${esc(t.id)}" aria-pressed="${chosen === t.id}">${swatch(t.preview)}<span class="hth-name"><b>${esc(t.icon || '🎨')} ${esc(t.name)}</b><small>${t.mode === 'owner' ? 'لك فقط (معاينة المالك)' : 'متاح للجميع'}</small></span></button>`).join(''));
-                        list.querySelectorAll('[data-pick]').forEach(b => {
-                            if (b._bound) return;
-                            b._bound = true;
-                            b.addEventListener('click', async () => { write(choiceKey(), b.dataset.pick || null); list.querySelectorAll('[data-pick]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); await evaluate(false); });
-                        });
+                        list2.querySelectorAll('[data-pick]:not([data-pick=""])').forEach(x => x.remove());
+                        items.length = 0; items.push(...avail);
+                        list2.insertAdjacentHTML('beforeend', avail.map(t => `<button type="button" class="hth-item" data-pick="${esc(t.id)}" data-name="${esc(norm(t.name + ' ' + t.id))}" aria-pressed="${ch === t.id}">${swatch(t.preview)}<span class="hth-name"><b>${esc(t.icon || '🎨')} ${esc(t.name)}</b><small>${esc(sub(t))}</small></span></button>`).join(''));
+                        pickAll().forEach(bindPick);
+                        const small = host.querySelector('.hth-fold-t small');
+                        if (small) small.textContent = avail.length ? `${avail.length} ${avail.length === 1 ? 'ثيم متاح' : 'ثيمات متاحة'} · اضغط للاختيار` : 'لا توجد ثيمات متاحة الآن';
                     }, box && !box.hidden ? box : null);
                 });
             });
@@ -291,12 +404,13 @@
             <div class="hth-mgr">
                 <div class="hth-top">
                     <label class="hacc-btn primary hth-upload"><i class="fas fa-upload"></i> رفع ثيم (.hubtheme)<input type="file" accept=".hubtheme,.json,application/json" hidden data-role="upload"></label>
+                    ${themes.length > 4 ? '<label class="hth-search"><i class="fas fa-magnifying-glass"></i><input type="search" data-role="mgr-search" placeholder="ابحث في الثيمات بالاسم أو المعرّف…" aria-label="ابحث في الثيمات"></label>' : ''}
                     <p class="hth-note">الثيمات ألوان وأنماط ومؤثرات جاهزة فقط (بلا أوامر برمجية). «إجباري للجميع» يفرض الثيم ووضعه الفاتح/الداكن على كل المستخدمين؛ «اختياري» يرسل إشعاراً ويضيفه لإعدادات المظهر؛ «لي فقط» لمعاينتك. عدّل ما تشاء من الثيمات ثم احفظها كلها بزر «حفظ التغييرات» أسفل القائمة. تصل التغييرات للمستخدمين خلال ربع ساعة تقريباً.</p>
                 </div>
                 ${themes.length ? '' : '<div class="hacc-empty">لا توجد ثيمات بعد. ارفع ملف ثيم للبدء.</div>'}
                 ${themes.map(t => `
-                <article class="hth-card" data-id="${esc(t.id)}" data-mode0="${esc(t.mode)}" data-start0="${toLocalInput(t.start)}" data-end0="${toLocalInput(t.end)}">
-                    <header>${swatch(t.preview)}<div class="hth-title"><b>${esc(t.icon || '🎨')} ${esc(t.name)}</b><small dir="ltr">${esc(t.id)} · ${Math.round((t.size || 0) / 1024)} KB · ${t.scheme === 'light' ? 'فاتح' : 'داكن'}</small></div>${status(t)}</header>
+                <article class="hth-card" data-id="${esc(t.id)}" data-name="${esc(norm(t.name + ' ' + t.id))}" data-mode0="${esc(t.mode)}" data-start0="${toLocalInput(t.start)}" data-end0="${toLocalInput(t.end)}">
+                    <header>${swatch(t.preview)}<div class="hth-title"><b>${esc(t.icon || '🎨')} ${esc(t.name)}</b><small dir="ltr">${esc(t.id)} · ${Math.round((t.size || 0) / 1024)} KB · ${t.weather ? 'طقس حي' : t.scheme === 'light' ? 'فاتح' : 'داكن'}</small></div>${status(t)}</header>
                     <div class="hth-modes" role="radiogroup" aria-label="وضع الثيم">${Object.entries(MODE_NAMES).map(([m, n]) => `<button type="button" data-mode="${m}" aria-pressed="${t.mode === m}">${n}</button>`).join('')}</div>
                     <div class="hth-period">
                         <label>من<input type="datetime-local" data-f="start" value="${toLocalInput(t.start)}"></label>
@@ -360,8 +474,8 @@
                 write(choiceKey(), id);
                 try {
                     const meta = themes.find(t => t.id === id);
-                    const theme = await loadTheme(meta);
-                    const live = { id, v: meta.v, name: theme.name, css: compile(theme), shellCss: compileShell(theme), forced: false, scheme: theme.mode, effects: theme.effects || [] };
+                    const { theme, wx } = await resolveTheme(await loadTheme(meta), true);
+                    const live = { id, v: meta.v, name: theme.name, css: compile(theme), shellCss: compileShell(theme), forced: false, scheme: theme.mode, effects: theme.effects || [], wx };
                     write(LIVE_KEY, live); applyLive(live);
                     toast(`معاينة «${theme.name}» ✓ (للعودة: الإعدادات › المظهر › المظهر الأساسي)`, 'success');
                 } catch (err) { toast(errText(err), 'error'); }
@@ -388,6 +502,12 @@
                     window.dispatchEvent(new CustomEvent('hub:themes-saved'));
                 } catch (err) { toast(errText(err), 'error'); }
             });
+        });
+
+        const mgrSearch = host.querySelector('[data-role="mgr-search"]');
+        if (mgrSearch) mgrSearch.addEventListener('input', () => {
+            const q = norm(mgrSearch.value);
+            cards.forEach(c => { c.hidden = !!q && !c.dataset.name.includes(q); });
         });
 
         const undoBtn = host.querySelector('[data-act="undo"]');
@@ -454,6 +574,18 @@
         .hth-savebar [data-role="dirty-count"]{flex:1;font-size:.78rem;font-weight:800;color:var(--hacc-muted)}
         .hth-mgr.has-dirty .hth-savebar{border-color:rgba(183,121,31,.6)}
         .hth-mgr.has-dirty .hth-savebar [data-role="dirty-count"]{color:#B7791F}
+        .hth-fold{border:1px solid var(--hacc-border);border-radius:16px;background:var(--hacc-bg);overflow:hidden}
+        .hth-fold>summary{display:flex;align-items:center;gap:12px;padding:10px 12px;cursor:pointer;list-style:none}
+        .hth-fold>summary::-webkit-details-marker{display:none}
+        .hp-settings>.hp-section .hth-fold>summary::after{content:none!important;display:none!important}
+        .hth-fold-cur{display:flex;flex:none}.hth-fold-cur .hth-swatch{width:36px;height:36px;border-radius:11px}
+        .hth-fold-t{flex:1;min-width:0;display:grid;gap:2px}.hth-fold-t b{font-size:.86rem}.hth-fold-t small{font-size:.72rem;color:var(--hacc-muted)}
+        .hth-fold-chev{color:var(--hacc-muted);transition:transform .25s}.hth-fold[open] .hth-fold-chev{transform:rotate(180deg)}
+        .hth-fold-body{display:grid;gap:8px;padding:0 10px 10px}
+        .hth-fold .hth-list{max-height:min(55vh,460px);overflow-y:auto;overscroll-behavior:contain;padding:2px}
+        .hth-search{display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:12px;border:1px solid var(--hacc-border);background:var(--hacc-surface);color:var(--hacc-muted)}
+        .hth-search input{flex:1;min-width:0;border:0;background:transparent;color:var(--hacc-text);font:inherit;font-size:.84rem;padding:10px 0;outline:none}
+        .hth-item[hidden],.hth-card[hidden]{display:none}
         .hth-manage{width:100%;margin-top:10px;justify-content:center;display:inline-flex;align-items:center;gap:8px}
         .hth-manage-host{margin-top:12px}
         @media (max-width:380px){.hth-modes{grid-template-columns:1fr 1fr}.hth-period{grid-template-columns:1fr}}`;

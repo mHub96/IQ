@@ -92,17 +92,11 @@ export function cssProblem(css) {
 const EFFECTS = ['snow', 'rain', 'lightning', 'wind', 'fireworks', 'confetti', 'hearts', 'lanterns', 'stars', 'leaves',
   'petals', 'balloons', 'bubbles', 'embers', 'dust', 'fog', 'sunrays', 'aurora', 'particles', 'glow', 'crescent', 'butterflies'];
 
-/** Checks an uploaded theme; returns { theme } (cleaned) or { error }. */
-export function cleanTheme(t) {
-  if (!t || typeof t !== 'object' || Array.isArray(t)) return { error: 'bad_theme' };
-  if (t.format !== 'hubtheme/1') return { error: 'bad_format' };
-  const id = String(t.id || '').toLowerCase();
-  if (!ID_RE.test(id)) return { error: 'bad_id' };
-  const name = String(t.name || '').trim().slice(0, 60);
-  if (!name) return { error: 'no_name' };
+/** A theme's colours ({ light, dark } of CSS variables): cleaned copy, or { error }. */
+function cleanTokens(src0) {
   const tokens = {};
   for (const scheme of ['light', 'dark']) {
-    const src = t.tokens && t.tokens[scheme];
+    const src = src0 && src0[scheme];
     if (!src) continue;
     if (typeof src !== 'object') return { error: 'bad_tokens' };
     tokens[scheme] = {};
@@ -113,14 +107,53 @@ export function cleanTheme(t) {
       tokens[scheme][k] = v;
     }
   }
+  return { tokens };
+}
+/** A list of the site's built-in effects: the list, or { error }. */
+function cleanEffects(list) {
+  const effects = Array.isArray(list) ? list : [];
+  if (effects.length > 8 || effects.some(e => !e || typeof e !== 'object' || !EFFECTS.includes(e.type))) return { error: 'bad_effects' };
+  const text = JSON.stringify(effects);
+  if (text.length > 120 * 1024) return { error: 'too_big' };
+  if (/javascript:|<script/i.test(text)) return { error: 'bad_effects' };
+  return { effects };
+}
+// The live-weather theme: one look per weather (the page picks it from the weather where the user is).
+const WEATHER = ['clear_day', 'clear_night', 'cloudy', 'fog', 'drizzle', 'rain', 'thunder', 'snow', 'wind', 'dust'];
+
+/** Checks an uploaded theme; returns { theme } (cleaned) or { error }. */
+export function cleanTheme(t) {
+  if (!t || typeof t !== 'object' || Array.isArray(t)) return { error: 'bad_theme' };
+  if (t.format !== 'hubtheme/1') return { error: 'bad_format' };
+  const id = String(t.id || '').toLowerCase();
+  if (!ID_RE.test(id)) return { error: 'bad_id' };
+  const name = String(t.name || '').trim().slice(0, 60);
+  if (!name) return { error: 'no_name' };
+  const tk = cleanTokens(t.tokens);
+  if (tk.error) return tk;
   const css = String(t.css || '');
   const problem = cssProblem(css);
   if (problem) return { error: problem };
-  const effects = Array.isArray(t.effects) ? t.effects : [];
-  if (effects.length > 8 || effects.some(e => !e || typeof e !== 'object' || !EFFECTS.includes(e.type))) return { error: 'bad_effects' };
-  if (JSON.stringify(effects).length > 120 * 1024) return { error: 'too_big' };
-  const effectsSafe = JSON.stringify(effects);
-  if (/javascript:|<script/i.test(effectsSafe)) return { error: 'bad_effects' };
+  const fx = cleanEffects(t.effects);
+  if (fx.error) return fx;
+  let weather;
+  if (t.weather) {
+    if (typeof t.weather !== 'object' || typeof t.weather.variants !== 'object') return { error: 'bad_weather' };
+    const variants = {};
+    for (const [key, v] of Object.entries(t.weather.variants)) {
+      if (!WEATHER.includes(key) || !v || typeof v !== 'object') return { error: 'bad_weather' };
+      const vt = cleanTokens(v.tokens);
+      if (vt.error) return vt;
+      const vf = cleanEffects(v.effects);
+      if (vf.error) return vf;
+      const vc = String(v.css || '');
+      const vp = cssProblem(vc);
+      if (vp) return { error: vp };
+      variants[key] = { label: String(v.label || '').slice(0, 40), icon: String(v.icon || '').slice(0, 8), tokens: vt.tokens, effects: vf.effects, css: vc };
+    }
+    if (!Object.keys(variants).length) return { error: 'bad_weather' };
+    weather = { variants };
+  }
   const theme = {
     format: 'hubtheme/1', id, name,
     name_en: String(t.name_en || '').slice(0, 60),
@@ -128,14 +161,15 @@ export function cleanTheme(t) {
     description: String(t.description || '').slice(0, 300),
     mode: t.mode === 'light' ? 'light' : 'dark',
     preview: t.preview && typeof t.preview === 'object' ? Object.fromEntries(Object.entries(t.preview).filter(([k, v]) => /^[a-z0-9]{1,16}$/i.test(k) && typeof v === 'string' && v.length < 200 && !cssProblem(`a{b:${v}}`))) : {},
-    tokens, css, effects,
+    tokens: tk.tokens, css, effects: fx.effects,
   };
+  if (weather) theme.weather = weather;
   const size = JSON.stringify(theme).length;
   if (size > MAX_THEME_BYTES) return { error: 'too_big' };
   return { theme, size };
 }
 
-const summary = t => ({ id: t.id, name: t.name, icon: t.icon, preview: t.preview || {}, mode: t.mode, start: t.start || null, end: t.end || null, v: t.v, scheme: t.scheme || 'dark', size: t.size || 0 });
+const summary = t => ({ id: t.id, name: t.name, icon: t.icon, preview: t.preview || {}, mode: t.mode, start: t.start || null, end: t.end || null, v: t.v, scheme: t.scheme || 'dark', size: t.size || 0, ...(t.weather ? { weather: true } : {}) });
 
 /** Everyone: the themes in force (forced / optional, and the owner's own for the owner). Cached a minute. */
 async function state(env, auth) {
@@ -174,7 +208,7 @@ async function upload(request, env) {
   const old = meta.themes.find(t => t.id === theme.id);
   if (!old && meta.themes.length >= MAX_THEMES) return json({ error: 'too_many' }, 409);
   const v = Date.now();
-  const entry = { ...(old || { mode: 'off', start: null, end: null }), id: theme.id, name: theme.name, icon: theme.icon, preview: theme.preview, scheme: theme.mode, v, size };
+  const entry = { ...(old || { mode: 'off', start: null, end: null }), id: theme.id, name: theme.name, icon: theme.icon, preview: theme.preview, scheme: theme.mode, v, size, weather: !!theme.weather };
   meta.themes = old ? meta.themes.map(t => (t.id === theme.id ? entry : t)) : [...meta.themes, entry];
   await env.DB.batch([
     env.DB.prepare('INSERT INTO kv (k, v) VALUES (?1, ?2) ON CONFLICT (k) DO UPDATE SET v = excluded.v').bind('theme:' + theme.id, JSON.stringify(theme)),

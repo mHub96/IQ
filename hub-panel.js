@@ -63,7 +63,7 @@
                 <div class="hp-who">
                     <span data-role="head-avatar">${acc ? A.avatarHtml(acc, 46) : '<span class="hacc-avatar"><i class="fas fa-user"></i></span>'}</span>
                     <div><h2>${esc(acc ? acc.name : (ROLE_NAMES[Hub.auth.getRole()] || 'حسابي'))}</h2>
-                    <div class="hacc-muted">${acc ? `<span dir="ltr">@${esc(acc.username)}</span> · ${esc(ROLE_NAMES[acc.role] || acc.role)}` : 'مسجّل بكلمة المرور المشتركة'}</div></div>
+                    <div class="hacc-muted">${acc ? `<span dir="ltr">@${esc(acc.username)}</span> · ${esc(A.roleName ? A.roleName(acc) : (ROLE_NAMES[acc.role] || acc.role))}` : 'مسجّل بكلمة المرور المشتركة'}</div></div>
                 </div>
                 ${inline ? '' : '<button type="button" class="hacc-icon-btn" data-act="close" aria-label="إغلاق">✕</button>'}
             </header>
@@ -394,7 +394,7 @@
                 <dt>الاسم</dt><dd>${esc(a.name)}</dd>
                 <dt>${officer ? 'المستشفى' : 'مستشفى الروتيشن'}</dt><dd>${esc(hospitalName(a.hosp))}</dd>
                 ${officer ? `<dt>القسم</dt><dd>الشؤون الإدارية</dd><dt>العنوان الوظيفي</dt><dd>${esc(a.aa_job_name || '—')}</dd>` : ''}
-                <dt>الصلاحية</dt><dd>${esc(ROLE_NAMES[a.role] || a.role)}</dd>
+                <dt>الصلاحية</dt><dd>${esc(A.roleName ? A.roleName(a) : (ROLE_NAMES[a.role] || a.role))}</dd>
                 <dt>الجنس</dt><dd>${esc(SEX[a.sex] || '—')}</dd>
                 ${a.phone ? `<dt>الهاتف</dt><dd dir="ltr">${esc(localPhone(a.phone))}</dd>` : ''}
                 <dt>عضو منذ</dt><dd>${esc(new Date(a.created_at).toLocaleDateString('ar-IQ', { year: 'numeric', month: 'long', day: 'numeric' }))}</dd>

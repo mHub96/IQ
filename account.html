@@ -198,7 +198,50 @@
         .hacc-btn.danger { color: var(--hacc-danger); }
         .hacc-btn.good { background: #059669; border-color: #059669; color: #fff; }
         .role-edit { display: grid; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--hacc-border); }
-        .access-list { display: grid; gap: 6px; }
+        .access-list { display: grid; gap: 8px; }
+        /* The permissions block: scope, a card per hospital with role chips, one save */
+        .ax { display: grid; gap: 12px; padding: 14px; border-radius: 18px; background: var(--hacc-surface); }
+        .ax-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .ax-title h4 { margin: 0; display: flex; align-items: center; gap: 8px; }
+        .ax-title h4 i { color: var(--hacc-accent); }
+        .ax-dirty { font-size: .72rem; font-weight: 800; color: #b45309; }
+        .ax-scope { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .ax-scope button { display: grid; justify-items: center; gap: 2px; padding: 10px 6px; border-radius: 14px; border: 1.5px solid var(--hacc-border); background: var(--hacc-bg); color: var(--hacc-muted); font: inherit; cursor: pointer; transition: border-color .2s, background .2s, color .2s, transform .15s; }
+        .ax-scope button i { font-size: 1rem; }
+        .ax-scope button b { font-size: .8rem; color: var(--hacc-text); }
+        .ax-scope button small { font-size: .66rem; }
+        .ax-scope button:active { transform: scale(.97); }
+        .ax-scope button[aria-pressed="true"] { border-color: var(--hacc-accent); background: var(--hacc-accent-soft); color: var(--hacc-accent); }
+        .ax-scope button[aria-pressed="true"] b { color: var(--hacc-accent); }
+        .ax-scope button[data-v="owner"][aria-pressed="true"] { border-color: #d97706; background: rgba(217, 119, 6, .1); color: #b45309; }
+        .ax-scope button[data-v="owner"][aria-pressed="true"] b { color: #b45309; }
+        .ax-hosps { display: grid; gap: 8px; }
+        .ax .access-row { display: grid; gap: 10px; padding: 12px; border-radius: 16px; border: 1px solid var(--hacc-border); background: var(--hacc-bg); transition: opacity .18s, transform .18s; animation: ax-in .25s ease both; }
+        .ax .access-row.ax-leaving { opacity: 0; transform: scale(.97); }
+        @keyframes ax-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+        .ax-row-head { display: flex; align-items: center; gap: 10px; }
+        .ax-hosp-ic { width: 32px; height: 32px; flex: none; border-radius: 10px; display: grid; place-items: center; background: var(--hacc-accent-soft); color: var(--hacc-accent); font-size: .85rem; }
+        .ax .access-name { flex: 1; font-size: .86rem; font-weight: 800; }
+        .ax .access-name small { font-weight: 600; color: var(--hacc-muted); }
+        .ax .access-name .ax-new { color: var(--hacc-accent); }
+        .ax .access-x { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: var(--hacc-danger); opacity: .7; }
+        .ax .access-x:hover { opacity: 1; background: rgba(220, 38, 38, .08); }
+        .ax-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        .ax-chips button { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--hacc-border); background: transparent; color: var(--hacc-muted); font: inherit; font-size: .76rem; font-weight: 800; cursor: pointer; transition: all .18s; }
+        .ax-chips button i { font-size: .72rem; }
+        .ax-chips button:hover { border-color: color-mix(in srgb, var(--hacc-accent) 45%, var(--hacc-border)); color: var(--hacc-text); }
+        .ax-chips button[aria-pressed="true"] { background: var(--hacc-accent); border-color: var(--hacc-accent); color: #fff; box-shadow: 0 4px 12px color-mix(in srgb, var(--hacc-accent) 30%, transparent); }
+        .ax-chips button[data-v="rchief"][aria-pressed="true"] { background: #B7791F; border-color: #B7791F; box-shadow: 0 4px 12px rgba(183, 121, 31, .3); }
+        .ax-spec { display: grid; gap: 4px; font-size: .74rem; font-weight: 700; color: var(--hacc-muted); }
+        .ax-spec[hidden] { display: none; }
+        .ax-add { position: relative; display: flex; align-items: center; gap: 8px; padding: 0 14px; min-height: 46px; border-radius: 16px; border: 1.5px dashed color-mix(in srgb, var(--hacc-accent) 45%, var(--hacc-border)); color: var(--hacc-accent); font-weight: 800; cursor: pointer; }
+        .ax-add[hidden] { display: none; }
+        .ax-add select { flex: 1; border: 0 !important; background: transparent !important; color: inherit; font: inherit; font-weight: 800; box-shadow: none !important; padding: 10px 0; cursor: pointer; }
+        .ax-note { margin: 0; font-size: .8rem; font-weight: 700; color: var(--hacc-muted); line-height: 1.7; }
+        .ax-note[hidden] { display: none; }
+        .ax-foot { display: flex; }
+        .ax-save { flex: 1; min-height: 46px; border-radius: 14px; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .ax-save:disabled { opacity: .45; }
         .access-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid var(--hacc-border); border-radius: 10px; }
         .access-name { flex: 1 1 120px; min-width: 0; font-size: 0.8rem; font-weight: 700; }
         .access-name small { font-weight: 500; opacity: .7; }
@@ -1729,22 +1772,21 @@
                             <select data-f="hosp" aria-label="المستشفى">${hospitals.map(h => `<option value="${esc(h.id)}" ${a.hosp === h.id ? 'selected' : ''}>${esc(h.name_ar || h.hospitalName || h.id)}</option>`).join('')}</select>
                         </div>
                         <button class="hacc-btn primary sm" data-act="set_profile" style="margin-top:8px">حفظ الملف</button></div>` : ''}
-                    ${accessEditor ? `<div data-role="access"><h4>${isOwner ? 'المستشفيات والصلاحيات' : 'الصلاحية في مستشفاك'}</h4>
-                        ${isOwner ? '' : '<p class="hacc-muted" style="margin:6px 0 0;font-size:.78rem">تخص مستشفاك وحده. صلاحياته في المستشفيات الأخرى تبقى كما هي.</p>'}
-                        <div class="access-list" data-role="access-list" style="margin-top:8px"><span class="hacc-muted">جاري التحميل…</span></div>
-                        <div class="limit-row" style="margin-top:8px">
-                            ${isOwner ? '<select data-role="access-add" aria-label="إضافة مستشفى" hidden></select>' : ''}
-                            <button class="hacc-btn primary sm" data-act="set_access" disabled>حفظ</button>
-                        </div></div>
-                        ${isOwner ? `<div data-role="global"><h4>صلاحية عامة</h4>
-                        <div class="limit-row" style="margin-top:6px">
-                            <select data-role="global-role" aria-label="صلاحية عامة">
-                                <option value="" ${(a.hospitals || []).includes('*') ? '' : 'selected'}>حسب كل مستشفى (أعلاه)</option>
-                                <option value="all" ${(a.hospitals || []).includes('*') ? 'selected' : ''}>مدير لكل المستشفيات</option>
-                                <option value="owner">مالك</option>
-                            </select>
-                            <button class="hacc-btn sm" data-act="set_global">حفظ</button>
-                        </div></div>` : ''}` : ''}
+                    ${accessEditor ? `<div data-role="access" class="ax">
+                        <div class="ax-title"><h4><i class="fas fa-shield-halved"></i> ${isOwner ? 'المستشفيات والصلاحيات' : 'الصلاحية في مستشفاك'}</h4>
+                            <span class="ax-dirty" data-role="ax-dirty" hidden>● تغييرات غير محفوظة</span></div>
+                        ${isOwner ? `<div class="ax-scope" data-role="global-role" role="radiogroup" aria-label="نطاق الصلاحية">
+                            <button type="button" data-v="" aria-pressed="${(a.hospitals || []).includes('*') ? 'false' : 'true'}"><i class="fas fa-hospital"></i><b>حسب المستشفى</b><small>صلاحية لكل مستشفى</small></button>
+                            <button type="button" data-v="all" aria-pressed="${(a.hospitals || []).includes('*') ? 'true' : 'false'}"><i class="fas fa-building-shield"></i><b>مدير عام</b><small>كل المستشفيات</small></button>
+                            <button type="button" data-v="owner" aria-pressed="false"><i class="fas fa-crown"></i><b>مالك</b><small>كل الصلاحيات</small></button>
+                        </div>` : '<p class="ax-note">تخص مستشفاك وحده. صلاحياته في المستشفيات الأخرى تبقى كما هي.</p>'}
+                        <div class="ax-hosps" data-role="ax-hosps" ${isOwner && (a.hospitals || []).includes('*') ? 'hidden' : ''}>
+                            <div class="access-list" data-role="access-list"><span class="hacc-muted">جاري التحميل…</span></div>
+                            ${isOwner ? '<label class="ax-add" data-role="ax-add" hidden><i class="fas fa-plus"></i><select data-role="access-add" aria-label="إضافة مستشفى"></select></label>' : ''}
+                        </div>
+                        <p class="ax-note" data-role="ax-global-note" ${isOwner && (a.hospitals || []).includes('*') ? '' : 'hidden'}></p>
+                        <div class="ax-foot"><button class="hacc-btn primary ax-save" data-act="set_access" disabled><i class="fas fa-check"></i> حفظ الصلاحيات</button></div>
+                    </div>` : ''}
                     ${isOwner ? `<div><h4>الأجهزة المسموح بها</h4>
                         <div class="limit-row" style="margin-top:6px">
                             <select data-role="limit-mode">
@@ -1763,7 +1805,7 @@
                 return `<article class="acc" data-id="${esc(a.id)}">
                     <div class="acc-head">${HubAccounts.avatarHtml(a, 42)}
                     <div style="min-width:0;flex:1"><div class="acc-name">${esc(a.name)}
-                        <span class="badge ${esc(a.status)}">${esc(statusText)}</span>${devBadge(a)}${a.role !== 'user' ? `<span class="badge role">${esc(ROLE_NAMES[a.role] || a.role)}</span>` : ''}${a.reset === 'requested' ? '<span class="badge pending">طلب كلمة مرور</span>' : ''}${a.max_devices ? `<span class="badge role">🔒 ${esc(limitText(a.max_devices))}</span>` : ''}${a.no_comment ? '<span class="badge disabled">🚫 ممنوع من التعليق</span>' : ''}${a.warnings ? `<span class="badge pending">⚠️ ${a.warnings === 1 ? 'تحذير واحد' : a.warnings === 2 ? 'تحذيران' : a.warnings + ' تحذيرات'}</span>` : ''}</div>
+                        <span class="badge ${esc(a.status)}">${esc(statusText)}</span>${devBadge(a)}${a.role !== 'user' ? `<span class="badge role">${esc(HubAccounts.roleName(a))}</span>` : ''}${a.reset === 'requested' ? '<span class="badge pending">طلب كلمة مرور</span>' : ''}${a.max_devices ? `<span class="badge role">🔒 ${esc(limitText(a.max_devices))}</span>` : ''}${a.no_comment ? '<span class="badge disabled">🚫 ممنوع من التعليق</span>' : ''}${a.warnings ? `<span class="badge pending">⚠️ ${a.warnings === 1 ? 'تحذير واحد' : a.warnings === 2 ? 'تحذيران' : a.warnings + ' تحذيرات'}</span>` : ''}</div>
                     <div class="acc-sub"><span dir="ltr">@${esc(a.username)}</span> · ${esc(SEX[a.sex] || '')} · ${esc(hospitalName(a.hosp))}${a.phone ? ` · <a href="tel:${esc(localPhone(a.phone))}" dir="ltr">${esc(localPhone(a.phone))}</a>` : ''}</div>
                     ${a.role === 'rotator' ? '<div class="acc-sub">🔄 روتيتر: تصفح الموقع والتواصل مع الأقدمين، وتبديل خفارات الروتيشن في مستشفاه فقط.</div>'
                         : officer ? `<div class="acc-sub">🏢 الشؤون الإدارية · ${esc(a.aa_job_name || '')}${a.resident_id ? ' · ✓ موجود في قاعدة البيانات' : ''}</div>${a.status === 'pending' && !a.resident_id ? '<div class="acc-sub" style="color:#b45309">⚠️ غير موجود في قاعدة بيانات الشؤون الإدارية: عند الموافقة يُضاف تحت العنوان الوظيفي الذي اختاره.</div>' : ''}`
@@ -1805,6 +1847,8 @@
         // they cover is in their record in the hospital database (db.residents[].hospitals: each hospital's
         // residents list is built from it). The owner adds and removes hospitals, an admin only sets the role
         // in their own (the API checks).
+        const ACCESS_ICONS = { user: 'fa-user-doctor', anaesthesia: 'fa-syringe', branch: 'fa-sitemap', rchief: 'fa-rotate', admin: 'fa-hospital-user', rotator: 'fa-arrows-rotate' };
+        const roleOfRow = row => ((row.querySelector('[data-f="role"] [aria-pressed="true"]') || {}).dataset || {}).v || '';
         const ACCESS_ROLES = [['user', 'مقيم'], ['anaesthesia', 'مقيم تخدير'], ['branch', 'مدير فرع'], ['rchief', 'رئيس المقيمين الدوريين'], ['admin', 'مدير مستشفى'], ['rotator', 'روتيتر']];
         // A chief of rotators is stored as a branch representative of the hospital's Rotator specialty.
         const rotRoot = h => (Hub.rotatorRootSpec ? Hub.rotatorRootSpec(h) : null);
@@ -1838,10 +1882,13 @@
             const sel = shownRole(h, v);
             const removable = isOwner && !fixedRotator && (rec || h !== a.hosp);
             return `<div class="access-row" data-h="${esc(h)}" ${isNew ? 'data-new="1"' : ''}>
-                <span class="access-name">${esc(hospitalName(h))}</span>
-                <select data-f="role" aria-label="الصلاحية في ${esc(hospitalName(h))}">${roles.map(([r, label]) => `<option value="${r}" ${r === (sel || '') ? 'selected' : ''}>${label}</option>`).join('')}</select>
-                <select data-f="spec" aria-label="اختصاص مدير الفرع" ${sel === 'branch' ? '' : 'hidden'}>${specOptions(h, v.s, rec)}</select>
-                ${removable ? `<button type="button" class="access-x" data-f="remove" aria-label="إزالة ${esc(hospitalName(h))}">✕</button>` : ''}
+                <div class="ax-row-head">
+                    <span class="ax-hosp-ic"><i class="fas fa-hospital"></i></span>
+                    <span class="access-name">${esc(hospitalName(h))}${isNew ? ' <small class="ax-new">جديد</small>' : ''}${h === a.hosp ? ' <small>· مستشفى الحساب</small>' : ''}</span>
+                    ${removable ? `<button type="button" class="access-x" data-f="remove" aria-label="إزالة ${esc(hospitalName(h))}" title="إزالة هذا المستشفى"><i class="fas fa-trash-can"></i></button>` : ''}
+                </div>
+                <div class="ax-chips" data-f="role" role="radiogroup" aria-label="الصلاحية في ${esc(hospitalName(h))}">${roles.map(([r, label]) => `<button type="button" data-v="${r}" aria-pressed="${r === (sel || '') ? 'true' : 'false'}"><i class="fas ${ACCESS_ICONS[r] || 'fa-user'}"></i> ${label}</button>`).join('')}</div>
+                <label class="ax-spec" ${sel === 'branch' ? '' : 'hidden'}><span>اختصاص مدير الفرع</span><select data-f="spec" aria-label="اختصاص مدير الفرع">${specOptions(h, v.s, rec)}</select></label>
             </div>`;
         }
         async function fillAccess(card) {
@@ -1858,17 +1905,32 @@
             const rows = isOwner ? [...new Set([...Object.keys(access), ...((rec && rec.hospitals) || [])])] : myAccessHospitals(a);
             box.innerHTML = rows.map(h => accessRowHtml(a, h, access[h] || { r: base }, rec, isOwner, fixedRotator)).join('');
             const add = card.querySelector('[data-role="access-add"]');
+            const addWrap = card.querySelector('[data-role="ax-add"]');
+            const btn = card.querySelector('[data-act="set_access"]');
+            // One save button for everything here: it wakes up with the first change.
+            const dirty = () => {
+                if (btn) btn.disabled = false;
+                const d = card.querySelector('[data-role="ax-dirty"]');
+                if (d) d.hidden = false;
+            };
             const paintAdd = () => {
                 if (!add) return;
                 const shown = [...box.querySelectorAll('.access-row')].map(r => r.dataset.h);
                 const rest = Hub.getHospitals().filter(h => !shown.includes(h.id));
-                add.hidden = !isOwner || fixedRotator || !rest.length;
-                add.innerHTML = `<option value="">＋ إضافة مستشفى…</option>${rest.map(h => `<option value="${esc(h.id)}">${esc(h.name_ar || h.hospitalName || h.id)}</option>`).join('')}`;
+                if (addWrap) addWrap.hidden = !isOwner || fixedRotator || !rest.length;
+                add.innerHTML = `<option value="">إضافة مستشفى يداوم فيه…</option>${rest.map(h => `<option value="${esc(h.id)}">${esc(h.name_ar || h.hospitalName || h.id)}</option>`).join('')}`;
             };
             const bindRow = row => {
-                const role = row.querySelector('[data-f="role"]'), spec = row.querySelector('[data-f="spec"]'), x = row.querySelector('[data-f="remove"]');
-                role.addEventListener('change', () => { spec.hidden = role.value !== 'branch'; });
-                if (x) x.addEventListener('click', () => { row.remove(); paintAdd(); });
+                const chips = row.querySelector('[data-f="role"]'), specWrap = row.querySelector('.ax-spec'), x = row.querySelector('[data-f="remove"]');
+                chips.addEventListener('click', e => {
+                    const b = e.target.closest('button[data-v]');
+                    if (!b || b.getAttribute('aria-pressed') === 'true') return;
+                    chips.querySelectorAll('button').forEach(c => c.setAttribute('aria-pressed', c === b ? 'true' : 'false'));
+                    specWrap.hidden = b.dataset.v !== 'branch';
+                    dirty();
+                });
+                row.querySelector('[data-f="spec"]').addEventListener('change', dirty);
+                if (x) x.addEventListener('click', () => { row.classList.add('ax-leaving'); setTimeout(() => { row.remove(); paintAdd(); }, 180); dirty(); });
             };
             box.querySelectorAll('.access-row').forEach(bindRow);
             if (add) add.onchange = () => {
@@ -1876,17 +1938,65 @@
                 box.insertAdjacentHTML('beforeend', accessRowHtml(a, add.value, { r: base }, rec, isOwner, fixedRotator, true));
                 bindRow(box.lastElementChild);
                 paintAdd();
+                dirty();
             };
             paintAdd();
-            const btn = card.querySelector('[data-act="set_access"]');
-            if (btn) btn.disabled = !rows.length && !isOwner;
+            // The account's scope (owner): per hospital, an admin of every hospital, or an owner.
+            const scope = card.querySelector('[data-role="global-role"]');
+            if (scope && !scope.dataset.bound) {
+                scope.dataset.bound = '1';
+                const paintScope = v => {
+                    card.querySelector('[data-role="ax-hosps"]').hidden = !!v;
+                    const note = card.querySelector('[data-role="ax-global-note"]');
+                    note.hidden = !v;
+                    note.textContent = v === 'owner' ? `👑 ${a.name} يصبح مالكاً: كل الصلاحيات في الموقع.` : v === 'all' ? `🏥 ${a.name} مدير لكل المستشفيات.` : '';
+                };
+                scope.addEventListener('click', e => {
+                    const b = e.target.closest('button[data-v]');
+                    if (!b || b.getAttribute('aria-pressed') === 'true') return;
+                    scope.querySelectorAll('button').forEach(c => c.setAttribute('aria-pressed', c === b ? 'true' : 'false'));
+                    paintScope(b.dataset.v);
+                    dirty();
+                });
+                paintScope((scope.querySelector('[aria-pressed="true"]') || {}).dataset.v || '');
+            }
+            if (btn) btn.disabled = true;
+            const d0 = card.querySelector('[data-role="ax-dirty"]');
+            if (d0) d0.hidden = true;
+        }
+        /** The one save of the permissions block: the scope (owner) first, then each hospital's role. */
+        async function saveAccessBlock(card, a, btn) {
+            const scope = card.querySelector('[data-role="global-role"]');
+            const v = scope ? ((scope.querySelector('[aria-pressed="true"]') || {}).dataset || {}).v || '' : '';
+            const wasGlobal = (a.hospitals || []).includes('*');
+            if (scope && (v === 'owner' || (v === 'all' && !wasGlobal))) return setGlobalRole(card, a, btn, v);
+            if (scope && v === 'all') return toast('لا يوجد تغيير.', 'info');
+            if (scope && !v && wasGlobal) {
+                // Back from "every hospital": a plain resident first, then the roles chosen per hospital.
+                if (!await setGlobalRole(card, a, btn, '', true)) return;
+            }
+            return saveAccess(card, a, btn);
+        }
+        async function setGlobalRole(card, a, btn, v, keepGoing) {
+            if (!confirm(v === 'owner' ? `جعل ${a.name} مالكاً؟` : v === 'all' ? `جعل ${a.name} مديراً لكل المستشفيات؟` : `إلغاء إدارة ${a.name} لكل المستشفيات؟ ثم تُحفظ صلاحياته في كل مستشفى كما حدّدتها.`)) return false;
+            btn.disabled = true;
+            try {
+                const res = await Hub.api('POST', '/api/accounts/decide', { id: a.id, action: 'set_role', role: v === 'owner' ? 'owner' : v === 'all' ? 'admin' : 'user', hospitals: v === 'all' ? ['*'] : [] }, { retries: 0 });
+                if (res.account) Object.assign(a, res.account);
+                if (keepGoing) return true;
+                toast('تم حفظ الصلاحية ✓', 'success');
+                renderManage();
+                const again = document.querySelector(`.acc[data-id="${CSS.escape(a.id)}"] details.edit-wrap`);
+                if (again) again.open = true;
+            } catch (err) { btn.disabled = false; toast(errorText(err), 'error'); }
+            return false;
         }
         async function saveAccess(card, a, btn) {
             const isOwner = Hub.auth.isOwner();
             const current = Hub.auth.accessOf(a);
             const rows = [...card.querySelectorAll('[data-role="access-list"] .access-row')].map(row => ({
                 h: row.dataset.h, isNew: !!row.dataset.new,
-                r: row.querySelector('[data-f="role"]').value,
+                r: roleOfRow(row),
                 s: row.querySelector('[data-f="spec"]').value,
             }));
             const rec = isOwner ? await accessRecord(a) : null;
@@ -1910,7 +2020,7 @@
             if (added.length) lines.push(`➕ يداوم أيضاً في: ${added.map(hospitalName).join('، ')}`);
             if (removed.length) lines.push(`➖ لا يداوم في: ${removed.map(hospitalName).join('، ')} (يُزال من قائمة مقيميها، وتبقى خفاراته السابقة في الجداول.)`);
             if (removed.includes(a.hosp)) lines.push(`🏥 مستشفى الحساب ينتقل إلى ${hospitalName(next[0])}.`);
-            Object.entries(changes).forEach(([h, v]) => { if (v.r) lines.push(`⭐ ${hospitalName(h)}: ${ROLE_NAMES[v.r]}${v.r === 'branch' ? ' (' + specName(v.s, h) + ')' : ''}`); });
+            Object.entries(changes).forEach(([h, v]) => { if (v.r) lines.push(`⭐ ${hospitalName(h)}: ${v.r === 'branch' && v.s && v.s === rotRoot(h) ? 'رئيس المقيمين الدوريين' : ROLE_NAMES[v.r] + (v.r === 'branch' ? ' (' + specName(v.s, h) + ')' : '')}`); });
             if (!confirm(lines.join('\n'))) return;
             btn.disabled = true;
             try {
@@ -1941,7 +2051,7 @@
             const id = card.dataset.id;
             const action = btn.dataset.act.replace('-', '_');
             const a = mg.items.find(x => x.id === id);
-            if (action === 'set_access') return saveAccess(card, a, btn);
+            if (action === 'set_access') return saveAccessBlock(card, a, btn);
             if (action === 'set_global') {
                 const v = card.querySelector('[data-role="global-role"]').value;
                 const global = (a.hospitals || []).includes('*');

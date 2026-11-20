@@ -1429,6 +1429,25 @@
         setTimeout(tryOffer, 6000);
     }
 
+    /**
+     * An account's role as shown: a branch representative of the Rotator specialty in every hospital where
+     * they are one is «رئيس المقيمين الدوريين», not «مدير فرع».
+     */
+    function roleName(a) {
+        if (!a) return '';
+        if (a.role === 'branch' && window.Hub && Hub.auth) {
+            const chiefAt = (h, s) => !!s && typeof Hub.isRotatorSpecialty === 'function' && Hub.isRotatorSpecialty(s, h);
+            const me = Hub.auth.getAccount && Hub.auth.getAccount();
+            if (me && me.id === a.id && Hub.auth.branchHospitals) {
+                const b = Hub.auth.branchHospitals();
+                if (b.length && b.every(h => Hub.auth.isRotatorChiefAt(h))) return 'رئيس المقيمين الدوريين';
+            }
+            const roles = Hub.auth.accessOf ? Object.entries(Hub.auth.accessOf(a)).filter(([, v]) => v.r === 'branch') : [];
+            if (roles.length && roles.every(([h, v]) => chiefAt(h, v.s))) return 'رئيس المقيمين الدوريين';
+        }
+        return ROLE_NAMES[a.role] || a.role;
+    }
+
     window.HubAccounts = {
         offerInstall,
         installState,
@@ -1455,7 +1474,7 @@
         toast,
         esc,
         timeAgo,
-        ROLE_NAMES,
+        ROLE_NAMES, roleName,
         errorText,
         push: {
             status: pushStatus,

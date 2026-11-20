@@ -2945,7 +2945,16 @@
                                 <button type="button" onclick="exportHospitalBackupFromIndex('${h.id}')" class="ios-btn secondary" style="color:#059669;" title="تنزيل نسخة احتياطية لكافة بيانات وتخصصات ومقيمي هذا المستشفى" data-doctors-only>
                                     <i class="fas fa-download"></i> <span>نسخ احتياطي</span>
                                 </button>` : ''}
-                                ${isHospBranch ? `
+                                ${isHospBranch && Hub.auth.isRotatorChiefAt(h.id) ? `
+                                <a href="./scheduler.html?hospital=${h.id}&type=rotators" class="ios-btn secondary">
+                                    <i class="fas fa-calendar-alt"></i> <span>جدول الدوريين</span>
+                                </a>
+                                <a href="./admin.html?hospital=${h.id}" class="ios-btn secondary">
+                                    <i class="fas fa-users"></i> <span>الدوريون</span>
+                                </a>
+                                ${Hub.auth.canUseRotEr(h.id) ? `<a href="./emergency.html?hospital=${h.id}&sys=rot" class="ios-btn secondary" style="border-color:rgba(183,121,31,0.35); color:#B7791F; background:rgba(183,121,31,0.07);">
+                                    <i class="fas fa-truck-medical"></i> <span>طوارئ الدوريين</span>
+                                </a>` : ''}` : isHospBranch ? `
                                 <a href="./scheduler.html?hospital=${h.id}" class="ios-btn secondary">
                                     <i class="fas fa-calendar-alt"></i> <span>جدول اختصاصي</span>
                                 </a>
@@ -2979,6 +2988,26 @@
                                     ${h.erEnabled ? `<button type="button" onclick="openErAdminsPicker('${h.id}')" class="w-full flex items-center justify-center gap-2 p-2 rounded-xl border border-emerald-200/80 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-300 font-bold text-xs hover:bg-emerald-50/60 dark:hover:bg-emerald-950/30">
                                         <i class="fas fa-user-shield"></i> اختيار المدراء المسموح لهم بالطوارئ
                                     </button>` : ''}
+                                    ${Hub.rotatorRootSpec && Hub.rotatorRootSpec(h.id) ? `
+                                    <!-- The chief of rotators' access to the rotators' ER (owner only) -->
+                                    <div class="flex items-center justify-between p-2.5 rounded-xl transition-all ${h.rotChiefEr ? 'bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/50' : 'bg-slate-50/80 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800'}">
+                                        <div class="flex items-center gap-2.5 font-bold ${h.rotChiefEr ? 'text-amber-900 dark:text-amber-200' : 'text-slate-700 dark:text-slate-300'}">
+                                            <div class="w-7 h-7 rounded-lg flex items-center justify-center ${h.rotChiefEr ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-slate-500/10 text-slate-500'}">
+                                                <i class="fas fa-rotate text-xs"></i>
+                                            </div>
+                                            <div>
+                                                <div class="leading-tight text-xs">طوارئ الدوريين لرئيس المقيمين الدوريين</div>
+                                                <div class="text-[10px] font-normal opacity-80">${h.rotChiefEr ? 'مسموح: يدير طوارئ الدوريين لهذا المستشفى' : 'غير مسموح: الطوارئ لك وللمدراء المختارين فقط'}</div>
+                                            </div>
+                                        </div>
+                                        <label class="er-toggle-container">
+                                            <span class="text-xs font-black ${h.rotChiefEr ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500'}">${h.rotChiefEr ? 'مسموح' : 'ممنوع'}</span>
+                                            <input type="checkbox" ${h.rotChiefEr ? 'checked' : ''} onchange="toggleRotChiefEr('${h.id}', this.checked)" class="er-toggle-input">
+                                            <div class="er-toggle-track">
+                                                <div class="er-toggle-thumb"></div>
+                                            </div>
+                                        </label>
+                                    </div>` : ''}
 
                                     <div class="flex justify-between items-center pt-1 text-[11px]">
                                         <span class="text-amber-600 dark:text-amber-400 font-bold"><i class="fas fa-crown ml-1"></i> المالك</span>
@@ -3529,6 +3558,18 @@
                 showToast(err.message || 'فشل تعديل حالة نظام الطوارئ', 'error');
                 renderHubDashboard();
             }
+        }
+
+        /** Owner: lets (or stops) the hospital's chief of rotators use its rotators' ER (hospital.rotChiefEr). */
+        async function toggleRotChiefEr(hospId, on) {
+            try {
+                await Hub.updateHospital(hospId, { rotChiefEr: !!on });
+                showToast(on ? 'تم السماح لرئيس المقيمين الدوريين بإدارة طوارئ الدوريين ✓' : 'تم منع رئيس المقيمين الدوريين من طوارئ الدوريين', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'تعذر حفظ الصلاحية', 'error');
+            }
+            renderHubDashboard();
         }
 
         /** Owner: which of the hospital's admins may use its ER page (hospital.erAdmins). */

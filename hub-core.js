@@ -1973,6 +1973,10 @@
         if (updates.erAdmins !== undefined && !auth.isOwner()) {
             delete updates.erAdmins;
         }
+        // The chief of rotators' access to the rotators' ER: the owner's switch only (the API refuses it too).
+        if (updates.rotChiefEr !== undefined && !auth.isOwner()) {
+            delete updates.rotChiefEr;
+        }
 
         db.hospitals[id] = {
             ...db.hospitals[id],
@@ -4533,7 +4537,8 @@
          * no list = every admin, as before the list existed). The API applies the same rule.
          */
         /** The rotators' ER of a hospital: its ER admins and the owner, and its chief of rotators. */
-        canUseRotEr(hospId) { return this.canUseEr(hospId) || this.isRotatorChiefAt(hospId); },
+        /** The rotators' ER: its ER admins and the owner; its chief of rotators only while the owner allows it (hospital.rotChiefEr). */
+        canUseRotEr(hospId) { return this.canUseEr(hospId) || (this.isRotatorChiefAt(hospId) && !!(getHospital(hospId) || {}).rotChiefEr); },
         canUseEr(hospId) {
             if (this.isOwner()) return true;
             if (!hospId || this.getRole() !== 'admin') return false;

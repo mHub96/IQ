@@ -627,7 +627,7 @@
         }
         // A chief of rotators uses only their hospital's rotators' ER.
         if (window.Hub && window.Hub.auth && window.Hub.auth.rotatorChiefHospitals && !window.Hub.auth.isAdmin()) {
-            const chiefOf = window.Hub.auth.rotatorChiefHospitals();
+            const chiefOf = window.Hub.auth.rotatorChiefHospitals().filter(h => window.Hub.auth.canUseRotEr(h));
             if (chiefOf.length) {
                 location.replace(`./emergency.html?sys=rot&hospital=${encodeURIComponent(chiefOf[0])}`);
                 return false;

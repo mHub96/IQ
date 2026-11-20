@@ -45,9 +45,10 @@ export async function rotChiefIds(env, hosp) {
         WHERE status = 'active' AND json_extract(hosp_roles, '$."' || ?1 || '".r') = 'branch'`
     ).bind(hosp),
     env.DB.prepare("SELECT data FROM records WHERE coll = 'meta' AND id = 'globalSpecialties'"),
-    env.DB.prepare("SELECT json_extract(data, '$.specialties') AS specs FROM records WHERE coll = 'hospital' AND id = ?").bind(hosp),
+    env.DB.prepare("SELECT json_extract(data, '$.specialties') AS specs, json_extract(data, '$.rotChiefEr') AS rce FROM records WHERE coll = 'hospital' AND id = ?").bind(hosp),
   ]);
-  if (!(cands.results || []).length) return [];
+  // Only when the owner let the hospital's chief of rotators use its rotators' ER.
+  if (!(cands.results || []).length || !(own.results[0] && own.results[0].rce)) return [];
   let store = [], specs = [];
   try { store = (JSON.parse((meta.results[0] && meta.results[0].data) || '{}').value) || []; } catch {}
   try { specs = JSON.parse((own.results[0] && own.results[0].specs) || '[]') || []; } catch {}

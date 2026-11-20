@@ -38,19 +38,20 @@ export async function canUseEr(env, auth, hosp) {
   return hs.includes('*') || (hosp ? hs.includes(hosp) : hs.length > 0);
 }
 
-const erFields = d => JSON.stringify([!!(d && d.erEnabled), d && Array.isArray(d.erAdmins) ? d.erAdmins : null]);
+// rotChiefEr: the owner's switch letting the hospital's chief of rotators use its rotators' ER.
+const erFields = d => JSON.stringify([!!(d && d.erEnabled), d && Array.isArray(d.erAdmins) ? d.erAdmins : null, !!(d && d.rotChiefEr)]);
 
 /** Hospital writes (by a non-owner) that would change the ER switch or its admins: those ops are refused. */
 export async function erFieldWrites(env, ops) {
   if (!ops.length) return new Set();
   const { results } = await env.DB.prepare(
-    `SELECT id, json_extract(data, '$.erEnabled') AS en, json_extract(data, '$.erAdmins') AS admins
+    `SELECT id, json_extract(data, '$.erEnabled') AS en, json_extract(data, '$.erAdmins') AS admins, json_extract(data, '$.rotChiefEr') AS rce
        FROM records WHERE coll = 'hospital' AND id IN (SELECT value FROM json_each(?))`
   ).bind(JSON.stringify(ops.map(op => op.id))).all();
   const current = new Map((results || []).map(r => {
     let admins = null;
     try { admins = r.admins === null ? null : JSON.parse(r.admins); } catch {}
-    return [r.id, erFields({ erEnabled: !!r.en, erAdmins: admins })];
+    return [r.id, erFields({ erEnabled: !!r.en, erAdmins: admins, rotChiefEr: !!r.rce })];
   }));
   return new Set(ops.filter(op => current.get(op.id) !== erFields(op.d)));
 }
@@ -70,18 +71,23 @@ export function rotErHospital(id) {
   return m ? (m[1] || m[2]) : null;
 }
 
-/** The hospitals where this account is the chief of rotators. */
+/**
+ * The hospitals where this account is the chief of rotators AND the owner let the chief use the
+ * hospital's rotators' ER (hospital.rotChiefEr, only the owner sets it): its records, fonts, portal
+ * and ER exchange requests.
+ */
 export async function rotChiefHospitals(env, auth) {
   if (!auth || !auth.a) return [];
   const hosps = hospitalsWithRole(auth, 'branch').filter(h => branchSpecAt(auth, h));
   if (!hosps.length) return [];
   const [meta, ...rows] = await env.DB.batch([
     env.DB.prepare("SELECT data FROM records WHERE coll = 'meta' AND id = 'globalSpecialties'"),
-    ...hosps.map(h => env.DB.prepare("SELECT json_extract(data, '$.specialties') AS specs FROM records WHERE coll = 'hospital' AND id = ?").bind(h)),
+    ...hosps.map(h => env.DB.prepare("SELECT json_extract(data, '$.specialties') AS specs, json_extract(data, '$.rotChiefEr') AS rce FROM records WHERE coll = 'hospital' AND id = ?").bind(h)),
   ]);
   let store = [];
   try { store = (JSON.parse((meta.results[0] && meta.results[0].data) || '{}').value) || []; } catch {}
   return hosps.filter((h, i) => {
+    if (!(rows[i].results[0] && rows[i].results[0].rce)) return false;
     let own = [];
     try { own = JSON.parse((rows[i].results[0] && rows[i].results[0].specs) || '[]') || []; } catch {}
     return isRotatorSpec([...store, ...own], branchSpecAt(auth, h));

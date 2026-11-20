@@ -78,10 +78,7 @@
             </div>
             <div class="hacc-sheet-body hp-body" data-role="body"><div class="hacc-empty">جاري التحميل…</div></div>
             <footer class="hp-foot">
-                ${approver && !Hub.auth.isOwner() ? `<a class="hacc-btn sm" href="./scheduler.html?hospital=${encodeURIComponent((Hub.auth.getAdminHospitalIds() || [])[0] || '')}"><i class="fas fa-calendar-alt"></i> المجدول</a>` : ''}
-                ${Hub.auth.branchHospitals().map(h => Hub.auth.isRotatorChiefAt(h)
-                    ? `<a class="hacc-btn sm" href="./scheduler.html?hospital=${encodeURIComponent(h)}&type=rotators"><i class="fas fa-calendar-alt"></i> جدول الدوريين</a><a class="hacc-btn sm" href="./admin.html?hospital=${encodeURIComponent(h)}"><i class="fas fa-users"></i> الدوريون</a><a class="hacc-btn sm" href="./emergency.html?hospital=${encodeURIComponent(h)}&sys=rot"><i class="fas fa-truck-medical"></i> طوارئ الدوريين</a>`
-                    : `<a class="hacc-btn sm" href="./scheduler.html?hospital=${encodeURIComponent(h)}"><i class="fas fa-calendar-alt"></i> جدول اختصاصي</a><a class="hacc-btn sm" href="./admin.html?hospital=${encodeURIComponent(h)}"><i class="fas fa-users"></i> مقيمو المستشفى</a>`).join('')}
+                ${/* Pages of a hospital (scheduler, residents, ER) open from its card in the hub, not from here. */ ''}
                 ${!acc ? '<a class="hacc-btn sm primary" href="./account.html#signup">إنشاء حساب شخصي</a>' : ''}
                 <button type="button" class="hacc-btn sm danger" data-act="logout"><i class="fas fa-sign-out-alt"></i> خروج</button>
             </footer>`;

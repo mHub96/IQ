@@ -155,7 +155,9 @@
                 <button type="button" class="hth-item" data-pick="${esc(t.id)}" aria-pressed="${!forced && chosen === t.id ? 'true' : 'false'}" ${forced ? 'disabled' : ''}>
                     ${swatch(t.preview)}<span class="hth-name"><b>${esc(t.icon || '🎨')} ${esc(t.name)}</b><small>${t.mode === 'owner' ? 'لك فقط (معاينة المالك)' : 'متاح للجميع'}${esc(until(t))}</small></span></button>`).join('')}
             </div>
-            ${list.length ? '' : '<p class="hth-note">لا توجد ثيمات مناسبات متاحة الآن. ستصلك إشعارات عند إضافة ثيم جديد.</p>'}
+            ${list.length ? '' : `<p class="hth-note">${isOwner() ? 'لا يوجد ثيم مفعّل لك الآن. الثيمات المرفوعة كلها متوقفة: فعّلها من «إدارة الثيمات» أدناه.' : 'لا توجد ثيمات مناسبات متاحة الآن. ستصلك إشعارات عند إضافة ثيم جديد.'}</p>`}
+            ${isOwner() ? `<button type="button" class="hacc-btn primary hth-manage" data-act="manage"><i class="fas fa-swatchbook"></i> إدارة الثيمات (رفع، تفعيل، جدولة، حذف)</button>
+            <div class="hth-manage-host" data-role="manage-host" hidden></div>` : ''}
             <div class="hp-switch-card" style="margin-top:10px">
                 <span class="hp-switch-main"><b><i class="fas fa-wand-magic-sparkles"></i> تقليل المؤثرات المتحركة</b>
                 <small>إيقاف الثلج والمطر والألعاب النارية وغيرها (تبقى ألوان الثيم).</small></span>
@@ -167,6 +169,17 @@
             await evaluate(false);
             toast(b.dataset.pick ? 'تم تطبيق الثيم ✓' : 'عاد المظهر الأساسي ✓', 'success');
         }));
+        // The owner: the whole manager right here (also in القطاع الإداري › المنظومة › ثيمات الموقع).
+        const manage = host.querySelector('[data-act="manage"]');
+        if (manage) manage.addEventListener('click', () => {
+            const box = host.querySelector('[data-role="manage-host"]');
+            box.hidden = !box.hidden;
+            manage.innerHTML = box.hidden ? '<i class="fas fa-swatchbook"></i> إدارة الثيمات (رفع، تفعيل، جدولة، حذف)' : '<i class="fas fa-chevron-up"></i> إخفاء إدارة الثيمات';
+            if (!box.hidden) renderManager(box).then(() => {
+                // A change there (mode, preview, upload) shows here too.
+                box.querySelectorAll('[data-act="save"], [data-act="delete"]').forEach(b => b.addEventListener('click', () => setTimeout(() => renderUserSection(host), 1500)));
+            });
+        });
         const fx = host.querySelector('[data-act="fx-off"]');
         fx.addEventListener('click', () => {
             const off = fx.getAttribute('aria-checked') !== 'true';
@@ -304,6 +317,8 @@
         .hth-period{display:grid;grid-template-columns:1fr 1fr;gap:8px}.hth-period label{display:grid;gap:4px;font-size:.72rem;font-weight:700;color:var(--hacc-muted)}
         .hth-period input{font:inherit;font-size:.76rem;padding:8px;border-radius:10px;border:1px solid var(--hacc-border);background:var(--hacc-surface);color:var(--hacc-text);min-width:0}
         .hth-actions{display:flex;flex-wrap:wrap;gap:6px}
+        .hth-manage{width:100%;margin-top:10px;justify-content:center;display:inline-flex;align-items:center;gap:8px}
+        .hth-manage-host{margin-top:12px}
         @media (max-width:380px){.hth-modes{grid-template-columns:1fr 1fr}.hth-period{grid-template-columns:1fr}}`;
     document.head.appendChild(css);
 

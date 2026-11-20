@@ -165,6 +165,14 @@
             animation: slideDown 0.2s ease;
         }
         .spec-content.active { display: block; }
+        /* A branch inside its main specialty: a nested, collapsible subgroup */
+        .spec-subs { display: grid; gap: 8px; margin-top: 10px; padding-inline-start: 14px; border-inline-start: 2px dashed color-mix(in srgb, #7c3aed 28%, transparent); }
+        .spec-sub { border-radius: 16px; background: color-mix(in srgb, var(--sub) 5%, transparent); border: 1px solid color-mix(in srgb, var(--sub) 26%, transparent); }
+        .spec-sub > .spec-sub-head { margin: 0 !important; padding: 10px 12px !important; border-radius: 15px !important; background: transparent !important; border: 0 !important; box-shadow: none !important; }
+        .spec-sub > .spec-sub-head:hover { transform: none; background: color-mix(in srgb, var(--sub) 8%, transparent) !important; }
+        .spec-sub-elbow { color: var(--sub); font-size: 0.7rem; opacity: 0.8; }
+        .spec-sub-body { padding: 0 8px 8px; }
+        .spec-sub-label { display: flex; align-items: center; gap: 6px; padding: 6px 8px 2px; font-size: 11px; font-weight: 800; color: #6E7B76; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 
         @keyframes highlightSavePulse {
@@ -1963,22 +1971,29 @@
                 if (isBranchSpec(spec, specs)) return '';
                 const branches = branchesOf(spec, specs);
                 const group = [spec.id, ...branches.map(b => b.id)];
-                // 1. Get all active residents for this specialty (and any filed directly under its branches)
-                let primaryResidents = names.filter(n => (group.includes(n.spec) || group.includes(n.tag)) && isResidentActive(n));
-                let rotatingResidents = names.filter(n => (group.includes(n.dept) || group.includes(n.department)) && !group.includes(n.spec) && !group.includes(n.tag) && isResidentActive(n));
-                const unfilteredTotalCount = primaryResidents.length + rotatingResidents.length;
-
-                // 2. Sort automatically by doctor name (separate for each individual category)
-                primaryResidents.sort(compareResidentNames);
-                rotatingResidents.sort(compareResidentNames);
-
-                // 3. Filter by search query if user is searching
-                if (isSearching) {
-                    primaryResidents = primaryResidents.filter(r => residentMatchesSearch(r, searchQuery));
-                    rotatingResidents = rotatingResidents.filter(r => residentMatchesSearch(r, searchQuery));
-                }
-
-                const totalCount = primaryResidents.length + rotatingResidents.length;
+                const branchIds = branches.map(b => b.id);
+                const own = n => [n.spec, n.tag];
+                const duty = n => [n.dept, n.department];
+                const sorted = list => { list.sort(compareResidentNames); return isSearching ? list.filter(r => residentMatchesSearch(r, searchQuery)) : list; };
+                // Each branch is a subgroup of its own: the residents filed under it, those of the main
+                // specialty whose rotation is the branch, and guests from other specialties rotating in it.
+                const subs = branches.map(br => {
+                    const primary = names.filter(n => isResidentActive(n) && (own(n).includes(br.id) || (own(n).includes(spec.id) && duty(n).includes(br.id))));
+                    const rotating = names.filter(n => isResidentActive(n) && duty(n).includes(br.id) && !own(n).some(x => group.includes(x)));
+                    const total = primary.length + rotating.length;
+                    return { br, total, primary: sorted(primary), rotating: sorted(rotating) };
+                });
+                // The main specialty itself: its residents not assigned to one of its branches, and guests rotating in it.
+                let primaryResidents = names.filter(n => isResidentActive(n) && own(n).includes(spec.id) && !duty(n).some(x => branchIds.includes(x)));
+                let rotatingResidents = names.filter(n => isResidentActive(n) && duty(n).includes(spec.id) && !own(n).some(x => group.includes(x)));
+                const unfilteredTotalCount = new Set([
+                    ...primaryResidents, ...rotatingResidents,
+                    ...names.filter(n => isResidentActive(n) && (branchIds.some(id => own(n).includes(id) || duty(n).includes(id)))),
+                ].map(r => r.id || r.name)).size;
+                primaryResidents = sorted(primaryResidents);
+                rotatingResidents = sorted(rotatingResidents);
+                const shownSubs = subs.map(x => ({ ...x, n: x.primary.length + x.rotating.length }));
+                const totalCount = new Set([...primaryResidents, ...rotatingResidents, ...shownSubs.flatMap(x => [...x.primary, ...x.rotating])].map(r => r.id || r.name)).size;
 
                 // If searching, hide specialties that have 0 matches
                 if (isSearching) {
@@ -1996,6 +2011,41 @@
                 const boxId = `spec-box-${spec.id}`;
                 // Auto-open during search if there are matches, otherwise respect openSpecBoxIds
                 const isOpen = isSearching ? true : window.openSpecBoxIds.has(boxId);
+                const ownList = (primary, rotating, where) => `
+                    ${primary.map(r => renderResidentCardItem(r, false, false)).join('')}
+                    ${rotating.length > 0 ? `
+                        <div class="pt-2 pb-1 px-2 text-[11px] font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5 border-t border-slate-200 dark:border-slate-800 mt-2">
+                            <i class="fas fa-rotate"></i>
+                            <span>أطباء متناوبون مكلفون بدوام وخفارات ${where} (${rotating.length}):</span>
+                        </div>
+                        ${rotating.map(r => renderResidentCardItem(r, true, false)).join('')}
+                    ` : ''}`;
+                const subsHtml = shownSubs.filter(x => !isSearching || x.n > 0).map(x => {
+                    const subId = `spec-box-${x.br.id}`;
+                    const subOpen = isSearching ? x.n > 0 : window.openSpecBoxIds.has(subId);
+                    const color = x.br.color || '#7c3aed';
+                    return `
+                        <div class="spec-sub" style="--sub:${color}">
+                            <div class="spec-header spec-sub-head" onclick="event.stopPropagation(); toggleAccordion('${subId}')">
+                                <div class="flex items-center gap-2 flex-wrap min-w-0">
+                                    <i class="fas fa-turn-up fa-rotate-90 spec-sub-elbow"></i>
+                                    <span class="text-lg">${x.br.icon || '↳'}</span>
+                                    <span class="font-bold text-sm">${escapeHtmlText(x.br.name_ar || x.br.id)}</span>
+                                    ${x.br.enabled === false ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold">مخفي</span>' : ''}
+                                    ${x.br.drawFrom === 'rotation' ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300" title="جدوله يسحب فقط المتناوبين فيه"><i class="fas fa-rotate"></i> المتناوبون فقط</span>' : ''}
+                                    ${x.rotating.length ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold"><i class="fas fa-rotate ml-1"></i> ${x.rotating.length} متناوب</span>` : ''}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[11px] font-bold px-2 py-0.5 rounded-full ${x.n > 0 ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' : 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400'}">${x.n} مقيم</span>
+                                    <i class="fas ${subOpen ? 'fa-chevron-up' : 'fa-chevron-down'} text-xs text-slate-400"></i>
+                                </div>
+                            </div>
+                            <div id="${subId}" class="spec-content spec-sub-body ${subOpen ? 'active' : ''}">
+                                ${x.n === 0 ? '<div class="text-center py-3 text-xs text-slate-400">لا يوجد مقيمون في هذا الفرع حالياً</div>' : ownList(x.primary, x.rotating, 'هذا الفرع')}
+                            </div>
+                        </div>`;
+                }).join('');
+                const directCount = primaryResidents.length + rotatingResidents.length;
 
                 return `
                     <div class="mb-2">
@@ -2004,7 +2054,7 @@
                                 <span class="text-xl">${spec.icon || '🏥'}</span>
                                 <span class="font-bold">${(window.Hub && Hub.getSpecialtyName) ? Hub.getSpecialtyName(spec.id) : (spec.name_ar || spec.id)}</span>
                                 ${!isEnabled ? '<span class="text-xs px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold">مخفي</span>' : ''}
-                                ${branchBadges(branches)}
+                                ${branches.length ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold" title="${escapeHtmlText(branches.map(b => b.name_ar || b.id).join('، '))}"><i class="fas fa-diagram-project ml-1"></i> ${branches.length} ${branches.length === 1 ? 'فرع' : 'فروع'}</span>` : ''}
                                 ${rotatingResidents.length > 0 ? `
                                     <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold" title="${rotatingResidents.length} أطباء متناوبون مكلفون بدوام هذا القسم">
                                         <i class="fas fa-rotate ml-1"></i> ${rotatingResidents.length} متناوب
@@ -2025,21 +2075,11 @@
                         </div>
 
                         <div id="${boxId}" class="spec-content ${isOpen ? 'active' : ''}">
-                            ${totalCount === 0 ? `
+                            ${branches.length && (directCount || !isSearching) ? `<div class="spec-sub-label"><i class="fas fa-user-doctor"></i> ${escapeHtmlText(spec.name_ar || spec.id)} (بلا فرع) · ${directCount}</div>` : ''}
+                            ${directCount === 0 ? (branches.length ? '' : `
                                 <div class="text-center py-4 text-xs text-slate-400">لا يوجد مقيمين مسجلين في هذا التخصص حالياً (0 مقيم)</div>
-                            ` : `
-                                <!-- Primary Residents in this Specialty -->
-                                ${primaryResidents.map(r => renderResidentCardItem(r, false, false)).join('')}
-
-                                <!-- Guest Rotating Residents Assigned to this Department -->
-                                ${rotatingResidents.length > 0 ? `
-                                    <div class="pt-2 pb-1 px-2 text-[11px] font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5 border-t border-slate-200 dark:border-slate-800 mt-2">
-                                        <i class="fas fa-rotate"></i>
-                                        <span>أطباء متناوبون مكلفون بدوام وخفارات هذا القسم (${rotatingResidents.length}):</span>
-                                    </div>
-                                    ${rotatingResidents.map(r => renderResidentCardItem(r, true, false)).join('')}
-                                ` : ''}
-                            `}
+                            `) : ownList(primaryResidents, rotatingResidents, 'هذا القسم')}
+                            ${subsHtml ? `<div class="spec-subs">${subsHtml}</div>` : ''}
                         </div>
                     </div>
                 `;

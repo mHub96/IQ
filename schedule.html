@@ -115,6 +115,7 @@
             display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap;
         }
         .sch-seg button i { font-size: 0.75rem; opacity: 0.75; }
+        .sch-seg button[hidden] { display: none !important; }
         .sch-seg button.active { background: var(--s-card); box-shadow: 0 1px 3px rgba(0,0,0,.12), 0 1px 1px rgba(0,0,0,.04); font-weight: 800; }
         body.dark .sch-seg button.active { background: #525E5A; }
 
@@ -330,6 +331,7 @@
             <div class="sch-segs">
                 <div class="sch-seg" id="schedule-role-selector" role="tablist">
                     <button type="button" id="btn-role-residents" class="active" onclick="setScheduleRole('residents')"><i class="fas fa-user-doctor"></i> الأقدمين</button>
+                    <button type="button" id="btn-role-rotators" onclick="setScheduleRole('rotators')"><i class="fas fa-rotate"></i> الدوريين</button>
                     <button type="button" id="btn-role-specialists" onclick="setScheduleRole('specialists')"><i class="fas fa-user-tie"></i> الاختصاصيين</button>
                 </div>
                 <div class="sch-seg" id="view-mode-selector" role="tablist">
@@ -388,7 +390,18 @@
         let currentMonth = 9; // 1-indexed
         let currentHospital = null;
         let currentViewMode = 'day'; // 'day' | 'single' | 'matrix'
-        let currentScheduleRole = 'residents'; // 'residents' | 'specialists'
+        let currentScheduleRole = 'residents'; // 'residents' | 'rotators' | 'specialists'
+        // The rotators' tables (the rotators' specialty and its branches) are the residents' roster data,
+        // shown on their own tab (view only, as every table here).
+        const dataRole = () => currentScheduleRole === 'specialists' ? 'specialists' : 'residents';
+        const roleTitle = () => currentScheduleRole === 'specialists' ? 'خفارات الاختصاصيين' : currentScheduleRole === 'rotators' ? 'خفارات الدوريين' : 'خفارات الأقدمين';
+        function isRotSpec(s) {
+            if (!s || !(window.Hub && Hub.isRotatorSpecialty && currentHospital)) return false;
+            // A mirrored table counts as its source (a mirror of a rotators' branch is a rotators' table).
+            return s.isClone && s.clonedFromSpecId ? Hub.isRotatorSpecialty(s.clonedFromSpecId, s.clonedFromHospitalId) : Hub.isRotatorSpecialty(s.id, currentHospital.id);
+        }
+        // The rotators' tables are on their own tab only (they have no specialists' duties).
+        function inRole(s) { return currentScheduleRole === 'rotators' ? isRotSpec(s) : !isRotSpec(s); }
         let selectedSpecialtyId = null;
         let selectedDay = 1;
         let searchQuery = '';
@@ -417,7 +430,7 @@
         /** The sheet's HTML for the month on screen (all specialties with duties, or the one chosen in "تخصص محدد"). */
         function buildPrintSheet(compact) {
             const daysCount = getDaysInMonth(currentYear, currentMonth);
-            const entries = Hub.getHospitalMonthSchedule(currentHospital.id, currentYear, currentMonth, currentScheduleRole);
+            const entries = Hub.getHospitalMonthSchedule(currentHospital.id, currentYear, currentMonth, dataRole());
             const map = {};
             entries.forEach(e => {
                 const p = (e.date || '').split('/');
@@ -426,10 +439,10 @@
                 map[code] = map[code] || {};
                 (map[code][d] = map[code][d] || []).push(e);
             });
-            let specs = (currentHospital.specialties || []).filter(s => s.enabled !== false);
+            let specs = (currentHospital.specialties || []).filter(s => s.enabled !== false && inRole(s));
             if (currentViewMode === 'single' && selectedSpecialtyId) specs = specs.filter(s => s.id === selectedSpecialtyId);
             // (every specialty that is not switched off has its column, with or without duties this month)
-            const roleLabel = currentScheduleRole === 'specialists' ? 'خفارات الاختصاصيين' : 'خفارات الأقدمين';
+            const roleLabel = roleTitle();
             const monthLabel = `${MONTH_NAMES_AR[currentMonth - 1]} ${currentYear}`;
             const hospName = currentHospital.name_ar || currentHospital.hospitalName || '';
             const accent = /^#[0-9a-f]{3,8}$/i.test(currentHospital.color || '') ? currentHospital.color : '#0f766e';
@@ -587,7 +600,7 @@
         }
         function dayOfWeek(d) { return new Date(currentYear, currentMonth - 1, d).getDay(); }
         function specLabel(spec) { return (Hub.getSpecialtyName ? Hub.getSpecialtyName(spec.id) : '') || spec.name_ar || spec.id; }
-        function enabledSpecs() { return ((currentHospital && currentHospital.specialties) || []).filter(s => s.enabled !== false); }
+        function enabledSpecs() { return ((currentHospital && currentHospital.specialties) || []).filter(s => s.enabled !== false && inRole(s)); }
         function cloneSource(spec) {
             if (!spec.isClone || !spec.clonedFromHospitalId) return '';
             const h = Hub.getHospital ? Hub.getHospital(spec.clonedFromHospitalId) : null;
@@ -599,7 +612,7 @@
             const map = {};
             let total = 0;
             if (!currentHospital) return { map, total };
-            Hub.getHospitalMonthSchedule(currentHospital.id, currentYear, currentMonth, currentScheduleRole).forEach(e => {
+            Hub.getHospitalMonthSchedule(currentHospital.id, currentYear, currentMonth, dataRole()).forEach(e => {
                 const p = (e.date || '').split('/');
                 if (p.length !== 3 || !(e.name || '').trim()) return;
                 const code = e.specCode || e.spec, d = parseInt(p[0], 10);
@@ -612,7 +625,7 @@
 
         /** The signed-in resident's own duties are marked (personal accounts, residents' roster). */
         function myKey() {
-            if (currentScheduleRole !== 'residents') return null;
+            if (currentScheduleRole === 'specialists') return null;
             const acc = Hub.auth.getAccount && Hub.auth.getAccount();
             return acc && acc.name ? keyOf(acc.name) : null;
         }
@@ -694,6 +707,7 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('type') === 'specialists' || urlParams.get('role') === 'specialists') currentScheduleRole = 'specialists';
+            else if (urlParams.get('type') === 'rotators') currentScheduleRole = 'rotators';
             let saved = null;
             try { saved = localStorage.getItem(VIEW_KEY); } catch (e) {}
             const asked = urlParams.get('view');
@@ -722,7 +736,11 @@
         }
 
         function setScheduleRole(role) {
-            currentScheduleRole = (role === 'specialists') ? 'specialists' : 'residents';
+            currentScheduleRole = ['specialists', 'rotators'].includes(role) ? role : 'residents';
+            if (typeof selectedSpecialtyId !== 'undefined' && selectedSpecialtyId) {
+                const sp = ((currentHospital && currentHospital.specialties) || []).find(x => x.id === selectedSpecialtyId);
+                if (!sp || !inRole(sp)) selectedSpecialtyId = null;   // a specialty of the other tab
+            }
             try {
                 const url = new URL(window.location.href);
                 url.searchParams.set('type', currentScheduleRole);
@@ -736,12 +754,17 @@
         function updateScheduleRoleButtons() {
             document.getElementById('btn-role-residents').classList.toggle('active', currentScheduleRole === 'residents');
             document.getElementById('btn-role-specialists').classList.toggle('active', currentScheduleRole === 'specialists');
+            const rot = document.getElementById('btn-role-rotators');
+            // Shown only where the hospital has a rotators' specialty.
+            const hasRot = ((currentHospital && currentHospital.specialties) || []).some(x => x.enabled !== false && isRotSpec(x));
+            rot.hidden = !hasRot;
+            rot.classList.toggle('active', currentScheduleRole === 'rotators');
         }
 
         function renderHospitalInfo() {
             if (!currentHospital) return;
             const hospName = currentHospital.name_ar || currentHospital.hospitalName || '';
-            const roleLabel = currentScheduleRole === 'specialists' ? 'خفارات الاختصاصيين' : 'خفارات الأقدمين';
+            const roleLabel = roleTitle();
             document.getElementById('hosp-display-name').textContent = 'جدول الخفارات';
             document.getElementById('hosp-location-text').textContent = `${hospName} · ${roleLabel}`;
             document.title = `${hospName} · جدول ${roleLabel}`;

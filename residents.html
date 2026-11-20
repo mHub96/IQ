@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <script src="./pwa.js"></script>
-    <title>دليل الأقدمين الموحد · Hospital Main Hub</title>
+    <title>دليل المقيمين الموحد · Hospital Main Hub</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet" />
@@ -532,6 +532,14 @@
             padding-bottom: calc(var(--hub-sab, env(safe-area-inset-bottom, 0px)) + 30px);
             -webkit-overflow-scrolling: touch;
         }
+            /* «الأقدمون | الدوريون» */
+        .res-kind { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin-bottom: 12px; border-radius: 14px; background: rgba(110, 123, 118, 0.12); }
+        .res-kind button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; border: 0; border-radius: 11px; background: transparent; color: #6E7B76; font: inherit; font-weight: 800; font-size: .86rem; cursor: pointer; transition: background .2s, color .2s; }
+        .res-kind button[aria-selected="true"] { background: #fff; color: #0B7A6E; box-shadow: 0 2px 8px rgba(0, 0, 0, .08); }
+        .res-kind button[data-kind="rotators"][aria-selected="true"] { color: #B7791F; }
+        body.dark .res-kind button[aria-selected="true"] { background: #2A3532; color: #5EE0C8; }
+        body.dark .res-kind button[data-kind="rotators"][aria-selected="true"] { color: #F2C779; }
+        #spec-filter-wrap[hidden] { display: none; }
     </style>
     <link rel="stylesheet" href="./tailwind.css" />
     <link rel="stylesheet" href="./hub-ios.css" />
@@ -560,9 +568,9 @@
                             دليل الهاتف العام
                         </span>
                     </div>
-                    <h1 class="text-2xl sm:text-3xl font-black mt-1">دليل الأقدمين الموحد</h1>
+                    <h1 class="text-2xl sm:text-3xl font-black mt-1">دليل المقيمين الموحد</h1>
                     <p class="text-xs sm:text-sm text-slate-500 mt-1">
-                        قاعدة بيانات مشتركة لجميع الأطباء والأقدمين مع إمكانية الفرز والتصفية المباشرة والتواصل السريع
+                        قاعدة بيانات مشتركة لجميع الأقدمين والدوريين مع إمكانية الفرز والتصفية المباشرة والتواصل السريع
                     </p>
                 </div>
 
@@ -604,6 +612,12 @@
                 </div>
             </div>
 
+            <!-- The specialty residents or the rotators -->
+            <div class="res-kind" id="res-kind" role="tablist" aria-label="نوع المقيمين">
+                <button type="button" data-kind="seniors" aria-selected="true" onclick="setResKind('seniors')"><i class="fas fa-user-doctor"></i> الأقدمون</button>
+                <button type="button" data-kind="rotators" aria-selected="false" onclick="setResKind('rotators')"><i class="fas fa-rotate"></i> الدوريون</button>
+            </div>
+
             <!-- Search and Specialty Dropdown -->
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
                 <div class="sm:col-span-6 relative">
@@ -614,7 +628,7 @@
                     </button>
                 </div>
 
-                <div class="sm:col-span-4">
+                <div class="sm:col-span-4" id="spec-filter-wrap">
                     <select id="spec-filter" class="input-field" onchange="applyFilters()">
                         <option value="all">جميع التخصصات الطبية</option>
                     </select>
@@ -634,7 +648,7 @@
         <div class="glass-card p-3 mb-4 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div class="flex items-center gap-2">
                 <span class="font-bold text-slate-500 dark:text-slate-400">
-                    <i class="fas fa-layer-group ml-1 text-teal-600 dark:text-teal-400"></i> عدد الأقدمين في الصفحة:
+                    <i class="fas fa-layer-group ml-1 text-teal-600 dark:text-teal-400"></i> عدد المقيمين في الصفحة:
                 </span>
                 <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/90 p-1 rounded-xl border border-slate-200 dark:border-slate-700" id="res-page-size-selector">
                     <button type="button" onclick="setResPageSize(10)" class="page-size-btn active" data-size="10">10</button>
@@ -946,7 +960,7 @@
 
             } catch (err) {
                 console.error("Error loading residents page:", err);
-                showToast("حدث خطأ أثناء تحميل دليل الأقدمين", "error");
+                showToast("حدث خطأ أثناء تحميل دليل المقيمين", "error");
             }
         }
 
@@ -956,6 +970,8 @@
             const currentVal = select.value || selectedSpec || 'all';
             const seen = new Set();
             const uniqueSpecs = allSpecialties.filter(s => {
+                // The rotators' specialty and its branches are the «الدوريون» view (no specialty filter there).
+                if (typeof Hub !== 'undefined' && Hub.isRotatorSpecialty && Hub.isRotatorSpecialty(s.id)) return false;
                 const canonId = (typeof Hub !== 'undefined' && Hub.normalizeSpecialtyId) ? Hub.normalizeSpecialtyId(s.id) : s.id;
                 if (seen.has(canonId)) return false;
                 seen.add(canonId);
@@ -1063,6 +1079,27 @@
             }
         }
 
+        // «الأقدمون» (specialty residents) or «الدوريون» (rotators: the rotators' specialty or one of its branches).
+        let resKind = (() => { try { return sessionStorage.getItem('res_kind') === 'rotators' ? 'rotators' : 'seniors'; } catch (e) { return 'seniors'; } })();
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('#res-kind button').forEach(b => b.setAttribute('aria-selected', b.dataset.kind === resKind ? 'true' : 'false'));
+            const w = document.getElementById('spec-filter-wrap');
+            if (w) w.hidden = resKind === 'rotators';
+        });
+        function isRotatorRes(r) {
+            if (!r || typeof Hub === 'undefined' || !Hub.isRotatorSpecialty) return false;
+            const hs = Array.isArray(r.hospitals) && r.hospitals.length ? r.hospitals : [undefined];
+            return [r.spec, r.tag].some(code => code && code !== 'RESERVE' && hs.some(h => Hub.isRotatorSpecialty(code, h)));
+        }
+        function setResKind(kind) {
+            resKind = kind === 'rotators' ? 'rotators' : 'seniors';
+            document.querySelectorAll('#res-kind button').forEach(b => b.setAttribute('aria-selected', b.dataset.kind === resKind ? 'true' : 'false'));
+            // The rotators have one specialty: its filter is hidden; the status filter stays.
+            document.getElementById('spec-filter-wrap').hidden = resKind === 'rotators';
+            try { sessionStorage.setItem('res_kind', resKind); } catch (e) {}
+            applyFilters();
+        }
+
         function applyFilters(preservePage = false) {
             searchQuery = document.getElementById('search-input').value.trim().toLowerCase();
             selectedSpec = document.getElementById('spec-filter').value;
@@ -1085,8 +1122,11 @@
                     }
                 }
 
-                // 2. Specialty Filter (Normalized)
-                if (selectedSpec !== 'all') {
+                // 2. The specialty residents («الأقدمون») or the rotators («الدوريون»)
+                if (isRotatorRes(r) !== (resKind === 'rotators')) return false;
+
+                // 3. Specialty Filter (Normalized; the specialty residents only)
+                if (resKind !== 'rotators' && selectedSpec !== 'all') {
                     const normSelected = (typeof Hub !== 'undefined' && Hub.normalizeSpecialtyId) ? Hub.normalizeSpecialtyId(selectedSpec) : selectedSpec;
                     const rSpec = (typeof Hub !== 'undefined' && Hub.normalizeSpecialtyId) ? Hub.normalizeSpecialtyId(r.spec) : r.spec;
                     const rTag = (typeof Hub !== 'undefined' && Hub.normalizeSpecialtyId) ? Hub.normalizeSpecialtyId(r.tag) : r.tag;

@@ -93,7 +93,7 @@ const EFFECTS = ['snow', 'rain', 'lightning', 'wind', 'fireworks', 'confetti', '
   'petals', 'balloons', 'bubbles', 'embers', 'dust', 'fog', 'sunrays', 'aurora', 'particles', 'glow', 'crescent', 'butterflies'];
 
 /** Checks an uploaded theme; returns { theme } (cleaned) or { error }. */
-function cleanTheme(t) {
+export function cleanTheme(t) {
   if (!t || typeof t !== 'object' || Array.isArray(t)) return { error: 'bad_theme' };
   if (t.format !== 'hubtheme/1') return { error: 'bad_format' };
   const id = String(t.id || '').toLowerCase();
